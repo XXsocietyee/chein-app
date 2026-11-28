@@ -28,7 +28,7 @@ import SwiftUI
             if requiresQuoteConfirmation {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "exclamationmark.bubble.fill")
-                        .accessibilityHidden(true).foregroundStyle(.orange)
+                        .accessibilityHidden(true).foregroundStyle(CYColor.warningText)
                     Text(verbatim: "报价版本或总价已变更，需消费者显式确认后方可继续")
                         .cyText(.bodyMedium)
                 }
@@ -100,7 +100,7 @@ import SwiftUI
                     if let refusal = reward.bindingRefusal {
                         Text(verbatim: "绑定拒绝原因：\(refusal.rawValue)")
                             .cyText(.caption)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                     }
                 }
                 .accessibilityIdentifier("commerceOrderLifecycle.reward")

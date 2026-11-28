@@ -339,7 +339,7 @@ struct OfficialOrganizerConsoleView: View {
             }
             ForEach(Array(model.check.risks.enumerated()), id: \.offset) { _, text in
                 Label { Text("activityR3.official.organizer.risk \(text)") } icon: { Image(systemName: "exclamationmark.triangle") }
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
             }
             hintText(.schedule)
             actionButton(.schedule)

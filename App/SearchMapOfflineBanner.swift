@@ -53,7 +53,7 @@ struct SearchMapOfflineBannerView: View {
                 Label {
                     Text(LocalizedStringKey(key)).font(.subheadline.weight(.semibold))
                 } icon: {
-                    Image(systemName: "wifi.slash").foregroundStyle(.orange)
+                    Image(systemName: "wifi.slash").foregroundStyle(CYColor.warningText)
                 }
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("searchMap.w208.offline.message")

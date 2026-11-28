@@ -257,7 +257,7 @@ import UIKit
                                     Label {
                                         Text("clubOps.settlement.rowUnverified", tableName: "ClubOpsCustomer")
                                     } icon: {
-                                        Image(systemName: "questionmark.circle").foregroundStyle(.orange)
+                                        Image(systemName: "questionmark.circle").foregroundStyle(CYColor.warningText)
                                     }
                                 }
                             }

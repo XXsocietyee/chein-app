@@ -75,7 +75,7 @@ struct DiscoveryTemplateBrowserView: View {
                                     Label {
                                         Text("discovery.templateTab.accessRetry")
                                     } icon: {
-                                        Image(systemName: "arrow.clockwise").foregroundStyle(.orange)
+                                        Image(systemName: "arrow.clockwise").foregroundStyle(CYColor.warningText)
                                     }
                                 }
                                 .accessibilityIdentifier("discovery.templateTab.retryAccess")
@@ -96,7 +96,7 @@ struct DiscoveryTemplateBrowserView: View {
                                     .foregroundStyle(.secondary)
                                     .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
                             } icon: {
-                                Image(systemName: "lock.fill").foregroundStyle(.orange).accessibilityHidden(true)
+                                Image(systemName: "lock.fill").foregroundStyle(CYColor.warningText).accessibilityHidden(true)
                             }
                             .accessibilityAddTraits(.isStaticText)
                         }

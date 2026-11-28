@@ -58,7 +58,7 @@ import SwiftUI
                         if row.isPaused {
                             Text(verbatim: c.t("本场活动已暂停，恢复前以主办通知为准。",
                                               "This event is paused. Updates will be shared by the organizer before resuming."))
-                                .font(.caption).foregroundStyle(.orange)
+                                .font(.caption).foregroundStyle(CYColor.warningText)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         if let summary = row.responsibilitySummary, !summary.isEmpty {

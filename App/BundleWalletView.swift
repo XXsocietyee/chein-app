@@ -91,7 +91,7 @@ import SwiftUI
             Label {
                 Text(verbatim: WalletCopy.bundle("wallet.expired"))
             } icon: {
-                Image(systemName: "clock.badge.exclamationmark").foregroundStyle(.orange)
+                Image(systemName: "clock.badge.exclamationmark").foregroundStyle(CYColor.warningText)
             }
                 .accessibilityIdentifier("bundle.wallet.expired")
                 .accessibilityLabel(text("wallet.expired"))

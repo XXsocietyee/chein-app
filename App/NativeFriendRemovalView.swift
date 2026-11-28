@@ -135,7 +135,7 @@ import SwiftUI
                 .modifier(CYOptionalAccessibilityIdentifier(identifier: identifier))
         } icon: {
             if let symbol {
-                Image(systemName: symbol).foregroundStyle(.orange).accessibilityHidden(true)
+                Image(systemName: symbol).foregroundStyle(CYColor.warningText).accessibilityHidden(true)
             }
         }
     }

@@ -116,7 +116,7 @@ struct SquareCloudStravaBlock: View {
                 HStack {
                     Text(verbatim: name).font(.headline).foregroundStyle(.primary).lineLimit(2)
                     if card.cleared == true {
-                        Image(systemName: "trophy.fill").foregroundStyle(.orange)
+                        Image(systemName: "trophy.fill").foregroundStyle(CYColor.medalGold)
                             .accessibilityLabel(Text(verbatim: copy("已通关", "Cleared")))
                     }
                 }
@@ -163,7 +163,7 @@ struct SquareCloudStravaBlock: View {
     private var clearedBanner: some View {
         Label { Text(verbatim: copy("已通关", "Cleared")) } icon: { Image(systemName: "trophy.fill").accessibilityHidden(true) }
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(.orange)
+            .foregroundStyle(CYColor.medalGold)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityIdentifier("square.cloud.cleared")
     }

@@ -49,7 +49,7 @@ extension EnvironmentValues {
             if let message { Text(LocalizedStringKey(message)).accessibilityIdentifier("squareReport.message") }
             if let receipt { receiptSection(receipt) }
             else if locked {
-                Label { Text("squareReport.locked") } icon: { Image(systemName: "lock").foregroundStyle(.orange) }
+                Label { Text("squareReport.locked") } icon: { Image(systemName: "lock").foregroundStyle(CYColor.warningText) }
                     .accessibilityIdentifier("squareReport.locked")
             }
             else if let snapshot {

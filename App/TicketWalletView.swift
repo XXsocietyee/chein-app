@@ -483,7 +483,7 @@ private struct TicketWalletCardTag: View {
                     .font(.footnote).foregroundStyle(.secondary)
             }
         } else if ticket.isRefunding {
-            Label { Text("ticketWallet.tag.refunding") } icon: { Image(systemName: "arrow.uturn.backward.circle").foregroundStyle(.orange) }
+            Label { Text("ticketWallet.tag.refunding") } icon: { Image(systemName: "arrow.uturn.backward.circle").foregroundStyle(CYColor.warningText) }
                 .font(.footnote).foregroundStyle(.secondary)
         } else if let cleared = ticket.clearedFlag {
             Label {

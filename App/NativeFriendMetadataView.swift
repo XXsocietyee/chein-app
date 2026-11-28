@@ -228,7 +228,7 @@ import SwiftUI
         } icon: {
             if let symbol {
                 Image(systemName: symbol)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .accessibilityHidden(true)
             }
         }

@@ -152,7 +152,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 if bound { Label(payoutText("payoutReceiver.bound", locale), systemImage: "checkmark").foregroundStyle(CYColor.successText) }
                 if let notice {
                     PayoutReceiverIssueText(issue: notice, fallbackKey: noticeFromUnbind ? "payoutReceiver.unbindFailed" : "payoutReceiver.bindFailed")
-                        .font(.footnote).foregroundStyle(.orange)
+                        .font(.footnote).foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("payoutReceiver.notice")
                 }
             } }
@@ -346,7 +346,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                     Label(String(localized: LocalizedStringResource("clubSettlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "PayoutReceiver", locale: locale)),
                           systemImage: "questionmark.circle")
                         .font(.subheadline)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                 }
             }
         }

@@ -335,7 +335,7 @@ public struct ClubChannelMessagingView: View {
                 .lineLimit(horizontal ? 1 : nil)
                 .fixedSize(horizontal: !horizontal ? false : true, vertical: true)
         } icon: {
-            Image(systemName: "hand.raised.shield.fill").foregroundStyle(.orange)
+            Image(systemName: "hand.raised.shield.fill").foregroundStyle(CYColor.warningText)
         }
         let button = Button {
             showRulesSheet = true
@@ -705,7 +705,7 @@ public struct ClubChannelMessagingView: View {
             if !moderationCoordinator.hasAcceptedRules && !isReadOnlyForViewer {
                 HStack(spacing: 6) {
                     Image(systemName: "lock.shield")
-                        .accessibilityHidden(true).foregroundStyle(.orange)
+                        .accessibilityHidden(true).foregroundStyle(CYColor.warningText)
                     Text(copy("请先在上方阅读并同意《俱乐部频道公约》后再发言。", "Please accept the Channel Rules & EULA above before sending messages."))
                         .font(.footnote)
                         .foregroundStyle(.secondary)

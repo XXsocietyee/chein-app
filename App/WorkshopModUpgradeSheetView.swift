@@ -78,7 +78,7 @@ public struct WorkshopModUpgradeSheetView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("workshopUpgrade.removed")
                                 .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(CYColor.warningText)
                             ForEach(presentation.removedCapabilities, id: \.self) { cap in
                                 Text(verbatim: "- \(cap)")
                                     .font(.footnote.monospaced())

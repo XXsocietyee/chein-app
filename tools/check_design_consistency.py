@@ -118,6 +118,9 @@ fixtures included; there is no Swift compiler in the lanes' cloud sessions):
   status hue      a `checkmark…` / `exclamationmark…` / `xmark…` glyph with a raw `.green` / `.orange` / `.red`
                   foreground on the same line, outside App/DesignSystem and the effect surfaces: use
                   `CYColor.successText` / `warningText` / `dangerText` (one done / warning / failed hue)
+  warning hue     a raw `.orange` foreground (`.foregroundStyle` / `.foregroundColor`) outside App/DesignSystem and the
+                  effect surfaces: pending / locked / offline / at-risk glyphs and notes use `CYColor.warningText`
+                  (achievement trophies use `CYColor.medalGold`, stars `CYColor.ratingStar`)
   error text hue  styled text (a `.font(...)` on the same line or within 3 lines above) drawn in a raw `.red`
                   foreground, outside App/DesignSystem and the effect surfaces: inline error / failure / validation
                   copy uses `CYColor.dangerText` (destructive buttons keep `role: .destructive` / system red)
@@ -321,6 +324,10 @@ ERROR_TEXT_HUE = 'error text hue'
 # failure copy drew in raw system `.red` on 14 pages and in `CYColor.dangerText` everywhere else. A raw red foreground
 # on styled text (a `.font(` on the line or within 3 lines above) uses the semantic token.
 ERROR_TEXT_RAW_RED = re.compile(r'\.(?:foregroundStyle|foregroundColor)\(\s*(?:Color)?\.red\b')
+WARNING_HUE = 'warning hue'
+# One warning hue (ADA audit §3 accent colours, ds-consistency run 48): pending / locked / offline / at-risk glyphs and
+# notes drew in raw system `.orange` on 28 pages and in `CYColor.warningText` everywhere else.
+WARNING_RAW_ORANGE = re.compile(r'\.(?:foregroundStyle|foregroundColor)\(\s*(?:Color)?\.orange\b')
 EFFECT_ON_CLEAN = 'effect on clean page'
 # OWNER RULE 3 (11-28): the 11-26 no-op effects are restored, but only for games, story flow, payment, maps and
 # celebration moments. Every other page stays clean (system components, no glow / foil / particles / glass).
@@ -343,6 +350,12 @@ EFFECT_KIT_FILES = tuple('App/DesignSystem/' + n + '.swift' for n in (
     'CYWeatherScene'))
 
 
+def STATUS_HUE_LINE(code):
+    # A warning glyph on the same line already counts as `status hue`; never report one line twice.
+    glyph = STATUS_GLYPH.search(code)
+    return bool(glyph and STATUS_RAW_HUE.search(code[glyph.start():]))
+
+
 def effect_surface(rel):
     return rel in EFFECT_KIT_FILES or rel.startswith(EFFECT_SURFACE_DIRS) or bool(EFFECT_SURFACE_NAME.match(rel))
 
@@ -352,7 +365,7 @@ KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, C
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
          ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, SECTION_SPACING, DUPLICATE_TYPE,
          UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT, EFFECT_ON_CLEAN, RAW_COUNT,
-         MANUAL_PAGING, RATING_HUE, STATUS_HUE, ERROR_TEXT_HUE)
+         MANUAL_PAGING, RATING_HUE, STATUS_HUE, ERROR_TEXT_HUE, WARNING_HUE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -743,6 +756,9 @@ def scan_file(rel, text):
             if ERROR_TEXT_RAW_RED.search(code) and \
                     any('.font(' in near for _, near in lines[max(0, index - 3):index + 1]):
                 hits.append((number, ERROR_TEXT_HUE, code.strip()))
+        for number, code in lines:
+            if WARNING_RAW_ORANGE.search(code) and not STATUS_HUE_LINE(code):
+                hits.append((number, WARNING_HUE, code.strip()))
     if is_root:
         has_large = any(ROOT_HEADER_PATTERN.search(c) or LARGE_PATTERN.search(c) for _, c in lines)
         if not has_large:
