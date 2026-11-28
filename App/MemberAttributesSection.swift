@@ -65,13 +65,13 @@ import SwiftUI
                 ProgressView(value: Double(min(max(Int(progress.current), 0), need)), total: Double(need)) {
                     Text(verbatim: copy("AXP 进度", "AXP progress")).font(.subheadline).foregroundStyle(.secondary)
                 } currentValueLabel: {
-                    Text(verbatim: "\(Int(progress.current)) / \(Int(progress.need))").monospacedDigit()
+                    Text(verbatim: "\(Int(progress.current)) / \(Int(progress.need))").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotal \(Int(progress.current)) \(Int(progress.need))"))
                 }
             }
             if let today = row.todayAxp {
                 let cap = row.softCap ?? Int64(row.attribute?.dailySoftCap ?? 0)
                 LabeledContent {
-                    Text(verbatim: "\(today) / \(cap)")
+                    Text(verbatim: "\(today) / \(cap)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(today)) \(Int(cap))"))
                 } label: {
                     Text(verbatim: copy("今日 AXP / 软上限", "Today AXP / soft cap"))
                 }

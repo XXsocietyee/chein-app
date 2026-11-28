@@ -69,13 +69,16 @@ extension EnvironmentValues {
                 }
                 if model.phase == .locationFailed { Text("nearbyMerchant.locationFailed").cyText(.meta).foregroundStyle(CYColor.warningText) }
                 if model.phase == .failed {
-                    // Mini `cy-error` fill state: title, reason, one retry action (below).
-                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        Text("cooperation.nearby.failed").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                        Text("cooperation.nearby.failed.detail").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.nearby.failed")
+                    // MP coop/nearby cy-error 附近商家加载失败 · sub · 重试: one state, the retry inside it.
+                    CYEmptyState(systemImage: "wifi.exclamationmark", "cooperation.nearby.failed",
+                                 detail: "cooperation.nearby.failed.detail", actionTitle: "nearbyMerchant.retry",
+                                 actionIdentifier: "nearbyMerchant.retry", kind: .failure) {
+                        operation = Task { await model.search(purposeAccepted: purposeAccepted) }
+                    }
+                    .disabled(!purposeAccepted || !model.available || model.isBusy)
+                    .accessibilityIdentifier("cooperation.nearby.failed")
                 }
-                if model.phase == .locationFailed || model.phase == .failed {
+                if model.phase == .locationFailed {
                     // Source `cy-error` retry: re-run the same explicit, consented search.
                     CYPillButton("nearbyMerchant.retry", style: .secondary) {
                         operation = Task { await model.search(purposeAccepted: purposeAccepted) }
@@ -84,22 +87,18 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("nearbyMerchant.retry")
                 }
                 if model.phase == .locationDenied {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text("nearbyMerchant.locationDenied.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                        Text("nearbyMerchant.locationDenied.detail").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        CYPillButton("nearbyMerchant.openSettings", style: .secondary) {
-                            if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
-                        }.frame(minHeight: 44).accessibilityIdentifier("nearbyMerchant.openSettings")
-                            .accessibilityLabel(Text("nearbyMerchant.openSettings"))
-                            .accessibilityValue(Text("nearbyMerchant.locationDenied.title"))
-                            .accessibilityHint(Text("nearbyMerchant.locationDenied.detail"))
-                    }.accessibilityElement(children: .contain).accessibilityIdentifier("nearbyMerchant.locationDenied")
+                    // MP coop/nearby cy-empty kind=permission 当前无法查看附近商家 · sub · 去设置 (one state).
+                    CYEmptyState(systemImage: "location.slash", "nearbyMerchant.locationDenied.title",
+                                 detail: "nearbyMerchant.locationDenied.detail", actionTitle: "nearbyMerchant.openSettings",
+                                 actionIdentifier: "nearbyMerchant.openSettings", actionStyle: .primary) {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                    }
+                    .accessibilityIdentifier("nearbyMerchant.locationDenied")
                 }
                 if model.phase == .permissionDenied {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("nearbyMerchant.permissionDenied.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                        Text("nearbyMerchant.permissionDenied.detail").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    }.accessibilityElement(children: .combine).accessibilityIdentifier("nearbyMerchant.permissionDenied")
+                    CYEmptyState(systemImage: "lock", "nearbyMerchant.permissionDenied.title",
+                                 detail: "nearbyMerchant.permissionDenied.detail")
+                        .accessibilityIdentifier("nearbyMerchant.permissionDenied")
                 }
             }
             if page.phase == .ready || page.phase == .empty {
@@ -118,14 +117,13 @@ extension EnvironmentValues {
                     }
                     if page.phase == .empty {
                         // Image parity: MP cy-empty kind="empty" → MPAsset.EmptyState art via "tray".
-                        CYEmptyState(systemImage: "tray", "cooperation.nearby.empty")
-                            .accessibilityIdentifier("cooperation.nearby.empty")
-                        // MC7-33-7: MP 刷新附近商家 re-runs the same consented search.
-                        Button { operation = Task { await model.search(purposeAccepted: purposeAccepted) } } label: {
-                            Label("merchantCoop.nearby.refresh", systemImage: "arrow.clockwise").frame(minHeight: CYSpacing.minTouchTarget)
+                        // MC7-33-7: MP cy-empty 附近暂无商家 · cta 刷新附近商家 re-runs the same consented search.
+                        CYEmptyState(systemImage: "tray", "cooperation.nearby.empty", actionTitle: "merchantCoop.nearby.refresh",
+                                     actionIdentifier: "cooperation.nearby.refresh") {
+                            operation = Task { await model.search(purposeAccepted: purposeAccepted) }
                         }
                         .disabled(!purposeAccepted || !model.available || model.isBusy)
-                        .accessibilityIdentifier("cooperation.nearby.refresh")
+                        .accessibilityIdentifier("cooperation.nearby.empty")
                     }
                     ForEach(model.rows) { row in
                         if model.publicHomeSelection(rowID: row.id) != nil {

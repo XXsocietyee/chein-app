@@ -22,9 +22,11 @@ extension EnvironmentValues {
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
-    /// OCARDS-2: card opened from the pile (offset into the loaded collection, with the scope it was tapped in).
+    /// OCARDS-2: card opened from the pile or the grid (offset into the loaded collection, with the scope it was tapped in).
+    /// Grid cells are plain buttons, not `NavigationLink`s: inside a List row the system draws a disclosure chevron next to
+    /// every link, which put stray chevrons between the grid's cards.
     @State private var pileSelection: PileSelection?
-    private struct PileSelection: Hashable, Identifiable { let id = UUID(); let offset: Int; let scope: UUID }
+    private struct PileSelection: Hashable, Identifiable { let id = UUID(); let offset: Int; let scope: UUID; var fromGrid = false }
     @Namespace private var hero
     private var scope: UUID { reader.scope }
     private var effectiveMedia: (any ObjectCardImageLoading)? { media ?? envMedia }
@@ -109,9 +111,8 @@ extension EnvironmentValues {
                             LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
                                 ForEach(Array(collection.cards.enumerated()), id: \.offset) { offset, card in
                                     let capturedScope = model.loadedScope ?? scope
-                                    NavigationLink {
-                                        ObjectCardDetailView(card: card, reader: reader, expectedScope: capturedScope, media: effectiveMedia)
-                                            .cyHeroDestination(offset, in: hero)
+                                    Button {
+                                        pileSelection = .init(offset: offset, scope: capturedScope, fromGrid: true)
                                     } label: {
                                         ObjectCardTile(card: card, media: effectiveMedia, expectedScope: capturedScope, currentScope: { reader.scope })
                                             .cyHeroSource(offset, in: hero)
@@ -138,7 +139,12 @@ extension EnvironmentValues {
         .navigationDestination(item: $pileSelection) { selected in
             if selected.scope == reader.scope, model.loadedScope == selected.scope,
                let cards = model.collection?.cards, cards.indices.contains(selected.offset) {
-                ObjectCardDetailView(card: cards[selected.offset], reader: reader, expectedScope: selected.scope, media: effectiveMedia)
+                if selected.fromGrid {
+                    ObjectCardDetailView(card: cards[selected.offset], reader: reader, expectedScope: selected.scope, media: effectiveMedia)
+                        .cyHeroDestination(selected.offset, in: hero)
+                } else {
+                    ObjectCardDetailView(card: cards[selected.offset], reader: reader, expectedScope: selected.scope, media: effectiveMedia)
+                }
             } else { Text("objects.sessionChanged") }
         }
         .onChange(of: scope) { _, _ in pileSelection = nil }

@@ -2606,7 +2606,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Shared routes in a session"
+          "value": "Shared routes"
         }
       },
       "zh-Hans": {
@@ -2623,7 +2623,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Team play doesn't support replaying alone. Turn off Allow playing again."
+          "value": "Team play can’t be replayed alone. Turn off “Allow playing again.”"
         }
       },
       "zh-Hans": {

@@ -221,6 +221,14 @@ import FoundationNetworking
         service.shops = [shop]; await owner.start(purposeAccepted: true); await owner.visitRegisteredShop(shop)
         XCTAssertEqual(service.lastShopType, 2); XCTAssertEqual(service.lastShopID, 61); XCTAssertTrue(owner.registeredShopConfirmed(shop))
     }
+    func testLiveMerchantLayerDropsCityTopicShopsLikeMP() throws {
+        func node(_ json: String) throws -> RoamRouteNode { try JSONDecoder().decode(RoamRouteNode.self, from: Data(json.utf8)) }
+        XCTAssertTrue(try node(#"{"id":1,"latitude":31.2,"longitude":121.4}"#).isLiveMerchantLayerShop)
+        XCTAssertTrue(try node(#"{"id":2,"topicId":0,"latitude":31.2,"longitude":121.4}"#).isLiveMerchantLayerShop)
+        XCTAssertTrue(try node(#"{"id":3,"topicId":7,"productType":"2","latitude":31.2,"longitude":121.4}"#).isLiveMerchantLayerShop)
+        XCTAssertFalse(try node(#"{"id":4,"topicId":7,"productType":1,"latitude":31.2,"longitude":121.4}"#).isLiveMerchantLayerShop)
+        XCTAssertFalse(try node(#"{"id":5,"topicId":7,"latitude":31.2,"longitude":121.4}"#).isLiveMerchantLayerShop)
+    }
     func testFinishUsesReadbackAndArchivesOnlyCompleteMatchingFact() async throws {
         let (owner, service, _, storage, scope) = try fixture(); await owner.start(purposeAccepted: true)
         await owner.finish(); XCTAssertEqual(service.finishes, 1); XCTAssertEqual(service.reads, 1); XCTAssertEqual(owner.phase, .finished)
