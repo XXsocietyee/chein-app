@@ -710,3 +710,11 @@ For the coordinator: `ia-passport` in the mp-mine sheet is still the black launc
 For other lanes (mp-activity): the registration sheet uses the same `E1CoverArt` fallback, so its no-cover thumbnail now shows the tinted route illustration too.
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. Open rows unchanged (1–3 blocked). **Half done**; run stops here per the 15:45 split rule.
+
+## Continue 45 (11-28, hourly run): A half still blocked
+
+Merged `origin/ui/combined-r7` (clean). No `docs/release/receipts/cursor-k50-p*.md` on any branch yet, so there are no K50 `lane-layout` rows for mp-mine. Sweep unchanged (build c4e43841a, checked in continue 44); no mp-mine coordinator rows after 13:15. B lane run 4 changed nothing to mark.
+
+Half split at run start (open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin still in `docs/issue5-hunks/C02-ios-pbx.rnhunk.md`) · 2 `pass-unlock` rest (`App/MPParityKit.swift:12` `MPCommerceGate.purchasesEnabled = false`) | 3 P2-5c (backend / legal). **A half = rows 1–2, both still blocked**; no code change this run.
+
+**Half done**; run stops here per the 15:45 split rule.
