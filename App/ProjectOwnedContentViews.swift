@@ -4,7 +4,7 @@ import SwiftUI
 /// converted into an owner scope or an editable draft.
 @MainActor final class ProjectOwnedContentNavigation: ObservableObject {
     struct Selection: Identifiable, Hashable {
-        let id = UUID()
+        nonisolated let id = UUID()
         let project: CreatorContentProject
         let scope: UUID
         /// Captured once at open; closing only clears the selection and never rewrites
