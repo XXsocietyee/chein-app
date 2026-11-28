@@ -362828,6 +362828,74 @@
           }
         }
       }
+    },
+    "mpPublish.values.custom.notEnabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn this value on in the starting state first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先在初始状态中启用注册属性"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.definitionChanged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This value's definition changed. Reload it, then edit the link."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "属性定义已变化，请重新读取后编辑关联"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.boundFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The name and range come from the registry. Only the link can change here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称和范围由注册表管理，这里只能修改关联。"
+          }
+        }
+      }
+    },
+    "mpPublish.values.ref.node %lld %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "chapter %1$lld stop “%2$@” gameplay binding · %3$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第%1$lld章节点「%2$@」玩法绑定 · %3$@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
