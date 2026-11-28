@@ -438,9 +438,9 @@ struct RoamPOIMissingView: View {
             .onAppear(perform: openCameraFirst)
             // Next-round motion: success when the note lands in the mailbox, warning on a failed send,
             // a selection tick when the dragged note arms the mailbox.
-            .cyHaptic(.success, trigger: receipt != nil) { old, new in !old && new }
-            .cyHaptic(.warning, trigger: failed) { old, new in !old && new }
-            .cyHaptic(.selection, trigger: boxArmed) { old, new in !old && new }
+            .cyHaptic(.success, trigger: receipt != nil, where: CYHapticTransition.turnedOn)
+            .cyHaptic(.warning, trigger: failed, where: CYHapticTransition.turnedOn)
+            .cyHaptic(.selection, trigger: boxArmed, where: CYHapticTransition.turnedOn)
             .accessibilityIdentifier("roamSub.w208.stamp.flow")
         .cyDomainScreen(.player)
     }
@@ -630,8 +630,8 @@ struct RoamPOIMissingView: View {
         }
         .cyAnimation(CYMotion.standard, value: torn)
         .cyAnimation(CYMotion.standard, value: revealed)
-        .cyHaptic(.impactMedium, trigger: torn) { old, new in !old && new }
-        .cyHaptic(.success, trigger: revealed) { old, new in !old && new }
+        .cyHaptic(.impactMedium, trigger: torn, where: CYHapticTransition.turnedOn)
+        .cyHaptic(.success, trigger: revealed, where: CYHapticTransition.turnedOn)
     }
     private var paper: some View {
         VStack(alignment: .leading, spacing: 10) {

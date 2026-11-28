@@ -4,16 +4,24 @@ import SwiftUI
 // theme-runtime.js onRuntimeActionToggle / onRuntimeActionLimit / onRuntimeName (actionName) / _validateRuntimeConfig
 // theme-ownership.js onThemeConsumeOnNoEffect / runtimeConsumeOnNoEffectDisabledReason
 
-/// The 行动次数 row (switch, value line, 显示名称 and 上限 while editing) and the closing
+/// The 生命值 / 幸运值 rows (`ProjectEditRuntimeStatRow`), the 行动次数 row (switch, value line, 显示名称 and 上限 while editing) and the closing
 /// 没有实际效果时也消耗 switch of the MP runtime-values card. Bound to Core `ProjectEditThemeRules`;
 /// no request, the topic save carries `themeRuntimeConfig`.
 @MainActor struct ProjectEditRuntimeValuesRows: View {
     @ObservedObject var model: ProjectEditModel
-    @State private var editingAction = false
+    /// MP `runtimeEditingStat`: "hp", "luck" or "action"; one row's fields are open at a time.
+    @State private var editing: String?
     @State private var refusalKey: String?
+
+    private var editingAction: Bool { editing == "action" }
 
     var body: some View {
         Section {
+            // MP topic-detail-sheet.wxml:115-123: 生命值 then 幸运值 open the card (schema-1 journeyRules only).
+            if ProjectEditRuntimeStats.available(in: model.draft) {
+                ProjectEditRuntimeStatRow(model: model, stat: .hp, editing: $editing, refusalKey: $refusalKey)
+                ProjectEditRuntimeStatRow(model: model, stat: .luck, editing: $editing, refusalKey: $refusalKey)
+            }
             actionToggle
             editButton
             if editingAction {
@@ -58,7 +66,7 @@ import SwiftUI
     /// MP 编辑 pill: opens 显示名称 / 上限 under the row; a second tap closes them.
     private var editButton: some View {
         Button {
-            editingAction.toggle()
+            editing = editingAction ? nil : "action"
         } label: {
             LabeledContent {
                 Image(systemName: "chevron.right")
@@ -121,7 +129,7 @@ import SwiftUI
 
     private func setActionEnabled(_ enabled: Bool) {
         apply { try ProjectEditThemeRules.setActionEnabled(enabled, in: $0) }
-        if !enabled { editingAction = false }
+        if !enabled && editingAction { editing = nil }
     }
 
     private func setActionLimit(_ value: Int) {

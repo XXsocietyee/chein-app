@@ -221,8 +221,7 @@ import UIKit
         case .done(let receipt):
             RoamStampSlipView(slip: RoamStampSlip(receipt), place: Text("roamSub.w208.stamp.defaultPlace"), openedAt: exchangeStarted)
         case .working:
-            CYSkeleton()
-                .accessibilityLabel(Text("roam.stamp.exchange.working"))
+            CYSkeleton(label: "roam.stamp.exchange.working")
         case .idle, .failed:
             if exchangePhase == .failed {
                 Label("roam.stamp.exchange.failed", systemImage: "exclamationmark.triangle").cyText(.bodyCompact).foregroundStyle(palette.danger)
@@ -379,7 +378,7 @@ import UIKit
             .foregroundStyle(.green)
             .symbolEffect(.bounce, value: landed)
             .frame(maxWidth: .infinity, minHeight: 96)
-        .cyHaptic(.success, trigger: landed) { _, new in new }
+        .cyHaptic(.success, trigger: landed, where: CYHapticTransition.isOn)
         .task {
             try? await Task.sleep(for: .milliseconds(350))
             landed = true

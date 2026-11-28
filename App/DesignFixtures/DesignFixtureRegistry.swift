@@ -26,6 +26,8 @@ enum DesignFixtureRegistry {
         case "kit-merchant": return AnyView(KitGalleryFixture(domain: .merchant))
         case "d2-home": return AnyView(D2Fixture(screen: .home))
         case "d2-home-offline": return AnyView(D2Fixture(screen: .homeOffline))
+        case "d2-home-empty": return AnyView(D2Fixture(screen: .homeEmpty))
+        case "d2-home-failed": return AnyView(D2Fixture(screen: .homeSectionFailed))
         case "d2-search": return AnyView(D2Fixture(screen: .search))
         case "d2-search-results": return AnyView(D2Fixture(screen: .searchResults))
         case "d2-search-empty": return AnyView(D2Fixture(screen: .searchEmpty))
@@ -130,6 +132,10 @@ enum DesignFixtureRegistry {
         case "r3-roam-history": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .content), toolsReader: RoamPassportToolsFixtureReader(scenario: .content)) })
         case "r3-roam-history-empty": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
         case "r3-roam-history-error": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
+        // mp-roam r3: 本次漫游 (scene-roam-session) content / not-found / error states for the sweep.
+        case "r3-roam-session": return AnyView(NavigationStack { RoamHistoryDetailView(reader: RoamExperienceFixtureReader(scenario: .content), timestamp: 1_700_000_000_000) })
+        case "r3-roam-session-missing": return AnyView(NavigationStack { RoamHistoryDetailView(reader: RoamExperienceFixtureReader(scenario: .content), timestamp: 1) })
+        case "r3-roam-session-error": return AnyView(NavigationStack { RoamHistoryDetailView(reader: RoamExperienceFixtureReader(scenario: .failure), timestamp: 1_700_000_000_000) })
         // mp-roam r3: 集邮册 (scene-roam-stamp-album) empty / error states for the sweep (content = e2-stamp-album).
         case "r3-roam-stamp-album-empty": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
         case "r3-roam-stamp-album-error": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
@@ -140,6 +146,11 @@ enum DesignFixtureRegistry {
         case "r3-roam-route": return RoamR3RoutesFixture.makeDetail(.content)
         case "r3-roam-route-error": return RoamR3RoutesFixture.makeDetail(.failure)
         case "r3-roam-route-notfound": return RoamR3RoutesFixture.makeDetail(.notFound)
+        // mp-roam r3: 地点详情 (subpackageRoam/poi-detail → scene-roam-poi-detail) node card / error / unavailable / missing.
+        case "r3-roam-poi": return RoamR3PoiFixture.make(.content)
+        case "r3-roam-poi-error": return RoamR3PoiFixture.make(.failure)
+        case "r3-roam-poi-unavailable": return RoamR3PoiFixture.make(.unavailable)
+        case "r3-roam-poi-missing": return RoamR3PoiFixture.make(.missing)
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).

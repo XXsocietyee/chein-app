@@ -435,7 +435,7 @@ struct CYRoamNearbyCard: View {
         }
         .buttonStyle(CYPressableStyle())
         .modifier(CYRoamCardParallax(enabled: !reduceMotion))
-        .cyHaptic(.selection, trigger: selected) { old, new in !old && new }
+        .cyHaptic(.selection, trigger: selected, where: CYHapticTransition.turnedOn)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 

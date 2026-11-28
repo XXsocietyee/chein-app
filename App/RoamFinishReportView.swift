@@ -90,7 +90,7 @@ struct RoamFinishReport: Equatable {
         // OWNER RULE 2: inline nav bar, system back kept; the actions live in the bottom bar (P30).
         .toolbar(.visible, for: .navigationBar)
         .navigationBarTitleDisplayMode(.inline)
-        .sensoryFeedback(.success, trigger: revealed) { _, new in new }
+        .sensoryFeedback(.success, trigger: revealed, condition: CYHapticTransition.isOn)
         .cySheet(isPresented: $showShare) {
             Group { if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } } }
                 .cySheet(detents: [.large])

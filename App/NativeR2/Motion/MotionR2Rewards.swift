@@ -143,7 +143,7 @@ struct MotionR2RewardReveal: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 240)
-        .sensoryFeedback(.success, trigger: revealed) { old, new in !old && new }
+        .sensoryFeedback(.success, trigger: revealed, condition: CYHapticTransition.turnedOn)
         .onAppear { if !live, !revealed { revealed = true; announce() } }
     }
 

@@ -160,8 +160,7 @@ import SwiftUI
                     .accessibilityLabel(Text("playx.audioClip.cancel"))
                     .accessibilityIdentifier("playx.audioClip.cancel")
                 case .uploading:
-                    CYSkeleton()
-                        .accessibilityLabel(Text("playx.loading"))
+                    CYSkeleton(label: "playx.loading")
                         .accessibilityIdentifier("playx.audioClip.uploading")
                 case .completed:
                     if let payload = model.sourcePayload {

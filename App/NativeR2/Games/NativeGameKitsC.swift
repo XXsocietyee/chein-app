@@ -227,7 +227,7 @@ extension PlayKitScreen {
         }
         .sensoryFeedback(.selection, trigger: pickedIndex)
         .sensoryFeedback(.impact(weight: .light), trigger: order)
-        .sensoryFeedback(.success, trigger: solved) { old, next in !old && next }
+        .sensoryFeedback(.success, trigger: solved, condition: CYHapticTransition.turnedOn)
         .onAppear { if order.isEmpty { order = serverOrder } }
         .onChange(of: serverOrder) { _, incoming in order = incoming; pickedIndex = nil }
         .onChange(of: publishKey, initial: true) { _, _ in publish(primaryAction) }
@@ -336,7 +336,7 @@ extension PlayKitScreen {
                                 : Text(verbatim: coverLabel ?? appLocalized("playkit.scratch.coverPrompt", locale: .current)))
             .accessibilityIdentifier("playkit.scratchCard.surface")
         }
-        .sensoryFeedback(.success, trigger: isRevealed) { old, next in !old && next }
+        .sensoryFeedback(.success, trigger: isRevealed, condition: CYHapticTransition.turnedOn)
         // Motion r2 R3: a selection tick per quarter scratched.
         .sensoryFeedback(.selection, trigger: Int(tracker.progress * 4)) { old, next in NativeR2Flags.motion2 && next > old }
         .onChange(of: publishKey, initial: true) { _, _ in publish(primaryAction) }
@@ -572,8 +572,8 @@ extension PlayKitScreen {
         }
         .onChange(of: projection.suspects.count) { _, count in current = min(current, max(0, count - 1)) }
         .onChange(of: publishKey, initial: true) { _, _ in publish(primaryAction) }
-        .sensoryFeedback(.error, trigger: projection.wrongAttempt) { old, next in !old && next }
-        .sensoryFeedback(.success, trigger: won) { old, next in !old && next }
+        .sensoryFeedback(.error, trigger: projection.wrongAttempt, condition: CYHapticTransition.turnedOn)
+        .sensoryFeedback(.success, trigger: won, condition: CYHapticTransition.turnedOn)
         .confirmationDialog(confirmTitle, isPresented: $confirmOpen, titleVisibility: .visible, presenting: suspect) { target in
             Button("playkit.accusation.confirm", role: .destructive) {
                 guard let accuse else {

@@ -26,6 +26,7 @@ struct CYResultButton: View {
     private let size: CYPillSize
     private let fullWidth: Bool
     private let phase: CYResultPhase
+    private static func becameDone(_ old: CYResultPhase, _ new: CYResultPhase) -> Bool { new == .done }
     private let action: () -> Void
     private var identifierValue: String?
 
@@ -72,7 +73,7 @@ struct CYResultButton: View {
         }
         .buttonStyle(CYPillButtonStyle(style: style, fullWidth: fullWidth, size: size))
         .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: phase)
-        .cyHaptic(.success, trigger: phase) { _, new in new == .done }
+        .cyHaptic(.success, trigger: phase, where: Self.becameDone)
         .onChange(of: phase) { _, new in
             guard new == .done, let text = spoken[.done] else { return }
             AccessibilityNotification.Announcement(text).post()
@@ -121,6 +122,8 @@ struct CYResultToastState: Equatable, Sendable {
 /// the trailing action enters last (+300 ms, blurReplace). The capsule width grows once on `CYMotion.standard`.
 struct CYResultToast: View {
     let state: CYResultToastState
+    private static func becameDone(_ old: CYResultToastState.Phase, _ new: CYResultToastState.Phase) -> Bool { new == .done }
+    private static func becameFailed(_ old: CYResultToastState.Phase, _ new: CYResultToastState.Phase) -> Bool { new == .failed }
     var onAction: (() -> Void)?
 
     @Environment(\.cyPalette) private var palette
@@ -181,8 +184,8 @@ struct CYResultToast: View {
             guard !Task.isCancelled else { return }
             showsAction = true
         }
-        .cyHaptic(.success, trigger: state.phase) { _, new in new == .done }
-        .cyHaptic(.error, trigger: state.phase) { _, new in new == .failed }
+        .cyHaptic(.success, trigger: state.phase, where: Self.becameDone)
+        .cyHaptic(.error, trigger: state.phase, where: Self.becameFailed)
         .onChange(of: state) { _, new in
             guard new.phase != .progress else { return }
             AccessibilityNotification.Announcement(new.message).post()
@@ -407,6 +410,7 @@ private struct CYInPlaceResultPreview: View {
 struct CYStreakRow: View {
     /// Consecutive days including today; nil hides the row (unknown is never drawn as zero).
     let streakDays: Int
+    private static func grew(_ old: Int, _ new: Int) -> Bool { new > old }
     var today = Date()
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
@@ -437,7 +441,7 @@ struct CYStreakRow: View {
                 .frame(maxWidth: .infinity)
             }
         }
-        .cyHaptic(.impactLight, trigger: streakDays) { old, new in new > old }
+        .cyHaptic(.impactLight, trigger: streakDays, where: Self.grew)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: locale.language.languageCode?.identifier == "zh"
                                  ? "连续探索 \(streakDays) 天" : "\(streakDays)-day exploring streak"))
@@ -459,6 +463,7 @@ struct CYStreakRow: View {
 struct CYMomentSeal: View {
     let text: Text
     let landed: Bool
+    private static func didLand(_ old: Bool, _ new: Bool) -> Bool { new }
     @QuestifyReduceMotion private var reduceMotion
     @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 96
 
@@ -484,7 +489,7 @@ struct CYMomentSeal: View {
         .opacity(landed ? 1 : 0)
         .shadow(color: .black.opacity(0.35), radius: 12, y: 8)
         .animation(reduceMotion ? CYMotion.reduced : CYMotion.seal, value: landed)
-        .cyHaptic(.impactHeavy, trigger: landed) { _, new in new }
+        .cyHaptic(.impactHeavy, trigger: landed, where: Self.didLand)
         .accessibilityHidden(true)
     }
 }

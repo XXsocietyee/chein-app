@@ -142,7 +142,7 @@ import SwiftUI
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.flow.close(); dismiss() } } }
             .task { await model.flow.loadQuota() }.onDisappear { model.flow.close() }
             // `.success` once when a draft lands (not on re-render, not when it is cleared).
-            .sensoryFeedback(.success, trigger: model.flow.candidateGeneration) { old, new in new != nil && old != new }
+            .sensoryFeedback(.success, trigger: model.flow.candidateGeneration, condition: CYHapticTransition.isSet)
         }
     }
 }

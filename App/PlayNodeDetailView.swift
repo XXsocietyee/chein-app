@@ -24,7 +24,7 @@ struct PlayNodeDetailView: View {
             if model.reader.identity == nil {
                 PlayIssueView(issue: .init(APIError.unauthorized))
             } else if model.isLoading {
-                CYSkeleton().padding(CYSpacing.pageHorizontal).accessibilityLabel(Text("play.loading"))
+                CYSkeleton(label: "play.loading").padding(CYSpacing.pageHorizontal)
             } else if let issue = model.visibleIssue {
                 VStack {
                     if let receipt = model.visibleReceipt { PlayReceiptView(receipt: receipt).padding() }

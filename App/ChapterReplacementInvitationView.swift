@@ -146,10 +146,7 @@ struct ChapterReplacementInvitationView: View {
         .themeDomain(.player)
         .cyHeroScreen()
         .cyAnimation(value: model.phase)
-        .cyHaptic(.impactMedium, trigger: model.phase) { _, new in
-            if case .sending = new { return true }
-            return false
-        }
+        .cyHaptic(.impactMedium, trigger: model.phase, where: Self.startedSending)
         .task { await model.load() }
     }
 
@@ -336,5 +333,13 @@ struct ChapterReplacementInvitationView: View {
 
     private func isRawKey(_ raw: String) -> Bool {
         raw.range(of: #"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$"#, options: .regularExpression) != nil
+    }
+}
+
+/// Typed haptic condition (design consistency `untyped haptic`): fires when the state lands on `.sending`.
+private extension ChapterReplacementInvitationView {
+    static func startedSending(_ old: ChapterReplacementInvitationCoordinator.Phase, _ new: ChapterReplacementInvitationCoordinator.Phase) -> Bool {
+        if case .sending = new { return true }
+        return false
     }
 }
