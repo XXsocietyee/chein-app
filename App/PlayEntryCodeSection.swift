@@ -12,22 +12,13 @@ struct PlayEntryCodeContext {
 /// without a registration it explains 从票夹进入才能出示入场码 instead of guessing a ticket.
 @MainActor struct PlayEntryCodeSection: View {
     let context: PlayEntryCodeContext
-    @Environment(\.verificationCodeFactory) private var codeFactory
     @State private var explainMissing = false
 
     var body: some View {
         Section {
             if let registration = context.registrationID, registration > 0 {
                 NavigationLink {
-                    if let codeFactory {
-                        VerificationCodeView(model: codeFactory(.init(kind: .ticket, id: registration)))
-                    } else {
-                        ContentUnavailableView {
-                            Label("verificationCode.ticket.title", systemImage: "ticket")
-                        } description: {
-                            Text("verificationCode.phase.disabled").accessibilityIdentifier("verificationCode.disabled")
-                        }
-                    }
+                    PlayEntryCodeDestination(registrationID: registration)
                 } label: { Label("playx.entryCode.open", systemImage: "qrcode").cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("playx.entryCode.open")
@@ -44,6 +35,26 @@ struct PlayEntryCodeContext {
             Button("playx.entryCode.missing.later", role: .cancel) {}
         } message: {
             Text("playx.entryCode.missing.body")
+        }
+    }
+}
+
+/// The pushed 入场码 page (MP `scene-qr-ticket`): the approval-gated dynamic ticket code for one registration,
+/// or the disabled state when no verification-code factory is installed. Shared by the page row and the
+/// 游玩工具 row.
+@MainActor struct PlayEntryCodeDestination: View {
+    let registrationID: Int
+    @Environment(\.verificationCodeFactory) private var codeFactory
+
+    var body: some View {
+        if let codeFactory {
+            VerificationCodeView(model: codeFactory(.init(kind: .ticket, id: registrationID)))
+        } else {
+            ContentUnavailableView {
+                Label("verificationCode.ticket.title", systemImage: "ticket")
+            } description: {
+                Text("verificationCode.phase.disabled").accessibilityIdentifier("verificationCode.disabled")
+            }
         }
     }
 }

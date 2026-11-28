@@ -531,7 +531,7 @@ struct PlayThemeMusicKey: Equatable {
                 TeamPoolRunStatusSection(model: runTeamPool)
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
-            if let entryCode { PlayEntryCodeSection(context: entryCode) }
+            // MP D1: 入场码 opens only from the 游玩工具 row (`openTicketFromTools`), not from the page.
             if let cityGameModel {
                 Section { CityGamePanel(model: cityGameModel, read: cityGameModel.read, boardLayout: true) }
                     .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
@@ -760,7 +760,8 @@ struct PlayThemeMusicKey: Equatable {
             teamLead: model.lead,
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
             boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
-            scoreDestination: orientScoreDestination
+            scoreDestination: orientScoreDestination,
+            entryCodeRegistrationID: entryCode?.registrationID
         )
     }
     /// mp-journey r3: MP `_orientSessionId` (mode 1 and `routeState.sessionId`) opens 本局成绩; natively that is the
