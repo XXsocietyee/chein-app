@@ -68,7 +68,8 @@ extension ReviewedProductionFormMutationRoute {
         }
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
         if relative == "api/registration/create" {
-            return method == "POST" && grant.registration.paths.contains(relative) && freeRegistrationBody(request)
+            return method == "POST" && grant.registration.paths.contains(relative)
+                && registrationCreateBody(request, paymentsOpen: ReleaseMoneyWriteSwitch.paymentEnabled)
         }
         if let channel = NativeChannelTextRoute(request: request, baseURL: baseURL) {
             let approval = channel.operation == .send ? grant.channelTextSend : grant.channelTextReceipt
@@ -429,15 +430,18 @@ extension ReviewedProductionFormMutationRoute {
         return mode == "PERK" || mode == "TRAFFIC"
     }
 
-    /// A create with `payChannel` or a positive amount is a payment step and stays closed.
-    static func freeRegistrationBody(_ request: URLRequest) -> Bool {
+    /// fix/1128-cn-pay P0-1: `POST api/registration/create` (backend `RegistrationRequest`, JSON body).
+    /// A free create carries no channel. A paid create carries `payChannel` = `APP` (WeChat APP prepay, backend
+    /// `RegistrationCheckoutServiceImpl.isAppChannel`) and is admitted only while the payment switch is on.
+    /// Any other channel (MP JSAPI, XPAY) and any client-side amount stay refused: the server prices from `quoteSign`.
+    static func registrationCreateBody(_ request: URLRequest, paymentsOpen: Bool) -> Bool {
         guard let body = request.httpBody,
-              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
-              object["payChannel"] == nil else { return false }
-        for key in ["payAmount", "price", "amount", "payableAmount"] {
-            if let number = object[key] as? NSNumber, number.doubleValue > 0 { return false }
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return false }
+        for key in ["payAmount", "price", "amount", "payableAmount"] where object[key] != nil {
+            guard let number = object[key] as? NSNumber, number.doubleValue <= 0 || paymentsOpen else { return false }
         }
-        return true
+        guard let channel = object["payChannel"] else { return true }
+        return paymentsOpen && (channel as? String) == "APP"
     }
 
     static func stableCommunityRequestID(_ request: URLRequest) -> Bool {
@@ -1434,7 +1438,10 @@ enum ReviewedPlayerReadRoute {
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, role: context.role,
             sourceRevision: OrderLifecycleSourceContract.revision, approvals: [],
-            externalCheckoutApproved: false, devicePaymentApproved: false,
+            // fix/1128-cn-pay P0-2: the device (WeChat SDK) payment follows the payment switch. Order-detail Pay runs
+            // through RegistrationPaySection (`pay/app` → WeChat SDK → one `registration/info` read); the review-sheet
+            // payment stays closed (externalCheckoutApproved false, no payment approval) and is not shown (P1-4).
+            externalCheckoutApproved: false, devicePaymentApproved: ReleaseMoneyWriteSwitch.paymentEnabled,
             allowsReviewedCancellationAndRefund: true
         )
         var imRoutes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [
@@ -1460,6 +1467,7 @@ enum ReviewedPlayerReadRoute {
         return NativeRuntimeDependencies(
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
+            weChatPaymentConfiguration: WeChatPaymentBuildSettings.current,
             couponCodeApproval: couponCodeApproval,
             // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js:143-200): the owner 清退并退款.
             ownerRefundApproval: playerWritesEnabled ? MPFirstClubApprovals.ownerRefund(context) : nil,
