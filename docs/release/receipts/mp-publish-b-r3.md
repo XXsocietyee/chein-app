@@ -23,7 +23,7 @@ MP source: `origin/mp-source:chengyinhub-xcx`. Merchant and the story-flow theme
 - **K50-P (behaviour, `publish/temp`):** the 参与方式 dropdown is missing (MP `r5-editor.js` `PARTICIPATION` + `pickParticipation`: 直接参与 0 / 定位到达 5 / 扫码参与 4, `scan.enabled`, settled-topic refusal of 直接参与). Native `TemplateAuthoringMethod` mixes participation and gameplay in `validationMethod`, so this needs a model decision, not a layout row. Also the legacy 语音 / 图片 扫完回复 row (`openScanSheet`).
 
 ## Gates (last run on the branch head)
-`generate_project.py` ✓ · `check_scaffold.py` PASS · `check_a11y_lint.py` PASS (0 new) · `contract_ratchet.py --check` 46 failing = baseline 46, **new 0** (re-run after the 高级设置 copy fix) · `check_design_consistency.py` PASS · `check_design_lint.py` PASS · `check_missing_string_keys.py` missing 0.
+`generate_project.py` ✓ · `check_scaffold.py` PASS · `check_a11y_lint.py` PASS (0 new) · `contract_ratchet.py --check` 46 failing = baseline 46, **new 0** (re-run after the 玩法 / 玩法设置 copy fix) · `check_design_consistency.py` PASS · `check_design_lint.py` PASS · `check_missing_string_keys.py` missing 0.
 
 ## Next (bottom-up, for the next run)
 Half split (brief "B lanes: collision fix"): the A lane wrote "A half done" (11-28 ~17:00 UTC); the B lane owns `publish/temp` audit → `publish/fabu` internals. Every other row in the B half is closed.

@@ -44,6 +44,9 @@ import SwiftUI
         .refreshable { let revision = model.revision; await model.refresh(expectedRevision: revision) }
         .task { await model.refresh(expectedRevision: model.revision) }
         .onChange(of: scenePhase) { _, phase in if phase == .active { let revision = model.revision; Task { await model.refresh(expectedRevision: revision) } } }
+        .onChange(of: model.snapshot?.authorization) { _, authorization in
+            RemotePushRegistrationClient.consider(authorization: authorization)
+        }
         .onDisappear { model.retire() }
     }
     private func label(_ setting: NativeNotificationPermissionSetting) -> String {

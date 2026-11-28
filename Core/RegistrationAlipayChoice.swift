@@ -7,7 +7,8 @@ public extension RegistrationPayMethod {
     /// `APP_ALIPAY` but not WeChat `APP` defaults to Alipay.
     static func effective(selection: RegistrationPayMethod?, market: RegionalMarket?, applePayAvailable: Bool,
                           alipayOffered: Bool, paymentChannels: [String]?) -> RegistrationPayMethod {
-        let offered = options(market: market, applePayAvailable: applePayAvailable, alipayReady: alipayOffered)
+        let offered = options(market: market, applePayAvailable: applePayAvailable, alipayReady: alipayOffered,
+                              paymentChannels: paymentChannels)
         if let selection, offered.contains(selection) { return selection }
         if offered.contains(.alipay), let paymentChannels, !paymentChannels.contains("APP") { return .alipay }
         return offered[0]
