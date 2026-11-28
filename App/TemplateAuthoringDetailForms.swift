@@ -123,9 +123,9 @@ import SwiftUI
                 if rewards.isEnabled(.coupon) {
                     TemplateAuthoringField("couponId", text: rewards.coupon())
                 }
-                Toggle("templateRewardKinds.feedback", isOn: rewards.toggle(.feedback))
-                    .accessibilityIdentifier("templateRewardKinds.feedback")
                 if rewards.isEnabled(.feedback) {
+                    Toggle("templateRewardKinds.feedback", isOn: rewards.toggle(.feedback))
+                        .accessibilityIdentifier("templateRewardKinds.feedback")
                     TemplateAuthoringField("feedbackText", text: rewards.text(.feedback), multiline: true)
                 }
                 Toggle("templateRewardKinds.medal", isOn: rewards.toggle(.medal))

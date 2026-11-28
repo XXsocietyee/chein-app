@@ -21,6 +21,14 @@ class RewardKindContracts(unittest.TestCase):
         self.assertIn("action: model.clearRewardMedalAction()", reward)
         self.assertIn(".disabled(!model.canEdit)", reward)
 
+    def test_feedback_row_only_for_templates_that_already_have_text(self):
+        # MP publish/temp/index.wxml:1409 `cg-rw-row wx:if="{{ rwText }}"`: 文字反馈 is no longer offered (2026-10-22);
+        # an old template keeps its row until switched off, which clears it.
+        forms = (ROOT / "App/TemplateAuthoringDetailForms.swift").read_text()
+        reward = forms.split('Section("templateAuthor.reward")', 1)[1].split('Section("templateAuthor.story")', 1)[0]
+        gate = reward.index("if rewards.isEnabled(.feedback) {")
+        self.assertLess(gate, reward.index("isOn: rewards.toggle(.feedback)"))
+
     def test_each_off_switch_changes_only_its_existing_contents(self):
         core = (ROOT / "Core/TemplateRewardKinds.swift").read_text()
         self.assertIn("case .coupon: next.couponId = nil", core)
