@@ -307,13 +307,16 @@ public struct UGCContentSafetyHTTPService: UGCContentSafetyServing, @unchecked S
         return Self.extractMemberIDs(from: json)
     }
 
+    /// fix/1128c-ai-showcase (planning audit H-08b): the body is the backend `AiSafetyPrecheckReq`
+    /// `{title, subtitle, description, nodes}` with the text as the description. `scene` stays a caller label only; the
+    /// backend DTO has no such field, so it is no longer sent.
     public func precheckContent(text: String, scene: String, token: String) async throws -> UGCPrecheckResult {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return UGCPrecheckResult(allowed: true, message: nil) }
         guard AuthRequestBuilder.isValidToken(token) else { throw UGCContentSafetyError.signedOut }
         let request = try makeJSONRequest(
             path: "api/ai/safety/precheck",
-            payload: ["content": trimmed, "scene": scene],
+            payload: ["title": "", "subtitle": "", "description": trimmed, "nodes": [Any]()],
             token: token
         )
         let (data, status) = try await transport.send(request)

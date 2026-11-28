@@ -163,12 +163,15 @@ private final class PublishingAuxFakeTransport: HTTPTransport {
         let stale = try unapproved.prepare(.theme(idea: "synthetic"), session: s); credential = nil
         let changed = await unapproved.confirm(stale); XCTAssertEqual(changed, .notSent)
     }
-    func testUnavailableSafetyStaysSoftGateButRetainsRetryLock() async throws {
-        let s = session(), j = PublishingAuxJournal(), t = PublishingAuxFakeTransport([nil]), api = try client(t, session: s, journal: j)
+    /// fix/1128c-ai-showcase (deliberate change, MP fabu `_prechecking` parity): the precheck moves nothing, so a failed
+    /// answer stays a soft gate (`.unavailable`) and clears its marker. The old persistent retry lock made every later
+    /// publish skip the precheck after one outage. The in-flight guard (`AISafetyPrecheckRunner`) still stops double taps.
+    func testUnavailableSafetyStaysSoftGateAndClearsItsMarker() async throws {
+        let s = session(), j = PublishingAuxJournal(), t = PublishingAuxFakeTransport([nil, nil]), api = try client(t, session: s, journal: j)
         let review = try api.prepare(.safety([:]), session: s); let result = await api.confirm(review)
-        XCTAssertEqual(result, .unavailable("")); XCTAssertEqual(j.records.count, 1)
+        XCTAssertEqual(result, .unavailable("")); XCTAssertEqual(j.records.count, 0)
         let repeatReview = try api.prepare(.safety([:]), session: s); let repeated = await api.confirm(repeatReview)
-        XCTAssertEqual(repeated, .unavailable("")); XCTAssertEqual(t.requests.count, 1)
+        XCTAssertEqual(repeated, .unavailable("")); XCTAssertEqual(t.requests.count, 2)
     }
 
 }

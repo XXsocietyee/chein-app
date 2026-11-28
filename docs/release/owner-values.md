@@ -116,3 +116,29 @@ The defaults keep every dependent feature hidden, so a build with placeholders s
 | Key (xcconfig → Info.plist) | Where | Value | Status |
 |---|---|---|---|
 | `QUESTIFY_IMAGE_ORIGINS` → `CYStampImageOrigins` | `Config/OwnerValues.xcconfig` | Comma-separated https origins that `api/common/uploadOSS` returns (OSS bucket / CDN host). Used by avatar, stamp, IM image, play photo upload and, since fix-1128b #22, play kit artwork (`artworkHosts`). The API origin is always included. Write each URL as `https:/$()/host`. | **owner to supply** (empty = API origin only) |
+
+## fix/1128c-ai-showcase: AI on the home page and in the build process
+
+No new app-side secret. The app switches the creator AI routes on in Release; the backend decides with its own values.
+
+| Value | Where | Status |
+|---|---|---|
+| AI provider key and model for `ApiAiController` (theme draft, template fill, safety precheck, club design) | backend `sys_config` / env (us/r3-functional) | **owner to confirm** it is set on the production host; without it every call answers with the server's own message, the precheck degrades to pass |
+| Daily AI quota per member (`今日AI次数已用完`, shared by all creator AI endpoints) | backend `sys_config` | **owner to confirm** the value (the app shows the server's count and wording) |
+| AIGC filing number (算法备案号) shown under every AI tool (`AIGCFilingNumberText`) | read from the backend (`squareReader.aigcFilingNumber()`, App/CloudB3Production.swift:90) | **owner to set server-side**; empty renders nothing |
+| Home showcase copy (`aiShowcase.guide.*`, 24 lines, en + zh-Hans) | `Resources/Localizable.xcstrings` via `tools/add_fix_1128c_ai_showcase_localizations.py` | placeholder copy written by the worker; **owner to revise** (content, not code) |
+
+## fix/1128c-ai-weather: Apple WeatherKit (temperature chip, day / night, weather outside the backend provider)
+
+| Key (xcconfig → Info.plist) | Where | Value | Status |
+|---|---|---|---|
+| `CY_WEATHERKIT_ENABLED` → `CYWeatherKitEnabled` | `Config/OwnerValues.xcconfig` | `YES` once the two steps below are done; `NO` keeps the backend weather only (`api/map/weather` + `api/play/environment`). | `NO` (owner to switch) |
+| WeatherKit capability | developer.apple.com → Identifiers → the app's App ID → Capabilities **and** App Services → WeatherKit | Enable both (the App Services checkbox can take ~30 min to propagate). | **owner to do** |
+| `com.apple.developer.weatherkit` = `true` | `Config/Questify.entitlements` | Add after the capability exists, then regenerate the provisioning profile. Not committed: an entitlement the profile lacks breaks Release signing. | **owner to add** |
+
+With the switch on, the chip shows the temperature (°C / °F by locale), the scene uses Apple's day / night, and the
+Apple Weather mark with its legal link appears under the chip wherever an Apple value is shown (WeatherKit attribution
+rule). Any WeatherKit error (missing entitlement, no network, quota) is silent: the app falls back to the backend reading
+and the sun-position light. WeatherKit includes 500,000 calls / month with the developer membership; the app asks at
+most once per ~5.5 km cell per ten minutes, with the cell centre only. Backend values: none (the Tencent weather key for
+`MapWeatherServiceImpl` / `TencentTopicWeatherProvider` is already a backend config).

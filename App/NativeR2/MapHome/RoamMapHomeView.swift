@@ -74,6 +74,8 @@ struct RoamMapHomeDependencies {
     var body: some View {
         GeometryReader { proxy in
             map
+                // fix/1128c-ai-weather: live weather, day / night light and the condition chip over the map home.
+                .modifier(OwnedMapSceneWeather(latitude: area?.coordinate.latitude, longitude: area?.coordinate.longitude))
                 .safeAreaPadding(.bottom, RoamMapHomePanelMetrics.mapInset(detent: model.detent, available: proxy.size.height, peek: peekHeight))
                 .overlay(alignment: .bottom) {
                     RoamMapHomePanel(detent: $model.detent, available: proxy.size.height, peekHeight: peekHeight) {

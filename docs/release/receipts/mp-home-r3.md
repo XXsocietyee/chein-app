@@ -308,7 +308,7 @@ Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home; ev
 
 | MP page → native view | Principle → change | Fixed / not |
 |---|---|---|
-| `subpackageMember/components/cy/scene-play-activity-detail/index.wxml:29-38` activity-meta (分类 / 集合点 / 已报名, MP order kept) → `App/ActivityDetailView.swift` `ActivityDetailMetaSection` | P28 facts as icon rows: `zh-Hans-rep3-activity-detail.jpg` showed plain label/value rows. Each `LabeledContent` label is now a system `Label` with a leading SF Symbol (`tag` / `mappin.and.ellipse` / `person.2`, `.secondary`, hidden from VoiceOver); values, ids, the Maps button and "—" for unknown unchanged. | **Fixed** (`rep3-activity-detail`). P28's date row + Add to Calendar is **not done**: the MP shows the time in the hero, not in activity-meta, and EventKit UI needs a usage string + device check. |
+| `subpackageMember/components/cy/scene-play-activity-detail/index.wxml:29-38` activity-meta (分类 / 集合点 / 已报名, MP order kept) → `App/ActivityDetailView.swift` `ActivityDetailMetaSection` | P28 facts as icon rows: `zh-Hans-rep3-activity-detail.jpg` showed plain label/value rows. Each `LabeledContent` label is now a system `Label` with a leading SF Symbol (`tag` / `mappin.and.ellipse` / `person.2`, `.secondary`, hidden from VoiceOver); values, ids, the Maps button and "—" for unknown unchanged. | **Fixed** (`rep3-activity-detail`). P28's date row + Add to Calendar was ~~not done~~ **fixed in continue 34** (hero date line, system event editor): the MP shows the time in the hero, not in activity-meta, and EventKit UI needs a usage string + device check. |
 
 ## Round 3 continue (21) — 02:10 sweep (build 41374363f), mp-home sheets zh-Hans + en
 
@@ -428,6 +428,13 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 | `pages/index/index` load failure → `HomeFeedView.feedDownState` / empty `actions:` | ADA `d2-home-offline`: Retry rendered as a small capsule. | **Fixed** — `.bordered` + `.controlSize(.regular)` on Retry and on the empty-state 看看活动 / 看看主题 button. |
 | `pages/activity/detail` / `pages/topic/index` share + 举报 (MP: share in the page, 举报 in the `···` action sheet) → `App/ActivityDetailView.swift`, `App/TopicDetailView.swift` toolbar, `App/UGCSafetyComponents.swift` `UGCSafetyMenuButton` | ADA `rep3-activity-detail`: Report showed as a top-level flag icon in the bar. | **Fixed** — new opt-in `moreGlyph:` draws the standard `ellipsis.circle`; the menu (举报 / 屏蔽 / 联系客服) and its VoiceOver label "安全选项：举报或屏蔽" are unchanged. Only these two mp-home pages opt in; other callers keep their label. |
 | ADA `d2-home` banner (black slab, custom dots) | Banner art is the fixture's bundled illustration; dots follow MP `v3-hero-dots` with system colours. | Not changed — art is content; owner-approved banner treatment (13:34 / 15:09) stays. |
+## Round 3 continue (34) — P28 Add to Calendar (continue-20 Not done)
+
+Merged `origin/ui/combined-r7` (clean; incl. fix/1128b-social, fix/1128b-team-reg). Sweep `docs/sweeps/latest` is still build 3348aa51f (covered in continue 32); no new coordinator item for mp-home. Every `pages/index/index.js` target and the activity list's targets already have a row (official-detail / official-inbox / official-mine are mp-activity; `topic/pricing` is owner-only → mp-publish). Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `subpackageMember/components/cy/scene-play-activity-detail` `activity-hero__date` (活动时间 · start – end) → `App/E1ActivityDetailParts.swift` `E1ActivityHero`, new `App/ActivityAddToCalendar.swift` | P28: the time row has no calendar action (continue-20 Not done). MP keeps the time in the hero, so the action goes there, not into activity-meta (no MP section added or moved). | **Fixed** — a small `.bordered` 添加到日历 / Add to Calendar (`calendar.badge.plus`, id `activity.detail.addToCalendar`, hint key `activity.calendar.add.hint`, en + zh-Hans) under the hero date line, **upcoming activities only** (ended / live / undated show nothing — no dead control). Tap opens the system `EKEventEditViewController` in a sheet prefilled with name, start, end (start + 1 h when the end is missing or not after the start) and 地点 (addressName, else address). iOS 17+ runs the editor out of process, so no calendar permission and no Info.plist key; nothing is saved unless the player taps Add. Test `ActivityCalendarDraftTests` (range + place, 1 h default, ended / undated → nil). |
 
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
@@ -473,6 +480,7 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 - Needs a device pass (continue 29): 首页 city rail with location not determined shows no prompt and loads around the chosen area.
 - Needs a simulator pass (continue 30): `d2-home-empty` with the 看看活动 / See activities button in en + zh-Hans, AX5.
 - Needs a simulator pass (continue 33): `d2-home` greeting 今天去哪？ / role label in secondary, short 编辑精选 subtitle; activity / topic detail "···" menu, en + zh-Hans.
+- Needs a simulator pass (continue 34): `rep3-activity-detail` with an upcoming fixture date shows Add to Calendar under the hero date (en + zh-Hans, AX5); device pass: the system editor opens prefilled and Cancel/Add both close the sheet.
 - Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
 
 ## For other lanes

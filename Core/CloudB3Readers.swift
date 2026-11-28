@@ -48,8 +48,12 @@ public struct PlayThemeLookTokens: Equatable, Sendable {
     public let style: String
     public let palette: String
     public let neon: String
+    /// SURVIVAL only (`params.climate` CLEAR / RAIN / STORM / SAND, MP default RAIN); nil for the other styles.
+    public let climate: String?
+    /// SURVIVAL only (`params.volatility` CALM / SHIFTING / VIOLENT, MP default SHIFTING).
+    public let volatility: String?
 
-    public init?(style raw: String?, palette: String?, neon: String?) {
+    public init?(style raw: String?, palette: String?, neon: String?, climate: String? = nil, volatility: String? = nil) {
         guard let style = raw?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased(),
               Self.styles.contains(style) else { return nil }
         let palette = palette?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
@@ -57,6 +61,10 @@ public struct PlayThemeLookTokens: Equatable, Sendable {
         self.style = style
         self.palette = Self.palettes.contains(palette ?? "") ? palette! : "DEFAULT"
         self.neon = Self.neons.contains(neon ?? "") ? neon! : "YELLOW_CYAN"
+        let climate = climate?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        let volatility = volatility?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        self.climate = style == "SURVIVAL" ? (Self.climates.contains(climate ?? "") ? climate! : "RAIN") : nil
+        self.volatility = style == "SURVIVAL" ? (Self.volatilities.contains(volatility ?? "") ? volatility! : "SHIFTING") : nil
     }
 
     public static func read<K: CodingKey>(_ container: KeyedDecodingContainer<K>, _ key: K) -> PlayThemeLookTokens? {
@@ -71,19 +79,22 @@ public struct PlayThemeLookTokens: Equatable, Sendable {
     }
 
     private init?(_ wire: Wire) {
-        self.init(style: wire.style, palette: wire.palette, neon: wire.params?.neon ?? wire.neon)
+        self.init(style: wire.style, palette: wire.palette, neon: wire.params?.neon ?? wire.neon,
+                  climate: wire.params?.climate, volatility: wire.params?.volatility)
     }
 
     private static let styles: Set<String> = ["STARDUST", "PAPER", "SURVIVAL", "CYBER"]
     private static let palettes: Set<String> = ["DEFAULT", "BLUE", "RED", "YELLOW", "WHITE"]
     private static let neons: Set<String> = ["YELLOW_CYAN", "CYAN_PINK", "RED_CYAN"]
+    private static let climates: Set<String> = ["CLEAR", "RAIN", "STORM", "SAND"]
+    private static let volatilities: Set<String> = ["CALM", "SHIFTING", "VIOLENT"]
 
     private struct Wire: Decodable {
         let style: String?
         let palette: String?
         let neon: String?
         let params: Params?
-        struct Params: Decodable { let neon: String? }
+        struct Params: Decodable { let neon: String?; let climate: String?; let volatility: String? }
     }
 }
 

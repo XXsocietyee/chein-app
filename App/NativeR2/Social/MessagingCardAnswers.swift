@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 /// design-r2-social P13 / P11: pages a card answer in the transcript opens. `MessagingHistoryView` owns the
 /// one `navigationDestination(item:)`, so no destination lives inside a row.
@@ -13,6 +14,26 @@ enum MessagingCardRoute: Hashable {
     case detail(messageID: Int)
     /// A group poll message opens the poll itself (vote / results) in one tap.
     case poll(messageID: Int)
+}
+
+/// mp-nav r3 (MP im/chat/index.wxml:64-91, index.js:1077-1094): what one tap on a card bubble opens.
+/// Route and signup cards open `pages/topic/index/index?id=`; a location card with valid coordinates opens
+/// navigation (MP `openAddress`). Anything else keeps the message detail page.
+enum MessagingCardTap {
+    static func topicID(_ message: MessagingMessage) -> Int? {
+        guard let card = message.card, card.kind == .route || card.kind == .signup,
+              let id = card.topicID, id > 0 else { return nil }
+        return id
+    }
+    static func mapItem(_ message: MessagingMessage) -> MKMapItem? {
+        guard let card = message.card, card.kind == .location,
+              let latitude = card.latitude, let longitude = card.longitude else { return nil }
+        let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        guard CLLocationCoordinate2DIsValid(coordinate) else { return nil }
+        let item = MKMapItem(placemark: MKPlacemark(coordinate: coordinate))
+        item.name = card.title
+        return item
+    }
 }
 
 /// One-tap answers under a card message, the way the MP chat draws `genericButtons` inside the card

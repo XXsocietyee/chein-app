@@ -101,6 +101,10 @@ struct E1ActivityHero: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("activity.detail.when")
                     }
+                    // mp-home r3 (P28): the time carries Add to Calendar (upcoming activities only, system event editor).
+                    if let draft = ActivityCalendarDraft.make(summary: summary) {
+                        ActivityAddToCalendarButton(draft: draft)
+                    }
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, dynamicTypeSize.isAccessibilitySize ? CYSpacing.lg : 84)
                 .frame(maxWidth: .infinity, alignment: .leading)
