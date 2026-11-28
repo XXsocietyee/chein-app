@@ -63,7 +63,7 @@
     },
     {
       "key": "club.detail.joinPolicy.review",
-      "en": "Approval to join",
+      "en": "Approval required",
       "zh-Hans": "需审核加入"
     },
     {
@@ -133,7 +133,7 @@
     },
     {
       "key": "club.detail.members.lockedReview",
-      "en": "Approved members can see the members",
+      "en": "Member list unlocks once you’re approved",
       "zh-Hans": "通过审核后可看成员名单",
       "accessibilityIdentifier": "club.members.gated"
     },
