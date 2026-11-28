@@ -235,6 +235,10 @@ enum E4Fixtures {
         case "e4-deregister-blocked": return wrap(E4ComplianceFixture(kind: .deregisterBlocked))
         case "e4-marketing": return wrap(E4ComplianceFixture(kind: .marketing))
         case "e4-tickets": return wrap(TicketWalletFixtureHostView())
+        // mp-mine r3 (Next round 3): MP signup empty / error / no-permission shells, one action each.
+        case "e4-tickets-empty": return wrap(TicketWalletFixtureHostView(scenario: .empty))
+        case "e4-tickets-error": return wrap(TicketWalletFixtureHostView(scenario: .failure))
+        case "e4-tickets-guest": return wrap(TicketWalletFixtureHostView(scenario: .guest))
         case "e4-profile-edit": return wrap(ProfileEditFixtureHost(scenario: "success"))
         case "e4-profile-edit-error": return wrap(ProfileEditFixtureHost(scenario: "rejected"))
         case "e4-settings-support": return wrap(SettingsFixtureHostView())

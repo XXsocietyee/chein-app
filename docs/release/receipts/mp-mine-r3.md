@@ -415,3 +415,13 @@ Merged `origin/ui/combined-r7` (clean, 67 files). The sweep build is the same as
 | `subpackageMember/market/pass` tabs and the pass detail 自己用 / 送朋友 switch | same; MP `cy-tabs` bind:change | `App/PassMarketViews.swift` | **Fixed.** `.sensoryFeedback(.selection, trigger: tab)` and `trigger: state.forGift`. Keys and ids are unchanged. |
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 23 (half-hourly re-arm, sweep 03:04 UTC build ad55acd94)
+
+Merged `origin/ui/combined-r7` (already up to date). No mp-mine rows in the 03:15 coordinator note. Screens checked: `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg`, `sheet-en.jpg`. Every earlier fix shows there (equal [开始探索][票夹] with glyph, four tabs, 我的项目 / 我的资产, badge groups, ¥ amounts in zh), and there are no new visual issues. The blocked Not done rows are unchanged, so this run works "Next round" item 3 (all states, with a design fixture for each).
+
+| Page | MP states (`subpackageMember/signup/index.wxml`) | Native file | Fixed now |
+|---|---|---|---|
+| 票夹 / Ticket wallet (`e4-tickets`) | empty 还没有票 + 去探索 (wxml:51); error 票夹没能打开 + 重试 (wxml:44); no-permission 登录后查看票夹 + 登录 (wxml:48); loading 正在加载我的票 (wxml:40) | `App/TicketWalletFixtureSupport.swift`, `App/DesignFixtures/DesignFixtureRegistry.swift` | **Fixed (fixtures).** `TicketWalletView` already draws all four states. Only `e4-tickets` (content) was a design fixture, so the sweep never showed them. New ids `e4-tickets-empty`, `e4-tickets-error` and `e4-tickets-guest` mount the real view on the existing synthetic reader scenarios. They wire `onExplore` / `onSignIn` so the one MP action renders. With no argument, `TicketWalletFixtureHostView()` keeps the UI-test launch argument path unchanged. Coordinator: please add these ids to the mp-mine sweep. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
