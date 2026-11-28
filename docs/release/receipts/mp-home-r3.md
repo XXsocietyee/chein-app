@@ -554,6 +554,17 @@ Rebased onto `origin/mp/r3-home` (continue 46). No coordinator item for mp-home 
 |---|---|---|
 | `pages/index/index.wxml:22-31` `v3-hero-action` 和朋友报名活动 → `Core/HomeSearchTabParity.swift` `ActionBanner.title(locale:)` / `actionTitle(locale:)` (`en-d2-home.jpg`) | en only: "Join activities with friends" + "Browse" is a few points wider than the card at default size, so `ViewThatFits` stacked title over action (zh sits on one row); "Browse" also did not say what 去报名 says. | **Fixed** — en title **Join events with friends** (the en UI already says Events for 活动) and action **Sign up** (= 去报名); one row at default size in en like zh, AX sizes still stack. zh unchanged. Test `HomeSearchTabParityTests` updated. |
 
+## Round 3 continue (48) — topic detail 路线 tab empty state
+
+Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (46/46) · design consistency PASS. Sweep still build b954de71c (`sheet-en.jpg` / `sheet-zh-Hans.jpg`, checked in continue 47; continue 46/47 not in it yet). No coordinator item for mp-home in the 17:30 / 18:30 sections; no K50 `lane-layout` rows for mp-home. Every `pages/index/index.js` target has a row, so this run took the next Home-reachable detail block without one: topic detail 路线 (`route-top`). Level B (Crafted).
+
+| MP page → native | Difference | Status |
+|---|---|---|
+| `pages/topic/index/index.wxml:393-410` `route-top` (cy-route-progress → map / cy-route-sketch → route-note → 参与商家 cy-merchant-cards) → `App/TopicXcxSections.swift` `TopicXcxRouteSection` | Order re-checked: map with progress → 固定路线 / 没有固定路线 + note sentence → (free explore) merchant cards inside the map block → stops. | No change. |
+| `pages/topic/index/index.wxml:405-406` `cy-empty` 路线配置中 + cta 浏览其他主题 (`goTopicList`) → same view | The empty route was a bare `.headline` line plus an unstyled row button, not the one empty pattern (OWNER RULE 2, P41). | **Fixed** — `ContentUnavailableView` (`map` symbol, title 路线配置中 / Route being set up) with 浏览其他主题 / Browse other topics as its `.bordered` regular action (shown only when the tab switch is available); ids `topic.route.empty` / `topic.route.browseOthers` kept. |
+| `pages/topic/index/index.wxml:426-438` stop card (seq → photo → merchant name else stop name → 地址 → 营业时间 → 到店礼 · …) → same view, stop rows | Native read stop name → 营业时间 → 到店礼 → 地址 and always used the stop name, so a stop hosted by a shop showed the node label instead of the shop the player walks to. | **Fixed** — title = first merchant's name, else the stop name (`TopicXcxRouteSection.stopTitle`); lines now 地址 (Maps link) → 营业时间 → 到店礼 in MP order. Number badge leading and the 56 pt photo trailing kept (native list thumbnail placement); ids unchanged. |
+| `pages/topic/index/index.wxml:419` stop list is `wx:if="{{!isExplore}}"` (free explore shows only 没有固定路线 + 参与商家) | Native also lists the stops for free explore, under the 地点 / Places header (earlier R7 decision). | **Not done — needs coordinator check**: removing the free-explore stop list drops content an earlier lane added on purpose; MP shows merchant cards only. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -615,6 +626,9 @@ Rebased onto `origin/mp/r3-home` (continue 46). No coordinator item for mp-home 
 - Needs a simulator pass (continue 45): 首页 consent card (en + zh-Hans, AX5: buttons stack, privacy line wraps).
 - Needs a device pass (continue 43): topic 收藏 success haptic on save, warning on rollback, none on page open.
 - Needs a simulator pass (continue 47): en `d2-home` hero title + Sign up on one row (iPhone 17, default size).
+- Needs a simulator pass (continue 48): stop rows with a shop (shop name, address → hours → gift) in en + zh-Hans, AX5.
+- Needs a coordinator check (continue 48): free-explore 地点 stop list (MP hides it; native shows it).
+- Needs a simulator pass (continue 48): topic with no stops, 路线 tab shows the 路线配置中 empty view + 浏览其他主题 (en + zh-Hans, AX5).
 
 ## For other lanes
 - en-layout / publish lanes: other 类别/品类 keys still read "Groups" in en: `mapActivity.categories` (品类), `playkitAuthor.categories`, `projectEdit.categoriesTitle`; likely "Categories".

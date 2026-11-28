@@ -568,6 +568,11 @@ struct TopicXcxRouteSection: View {
         if gifts > 0 { parts.append(appLocalized("topicXcx.routeNote.gifts \(gifts)", locale: locale)) }
         return parts.joined(separator: separator) + end
     }
+    /// MP topic/index.wxml:434: the first merchant's name when it has one, else the stop name.
+    static func stopTitle(_ node: TopicNode) -> String {
+        let merchantName: String = node.merchants.first?.name ?? ""
+        return merchantName.isEmpty ? node.name : merchantName
+    }
     /// Flow gap PC-B-1-5 (MP index.wxml route `<map>`): every stop with a usable coordinate, numbered in route order.
     static func mapPins(_ topic: TopicDetail) -> [TopicRouteNodePin] {
         var pins: [TopicRouteNodePin] = []
@@ -614,14 +619,20 @@ struct TopicXcxRouteSection: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("topic.route.noteText")
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
-                Text("u9cde.topic.routeConfiguring").font(.headline)
-                    .accessibilityIdentifier("topic.route.empty")
-                // R7-PC-B1-17 (MP index.wxml:358, js:1120 `goTopicList` → pages/template/index, the 发布/模板 tab).
-                if rootTabSwitch.isAvailable {
-                    Button { rootTabSwitch(.publish) } label: {
-                        Text("topicXcx.route.browseOthers")
+                // mp-home r3 (MP index.wxml:405 `cy-empty` 路线配置中 + cta 浏览其他主题): the shared empty pattern, not a bare line.
+                ContentUnavailableView {
+                    Label { Text("u9cde.topic.routeConfiguring") } icon: { Image(systemName: "map") }
+                        .accessibilityIdentifier("topic.route.empty")
+                } actions: {
+                    // R7-PC-B1-17 (MP index.wxml:358, js:1120 `goTopicList` → pages/template/index, the 发布/模板 tab).
+                    if rootTabSwitch.isAvailable {
+                        Button { rootTabSwitch(.publish) } label: {
+                            Text("topicXcx.route.browseOthers")
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.regular)
+                        .accessibilityIdentifier("topic.route.browseOthers")
                     }
-                    .accessibilityIdentifier("topic.route.browseOthers")
                 }
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in
@@ -636,14 +647,9 @@ struct TopicXcxRouteSection: View {
                         HStack(alignment: .top) {
                             Image(systemName: stop.id < 50 ? "\(stop.id + 1).circle.fill" : "circle.fill").font(.title3).foregroundStyle(.tint).accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(verbatim: stop.node.name)
-                                if let hours = stop.node.businessTime { Text(verbatim: hours).font(.footnote).foregroundStyle(.secondary) }
+                                // mp-home r3 (MP topic/index.wxml:434-437): merchant name first (else the stop name), then 地址 → 营业时间 → 到店礼.
+                                Text(verbatim: Self.stopTitle(stop.node))
                                 // R7-PC-B1-18: MP stop row opens the place in the map app.
-                                if let gift = stop.node.shopGift {
-                                    Text(verbatim: appLocalized("topicXcx.stop.gift \(gift)", locale: locale))
-                                        .font(.footnote).foregroundStyle(.secondary)
-                                        .accessibilityIdentifier("topic.route.stop.\(stop.id).gift")
-                                }
                                 if let address = stop.node.address {
                                     if let url = TopicStopMapsLink.url(for: stop.node) {
                                         Link(destination: url) {
@@ -654,6 +660,12 @@ struct TopicXcxRouteSection: View {
                                     } else {
                                         Label { Text(verbatim: address).lineLimit(addressTypeSize.isAccessibilitySize ? 3 : 1) } icon: { Image(systemName: "mappin") }.font(.caption)
                                     }
+                                }
+                                if let hours = stop.node.businessTime { Text(verbatim: hours).font(.footnote).foregroundStyle(.secondary) }
+                                if let gift = stop.node.shopGift {
+                                    Text(verbatim: appLocalized("topicXcx.stop.gift \(gift)", locale: locale))
+                                        .font(.footnote).foregroundStyle(.secondary)
+                                        .accessibilityIdentifier("topic.route.stop.\(stop.id).gift")
                                 }
                             }
                             Spacer(minLength: 0)
