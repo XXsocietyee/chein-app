@@ -652,6 +652,9 @@ struct SessionRootView: View {
         .environment(\.orderTeamCreate, { activityID, registrationID in
             AnyView(SessionTeamCreateView(activityID: activityID, registrationID: registrationID))
         })
+        .environment(\.orderActivityDestination, { activityID in
+            AnyView(ActivityDetailView(id: activityID, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true))
+        })
     }
 
     private func chain1<V: View>(_ v: V) -> some View {
