@@ -323,6 +323,7 @@ import SwiftUI
                                     }
                                     .buttonStyle(.plain)
                                     .accessibilityLabel(Text("social.portfolio.preview"))
+                                    .accessibilityValue(Text("a11y.value.ofTotal \(index + 1) \(profile.workImages.count)"))
                                     .accessibilityAddTraits(.isButton)
                                     .accessibilityIdentifier("social.portfolio.image.\(index)")
                                 }
@@ -418,7 +419,10 @@ import SwiftUI
             label().cyText(.meta).foregroundStyle(.secondary).cyWrapText(alignment: .center)
         }
         .frame(maxWidth: .infinity, minHeight: 56)
-        .accessibilityElement(children: .combine)
+        // a11y-dt r3: VoiceOver reads the name before the number ("Friends, 12"), like `LabeledContent`.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label())
+        .accessibilityValue(Text(verbatim: value.map(String.init) ?? "—"))
         .accessibilityIdentifier("social.profile.counter.\(id)")
     }
     private var authorPostsContext: ProfileAuthorPostsContext {
@@ -764,6 +768,7 @@ struct SocialProfileImagePreview: Identifiable {
 @MainActor struct SocialProfileImagePreviewPager: View {
     let preview: SocialProfileImagePreview
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var selection = 0
     var body: some View {
         NavigationStack {
@@ -771,9 +776,14 @@ struct SocialProfileImagePreview: Identifiable {
                 ForEach(Array(preview.sources.enumerated()), id: \.offset) { index, source in
                     SquareImage(source: source)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        // a11y-dt r3: the "2/5" title reads "slash"; each page is "Image 2 of 5" instead.
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text(verbatim: positionText(index)))
+                        .accessibilityAddTraits(.isImage)
                         .tag(index)
                 }
             }
+            .onChange(of: selection) { (_: Int, position: Int) in announcePosition(position) }
             .tabViewStyle(.page(indexDisplayMode: preview.sources.count > 1 ? .automatic : .never))
             .background(Color.black.ignoresSafeArea())
             .navigationTitle(Text(verbatim: "\(selection + 1)/\(preview.sources.count)"))
@@ -788,5 +798,14 @@ struct SocialProfileImagePreview: Identifiable {
         }
         .onAppear { selection = preview.index }
         .accessibilityIdentifier("social.portfolio.preview")
+    }
+    private func positionText(_ index: Int) -> String {
+        let position: Int = index + 1
+        let total: Int = preview.sources.count
+        return appLocalized("a11y.label.imagePosition \(position) \(total)", locale: locale)
+    }
+    /// A swipe moves the page silently for VoiceOver; say the new position once.
+    private func announcePosition(_ position: Int) {
+        AccessibilityNotification.Announcement(positionText(position)).post()
     }
 }

@@ -83,10 +83,16 @@ import UniformTypeIdentifiers
                     }
                     ForEach(draft.media) { item in
                         VStack(alignment: .leading) {
-                            Text(item.objectKey).lineLimit(2)
+                            // The storage key is shown for review but not read aloud (same as the club composer).
+                            Text(item.objectKey).lineLimit(2).accessibilityHidden(true)
                             Text(item.existingMediaID != nil ? "squareWorkspace.existingMedia" : item.hasProof ? "squareWorkspace.proofReady" : "squareWorkspace.legacyMedia").font(.caption)
-                            Button("squareWorkspace.remove", role: .destructive) { draft.media.removeAll { $0.id == item.id } }
-                                .accessibilityHint(Text(verbatim: item.objectKey))
+                            Button(role: .destructive) { draft.media.removeAll { $0.id == item.id } } label: {
+                                Text("squareWorkspace.remove")
+                                    .frame(minHeight: 44, alignment: .leading)
+                                    .contentShape(.rect)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel(Text("a11y.label.removeImage \(mediaPosition(item))"))
                         }.accessibilityIdentifier("squareWorkspace.media.\(item.id)")
                     }
                     if draft.postID != nil && lane == .legacy { Text("squareWorkspace.editMediaRetained").font(.caption) }
@@ -144,16 +150,20 @@ import UniformTypeIdentifiers
                                 else { Text(verbatim: entry.draft.body) }
                             }.lineLimit(2).accessibilityIdentifier("squareWorkspace.local.\(entry.id)")
                             if entry.pending { Text("squareWorkspace.pending").font(.caption) }
-                            Button("squareWorkspace.resume") { run { let resumed = try await coordinator.resume(entry); draft = resumed; lane = entry.lane; coordinator.cancelReview() } }
-                                .buttonStyle(.borderless).frame(minHeight: 44)
+                            Button { run { let resumed = try await coordinator.resume(entry); draft = resumed; lane = entry.lane; coordinator.cancelReview() } } label: {
+                                Text("squareWorkspace.resume").frame(minHeight: 44, alignment: .leading).contentShape(.rect)
+                            }
+                                .buttonStyle(.borderless)
                                 .accessibilityIdentifier("squareWorkspace.resume.\(entry.id)")
-                            Button("squareWorkspace.discard", role: .destructive) {
+                            Button(role: .destructive) {
                                 run {
                                     try coordinator.discard(entry)
                                     toastMessage = "square.workspace.draftDeleted.toast"
                                 }
+                            } label: {
+                                Text("squareWorkspace.discard").frame(minHeight: 44, alignment: .leading).contentShape(.rect)
                             }
-                                .buttonStyle(.borderless).frame(minHeight: 44).disabled(entry.pending)
+                                .buttonStyle(.borderless).disabled(entry.pending)
                                 .accessibilityIdentifier("squareWorkspace.discard.\(entry.id)")
                         }
                     }
@@ -163,10 +173,20 @@ import UniformTypeIdentifiers
                     ForEach(coordinator.server) { post in
                         VStack(alignment: .leading) {
                             if let version = post.version, let lifecycle = post.lifecycle { Text("#\(post.id) · v\(version) · \(lifecycle)") }
-                            Button("squareWorkspace.resume") { run { draft = try post.editableDraft(); lane = .communityV1 } }
-                            Button("squareWorkspace.revisions") { readHistory(postID: post.id) }
+                            // Borderless: a Form row with several default buttons fires all of them on one tap.
+                            Button { run { draft = try post.editableDraft(); lane = .communityV1 } } label: {
+                                Text("squareWorkspace.resume").frame(minHeight: 44, alignment: .leading).contentShape(.rect)
+                            }
+                            .buttonStyle(.borderless)
+                            Button { readHistory(postID: post.id) } label: {
+                                Text("squareWorkspace.revisions").frame(minHeight: 44, alignment: .leading).contentShape(.rect)
+                            }
+                            .buttonStyle(.borderless)
                                 .accessibilityIdentifier("squareWorkspace.revisions.\(post.id)")
-                            Button("squareWorkspace.withdrawLocation", role: .destructive) { locationReview = post }
+                            Button(role: .destructive) { locationReview = post } label: {
+                                Text("squareWorkspace.withdrawLocation").frame(minHeight: 44, alignment: .leading).contentShape(.rect)
+                            }
+                            .buttonStyle(.borderless)
                         }
                     }
                     if coordinator.hasMore { CYLoadMoreRow("squareWorkspace.more", isLoading: coordinator.busy) { run { try await coordinator.loadServer(more: true) } } }
@@ -266,6 +286,9 @@ import UniformTypeIdentifiers
             } else { Text("squareWorkspace.staleReview") }
         }.cySheet() }
     }
+    private func mediaPosition(_ item: SquareWorkspaceMedia) -> Int {
+        (draft.media.firstIndex { $0.id == item.id } ?? 0) + 1
+    }
     private func localMediaScope() throws -> SquarePostLocalMediaScope {
         try .init(session: coordinator.session, draftID: draft.workflowID, lane: lane)
     }
@@ -293,7 +316,10 @@ import UniformTypeIdentifiers
                 }))
             }
             Button("squareWorkspace.chooseMentions") { referenceType = "MEMBER"; run { options = try await coordinator.referenceOptions(type: "MEMBER") } }
-            ForEach(draft.mentionedMemberIDs, id: \.self) { id in Button("#\(id) −") { draft.mentionedMemberIDs.removeAll { $0 == id } } }
+            ForEach(draft.mentionedMemberIDs, id: \.self) { id in
+                Button { draft.mentionedMemberIDs.removeAll { $0 == id } } label: { Text(verbatim: "#\(id) −") }
+                    .accessibilityLabel(Text("a11y.label.removeMention \(id)"))
+            }
         }
     }
 }
