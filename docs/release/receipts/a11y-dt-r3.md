@@ -681,8 +681,17 @@ finding for this lane. Not done pages: club posts feed rows, club events tab row
 | `pages/club/detail` 活动 cards (`.ev-*`) + calendar list | `ClubActivityListContent.swift:83` (`ClubActivityCard`) | ✓ (cover → status → name → time → 距开始 → address → category → stats kept visually) | 距开始 mm:ss line used system `.orange` text (~2:1) → `CYColor.warningText`; label + timer stack at AX sizes; VoiceOver reads the activity name first (`.accessibilitySortPriority(1)`). Stats already `ViewThatFits` H → V. Level B | Done |
 | `pages/club/detail` 成员 list rows (wxml:297-298) | `ClubMembersView.swift:301` (`memberRow`) | ✓ (avatar → name + role tag → Lv.N · 加入 date) | Name + 创建者/管理员 tag were one HStack (tag squeezed beside a long name at AX sizes) → `ViewThatFits` H → V; the row is one VoiceOver element also when it is not a button (it was read as 3-4 pieces). ⋯ menu already stacks under the row at AX sizes, meta line already `ViewThatFits`. Level B | Done |
 
+## Run 41 (2026-11-28, hourly)
+Merged `origin/ui/combined-r7`. Sweep index still build c4e43841a (read in run 40), so no sheets re-read. Read
+`mp-club/en-d4-channels.jpg` and `en-d4-enroll.jpg` (default text size) for the two Not done pages.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/club/channel` 频道列表 rows + category header (screenshot `en-d4-channels`) | `ClubChannelMessagingView.swift:490` (`channelSidebarRow`), `:479` header | ✓ (category → channel rows with unread / @ badge, muted bell) | VoiceOver read the system `.badge` as a bare "2" and the header mention total "@2" as "at 2": each row now has a spoken value ("2 unread" / "2 条未读", "1 mention" / "N 条@提及", or "Muted" / "免打扰"); the header total reads "N mentions". Selected row keeps `.isSelected`. Level B | Done |
+| `pages/club/enroll` 报名名册 ticket fraction + registrant rows (screenshot `en-d4-enroll`) | `ClubEnrollmentView.swift:449` (`capacity`), `:514` (`checkinChip`) | ✓ (team header → tickets 「n / 上限」 → registrants avatar · name · 核销状态) | 「n / 上限」 was three VoiceOver pieces ("3", "slash", "10") → one element "3 of 10" / "3，共 10" (`a11y.value.ofTotal`, typed `ViewModifier`); 「n 人」 unchanged. 已核销 / 待核销 chip text used system `.green` / `.orange` (~2:1) → `CYColor.successText` / `warningText`. Audit: row already stacks at AX sizes, team header stacks cover/text/chevron, expand state spoken. Level C | Done |
+
 ## Not done (next run starts here)
-- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club channels list rows, club enrollment roster rows.
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club channel transcript message rows (author/time/reply at AX sizes), club channel member roster sheet.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

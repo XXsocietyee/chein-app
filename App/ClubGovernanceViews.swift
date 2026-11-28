@@ -196,12 +196,16 @@ struct ClubGovernanceReadView: View {
     /// CLB-topic-story-01: `pages/club/topic-story/index` opens the story directly. The topic overview stays the
     /// host that owns the read; once it has loaded, the story is pushed one time.
     var opensStoryOnLoad = false
+    /// mp-club r3 (MP event-ops wxml:178-238): the hub's 重复方式 card already chose the topic, so the topics read opens
+    /// the 重复方式 form for `scope.topicID` once, as soon as it has loaded (no second pick in the list).
+    var opensSeriesCreationOnLoad = false
     /// mp-club r3: members the 对成员执行 card loaded (nil until loaded); 0 with no ban records = MP 暂无可治理成员.
     @State private var governanceMemberCount: Int? = nil
     @State private var storyAutoOpen = false
     /// CLB-r10-apply-01: 切换到商家端 (MP reLaunch) presents the merchant home as a new root.
     @State private var merchantRelaunch = false
     @State private var storyAutoOpened = false
+    @State private var seriesCreationAutoOpened = false
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var customerPager = ClubOpsCustomerPager()
     @StateObject private var attendanceReturn = ClubAttendanceCorrectionReturn()
@@ -300,6 +304,19 @@ struct ClubGovernanceReadView: View {
                 storyAutoOpened = true
                 storyAutoOpen = true
             }
+            .onChange(of: seriesCreationAutoOpenReady, initial: true) { _, ready in
+                openSeriesCreationOnLoad(ready)
+            }
+    }
+    private var seriesCreationAutoOpenReady: Bool {
+        opensSeriesCreationOnLoad && operation == .eventTopics && seriesHostVisible && !loading &&
+            snapshot != nil && snapshotContext == readContext
+    }
+    private func openSeriesCreationOnLoad(_ ready: Bool) {
+        guard ready, !seriesCreationAutoOpened, scenePhase == .active, let topicID = scope.topicID,
+              let source = seriesCreationSource(topicID: topicID) else { return }
+        seriesCreationAutoOpened = true
+        seriesCreationReturn.open(source, visible: seriesHostVisible, active: true)
     }
     private var storyDestination: some View {
         ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration,

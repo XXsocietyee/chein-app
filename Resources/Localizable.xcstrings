@@ -50400,13 +50400,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redemption status hasn’t synced yet"
+            "value": "Redemption status hasn't updated yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核销状态暂未同步"
+            "value": "核销状态暂未更新"
           }
         }
       }
@@ -174671,13 +174671,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account can't publish activities"
+            "value": "You can't publish events right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号不能发布活动"
+            "value": "暂时不能发布活动"
           }
         }
       }
@@ -174688,13 +174688,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Identity check failed. Try again."
+            "value": "We couldn't confirm your identity"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "身份校验失败，请重试"
+            "value": "暂时无法确认身份"
           }
         }
       }
@@ -201257,13 +201257,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t finish the crop. Adjust it and try again, or use the original."
+            "value": "The crop didn't work. Adjust and try again, or cancel to keep your current background."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "裁剪没有完成。可以调整后重试，或使用原图。"
+            "value": "裁剪未完成。可以调整后重试，或取消以保留当前背景图。"
           }
         }
       }
@@ -265789,13 +265789,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hints (optional)"
+            "value": "Hints"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提示（选填）"
+            "value": "提示"
           }
         }
       }
@@ -270339,13 +270339,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon reward"
+            "value": "Coupon"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券奖励"
+            "value": "优惠券"
           }
         }
       }
@@ -270387,13 +270387,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Medal reward"
+            "value": "Medal"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "勋章奖励"
+            "value": "勋章"
           }
         }
       }
@@ -289536,7 +289536,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No spots in this area"
+            "value": "No points in the current area"
           }
         },
         "zh-Hans": {
@@ -291338,7 +291338,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Spots"
+            "value": "Points"
           }
         },
         "zh-Hans": {
@@ -291355,7 +291355,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Spot details"
+            "value": "Point details"
           }
         },
         "zh-Hans": {
@@ -312906,13 +312906,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter the reply after scanning"
+            "value": "Reply text after scanning"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "输入扫完后的回复"
+            "value": "扫完回复的内容"
           }
         }
       }
@@ -320895,7 +320895,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stops"
+            "value": "Points"
           }
         },
         "zh-Hans": {
@@ -321082,7 +321082,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This stop is no longer on the route"
+            "value": "This point is no longer on the route"
           }
         },
         "zh-Hans": {
@@ -364419,7 +364419,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A bit far away. Walk closer"
+            "value": "Too far away. Walk closer"
           }
         },
         "zh-Hans": {
@@ -364436,7 +364436,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "+%1$lld exploration · %2$@ lit up"
+            "value": "+%1$lld exploration XP · %2$@ lit up"
           }
         },
         "zh-Hans": {
@@ -365405,7 +365405,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provisional No. %lld"
+            "value": "Provisionally No. %lld"
           }
         },
         "zh-Hans": {
@@ -365480,6 +365480,159 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法选择图片，请重试"
+          }
+        }
+      }
+    },
+    "castMember.voice.record": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record your own voice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用自己的声音录"
+          }
+        }
+      }
+    },
+    "castMember.voice.recording": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording. Tap to stop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录音中，点一下停止"
+          }
+        }
+      }
+    },
+    "castMember.voice.stopLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop recording"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止录音"
+          }
+        }
+      }
+    },
+    "castMember.voice.recorded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已录好"
+          }
+        }
+      }
+    },
+    "castMember.voice.own": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Own recording"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自己录的"
+          }
+        }
+      }
+    },
+    "castMember.voice.uploading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploading the recording"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在上传录音"
+          }
+        }
+      }
+    },
+    "castMember.voice.notStarted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording didn't start. Check microphone access in Settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录音没有开始，请检查麦克风权限"
+          }
+        }
+      }
+    },
+    "castMember.voice.tooShort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That recording is too short. Record again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录音太短，请再录一次"
+          }
+        }
+      }
+    },
+    "castMember.voice.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The recording didn't upload. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录音上传失败，请重试"
           }
         }
       }
@@ -365575,7 +365728,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "chapter %1$lld stop “%2$@” gameplay binding · %3$@"
+            "value": "gameplay binding of chapter %1$lld, stop “%2$@” (%3$@)"
           }
         },
         "zh-Hans": {
@@ -365752,6 +365905,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "个人最佳 %lld"
+          }
+        }
+      }
+    },
+    "templateAuthor.prompt.requiredMaterials": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. phone, pen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如：手机、笔"
+          }
+        }
+      }
+    },
+    "templateAuthor.prompt.hint1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First hint, e.g. Look at the flagstones under your feet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一级提示，如：留意脚下的石板"
+          }
+        }
+      }
+    },
+    "templateAuthor.prompt.hint2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Second hint (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二级提示（可选）"
+          }
+        }
+      }
+    },
+    "templateAuthor.prompt.answerReveal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fallback answer, given straight away when players are stuck"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备用答案，卡住时直接给出"
+          }
+        }
+      }
+    },
+    "templateAuthor.prompt.feedbackText": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Congratulations, you solved the old town's first secret!"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如：恭喜你解开了老城的第一个秘密！"
+          }
+        }
+      }
+    },
+    "templateAuthor.prompt.medalName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medal name, e.g. Old Town Explorer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勋章名称，如 老城探秘者"
+          }
+        }
+      }
+    },
+    "templateAuthor.prompt.scanReply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Welcome to the old town teahouse"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 欢迎来到老城茶馆"
           }
         }
       }

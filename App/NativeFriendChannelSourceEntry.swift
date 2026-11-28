@@ -102,7 +102,7 @@ import SwiftUI
                         }
                     }
                 }
-                if source.canReadMore { Button { Task { await source.reload(more: true) } } label: { Text("d7.friendInvite.loadMore") } }
+                if source.canReadMore { CYLoadMoreRow("d7.friendInvite.loadMore", isLoading: source.busy) { Task { await source.reload(more: true) } } }
             }
             if let selected, source.members.contains(selected), selected.state == .none, selected.actionAvailable {
                 Section {

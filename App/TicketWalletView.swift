@@ -362,31 +362,11 @@ private struct TicketWalletRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     /// R7-MEM-21-3: activity image, else topic image. The MP illustration stays only when that URL is absent.
     private var httpsCover: URL? { ticket.walletHTTPSCoverURL }
-    private var coverIllustration: some View {
-        // MP signup wxml:68 `wc__im--illus`: no cover shows the route illustration (`cover-route.svg`), the same
-        // fallback as the pass sheet (`TicketPassSheet.header`), so the wallet card and the pass read as one object.
-        ZStack {
-            Rectangle().fill(CYColor.bgSurfaceSubtle)
-            MPAsset.BannerCover.coverRoute.resizable().scaledToFit().padding(12).opacity(0.5)
-        }
-        .accessibilityHidden(true)
-    }
-    /// mp-mine r3 (ADA e4-tickets): the MP card is one big pass with its cover on top (signup wxml:66-68);
-    /// the native row is that pass in a list section: cover band, a perforation, then the MP facts.
+    /// MP signup wxml:67-69: the cover (`wImg`), else the route illustration on the `cy-cover-fb` tile. The shared
+    /// `E1CoverArt` draws both, as on the registration sheet, so the white MP art stays visible in the light theme.
     private var coverBand: some View {
-        Group {
-            if let url = httpsCover {
-                AsyncImage(url: url) { phase in
-                    if let image = phase.image {
-                        image.resizable().scaledToFill()
-                    } else {
-                        coverIllustration
-                    }
-                }
-            } else {
-                coverIllustration
-            }
-        }
+        E1CoverArt(seed: ticket.title ?? "", symbol: "ticket", imageURL: httpsCover?.absoluteString, debugLabel: false,
+                   fallbackImage: MPAsset.BannerCover.coverRoute, fallbackFills: false)
         .frame(maxWidth: .infinity)
         .frame(height: typeSize.isAccessibilitySize ? 72 : 132)
         .clipShape(.rect(cornerRadius: CYRadius.inner))

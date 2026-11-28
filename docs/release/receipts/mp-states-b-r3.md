@@ -33,6 +33,13 @@ A receipt open rows at start (`origin/mp/r3-states` bb53d61fa): one, **"Not done
 backend (no device-token upload route in this repo's route docs or `Core`; `DevicePushRegistrationLifecycle` is still pure state).
 One open row = nothing in the B half. **Half done** — no re-scan beyond the middle per the collision-fix rule; run stopped.
 
+## Run 11-28 (fourth B run, split by half)
+
+A receipt open rows at start (`origin/mp/r3-states` db88f25e1, merged into this branch): one, **"Not done · P1-9 remote push"**,
+still blocked on the backend device-token route; remote push is also now in Cursor K50-R scope (brief 16:34), so lanes skip it.
+No `docs/release/receipts/cursor-k50-p*.md` `lane-layout` rows exist on any remote branch yet. One open row = nothing in the B
+half. **Half done** — run stopped per the collision-fix rule.
+
 ## Not done
 
 | Row | Why |

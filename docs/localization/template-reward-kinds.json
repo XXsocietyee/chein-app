@@ -3,8 +3,8 @@
   "strings": {
     "templateRewardKinds.coupon": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Coupon reward" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "优惠券奖励" } }
+        "en": { "stringUnit": { "state": "translated", "value": "Coupon" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "优惠券" } }
       }
     },
     "templateRewardKinds.feedback": {
@@ -15,8 +15,8 @@
     },
     "templateRewardKinds.medal": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Medal reward" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "勋章奖励" } }
+        "en": { "stringUnit": { "state": "translated", "value": "Medal" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "勋章" } }
       }
     },
     "templateRewardKinds.clearNotice": {

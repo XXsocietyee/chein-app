@@ -70,4 +70,29 @@ private final class SquareNotificationLeaseHTTP: HTTPTransport {
         XCTAssertEqual(appealBody["requestId"] as? String, appeal.requestID)
         XCTAssertEqual(appealBody["evidenceAssetIds"] as? [Any], [])
     }
+
+    func testPreferenceWritesSitOnTheLeaseOnlyWhenAsked() throws {
+        let fake = SquareNotificationLeaseHTTP()
+        let quiet = SquareNotificationLease.service(baseURL: base, transport: fake)
+        XCTAssertFalse(quiet.allows(.preferences([.socialEnabled: true])))
+
+        let writing = SquareNotificationLease.service(baseURL: base, transport: fake, preferenceWrites: true)
+        XCTAssertTrue(SquareNotificationLease.routesLive)
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(SquareNotificationLease.preferencePath))
+        XCTAssertTrue(writing.readsEnabled)
+        XCTAssertTrue(writing.allows(.markRead(notificationID: 81)))
+        XCTAssertTrue(writing.allows(.appeal(enforcementID: 91, reason: "facts")))
+        XCTAssertTrue(writing.allows(.preferences([.socialEnabled: false])))
+        XCTAssertFalse(writing.allows(.approveComment(postID: 71, commentID: 61)))
+        XCTAssertFalse(writing.allows(.deleteOwnComment(commentID: 62)))
+
+        let snapshot = SquareGovernanceSnapshot(identity: .init(accountID: 7, epoch: 1, namespace: "notify"),
+                                                enforcements: [], notifications: [],
+                                                preferences: .object(["socialEnabled": .bool(true)]))
+        let patch = try writing.command(SquareGovernanceReview(snapshot: snapshot, action: .preferences([.socialEnabled: false]), now: Date()), token: "synthetic-token")
+        XCTAssertEqual(patch.httpMethod, "PATCH")
+        XCTAssertEqual(patch.url?.path, "/api/v1/community/notification-preferences")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(patch.httpBody)) as? [String: Any])
+        XCTAssertEqual(body["socialEnabled"] as? Bool, false)
+    }
 }

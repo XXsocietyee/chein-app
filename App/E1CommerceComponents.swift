@@ -43,8 +43,12 @@ struct E1CoverArt: View {
         if let fallbackImage {
             if fallbackFills { fallbackImage.resizable().scaledToFill() }
             else {
+                // The MP art is white for the dark player theme; as a template it reads on the light tile too.
                 LinearGradient(colors: [palette.bgStrong, palette.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    .overlay { fallbackImage.resizable().scaledToFit().padding(CYSpacing.md) }
+                    .overlay {
+                        fallbackImage.renderingMode(.template).resizable().scaledToFit()
+                            .foregroundStyle(palette.textPlaceholder).padding(CYSpacing.md)
+                    }
             }
         } else { generatedArt }
     }

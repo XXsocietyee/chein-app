@@ -162,8 +162,17 @@ enum ProjectEditCastConfig {
                                         colorHex: colors.contains(color ?? "") ? color : nil, clues: clues,
                                         endingLow: lines["low"]?.text ?? "", endingMid: lines["mid"]?.text ?? "",
                                         endingHigh: lines["high"]?.text ?? "",
-                                        avatarURL: savableAvatar(m["avatarUrl"]?.text))
+                                        avatarURL: savableAvatar(m["avatarUrl"]?.text),
+                                        voiceRecordingURL: recordedVoice(voice))
         }
+    }
+
+    /// MP story-cast.js `normalizeVoice`: `{mode: 'record', url}` keeps its trimmed url (a non-empty one is kept as sent,
+    /// so a recording made on the MP survives an app edit).
+    static func recordedVoice(_ voice: [String: ProjectEditJSON]?) -> String? {
+        guard voice?["mode"]?.text == "record",
+              let url = voice?["url"]?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !url.isEmpty else { return nil }
+        return url
     }
 
     /// MP story-cast.js `MEDIA_URL`: `https://…` or `media-asset:N` (N ≥ 1); anything else is not an uploaded photo.
@@ -218,9 +227,12 @@ enum ProjectEditCastConfig {
                 row["color"] = .string(colors.first { !used.contains($0) } ?? colors[index % colors.count])
             }
             if let color = row["color"]?.text { used.append(color) }
+            // MP onCastVoice / toggleCastRecord: one choice — a preset, the role's own recording, or none.
             if let preset = member.voiceID, voicePresets.contains(where: { $0.value == preset }) {
                 row["voice"] = .object(["mode": .string("preset"), "preset": .string(preset)])
-            } else if row["voice"]?.object?["mode"]?.text != "record" {
+            } else if let recording = member.voiceRecordingURL?.trimmingCharacters(in: .whitespacesAndNewlines), !recording.isEmpty {
+                row["voice"] = .object(["mode": .string("record"), "url": .string(recording)])
+            } else {
                 row["voice"] = .object(["mode": .string("none")])
             }
             // MP story-cast.js serialize: clues trimmed (≤6, ≤40), ending lines trimmed (≤60).
@@ -316,6 +328,8 @@ enum ProjectEditCastConfig {
     var chapters: [ProjectEditChapter] = []
     /// MP `pickCastAvatar` upload for 编辑角色; nil hides 上传头像.
     var avatarUpload: ProjectEditCastAvatarUpload? = nil
+    /// MP `toggleCastRecord` upload for 编辑角色; nil hides 用自己的声音录.
+    var voiceUpload: ProjectEditCastVoiceUpload? = nil
     @State private var editing = false
     @State private var sheetMembers: [TopicCastMemberDraft] = []
     @State private var sheetPlayer = ProjectEditCastPlayer(playerName: true, playerIdentity: false, identities: [])
@@ -343,7 +357,7 @@ enum ProjectEditCastConfig {
             ProjectEditCastConfig.setPlayer(sheetPlayer, in: &preserved)
         }) {
             ProjectEditGapCastEditorSheet(members: $sheetMembers, player: $sheetPlayer, chapters: chapters, onPreviewVoice: nil,
-                                          avatarUpload: avatarUpload)
+                                          avatarUpload: avatarUpload, voiceUpload: voiceUpload)
                 .cySheet(detents: [.large])
         }
     }

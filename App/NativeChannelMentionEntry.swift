@@ -28,7 +28,7 @@ import SwiftUI
                         Toggle(isOn: selection(row.id, in: $members)) { Text(verbatim: row.name) }
                             .disabled(members.count >= 20 && !members.contains(row.id))
                     }
-                    if source.canReadMore { Button("d7.channelMention.loadMore") { Task { await source.readMembers(next: true) } } }
+                    if source.canReadMore { CYLoadMoreRow("d7.channelMention.loadMore", isLoading: source.busy) { Task { await source.readMembers(next: true) } } }
                     else if source.members.isEmpty { Button("d7.channelMention.loadMembers") { Task { await source.readMembers() } }.disabled(!source.canReadMembers) }
                 } header: { Text("d7.channelMention.members") }
                 Section {

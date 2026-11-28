@@ -232,19 +232,7 @@
     "App/NativeChannelChainView.swift": {
       "manual paging": 1
     },
-    "App/NativeChannelMentionEntry.swift": {
-      "manual paging": 1
-    },
     "App/NativeChannelMessageContextView.swift": {
-      "manual paging": 1
-    },
-    "App/NativeChannelRoleEntry.swift": {
-      "manual paging": 1
-    },
-    "App/NativeFriendChannelInviteEntry.swift": {
-      "manual paging": 1
-    },
-    "App/NativeFriendChannelSourceEntry.swift": {
       "manual paging": 1
     },
     "App/NativeNotificationDeliveryLogView.swift": {

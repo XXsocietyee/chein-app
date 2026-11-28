@@ -2,7 +2,8 @@ import XCTest
 @testable import Questify
 
 /// K40 / plan M-11a. The requests `SquareNotificationLease` builds are the ones the China player
-/// write lease already admits. Comment and preference mutations are not granted, so they are not sent.
+/// write lease already admits. Comment approve and delete stay off. Preference writes are a
+/// separate flag on the same lease, and that PATCH is admitted too.
 @MainActor final class K40NotificationLeaseTests: XCTestCase {
     static let base = "https://notify-k40.example.test"
     static let token = "synthetic-token"
@@ -55,5 +56,13 @@ import XCTest
         XCTAssertFalse(service.allows(.preferences([.socialEnabled: false])))
         XCTAssertFalse(service.allows(.approveComment(postID: 1, commentID: 2)))
         XCTAssertFalse(service.allows(.deleteOwnComment(commentID: 3)))
+
+        let writing = SquareNotificationLease.service(baseURL: baseURL, transport: wire, preferenceWrites: true)
+        XCTAssertTrue(writing.allows(.preferences([.socialEnabled: false])))
+        XCTAssertFalse(writing.allows(.approveComment(postID: 1, commentID: 2)))
+        let patch = try writing.command(SquareGovernanceReview(snapshot: snapshot, action: .preferences([.socialEnabled: false]), now: Date()), token: Self.token)
+        XCTAssertEqual(patch.httpMethod, "PATCH")
+        XCTAssertEqual(patch.url?.path, "/api/v1/community/notification-preferences")
+        XCTAssertTrue(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(patch, baseURL: baseURL, token: Self.token, context: context, grant: grant), "preferences")
     }
 }
