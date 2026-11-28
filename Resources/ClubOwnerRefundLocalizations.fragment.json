@@ -182,7 +182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Other tickets in the same order may also be cancelled."
+            "value": "Other tickets in the same order may also be canceled."
           }
         },
         "zh-Hans": {
@@ -790,7 +790,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {

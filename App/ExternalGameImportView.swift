@@ -559,7 +559,7 @@ struct ExternalGameNodePlayContext: Equatable, Sendable {
                     HStack(spacing: CYSpacing.sm) {
                         if let outcome = resultOutcome {
                             let medalText = outcome.medalRank.map { W8Text.t(" · 勋章第\($0)名", " · Medal #\($0)") } ?? ""
-                            let nodeText = outcome.nodeCompleted ? W8Text.t(" · 节点已通关", " · Node done") : ""
+                            let nodeText = outcome.nodeCompleted ? W8Text.t(" · 节点已通关", " · Stop cleared") : ""
                             Text(verbatim: W8Text.t("结果已签名上报：+\(outcome.xpAwarded) 探索值\(medalText)\(nodeText)", "Signed result: +\(outcome.xpAwarded) XP\(medalText)\(nodeText)"))
                                 .cyText(.meta)
                                 .foregroundStyle(CYColor.textPrimary)

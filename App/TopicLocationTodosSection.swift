@@ -33,7 +33,7 @@ import QuestifyCore
     }
 
     private func countText(_ todos: TopicLocationTodos) -> String {
-        todos.summaryText ?? W8Text.t("\(todos.rows.count) 个地点", "\(todos.rows.count) place(s)")
+        todos.summaryText ?? W8Text.t("\(todos.rows.count) 个地点", todos.rows.count == 1 ? "1 place" : "\(todos.rows.count) places")
     }
 
     var body: some View {

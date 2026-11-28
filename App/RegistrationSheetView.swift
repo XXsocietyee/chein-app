@@ -160,7 +160,7 @@ struct RegistrationSheetView: View {
                     } else {
                         // Source order (MP baoming.wxml top-to-bottom): 参与人信息 → 活动信息 → 报名已截止 →
                         // 优惠 → 费用明细 (票种 → 儿童年龄 → 订单金额 → 权益 → 原价/减免 → 通行证 → 积分 → 总计) →
-                        // 包含内容 → 退款规则 → 主持预约 → 候补 → 底栏 (商家暂停营业 → 信息共享同意 → 提交).
+                        // 包含内容 → 退款规则 → 主持预约 → 候补 → 底栏 (商家暂停营业 → 支付方式 → 信息共享同意 → 提交).
                         // MP baoming has no coupon block, so the read-only coupon list is not drawn here.
                         if flow.activity.tickets.isEmpty {
                             noTicketsBlock
@@ -175,11 +175,6 @@ struct RegistrationSheetView: View {
                         ticketSection
                         childAgeSection
                         quoteSection
-                        RegistrationPayMethodSection(selection: $payMethod, price: flow.selectedTicket?.price,
-                                                     market: payMethodMarket,
-                                                     paymentChannels: flow.quoteState.quoteValue?.paymentChannels,
-                                                     applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,
-                                                     enabled: flow.canEdit, alipayOffered: alipayOffered)
                         deliverySection
                         refundTiersSection
                         hostReservationSection
@@ -705,10 +700,20 @@ struct RegistrationSheetView: View {
         }
     }
     @State private var blockedTaps = 0
+    /// P32 (sweep 13:15 P1): 费用明细 → 支付方式 → consent → button, with the method row kept in view in the bar.
+    private var payMethodBarRow: some View {
+        RegistrationPayMethodSection(selection: $payMethod, price: flow.selectedTicket?.price,
+                                     market: payMethodMarket,
+                                     paymentChannels: flow.quoteState.quoteValue?.paymentChannels,
+                                     applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,
+                                     enabled: flow.canEdit, inCheckoutBar: true,
+                                     alipayOffered: alipayOffered)
+    }
     private var checkoutBar: some View {
         let copy = CoreLoopCopy(locale: locale)
         return CYFooterBar {
             VStack(spacing: CYSpacing.sm) {
+                payMethodBarRow
                 // MP baoming.wxml:325-328 bmbottom_box: the separate, unticked sharing consent (PIPL Art. 23) sits
                 // in the bottom bar directly above the button, so "tick it first" points at something in view.
                 if flow.creationPolicy.permitsCreation {

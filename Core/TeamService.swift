@@ -11,7 +11,11 @@ public struct TeamSession: Equatable {
     public let role: String
     public let storageNamespace: String
     let token: String
-    public var ownerKey: String { "\(region)-\(Data(storageNamespace.utf8).base64EncodedString())-\(accountID)" }
+    public var ownerKey: String { Self.ownerKey(region: region, storageNamespace: storageNamespace, accountID: accountID) }
+    /// The one journal owner-key formula (also used by the list pages that only hold a `NearbyTeamSession`).
+    public static func ownerKey(region: String, storageNamespace: String, accountID: Int) -> String {
+        "\(region)-\(Data(storageNamespace.utf8).base64EncodedString())-\(accountID)"
+    }
     public init(account: Account, epoch: UInt64, region: String, storageNamespace: String, token: String, viewerRevision: UInt64 = 0) throws {
         guard account.id > 0, ["CN", "US"].contains(region), !storageNamespace.isEmpty, AuthRequestBuilder.isValidToken(token) else { throw TeamFailure.invalidRequest }
         accountID = account.id; self.epoch = epoch; self.viewerRevision = viewerRevision; self.region = region; role = account.effectiveRole; self.storageNamespace = storageNamespace; self.token = token
