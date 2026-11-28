@@ -9,6 +9,8 @@ struct LoginView: View {
     @State private var username = ""
     @State private var password = ""
     @State private var consentGranted = UsageConsentEnvironment.policy.granted
+    /// A sign-in button was tapped before the agreement was on record: the agreement sheet asks first (P33).
+    @State private var asksConsent = false
     @FocusState private var focusedField: Field?
     private enum Field { case username, password }
 
@@ -81,7 +83,8 @@ struct LoginView: View {
 
     @ViewBuilder private func appleSignInSection(_ model: AuthChannelModel) -> some View {
         // P27: no disabled Apple button when no sign-in service is behind it (sweep ffeef67c7 login-player).
-        if consentGranted && model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured {
+        // Sweep 3348aa51f: always the enabled system button; without the agreement a tap asks for it first.
+        if model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured {
             Section {
                 appleButton(model)
                     .listRowInsets(EdgeInsets())
@@ -106,6 +109,8 @@ struct LoginView: View {
         if session.supportsPhoneSignIn {
             Section {
                 Button {
+                    // Same as Apple: the button stays enabled and asks for the agreement first (P33).
+                    if !consentGranted { asksConsent = true; return }
                     session.weChatAuth.cancel(); password=""; path.append(.phone)
 #if DEBUG
                     recordIntegratedLoginPhase("other_action")
@@ -115,7 +120,7 @@ struct LoginView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .modifier(LoginOtherChannelsStyle(prominent: prominent && !showsPasswordForm))
-                .disabled(working || !consentGranted)
+                .disabled(working)
                 .accessibilityIdentifier("auth.otherChannels")
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
@@ -141,7 +146,7 @@ struct LoginView: View {
 
     /// Sign in with Apple is on screen: approved and a sign-in service behind it (same test as `appleSignInSection`).
     private func appleShown(_ model: AuthChannelModel) -> Bool {
-        consentGranted && model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured
+        model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured
     }
 
     /// The WeChat button is on screen (it is then the first method and the primary action).
@@ -204,6 +209,7 @@ struct LoginView: View {
             Section {} footer: { legalFooter }
         }
         .scrollDismissesKeyboard(.interactively)
+        .modifier(LoginConsentPrompt(isPresented: $asksConsent, granted: $consentGranted, market: session.operationalMarket))
     }
 
     @ViewBuilder private func loginDestination(_ route: LoginRoute, model: AuthChannelModel) -> some View {
@@ -256,7 +262,7 @@ struct LoginView: View {
 
     private func appleButton(_ model: AuthChannelModel) -> some View {
         VStack(spacing: 8) {
-            AuthChannelAppleButton(model: model)
+            AuthChannelAppleButton(model: model, needsConsent: !consentGranted, onConsentNeeded: askConsent)
                 .id(colorScheme)
                 .frame(minHeight: 50)
                 .accessibilityIdentifier("auth.channels.appleSignIn")
@@ -265,6 +271,8 @@ struct LoginView: View {
             }
         }
     }
+
+    private func askConsent() { asksConsent = true }
 
     @ViewBuilder private var legalFooter: some View {
         VStack(spacing: 4) {
@@ -331,6 +339,37 @@ struct LoginView: View {
 }
 
 /// The secondary sign-in channel button: the screen's one prominent action when no password form is shown.
+/// The agreement sheet a sign-in button opens when the agreement is not on record yet (same sheet as the inline
+/// `UsageConsentSignInRequirement` row). Agreeing records it; the player then taps the method again.
+private struct LoginConsentPrompt: ViewModifier {
+    @Binding var isPresented: Bool
+    @Binding var granted: Bool
+    let market: RegionalMarket?
+
+    func body(content: Content) -> some View {
+        content.cySheet(isPresented: $isPresented) { sheet }
+    }
+
+    private var sheet: some View {
+        UsageConsentGateView(market: market, onAgree: agree, onDecline: decline)
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+    }
+
+    private func agree() {
+        let policy = UsageConsentEnvironment.policy
+        try? policy.agree(agreementChecked: true)
+        granted = policy.granted
+        isPresented = false
+    }
+
+    private func decline() {
+        UsageConsentEnvironment.policy.decline()
+        granted = false
+        isPresented = false
+    }
+}
+
 private struct LoginOtherChannelsStyle: ViewModifier {
     let prominent: Bool
     @ViewBuilder func body(content: Content) -> some View {
