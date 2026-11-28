@@ -23,3 +23,6 @@ Merged `origin/mp/r3-activity` (6b3b7e815, clean). The A receipt's Not done list
 
 ## Run 11-28 (hourly re-check, after A's 44th–45th sessions)
 Merged `origin/mp/r3-activity` (05ea4a8fa, clean). The A receipt's Not done list is unchanged (12 rows; A's 44th–45th sessions added official-organizer / official-detail design fixtures in its own Next-round work). No `cursor-k50-p*` lane-layout rows exist on any branch. The B half (Owner check 05:35 → Coop) stays done (documented keeps or blocked), so this run stops.
+
+## Run 11-28 (hourly re-check, after A's 46th–47th sessions)
+Merged `origin/mp/r3-activity` (0b6ab0985, clean). The A receipt's Not done list is unchanged (12 rows; A's 46th–47th sessions added coop invite-detail and coop nearby design fixtures in its own Next-round work). No `cursor-k50-p*` lane-layout rows exist on any branch. The B half (Owner check 05:35 → Coop) stays done (documented keeps or blocked), so this run stops.
