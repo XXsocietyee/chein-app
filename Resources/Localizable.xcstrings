@@ -204853,13 +204853,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View all projects"
+            "value": "Manage all projects"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看全部项目"
+            "value": "管理全部项目"
           }
         }
       }

@@ -487,6 +487,7 @@ Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts and xcstrings t
 | MP page | Native file | Difference | Fixed now |
 |---|---|---|---|
 | `subpackageMember/components/cy/profile` 项目 tab, 我的项目 (wxml:180-212) | `App/ProfileSelfProjectsSection.swift`, `Tests/AppUITests/ProfileSelfProjectsFlowTests.swift` | MP draws the preview only when `projectPreviewList.length \|\| projectErr`; no projects = header + 管理全部 link only. Native drew a `ContentUnavailableView` 还没有项目 under the header (continue 27 Not done row) | **Fixed.** The empty view is gone; the 查看全部项目 link stays, loading / error + 重试 / truncated unchanged. `testTruncationAndEmptyHaveDifferentTruthfulStates` now asserts the empty scenario shows the all-projects link, no empty text and no issue. |
+| same, header link (wxml:186 `管理全部`, aria 管理全部项目) | `Resources/Localizable.xcstrings` `profile.selfProjects.all` | Native link read 查看全部项目 / View all projects | **Fixed.** 管理全部项目 / Manage all projects (MP copy; the row opens the projects manager with the 模板 tab). Same id and destination. |
 
 Not done: `CharacterCardReadbackView` byte pin unchanged (needs the pin owner).
 
