@@ -72,6 +72,8 @@ struct PlayThemeMusicKey: Equatable {
     @State private var showEmergencyHelp = false
     /// PLAY-6a: MP 游玩工具 preferences sheet (pages/play/index.wxml 游玩工具).
     @State private var showPlayTools = false
+    /// MP `playContact` (联系主办 / 联系商家) for the 游玩工具 row; nil hides it.
+    @State private var playContact: PlayContact?
     @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
     @StateObject private var musicLifetime = PlayBackgroundMusicLifetime()
     @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
@@ -222,6 +224,12 @@ struct PlayThemeMusicKey: Equatable {
                 .cyDomainSheet(detents: [.half, .full])
         }
         .sheet(isPresented: $showPlayTools) { playToolsSheet }
+        .modifier(PlayContactReader(
+            currentNodeID: model.snapshot.flatMap { PlayTaskSummaryPresentation(snapshot: $0).currentNodeID },
+            active: model.hasCurrentMediaSnapshot && model.snapshot != nil,
+            finished: model.snapshot?.availability == .completed,
+            contact: $playContact
+        ))
         .cySheet(isPresented: $showChapterPicker) {
             if let snapshot = model.snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
@@ -698,10 +706,8 @@ struct PlayThemeMusicKey: Equatable {
                             .accessibilityIdentifier("play.teamBackpack.open")
                     }
                 }
-                // 联系主办 / 联系商家 (`GET api/play/contact`); no phone, no row.
+                // 联系主办 / 联系商家 is the MP 游玩工具 row (read by `PlayContactReader` on this page).
                 if model.hasCurrentMediaSnapshot, let snapshot = model.snapshot {
-                    PlayContactSection(currentNodeID: PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
-                                       finished: snapshot.availability == .completed)
                     // 已完成章节 from `GET api/play/history` that the live route no longer lists.
                     PlayCompletedHistorySection(routeSessionID: snapshot.route?.sessionID,
                                                 liveChapterIDs: Set(snapshot.result.chapters.map(\.id)))
@@ -767,7 +773,8 @@ struct PlayThemeMusicKey: Equatable {
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
             boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
             scoreDestination: orientScoreDestination,
-            entryCodeRegistrationID: entryCode?.registrationID
+            entryCodeRegistrationID: entryCode?.registrationID,
+            contact: playContact
         )
     }
     /// mp-journey r3: MP `_orientSessionId` (mode 1 and `routeState.sessionId`) opens 本局成绩; natively that is the
