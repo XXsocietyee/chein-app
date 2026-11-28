@@ -2579,7 +2579,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let path = url.path
         guard path == base || path.hasPrefix(base + "/") else { return false }
         let relative = String(path.dropFirst(base.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state" || relative == "api/media/asset/attribution" || relative == "api/orient/scoring/receipt" || ReviewedProductionGateLeases.creatorEditorReadPaths.contains(relative) || ReviewedProductionGateLeases.isPlayGrantPath(relative) || relative == "api/creator/feedback" || relative == "api/creator/maintenance/tickets" || relative == "api/creator/analytics/post-game-outcome" || relative.hasPrefix("api/external-game/")
+        return relative.hasPrefix("api/v1/community/") || relative == "api/community-trust/reports/mine" || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state" || relative == "api/media/asset/attribution" || relative == "api/orient/scoring/receipt" || ReviewedProductionGateLeases.creatorEditorReadPaths.contains(relative) || ReviewedProductionGateLeases.isPlayGrantPath(relative) || relative == "api/creator/feedback" || relative == "api/creator/maintenance/tickets" || relative == "api/creator/analytics/post-game-outcome" || relative.hasPrefix("api/external-game/")
     }
 
     private func signedInRuntime(_ captured: SessionIdentity) -> RuntimeDependencyContext? {

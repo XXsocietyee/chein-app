@@ -67,6 +67,9 @@ extension ReviewedProductionFormMutationRoute {
             return true
         }
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
+        // fix-1128b-social #4/#27: 发布 tab, club 发布活动 and 我的项目 activity 编辑 (POST, MP pages/publish/*).
+        if let publishing = MPFirstSocialApprovals.publishingDecision(relative: relative, method: method, request: request) { return publishing }
+        if let reportRead = MPFirstSocialApprovals.reportReadDecision(relative: relative, method: method, request: request) { return reportRead }
         if relative == "api/registration/create" {
             return method == "POST" && grant.registration.paths.contains(relative)
                 && registrationCreateBody(request, paymentsOpen: ReleaseMoneyWriteSwitch.paymentEnabled)
@@ -1620,6 +1623,8 @@ enum ReviewedPlayerReadRoute {
         if socialRole(context) { imRoutes[.imUpload] = Set([try? BusinessRuntimeRoute.post("api/common/uploadOSS")].compactMap { $0 }) }
         if socialRole(context) { imRoutes.merge(Self.projectEditorRoutes(baseURL: context.baseURL)) { $0.union($1) } }
         if socialRole(context) { imRoutes.merge(Self.beGapImRoutes()) { $0.union($1) } }
+        // fix-1128b-social #4 (audit H-06a, H-13a): the 发布 tab "+" and club 发布活动 need `publishingService`.
+        if socialRole(context) { imRoutes.merge(MPFirstSocialApprovals.publishingRoutes(baseURL: context.baseURL)) { $0.union($1) } }
         let businessConfiguration = try? BusinessRuntimeConfiguration(
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, routes: imRoutes,

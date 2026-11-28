@@ -176,6 +176,8 @@ import SwiftUI
             .onChange(of: keyword) { _, value in if value.isEmpty { query.keyword = nil } }
             .onChange(of: reader.scope) { _, _ in openedPost = nil; generation += 1; pagination = SquareFeedPagination(); loadedKey = nil; dismissCloudSheets() }
             .task(id: key) { await loadGate(); await load(reset: true) }
+            // fix-1128b-social #2: a server-confirmed publish (workspace read-back) shows in the feed straight away.
+            .onChange(of: workspace?.lastPost) { _, published in if published != nil { Task { await load(reset: true) } } }
             .refreshable { await load(reset: true) }
             .onDisappear { generation += 1; settleLoading() }
             .accessibilityIdentifier("square.browser")

@@ -27,6 +27,8 @@ import FoundationNetworking
     private let current: () -> RuntimeDependencyContext?
     private let approvals: (RuntimeDependencyContext) -> [SocialMemberActionApproval]
     private let issue: SocialMemberActionIssuer?
+    /// fix-1128b-social #1: the `/api/v1/community` post/comment writer for this exact context (nil keeps writes off).
+    private let community: (RuntimeDependencyContext) -> SquareCommunityWriteApproval?
     private let now: () -> Date
     private var retained: Retained?
 
@@ -36,11 +38,12 @@ import FoundationNetworking
                 currentIdentity: @escaping () -> SocialAccountIdentity,
                 approvals: @escaping (RuntimeDependencyContext) -> [SocialMemberActionApproval],
                 issue: SocialMemberActionIssuer? = nil,
+                community: @escaping (RuntimeDependencyContext) -> SquareCommunityWriteApproval? = { _ in nil },
                 onUnauthorized: @escaping (RuntimeDependencyContext) -> Void = { _ in },
                 now: @escaping () -> Date = Date.init) {
         self.configuration = configuration; self.transport = transport; self.journal = journal
         self.current = current; self.currentIdentity = currentIdentity; self.onUnauthorized = onUnauthorized
-        self.approvals = approvals; self.issue = issue; self.now = now
+        self.approvals = approvals; self.issue = issue; self.community = community; self.now = now
     }
     private var scope: Scope { .init(context: current(), identity: currentIdentity()) }
 
@@ -85,9 +88,15 @@ import FoundationNetworking
             guard isCurrent(), let context = captured.context else { return nil }
             return try? .init(accountID: context.session.accountID, epoch: context.session.epoch, token: context.session.token)
         }, onUnauthorized: { _ in unauthorized() })
-        let access = SocialMemberActionFactory.make(configuration: configuration,
+        let member = SocialMemberActionFactory.make(configuration: configuration,
             approvals: captured.context.map(approvals) ?? [], transport: scoped, journal: journal,
             reader: reader, accountReader: accountReader, current: current, now: now, isCurrent: isCurrent, issue: issue)
+        let community = self.community
+        let access = SquareCommunityActionAccess(base: member, configuration: configuration, transport: scoped,
+            approval: {
+                guard isCurrent(), let context = captured.context else { return nil }
+                return community(context)
+            }, current: current, now: now)
         let value = Retained(scope: captured, lease: lease, access: access,
                              coordinator: SocialActionCoordinator(access: access))
         retained = value
