@@ -184,12 +184,15 @@ import SwiftUI
     }
     private func ticketsButton(_ onOpenTickets: @escaping () -> Void, fixedLabel: Bool) -> some View {
         Button(action: onOpenTickets) {
-            Label {
+            // Explicit icon + text: the system Label dropped the glyph inside the large prominent button and
+            // left its gap, so 票夹 sat off centre (00:10 sweep, d2-me zh-Hans + en).
+            HStack(spacing: 6) {
+                Image(systemName: "ticket").accessibilityHidden(true)
                 Text("member.card.tickets", tableName: "MemberProfile")
                     .lineLimit(fixedLabel ? 1 : 2)
                     .fixedSize(horizontal: fixedLabel, vertical: false)
-            } icon: { Image(systemName: "ticket") }
-                .frame(maxWidth: .infinity)
+            }
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent).controlSize(.large)
         .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
