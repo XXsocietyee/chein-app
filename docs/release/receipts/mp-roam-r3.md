@@ -415,7 +415,7 @@ e5b-stamp — keep). Map panel settled (02:05) — not touched.
 UI test `Fixture_r3_roamStampAlbumStatesTests` (empty id; error id + MP title + app stays foreground).
 **For the coordinator:** please add `r3-roam-stamp-album-empty`, `r3-roam-stamp-album-error` (and the 28 history trio) to the mp-roam sweep row.
 
-Gates: GATES_LINE
+Gates: generate_project OK · check_scaffold PASS (21174 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
 ## Not done / next
 
