@@ -60,7 +60,10 @@ import UIKit
                         ForEach(Array(stores.enumerated()), id: \.element.id) { index, node in
                             Button { onSelect(node.id) } label: {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    Image(systemName: "storefront.fill").font(.title).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+                                    // mp-journey r3 (MP `fx-tile__im`): the station photo chain (station → chapter → route cover),
+                                    // `photo-tex` texture when none; a hidden station photo never surfaces.
+                                    PlayStationArtwork(image: PlayStationImageResolver.station(for: node, in: snapshot.result),
+                                                       title: node.name ?? "", aspectRatio: 4.0 / 3.0, cornerRadius: CYRadius.sm)
                                     // mp-journey r3 (MP `fx-tile__chap`): one chapter per shop; the chapter is the card's identity.
                                     if let label = Self.chapterLabel(for: node, in: snapshot) {
                                         label.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
