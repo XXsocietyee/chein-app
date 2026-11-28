@@ -127,19 +127,20 @@ struct VideoBountyView: View {
     @State private var appealTarget: VideoBountySubmissionRow?
     @State private var cancelTarget: VideoBountySubmissionRow?
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.rootSignIn) private var rootSignIn
 
     // R9-PC-D7-1 (native r2): an inset-grouped List; the submit fields are Form-style Section rows
     // (MP subpackageA/pages/video-bounty/index.wxml:12-30: platform tabs, 视频页链接, 原视频分组, 提交投稿).
     var body: some View {
         List {
             if state.signedOut {
-                // PC-D-7-1: a permission problem is not a retryable error; 登录 opens 我的, where sign-in lives.
+                // PC-D-7-1: a permission problem is not a retryable error; 登录 opens the sign-in sheet over this page (mp-states r3).
                 ContentUnavailableView {
                     Label("mp.vb.signedOut", systemImage: "person.crop.circle")
                         .accessibilityIdentifier("videoBounty.signedOut")
                 } actions: {
-                    if rootTabSwitch.isAvailable {
-                        Button("mp.common.signIn") { rootTabSwitch(.mine) }
+                    if let signIn = rootSignIn.signedOutAction(fallback: rootTabSwitch) {
+                        Button("mp.common.signIn", action: signIn)
                             .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("videoBounty.signIn")
                     }
