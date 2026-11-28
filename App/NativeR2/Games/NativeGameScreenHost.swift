@@ -190,6 +190,7 @@ extension PlayKitScreen {
         case .diyName: return "playkit.diy.eyebrow"
         case .note: return projection.title.isEmpty ? "playkit.note.kicker" : nil
         case .photoCheck: return projection.title.isEmpty ? "playkit.photo.kicker" : nil
+        case .profile: return projection.title.isEmpty ? "playkit.profile.kicker" : nil
         default: return nil
         }
     }

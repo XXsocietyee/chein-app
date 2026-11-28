@@ -520,8 +520,9 @@ extension PlayKitScreen {
                 let key = question["key"].text ?? ""
                 let value = answers[key] ?? ""
                 let shown = PlayKitOption.read(question["options"], idKey: "key").first { $0.id == value }?.label ?? value
+                // MP `pf__row-answer`: an unanswered row stays blank until it is written in (no placeholder dash).
                 LabeledContent {
-                    Text(verbatim: shown.isEmpty ? "—" : shown)
+                    Text(verbatim: shown)
                 } label: {
                     Text(verbatim: question["label"].text ?? key)
                 }
@@ -532,6 +533,14 @@ extension PlayKitScreen {
             if !done && step == total - 1 && total > 0 { Text("playkit.profile.lockNotice") }
         }
         .accessibilityIdentifier("playkit.profile.summary")
+        // MP `pf__progress`: 上一题 sits between the register card and the question (step / total is the shell HUD).
+        if !done, step > 0 {
+            Section {
+                Button { profileStep = step - 1 } label: { Label("playkit.profile.previous", systemImage: "chevron.backward") }
+                    .disabled(!enabled)
+                    .accessibilityIdentifier("playkit.profile.previous")
+            }
+        }
         if !done, questions.indices.contains(step) { nativeProfileQuestion(questions[step]) }
         if avatarEnabled && ((!done && step == questions.count) || (done && !avatarURL.isEmpty)) {
             Section {
@@ -550,12 +559,6 @@ extension PlayKitScreen {
                 Label("playkit.profile.seal", systemImage: "checkmark.seal.fill")
                     .accessibilityLabel(Text("playkit.profile.sealLabel"))
                     .accessibilityIdentifier("playkit.profile.seal")
-            }
-        } else if step > 0 {
-            Section {
-                Button { profileStep = step - 1 } label: { Label("playkit.profile.previous", systemImage: "chevron.backward") }
-                    .disabled(!enabled)
-                    .accessibilityIdentifier("playkit.profile.previous")
             }
         }
     }
@@ -588,7 +591,14 @@ extension PlayKitScreen {
         } header: {
             Text(verbatim: question["label"].text ?? key)
         } footer: {
-            Text("playkit.profile.required")
+            HStack {
+                Text("playkit.profile.required")
+                Spacer()
+                // MP `pf__count`: n / max under a written answer (not for a pick).
+                if question["kind"].text != "pick" {
+                    Text(verbatim: "\((answers[key] ?? "").utf16.count) / \(limit)").monospacedDigit()
+                }
+            }
         }
         .id(key)
         .accessibilityIdentifier("playkit.profile.question." + key)
