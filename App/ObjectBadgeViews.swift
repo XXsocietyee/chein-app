@@ -162,6 +162,8 @@ struct ObjectBadgeWallBadgeLabel: View {
             ObjectBadgeTileArtwork(url: badge.image, locked: badge.isLocked)
                 .frame(width: 76, height: 76)
                 .grayscale(badge.isLocked ? 1 : 0)
+                // mp-mine r3 (P24): a locked badge is its own shape desaturated and dimmed; the text below keeps full contrast.
+                .opacity(badge.isLocked ? 0.55 : 1)
             description.fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: 72)
