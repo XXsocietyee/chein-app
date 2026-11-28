@@ -91,7 +91,7 @@
   },
   {
     "key": "topic.merchants",
-    "en": "Participating",
+    "en": "Participating merchants",
     "zh-Hans": "承接商家"
   },
   {
@@ -101,7 +101,7 @@
   },
   {
     "key": "topic.durationMinutes",
-    "en": "Duration",
+    "en": "Duration (minutes)",
     "zh-Hans": "时长（分钟）"
   },
   {

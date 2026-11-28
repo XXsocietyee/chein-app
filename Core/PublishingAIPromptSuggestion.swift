@@ -9,9 +9,9 @@ public enum PublishingAIPromptSuggestion: String, CaseIterable, Identifiable {
     public func text(languageCode: String) -> String {
         let chinese = languageCode.lowercased().hasPrefix("zh")
         switch self {
-        case .oldTown: return chinese ? "老城建筑与咖啡" : "Old-town architecture coffee"
+        case .oldTown: return chinese ? "老城建筑与咖啡" : "Old-town architecture and coffee"
         case .familyWeekend: return chinese ? "周末亲子探险" : "A weekend family adventure"
-        case .rainyDay: return chinese ? "雨天室内漫游" : "An indoor wander rainy day"
+        case .rainyDay: return chinese ? "雨天室内漫游" : "An indoor wander on a rainy day"
         }
     }
 }

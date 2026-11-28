@@ -567,3 +567,9 @@ Merged `origin/ui/combined-r7` (clean). Brief re-read: no coordinator finding fo
 | `en-login-player.jpg` 欢迎回来 sheet subtitle → Resources/Localizable.xcstrings `auth.login.subtitle` (en) | "Pick up your stamps trails where left off." (missing "and" / "you": broken English) | "Pick up your stamps and trails where you left off." (matches zh 继续你的印章与路线。); zh unchanged, key unchanged | fixed |
 
 Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, owner Q9, coordinator). **Half done.**
+
+## Run 11-28 ~19:xx UTC (hourly, A lane) — merged combined-r7 51f0d6476
+
+Merged `origin/ui/combined-r7` 51f0d6476 (clean). Brief re-read: no coordinator finding for mp-nav after the 17:30 `ia-tabs` P2 (fixed); sweep index still build b954de71c (mp-nav sheets reviewed last run; en login subtitle fixed). No `cursor-k50-p*` lane-layout receipt on any branch. B receipt (196510b72): no new rows. Open rows in file order: only (1) "漫游护照与工具" hub sheet (A half, kept by owner Q9, coordinator).
+
+**Half done.** Run stopped.

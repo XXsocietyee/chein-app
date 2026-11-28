@@ -33,7 +33,7 @@
   },
   "topicRoute.merchants.title": {
     "zh-Hans": "参与商家",
-    "en": "Participating"
+    "en": "Participating shops"
   },
   "registration.merchantClosed.banner": {
     "zh-Hans": "商家暂停营业，暂不可预约",
@@ -477,7 +477,7 @@
   },
   "merchantApply.rule.title": {
     "zh-Hans": "承接说明",
-    "en": "Hosting"
+    "en": "Hosting Instructions"
   },
   "merchantApply.rule.placeholder": {
     "zh-Hans": "填写可用空间、接待安全条件、拍摄许可、现场可配置物料",
@@ -541,7 +541,7 @@
   },
   "bundle.catalog.merchants": {
     "zh-Hans": "参与商家",
-    "en": "Participating"
+    "en": "Participating shops"
   },
   "bundle.catalog.openTopic": {
     "zh-Hans": "查看主题详情",
