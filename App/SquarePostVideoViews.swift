@@ -169,12 +169,19 @@ struct SquarePostVideoComposerSection: View {
             }
         }
     }
+    /// "15 s" is read letter by letter; VoiceOver gets the full unit ("15 seconds" / "15秒").
+    static func spokenDuration<Milliseconds: BinaryInteger>(_ milliseconds: Milliseconds) -> Text {
+        let seconds = Int64(milliseconds) / 1000
+        return Text(Duration.seconds(seconds), format: .units(allowed: [.minutes, .seconds], width: .wide))
+    }
     @ViewBuilder private func preview(_ item: SquarePostMediaDraftItem) -> some View {
         HStack(spacing: 12) {
             if let poster = model.poster { Image(decorative: poster, scale: 1).resizable().scaledToFill().frame(width: 96, height: 72).clipped() }
             else { Image(systemName: "film").font(.largeTitle).frame(width: 96, height: 72).accessibilityHidden(true) }
             VStack(alignment: .leading, spacing: 2) {
-                if let ms = item.durationMilliseconds { Text("square.video.duration \(Int(ms / 1000))") }
+                if let ms = item.durationMilliseconds {
+                    Text("square.video.duration \(Int(ms / 1000))").accessibilityLabel(Self.spokenDuration(ms))
+                }
                 Text(verbatim: "\(item.width)×\(item.height)").font(.caption)
                     .accessibilityLabel(Text("a11y.label.pixelSize \(item.width) \(item.height)"))
                 Text(verbatim: ByteCountFormatter.string(fromByteCount: item.byteCount, countStyle: .file)).font(.caption).foregroundStyle(.secondary)
@@ -195,6 +202,7 @@ struct SquarePostVideoList: View {
 struct SquarePostVideoPlayerRow: View {
     let video: SquarePostVideo
     @State private var player: AVPlayer?
+    @AccessibilityFocusState private var playerFocused: Bool
     static func playableURL(_ raw: String) -> URL? {
         guard let url = URL(string: raw), url.scheme == "https", url.host?.isEmpty == false, url.user == nil, url.password == nil else { return nil }
         return url
@@ -205,9 +213,12 @@ struct SquarePostVideoPlayerRow: View {
             case .approved:
                 if let player {
                     VideoPlayer(player: player).frame(height: 220).accessibilityIdentifier("square.video.player.\(video.id)")
+                        .accessibilityFocused($playerFocused)
+                        .onAppear { playerFocused = true }
                 } else if let url = Self.playableURL(video.source) {
                     Button { player = AVPlayer(url: url) } label: {
-                        Label("square.video.play", systemImage: "play.rectangle").frame(maxWidth: .infinity, alignment: .leading)
+                        Label("square.video.play", systemImage: "play.rectangle")
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
                     }.accessibilityIdentifier("square.video.play.\(video.id)")
                 } else {
                     Label("square.video.sourceUnavailable", systemImage: "video.slash").accessibilityIdentifier("square.video.sourceUnavailable")
@@ -218,7 +229,10 @@ struct SquarePostVideoPlayerRow: View {
                 if let reason { Text(verbatim: reason).font(.caption).foregroundStyle(.secondary) }
             case .unavailable, .unknown: Label("square.video.sourceUnavailable", systemImage: "video.slash")
             }
-            if let ms = video.durationMilliseconds { Text("square.video.duration \(ms / 1000)").font(.caption).foregroundStyle(.secondary) }
+            if let ms = video.durationMilliseconds {
+                Text("square.video.duration \(ms / 1000)").font(.caption).foregroundStyle(.secondary)
+                    .accessibilityLabel(SquarePostVideoComposerSection.spokenDuration(ms))
+            }
         }
         .onDisappear { player?.pause(); player = nil }
     }
