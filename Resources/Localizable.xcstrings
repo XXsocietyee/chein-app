@@ -177333,13 +177333,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your whole selection is correct."
+            "value": "All marked correctly"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "整组标记正确。"
+            "value": "全标对了"
           }
         }
       }
@@ -177350,13 +177350,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not all correct. Try again."
+            "value": "Not quite. Compare them again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有全对，再试试。"
+            "value": "还没标对，再对照一遍"
           }
         }
       }
@@ -352898,6 +352898,244 @@
           "stringUnit": {
             "state": "translated",
             "value": "救助记录"
+          }
+        }
+      }
+    },
+    "playkit.compare.outOfTries": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out of tries. No life lost this time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次数用完了，这次不扣生命"
+          }
+        }
+      }
+    },
+    "playkit.classify.dropInto %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put this card in “%1$@”, %2$lld already there"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把这一张放进「%1$@」，里面已有 %2$lld 条"
+          }
+        }
+      }
+    },
+    "playkit.classify.takeBackItem %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take “%@” back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把「%@」拿回来"
+          }
+        }
+      }
+    },
+    "playkit.classify.placed %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, sorted correctly"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，分对了"
+          }
+        }
+      }
+    },
+    "playkit.classify.leftLine %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld left to sort"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还有 %lld 条没分"
+          }
+        }
+      }
+    },
+    "playkit.classify.allRight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All sorted correctly"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全分对了"
+          }
+        }
+      }
+    },
+    "playkit.classify.someWrong": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some are in the wrong place. Tap a label to take it back and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还有分错的，点小标签拿回来重放"
+          }
+        }
+      }
+    },
+    "playkit.pricePair.fallbackName %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picture %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图 %lld"
+          }
+        }
+      }
+    },
+    "playkit.sort.fb.ok": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All in the right order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全排对了"
+          }
+        }
+      }
+    },
+    "playkit.sort.fb.exhausted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tries left. This one costs you no life"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次数用完了，这次不扣生命"
+          }
+        }
+      }
+    },
+    "playkit.sort.fb.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not in order yet. Move them and submit again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没排对，挪一挪再交"
+          }
+        }
+      }
+    },
+    "playkit.sort.rowLabel %lld %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position %1$lld: %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$lld 位：%2$@"
+          }
+        }
+      }
+    },
+    "playkit.match.fb.ok": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All linked correctly"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全连对了"
+          }
+        }
+      }
+    },
+    "playkit.match.fb.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some links are wrong. Change a pair and submit again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还有没连对的，改一改再交"
           }
         }
       }
