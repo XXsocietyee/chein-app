@@ -238,7 +238,7 @@ import SwiftUI
             OwnProfileComposerHost(actions: actions, offline: session.socialAccountReader.isOfflineExample)
         }
         ProfileAuthorPostsSection(memberID: account.id, accountReader: session.socialAccountReader,
-                                  squareReader: session.squareReader, actions: actions)
+                                  squareReader: session.squareReader, actions: actions, refreshTrigger: memberRefreshToken)
         OwnProfileClubPostsSection()
         SquareMineAccountLinks() // 我的帖文 / 我的收藏 full lists; hidden without the G4 capability bundle
     }

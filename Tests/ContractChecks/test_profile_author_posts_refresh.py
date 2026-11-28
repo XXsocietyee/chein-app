@@ -73,8 +73,12 @@ class ProfileAuthorPostsRefreshSourceChecks(unittest.TestCase):
         self.assertIn('publicReader == nil ? accountReader.presentationRevision : 0', self.core)
         self.assertIn('publicReader == nil || publicRetention?.memberID == memberID', self.core)
     def test_refresh_busy_retained_and_retry_ui(self):
-        for key in ['refresh', 'refreshing', 'retained', 'retry', 'more', 'empty', 'invalidCursor']:
+        # 11-28 05:35 sweep: refresh is the host's pull-down (MP), not a row; the hosts bump refreshTrigger or call refresh.
+        for key in ['refreshing', 'retained', 'retry', 'more', 'empty', 'invalidCursor']:
             self.assertIn('"profile.postsRefresh.' + key + '"', self.view)
+        self.assertNotIn('"profile.postsRefresh.refresh"', self.view)
+        self.assertIn('.onChange(of: refreshTrigger)', self.view)
+        self.assertIn('.cyRefreshable { await refreshAuthorPosts() }', self.host)
         self.assertIn('.disabled(model.isBusy)', self.view)
         self.assertIn('if model.failedOperation != nil', self.view)
     def test_empty_requires_successfully_loaded_page(self):

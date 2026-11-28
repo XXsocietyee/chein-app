@@ -330,6 +330,8 @@ import SwiftUI
         }
         }
             .cyPageTitle("social.profile")
+            // 11-28 05:35 sweep: posts refresh by pull-down, as in the MP (no refresh row).
+            .cyRefreshable { await refreshAuthorPosts() }
             .cyHideTabBar()
             .navigationDestination(item: selfEditBinding) { ticket in
                 ProfileSelfEditDestination(ticket: ticket, access: selfEditAccess,
@@ -378,6 +380,11 @@ import SwiftUI
             .onChange(of: selfOrdersAccess?.context(memberID: memberID, social: reader, isCurrent: isCurrent())) { _, context in
                 if context == nil && tab == .mine && selfProjectsAccess?.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) == nil { tab = .posts }
             }
+    }
+    /// Pull to refresh on the 帖文 tab reloads the retained author feed (the other tabs refresh their own sections).
+    private func refreshAuthorPosts() async {
+        guard tab == .posts, !authorPosts.isBusy else { return }
+        await authorPosts.refresh(memberID: memberID, accountReader: reader, squareReader: squareReader, isCurrent: isCurrent)
     }
     /// Label for the side-by-side bordered 关注 / 发消息 buttons.
     @ViewBuilder private func profilePill(_ title: Text, systemImage: String?) -> some View {
