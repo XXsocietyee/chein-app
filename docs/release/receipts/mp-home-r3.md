@@ -302,6 +302,14 @@ Merged `origin/ui/combined-r7` into `mp/r3-home`. No new coordinator item for mp
 |---|---|---|
 | `pages/activity/detail` `activity-hero` status tag (light text on the cover) → `App/E1ActivityDetailParts.swift` `E1ActivityHero` | `zh-Hans-rep3-activity-detail.jpg` / `en-…`: the 已结束 / "Ended" word and its checkmark render in `.secondary` grey over the bright part of the photo — barely readable (fails 4.5:1). | **Fixed** — the ended state reads in `palette.onCoverFg` (footnote semibold, id `activity.detail.state`), and the hero scrim darkens earlier (0.5 at 25 %, 0.75 at 50 %) so the status line sits on shade. Upcoming / live keep the tinted `CYStatusChip`. |
 
+## Round 3 continue (20) — 02:10 sweep (build 41374363f), "Next round" list (P23–P31)
+
+Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home; every 首页-reachable MP page already has a row. Sweep build includes continue 18 (no 搜索 button above results ✓); continue 19 (已结束 on the hero) is not in it yet.
+
+| MP page → native view | Principle → change | Fixed / not |
+|---|---|---|
+| `subpackageMember/components/cy/scene-play-activity-detail/index.wxml:29-38` activity-meta (分类 / 集合点 / 已报名, MP order kept) → `App/ActivityDetailView.swift` `ActivityDetailMetaSection` | P28 facts as icon rows: `zh-Hans-rep3-activity-detail.jpg` showed plain label/value rows. Each `LabeledContent` label is now a system `Label` with a leading SF Symbol (`tag` / `mappin.and.ellipse` / `person.2`, `.secondary`, hidden from VoiceOver); values, ids, the Maps button and "—" for unknown unchanged. | **Fixed** (`rep3-activity-detail`). P28's date row + Add to Calendar is **not done**: the MP shows the time in the hero, not in activity-meta, and EventKit UI needs a usage string + device check. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -327,3 +335,4 @@ Merged `origin/ui/combined-r7` into `mp/r3-home`. No new coordinator item for mp
 - Needs a simulator pass (continue 17): `d2-search-results` result-scope chips row (全部 / 主题 n / 活动 n …) in en + zh-Hans, and that it hides while the field is active.
 - Needs a simulator pass (continue 18): `d2-search-results` without the 搜索 button above the results.
 - Needs a simulator pass (continue 19): `rep3-activity-detail` 已结束 / Ended readable on the hero in en + zh-Hans, light and dark.
+- Needs a simulator pass (continue 20): `rep3-activity-detail` fact rows with leading icons in en + zh-Hans, AX5 (LabeledContent stacks).
