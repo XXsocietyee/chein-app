@@ -89,6 +89,7 @@
         "ClubCreateCurrentRecordPresentationTests",
         "ClubCreateWorkspaceAppFlowTests",
         "ClubDirectorRecapMetricTests",
+        "ClubDirectorTeamSheetTests",
         "ClubEnrollmentNavigationTests",
         "ClubEventCalendarHTTPJourneyTests",
         "ClubEventCalendarReadTests",

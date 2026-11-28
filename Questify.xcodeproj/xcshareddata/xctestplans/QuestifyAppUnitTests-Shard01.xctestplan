@@ -85,6 +85,7 @@
         "ClubCommunityReviewBindingTests",
         "ClubCreateCurrentRecordPresentationTests",
         "ClubCustomerKeywordDebounceTests",
+        "ClubDirectorTeamSheetTests",
         "ClubEnrollmentNavigationTests",
         "ClubEventCalendarHTTPJourneyTests",
         "ClubEventCalendarReadTests",
