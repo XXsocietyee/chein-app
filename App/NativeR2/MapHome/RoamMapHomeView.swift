@@ -30,6 +30,9 @@ struct RoamMapHomeDependencies {
     /// this map; the explorer is no longer pushed as a second map inside the sheet.
     var searchReader: (any SearchMapReading)? = nil
     var onChooseArea: (() -> Void)? = nil
+    /// MP `enableEntryLocation` (pages/roam/index.js): one foreground GCJ-02 fix that becomes the search area.
+    /// nil (fixtures, previews) keeps the manual area picker only.
+    var locateArea: (@MainActor () async throws -> RoamSearchArea)? = nil
     var onOpenAccount: (() -> Void)? = nil
     /// MP pages/roam/index `unfinishedRoam` / `recoveryError`: the local journal read that turns 开始漫游 into
     /// 继续漫游 and shows 上次漫游需要确认. nil hides both, as before.

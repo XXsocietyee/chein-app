@@ -494,7 +494,23 @@ Base re-merged with `origin/ui/combined-r7` (clean). No open coordinator finding
 
 Gates: generate_project OK · check_scaffold PASS (21268 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
+## Round 3 continue (36) — function audit P1-17 (漫游 home uses the device location) + P2-7 part (status re-read on return)
+
+Base re-merged with `origin/ui/combined-r7` (fast-forward). No open coordinator finding for mp-roam; the function audit (11-28) puts P1/P2
+before design work, P0-8 (team writes) is on `fix/1128-team`, not here. Map panel settled (02:05) — not touched.
+
+| Audit id | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| **P1-17** | `pages/roam/index` `enableEntryLocation` (index.js ~6105: `wx.getLocation gcj02` → `center`, `entryLocated`, `_loadEntryMap`; `_syncRoamPermission` locates automatically when `scope.userLocation` is already granted; a tapped 开启定位 that fails opens 需要定位权限 → 去设置) → `App/NativeR2/MapHome/RoamMapHomeSheet.swift` `areaSection` / `syncLocation` / `locate`, `App/AppSessionRoamLocate.swift`, `App/QuestifyApp.swift` `roamMapHomeDependencies` | The area came only from the manual picker (typed lat/lng), so a first run always showed 先选择漫游区域 and the device location was never used (audit evidence `App/QuestifyApp.swift:858`, `App/RoamAreaPicker.swift:3-13`). | New `RoamMapHomeDependencies.locateArea` (nil in fixtures) → `AppSession.locateRoamArea()`: one foreground fix via `RoamDeviceFixGCJ.currentGCJ02Fix(RuntimeNativeLocationProvider)` (permission primer → system prompt, GCJ-02 once — the same path the nearby-teams 定位 uses) sets `session.roamArea`; the map recentres and the entry / places reads reload through the existing area change. Sheet: `.borderedProminent` 开启定位 (`nativeR2.city.enableLocation`, `CYBusyLabel` while locating, id `roam.mapHome.locate`) above the kept 选择区域; when location is already allowed it locates silently on open (MP automatic, no error); a tapped failure shows 没有取到定位，请重试 (`nearby.locationFailed`, id `roam.mapHome.locate.failed`); denied re-reads the status so the MP 需要定位 · 去设置 section takes over. No new strings. | B · shipping map home (no map-home fixture, continue 11) |
+| P2-7 (part) | same page, `_syncRoamPermission` on `onShow` | The status was read once in `.task` and never after returning from Settings. | `scenePhase == .active` re-reads the status (and locates when it is now allowed and no area is set). The other P2-7 parts (`/api/roam/checkin`, guest 走起 CTA, zh city link titles, raw `roamEvent.unavailable`) stay open. | — |
+
+Gates: generate_project OK · check_scaffold PASS (21277 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
 ## Not done / next
+
+- Function audit (mp-roam, not on a fix worker): P1-18 presence heartbeat (`presence: false` lease), P1-19 扫海报码 stub, P1-20 coupon code
+  factory, P1-21 production external-maps factory, P1-22 city-game region (owner value), P1-23 unconfigured roam readers, P1-24 location share
+  entries, P1-25 US roam, P2-7 rest (`/api/roam/checkin`, guest 走起 sign-in CTA, zh city link titles, raw `roamEvent.unavailable`).
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
   `RoamStampExchangeCoordinator` (never instantiated), so the citystamp camera (`showsCaption: true`) keeps its caption + exchange. Needs an
