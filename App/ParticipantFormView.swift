@@ -205,6 +205,7 @@ final class ParticipantFormModel: ObservableObject {
 @MainActor
 struct ParticipantFormView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.rootSignIn) private var rootSignIn
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.offlineWriteSession) private var offlineWriteSession
     @StateObject private var model: ParticipantFormModel
@@ -355,6 +356,18 @@ struct ParticipantFormView: View {
         }
     }
 
+    /// mp-states r3 (MP global 登录): the root sign-in sheet cannot open over this sheet, so this sheet closes
+    /// first and the root sheet opens once the dismissal has finished.
+    private func signInFromSheet() {
+        let signIn = rootSignIn
+        model.disappear()
+        dismiss()
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 450_000_000)
+            signIn()
+        }
+    }
+
     var body: some View {
         Group {
             if model.reader.identity == nil || model.coordinator.identity == nil {
@@ -362,6 +375,12 @@ struct ParticipantFormView: View {
                     Label("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark")
                 } description: {
                     Text("auth.expired")
+                } actions: {
+                    if rootSignIn.isAvailable {
+                        Button("mp.common.signIn") { signInFromSheet() }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("participantForm.signIn")
+                    }
                 }
             } else if model.showsOwnedUnknown {
                 Form {
