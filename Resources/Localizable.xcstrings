@@ -282345,6 +282345,23 @@
         }
       }
     },
+    "wallet.balanceHero": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account balance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户余额"
+          }
+        }
+      }
+    },
     "wallet.balanceLedger": {
       "localizations": {
         "en": {
