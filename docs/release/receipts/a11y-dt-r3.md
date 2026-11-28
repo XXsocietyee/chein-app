@@ -467,11 +467,12 @@ medal stack night cells, ring numerals and live HUD numbers left: fixed-size art
 | Error / unknown-result states (OWN-OPT-072 request reference, every player page that shows it) | `RequestReferenceRow.swift` | ✓ | Reference shrank to 70 % and cut to one line → wraps up to 3 lines at full size; the Copy button moves under the reference at accessibility sizes (P: stack, never shrink) | Done |
 | `pages/club` post card author meta, post-ref chip | `ClubComponents.swift:437`, `MPGap/Club/ClubGapRemainingViews.swift:24` | ✓ (mp-club owns order) | "Club · time" and the picked post title were one line (truncated at AX sizes) → up to 2 lines | Done |
 | `pages/topic` publisher row | `TopicXcxSections.swift:97` | ✓ (mp-publish owns order) | Publisher name one line beside fixed "posted" → up to 2 lines (outer row already stacks at AX) | Done |
+| Shared status badge (reference tasks, play / journey state chips) | `QuestifyMotionComponents.swift:61` (`QuestifyStatusBadge`) | ✓ | Status words shrank to 75 % on one line → wrap to 2 lines at full size (badge already `fixedSize(vertical:)`). `.minimumScaleFactor` scan: the other 73 player hits are big numerals / ring counts / ticket codes (one number, allowed) | Done |
 
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 7a7d2708a, to see runs 27-29).
-- Next pages without a row: `.minimumScaleFactor` on body / caption text (not big numerals) in player views → wrap instead of shrink;
-  then `.frame(width:)` on text containers at AX5.
+- Next pages without a row: `.frame(width:)` on text containers at AX5 (fixed widths that clip wrapped text), then
+  `.fixedSize()` on button labels in HStacks.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
