@@ -5,9 +5,9 @@ struct QuestifyApp: App {
     @StateObject private var sessionContainer = AppSessionContainer()
     @AppStorage(AppLanguage.storageKey) private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     init() {
+        // Critical path only. Live Activities and plan-activity observation run on the next main
+        // turn (`ColdStartDeferredLaunch`), after this frame can commit.
         MPNotificationTapRouter.shared.attach()
-        QuestLiveActivityCenter.shared.endOrphanedActivities()
-        QuestPlanActivityCenter.shared.start()
         QuestWidgetBoardPublisher.installControlRoute()
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
@@ -163,6 +163,7 @@ struct QuestifyApp: App {
                 }
                 #endif
             }
+            .modifier(ColdStartDeferredLaunch())
             .cyPresentationBackdropHost()
             .modifier(AppLanguageEnvironment(stored: storedLanguage))
             .tint(CYColor.brand)
@@ -310,6 +311,11 @@ struct SessionRootView: View {
     /// L1 P-004: sign-in opens as one sheet over the current tab; the optional action resumes after it.
     @State private var showsRootSignIn = false
     @State private var resumeAfterSignIn: (@MainActor () -> Void)?
+    /// Location monitor and a parked control route wait until the first frame has had a turn.
+    @State private var pastFirstFrame = false
+    /// Roam, publish, club, and mine stay out of the first tab body.
+    @State private var nonHomeTabsArmed = false
+    @State private var nonHomeTabsReady = false
     #if DEBUG
     @State private var showsScannerFixture = false
     #endif
@@ -318,11 +324,27 @@ struct SessionRootView: View {
                     SessionHomeFeedView(onSignIn:{ requestSignIn() },onStartRoam:{ selectedTab = .roam })
                         .environment(\.cyTabBarVisibility, homeTabBarVisibility)
                         .modifier(activeSessionBar)
+                        .onAppear {
+                            guard !nonHomeTabsArmed else { return }
+                            nonHomeTabsArmed = true
+                            DispatchQueue.main.async { nonHomeTabsReady = true }
+                        }
+    }
+
+    /// The home tab is built with the first tab body. The other four wait until that body has appeared,
+    /// or until the player selects one of them.
+    @ViewBuilder private func deferredTab<Content: View>(_ tab: RootTab, @ViewBuilder content: () -> Content) -> some View {
+        if selectedTab == tab || nonHomeTabsReady {
+            content()
+        } else {
+            Color.clear.accessibilityHidden(true)
+        }
     }
 
     /// 漫游 tab root. Native r2 (`NativeR2Flags.mapHome`, default on): the Apple-Maps-style map home, with the
     /// City board as a map mode. Flag off: the City Monopoly map (owner Q9, P 210:8322); hold to start opens the live roam.
     @ViewBuilder private var roamTab: some View {
+        deferredTab(.roam) {
         if NativeR2Flags.mapHome {
                     RoamMapHomeView(dependencies: roamMapHomeDependencies)
                         .environment(\.roamPOIActions, session.makeRoamPOIActions())
@@ -338,6 +360,7 @@ struct SessionRootView: View {
                                         passportDestination: { AnyView(roamBrowser) }, onChooseArea: { showsAreaPicker = true })
                         .environment(\.cyTabBarVisibility, roamTabBarVisibility)
                         .modifier(activeSessionBar)
+        }
         }
     }
 
@@ -419,26 +442,32 @@ struct SessionRootView: View {
     }
 
     @ViewBuilder private var publishTab: some View {
+        deferredTab(.publish) {
                     NavigationStack { PublishTabRootView() }
                         .id(session.sessionRevision)
                         .environment(\.cyTabBarVisibility, publishTabBarVisibility)
                         .modifier(activeSessionBar)
+        }
     }
 
     @ViewBuilder private var clubTab: some View {
+        deferredTab(.club) {
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ requestSignIn() },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, requestedClubID: $deepLinkClubID, authorSquare: session.squareReader, requestedTopTab: $deepLinkClubTopTab).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
                         .environment(\.cyTabBarVisibility, clubTabBarVisibility)
                         .modifier(activeSessionBar)
+        }
     }
 
     @ViewBuilder private var mineTab: some View {
+        deferredTab(.mine) {
                     Group {
                         if let account=session.account { PassportView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home },presentsTicketPass:$deepLinkTicketPass).id(session.sessionRevision) }
                         else { WelcomeView() }
                     }
                         .environment(\.cyTabBarVisibility, mineTabBarVisibility)
                         .modifier(activeSessionBar)
+        }
     }
 
     /// L1 P-004: present sign-in in place (no tab switch). Already signed in: run the action now.
@@ -678,8 +707,18 @@ struct SessionRootView: View {
                   templateAssistFactory: { session.merchantTemplateAssistFlow(coordinator: $0) })
         })
         .environment(\.merchantCustomerContactFactory, { session.merchantCustomerContactFlow($0, sourceIsCurrent: $1) })
-        .environment(\.personalLocationShareHost, session.personalLocationShareHost)
+        .environment(\.personalLocationShareHost, pastFirstFrame ? session.personalLocationShareHost : nil)
+        .task {
+            await ColdStartAfterFirstFrame.waitUntilOpen()
+            pastFirstFrame = true
+        }
+        .onChange(of: pastFirstFrame) { _, ready in
+            guard ready else { return }
+            session.personalLocationShareHost.sceneChanged(personalShareScenePhase)
+            if personalShareScenePhase == .active { QuestWidgetBoardPublisher.openParkedControlRoute() }
+        }
         .onChange(of: personalShareScenePhase, initial: true) { _, phase in
+            guard pastFirstFrame else { return }
             session.personalLocationShareHost.sceneChanged(phase)
             if phase == .active { QuestWidgetBoardPublisher.openParkedControlRoute() }
         }
