@@ -717,4 +717,6 @@ Merged `origin/ui/combined-r7` (clean). No `docs/release/receipts/cursor-k50-p*.
 
 Half split at run start (open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin still in `docs/issue5-hunks/C02-ios-pbx.rnhunk.md`) · 2 `pass-unlock` rest (`App/MPParityKit.swift:12` `MPCommerceGate.purchasesEnabled = false`) | 3 P2-5c (backend / legal). **A half = rows 1–2, both still blocked**; no code change this run.
 
+Gates: generate_project no change, check_scaffold PASS (log redaction failed once while four gates ran in parallel, PASS on rerun), a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
+
 **Half done**; run stops here per the 15:45 split rule.
