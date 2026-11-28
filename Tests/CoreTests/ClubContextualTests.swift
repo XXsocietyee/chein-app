@@ -70,11 +70,22 @@ import FoundationNetworking
         XCTAssertNil(draft.chapters[0].nodes[0].templateID)
     }
     func testClubAIQuotaStopsRepeatedGeneration() async throws {
-        let session = aiSession(), generator = ClubAIFakeGenerator(outcome: .rejected("今日AI次数已用完"))
+        let session = aiSession(), generator = ClubAIFakeGenerator(outcome: .rejected(AISafetyPrecheckVerdict.quotaHint))
         let flow = ClubAIDesignFlow(generator: generator, current: { session })
         let input = try ClubAIDesignInput(idea: "Walk")
         await flow.generate(input); XCTAssertEqual(flow.failure, .quota); XCTAssertFalse(flow.canGenerate)
         await flow.generate(input); XCTAssertEqual(generator.calls, 1)
+    }
+    func testClubAIRoleGateIsIdentityAndNotTheQuotaPhrase() async throws {
+        XCTAssertFalse(AISafetyPrecheckVerdict.roleGate.contains(AISafetyPrecheckVerdict.quotaHint))
+        let session = aiSession(), generator = ClubAIFakeGenerator(outcome: .rejected(AISafetyPrecheckVerdict.roleGate))
+        let flow = ClubAIDesignFlow(generator: generator, current: { session })
+        await flow.generate(try ClubAIDesignInput(idea: "Walk"))
+        XCTAssertEqual(flow.failure, .identity)
+        let longer = ClubAIFakeGenerator(outcome: .rejected(AISafetyPrecheckVerdict.quotaHint + "，请明天再来"))
+        let other = ClubAIDesignFlow(generator: longer, current: { session })
+        await other.generate(try ClubAIDesignInput(idea: "Walk"))
+        XCTAssertEqual(other.failure, .unavailable)
     }
     func testClubAICancelOrSessionChangeDropsLateResult() async throws {
         for cancel in [true, false] {
