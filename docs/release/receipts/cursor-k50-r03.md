@@ -1,6 +1,6 @@
 # K50-R3 US launch behaviour
 
-Branch `cursor/1128-k50-r03` from `origin/ui/combined-r7` @ `d5702393c`. Scope is US launch behaviour only: +1 SMS sign-in order, Stripe / Apple Pay flow labelling, US legal pages as the existing placeholder, and US units / dates / currency on the rows this lane owns. Money switches were not edited. Payments stay off. No US legal copy was written. `App/AppSession.swift` was not edited (7976 lines). Init order `devices`, `sensors`, `artworkHosts` is untouched. Release `PlayerLaunch.merchantCenterEnabled` stays false.
+Branch `cursor/1128-k50-r03` from `origin/ui/combined-r7` @ `d5702393c`, then merged `origin/ui/combined-r7` @ `b954de71c` before push. Scope is US launch behaviour only: +1 SMS sign-in order, Stripe / Apple Pay flow labelling, US legal pages as the existing placeholder, and US units / dates / currency on the rows this lane owns. Money switches were not edited. Payments stay off. No US legal copy was written. `App/AppSession.swift` was not edited (7976 lines). Init order `devices`, `sensors`, `artworkHosts` is untouched. Release `PlayerLaunch.merchantCenterEnabled` stays false.
 
 The shipped binary pins the backend market to China, so `operationalMarket` is China for a US player. Presentation follows the storefront.
 
