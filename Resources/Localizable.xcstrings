@@ -176755,7 +176755,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete a line · %@"
+            "value": "Line complete · %@"
           }
         },
         "zh-Hans": {
@@ -351693,6 +351693,278 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld/%2$lld 人"
+          }
+        }
+      }
+    },
+    "playkit.bingo.fullBanner %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All nine lit · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "九格全亮 · %@"
+          }
+        }
+      }
+    },
+    "playkit.bingo.howDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lights up when you get there"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走到即亮"
+          }
+        }
+      }
+    },
+    "playkit.bingo.panel.scan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the code in the store and this square lights up."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到店扫一下店里的码，这一格就亮了。"
+          }
+        }
+      }
+    },
+    "playkit.bingo.panel.play %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This square holds “%@”. It lights up once you finish it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一格装的是「%@」。玩完它才会亮。"
+          }
+        }
+      }
+    },
+    "playkit.bingo.panel.ok": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got it"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知道了"
+          }
+        }
+      }
+    },
+    "playkit.bingo.panel.playDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This square lights up when you get there."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一格装的是「走到即亮」。玩完它才会亮。"
+          }
+        }
+      }
+    },
+    "playkit.photo.kicker": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take a photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍一张"
+          }
+        }
+      }
+    },
+    "playkit.photo.lastShot": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last photo you submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一张提交的照片"
+          }
+        }
+      }
+    },
+    "playkit.photo.verdict.degradedPass": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This one couldn't be reviewed. Carry on."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次没能审，先往下走"
+          }
+        }
+      }
+    },
+    "playkit.photo.verdict.degradedRetry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This one couldn't be reviewed. Take another."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次没能审，再拍一张"
+          }
+        }
+      }
+    },
+    "playkit.photo.verdict.recorded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录"
+          }
+        }
+      }
+    },
+    "playkit.photo.verdict.fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out of tries. This one counts for now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "机会用完了，这张先算过"
+          }
+        }
+      }
+    },
+    "playkit.photo.verdict.passed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This one passed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这张过了"
+          }
+        }
+      }
+    },
+    "playkit.photo.verified": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo verified"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片已核验"
+          }
+        }
+      }
+    },
+    "playkit.rewardNote.xpBadgeOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device score: counts toward exploration points and badges only, no coupons or points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机成绩：只记探索值与徽章，不发券或积分"
+          }
+        }
+      }
+    },
+    "playkit.photo.triesLeft %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retakes left: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还能重拍 %lld 次"
           }
         }
       }
