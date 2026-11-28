@@ -700,7 +700,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This gameplay has no story"
+            "value": "This play has no story"
           }
         }
       }
@@ -764,7 +764,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "See failure"
+            "value": "Show failure"
           }
         }
       }
@@ -780,7 +780,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "See success"
+            "value": "Show success"
           }
         }
       }
@@ -812,7 +812,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Untitled gameplay"
+            "value": "Untitled play"
           }
         }
       }
