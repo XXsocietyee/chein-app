@@ -132,7 +132,7 @@ struct EditorAddRow: View {
                 Image(systemName: "plus").font(.body.weight(.semibold)).accessibilityHidden(true)
                 title.cyText(.cardTitle)
                 if let count, let limit {
-                    Text(verbatim: "\(count)/\(limit)").cyText(.meta, monospacedDigit: true).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: "\(count)/\(limit)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(count)) \(Int(limit))")).cyText(.meta, monospacedDigit: true).foregroundStyle(palette.textTertiary)
                 }
             }
             .foregroundStyle(atLimit ? palette.textDisabled : palette.textSecondary)
