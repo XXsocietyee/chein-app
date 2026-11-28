@@ -27,29 +27,38 @@ struct WeChatAppAuthSection: View {
             section
         }
     }
+    /// Sweep 04:50: the same full-width, 50 pt button as Sign in with Apple and phone sign-in; status in the footer.
     private var section: some View {
         Section {
             Button { model.coordinator.start() } label: {
                 Label("auth.wechat.signIn", systemImage: "bubble.left.and.bubble.right")
-                    .frame(minHeight: 44)
+                    .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
             .disabled(!model.coordinator.canStart)
             .accessibilityIdentifier("auth.wechat.signIn")
             .accessibilityHint(Text("auth.wechat.hint"))
-            if model.coordinator.isWorking {
-                ProgressView("auth.wechat.working")
-                Button("action.cancel") { model.coordinator.cancel() }
-                    .accessibilityIdentifier("auth.wechat.cancel")
-            } else if !model.coordinator.canStart {
-                Text("auth.wechat.notConfigured").foregroundStyle(.secondary)
-                    .accessibilityIdentifier("auth.wechat.gate")
-            }
-            if let issue = model.issue {
-                Text(LocalizedStringKey(issue.localizationKey)).foregroundStyle(CYColor.dangerText)
-                    .accessibilityIdentifier("auth.wechat.error")
-            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+        } footer: {
+            statusFooter
         }
         .onChange(of: context) { _, _ in model.coordinator.cancel() }
         .onDisappear { model.coordinator.cancel() }
+    }
+    @ViewBuilder private var statusFooter: some View {
+        if model.coordinator.isWorking {
+            VStack(alignment: .leading, spacing: 8) {
+                ProgressView("auth.wechat.working")
+                Button("action.cancel") { model.coordinator.cancel() }
+                    .buttonStyle(.borderless)
+                    .frame(minHeight: 44)
+                    .accessibilityIdentifier("auth.wechat.cancel")
+            }
+        } else if let issue = model.issue {
+            Text(LocalizedStringKey(issue.localizationKey)).foregroundStyle(CYColor.dangerText)
+                .accessibilityIdentifier("auth.wechat.error")
+        }
     }
 }
