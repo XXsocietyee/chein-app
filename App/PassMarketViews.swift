@@ -537,6 +537,8 @@ enum PassBuyState: Equatable {
     case unavailable(reason: String?)
     /// Group / school products: go through the registration checkout (activity signup), not this page.
     case checkout(activityID: String?, ticketID: String?)
+    /// Group quote failed: MP `market/pass` buy.state `requote` (报价暂不可用 + 重试, index.js:108, wxml:42).
+    case requote
     /// Quote allows these pay modes. Drawn read-only while `MPCommerceGate.purchasesEnabled` is false.
     case buyable(payModes: [PassPayMode], cashReason: String?)
     /// Guest: 购买 asks to sign in first (`market/pass` index.js:80).
@@ -765,6 +767,13 @@ struct PassDetailView: View {
                 .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .accessibilityIdentifier("passDetail.unavailable")
+        case .requote:
+            Text("mp.pass.buy.requote")
+                .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+            Button(action: onRetry) { Text("action.retry").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .accessibilityIdentifier("passDetail.requote")
         case .signIn:
             Button { onSignIn?() } label: { Text("mp.pass.buy.signIn").frame(maxWidth: .infinity) }
                 .buttonStyle(.borderedProminent).controlSize(.large)

@@ -135809,6 +135809,23 @@
         }
       }
     },
+    "mp.pass.buy.requote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Price quote isn’t available right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报价暂不可用"
+          }
+        }
+      }
+    },
     "mp.pass.buy.signIn": {
       "extractionState": "manual",
       "localizations": {
