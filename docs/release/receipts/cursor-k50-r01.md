@@ -1,6 +1,6 @@
 # K50-R1 remote push
 
-Branch `cursor/1128-k50-r01` from `origin/ui/combined-r7` pin `d5702393c9ba984dbceb2d5a7ecd978fb8951de3`. Client path only. No APNs auth key, no SQL, no deploy, no `xcodebuild`.
+Branch `cursor/1128-k50-r01` from `origin/ui/combined-r7` pin `d5702393c9ba984dbceb2d5a7ecd978fb8951de3`. Merged the later tip `b954de71c` before push. Client path only. No APNs auth key, no SQL, no deploy, no `xcodebuild`.
 
 ## Wired (no APNs key)
 
