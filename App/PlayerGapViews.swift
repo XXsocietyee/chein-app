@@ -65,6 +65,10 @@ struct OfficialSignupCommandSection: View {
             case .busy:
                 ProgressView()
             case .unknown:
+                if let message = flow.failureMessage, !message.isEmpty {
+                    Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("gap.signup.serverMessage")
+                }
                 Text("playerGap.signup.unknown").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 HStack {
                     Button("playerGap.signup.query") { run { await flow.query() } }
@@ -495,6 +499,7 @@ struct CityFavoriteNodesSection: View {
     @State private var pendingRemoval: CityFavoriteNode?
     @State private var removing: Int?
     @State private var removalFailed: Int?
+    @State private var removalMessage: String?
 
     var body: some View {
         if service != nil {
@@ -575,7 +580,12 @@ struct CityFavoriteNodesSection: View {
                 if let address = node.address, !address.isEmpty { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 if removing == node.id { ProgressView().controlSize(.small) }
                 if removalFailed == node.id {
-                    Text("playerGap.cityFavorites.removeFailed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    if let removalMessage, !removalMessage.isEmpty {
+                        Text(verbatim: removalMessage).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("playerGap.cityFavorites.serverMessage")
+                    } else {
+                        Text("playerGap.cityFavorites.removeFailed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    }
                 }
             }
         }
@@ -592,15 +602,15 @@ struct CityFavoriteNodesSection: View {
     private func remove(_ node: CityFavoriteNode) async {
         pendingRemoval = nil
         guard removing == nil, let service else { return }
-        removing = node.id; removalFailed = nil
-        let favorited = await service.toggleCityNodeFavorite(poiID: node.id)
+        removing = node.id; removalFailed = nil; removalMessage = nil
+        let reply = await service.postCityNodeFavorite(poiID: node.id)
         removing = nil
-        switch favorited {
-        case false?: nodes?.removeAll { $0.id == node.id }
-        case true?:
-            // The toggle turned it back on (state had changed elsewhere): read the list again instead of guessing.
-            await load()
-        case nil: removalFailed = node.id
+        if case .ok(let data, _) = reply, let favorited = data["favorited"].bool {
+            if favorited == false { nodes?.removeAll { $0.id == node.id } }
+            else { await load() }
+        } else {
+            removalFailed = node.id
+            removalMessage = reply.message
         }
     }
 }
@@ -613,6 +623,7 @@ struct MerchantCityNodeFavoriteRow: View {
     @State private var favorited = false
     @State private var busy = false
     @State private var failed = false
+    @State private var failureMessage: String?
 
     var body: some View {
         Group {
@@ -626,7 +637,14 @@ struct MerchantCityNodeFavoriteRow: View {
                     .disabled(busy)
                     .accessibilityLabel(Text(favorited ? "playerGap.node.unfavorite" : "playerGap.node.favorite"))
                 }
-                if failed { Text("playerGap.node.failed").cyText(.meta).foregroundStyle(CYColor.dangerText) }
+                if failed {
+                    if let failureMessage, !failureMessage.isEmpty {
+                        Text(verbatim: failureMessage).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("playerGap.node.serverMessage")
+                    } else {
+                        Text("playerGap.node.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    }
+                }
             }
         }
         .task(id: merchantID) {
@@ -637,9 +655,15 @@ struct MerchantCityNodeFavoriteRow: View {
 
     private func toggle(_ poiID: Int) {
         guard let service = service, !busy else { return }
-        busy = true; failed = false
+        busy = true; failed = false; failureMessage = nil
         Task {
-            if let value = await service.toggleCityNodeFavorite(poiID: poiID) { favorited = value } else { failed = true }
+            let reply = await service.postCityNodeFavorite(poiID: poiID)
+            if case .ok(let data, _) = reply, let value = data["favorited"].bool {
+                favorited = value
+            } else {
+                failed = true
+                failureMessage = reply.message
+            }
             busy = false
         }
     }

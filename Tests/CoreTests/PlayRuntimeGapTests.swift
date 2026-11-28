@@ -120,6 +120,7 @@ private final class PlayRuntimeStubHTTP: HTTPTransport {
         http.replies = [(#"{"code":500,"msg":"busy"}"#, 200)]
         await runtime.perform(.roll)
         XCTAssertTrue(runtime.unknown); XCTAssertFalse(store.values.isEmpty)
+        XCTAssertEqual(runtime.disabledReason, "busy")
     }
 
     func testUnreadableStoreNeverSends() async throws {
@@ -174,6 +175,9 @@ private final class PlayRuntimeStubHTTP: HTTPTransport {
         XCTAssertEqual(rows.skip, PlayCoopHelp.Skip(level: 3, usable: false, reason: "需要现场完成，不能跳过"))
         let rejected = await PlayCoopHelp.send(client: client, body: body)
         XCTAssertEqual(rejected, .rejected("积分不足"))
+        http.replies = [(#"{"code":503,"msg":"线路忙"}"#, 503)]
+        let noted = await PlayCoopHelp.send(client: client, body: body)
+        XCTAssertEqual(noted, .notedUnknown("线路忙"))
         http.fail = true
         let unknown = await PlayCoopHelp.send(client: client, body: body)
         XCTAssertEqual(unknown, .unknown)
@@ -262,6 +266,11 @@ private final class PlayRuntimeStubHTTP: HTTPTransport {
         XCTAssertEqual(shared.data?["expectedRevision"].integer, 4)
         XCTAssertNil(PlayThemeGameplayExchange.command(view: .object(["scope": .string("TEAM"), "sessionId": .integer(1), "version": .integer(1)]),
             operation: "QUEST_START", contentID: "q1", actionID: "a"), "TEAM commands are not the personal gameplay route")
+        http.replies = [(#"{"code":503,"msg":"动作没写上"}"#, 503), (#"{"code":200,"data":{"sessionId":41}}"#, 200)]
+        let noted = await PlayThemeGameplayExchange.action(client: client, command: command)
+        XCTAssertEqual(noted, .notedUnknown("动作没写上"))
+        let stillUnknown = await PlayThemeGameplayExchange.action(client: client, command: command)
+        XCTAssertEqual(stillUnknown, .unknown)
     }
 
     // MARK: run session
