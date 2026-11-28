@@ -1383,8 +1383,8 @@ struct JourneyShareCard: View {
                 (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).cyText(.sectionTitle).multilineTextAlignment(.center)
                 HStack(spacing: CYSpacing.xs) {
                     Text("mp.settle.share.nodes \(MPText.orDash(report.nodesText))")
-                    if let score = report.score { Text(verbatim: "·"); Text("mp.settle.share.score \(score)") }
-                    if let rank = report.rank { Text(verbatim: "·"); Text("mp.report.rank \(rank)") }
+                    if let score = report.score { Text(verbatim: "·").accessibilityHidden(true); Text("mp.settle.share.score \(score)") }
+                    if let rank = report.rank { Text(verbatim: "·").accessibilityHidden(true); Text("mp.report.rank \(rank)") }
                 }
                 .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }

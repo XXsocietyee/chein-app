@@ -35,7 +35,7 @@ import SwiftUI
                                         Text(verbatim: row.event ?? "—").font(.headline)
                                         HStack(spacing: 4) {
                                             Text(row.channel == "wx" ? LocalizedStringKey("d7.deliveryLog.channel.wx") : LocalizedStringKey("d7.deliveryLog.channel.push"))
-                                            Text(verbatim: "·")
+                                            Text(verbatim: "·").accessibilityHidden(true)
                                             Text(verbatim: LocaleDisplay.civil(String(row.createTime.prefix(16)).replacingOccurrences(of: "T", with: " "), locale: locale))
                                         }
                                         .font(.footnote).foregroundStyle(.secondary)

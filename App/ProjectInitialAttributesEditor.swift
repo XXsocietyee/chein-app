@@ -127,7 +127,8 @@ import SwiftUI
                         Toggle(isOn: .init(get: { controller.buffer?.stateEnabled ?? false },
                             set: { controller.setEnabled($0, in: original); invalid = false })) { text("enabled") }
                             .accessibilityIdentifier("projectInitialAttributes.enabled")
-                        text("enabledHint").font(.footnote)
+                            .accessibilityHint(text("enabledHint"))
+                        text("enabledHint").font(.footnote).accessibilityHidden(true)
                     }
                     ForEach(buffer.rows) { row in
                         Section {
