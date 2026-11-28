@@ -266,19 +266,26 @@ public enum PlayJournal {
     public static func attributes(in snapshot: PlaySnapshot) -> [PlayRouteAttribute] {
         (snapshot.authority ?? snapshot.result.routeState)?.attributes ?? []
     }
-    /// MP `buildJournal` for a linear route: city runs in station order, free exploration finished-first.
+    /// MP `buildJournal`: branch routes in the MP `orderedJourneyNodes` order, city runs in station order,
+    /// free exploration finished-first.
     public static func rows(in snapshot: PlaySnapshot) -> [PlayJournalRow] {
         let cityRun = snapshot.result.mode == 1
+        let branchRoute = snapshot.route?.isBranch == true
         let visible = snapshot.visibleNodes
         let ordered: [PlayNode]
-        if cityRun {
+        let focusIndex: Int?
+        if let route = snapshot.route, branchRoute {
+            ordered = branchOrder(visible, route: route, snapshot: snapshot)
+            focusIndex = branchFocus(ordered, route: route, snapshot: snapshot)
+        } else if cityRun {
             ordered = visible.enumerated().sorted { lhs, rhs in
                 (lhs.element.sortID ?? Int.max, lhs.offset) < (rhs.element.sortID ?? Int.max, rhs.offset)
             }.map { $0.element }
+            focusIndex = ordered.firstIndex { !snapshot.isDone($0) }
         } else {
             ordered = visible.filter { snapshot.isDone($0) } + visible.filter { !snapshot.isDone($0) }
+            focusIndex = ordered.firstIndex { !snapshot.isDone($0) }
         }
-        let focusIndex = ordered.firstIndex { !snapshot.isDone($0) }
         let chapterIDs = ordered.compactMap { $0.chapterID }
         let multiChapter = chapterIDs.count == ordered.count && Set(chapterIDs).count > 1
         var chapterNames: [Int: String] = [:]
@@ -292,12 +299,12 @@ public enum PlayJournal {
             var excerpt: String? = paragraph
             var redacted = false
             if done {
-                key = cityRun ? .station(index + 1) : .step(index + 1)
+                key = cityRun && !branchRoute ? .station(index + 1) : .step(index + 1)
             } else if index == focusIndex {
                 key = .now
             } else if cityRun {
                 key = .ahead
-                let gap = index - (focusIndex ?? index) - 1
+                let gap = index - (focusIndex ?? ordered.count) - 1
                 if gap > 0 { excerpt = nil; redacted = true }
             } else {
                 key = .notYet
@@ -315,6 +322,40 @@ public enum PlayJournal {
                                        coverURL: opens ? cover : nil))
         }
         return rows
+    }
+
+    /// MP `play-route-state.js` `orderedJourneyNodes`: finished first, then the current / recommended stop, then the
+    /// rest; inside each group by the decision-log order, then `sortId`.
+    static func branchOrder(_ nodes: [PlayNode], route: PlayRouteState, snapshot: PlaySnapshot) -> [PlayNode] {
+        var decisionOrder: [Int: Int] = [:]
+        if let log = route.decisionLog {
+            for (position, entry) in log.entries.enumerated() {
+                let index = position < log.sourceIndices.count ? log.sourceIndices[position] : position
+                if decisionOrder[entry.fromNodeID] == nil { decisionOrder[entry.fromNodeID] = index * 2 }
+                if decisionOrder[entry.toNodeID] == nil { decisionOrder[entry.toNodeID] = index * 2 + 1 }
+            }
+        }
+        func rank(_ node: PlayNode) -> Int {
+            if snapshot.isDone(node) { return 0 }
+            if node.id == route.currentNodeID || node.id == route.recommendedNodeID { return 1 }
+            return 2
+        }
+        return nodes.enumerated().sorted { lhs, rhs in
+            let left = (rank(lhs.element), decisionOrder[lhs.element.id] ?? Int.max, lhs.element.sortID ?? 0, lhs.offset)
+            let right = (rank(rhs.element), decisionOrder[rhs.element.id] ?? Int.max, rhs.element.sortID ?? 0, rhs.offset)
+            return left < right
+        }.map { $0.element }
+    }
+
+    /// MP `resolveNextRouteNode` for a branch route: the recommended, else the current stop, only while it is
+    /// unfinished and PLAYABLE; otherwise there is no 此刻 row.
+    static func branchFocus(_ ordered: [PlayNode], route: PlayRouteState, snapshot: PlaySnapshot) -> Int? {
+        for candidate in [route.recommendedNodeID, route.currentNodeID] {
+            guard let candidate, let index = ordered.firstIndex(where: { $0.id == candidate }) else { continue }
+            let node = ordered[index]
+            if !snapshot.isDone(node), route.nodeStates[node.id] == "PLAYABLE" { return index }
+        }
+        return nil
     }
 
     static func firstParagraph(_ text: String?) -> String? {
