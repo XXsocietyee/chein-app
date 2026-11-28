@@ -648,3 +648,17 @@ Merged `origin/ui/combined-r7` (49 commits, clean). No B lane branch exists yet 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 
 Not done: `CharacterCardReadbackView` byte pin. O-10 (stamp album server read) = P1-23, owned by mp-roam / `fix/1128b-maps`. Coordinator: please add `d2-me` with an empty ledger to a later sweep once a fixture reader exists.
+
+## Continue 40 (11-28, half-hourly run): settings sub-sheets without a row
+
+Merged `origin/ui/combined-r7` (68 commits, clean). Sweep unchanged (build 0446d1c4f, `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg`); no coordinator notes for mp-mine after 13:15 (the 成为商家 row is K12, `cursor/1128-merchant-gate`; the 票夹 glyph was closed in continue 33). B lane (`mp/r3-mine-b` run 1) finished two A rows, marked here: the `ai-chat-records` clear-count toast **(B lane)** and the `scene-share-invite` copy + 分享链接 **(B lane)**. The `CharacterCardReadbackView` byte pin, P2-5c and the rows the B lane reviewed and left (pass-unlock, order-detail 场次已开始 note → mp-activity `TeamCreateView`) are unchanged. This run takes the three `pages/shezhi/components/*` pages that had no row.
+
+| MP page | Native file | MP sections | Level | Result |
+|---|---|---|---|---|
+| `pages/shezhi/components/privacy-sheet` (隐私与定位) | `App/SettingsPrivacyLocationView.swift` | body → 《用户隐私保护指引》 → **更多隐私设置** (城市定位与更多隐私设置) → 附近的人位置分享 → 漫游定位 | C | **Fixed (order).** The own-media link (the MP's 更多隐私设置 target) sat last, after 漫游定位 and the app-only session holds. It now follows the home-city section, so the page reads body → guide → home city + own media → presence → roam, as the MP. Identifiers and destinations unchanged (`SettingsPrivacyLocationFlowTests` find `member.privacy.media` by id). |
+| `pages/shezhi/components/post-governance` (帖文处置与申诉) | `App/SettingsPostGovernanceView.swift` | intro 复核前的处置不是最终结论 → states (loading / 登录 / 错误+重试 / 暂无) → rows (type · state, target · time · 至, note, 复核说明, 提交申诉 form) → 加载更多 | C | **Fixed.** The appeal form lacked the MP counter `{{reason.length}}/{{reasonMax}}`; it now shows `N/500` (footnote, monospaced digits, VoiceOver "N of 500 characters", id `settings.postGov.count`) on the same row as 取消 / 提交. Everything else was already present. Not done: the MP `pendingUnknown` warning (上次申诉的提交结果未确认…) needs the local pending-appeal store the MP keeps; the native submit has no such record yet. |
+| `pages/shezhi/components/marketing-consent` (营销消息与优惠券) | `App/AccountComplianceViews.swift` (`.marketing`) | loading / error+重试 / empty 还没有商家消息 / per-merchant group (logo or initial + name, 站内活动消息 and 商家优惠券 switches) / inline 未更新 error | C | **Already ported** (B-MK rows: logo tile `merchantLogo` with initial fallback, two switches per merchant, saving disables all). No change. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet (see commit).
+
+Not done: `CharacterCardReadbackView` byte pin; post-governance `pendingUnknown` warning.
