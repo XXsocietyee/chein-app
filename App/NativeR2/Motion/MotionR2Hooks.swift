@@ -10,6 +10,7 @@ struct MotionR2FinishHeroSection: View {
     let elapsedSeconds: Int
     let doneCount: Int
     let total: Int
+    @Environment(\.locale) private var locale
 
     private var fraction: Double { total > 0 ? Double(doneCount) / Double(total) : 0 }
 
@@ -17,7 +18,7 @@ struct MotionR2FinishHeroSection: View {
         if NativeR2Flags.motion2, walkedMeters > 0 || elapsedSeconds > 0 {
             Section {
                 if walkedMeters > 0 {
-                    MotionR2MoodHero(value: CityOrientationFormat.distance(walkedMeters), numericValue: walkedMeters,
+                    MotionR2MoodHero(value: CityOrientationFormat.distance(walkedMeters, locale: locale), numericValue: walkedMeters,
                                      captionKey: "motion2.finish.distance", mood: MotionR2Mood.forFraction(fraction))
                 } else {
                     MotionR2MoodHero(value: PlayRunElapsedText.format(elapsedSeconds), numericValue: Double(elapsedSeconds),

@@ -555,7 +555,7 @@ import SwiftUI
     private func focus(_ node: PlayNode) {
         focusedStore = node.id
         if let coordinate = Self.coordinate(node) {
-            withAnimation { position = .region(MKCoordinateRegion(center: coordinate, latitudinalMeters: 600, longitudinalMeters: 600)) }
+            withAnimation(reduceMotion ? nil : .default) { position = .region(MKCoordinateRegion(center: coordinate, latitudinalMeters: 600, longitudinalMeters: 600)) }
         }
     }
 

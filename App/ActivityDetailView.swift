@@ -824,9 +824,9 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     var onOpenLocation: (() -> Void)? = nil
     var body: some View {
         Section {
-            LabeledContent("activityParity.header.category") {
+            LabeledContent {
                 Text(verbatim: facts.categoryText ?? "—")
-            }
+            } label: { factLabel("activityParity.header.category", systemImage: "tag") }
             .font(.body)
             .accessibilityIdentifier("activity.detail.category")
             if let onOpenLocation {
@@ -837,24 +837,35 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 meetingPointRow
                     .accessibilityIdentifier("activity.detail.meetingPoint")
             }
-            LabeledContent("activityParity.header.registered") {
+            LabeledContent {
                 if let count = facts.registrationCount { Text("activityParity.header.registeredCount \(count)") }
                 else { Text(verbatim: "—") }
-            }
+            } label: { factLabel("activityParity.header.registered", systemImage: "person.2") }
             .font(.body)
             .accessibilityIdentifier("activity.detail.registeredCount")
         }
     }
 
     private var meetingPointRow: some View {
-        LabeledContent("activityParity.header.meetingPoint") {
+        LabeledContent {
             switch facts.meetingPoint {
             case .named(let place): Text(verbatim: place)
             case .mapOnly: Text("activityParity.header.meetingPointOnMap")
             case .unconfirmed: Text(verbatim: "—")
             }
-        }
+        } label: { factLabel("activityParity.header.meetingPoint", systemImage: "mappin.and.ellipse") }
         .font(.body)
+    }
+
+    /// P28: each MP fact reads as a leading SF Symbol + label, the system `Label` row style.
+    private func factLabel(_ key: LocalizedStringKey, systemImage: String) -> some View {
+        Label {
+            Text(key)
+        } icon: {
+            Image(systemName: systemImage)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+        }
     }
 }
 

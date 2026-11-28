@@ -577,6 +577,7 @@ struct ProjectEditReviewView: View {
     /// stays one tap away under 查看将提交的全部内容.
     @State private var showsAll = false
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         NavigationStack {
             Form {
@@ -589,7 +590,7 @@ struct ProjectEditReviewView: View {
                 if !localSaveConfirmed { Section { Text("projectPrepared.localSaveUnconfirmed").accessibilityIdentifier("projectPrepared.localSaveUnconfirmed") } }
                 Section {
                     Button {
-                        withAnimation { showsAll.toggle() }
+                        withAnimation(reduceMotion ? nil : .default) { showsAll.toggle() }
                     } label: {
                         HStack {
                             OpsR3Text.text(showsAll ? "publish.preview.hideAll" : "publish.preview.showAll")

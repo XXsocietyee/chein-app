@@ -70,6 +70,7 @@ import SwiftUI
             ForEach(bag.values, id: \.key) { row in
                 LabeledContent {
                     Text(verbatim: row.max.map { "\(row.value) / \($0)" } ?? row.value).cyText(.numericBody)
+                        .accessibilityLabel(row.max.map { Text("a11y.value.ofTotalText \(row.value) \($0)") } ?? Text(verbatim: row.value))
                 } label: {
                     HStack { valueName(row.name); if row.zero { Text("playx.backpack.zero").foregroundStyle(CYColor.dangerText) } }
                 }
