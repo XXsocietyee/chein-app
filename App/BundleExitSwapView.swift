@@ -64,6 +64,7 @@ struct BundleExitSwapView: View {
     @State private var notice: String?
     @State private var error: String?
     @State private var busy = false
+    @State private var loaded = false
 
     private static let definiteRefusals: Set<String> = [
         "BUNDLE_MERCHANT_NOT_EXITED", "BUNDLE_STORE_UNAVAILABLE", "BUNDLE_SWAP_SHORTENS_VALIDITY",
@@ -74,6 +75,7 @@ struct BundleExitSwapView: View {
         List {
             if let notice { Label(notice, systemImage: "info.circle").foregroundStyle(.secondary) }
             if let error { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText) }
+            unitsState
             ForEach(units, id: \.id) { unit in
                 Button { Task { await loadOptions(unit.id) } } label: {
                     Text(verbatim: PlayerCapabilityCopy.text("权益 #", "Unit #", locale) + unit.id.text + " · " + unit.status)
@@ -107,8 +109,28 @@ struct BundleExitSwapView: View {
             }
         }
         .task { await start() }
+        .refreshable { await reload() }
         .listStyle(.insetGrouped)
         .themeDomain(.player)
+    }
+
+    /// MP `subpackageMember/free-explore` wxml:12 刷新 (loading) and :37 cy-empty 这笔订单没有套票权益.
+    @ViewBuilder private var unitsState: some View {
+        if !loaded && error == nil {
+            ProgressView { Text(verbatim: PlayerCapabilityCopy.text("正在读取权益…", "Loading your passes…", locale)) }
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("bundle.exit.loading")
+        } else if loaded && units.isEmpty && error == nil {
+            ContentUnavailableView {
+                Label { Text(verbatim: PlayerCapabilityCopy.text("这笔订单没有套票权益", "This order has no pass entitlements", locale)) } icon: { Image(systemName: "ticket") }
+            }
+            .accessibilityIdentifier("bundle.exit.empty")
+        } else if units.isEmpty && error != nil && tools != nil {
+            Button { Task { await reload() } } label: { Text(verbatim: PlayerCapabilityCopy.text("刷新", "Refresh", locale)) }
+                .buttonStyle(.bordered)
+                .disabled(busy)
+                .accessibilityIdentifier("bundle.exit.reload")
+        }
     }
 
     private func start() async {
@@ -124,6 +146,8 @@ struct BundleExitSwapView: View {
         do {
             let order = try await tools.service.order(registrationID: host.registrationID)
             units = order.bundle?.units ?? []
+            loaded = true
+            if options == nil && pendingKey == nil { self.error = nil }
         } catch { self.error = PlayerCapabilityCopy.text("权益加载失败，请重试", "Couldn't load your passes. Try again.", locale) }
     }
 
