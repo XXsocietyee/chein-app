@@ -85,6 +85,18 @@ import SwiftUI
         default: return nil
         }
     }
+    /// mp-club r3 pass 17 (MP danger-actions `club.dissolve.alt`, edit js:35-39 goGovernance): the dissolve confirm's
+    /// 改为转让主理人 closes this form without dissolving and lets the edit page open 成员治理. Nil outside the edit page.
+    private var transferInsteadAction: (() -> Void)? {
+        guard route.operation == .dissolve, let transfer = dissolvedReturn?.transferInstead else { return nil }
+        return {
+            consequenceReview = nil
+            retirePresentation()
+            coordinator.cancelReview()
+            dismiss()
+            transfer()
+        }
+    }
     /// CLB-group-code-04 (fix-r3-club-b round 3): the session label the event tools pass in (never a command field).
     @Environment(\.clubRoleActivityLabel) private var sessionLabel
     @QuestifyReduceMotion private var reduceMotion
@@ -501,7 +513,7 @@ import SwiftUI
         }
         .cySheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
             if let kind = ClubGovernanceConsequence(route.operation) {
-                kind.sheet(locale: locale, name: consequenceObjectName) {
+                kind.sheet(locale: locale, name: consequenceObjectName, alternative: transferInsteadAction) {
                     guard let pending = consequenceReview, pending.id == review?.id else { consequenceReview = nil; return }
                     consequenceReview = nil; consequenceAccepted = pending.id; Task { await confirm(pending) }
                 }

@@ -44,7 +44,7 @@ Audited, unchanged (allowed by the rule): hidden nav bar only in live roam / fre
 | pages/template/index → pages/search2/index (goSearch, navigateTo) | 发布 root 搜索全部 | push (pushed chrome added, P6) | fixed |
 | pages/template/index → subpackageB/pages/im/list/index (tpl-bell) | 发布 root bell | push | OK |
 | profile (pages/member/index) → subpackageMember/market/passes/index (票夹, navigateTo) | 我的 票夹 → pass sheet → 打开票夹 | wallet was a second sheet → `navigationDestination` push, `isPushed: true`, no close (AccountView.swift) | fixed |
-| profile → pages/shezhi/shezhi (navigateTo) | 我的 top-right 设置 | sheet kept: SettingsView's profile/favorites route owners retire on `onDisappear`, so hosting it as a push would retire them on every sub-push. Needs an owner-lifetime change first (coordinator) | open |
+| profile → pages/shezhi/shezhi (navigateTo) | 我的 top-right 设置 | push since 23:xx (`SettingsView(isPushed: true)`, guide hand-off on pop) | fixed |
 | profile → subpackageMember/points-history, assetcenter/earnings (钱包), stamp-album, badge-wall, im/list | 我的 rows | `navigationDestination(isPresented:)` pushes with pushed chrome | OK |
 | profile → points help (MP popup) | 积分 ⓘ | `.cySheet` with `[.medium, .large]` detents | OK |
 | pages/topic/index/index → subpackageMember/signup/index (票, navigateTo) | topic bottom bar 我的票 | was `.cySheet` half/full → `navigationDestination(isPresented: $showingTickets)` push, wallet host `isPushed: true` (no close), pushed chrome; the bar hero modifier is a pass-through since native r2, so nothing depended on the sheet | fixed |
@@ -178,11 +178,31 @@ Sweep sheets (en / zh-Hans): inbox inline title, ia-tabs large titles, onboardin
 |---|---|---|---|
 | pages/shezhi/shezhi (plain link, landed as a push on 首页) → App/SettingsView.swift via App/MPReviewedPageScreen.swift | nested `NavigationStack` (double bar) + 完成 next to system back; the 个人资料 card pushed `ProfileSettingsProfileRoute` by value, which the host's typed `[AppRoute]` path cannot push (dead tap) | `SettingsView(isPushed: true)`: no own stack, no 完成, the 个人资料 card is a view-destination link to the new shared `ProfileSettingsProfileSessionDestination` (App/ProfileSettingsProfileRoute.swift); `profileOwner.retire()` only in the sheet form (pushed, onDisappear also fires when a row pushes on top, and the owner leaves with the page). 我的 → 设置 sheet unchanged. MP shezhi list order unchanged | fixed |
 
+## Re-scan 11-27 22:3x (sweep build 8fa84e4d3; mp-nav sheets clean)
+
+Sweep sheets (en / zh-Hans): `login-player` now one mark, phone sign-in only, no gated row ✓; `onboarding-1` reads Chein in en ✓; `d2-inbox` inline 消息 (pushed) ✓; `ia-tabs` large 首页 ✓; `welcome` ✓. No new coordinator row for mp-nav after 20:55. Siri / Shortcuts (`QuestAppIntents.swift`), Control Center (`QuestControlRouteIntent` handler + parked `takePendingRoute`) all route through `MPNotificationTapRouter` → home landing: OK.
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| subpackageB/pages/im/list `onEmptyCta` (收件箱 empty → feed, `wx.switchTab` talent/list + markDiscoverFeed) → App/MessagingHomeView.swift `messaging.list.emptySquare` | opened 动态 as a `.cySheet` with its own stack and 关闭 (popup for a page edge) | `navigationDestination(isPresented: $showsSquare)` push; session host passes `SessionSquareBrowserView(onClose: nil, embedsNavigationStack: false)` + pushed chrome (App/SessionMessagingEntry.swift:33), like 首页 ⋯ 动态. The native 俱乐部 tab has no 全站帖文 feed segment (ClubHomeView A8-03), so 动态 stays the destination. UI test fixture close still pops | fixed |
+| pages/square/detail feed-play-card 试玩 (`goPlay` → navigateTo pages/play/index?activityId= / topicId= by `dataType`) → App/SquareDetailView.swift `SquareDetailPlayCard` | native 试玩 opens the related topic detail (play starts from there), one step more than MP; `SquareRelatedTopicDestination` deliberately injects no play/purchase provider | not changed: going straight to `SessionPlayRuntimeView` needs the session play gating in the square host (needs a compiled run); flagged for mp-activity (square owner) / coordinator | open |
+
+## Re-scan 11-27 23:xx (sweep build 8fa84e4d3 unchanged; carried Open rows)
+
+Merged `origin/ui/combined-r7` (a2baf94fa). Sweep unchanged since 22:3x, so this run takes the carried Open row.
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| pages/member/index → 设置 (MP profile index.wxml:17 icon_set, navigateTo pages/shezhi/shezhi) → App/AccountView.swift | `.large` sheet with its own stack + 完成 (popup for a page edge, OWNER RULE 2) | `navigationDestination(isPresented: $showsSettings)` push of `SettingsView(…, isPushed: true)` + `.cyPushedChrome()`: no own stack, no 完成, system back; the 城瘾玩法 guide hand-off (`SettingsGuideHandoff`) now finishes on the pop (`onChange(of: showsSettings)` false) instead of the sheet's onDismiss, same begin/request/finish order; Settings no longer marks the 我的 root "sheet open" for replayed links (a push does not cover the tabs). MP shezhi list order unchanged | fixed |
+| signed-out 我的 root ⋯ → 设置 (App/WelcomeView.swift:66) | still a sheet (shared `cySheet(item:)` with 登录 / legal) | not changed this run: the welcome page is also the launch screen without a host stack; flagged | open |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
 
 ## Pins updated
+
+- Tests/ContractChecks/test_account_collection_structure.py:113 — splits AccountView at `.navigationDestination(isPresented:$showsSettings)` (设置 is a push, not `.cySheet`).
 
 - Tests/ContractChecks/test_i03_notification_blacklist_closeout.py:53 — expects the guarded `if !isPushed { profileOwner.retire() }` (sheet still retires; a pushed Settings leaves the owner with the popped page).
 - Tests/ContractChecks/test_ticket_wallet_play_entry.py:19 — looks for the wallet `navigationDestination` line instead of the old `.cySheet` (wallet is now a push).
@@ -195,7 +215,7 @@ All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScre
 
 ## Open (carried)
 
-- 我的 → 设置 stays a `.large` sheet (AccountView.swift:150, WelcomeView.swift:66): MP navigateTo = push. SettingsView can now render pushed (`isPushed: true`, used by the landed link); converting 我的 still needs the guide hand-off (`SettingsGuideHandoff`, runs after sheet dismissal) moved to a pop. Needs a compiled run.
+- 我的 → 设置 is a push since 23:xx (AccountView); the signed-out Welcome ⋯ 设置 (WelcomeView.swift:66) is still a sheet.
 - 漫游护照与工具 hub sheet (owner Q9) and topic 编辑 editor sheet — kept, see the edge table.
 
 ## For other lanes

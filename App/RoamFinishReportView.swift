@@ -55,19 +55,17 @@ struct RoamFinishReport: Equatable {
     @Environment(\.analyticsEventClient) private var analytics
 
     var body: some View {
-        // design-r2-roam (P16 a finished activity is a named record): share + Done on top, the route first, then the
-        // MP title (zone · 自由漫游), date · place, the MP hero (处到达) and its six cells in a 3-column grid (2 at
-        // accessibility sizes), the MP stamp strip, medals with both exits (share, collection), the route story.
+        // mp-roam r3 (OWNER RULE, MP settle order pages/roam/index.wxml:893-948): date line → zone · 自由漫游 → rule →
+        // 处到达 hero → six cells → 这段足迹 → stamp strip → (native P8 medals) → route map with 查看漫游数据 → bottom CTA.
+        // P30: the result is a moment, then a door — Share (bordered capsule) beside the primary Done in the bottom bar,
+        // a success haptic once on appear, 漫游记录 as the minor exit under them.
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                mapPanel.padding(.top, CYSpacing.sm).padding(.horizontal, -CYSpacing.lg)
                 head
                 Divider().padding(.top, CYSpacing.md)
                     .accessibilityHidden(true)
                 bigNumber
                 grid.padding(.top, CYSpacing.xl)
-                RoamFinishStampStrip(photos: report.record?.photos ?? [])
-                medalsStrip
                 if let story = report.story {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text("u10.roamFinish.story").cyText(.caption).foregroundStyle(CYColor.textTertiary)
@@ -78,20 +76,21 @@ struct RoamFinishReport: Equatable {
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("roam.finishReport.story")
                 }
-                actions.padding(.top, CYSpacing.xl)
+                RoamFinishStampStrip(photos: report.record?.photos ?? [])
+                medalsStrip
+                reachedPlaces
+                mapPanel.padding(.top, CYSpacing.xl).padding(.horizontal, -CYSpacing.lg)
             }
             .padding(.horizontal, CYSpacing.lg)
-            .padding(.bottom, CYSpacing.xxl)
+            .padding(.bottom, CYSpacing.xl)
         }
         // native-r3-b: system background — the semantic text colours above were unreadable on forced black in light mode.
         .background(.background)
-        // OWNER RULE 2: share and 完成 live in the standard nav bar (inline, system back kept), not an in-content bar.
+        .safeAreaInset(edge: .bottom) { bottomBar }
+        // OWNER RULE 2: inline nav bar, system back kept; the actions live in the bottom bar (P30).
         .toolbar(.visible, for: .navigationBar)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) { shareButton }
-            ToolbarItem(placement: .confirmationAction) { doneButton }
-        }
+        .sensoryFeedback(.success, trigger: revealed) { _, new in new }
         .cySheet(isPresented: $showShare) {
             Group { if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } } }
                 .cySheet(detents: [.large])
@@ -113,27 +112,41 @@ struct RoamFinishReport: Equatable {
         .cyDomainScreen(.player)
     }
 
-    /// P16 top bar: share (secondary, icon) and the one Done. Identifiers kept: the MP close is now Done.
+    /// P30 bottom bar: Share (bordered capsule, MP 分享 CTA) beside the one primary Done (MP ✕), then the MP minor
+    /// exits. Identifiers kept.
+    private var bottomBar: some View {
+        VStack(spacing: CYSpacing.xs) {
+            HStack(spacing: CYSpacing.sm) {
+                shareButton
+                doneButton
+            }
+            actions
+        }
+        .padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.md).padding(.bottom, CYSpacing.xs)
+        .background(.bar)
+    }
     private var shareButton: some View {
         Button { showShare = true } label: {
             Label("u10.roamFinish.share", systemImage: "square.and.arrow.up")
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, minHeight: 44)
         }
+        .buttonStyle(.bordered).buttonBorderShape(.capsule).controlSize(.large)
         .disabled(report.record == nil)
         .accessibilityLabel(Text("u10.roamFinish.shareLabel"))
         .accessibilityIdentifier("roam.finishReport.share")
     }
     private var doneButton: some View {
-        Button("action.done") { dismiss() }
+        Button { dismiss() } label: {
+            Text("action.done").lineLimit(1).frame(maxWidth: .infinity, minHeight: 44)
+        }
+            .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
             .accessibilityHint(Text("u10.roamFinish.close"))
             .accessibilityIdentifier("roam.finishReport.close")
     }
     private var head: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            titleText
-                .cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityAddTraits(.isHeader)
-            // P16 date · place line. Place is the settle chip address when the live session passed one.
+            // MP settle__meta first: date · place. Place is the settle chip address when the live session passed one.
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
                 dateLine
                 if let address = report.currentAddress {
@@ -144,6 +157,10 @@ struct RoamFinishReport: Equatable {
             .cyText(.bodyCompact).foregroundStyle(CYColor.textTertiary)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("roam.finishReport.dateLine")
+            titleText
+                .cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
         }
         .padding(.top, CYSpacing.lg)
     }
@@ -231,6 +248,31 @@ struct RoamFinishReport: Equatable {
             .padding(.top, CYSpacing.xl)
         }
     }
+    /// MP `settle__places` (wxml:932, index.js:4861): the reached places of this walk (done, not demo), names only,
+    /// in walk order, before the route map. Unnamed or repeated places are skipped.
+    @ViewBuilder private var reachedPlaces: some View {
+        let names = reachedPlaceNames
+        if !names.isEmpty {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                ForEach(names, id: \.self) { name in
+                    Text(verbatim: name).cyText(.body).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.top, CYSpacing.xl)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("roam.finishReport.places")
+        }
+    }
+    private var reachedPlaceNames: [String] {
+        var seen = Set<String>()
+        var names: [String] = []
+        for place in report.record?.pois ?? [] where !place.isDemoEntry {
+            let name = place.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !name.isEmpty, seen.insert(name).inserted { names.append(name) }
+        }
+        return names
+    }
     private func cell(_ value: String?, _ label: LocalizedStringKey, id: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: value ?? "—").cyText(.dataXL).italic().foregroundStyle(CYColor.textPrimary)
@@ -271,8 +313,8 @@ struct RoamFinishReport: Equatable {
             }
         }
     }
-    /// Exits under the record: 漫游记录 (MP settle minor action) and, when medals were earned, the badge wall
-    /// (P8: a kept medal has a share and a collection exit). Share lives in the top bar (P16).
+    /// Minor exits under Share / Done: 漫游记录 (MP settle__minor) and, when medals were earned, the badge wall
+    /// (P8: a kept medal has a share and a collection exit).
     private var actions: some View {
         VStack(spacing: CYSpacing.sm) {
             if history.identity != nil {
@@ -282,7 +324,7 @@ struct RoamFinishReport: Equatable {
                             .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderless)
                     .accessibilityIdentifier("roam.finishReport.collection")
                 }
                 NavigationLink { RoamHistoryView(reader: history) } label: {

@@ -30,7 +30,7 @@ import SwiftUI
     var body: some View {
         MessagingHomeView(reader: readerOwner.reader(for: session), mediaReader: session.socialMessageMediaReader,
             senderForConversation: { session.messageSender(for: $0) }, expanded: session.imExpandedNavigation,
-            squareDestination: { close in AnyView(SessionSquareBrowserView(session: session, onClose: close, onSignIn: close)) },
+            squareDestination: { close in AnyView(SessionSquareBrowserView(session: session, onClose: nil, onSignIn: close, embedsNavigationStack: false).id(session.squareReader.scope).cyPushedChrome()) },
             predictionEntry: { AnyView(SessionMerchantPredictionEntry(session: session)) },
             merchantChrome: session.account?.role == "merchant")
             .id(session.messagingViewIdentity)

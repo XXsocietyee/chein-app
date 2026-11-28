@@ -1615,6 +1615,23 @@
         }
       }
     },
+    "a11y.value.ofTotal %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld，共 %2$lld"
+          }
+        }
+      }
+    },
     "account.details": {
       "extractionState": "manual",
       "localizations": {
@@ -1662,6 +1679,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "账号 ID"
+          }
+        }
+      }
+    },
+    "account.inviteFriends": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite friends"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请好友"
           }
         }
       }
@@ -17445,6 +17479,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "所在城市"
+          }
+        }
+      }
+    },
+    "club.detail.events.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动列表加载失败"
+          }
+        }
+      }
+    },
+    "club.detail.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading club details…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载俱乐部详情…"
           }
         }
       }
@@ -141310,6 +141378,91 @@
         }
       }
     },
+    "mpPublish.rules.replay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow playing again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许再玩一次"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.replay.teamRefused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team play doesn't support replaying alone. Turn off Allow playing again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍玩法不支持个人重玩，请关闭再玩一次"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.teamTrail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared routes in a session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同场路线"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法规则"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.unreadable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic's game settings couldn't be read. Save the topic and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题玩法配置读取失败，请保存主题后重试"
+          }
+        }
+      }
+    },
     "mpd.aiChat.export": {
       "extractionState": "manual",
       "localizations": {
@@ -170633,13 +170786,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sending…"
+            "value": "Unlocking…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交中…"
+            "value": "正在解锁…"
           }
         }
       }
@@ -204297,13 +204450,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Orders could not be loaded. Try again."
+            "value": "Couldn’t load your orders"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "订单未能加载，请重试。"
+            "value": "订单加载失败"
           }
         }
       }
@@ -350626,6 +350779,108 @@
         }
       }
     },
+    "roam.official.pausedReason %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event paused: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动暂停：%@"
+          }
+        }
+      }
+    },
+    "roam.official.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the event…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取活动…"
+          }
+        }
+      }
+    },
+    "playx.board.loadingLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the companions board…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载同行者榜…"
+          }
+        }
+      }
+    },
+    "orderLifecycle.unavailableTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This order can’t be viewed right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单暂不可查看"
+          }
+        }
+      }
+    },
+    "orderLifecycle.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        }
+      }
+    },
+    "club.ops.dissolve.transferHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hand the club to someone else to run. Members and content stay."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把俱乐部交给别人打理，成员和内容都留着"
+          }
+        }
+      }
+    },
     "playkit.slow.eyebrow": {
       "extractionState": "manual",
       "localizations": {
@@ -350796,87 +351051,19 @@
         }
       }
     },
-    "roam.official.pausedReason %@": {
+    "club.ops.locked.sub": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Event paused: %@"
+            "value": "Only the host can set these"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "活动暂停：%@"
-          }
-        }
-      }
-    },
-    "roam.official.loading": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loading the event…"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在读取活动…"
-          }
-        }
-      }
-    },
-    "playx.board.loadingLabel": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loading the companions board…"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在加载同行者榜…"
-          }
-        }
-      }
-    },
-    "orderLifecycle.unavailableTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This order can’t be viewed right now"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "订单暂不可查看"
-          }
-        }
-      }
-    },
-    "orderLifecycle.retry": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Retry"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重试"
+            "value": "仅主理人可设置"
           }
         }
       }

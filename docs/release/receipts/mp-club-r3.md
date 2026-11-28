@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 13, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 18, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -79,7 +79,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/customers | `ClubOpsCustomerViews.swift` | The count line sits as the list section header after the filter (native pattern; the count follows the filter); the filtered-empty CTA 查看全部客户 is a borderless button under the empty state, not inside it. | **Kept** (the CTA's fences are pinned in place by `test_club_customer_clear_filters`; moving it needs the clear closure threaded into the list view) |
 | club/customer-detail | `ClubOpsCustomerViews.swift`, `ClubCustomerInlineEditor.swift` | In edit mode the editor replaces the card, the heading reads 编辑标签与备注 and 取消 sits in the heading (wxml:82-99). | **Fixed (pass 2).** The editor owns the 标签与备注 section; 取消 moved from a row into the header (VoiceOver: 取消编辑标签与备注) |
 | club/payout-receiver | `ClubPayoutReceiverView.swift` | Binding needs a WeChat code (`PayoutReceiverBridge.payoutOpen`). | Blocked (WeChat/backend), not a view gap |
-| club/edit | `ClubOperationsViews.swift` | 改为转让主理人 is only inside the dissolve confirm in the MP (scene-club-edit `cy-danger-confirm` alt, utils/danger-actions.js `club.dissolve.alt`); native shows a permanent row. | Not done (pass 5 re-checked: the native confirm is `ClubGovernanceConsequence.sheet` inside the command form, reached through the blockers page; adding the alt there needs a new callback through that shared sheet, too risky without a compiler) |
+| club/edit | `ClubOperationsViews.swift` | 改为转让主理人 is only inside the dissolve confirm in the MP (scene-club-edit `cy-danger-confirm` alt, utils/danger-actions.js `club.dissolve.alt`); native shows a permanent row. | **Fixed (pass 17).** See pass 17
 | club/edit · 解散 confirm (`utils/danger-actions.js` `club.dissolve`) | `ClubGovernanceConsequence` (dissolve) | MP lists three consequences: 全部成员会被移出俱乐部，同时失去群聊入口 / 俱乐部名下的活动与会员权益一并下架；已报名的不会自动取消，也不会自动退款 / 此操作不可撤销. Native had two lines, and the first said upcoming events close, which reads as if sign-ups were cancelled (the MP says they are **not** cancelled or refunded automatically). | **Fixed (pass 8).** OpsR3 `r3club.consequence.dissolve.line1-3` = the MP's three sentences (en + zh-Hans), symbols `person.2.slash` / `calendar.badge.minus` / `exclamationmark.triangle`. Title 解散「name」？: **fixed (pass 10)**: the edit page's `ClubDissolvedReturn` now carries `profile.club.name` through the blockers page into the form, and the sheet titles itself `club.gov.consequence.dissolve.titleNamed` (Dissolve “%@”? / 解散「%@」？); without a name it keeps 解散这个俱乐部？ |
 | club/detail · 退出 confirm (`utils/danger-actions.js` `club.quit`) | `ClubActionPanel` confirmation dialog | MP: 退出「name」？, 重新进来时… line, three consequences, confirm 退出俱乐部. | Matches (pass 8 check): system confirmation dialog with 退出「name」？, the rejoin line and `ClubLeaveConsequences` (the MP's three sentences). The MP alt 只关掉群聊提醒 is not offered (no per-club mute in the native panel); flagged |
 | club/workbench | `MPReviewedPageScreen.swift` redirect | MP error state 没能进入俱乐部管理 + 重试进入 + 返回俱乐部. | Already present (CLB-workbench-03, CLB-r11-workbench-01) |
@@ -123,6 +123,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 | `club.community.noticeNoText` | (No text) | （无文字内容） |
 | `club.community.noticeUnreadA11y %@` | Unread notice: %@ | 未读公告：%@ |
 | `club.community.noticeA11y %@` | Notice: %@ | 公告：%@ |
+| `club.ops.locked.sub` | Only the host can set these | 仅主理人可设置 |
 
 ## Contract test pins updated (with reason)
 
@@ -156,6 +157,8 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 19. Pass 9: merge combined-r7 (xcstrings: combined is a superset); d4 club detail mounts the 帖文 feed (18:15 sweep); d4-badges / d4-stamps crash written up.
 21. Pass 11: 报名名册 escrow line removed, hideEmpty tickets, team row colours.
 22. Pass 12: merge combined-r7 (xcstrings: combined is a superset, plural variants); club fixtures follow the UI language; 创建俱乐部 intro without the checklist and 封面/Logo under the step-3 header; join-requests and apply done re-checked.
+23. Pass 17: merge combined-r7; 改为转让主理人 moved into the 解散 confirm as the MP alternative (with its hint).
+24. Pass 18: merge combined-r7 (xcstrings: combined + our `club.ops.dissolve.transferHint`); club/edit full re-check, extra header row and admin note removed, locked card gets 仅主理人可设置.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
 
 ## Sweep check (pass 7, build 070117595, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`)
@@ -218,6 +221,18 @@ No new coordinator finding for mp-club since 21:20 (latest sweep is still build 
 | MP page | Native view | MP sections | Optimizations / fix |
 |---|---|---|---|
 | `pages/club/detail` wxml:1028-1036, js:2530-2590 | `ClubDetailView.floatingJoin` → `ClubActionPanel(placement: .floating)` | Floating 加入 / 申请加入 / 重新申请 capsule on 概览 only, bottom-right, hidden for the owner and for members; greyed 等待主理人审核 when pending; guests sign in first (js:2531); apply asks for the required 60-char note (js:2537-2548) | **Fixed.** 概览 no longer draws the 成员身份 section under the header for non-members: the action is a `.borderedProminent` capsule (`.large`) in the List's bottom `safeAreaInset`, trailing like the MP; pending is the same capsule disabled. Status, the 申请留言 field + help/required/too-long text, progress, errors and the unknown-outcome readback sit in one `.regularMaterial` card above the capsule only when there is something to read. The same panel instance stays mounted after a join so the joined chip and the server readback stay visible (members then see nothing there; 退出 stays the page-end row on 概览 and the header row on the other tabs). Same confirmation dialog, identifiers (`club.action.join/apply/gated/signIn`, `club.application.message`) and request path as before, so `ClubActionFlowTests` keep their queries. Not copied: the scroll-to-hide animation (the capsule stays, P17 sticky action). Needs a look on the next sweep (no d4 fixture is a non-member yet) |
+
+
+## Pass 17: Not done row club/edit · 改为转让主理人 (sweep 22:11 UTC, build 8fa84e4d3, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`, `sheet-en.jpg`)
+Sweep check: all nine club tiles read in the UI language now (d4-badges, d4-enroll, d4-detail fixture data in zh). `d4-detail` still shows the 入会申请已拒绝 status with no capsule: build 8fa84e4d3 predates pass 16 (`603876c21`), re-check next sweep. `d4-stamps` grey discs belong to mp-roam (22:20 sweep, same `RoamStampAlbumView`).
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/edit` + `components/cy/scene-club-edit` 危险操作, `utils/danger-actions.js` `club.dissolve` (alt `{ text: 改为转让主理人, hint: 把俱乐部交给别人打理，成员和内容都留着 }`), edit js:35-39 `goGovernance` | `ClubOperationsViews.swift` (危险操作 section), `ClubGovernanceCommandForm.transferInsteadAction`, `ClubGovernanceConsequence.sheet(alternative:)`, `ClubConsequenceSheet` | 危险操作 = 解散俱乐部 + its consequence line only; the transfer is the lighter alternative inside the dissolve confirm | **Fixed.** The permanent 改为转让主理人 row under 解散 is gone. The 解散「name」？ consequence sheet now shows 改为转让主理人 in its own section above the destructive confirm, with the MP hint as the section footer (`club.ops.dissolve.transferHint`, en + zh-Hans). Tapping it cancels the review, closes the dissolve form without dissolving, and pushes 成员治理 (governance, where the transfer lives) from the blockers page via `ClubDissolvedReturn.transferInstead` → `.navigationDestination(isPresented:)`. Only the edit page passes the callback, so other consequence sheets are unchanged |
+
+## Pass 18: club/edit full page (no new coordinator finding; latest sweep is still build 8fa84e4d3, checked in pass 17)
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/edit` → `components/cy/scene-club-edit/index.wxml` (whole page, not only 危险操作) | `ClubOperationsViews.swift` `ClubOperationsProfileForm.editSections` + edit page | MP order: load states (正在读取俱乐部资料 / missing-param / 暂无编辑权限 / 编辑资料没能打开 / 网络连接失败) → draft panel → 俱乐部形象 (头像, 封面) → 基础信息 (名称* 城市* 关键词 风格) → 俱乐部介绍 (200 counter) → 定位 (俱乐部类型, 活动倾向 as disclosure rows + half sheets) → 会员经营配置 (owner: 成员优先报名, 入会需要审批, 成员保留名额 个; admin: locked card) → 危险操作 (owner) → 保存修改. Native: all ✓ in MP order (draft recovery section, load states, 形象 → … → 危险操作, bottom save). Extra: a cover · name · city · 主理人/管理员 header row above the form (CLB-r10-nat-edit-01 cited an MP club head that the MP snapshot does not have; 头像/封面 already sit in 俱乐部形象), and a 「你是管理员 · 只能改展示信息」 line at the top of 基础信息 for admins (not on the MP page). Missing: the locked card's 「仅主理人可设置」 sub line (wxml:124) | **Fixed.** Header row removed (`clubIdentityHero`; `test_club_operations_contracts` no longer requires `PlayerFeedRemoteImage` in the edit UI, reason in the pin). Admin note removed; the locked card reads 只有主理人能改经营配置 → 仅主理人可设置 (`club.ops.locked.sub`, en + zh-Hans, one combined VoiceOver element) → 当前: … . Pins: `test_club_member_pages.test_edit_admin_note_and_locked_settings` now asserts the note is gone and the sub line present; `ClubEditAdminLockFlowTests` admin test renamed and asserts no note. Kept: 当前: with an ASCII colon (two string fragments pin it) |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.

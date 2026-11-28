@@ -169,7 +169,7 @@ import SwiftUI
                     })) {
                     Text("cooperation.topicFilter.all").tag(0)
                     ForEach(options) { option in
-                        if let name = option.name { Text(verbatim: name + " #" + String(option.id)).tag(option.id) }
+                        if let name = option.name { Text(verbatim: name).tag(option.id) }
                         else { Text(verbatim: "#" + String(option.id)).tag(option.id) }
                     }
                     if let selected, !options.contains(where: { $0.id == selected }) {
