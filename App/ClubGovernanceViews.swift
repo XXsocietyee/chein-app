@@ -231,6 +231,8 @@ struct ClubGovernanceReadView: View {
     @State private var feedClub: ClubFeedClubRoute?
     /// CLB-topic-detail-07 (MP CU-C-79, wxml:684-700): 去选一场 opens a 选择场次 sheet; the picked session opens its event ops.
     @State private var sessionPickerVisible = false
+    /// mp-club r3 (MP topic-detail wxml:321-326, :676-683): 退出与暂停规则 opens as a half sheet from the bottom bar.
+    @State private var topicRulesVisible = false
     @State private var pickedSession: ClubGovernanceScope?
     /// CLB-topic-detail-04: /api/club/crm/topic-manage-stats read beside the topic overview (MP loadManageStats).
     @State private var topicStats: ClubGovernanceValue?
@@ -1613,7 +1615,7 @@ struct ClubGovernanceReadView: View {
         } else if operation == .topicOverview {
             let terminalContext = readContext, terminalGeneration = snapshotGeneration
             // Mini-program club/topic-detail order: title + status → quick entries → 未通过原因 →
-            // 剧情与玩法 → 接下来 (sessions) → director (terminal sessions) → rules.
+            // 剧情与玩法 → 接下来 (sessions) → director (terminal sessions); rules sit in the bottom bar (topicRulesNote).
             // CLB-topic-detail-04: MP resolveStateKey on the numeric cms_topic.status, then the manage stats'
             // sessionStatus for viewers without the director (MP applyVerifyVisibility).
             let stats = topicStats ?? .null
@@ -1878,7 +1880,6 @@ struct ClubGovernanceReadView: View {
             // CLB-G13 (MP topic-detail wxml:160-500): with an activityId the topic detail carries the director block
             // (K8 banner, 准备总览, director tools, 排行榜), only where topic-manage-stats grants canDirect.
             if let activityID = scope.activityID, canDirect { ClubTopicDirectorEmbeddedMount(activityID: activityID, topicID: scope.topicID) }
-            Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
             // CLB-topic-detail-02: the phase primary is the pinned footer (`topicPrimaryFooter`), not the last row.
         } else if operation == .audienceCounts {
             let notifyPage = ClubNotifyPage.project(value: value, capability: .init(permissions: snapshot.permissions, scope: scope))
@@ -2104,16 +2105,49 @@ struct ClubGovernanceReadView: View {
             let stats = topicStats ?? .null
             let sessions = snapshot.value["activityList"].array ?? []
             let state = ClubTopicDetailPort.stateKey(snapshot.value)
-            if topicPrimaryPlan(state: state, stats: stats, sessions: sessions) != ClubTopicDetailPort.Primary.none {
-                // CLB-r10-nat-topic-detail-03: a `.borderedProminent` primary in the safe-area inset on the system bar
-                // material; no drawn Divider overlay.
-                topicPrimary(state: state, stats: stats, sessions: sessions)
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .background(.bar)
+            let hasPrimary = topicPrimaryPlan(state: state, stats: stats, sessions: sessions) != ClubTopicDetailPort.Primary.none
+            // CLB-r10-nat-topic-detail-03: a `.borderedProminent` primary in the safe-area inset on the system bar
+            // material; no drawn Divider overlay. mp-club r3 (MP wxml:321-326 `ctd-footbar__note`): the 退出与暂停规则
+            // note sits in the same bar above the primary and opens the rules as a half sheet (MP wxml:676).
+            VStack(spacing: CYSpacing.sm) {
+                topicRulesNote
+                if hasPrimary {
+                    topicPrimary(state: state, stats: stats, sessions: sessions)
+                        .frame(maxWidth: .infinity)
+                }
             }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(.bar)
+            .cySheet(isPresented: $topicRulesVisible) { topicRulesSheet }
         }
+    }
+    private var topicRulesNote: some View {
+        Button {
+            topicRulesVisible = true
+        } label: {
+            HStack(spacing: CYSpacing.xs) {
+                Image(systemName: "info.circle").accessibilityHidden(true)
+                Text("context.rules.title")
+                Image(systemName: "chevron.right").font(.caption).accessibilityHidden(true)
+            }
+            .font(.footnote)
+            .frame(minHeight: 44)
+        }
+        .buttonStyle(.borderless)
+        .foregroundStyle(.secondary)
+        .accessibilityIdentifier("club.context.openRules")
+    }
+    private var topicRulesSheet: some View {
+        NavigationStack {
+            ClubOperatingRulesView()
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("action.close") { topicRulesVisible = false }
+                    }
+                }
+        }
+        .presentationDetents([.medium, .large])
     }
     /// CLB-topic-detail-07 (MP topic-detail wxml:684-700): 选择场次, one row per session (when over who); a pick closes
     /// the sheet and opens that session's event ops (MP event-ops?activityId=).
