@@ -24,6 +24,7 @@ public struct ProjectInitialState {
     public private(set) var readOnly = false
     private var attributeRows: [ProjectEditJSON]?
     private var carryEdited = false
+    private var carryAdded = false
     public var hp = Resource(enabled: false, initial: "10", maximum: "10")
     public var luck = Resource(enabled: false, initial: "3", maximum: "3")
     private var originalHP = Resource(enabled: false, initial: "10", maximum: "10")
@@ -77,6 +78,29 @@ public struct ProjectInitialState {
         let next = rows.filter { $0.object?["key"]?.text != key }
         guard next.count != rows.count else { return }
         attributeRows = next; carryEdited = true
+    }
+    /// MP `confirmCarryPicker` limit: `journeyRules.attributes` holds at most 32 rows.
+    public static let maxAttributeRows = 32
+    /// MP `confirmCarryPicker`: picked keys already in `attributes` get initial 1; new ones are appended as
+    /// `{key, label, initial: 1, min: 0, max: 1, visible: true}`, and the state switches on. Returns false (nothing
+    /// changes) past 32 rows, where the MP shows 最多 32 项.
+    @discardableResult public mutating func addCarry(_ picks: [(key: String, label: String)]) -> Bool {
+        guard !carryLocked, !picks.isEmpty else { return false }
+        let picked = Set(picks.map { $0.key })
+        var rows = (attributeRows ?? []).map { row -> ProjectEditJSON in
+            guard var object = row.object, let key = object["key"]?.text, picked.contains(key) else { return row }
+            object["initial"] = .number(1)
+            return .object(object)
+        }
+        var present = Set(rows.compactMap { $0.object?["key"]?.text })
+        for pick in picks where !present.contains(pick.key) && (pick.key.hasPrefix("clue.") || pick.key.hasPrefix("tag.")) {
+            rows.append(.object(["key": .string(pick.key), "label": .string(pick.label), "initial": .number(1),
+                                 "min": .number(0), "max": .number(1), "visible": .bool(true)]))
+            present.insert(pick.key)
+        }
+        guard rows.count <= Self.maxAttributeRows else { return false }
+        attributeRows = rows; carryEdited = true; carryAdded = true
+        return true
     }
     private static func carryInitial(_ raw: ProjectEditJSON?) -> Int? {
         if let value = raw?.integer { return value }
@@ -153,7 +177,7 @@ public struct ProjectInitialState {
         if carryEdited, let attributeRows { next["attributes"] = .array(attributeRows) }
         let hasAttributes = next["attributes"]?.array?.isEmpty == false
         next["stateEnabled"] = .bool(thoughtReplacement != nil ? root["stateEnabled"] == .bool(true) :
-            hp.enabled || luck.enabled || (root["stateEnabled"] == .bool(true) && hasAttributes))
+            hp.enabled || luck.enabled || (carryAdded && hasAttributes) || (root["stateEnabled"] == .bool(true) && hasAttributes))
         next["recovery"] = .object(try recovery(values: values))
         if let thoughtReplacement { next["thoughts"] = thoughtReplacement.isEmpty ? nil : .array(thoughtReplacement) }
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
