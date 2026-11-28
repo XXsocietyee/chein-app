@@ -128,6 +128,14 @@ import FoundationNetworking
         XCTAssertNil(snapshot.enforcements[0].appealStatus)
         do { _ = try await coordinator.confirm(review, access: access); XCTFail() } catch { XCTAssertEqual(error as? SquareGovernanceFailure, .outcomeLocked) }
     }
+    func testDispatchedReadsTheJournalForThePendingAppealRow() async throws {
+        let (coordinator, access, _) = fixture(); let snapshot = try await coordinator.load(access: access)
+        XCTAssertFalse(coordinator.dispatched(.appeal(enforcementID: 91, reason: ""), snapshot: snapshot))
+        let review = try coordinator.prepare(.appeal(enforcementID: 91, reason: "facts"), snapshot: snapshot, access: access)
+        _ = try await coordinator.confirm(review, access: access)
+        XCTAssertTrue(coordinator.dispatched(.appeal(enforcementID: 91, reason: ""), snapshot: snapshot))
+        XCTAssertFalse(coordinator.dispatched(.appeal(enforcementID: 92, reason: ""), snapshot: snapshot))
+    }
     func testAmbiguousFailureLocksTargetAcrossNewReview() async throws {
         let (coordinator, access, transport) = fixture(); let snapshot = try await coordinator.load(access: access)
         transport.mutationFailure = .unknown
