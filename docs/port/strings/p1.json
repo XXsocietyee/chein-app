@@ -331,7 +331,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This route has %lld endings. This time, it was %@'s ending."
+            "value": "This route has %#@ending@. This time, it was %2$@'s ending."
+          },
+          "substitutions": {
+            "ending": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg ending"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg endings"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
