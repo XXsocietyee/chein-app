@@ -9,7 +9,8 @@ public enum RoamExperienceMutation: Equatable {
     case reveal(sessionID: Int, tiles: [String])
     case discover(sessionID: Int, poiID: Int, fix: RoamDeviceFix)
     case shopVisit(sessionID: Int, sourceType: Int, sourceID: Int, fix: RoamDeviceFix)
-    case finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int)
+    /// `track`: the walk's GCJ-02 points, as the MP sends them (pages/roam/index.js sendFinish, ≤600 points).
+    case finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int, track: [RoamCoordinate] = [])
     case presence(sessionID: Int, fix: RoamDeviceFix, explorationPercent: Int)
     case checkin(name: String, place: RoamCoordinate, fix: RoamDeviceFix)
     case completeNode(poiID: Int, fix: RoamDeviceFix, answer: String, photoURL: String, code: String)
@@ -43,6 +44,16 @@ public enum RoamExperienceMutation: Equatable {
         default: return false // Each action needs its own independent acceptance gate.
         }
     }
+    /// MP sendFinish: keep every `ceil(n / 600)`-th point plus the last one, so at most about 600 points leave the device.
+    public static func finishTrack(_ track: [RoamCoordinate]) -> [RoamCoordinate] {
+        guard !track.isEmpty else { return [] }
+        let step = max(1, Int((Double(track.count) / 600).rounded(.up)))
+        var kept: [RoamCoordinate] = []
+        for (index, point) in track.enumerated() where index % step == 0 || index == track.count - 1 {
+            kept.append(point)
+        }
+        return kept
+    }
     public func fields() throws -> [String: String] {
         func positive(_ id: Int) throws { guard id > 0 else { throw APIError.invalidRequest } }
         func coordinates(_ fix: RoamDeviceFix) throws -> [String: String] {
@@ -59,9 +70,14 @@ public enum RoamExperienceMutation: Equatable {
         case .shopVisit(let id, let type, let source, let fix):
             try positive(id); try positive(source); guard type == 1 || type == 2 else { throw APIError.invalidRequest }
             return try coordinates(fix).merging(["sessionId": String(id), "sourceType": String(type), "sourceId": String(source)]) { _, new in new }
-        case .finish(let id, let pois, let distance):
+        case .finish(let id, let pois, let distance, let track):
             try positive(id); guard distance >= 0, pois.allSatisfy({ $0 > 0 }) else { throw APIError.invalidRequest }
-            return ["sessionId": String(id), "poiIds": pois.map(String.init).joined(separator: ","), "distanceM": String(distance)]
+            var fields = ["sessionId": String(id), "poiIds": pois.map(String.init).joined(separator: ","), "distanceM": String(distance)]
+            let points = Self.finishTrack(track)
+            if points.count > 1 {
+                fields["track"] = "[" + points.map { "[\($0.latitude),\($0.longitude)]" }.joined(separator: ",") + "]"
+            }
+            return fields
         case .presence(let id, let fix, let percent):
             try positive(id); guard (0...99).contains(percent) else { throw APIError.invalidRequest }
             return try coordinates(fix).merging(["sessionId": String(id), "explorePct": String(percent)]) { _, new in new }
