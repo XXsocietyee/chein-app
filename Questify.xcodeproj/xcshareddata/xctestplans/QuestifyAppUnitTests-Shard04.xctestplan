@@ -107,6 +107,7 @@
         "ClubInvitationFeedbackViewTests",
         "ClubLeadPrimaryActionFlowTests",
         "ClubLeaderboardMemberRouteTests",
+        "ClubNextActivityTests",
         "ClubNotificationAudienceTests",
         "ClubOccurrenceCancellationReturnTests",
         "ClubOrdinaryAdmissionCompositionTests",

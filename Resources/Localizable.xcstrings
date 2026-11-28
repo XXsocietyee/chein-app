@@ -484,6 +484,40 @@
         }
       }
     },
+    "club.detail.next.all": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部活动"
+          }
+        }
+      }
+    },
+    "club.detail.next.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一场活动"
+          }
+        }
+      }
+    },
     "creator.mp.estimate.answer": {
       "extractionState": "manual",
       "localizations": {

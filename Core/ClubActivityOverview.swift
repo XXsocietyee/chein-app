@@ -111,3 +111,20 @@ public struct ClubActivityOverview: Equatable {
     public var current: [ClubActivityRow] { rows.filter { $0.status != .ended } }
     public var ended: [ClubActivityRow] { rows.filter { $0.status == .ended } }
 }
+
+/// mp-club r3 pass 51 (P38, MP detail wxml:210 `upcomingTopics`): the club page's next activity is the earliest
+/// non-ended topic of the same public list the 活动 tab shows; topics without a start time come last, in source order.
+public enum ClubNextActivity {
+    public static func pick(_ rows: [ClubActivityRow]) -> ClubActivityRow? {
+        let current = rows.enumerated().filter { $0.element.status != .ended }
+        let sorted = current.sorted { lhs, rhs in
+            switch (lhs.element.start, rhs.element.start) {
+            case let (l?, r?): return l == r ? lhs.offset < rhs.offset : l < r
+            case (.some, .none): return true
+            case (.none, .some): return false
+            case (.none, .none): return lhs.offset < rhs.offset
+            }
+        }
+        return sorted.first?.element
+    }
+}
