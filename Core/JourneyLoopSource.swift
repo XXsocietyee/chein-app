@@ -307,7 +307,7 @@ public struct JourneyLoopSource {
 
     /// `POST /api/play/seat-invitations/claim-phone/{token}` JSON `{}`. Not a money write.
     public func seatClaimPhone(token credential: String, sessionToken: String) async throws -> JourneyEnvelope {
-        guard Self.acceptableToken(credential), !credential.contains("/") else { throw JourneyRefusal.invalidRequest }
+        guard Self.pathToken(credential) else { throw JourneyRefusal.invalidRequest }
         return try await postJSONObject(.seatClaimPhone, tokenSegment: credential, body: [:], token: sessionToken, receiptReread: false)
     }
 
@@ -521,7 +521,7 @@ public struct JourneyLoopSource {
 
     private func resolve(_ binding: Self.JourneyCase, invitationID: String? = nil, tokenSegment: String? = nil) throws -> String {
         if binding.path.contains("{token}") {
-            guard let tokenSegment, Self.acceptableToken(tokenSegment), !tokenSegment.contains("/") else { throw JourneyRefusal.invalidRequest }
+            guard let tokenSegment, Self.pathToken(tokenSegment) else { throw JourneyRefusal.invalidRequest }
             return binding.path.replacingOccurrences(of: "{token}", with: tokenSegment)
         }
         guard binding.path.contains("{invitationId}") else { return binding.path }
@@ -593,6 +593,11 @@ public struct JourneyLoopSource {
 
     static func acceptableToken(_ token: String) -> Bool {
         !token.isEmpty && token.utf16.count <= 512 && token.unicodeScalars.allSatisfy { $0.value >= 32 && $0.value != 127 }
+    }
+
+    /// One URL path segment. `.`, `..`, and `%` are rejected so a claim token cannot leave `claim-phone/`.
+    private static func pathToken(_ value: String) -> Bool {
+        acceptableToken(value) && value != "." && value != ".." && !value.contains("/") && !value.contains("\\") && !value.contains("%")
     }
 
     private static func base36(_ value: Int64) -> String {

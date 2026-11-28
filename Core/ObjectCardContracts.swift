@@ -72,10 +72,7 @@ public struct ObjectBadgeDetailParameters: Equatable {
         name = raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? fallbackName : raw
         subtitle = query["sub"] ?? ""
         let candidate = query["img"] ?? ""
-        if let parts = URLComponents(string: candidate), ["http", "https"].contains(parts.scheme ?? ""),
-           parts.host?.isEmpty == false, parts.user == nil, parts.password == nil, parts.fragment == nil {
-            image = candidate
-        } else { image = "" }
+        image = ObjectCardMediaPolicy.origin(candidate) == nil ? "" : candidate
         // Source badge-3d/index.js: glow / pin / enamel (default). pin is the wall's enamel pin.
         style = query["style"] == "glow" ? "glow" : (query["style"] == "pin" ? "pin" : "enamel")
         rarity = min(4, max(0, Int(query["rarity"] ?? "") ?? 0))

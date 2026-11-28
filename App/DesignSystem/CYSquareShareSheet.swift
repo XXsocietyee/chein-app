@@ -21,8 +21,10 @@ struct CYSquareSharePayload: Equatable {
         postID = post.id
         let text = (post.contents ?? "").split(whereSeparator: \.isWhitespace).joined(separator: " ")
         excerpt = text.isEmpty ? nil : (text.count > Self.titleLimit ? String(text.prefix(Self.titleLimit)) + "…" : text)
-        imageURL = post.images.lazy.compactMap { URL(string: $0.trimmingCharacters(in: .whitespaces)) }
-            .first { $0.scheme == "https" || $0.scheme == "http" }
+        imageURL = post.images.lazy
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .first { ObjectCardMediaPolicy.origin($0) != nil }
+            .flatMap(URL.init(string:))
     }
 }
 
@@ -65,7 +67,9 @@ struct CYSquareShareSheet: View {
             .buttonStyle(.cyPressable)
             .accessibilityIdentifier("square.share.send")
             Button {
-                UIPasteboard.general.url = url
+                UIPasteboard.general.setItems(
+                    [["public.utf8-plain-text": url.absoluteString]],
+                    options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
                 withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { copied = true }
             } label: {
                 Label { Text(LocalizedStringKey(copied ? "share.copied" : "share.copy"), tableName: "SocialParity") } icon: { Image(systemName: copied ? "checkmark" : "link") }

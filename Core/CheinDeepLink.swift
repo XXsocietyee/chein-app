@@ -152,7 +152,8 @@ public enum CheinDeepLink: Equatable, Sendable {
 
     private static func plainToken(_ token: String) -> String? {
         guard !token.isEmpty, token.utf16.count <= 512,
-              token.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }) else { return nil }
+              token.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }),
+              token != ".", token != "..", !token.contains("\\") else { return nil }
         return token
     }
 
