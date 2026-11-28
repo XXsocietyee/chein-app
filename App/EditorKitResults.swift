@@ -207,13 +207,14 @@ struct EditorGameplayChoice: Identifiable, Hashable {
     let summary: String?
     let systemImage: String
     let category: String?
-    /// nil when available; otherwise the shared reason shown once at the top of the unavailable group.
+    /// nil when available; otherwise why it is off, shown on its row and in the footer (MP `g.reason`).
     let unavailableReason: String?
 }
 
-/// 选择玩法: a two-column grid of preview tiles with the name under each; selection = 1.5 pt border +
-/// check; unavailable types sit in one collapsed group at the end with the reason shown once; the footer
-/// shows the picked type's description and a secondary 试看 (CF-51, CF-56).
+/// 选择玩法 (MP `publish/temp/index.wxml:1656-1680`, `temp/r5-editor.js:191-198`): one row of category tabs that only
+/// scrolls sideways (no 全部; the sheet opens on the category that holds the current pick), under it the rows of that
+/// category only (icon · name · description or the reason it is off · check), and a footer with the picked name and
+/// its description, or 选一个玩法 before a pick, plus 试看. A row that is off stays in place, dimmed, with its reason.
 struct EditorGameplayPickerGrid: View {
     let choices: [EditorGameplayChoice]
     @Binding var selection: String?
@@ -221,128 +222,127 @@ struct EditorGameplayPickerGrid: View {
 
     @Environment(\.cyPalette) private var palette
     @QuestifyReduceMotion private var reduceMotion
-    @State private var showsUnavailable = false
     @State private var category: String?
+    @ScaledMetric(relativeTo: .body) private var iconSide: CGFloat = 36
 
     private var categories: [String] {
         var seen: [String] = []
         for choice in choices { if let value = choice.category, !seen.contains(value) { seen.append(value) } }
         return seen
     }
-    private var visible: [EditorGameplayChoice] {
-        choices.filter { $0.unavailableReason == nil && (category == nil || $0.category == category) }
+    /// MP `openR5GameSheet`: the group of the current pick, else the first group.
+    private var shownCategory: String? {
+        if let category { return category }
+        if let picked, let value = picked.category { return value }
+        return categories.first
     }
-    private var unavailable: [EditorGameplayChoice] { choices.filter { $0.unavailableReason != nil } }
+    private var visible: [EditorGameplayChoice] {
+        guard let shownCategory, categories.count > 1 else { return choices }
+        return choices.filter { $0.category == shownCategory }
+    }
     private var picked: EditorGameplayChoice? { choices.first { $0.id == selection } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            if categories.count > 1 { categoryChips }
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: CYSpacing.md), GridItem(.flexible(), spacing: CYSpacing.md)], spacing: CYSpacing.md) {
-                ForEach(visible) { choice in tile(choice) }
-            }
-            .animation(reduceMotion ? nil : .easeInOut(duration: EditorMotionSpec.collapseSeconds), value: category)
-            if !unavailable.isEmpty {
-                DisclosureGroup(isExpanded: $showsUnavailable) {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        if let reason = unavailable.first?.unavailableReason {
-                            Text(verbatim: reason).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
-                        }
-                        ForEach(unavailable) { choice in
-                            Label { Text(verbatim: choice.title) } icon: { Image(systemName: choice.systemImage) }
-                                .font(.subheadline).foregroundStyle(palette.textSecondary)
-                        }
-                    }
-                    .padding(.top, CYSpacing.xs)
-                } label: {
-                    Text("editorKit.gameplay.unavailable \(unavailable.count)", tableName: EditorKitText.table)
-                        .cyText(.bodyMedium).foregroundStyle(palette.textSecondary)
+            if categories.count > 1 { categoryTabs }
+            VStack(spacing: 0) {
+                ForEach(Array(visible.enumerated()), id: \.element.id) { index, choice in
+                    if index > 0 { Divider().padding(.leading, iconSide + CYSpacing.md) }
+                    row(choice)
                 }
-                .accessibilityIdentifier("editorKit.gameplay.unavailable")
             }
-            if let picked {
-                HStack(alignment: .top, spacing: CYSpacing.md) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: picked.title).cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
-                        Text(verbatim: EditorUnknown.display(picked.summary)).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer(minLength: CYSpacing.sm)
-                    if let onPreview {
-                        Button { onPreview(picked) } label: { EditorKitText.text("editorKit.gameplay.tryPreview") }
-                            .buttonStyle(.bordered)
-                            .accessibilityIdentifier("editorKit.gameplay.tryPreview")
-                    }
-                }
-                .editorCardSurface(padding: CYSpacing.md)
-            }
+            .editorCardSurface(padding: CYSpacing.md)
+            .animation(reduceMotion ? nil : .easeInOut(duration: EditorMotionSpec.collapseSeconds), value: shownCategory)
+            .accessibilityIdentifier("editorKit.gameplay.list")
+            footer
         }
     }
 
-    private var categoryChips: some View {
+    private var categoryTabs: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: CYSpacing.sm) {
-                chip(nil, title: EditorKitText.text("editorKit.gameplay.all"))
-                ForEach(categories, id: \.self) { value in chip(value, title: Text(verbatim: value)) }
+                ForEach(categories, id: \.self) { value in tab(value) }
             }
         }
+        .accessibilityIdentifier("editorKit.gameplay.tabs")
     }
 
-    /// native-a r3: category filters are system capsule buttons (`.borderedProminent` when selected, `.bordered`
-    /// otherwise); the dot still marks the category that holds the current pick.
+    /// Category tabs are system capsule buttons (`.borderedProminent` when shown, `.bordered` otherwise).
     @ViewBuilder
-    private func chip(_ value: String?, title: Text) -> some View {
-        let isOn = category == value
+    private func tab(_ value: String) -> some View {
+        let isOn = shownCategory == value
         Group {
             if isOn {
-                chipButton(value, title: title).buttonStyle(.borderedProminent)
+                Button { category = value } label: { Text(verbatim: value) }.buttonStyle(.borderedProminent)
             } else {
-                chipButton(value, title: title).buttonStyle(.bordered)
+                Button { category = value } label: { Text(verbatim: value) }.buttonStyle(.bordered)
             }
         }
         .buttonBorderShape(.capsule)
         .accessibilityAddTraits(isOn ? [.isSelected] : [])
-        .sensoryFeedback(.selection, trigger: category)
+        .sensoryFeedback(.selection, trigger: isOn, condition: CYHapticTransition.isOn)
     }
 
-    private func chipButton(_ value: String?, title: Text) -> some View {
-        let holdsPick = value != nil && picked?.category == value
-        return Button { category = value } label: {
-            HStack(spacing: 4) {
-                title
-                if holdsPick { Image(systemName: "circle.fill").font(.caption2).imageScale(.small).accessibilityHidden(true) }
-            }
-        }
-    }
-
-    private func tile(_ choice: EditorGameplayChoice) -> some View {
+    private func row(_ choice: EditorGameplayChoice) -> some View {
         let isSelected = selection == choice.id
+        let isOff = choice.unavailableReason != nil
         return Button { selection = choice.id } label: {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                ZStack(alignment: .topTrailing) {
-                    RoundedRectangle(cornerRadius: EditorKitMetric.cardRadius, style: .continuous)
-                        .fill(palette.inputFilledBg)
-                        .aspectRatio(4.0 / 3.0, contentMode: .fit)
-                        .overlay(Image(systemName: choice.systemImage).font(.largeTitle).foregroundStyle(palette.textPrimary))
-                    if isSelected {
-                        Image(systemName: "checkmark.circle.fill").font(.title3)
-                            .foregroundStyle(palette.textPrimary)
-                            .background(Circle().fill(palette.bgElevated))
-                            .padding(CYSpacing.xs)
-                            .accessibilityHidden(true)
+            HStack(alignment: .center, spacing: CYSpacing.md) {
+                Image(systemName: choice.systemImage)
+                    .font(.body)
+                    .foregroundStyle(palette.textPrimary)
+                    .frame(width: iconSide, height: iconSide)
+                    .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(palette.inputFilledBg))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: choice.title).cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
+                    if let sub = choice.unavailableReason ?? choice.summary {
+                        Text(verbatim: sub).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                .editorSelectedBorder(isSelected)
-                Text(verbatim: choice.title).cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: CYSpacing.sm)
+                Image(systemName: "checkmark")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(palette.brand)
+                    .opacity(isSelected ? 1 : 0)
+                    .accessibilityHidden(true)
             }
+            .padding(.vertical, CYSpacing.sm)
+            .frame(minHeight: 44)
             .contentShape(Rectangle())
+            .opacity(isOff ? 0.5 : 1)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: choice.title))
-        .accessibilityHint(Text(verbatim: EditorUnknown.display(choice.summary)))
+        .accessibilityHint(Text(verbatim: EditorUnknown.display(choice.unavailableReason ?? choice.summary)))
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
         .accessibilityIdentifier("editorKit.gameplay.tile." + choice.id)
         .sensoryFeedback(.selection, trigger: isSelected, condition: CYHapticTransition.isOn)
+    }
+
+    /// MP `cg-tsheet__foot`: picked name + description (or its reason), else 选一个玩法; 预览 beside it.
+    private var footer: some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            VStack(alignment: .leading, spacing: 2) {
+                if let picked {
+                    Text(verbatim: picked.title).cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
+                    Text(verbatim: EditorUnknown.display(picked.unavailableReason ?? picked.summary))
+                        .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    EditorKitText.text("editorKit.gameplay.pickOne")
+                        .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                }
+            }
+            Spacer(minLength: CYSpacing.sm)
+            if let picked, let onPreview {
+                Button { onPreview(picked) } label: { EditorKitText.text("editorKit.gameplay.tryPreview") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("editorKit.gameplay.tryPreview")
+            }
+        }
+        .editorCardSurface(padding: CYSpacing.md)
+        .accessibilityIdentifier("editorKit.gameplay.footer")
     }
 }

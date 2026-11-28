@@ -100,6 +100,17 @@ extension EnvironmentValues {
         } else if model.phase == .loading {
             // mp-states r3: P10 — the loader says what it is doing (正在获取实时码…), not a bare spinner.
             ProgressView { Text(LocalizedStringKey(phaseKey)) }
+        } else if [.failed, .invalid].contains(model.phase), model.target.kind == .cityVoucher, autoIssue {
+            // mp-roam r3 (MP components/cy/qr-voucher `qr__error`: icon + errorText + 重试, nothing else on the card):
+            // the same ContentUnavailableView error pattern as the entry code, the MP error line as its title.
+            ContentUnavailableView {
+                Label(LocalizedStringKey(phaseKey), systemImage: "qrcode")
+                    .accessibilityIdentifier("verificationCode.phase")
+            } actions: {
+                Button("roamSub.w208.voucher.retry") { run { await model.present() } }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("verificationCode.show")
+            }
         } else if model.phase == .failed, model.target.kind == .ticket {
             // mp-states r3 (MP pages/play/components/scene-qr-ticket/index.wxml:3): cy-error 入场码没生成出来 · sub · 重试.
             ContentUnavailableView {

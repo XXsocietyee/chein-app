@@ -71,7 +71,8 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
         top = s[s.index('private var channelTopBar'):s.index('"club.channel.muteButton"')]
         self.assertIn('Text(channel.name)', top)
         self.assertNotIn('.lineLimit(1)\n                            .truncationMode(.tail)', top)
-        self.assertIn('.cyWrapText()', top)
+        # mp-club r3 pass 39: the name is the centred `.principal` title now, so it wraps centred.
+        self.assertIn('.cyWrapText(alignment: .center)', top)
 
 
 class FPA4ActivityDetail(unittest.TestCase):

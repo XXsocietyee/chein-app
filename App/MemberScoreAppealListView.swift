@@ -11,7 +11,7 @@ func playerFactOrDash(_ raw: String?) -> String {
 @MainActor struct MemberScoreAppealSettingsEntry: View {
     @ObservedObject var session: AppSession
     var body: some View {
-        Section {
+        SettingsEntrySection {
             NavigationLink { MemberScoreAppealListView(session: session) } label: {
                 // MP shezhi 我的申诉 = icon_privacy.
                 Label { memberScoreText("score.mine.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconPrivacy) }

@@ -901,6 +901,23 @@
           }
         }
       }
+    },
+    "mpfresh.topic.refused.ticketValid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your ticket is still valid. Open it in the ticket wallet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的票仍然有效，可以在票夹里查看。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

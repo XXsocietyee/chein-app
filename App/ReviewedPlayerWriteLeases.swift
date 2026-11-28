@@ -783,7 +783,7 @@ enum ReviewedPlayerReadRoute {
         // C-F6 MP-first: the author's 到访方式 read/save (fabu/theme-fe-visit.js:40, :87). Not money.
         "api/topic/free-explore/visit-config"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths).union(publisherLifecyclePaths)
-        .union(playFinishAndProfilePaths).union(clubLeadWritePaths)
+        .union(playFinishAndProfilePaths).union(clubLeadWritePaths).union(aiNPCPlayPaths) // fix/1128c: shop NPC text/voice, hints, NPC log delete
     /// MP-first (owner 2026-11-25, R7-PC-B4-1 / R7-PC-B1-2): pages/topic/pricing preview + confirm (a final-price save that moves
     /// the topic to PRICING for sale review, not a payment) and the publisher reads it needs. Cancel-with-refund stays off.
     static let publisherLifecyclePaths: Set<String> = [
@@ -1716,6 +1716,8 @@ enum ReviewedPlayerReadRoute {
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             weChatPaymentConfiguration: WeChatPaymentBuildSettings.current,
+            // fix/1128c (plan audit J-04a): shop NPC text + voice reach the server; `shopNpcChat` decides there.
+            shopNPCGrants: playerWritesEnabled ? Self.releaseShopNPCGrants() : .init(),
             couponCodeApproval: couponCodeApproval,
             contextualReviewApproval: contextualReview(context),
             // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js:143-200): the owner 清退并退款.
@@ -1744,7 +1746,7 @@ enum ReviewedPlayerReadRoute {
         // loads from the same upload-result origins the avatar approval uses (API origin + `CYStampImageOrigins`).
         let configuration = RuntimeDependencyConfiguration(market: .china, endpoints: endpoints, play: Self.playCapabilities,
             publisherReads: true, devices: Self.playDevices, artworkHosts: Self.playArtworkHosts(apiBase: context.baseURL),
-            playReadApprovalID: UUID())
+            shopNPCWrites: true, playReadApprovalID: UUID())
         playConfigurationByContext[key] = configuration
         return configuration
     }
