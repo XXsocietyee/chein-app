@@ -11,3 +11,7 @@ QUESTIFY_WECHAT_APP_ID = chein-wechat-unset
 QUESTIFY_WECHAT_UNIVERSAL_LINK = https:/$()/www.chengyinhub.com/app/
 // P1-1: the one verified https origin for Universal Links (AppUniversalLinkRouter). Host name only.
 QUESTIFY_APP_LINK_DOMAIN = www.chengyinhub.com
+// fix-1128b #22: extra https origins (comma separated) that uploadOSS results and play kit artwork are served from,
+// e.g. the OSS bucket or CDN host. The API origin is always included. Empty keeps only the API origin. Write each URL
+// as https:/$()/host so the xcconfig does not read it as a comment. Read as Info.plist `CYStampImageOrigins`.
+QUESTIFY_IMAGE_ORIGINS =

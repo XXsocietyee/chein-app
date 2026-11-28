@@ -73,9 +73,9 @@ public struct RuntimeDependencyContext: Equatable {
               let url = request.url, var components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               components.user == nil, components.password == nil, components.fragment == nil else { throw PlayExperienceError.disabled }
         components.query = nil
-        guard configuration.endpoints.paths.contains(where: {
-            captured.baseURL.appendingPathComponent($0) == components.url
-        }) else { throw PlayExperienceError.disabled }
+        guard let requested = components.url,
+              configuration.endpoints.paths.contains(where: { captured.baseURL.appendingPathComponent($0) == requested })
+                || Self.admits(requested, paths: configuration.endpoints.paths, baseURL: captured.baseURL) else { throw PlayExperienceError.disabled }
         let result = try await transport.send(request)
         if (PlayReadRoute(request: request, baseURL: captured.baseURL) != nil
             || CharacterCardReadRoute(request: request, baseURL: captured.baseURL) != nil),
@@ -84,6 +84,24 @@ public struct RuntimeDependencyContext: Equatable {
         try Task.checkCancellation()
         guard current() == captured else { throw PlayExperienceError.staleSession }
         return result
+    }
+
+    /// fix-1128b #19 (J-06f/J-09d/J-09e/J-09i): an exact approved path, or a templated approved path (`api/play/os/{}`)
+    /// whose `{}` segments the request fills with a numeric or opaque id, normalized the way
+    /// `ReviewedProductionGateLeases.isPlayGrantPath` does. A literal approved path still matches only itself, and a
+    /// request that spells braces, `.` or `..` itself never matches a template.
+    public static func admits(_ url: URL, paths: Set<String>, baseURL: URL) -> Bool {
+        if paths.contains(where: { baseURL.appendingPathComponent($0) == url }) { return true }
+        guard url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port else { return false }
+        let base = baseURL.path.hasSuffix("/") ? String(baseURL.path.dropLast()) : baseURL.path
+        let path = url.path
+        guard path.hasPrefix(base + "/") else { return false }
+        let relative = String(path.dropFirst(base.count))
+        let segments = relative.split(separator: "/", omittingEmptySubsequences: false)
+        guard !relative.contains("{"), !relative.contains("}"), !segments.contains(where: { $0 == "." || $0 == ".." }) else { return false }
+        let key = ChinaReviewedRouteCapability.normalized(relative)
+        guard key.contains("{}") else { return false }
+        return paths.contains { $0.contains("{}") && ChinaReviewedRouteCapability.normalized("/" + $0) == key }
     }
 }
 
