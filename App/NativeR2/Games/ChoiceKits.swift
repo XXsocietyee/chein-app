@@ -115,91 +115,188 @@ import UIKit
 
 // MARK: - dailysign
 
+/// MP `pages/playkit/components/playkit-dailysign`: the slip in MP order — title row (今日城市签 · MM / DD) → 出发
+/// address (opens Maps) + the time it was printed | 签号 NO. 0000 + 你是第几位 (only with a server serial) → 留签人 ·
+/// 留于 (MP defaults when empty, never a dash) → the previous visitor's photo (only when sent) → 留给你的一句 under
+/// the scratch layer → hint 刮开今日签文. The print / tear steps follow the MP's own Reduce Motion path (the slip is
+/// already torn). 收下这张签 sits in the shell's bottom bar and unlocks once the line is revealed (`stage` 1);
+/// once claimed the line stays revealed, 保存到相册 appears here and 出发 closes the kit (MP `ds__cta`).
 @MainActor struct ChoiceDailySignKit: View {
     let context: GamesBKitContext
-    @State private var revealed = false
+    /// `PlayKitScreen.profileStep`: 1 once the line is scratched open (read by the bottom bar).
+    @Binding var stage: Int
     @State private var shareImage: Image?
+    @State private var printedAt = Date()
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.locale) private var locale
+    @Environment(\.openURL) private var openURL
     private var raw: PlayWireValue { context.segment }
     private var lines: [String] { (raw["lines"].array ?? []).compactMap(\.text).filter { !$0.isEmpty } }
-    private func value(_ key: String) -> String {
-        let text = (raw[key].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        return text.isEmpty ? "—" : text
+    private func text(_ key: String) -> String? {
+        let value = (raw[key].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
     }
-    private var isRevealed: Bool { revealed || lines.isEmpty }
+    private var claimed: Bool { text("claimedDate") != nil }
+    private var isRevealed: Bool { claimed || stage >= 1 || lines.isEmpty }
     var body: some View {
         Section {
-            GroupBox {
-                ticketRows
-            } label: {
-                Label("playkit.daily.ticketTitle", systemImage: "ticket")
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                slip(scratchable: true)
             }
             .accessibilityIdentifier("playkit.dailySign.ticket")
-            // Single-row anchor for haptics and the share render (not once per revealed line).
-            .sensoryFeedback(.success, trigger: revealed) { _, next in next }
-            .onChange(of: isRevealed, initial: true) { _, next in if next { renderShareImage() } }
-        }
-        Section {
-            if isRevealed {
-                if lines.isEmpty { Text(verbatim: "—") }
-                ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
-                    Text(verbatim: line).font(.body).transition(.opacity)
-                }
-            } else {
-                Button {
-                    withAnimation { revealed = true }
-                } label: {
-                    Label("nativeR2.gamesB.daily.reveal", systemImage: "eye")
-                }
-                .buttonStyle(.bordered)
-                .accessibilityIdentifier("nativeR2.gamesB.daily.reveal")
-            }
-        } header: {
-            Text("playkit.daily.lineForYou")
-        }
-        if let photo = raw["photoUrl"].text, !photo.isEmpty {
-            Section { PlayKitArtwork(source: photo, approvedHosts: context.approvedHosts) }
+            .sensoryFeedback(.success, trigger: stage) { old, next in old < 1 && next >= 1 }
+            .onChange(of: claimed, initial: true) { _, next in if next { renderShareImage() } }
+        } footer: {
+            if !isRevealed { Text("playkit.daily.scratchHint") }
         }
         // Kept (owner question 3 is open): the message the app already sends with CLAIM_DAILY_SIGN.
-        Section {
-            TextField("playkit.daily.message", text: context.text, axis: .vertical)
-                .lineLimit(1...4)
-                .submitLabel(.done)
-                .disabled(!context.enabled)
-        } footer: {
-            Text("playkit.daily.audience")
+        if !claimed {
+            Section {
+                TextField("playkit.daily.message", text: context.text, axis: .vertical)
+                    .lineLimit(1...4)
+                    .submitLabel(.done)
+                    .disabled(!context.enabled)
+            } footer: {
+                Text("playkit.daily.audience")
+            }
         }
-        // Accept (CLAIM_DAILY_SIGN) is the shell's bottom button (`nativeKitSubmitB`).
-        Section {
-            if isRevealed, let rendered = shareImage {
-                ShareLink(item: rendered, preview: SharePreview(Text("playkit.daily.ticketTitle"), image: rendered)) {
-                    Label("nativeR2.gamesB.daily.save", systemImage: "square.and.arrow.down")
+        // 收下这张签 (CLAIM_DAILY_SIGN) and 出发 are the shell's bottom button (`nativeKitSubmitB`).
+        if claimed {
+            Section {
+                if let rendered = shareImage {
+                    ShareLink(item: rendered, preview: SharePreview(Text("playkit.daily.ticketTitle"), image: rendered)) {
+                        Label("nativeR2.gamesB.daily.save", systemImage: "square.and.arrow.down")
+                    }
+                    .accessibilityIdentifier("nativeR2.gamesB.daily.save")
+                } else {
+                    Label("playkit.daily.saving", systemImage: "hourglass").foregroundStyle(.secondary)
                 }
-                .accessibilityIdentifier("nativeR2.gamesB.daily.save")
             }
         }
     }
-    private var ticketRows: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            LabeledContent("nativeR2.gamesB.daily.date") { Text(verbatim: value("dateLabel")).monospacedDigit() }
-            LabeledContent("playkit.daily.departure") { Text(verbatim: value("address")) }
-            LabeledContent("playkit.daily.serial") { Text(verbatim: value("serialLabel")).monospacedDigit() }
+
+    /// MP `buildDailySign`: 月 / 日 in the service zone (Asia/Shanghai), e.g. 11 / 28.
+    private var dateLabel: String {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
+        let parts = calendar.dateComponents([.month, .day], from: Date())
+        return String(format: "%02d / %02d", parts.month ?? 0, parts.day ?? 0)
+    }
+    /// MP `timeLabel`: the phone's HH:MM when the slip was printed.
+    private var timeLabel: String {
+        let parts = Calendar.current.dateComponents([.hour, .minute], from: printedAt)
+        return String(format: "%02d:%02d", parts.hour ?? 0, parts.minute ?? 0)
+    }
+    /// MP: `NO. ` + four digits, only when the server sent a serial above 0.
+    private var serialLabel: String? {
+        guard let serial = raw["serial"].integer, serial > 0 else { return nil }
+        return String(format: "NO. %04d", serial)
+    }
+
+    @ViewBuilder private func slip(scratchable: Bool) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text("playkit.daily.ticketTitle").font(.headline)
+            Spacer(minLength: CYSpacing.sm)
+            Text(verbatim: dateLabel).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+        }
+        Divider()
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                departure(scratchable: scratchable)
+                Spacer(minLength: CYSpacing.md)
+                serial(alignment: .trailing)
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                departure(scratchable: scratchable)
+                serial(alignment: .leading)
+            }
+        }
+        Divider()
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            field("playkit.daily.signer") {
+                if let signer = text("signer") { Text(verbatim: signer) } else { Text("playkit.daily.signerDefault") }
+            }
+            field("playkit.daily.leftAt") {
+                if let left = text("leftAt") { Text(verbatim: left).monospacedDigit() } else { Text("playkit.daily.leftAtDefault") }
+            }
+        }
+        if let photo = text("photoUrl") {
             Divider()
-            LabeledContent("playkit.daily.signer") { Text(verbatim: value("signer")) }
-            LabeledContent("playkit.daily.leftAt") { Text(verbatim: value("leftAt")).monospacedDigit() }
+            PlayKitArtwork(source: photo, approvedHosts: context.approvedHosts)
+                .accessibilityLabel(Text("playkit.daily.photoLabel"))
+            HStack {
+                if let signer = text("signer") { Text("playkit.daily.photoBy \(signer)") } else { Text("playkit.daily.photoByThem") }
+                Spacer(minLength: CYSpacing.sm)
+                if let left = text("leftAt") { Text(verbatim: left).monospacedDigit() }
+            }
+            .font(.footnote).foregroundStyle(.secondary)
+        }
+        if !lines.isEmpty {
+            Divider()
+            Text("playkit.daily.lineForYou").font(.footnote).foregroundStyle(.secondary)
+            if scratchable {
+                CYScratchCard(
+                    coverLabel: appLocalized("playkit.daily.lineForYou", locale: locale),
+                    threshold: 0.45,
+                    revealed: isRevealed,
+                    onReveal: { _ in withAnimation(CYMotion.release) { stage = max(stage, 1) } }
+                ) { poem }
+            } else {
+                poem
+            }
         }
     }
-    /// The share sheet's "Save Image" replaces the MP canvas poster; it carries the same ticket text.
-    private func renderShareImage() {
-        let snapshot = VStack(alignment: .leading, spacing: 12) {
-            Text("playkit.daily.ticketTitle").font(.headline)
-            ticketRows
-            Divider()
+    private var poem: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             ForEach(Array(lines.enumerated()), id: \.offset) { _, line in Text(verbatim: line).font(.body) }
         }
-        .padding()
-        .frame(width: 360)
-        .background(Color(uiColor: .systemBackground))
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    @ViewBuilder private func departure(scratchable: Bool) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text("playkit.daily.departure").font(.caption).foregroundStyle(.secondary)
+            if let address = text("address") {
+                if scratchable {
+                    Button {
+                        MyProjectAddressLink.open(address: address, name: nil, openURL: openURL)
+                    } label: {
+                        Text(verbatim: address).font(.body).multilineTextAlignment(.leading)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(Text("myProject.address.open \(address)"))
+                    .accessibilityIdentifier("playkit.dailySign.address")
+                } else {
+                    Text(verbatim: address).font(.body)
+                }
+            }
+            Text(verbatim: timeLabel).font(.caption).monospacedDigit().foregroundStyle(.secondary)
+        }
+    }
+    @ViewBuilder private func serial(alignment: HorizontalAlignment) -> some View {
+        if let serialLabel {
+            VStack(alignment: alignment, spacing: CYSpacing.xs) {
+                Text("playkit.daily.serial").font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: serialLabel).font(.title2.bold()).monospacedDigit()
+                Text("playkit.daily.serialHint").font(.caption).foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .combine)
+        }
+    }
+    private func field<Value: View>(_ title: LocalizedStringKey, @ViewBuilder value: () -> Value) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            value().font(.body)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+    /// The share sheet's "Save Image" replaces the MP canvas poster (`dailysign-poster.js`); same slip, line shown.
+    private func renderShareImage() {
+        let snapshot = VStack(alignment: .leading, spacing: CYSpacing.md) { slip(scratchable: false) }
+            .padding()
+            .frame(width: 360)
+            .background(Color(uiColor: .systemBackground))
+            .environment(\.locale, locale)
         let renderer = ImageRenderer(content: snapshot)
         renderer.scale = displayScale
         if let image = renderer.cgImage { shareImage = Image(decorative: image, scale: displayScale) }
