@@ -57,6 +57,9 @@ struct TicketWalletIssueView: View {
     /// mp-states r3 (sweep 07:05): an optional MP failure title (票夹没能打开). With a title the reason moves to the
     /// description, so the wallet shows one ContentUnavailableView (title + reason + 重试), not a header row above it.
     var titleKey: String? = nil
+    /// mp-states r3 (sweep 13:03 e4-tickets-guest): MP cy-empty no-permission 登录 sits inside the one state view,
+    /// like 消息 (prominent capsule under the title), not as a full-width row below the card.
+    var signIn: (() -> Void)? = nil
     /// mp-states r3: the one state pattern — ContentUnavailableView with one bordered 重试.
     var body: some View {
         ContentUnavailableView {
@@ -69,7 +72,11 @@ struct TicketWalletIssueView: View {
         } description: {
             if titleKey != nil { reason }
         } actions: {
-            if let retry {
+            if let signIn {
+                Button(action: signIn) { Text("ticketWallet.signIn") }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .accessibilityIdentifier("ticketWallet.signIn")
+            } else if let retry {
                 Button("ticketWallet.retry", action: retry)
                     .buttonStyle(.bordered).controlSize(.large)
                     .accessibilityIdentifier("ticketWallet.retry")

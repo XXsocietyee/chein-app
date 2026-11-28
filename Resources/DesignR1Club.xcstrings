@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Owner %ld · Admins %ld · Members %ld"
+            "value": "Creator: %ld · Admins: %ld · Members: %ld"
           }
         },
         "zh-Hans": {

@@ -88,9 +88,10 @@ class TeamSourceChecks(unittest.TestCase):
     def test_no_invitation_sharing_or_financial_operations(self):
         app = '\n'.join(p.read_text() for p in (ROOT/'App').glob('*Team*.swift'))
         for forbidden in ['UIActivityViewController', 'openURL(', 'redeem(', 'refund(', 'purchase(']: self.assertNotIn(forbidden, app)
-        # The invite code may be shared through one system ShareLink, only inside the invitation preview (valid code).
+        # The invite code may be shared through one system ShareLink, only inside the invitation preview (valid code):
+        # T-02, the MP join link `/pages/team/join/index?code=` (code only), or the bare code when no reviewed link parses back.
         self.assertEqual(app.count('ShareLink('), 1)
-        self.assertIn('ShareLink(item: code)', self.text('App/TeamComponents.swift').split('struct TeamInvitePreview', 1)[1])
+        self.assertIn('ShareLink(item: PublicContentShareLink.teamInvite(code: code)?.absoluteString ?? code,', self.text('App/TeamComponents.swift').split('struct TeamInvitePreview', 1)[1])
         self.assertIn('team.invite.previewOnly', app)
         self.assertEqual(app.count('UIPasteboard.general'), 0)
         self.assertEqual(app.count('LocalPasteboard.copy('), 1)

@@ -113,7 +113,8 @@ extension AppSession {
     /// which `TemplateAuthoringContract` turns into `scope=MERCHANT`). `from` only changes labels (see `TemplateAuthoringView`).
     func templateAuthoringEditor(adopting source: DiscoveryPlayTemplate? = nil, from: String?, scope: String?) -> TemplateAuthoringCoordinator {
         let coordinator = templateAuthoringEditor(adopting: source)
-        guard scope == "MERCHANT" else { return coordinator }
+        // K12: writing scope=MERCHANT onto a template draft is a merchant-center entry.
+        guard PlayerLaunch.merchantCenterEnabled, scope == "MERCHANT" else { return coordinator }
         coordinator.operationScope = "MERCHANT"
         if coordinator.draft.operationScope != "MERCHANT" {
             var draft = coordinator.draft

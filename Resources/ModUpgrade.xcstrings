@@ -710,7 +710,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verify cancelled / failed original and choose again"
+            "value": "Verify canceled / failed original and choose again"
           }
         },
         "zh-Hans": {
@@ -726,7 +726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request is still prepared or has installed successfully. Continue its original receipt; only cancelled or failed requests can be cleared here."
+            "value": "The original request is still prepared or has installed successfully. Continue its original receipt; only canceled or failed requests can be cleared here."
           }
         },
         "zh-Hans": {
