@@ -22,6 +22,7 @@
         "AccessibilityHardeningWaveTests",
         "AccessibilityReadinessSectionViewTests",
         "AccountDeregistrationConsentPresentationTests",
+        "ActivityCalendarDraftTests",
         "ActivityEditingForegroundRecoveryTests",
         "ActivityListScopeRecoveryTests",
         "ActivityNormalReadRecoveryTests",

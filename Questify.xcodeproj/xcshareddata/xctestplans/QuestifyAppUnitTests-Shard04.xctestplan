@@ -23,6 +23,7 @@
         "AccountDeletionAndGDPRPIPLSectionViewTests",
         "AccountDeregistrationHostLifetimeTests",
         "ActivityAssociatedPlaysViewTests",
+        "ActivityCalendarDraftTests",
         "ActivityCoverAuthoringOwnerTests",
         "ActivityEditingOwnerTests",
         "ActivityListScopeRecoveryTests",
