@@ -367,6 +367,13 @@ extension PlayKitScreen {
         }
     }
 
+    /// MP `name || '图 ' + (i + 1)`: the item id is never shown as a name.
+    func nativePriceName(_ option: PlayKitOption) -> Text {
+        let name = option.raw["name"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let index = (projection.options.firstIndex { $0.id == option.id } ?? 0) + 1
+        return name.isEmpty ? Text("playkit.pricePair.fallbackName \(index)") : Text(verbatim: name)
+    }
+
     @ViewBuilder func nativePriceOption(_ option: PlayKitOption, result: PlayKitPricePairResult?) -> some View {
         let on = selected.contains(option.id)
         let revealed = result?.finished == true
@@ -378,7 +385,19 @@ extension PlayKitScreen {
         }()
         let button = Button { nativeToggle(option.id, multi: false) } label: {
             VStack(alignment: .leading, spacing: 6) {
-                artwork(option.raw["imageUrl"].text)
+                // MP `pp__ph`: a picture placeholder until the merchant uploads one, so the mark never sits on nothing.
+                Group {
+                    if let image = option.raw["imageUrl"].text, !image.isEmpty {
+                        artwork(image)
+                    } else {
+                        Image(systemName: "photo")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, minHeight: 96)
+                            .background(.fill.tertiary, in: .rect(cornerRadius: CYRadius.card))
+                            .accessibilityHidden(true)
+                    }
+                }
                     .overlay(alignment: .topTrailing) {
                         if let mark {
                             Label(mark.key, systemImage: mark.right ? "checkmark.circle.fill" : "xmark.circle.fill")
@@ -391,13 +410,13 @@ extension PlayKitScreen {
                                     ? "playkit.pricePair.answer." + option.id : "playkit.pricePair.lastPick." + option.id)
                         }
                     }
-                Text(verbatim: option.label).font(.headline)
+                nativePriceName(option).font(.headline)
                 if revealed, let note = option.raw["note"].text, !note.isEmpty { Text(verbatim: note).font(.footnote) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .disabled(!enabled || revealed)
-        .accessibilityLabel(Text(verbatim: option.label))
+        .accessibilityLabel(nativePriceName(option))
         .accessibilityValue(mark.map { Text($0.key) } ?? Text(on ? "playkit.pricePair.currentChoice" : "playkit.select"))
         .accessibilityAddTraits(on ? .isSelected : [])
         if on { button.buttonStyle(.borderedProminent) } else { button.buttonStyle(.bordered) }

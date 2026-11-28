@@ -52,7 +52,7 @@ CLUB = {
     'funds.handOff.line': ('Open support and send the club name and amount. Support replies within 1 working day and pays out to your verified account.', '打开客服后发送俱乐部名称和金额，客服 1 个工作日内回复，款项打到你已核验的收款账户。'),
     # MC-13 switch explanations
     'switch.prioritySignup': ('Members can sign up for activities before everyone else', '成员可以比其他人更早报名活动'),
-    'switch.joinReview': ('New members join only after an organiser approves them', '新成员需要组织者通过后才能加入'),
+    'switch.joinReview': ('New members join only after an organizer approves them', '新成员需要组织者通过后才能加入'),
     # MC-25 roster card
     'roster.expand': ('Shows money and attendees', '展开收款与报名人'),
     'roster.collapse': ('Hides money and attendees', '收起收款与报名人'),
