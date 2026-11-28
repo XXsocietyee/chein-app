@@ -355,12 +355,14 @@ public struct PlayNodesResult: Decodable, Equatable {
     public let altStations: [PlayAltStation]
     /// Only an explicit `true` hides chapter progress. Missing or a non-bool stays nil.
     public let perkOnly: Bool?
+    /// mp-journey-b r3: MP `d.puzzlePersonalBest` (finish grid 解谜分 · 个人最佳). Lenient: a bad value is nil, never a failed route.
+    public let puzzlePersonalBest: Int?
     private enum CodingKeys: String, CodingKey {
         case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount, teamId
         case timeNote, expiresAt, nodes, chapters, routeState, eggs
         case topicAiGenerated, productType, topicCover, topicAudioUrl
         case lookJSON = "look_json"
-        case storyUnlocked, storyTotal, runStartMode, altStations, perkOnly
+        case storyUnlocked, storyTotal, runStartMode, altStations, perkOnly, puzzlePersonalBest
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -396,6 +398,7 @@ public struct PlayNodesResult: Decodable, Equatable {
         runStartMode = (try? c.decodeIfPresent(PlayRunStartMode.self, forKey: .runStartMode)) ?? nil
         altStations = PlayAltStation.unique(from: (try? c.decodeIfPresent(PlayWireValue.self, forKey: .altStations)) ?? nil)
         perkOnly = (try? c.decodeIfPresent(Bool.self, forKey: .perkOnly)) ?? nil
+        puzzlePersonalBest = (try? c.playInt(.puzzlePersonalBest)) ?? nil
         guard Set(nodes.map(\.id)).count == nodes.count, Set(chapters.map(\.id)).count == chapters.count,
               total.map({ $0 >= 0 }) ?? true, doneCount.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
     }

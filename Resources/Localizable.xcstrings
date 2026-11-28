@@ -365452,91 +365452,6 @@
         }
       }
     },
-    "playx.finish.sessionRank.provisional %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Provisionally No. %lld"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂列第 %lld 名"
-          }
-        }
-      }
-    },
-    "playx.board.orient.points %@": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ pts"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ 分"
-          }
-        }
-      }
-    },
-    "playx.board.orient.reached": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reached the ending"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已到达结局"
-          }
-        }
-      }
-    },
-    "playx.board.orient.notReached": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not at the ending yet"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "尚未到达结局"
-          }
-        }
-      }
-    },
-    "playx.board.orient.elapsedPending": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Time to be confirmed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用时待确认"
-          }
-        }
-      }
-    },
     "castMember.avatar.upload": {
       "extractionState": "manual",
       "localizations": {
@@ -365856,6 +365771,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "再来一局"
+          }
+        }
+      }
+    },
+    "playx.finish.puzzleBest %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal best %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人最佳 %lld"
           }
         }
       }
