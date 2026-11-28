@@ -530,6 +530,14 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 |---|---|---|
 | `pages/search2/result/index.wxml:24` `cy-empty` 没有找到 (`sub=""`) → `App/GlobalSearchView.swift` results empty state, new `GlobalSearchEmptyDescription` (`d2-search-empty`) | P41: the no-results state was a lone magnifier + 没有找到 + 刷新 (Instacart's dead end); it did not say what was searched or what to try. | **Fixed** — MP title 没有找到 / Nothing found and the 刷新 action kept; the description now quotes the query (新 key `globalSearch.emptyQuery %@`: 没有找到与“…”相关的结果。 / No results for “…”.) and gives one tip (existing `searchMap.emptyHint`, en + zh-Hans). A category-only search (no keyword) shows the tip alone. One combined VoiceOver element, id `globalSearch.emptyDescription`. No section added or moved (the entry page's chips stay on the entry page). |
 
+## Round 3 continue (45) — P40 permission priming: 首页 city location card
+
+Merged `origin/ui/combined-r7` (fast-forward). No coordinator item for mp-home in the 17:30 sweep (build 2fc0feb24: mp-states / mp-nav sheets; the en "Home + lone house glyph" and search-logo-overlay frames are filed to mp-nav / mp-states there). No K50 `lane-layout` rows for mp-home (`cursor-k50-p*.md` not present). Open Not done rows all need a simulator/device or the P2-3d decision. Level B (Crafted).
+
+| MP page → native | Difference | Status |
+|---|---|---|
+| `pages/index/index.wxml:74-81` `v3-locprompt` (title · content · 暂不定位 · 同意定位; copy `index.js:1342-1347`) → `App/HomeCityLocationConsentCard.swift` (`d2-home` with consent pending) | P40: the card had two equal-weight buttons and no privacy line; the MP body says the precise location "is sent to 城瘾 … then located automatically", but the native 同意 (continue 31) matches the fix **on the device**, never sends it, and only locates again from the city menu — the copy was untrue for the app. | **Fixed** — MP order and fields kept (title, one sentence, decline, agree). Body rewritten to what the app does (用一次当前位置确定首页城市，之后可在城市菜单里重新定位，不用于附近排序。 / en), new privacy line `homeCityConsent.privacy` with `lock.fill` (位置只在本机匹配城市，不会上传。 / en), 暂不定位 now a quiet `.borderless` "Not now" beside the one `.borderedProminent` 同意定位. Pin `test_card_primes_honestly_with_one_primary_and_a_quiet_not_now`. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -588,6 +596,7 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 - Needs a simulator pass (continue 42): `d2-home` hero card with title + action inside (en + zh-Hans, AX5 stacks); `d2-home-offline` prominent Retry.
 
 - Needs a simulator pass (continue 44): `d2-search-empty` description quotes the query + tip in en + zh-Hans, AX5.
+- Needs a simulator pass (continue 45): 首页 consent card (en + zh-Hans, AX5: buttons stack, privacy line wraps).
 - Needs a device pass (continue 43): topic 收藏 success haptic on save, warning on rollback, none on page open.
 
 ## For other lanes
