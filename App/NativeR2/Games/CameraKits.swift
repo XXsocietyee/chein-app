@@ -320,14 +320,18 @@ import VisionKit
                 .frame(minHeight: 320)
                 .accessibilityLabel(Text("playkit.album.carousel"))
                 .accessibilityIdentifier("playkit.album.ring")
+                // MP `album`: page count right under the photos, then the photo's line (only when it has one).
                 let index = min(current, projection.photos.count - 1)
-                Text(verbatim: projection.photos[index].line)
-                    .font(.body)
-                    .multilineTextAlignment(.center)
-                    .accessibilityIdentifier("playkit.album.line")
                 Text(verbatim: "\(index + 1) / \(projection.photos.count)")
                     .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                    .accessibilityLabel(Text("playkit.album.page \(index + 1) \(projection.photos.count)"))
                     .accessibilityIdentifier("playkit.album.count")
+                if !projection.photos[index].line.isEmpty {
+                    Text(verbatim: projection.photos[index].line)
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("playkit.album.line")
+                }
             }
             if projection.completionEnabled && projection.done {
                 Label("playkit.album.locked", systemImage: "lock")
