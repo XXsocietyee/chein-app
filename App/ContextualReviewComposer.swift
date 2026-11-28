@@ -125,8 +125,8 @@ import SwiftUI
                 case .submitting: ProgressView("context.review.submitting")
                 case .acknowledged: Text("context.review.acknowledged")
                 case .unknown: Text("context.review.unknown")
-                case .rejected: Text("context.review.rejected")
-                case .notSent: Text("context.review.notSent")
+                case .rejected: submitFailure("context.review.rejected")
+                case .notSent: submitFailure("context.review.notSent")
                 case .idle: EmptyView()
                 }
                 Button("context.review.preview") { typing = false; captured = owner?.writer.session; review = draft }
@@ -171,6 +171,24 @@ import SwiftUI
         }
         .cyDomainScreen(.player)
         .onChange(of: owner?.writer.session) { _, _ in draft = .init(); review = nil; captured = nil; busy = false; revision += 1 }
+    }
+    /// MP `scene-play-activity-detail/index.wxml:143`: cy-error 评价没有发布 · sub commentError · 重试 (submitComment again).
+    private func submitFailure(_ reason: LocalizedStringKey) -> some View {
+        ContentUnavailableView {
+            Label { Text("context.review.failedTitle") } icon: { Image(systemName: "exclamationmark.triangle") }
+        } description: {
+            Text(reason)
+        } actions: {
+            Button {
+                typing = false
+                captured = owner?.writer.session
+                let value = draft
+                Task { await submit(value) }
+            } label: { Text("action.retry") }
+                .buttonStyle(.bordered)
+                .disabled(!draft.isValid || busy || uploadingPhotos || owner?.canSubmit != true)
+                .accessibilityIdentifier("context.review.retry")
+        }
     }
     private func submit(_ value: ContextualReviewDraft) async {
         guard let owner, let captured, owner.target == target, owner.writer.session == captured else { return }

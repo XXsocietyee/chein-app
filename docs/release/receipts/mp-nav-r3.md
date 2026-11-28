@@ -232,6 +232,23 @@ Merged `origin/ui/combined-r7` (f8574edab), clean. Took the brief's app-side row
 | subpackageB/pages/im/chat markRead (index.js:862-866: `POST /api/im/read` `{conversation_id, read_to}`) → chat info 标为已读 (App/IMExpandedViews.swift:370-374) → `IMExpandedService.perform(.readCursor)` (Core/IMExpandedService.swift) | sent `last_message_id` + `ack-<uuid>` request id; server reads only `read_to`, marked the whole chat read, and the app then failed decoding the reply as a channel ACK (`malformedResponse`) | sends `read_to` + a lowercase UUID `request_id` (validated through `OrdinaryIMReadRequest`); decodes `OrdinaryIMReadReceiptWire` (source / conversation / request id / requested_read_to must match; `APPLIED` → read, `PENDING`/`NOT_FOUND` → unknown outcome, retry keeps the same request). Unit test `IMExpandedTests.testChannelReadSendsCursorAndKeepsTheSameRequest` rewritten for the MP wire shape (read_to present, no last_message_id, mismatched cursor rejected, `ack-` / uppercase ids rejected before any request). Not compiled here | fixed |
 | pages/square/detail 作者头像 → 查看主页 (`goUserInfo`, index.js:160-165 navigateTo pages/userinfo) and comment author → App/SquareDetailView.swift:215-219, :474 | pushed `SocialPublicProfileView` without the shared pushed chrome, so the tab bar came back on the profile and the page ground/tint were the pushing stack's (the `cloudProfile` push at :199-203 already had it) | `.cyPushedChrome(domain: .player)` on both pushes, same as every other L2 profile push. MP order / content unchanged | fixed |
 
+## Re-scan 11-28 01:xx (merged combined-r7 907570051; sweep 01:20 has no mp-nav row)
+
+Merged `origin/ui/combined-r7` (907570051). No coordinator row for mp-nav after 00:20. Next edges without a row: in-page profile / page pushes that skipped the shared pushed chrome (same defect as the square-detail author fix: a push without `.cyPushedChrome()` above a pushed page brings the tab bar back and uses the pushing stack's ground/tint).
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| pages/activity/detail 报名的人 → pages/userinfo/userinfo (navigateTo) → App/ActivityDetailView.swift `profileSelection` | pushed `SocialPublicProfileView` without pushed chrome | `.cyPushedChrome(domain: .player)` | fixed |
+| pages/activity/detail 我的订单 → subpackageMember order list (navigateTo) → `showsOwnOrders` push | no pushed chrome | `.cyPushedChrome(domain: .player)` (play runtime push unchanged: it owns its own chrome) | fixed |
+| pages/club/detail 成员 / 贡献榜 / leaderboard member → pages/userinfo or CRM customer (`goMemberProfile`, navigateTo) → ClubMembersView.swift, ClubDetailR8Mounts.swift (×2), ClubGovernanceViews.swift leaderboard | no pushed chrome on the destination | `.cyPushedChrome()` (domain inherited from the club page) | fixed |
+| club enrollment registrant → pages/userinfo / check-in (navigateTo) → ClubEnrollmentView.swift destination owner | no pushed chrome | `.cyPushedChrome()` on the destination | fixed |
+| pages/square/list author → pages/userinfo (navigateTo) → SquareBrowserView.swift `profileMember` | no pushed chrome | `.cyPushedChrome(domain: .player)` | fixed |
+| 我的 关注 / 粉丝 list row → pages/userinfo (navigateTo) → ProfileFollowListView.swift | no pushed chrome | `.cyPushedChrome()` | fixed |
+| 邀请记录 member → pages/userinfo → SocialInviteHistoryView.swift | no pushed chrome | `.cyPushedChrome(domain: .player)` | fixed |
+| 好友 directory → profile / 备注 / 删除 / chat child pushes → NativeFriendDirectoryView.swift | no pushed chrome on any child | one `.cyPushedChrome()` around the child switch | fixed |
+
+Sections / order / content unchanged on every page; navigation only. Not compiled here.
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.

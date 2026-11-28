@@ -194,11 +194,19 @@ Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON 
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration/baoming contract suites (12 files) OK.
 
+## Round 3 continue (2026-11-28, twentieth session — sweep 01:10 build 907570051)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side added no keys, kept theirs). Sheets `zh-Hans/en` (`t5-baoming`, `t5-pass-market`, `d2-square`) re-read: this build predates the nineteenth-session one-row participant/ticket fix; square dates absolute ✓, pass-market foot one row ✓, baoming cover ✓, consent copy MP ✓.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` 参与人信息 (wxml:31-56: one row → popup, then the selected `address-info` name + phone; no inline inputs) | `App/RegistrationSheetView.swift` `participantSection`, `selectedParticipantRow`, `RegistrationChoiceRow(detail:)` | screenshot `zh-Hans/en-t5-baoming`: under the participant row the sheet still showed the name field (林佳) and the +86 phone field holding the same saved participant, plus a 新增参与人 pill. Now, while a saved participant is selected and unchanged, the row itself shows name + phone (MP address-info) and the inline fields are hidden; the add pill shows only when the player has no saved participants (with saved ones, add lives in the sheet / 管理参与人信息 as in the MP). Manual fields remain only when no saved participant is selected (Not done narrowed) | one row per decision, phone in `.footnote` monospaced digits, no duplicate data on screen |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration suites OK (`check_contextual_flows.py` fails identically without this change).
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
 - Official detail: native 参与情况 section kept (contract-pinned, holds signup action).
-- Baoming: native manual name/phone entry kept beside the sheet.
+- Baoming: native manual name/phone entry kept only when no saved participant is selected (MP requires creating one in the popup first).
 - Coop (audited, not yet fixed): invite — 俱乐部/商家 picker (kept: native entries without a route kind, e.g. coop list → 去发起邀请, need it) and search field are extra (MP takes the kind from the route); 核销据点 card copy and per-merchant picker; inline send result on the sheet (the 去编辑主题 exit exists on the review page; sends go through the per-recipient reviewed `CoopFlowRequestPreview`; failures stay there, not back on the sheet). List — no in-app 缴纳保证金 / 重试保证金退款 path on accepted cards (no native deposit payment client); 合作池 row kept (MP folded it into club detail, but it is the only native route to the pool and is UI-test pinned); extra per-section headers/empties and extra card fields; Detail — read-receipt row kept (it performs the `invite/read` write the MP sends silently), terms-card grouping, deposit footer. Nearby — consent block is extra (kept: native location-purpose consent before the search); 补位 sheet interaction and per-row chapter terms differ; missing-param state (native routes always pass a scope, no param-less entry).
 
 ## Gates

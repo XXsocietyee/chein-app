@@ -208,7 +208,12 @@ struct ClubActionPanel: View {
         if action == .leave {
             if !leavesAtPageEnd && placement != .floating { button }
         } else if placement == .floating {
-            button.buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
+            Button { prepare(action) } label: {
+                Label(LocalizedStringKey(actionKey(action)), systemImage: "person.badge.plus").frame(maxWidth: .infinity)
+            }
+            .disabled(isWorking || state.preventsNewAction || !ClubApplicationMessage.isValid(action == .apply ? joinMessage : "", for: action))
+            .accessibilityIdentifier("club.action.\(action.rawValue)")
+            .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
         } else {
             button
         }
@@ -257,17 +262,20 @@ struct ClubActionPanel: View {
               coordinator.identity == identity, identity.isSignedIn, coordinator.isConfigured else { return false }
         return true
     }
-    /// MP detail wxml:1028-1036 (owner 2026-10-22): a non-member sees one 加入 / 申请加入 capsule at the bottom right of
-    /// 概览, or the greyed 等待主理人审核; guests sign in first (js:2531). P17: the sticky primary action. Status, the
-    /// 申请留言 field (the MP asks it in the join modal, js:2537-2548) and errors sit in one material card above it.
+    /// MP detail wxml:1028-1036 (owner 2026-10-22): a non-member sees one 加入 / 申请加入 action on 概览, or the
+    /// greyed 等待主理人审核; guests sign in first (js:2531). P17 + coordinator 01:20: the action is a bottom bar
+    /// (full-width prominent capsule on `.bar` material in the List's bottom safe-area inset), so the list scrolls
+    /// above it and nothing is covered. Status and errors sit above the button inside the same bar.
     @ViewBuilder private var floatingBar: some View {
         let state = coordinator.state(clubID: club.id)
         let signedIn = coordinator.identity == identity && identity.isSignedIn
-        VStack(alignment: .trailing, spacing: CYSpacing.sm) {
+        let showsBar = floatingHasContent(state, signedIn: signedIn)
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if !signedIn {
                 if let onSignIn, !club.isJoined, !club.isOwner {
                     Button(action: onSignIn) {
                         Label(LocalizedStringKey(actionKey(club.needsApproval ? .apply : .join)), systemImage: "person.badge.plus")
+                            .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
                     .accessibilityIdentifier("club.action.signIn")
@@ -295,15 +303,15 @@ struct ClubActionPanel: View {
                                 .accessibilityIdentifier("club.action.gated")
                         }
                     }
-                    .padding(CYSpacing.md)
+                    .font(.subheadline)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.regularMaterial, in: .rect(cornerRadius: CYRadius.lg))
                 }
                 if !rewardPlaying, coordinator.isConfigured, case .available(let action) = availability,
                    action != .leave, rewardAction != action {
                     if action == .apply {
                         Button { applySheet = true } label: {
                             Label(LocalizedStringKey(actionKey(.apply)), systemImage: "person.badge.plus")
+                                .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
                         .disabled(isWorking || state.preventsNewAction)
@@ -313,7 +321,7 @@ struct ClubActionPanel: View {
                     }
                 } else if !rewardPlaying, availability == .pending {
                     // MP join-btn--pending: the greyed, disabled 等待主理人审核 capsule.
-                    Button {} label: { Text(LocalizedStringKey(availabilityKey)) }
+                    Button {} label: { Text(LocalizedStringKey(availabilityKey)).frame(maxWidth: .infinity) }
                         .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
                         .disabled(true)
                         .accessibilityIdentifier("club.action.gated")
@@ -321,7 +329,14 @@ struct ClubActionPanel: View {
             }
         }
         .padding(.horizontal, CYSpacing.lg)
-        .padding(.bottom, CYSpacing.sm)
+        .padding(.vertical, showsBar ? CYSpacing.sm : 0)
+        .frame(maxWidth: .infinity)
+        .background {
+            if showsBar {
+                Rectangle().fill(.bar).ignoresSafeArea(edges: .bottom)
+                    .overlay(alignment: .top) { Divider() }
+            }
+        }
         .sheet(isPresented: $applySheet) { applyForm }
         .onChange(of: identity) { _, _ in reset() }
         .onChange(of: club.id) { old, _ in reset(clubID: old) }
@@ -333,6 +348,15 @@ struct ClubActionPanel: View {
         case .merchant, .unsupportedStatus: return true
         case .owner, .available, .pending: return false
         }
+    }
+    /// The bottom bar is drawn only when it holds something; a member or the owner gets no empty material strip.
+    private func floatingHasContent(_ state: ClubActionState, signedIn: Bool) -> Bool {
+        if !signedIn { return onSignIn != nil && !club.isJoined && !club.isOwner }
+        if floatingShowsCard(state) { return true }
+        if rewardPlaying { return false }
+        if availability == .pending { return true }
+        if coordinator.isConfigured, case .available(let action) = availability, action != .leave, rewardAction != action { return true }
+        return false
     }
     private func floatingShowsCard(_ state: ClubActionState) -> Bool {
         if state != .idle || !coordinator.isConfigured || isWorking || issueKey != nil { return true }

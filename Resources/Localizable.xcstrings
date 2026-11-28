@@ -17690,7 +17690,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approval to join"
+            "value": "Approval required"
           }
         },
         "zh-Hans": {
@@ -17836,7 +17836,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved members can see the members"
+            "value": "Member list unlocks once you’re approved"
           }
         },
         "zh-Hans": {
@@ -135971,13 +135971,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Includes %lld work"
+                  "value": "Covers %lld play"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Includes %lld works"
+                  "value": "Covers %lld plays"
                 }
               }
             }
@@ -135997,7 +135997,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Includes %#@work@ · %#@person@"
+            "value": "Covers %#@work@ · %#@person@"
           },
           "substitutions": {
             "work": {
@@ -136008,13 +136008,13 @@
                   "one": {
                     "stringUnit": {
                       "state": "translated",
-                      "value": "%arg work"
+                      "value": "%arg play"
                     }
                   },
                   "other": {
                     "stringUnit": {
                       "state": "translated",
-                      "value": "%arg works"
+                      "value": "%arg plays"
                     }
                   }
                 }
@@ -136209,7 +136209,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Playable works"
+            "value": "Included plays"
           }
         },
         "zh-Hans": {
@@ -177333,13 +177333,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your whole selection is correct."
+            "value": "All marked correctly"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "整组标记正确。"
+            "value": "全标对了"
           }
         }
       }
@@ -177350,13 +177350,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not all correct. Try again."
+            "value": "Not quite. Compare them again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有全对，再试试。"
+            "value": "还没标对，再对照一遍"
           }
         }
       }
@@ -276621,7 +276621,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ | Host club"
+            "value": "Hosted by %@"
           }
         },
         "zh-Hans": {
@@ -276637,7 +276637,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scroll down for games, sessions and sign-up"
+            "value": "Scroll down for plays, sessions and sign-up"
           }
         },
         "zh-Hans": {
@@ -276924,9 +276924,21 @@
     "topicXcx.include.chapters %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld chapters"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chapter"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chapters"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -277016,9 +277028,21 @@
     "topicXcx.include.plays %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld games"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld play"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld plays"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -277032,9 +277056,21 @@
     "topicXcx.include.stops %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stops"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stop"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stops"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -277154,9 +277190,21 @@
     "topicXcx.moreMerchants %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld shops in total"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld shop in total"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld shops in total"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -297111,7 +297159,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tick every prep item to start"
+            "value": "Check off every prep item to start"
           }
         },
         "zh-Hans": {
@@ -298228,7 +298276,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Get approved to see the contribution board"
+            "value": "Contribution board unlocks once you’re approved"
           }
         },
         "zh-Hans": {
@@ -303952,7 +304000,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use each chapter's colours"
+            "value": "Use each chapter’s colors"
           }
         },
         "zh-Hans": {
@@ -303986,7 +304034,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Theme colours"
+            "value": "Theme colors"
           }
         },
         "zh-Hans": {
@@ -304003,7 +304051,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Song"
+            "value": "Serif"
           }
         },
         "zh-Hans": {
@@ -304020,7 +304068,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kai"
+            "value": "Calligraphic"
           }
         },
         "zh-Hans": {
@@ -304037,7 +304085,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hei"
+            "value": "Sans serif"
           }
         },
         "zh-Hans": {
@@ -310086,7 +310134,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导演台加载失败"
+            "value": "导演台读取失败"
           }
         }
       }
@@ -340223,7 +340271,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Playable until %1$lld/%2$lld · Days left: %3$lld"
+            "value": "Playable until %1$lld/%2$lld · %#@day@ left"
+          },
+          "substitutions": {
+            "day": {
+              "argNum": 3,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg day"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg days"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -340240,7 +340310,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Playable until %1$lld/%2$lld (when the topic ends) · Days left: %3$lld"
+            "value": "Playable until %1$lld/%2$lld, when the topic ends · %#@day@ left"
+          },
+          "substitutions": {
+            "day": {
+              "argNum": 3,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg day"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg days"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -351805,7 +351897,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld/%2$lld people"
+            "value": "%1$lld/%#@person@"
+          },
+          "substitutions": {
+            "person": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg person"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg people"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -354430,6 +354544,227 @@
           "stringUnit": {
             "state": "translated",
             "value": "完成反馈"
+          }
+        }
+      }
+    },
+    "context.review.failedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your review wasn't posted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评价没有发布"
+          }
+        }
+      }
+    },
+    "playkit.blind.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blind taster · Tasting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "闭眼味觉师 · 盲品"
+          }
+        }
+      }
+    },
+    "playkit.blind.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close your eyes, take a sip, guess which one it is"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "闭上眼，尝一口，猜猜是哪一种"
+          }
+        }
+      }
+    },
+    "playkit.blind.got": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have the samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小样拿到了"
+          }
+        }
+      }
+    },
+    "playkit.blind.closeEyes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close your eyes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "闭上眼"
+          }
+        }
+      }
+    },
+    "playkit.blind.dontPeek": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep your eyes closed, take your time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "别睁眼，慢慢尝"
+          }
+        }
+      }
+    },
+    "playkit.blind.openEyes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done tasting. Tap to open your eyes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尝好了，轻点睁眼"
+          }
+        }
+      }
+    },
+    "playkit.blind.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好"
+          }
+        }
+      }
+    },
+    "playkit.blind.peeked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peeked? Close your eyes again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偷看了？再闭一次眼"
+          }
+        }
+      }
+    },
+    "playVerdict.tapToContinue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap anywhere to continue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轻点继续"
+          }
+        }
+      }
+    },
+    "playkit.scan.matchNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only checks this stop's task code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅确认这一站的任务码"
+          }
+        }
+      }
+    },
+    "playkit.scan.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan this stop's code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描这一站的二维码"
+          }
+        }
+      }
+    },
+    "playkit.scan.imagePending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The picture you get after scanning"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫完给的那张图"
           }
         }
       }
