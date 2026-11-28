@@ -15,8 +15,8 @@ struct CYPlayVerdict: Identifiable, Equatable {
     var images: [String] = []
 }
 
-/// Liquid fill rises from the bottom, the mark lands, optional text and Continue.
-/// Reduce Motion: the fill appears at rest and the mark fades in.
+/// The tint fades in, the mark lands, optional author text and images; one tap anywhere continues (MP: no button).
+/// Reduce Motion: the tint appears at rest and the mark fades in.
 struct CYPlayVerdictOverlay: View {
     let verdict: CYPlayVerdict
     var closable = true
@@ -42,21 +42,12 @@ struct CYPlayVerdictOverlay: View {
     var body: some View {
         ZStack {
             CYNight.ink0.opacity(0.92).ignoresSafeArea()
-            GeometryReader { proxy in
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
-                    ZStack(alignment: .top) {
-                        LinearGradient(colors: [tint.opacity(0.55), tint.opacity(0.18), CYNight.ink0.opacity(0)],
-                                       startPoint: .top, endPoint: .bottom)
-                        CYVerdictWave(phase: risen ? 1 : 0)
-                            .fill(tint.opacity(0.35))
-                            .frame(height: 28).offset(y: -14)
-                    }
-                    .frame(height: proxy.size.height * (risen ? 0.62 : 0))
-                }
-            }
-            .ignoresSafeArea()
-            .accessibilityHidden(true)
+            // MP 2026-11-24 (owner): no liquid, crest or bubbles — the tint only fades in.
+            LinearGradient(colors: [tint.opacity(0.45), tint.opacity(0.12), CYNight.ink0.opacity(0)],
+                           startPoint: .bottom, endPoint: .top)
+                .opacity(risen ? 1 : 0)
+                .ignoresSafeArea()
+                .accessibilityHidden(true)
 
             VStack(spacing: CYSpacing.lg) {
                 Spacer(minLength: 0)
@@ -80,19 +71,19 @@ struct CYPlayVerdictOverlay: View {
                     }.frame(maxWidth: 360)
                 }
                 Spacer(minLength: 0)
-                if closable {
-                    CYPillButton("playVerdict.continue", action: onClose)
-                        .frame(maxWidth: 320)
-                        .accessibilityIdentifier("playVerdict.continue")
-                }
             }
             .padding(.horizontal, CYSpacing.xxl).padding(.bottom, CYSpacing.xxl)
             .opacity(landed ? 1 : 0)
         }
         .preferredColorScheme(.dark)
+        // MP: no Continue button (owner 11-24); one tap anywhere on the screen continues.
+        .contentShape(Rectangle())
+        .onTapGesture { if closable { onClose() } }
         .accessibilityElement(children: .contain)
-        .accessibilityAddTraits(.isModal)
+        .accessibilityAddTraits(closable ? [.isModal, .isButton] : [.isModal])
         .accessibilityLabel(Text(wordKey))
+        .accessibilityHint(closable ? Text("playVerdict.tapToContinue") : Text(verbatim: ""))
+        .accessibilityAction { if closable { onClose() } }
         .accessibilityIdentifier("playVerdict." + verdict.kind.rawValue)
         .cyHapticEvent(verdict.kind == .fail ? .wrongAnswer : .rewardOrMedal, trigger: landed) { _, new in new }
         .onAppear {
@@ -118,37 +109,14 @@ struct CYPlayVerdictOverlay: View {
                     .scaleEffect(landed || reduceMotion ? 1 : 0.6)
             }.accessibilityHidden(true)
         case .neutral:
-            Image(systemName: "arrow.triangle.branch")
-                .resizable().scaledToFit().fontWeight(.semibold).frame(width: 72, height: 72).foregroundStyle(.white.opacity(0.9))
-                .scaleEffect(landed || reduceMotion ? 1 : 0.7)
-                .accessibilityHidden(true)
+            // MP: a neutral verdict (a branch choice, no right answer) draws no mark — a seal would read as "correct".
+            EmptyView()
         case .fail:
             Image(systemName: verdict.timedOut ? "hourglass.bottomhalf.filled" : "xmark.circle")
                 .resizable().scaledToFit().fontWeight(.semibold).frame(width: 72, height: 72).foregroundStyle(.white.opacity(0.9))
                 .scaleEffect(landed || reduceMotion ? 1 : 0.7)
                 .accessibilityHidden(true)
         }
-    }
-}
-
-/// Two shallow sine crests on the fill's top edge.
-private struct CYVerdictWave: Shape {
-    var phase: CGFloat
-    var animatableData: CGFloat { get { phase } set { phase = newValue } }
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let mid = rect.midY, amp = rect.height / 2
-        path.move(to: CGPoint(x: rect.minX, y: mid))
-        let steps = 48
-        for step in 0...steps {
-            let x = rect.minX + rect.width * CGFloat(step) / CGFloat(steps)
-            let angle = (CGFloat(step) / CGFloat(steps)) * .pi * 4 + phase * .pi * 2
-            path.addLine(to: CGPoint(x: x, y: mid + sin(angle) * amp))
-        }
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        path.closeSubpath()
-        return path
     }
 }
 
