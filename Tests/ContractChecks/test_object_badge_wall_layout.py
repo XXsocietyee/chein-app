@@ -23,7 +23,8 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
         # us/r1-one-app (owner 2026-11-27, English brand Chein): "on Chengyin" -> "on Chein" (copy only).
         # design/r3-consistency: detail artwork clip radius 16 -> CYRadius.card (one radius scale; look only).
         # design/r3-consistency run 10: share button hand-drawn capsule -> .borderedProminent capsule on .bar (look only).
-        self.assertEqual(hashlib.sha256(value).hexdigest(), '9dd1b54eeb23df2cef1fd4209928cd6cc8348b1390fbce7ee55656e5758f3ccd')
+        # design/r3-consistency run 36: badge name .title2 semibold -> .title2.bold() (one hero-name weight; look only).
+        self.assertEqual(hashlib.sha256(value).hexdigest(), 'c2de7c1d662e504fae051337cd362a309944feb772079bb9c5db0ac856ea94c6')
         self.assertIn('let capturedIdentity = reader.identity', self.wall)
         self.assertIn('ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,', self.wall)
     def test_list_wall_switch_is_not_required(self):

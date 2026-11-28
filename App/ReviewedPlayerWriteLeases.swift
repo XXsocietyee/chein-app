@@ -69,6 +69,8 @@ extension ReviewedProductionFormMutationRoute {
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
         // fix-1128b-social #4/#27: 发布 tab, club 发布活动 and 我的项目 activity 编辑 (POST, MP pages/publish/*).
         if let publishing = MPFirstSocialApprovals.publishingDecision(relative: relative, method: method, request: request) { return publishing }
+        // fix/1128c-ai-showcase: the player/club AI creation calls (theme draft, quota, club design, template fill, safety).
+        if let aiCreation = AICreationReleaseApprovals.decision(relative: relative, method: method, request: request) { return aiCreation }
         if let reportRead = MPFirstSocialApprovals.reportReadDecision(relative: relative, method: method, request: request) { return reportRead }
         if let official = officialParticipationDecision(request, relative: relative, method: method, url: url) {
             return official
@@ -116,6 +118,13 @@ extension ReviewedProductionFormMutationRoute {
                   let object = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any],
                   Set(object.keys) == ["clubId"], let id = object["clubId"] as? Int, id > 0 else { return false }
             return true
+        }
+        if relative == ReviewedProductionGateLeases.clubLeadSettlePath {
+            // mp-club r3 J-18: 全团结算 redeems the team's bought tickets into settlement. Open only where money payments
+            // open; the form body carries the activity id alone (MP pages/play/index.js:5966).
+            guard method == "POST", ReviewedAreaSwitch.moneyPayments(apiHost: context.baseURL.host),
+                  request.httpBody?.isEmpty == false else { return false }
+            return covers(relative, grant.play)
         }
         if relative == "api/club/chat" {
             // E2E R3: enter a club's group chat. ClubChatService sends JSON exactly {"id": <club id>}.
@@ -774,7 +783,7 @@ enum ReviewedPlayerReadRoute {
         // C-F6 MP-first: the author's 到访方式 read/save (fabu/theme-fe-visit.js:40, :87). Not money.
         "api/topic/free-explore/visit-config"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths).union(publisherLifecyclePaths)
-        .union(playFinishAndProfilePaths)
+        .union(playFinishAndProfilePaths).union(clubLeadWritePaths)
     /// MP-first (owner 2026-11-25, R7-PC-B4-1 / R7-PC-B1-2): pages/topic/pricing preview + confirm (a final-price save that moves
     /// the topic to PRICING for sale review, not a payment) and the publisher reads it needs. Cancel-with-refund stays off.
     static let publisherLifecyclePaths: Set<String> = [
@@ -793,6 +802,8 @@ enum ReviewedPlayerReadRoute {
         "api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
         "api/community-trust/safety/merchants/{}", "api/template/adoption-source", "api/template/adoption-receipt",
         "api/template/adoption-detail", "api/map/weather", "api/search/unified", "api/free-explore/bundle/exit-options",
+        // fix/1128c-ai-weather: the topic environment + weather events read (`ApiPlayEnvironmentController`, GET, signed in).
+        "api/play/environment",
         "api/free-explore/bundle/order/receipt",
         // G6 player reads on the same reviewed gate. Money, attribution, and order reads are not here.
         "api/ai/npc/profile", "api/ai/npc/event", "api/ai/theme/draft/recovery",
@@ -812,8 +823,18 @@ enum ReviewedPlayerReadRoute {
         "api/official/events/{}/attendance", "api/official/events/{}/attendance/manage",
         // mp-club r3 J-15: the club topic director's session recap export (`PlayDirectorRecap`, GET `activityId`, no body).
         // A read; the server checks that the caller directs the activity (BE ApiGameSessionController.java:83).
-        "api/game/session/recap/export"
+        "api/game/session/recap/export",
+        // mp-club r3 J-18 / P2-4: the club-lead bar's team read and the chapter-release receipt re-read (MP pages/play/index.js:5604,5881).
+        "api/club/lead/team-progress", "api/club/lead/unlock-chapter-receipt"
     ]
+    /// mp-club r3 J-18 / P2-4: the club-lead tools the MP play page sends (pages/play/index.js:5741,5845,5882,5966; topic-detail
+    /// index.js:530). The server admits only the activity's lead (BE ApiClubLeadController). `settle` (全团结算, ticket
+    /// redemption into settlement) is admitted only where `moneyPayments` opens; see `clubLeadSettlePath`.
+    static let clubLeadWritePaths: Set<String> = [
+        "api/club/lead/start", "api/club/lead/unlock-chapter", "api/club/lead/release-station", "api/club/lead/edit-ops",
+        "api/club/lead/settle"
+    ]
+    static let clubLeadSettlePath = "api/club/lead/settle"
     nonisolated static let externalGamePaths: Set<String> = [
         "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
         "api/external-game/submissions/{}/cancel", "api/external-game/submissions/{}/resubmit",
@@ -876,10 +897,10 @@ enum ReviewedPlayerReadRoute {
         "api/coupon/usability"
     ]
     /// fix-1128b: `.mediaUpload` (#5, play photo upload), `.preference` and `.tags` (#19, preference groups and tag
-    /// confirm/correct/revoke) join the release play grant. `.leader` and `.circle` stay with their own lanes.
+    /// confirm/correct/revoke) join the release play grant. mp-club r3 J-18: `.leader` joins for the club-lead tools; `.circle` stays with its lane.
     static let playCapabilities: Set<PlayExperienceCapability> = [
         .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding,
-        .mediaUpload, .preference, .tags
+        .mediaUpload, .preference, .tags, .leader
     ]
     /// fix-1128b #19: `api/play/tag/{id}/confirm` and `/revoke`, the two bodiless tag writes.
     static func isBodilessPlayTagWrite(_ relative: String) -> Bool {
@@ -904,7 +925,11 @@ enum ReviewedPlayerReadRoute {
         "api/play/preference/{}", "api/play/preference/{}/submit",
         "api/play/tag/{}/confirm", "api/play/tag/{}/correct", "api/play/tag/{}/revoke", "api/play/os/{}",
         "api/compliance/consents", "api/compliance/consents/latest",
-        "api/common/uploadOSS"
+        "api/common/uploadOSS",
+        // mp-journey r3 (plan audit J-09a / J-10b): the stop hint ladder (MP pages/play/index.js useHint → puzzle/hint
+        // {session, nodeId, level}) and the points hint unlock after the 解锁提示 confirm (unlockHint → hint/unlock
+        // {session, nodeId}). Points, not money; the server checks the run.
+        "api/play/puzzle/hint", "api/play/hint/unlock"
     ]
     /// Handover 35, WP-06. Same paths as `ChinaReviewedRouteCapability.wp06PartialPagesOwnerGrant`.
     /// Address, invoice, roam, and passport calls stay on their dedicated transports: this set does not
@@ -1675,6 +1700,8 @@ enum ReviewedPlayerReadRoute {
         if socialRole(context) { imRoutes.merge(Self.beGapImRoutes()) { $0.union($1) } }
         // fix-1128b-social #4 (audit H-06a, H-13a): the 发布 tab "+" and club 发布活动 need `publishingService`.
         if socialRole(context) { imRoutes.merge(MPFirstSocialApprovals.publishingRoutes(baseURL: context.baseURL)) { $0.union($1) } }
+        // fix/1128c-ai-showcase: AI theme draft + quota (player, club); club design, template fill, safety precheck (club).
+        if socialRole(context) { imRoutes.merge(AICreationReleaseApprovals.routes(baseURL: context.baseURL, role: context.role)) { $0.union($1) } }
         let businessConfiguration = try? BusinessRuntimeConfiguration(
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, routes: imRoutes,

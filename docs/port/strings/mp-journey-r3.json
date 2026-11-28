@@ -4166,5 +4166,68 @@
         }
       }
     }
+  },
+  "playx.aiScore.label": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "AI reference score"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "AI 参考分"
+        }
+      }
+    }
+  },
+  "playx.aiScore.note": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Final result is subject to the merchant's review"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "最终以商家审核为准"
+        }
+      }
+    }
+  },
+  "playkit.stopwatch.triesLeft %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "variations": {
+          "plural": {
+            "one": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "%lld try left"
+              }
+            },
+            "other": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "%lld tries left"
+              }
+            }
+          }
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还有 %lld 次机会"
+        }
+      }
+    }
   }
 }

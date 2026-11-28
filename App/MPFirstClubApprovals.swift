@@ -111,6 +111,8 @@ enum MPFirstClubWriteRoute {
         // 统计概览, 结算 summary (read only; withdraw stays refused by the "withdraw" word), CRM list, series list, audience counts.
         "api/stats/club", settlementSummaryPath, "api/club/crm/customers/list", "api/club/event-ops/series/list",
         "api/club/event-notification/audience-counts",
+        // 1128-plan C-13 (MP detail/index.js:3571): the 查看客户 gear count, `{clubId}` (ClubDetailR8Mounts).
+        "api/club/crm/customers/count",
         // P1-11 (MP pages/club/detail/index.js:3430 removeMember): 移除成员, `{clubId, memberId}` (ClubManagementService.perform).
         "api/club/remove-member",
         // CLB-r11-money-01 (MP event-ops/index.js:1106-1115, topic-detail/index.js:1145-1148): host-cancel refund
@@ -301,6 +303,7 @@ enum MPFirstClubWriteRoute {
         "api/club/settlement/summary": .init(ids: ["clubId"]),
         "api/club/event-ops/series/list": .init(ids: ["clubId"]),
         "api/club/crm/customers/list": .init(ids: ["clubId", "pageNum", "pageSize"], optional: ["filter", "keyword"]),
+        "api/club/crm/customers/count": .init(ids: ["clubId"]),
         "api/club/event-notification/audience-counts": .init(ids: ["clubId"], optional: ["activityId"]),
         "api/club/join-request/reject": .init(ids: ["clubId", "memberId"], optional: ["reviewReason"]),
         // CLB-r11-money-01: MP event-ops/index.js:1110-1115 and topic-detail/index.js:1147 bodies, exact keys.

@@ -43,7 +43,7 @@
       "zh-Hans": "成长信息加载失败"
     },
     "growth.level.value %lld": {
-      "en": "Level %lld",
+      "en": "Lv.%lld",
       "zh-Hans": "Lv.%lld"
     },
     "growth.loading": {

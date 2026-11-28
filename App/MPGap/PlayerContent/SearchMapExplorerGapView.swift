@@ -102,11 +102,15 @@ public struct SearchMapExplorerGapView: View {
                     Label("searchMap.locationDenied", systemImage: "location.slash")
                         .font(.footnote)
                     Spacer()
-                    Button("searchMap.openSettings", action: onOpenLocationSettings)
-                        .font(.footnote)
+                    Button(action: onOpenLocationSettings) {
+                        Text("searchMap.openSettings")
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                    }
+                    .font(.footnote)
                 }
                 .padding(.horizontal)
-                .padding(.vertical, 8)
+                .padding(.vertical, 2)
                 .background(.bar)
             }
         }

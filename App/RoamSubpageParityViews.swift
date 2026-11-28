@@ -683,6 +683,7 @@ struct RoamPOIMissingView: View {
             // N-r11-4: the decorative barcode strip is gone (`RoamStampSlip.bars` stays for the slip model).
         }.padding().background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: CYRadius.card))
             .accessibilityElement(children: .contain).accessibilityIdentifier("roamSub.w208.stamp.slip")
+            .roamStampCollectedBurst(revealed)
     }
 }
 

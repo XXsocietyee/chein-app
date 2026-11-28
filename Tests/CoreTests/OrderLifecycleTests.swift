@@ -158,6 +158,18 @@ extension OrderLifecycleTests {
         let noOwner = try detail(#""ownerType":2,"registrationStatus":2,"cmsActivity":{"name":"Activity","teamMode":2}"#)
         XCTAssertNil(noOwner.teamCreationSource)
     }
+    func testReorderLinkOnlyAfterRefundOrCancelOfAnActivityOrder() throws {
+        let refunded = try detail(#""ownerType":2,"ownerId":91,"registrationStatus":2,"refundApplication":{"payoutStatus":1,"status":1}"#)
+        XCTAssertEqual(refunded.reorderActivityID, 91)
+        let cancelled = try detail(#""ownerType":2,"ownerId":91,"registrationStatus":3"#)
+        XCTAssertEqual(cancelled.reorderActivityID, 91)
+        let refunding = try detail(#""ownerType":2,"ownerId":91,"registrationStatus":2,"refundApplication":{"payoutStatus":0,"status":0,"refundAmount":5}"#)
+        XCTAssertNil(refunding.reorderActivityID)
+        let paid = try detail(#""ownerType":2,"ownerId":91,"registrationStatus":2"#)
+        XCTAssertNil(paid.reorderActivityID)
+        let topic = try detail(#""ownerType":1,"ownerId":91,"registrationStatus":3"#)
+        XCTAssertNil(topic.reorderActivityID)
+    }
     func testUnknownTeamModeNeverGrantsEligibility() throws {
         let value = try detail(#""ownerType":2,"ownerId":91,"registrationStatus":2,"cmsActivity":{"name":"Activity","teamMaxMembers":4}"#)
         XCTAssertNil(value.teamCreationSource)

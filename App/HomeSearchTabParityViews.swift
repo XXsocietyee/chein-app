@@ -14,6 +14,7 @@ struct HomeHeroHeaderSectionView: View {
     var isMerchantViewer: Bool = false
     var avatarSource: String? = nil
     var onSelectCity: ((String?, Bool) -> Void)? = nil
+    var onLocateCity: (() -> Void)? = nil
     var onSelectBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
     @Environment(\.externalGameSession) private var externalGameSession
     @Environment(\.homeMoreMenuContent) private var moreMenuContent
@@ -162,13 +163,15 @@ struct HomeHeroHeaderSectionView: View {
                 .accessibilityIdentifier("homeIndex.hero.greeting")
             (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
                 if hasNickname {
-                    // MP `v3-hero-mem` (index.wxml:44): a filled `--cy-color-rare` member badge + 玩家 (no tick, no checkbox).
-                    // Native: the design-system role label `CYStatusChip` (same as other identity/role rows), person glyph in indigo (= rare).
+                    // MP `v3-hero-mem` (index.wxml:44): member badge + 玩家 (no tick, no checkbox), then · city.
+                    // ADA 11-28 (d2-home): one accent — the role reads as a system `Label` in `.secondary`, like the city beside it.
                     if isMerchantViewer {
-                        CYStatusChip("account.role.merchant", tone: .info, systemImage: "storefront.fill")
+                        Label("account.role.merchant", systemImage: "storefront.fill")
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("homeIndex.hero.role")
                     } else {
-                        CYStatusChip("homeFeed.player", tone: .rare, systemImage: "person.fill")
+                        Label("homeFeed.player", systemImage: "person.fill")
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("homeIndex.hero.role")
                     }
                 }
@@ -184,6 +187,14 @@ struct HomeHeroHeaderSectionView: View {
             // MP `cy-dropdown range="{{manualCityOptions}}"` (utils/index/home-city-location.js CITY_OPTIONS): the 20 cities
             // in MP order, no 全国 entry (the old 全国 item was a no-op: the host ignores nationwide).
             Menu {
+                // mp-home r3 (continue 32): MP `onTapHomeCity` relocates from the device; the manual list stays below.
+                if let onLocateCity {
+                    Button(action: onLocateCity) {
+                        Label("homeIndex.hero.useCurrentLocation", systemImage: "location")
+                    }
+                    .accessibilityIdentifier("homeIndex.hero.city.locate")
+                    Divider()
+                }
                 ForEach(HomeHeroCityNames.manualOptions, id: \.self) { city in
                     Button {
                         onSelectCity(city, false)

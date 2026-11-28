@@ -75,7 +75,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Counts distinct normally completed nodes. Fallback completions are excluded."
+            "value": "Counts each stop you complete normally. Fallback completions are excluded."
           }
         },
         "zh-Hans": {

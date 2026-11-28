@@ -108,7 +108,7 @@
     {
       "key": "profile.badges.locked",
       "en": "Locked",
-      "zh-Hans": "未点亮",
+      "zh-Hans": "未解锁",
       "accessibilityIdentifier": "profile.badges.locked"
     },
     {

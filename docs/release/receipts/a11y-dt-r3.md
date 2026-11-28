@@ -497,11 +497,51 @@ finding. Not done item: Reduce Motion — `withAnimation` / `.animation` with `.
 | `pages/playkit` hangman (active letter cell), `pages/publishkit` wizard step bar, creator studio feedback picker | `PlayKitQuestoViews.swift:208`, `DesignSystem/CYBusinessComponents.swift:1249` (`CYPublishStatusBar`), `CreatorMaintenanceViews.swift:170` | ✓ (mp-journey / mp-publish own order) | Same: the typing cell, the current wizard step and each picked feedback row add `.isSelected`. Other hits are menus with checkmarks (system), rows with their own `accessibilityValue` (step checklist), or merchant (`MerchantRootModeSwitchBannerView`, skipped); `CYMapChrome` left (settled, coordinator 02:05) | Done |
 | Hold-to-start buttons (roam GO pill, city hold) and long-press / context-menu actions | `DesignSystem/CYPlayerKit.swift:788`, `CityKit/CityHoldButton.swift:40` | ✓ | Audit: every player `.onLongPressGesture` has an `accessibilityAction` that commits (VoiceOver / Switch Control get a plain activation; city hold drops to 0 s under Reduce Motion); `.contextMenu` / `.swipeActions` are exposed to VoiceOver by the system as actions. No change | Done |
 
+### Run 32 (2026-11-28)
+Merged `origin/ui/combined-r7`. Sweep **3348aa51f** (07:26Z, contains runs 28-30) a11y sheets read: `en-a11y-badges-ax5` ring +
+Collected / Locked rows wrap, `en-a11y-passport-ax5` Ticket wallet / Earnings / Messages capsules wrap in blue on tint, stamps
+"3 of 12" ✓, `en-a11y-roam-ax5` Nearby activities 2 wraps on the light panel, i · Go · map ✓. No open coordinator finding.
+Not done item: meaningful images with no label (scripted scan of status / verified / lock / warning / offline / muted symbols
+outside `Label` icons, buttons and combined / hidden parents: 10 hits, 7 already hidden inside a labelled parent).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/club` channel sidebar (muted channel) | `ClubChannelMessagingView.swift:498` | ✓ (mp-club owns order) | The muted bell was the only cue that a channel is muted; VoiceOver now hears "Muted" / "免打扰" (existing `messaging.muted`) | Done |
+| Offline banner (all player lists) | `DesignSystem/CYStatusOfflineBanner.swift:53` | ✓ | `wifi.slash` beside the offline message hidden (the banner already speaks its label + message) | Done |
+| `pages/publishkit` wizard issue list | `DesignSystem/CYBusinessComponents.swift:1291` | ✓ (mp-publish owns order) | Issue rows (jump to step) were 32 pt tall → 44 pt target; the warning and arrow glyphs are hidden so VoiceOver reads only "Step n: message" | Done |
+| `pages/city` roam root: City Monopoly stat link, Fog / Territory chips | `CityKit/CityRoamRootView.swift:257,297` | ✓ (mp-roam owns order) | 44 pt targets scan: the board link was 32 pt tall → 44; the layer chips keep their 36 pt capsule look inside a 44 pt hit area | Done |
+| In-game channel entry (play HUD chat button) | `InGameChannelEntryViews.swift:155` | ✓ (mp-journey owns order) | 32 × 32 icon button → 44 × 44 hit area (`CYSpacing.minTouchTarget`), glyph size unchanged | Done |
+| Stamp created, journey settle seal, ticket verified, pass verified, collectible / cover lock, in-place result, city claim step | `RoamStampCameraView`, `JourneyReportViews`, `E1TicketCard`, `CYPassVerified`, `CYCollectible`, `CYCoverArt`, `CYInPlaceResult`, `CityClaimFlow` | ✓ | Audit: each glyph is inside an `.ignore` / hidden parent whose text or label says the state. No change | Done |
+
+### Run 33 (2026-11-28)
+Merged `origin/ui/combined-r7` (70917c058). Sweep index still build 3348aa51f, so the a11y sheets re-read waits. No new
+coordinator finding for this lane. Not done item: 44 pt targets, second half — buttons sized by padding only with
+`.caption` / `.footnote` labels (scripted scan of player views: 10 hits; story rule editor skipped, story flow on hold; root tab
+bar, roam history tools, editor save chip and puzzle tiles already reach 44).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/club` channel moderation banner (关闭) | `ClubChannelMessagingView.swift:287` | ✓ (mp-club owns order) | Footnote "Dismiss" text button was ~18 pt tall → 44 × 44 hit area, look unchanged. Level C | Done |
+| `pages/template` detail capability rows (展开 / 收起) | `TemplateDetailXbChrome.swift:157` | ✓ (mp-publish owns order) | Expand / collapse footnote button → 44 × 44 hit area; label stays a `LocalizedStringKey`. Level B | Done |
+| `pages/play` lead bar retry (网络状态暂未刷新 · 点击重试) | `MPGap/PlayRoam/PlayLeadBar.swift:11` | ✓ (mp-journey owns order) | The 8 pt bar padding sat outside the button, so only the text line was tappable → full-width 44 pt label, bar padding 2 pt (same bar height). Level A | Done |
+| `pages/search` map explorer location-denied bar (打开设置) | `MPGap/PlayerContent/SearchMapExplorerGapView.swift:105` | ✓ (mp-home owns order) | Footnote "Open Settings" button → 44 pt tall hit area; bar padding 8 → 2 so the bar keeps its height. Level B | Done |
+| `pages/im` co-op strip invite reminder (去设置) | `IMDriftEntries.swift:104` | ✓ (mp-mine owns order) | `.controlSize(.mini)` scan (3 player hits: two are spinners, one the switch group): the caption "Settings" link under the mini switch was ~16 pt tall → 44 pt hit area. Level C | Done |
+
+### Run 33b (2026-11-28, twin of run 33)
+Same scan, widened to `.borderless` / `.plain` buttons with small labels outside `List` / `Form` (38 hits read; whole cards / tiles,
+List-row buttons and the story-flow editor left). Run 33's four rows kept as pushed; these are the extra hits.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| Shared offline / error strips (Retry on every player list) | `DesignSystem/CYStateKit.swift:305`, `DesignSystem/CYSharedStates.swift:97,170` | ✓ | Footnote Retry ~18 pt tall → label `frame(minHeight: 44)` + `contentShape`, look unchanged. Level C | Done |
+| `pages/topic` bottom bar 场次 link, `pages/square` route map card 查看主题 | `TopicXcxSections.swift:305`, `DesignSystem/CYSquareRouteMapCard.swift:54` | ✓ (mp-publish / mp-activity own order) | Footnote links → 44 pt tall hit area. Level B | Done |
+| `pages/roam` official tasks stale retry | `RoamOfficialTasksView.swift:242` | ✓ (mp-roam owns order) | Retry → 44 pt tall hit area. Level B | Done |
+| Welcome consent links (用户协议 / 隐私指引) | `WelcomeView.swift:195,200` | ✓ (mp-nav owns order) | Both links → 44 pt tall; stacked fallback spacing 6 → 0 (the frames already separate them). Level A | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than ffeef67c7, to see runs 28-31).
-- Next pages without a row: VoiceOver — images that carry meaning (`Image(...)` beside no text: status glyphs, verified marks,
-  medal tiers) with neither `accessibilityLabel` nor `accessibilityHidden`, outside the a11y lint's button/image rules.
-  (Run 31: selected traits and long-press alternatives scanned.)
+- Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-33).
+- Next pages without a row: 44 pt targets, third part — `.controlSize(.small)` borderless / plain buttons and
+  `Menu` labels with caption text on player screens (run 33 closed the padding-only footnote buttons and `.mini`).
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

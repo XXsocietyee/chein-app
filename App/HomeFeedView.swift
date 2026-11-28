@@ -24,6 +24,8 @@ import UIKit
     var onOpenTodayClubEvent: (() -> Void)? = nil
     var onStartRoam: (() -> Void)? = nil
     var onSelectCity: ((String?, Bool) -> Void)? = nil
+    /// MP `onTapHomeCity`: locate the 首页 city from the device (signed-in hosts only).
+    var onLocateCity: (() -> Void)? = nil
     /// Mini-program `locationPrompt`: set only while the host is asking for the home-city location consent. Nil hides the card.
     var cityLocationConsent: (agree: () -> Void, decline: () -> Void)? = nil
     var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
@@ -85,7 +87,8 @@ import UIKit
                                 localSelectedCity = city
                                 localIsNationwide = nationwide
                                 onSelectCity?(city, nationwide)
-                            } : nil
+                            } : nil,
+                            onLocateCity: onLocateCity
                         ) { banner in
                             // R7-PC-A1-2: a host that routes banners opens the activity list; without one, show the 活动 stream.
                             if let onActionBanner { onActionBanner(banner) } else if banner.id == "activity_list" { kind = .activities }
@@ -252,6 +255,7 @@ import UIKit
                         kind = kind == .topics ? .activities : .topics
                     }
                     .buttonStyle(.bordered)
+                    .controlSize(.regular)
                     .accessibilityIdentifier("homeFeed.empty.switchKind")
                 }
             }
@@ -463,6 +467,7 @@ import UIKit
         } actions: {
             Button("homeFeed.retry", action: action)
                 .buttonStyle(.bordered)
+                .controlSize(.regular)
                 .accessibilityIdentifier("homeFeed.retry.feed")
         }
         .frame(maxWidth: .infinity)

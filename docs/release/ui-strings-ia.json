@@ -42,6 +42,6 @@
   {
     "key": "passport.stamps.ofTotal %lld",
     "en": "of %lld",
-    "zh-Hans": "/ %lld"
+    "zh-Hans": "共 %lld"
   }
 ]

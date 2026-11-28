@@ -13,11 +13,12 @@ struct PlayLeadBar: View {
             } label: {
                 Label("playx.leadBar.retry", systemImage: "exclamationmark.triangle")
                     .font(.footnote)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
             .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.vertical, 2)
             .background(.regularMaterial)
             .accessibilityIdentifier("playx.leadBar.retry")
         } else if let lead = model.lead, lead.showsLeadBar {
