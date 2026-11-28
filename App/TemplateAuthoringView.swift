@@ -672,8 +672,14 @@ struct TemplateAuthoringField: View {
     }
     /// Design hand-off r1 CF-47 / CF-48: the unit is a suffix, not part of the label; 积分 is the only currency.
     static let limits: [String: Int] = ["description": 30, "kicker": 32]
-    /// MP temp/index.wxml placeholders where they differ from the label (玩法看点: 一句话介绍这个玩法的看点).
-    static let prompts: [String: String] = ["description": "templateAuthor.prompt.description"]
+    /// MP temp/index.wxml placeholders where they differ from the label (玩法看点: 一句话介绍这个玩法的看点; 高级设置
+    /// :1342-1347 提示, :1418/:1435 完成奖励, :1472 所需材料).
+    static let prompts: [String: String] = [
+        "description": "templateAuthor.prompt.description", "requiredMaterials": "templateAuthor.prompt.requiredMaterials",
+        "hint1": "templateAuthor.prompt.hint1", "hint2": "templateAuthor.prompt.hint2",
+        "answerReveal": "templateAuthor.prompt.answerReveal", "feedbackText": "templateAuthor.prompt.feedbackText",
+        "medalName": "templateAuthor.prompt.medalName"
+    ]
     static let units: [String: EditorUnit] = [
         "xp": .points, "seconds": .seconds, "holdSeconds": .seconds, "durationSeconds": .seconds,
         "targetSeconds": .seconds, "audioDuration": .seconds, "bearing": .degrees, "tolerance": .degrees
