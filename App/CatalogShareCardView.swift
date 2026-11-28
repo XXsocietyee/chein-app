@@ -16,8 +16,12 @@ import UIKit
     @State private var includePlace = false
     @State private var shareTick = 0
 
-    init(content: CYShareCardContent, tint: CYShareCardTint = .ocean) {
+    /// Function audit P2-2: the page's https universal link, shared beside the image so the receiver can open it.
+    private let link: URL?
+
+    init(content: CYShareCardContent, tint: CYShareCardTint = .ocean, link: URL? = nil) {
         base = content
+        self.link = link
         _style = State(initialValue: CYShareCardStyle(template: .poster, ratio: .story, tint: tint))
     }
 
@@ -90,12 +94,27 @@ import UIKit
             .controlSize(.large)
             .simultaneousGesture(TapGesture().onEnded { shareTick += 1 })
             .accessibilityIdentifier("share.card.share")
+            if let link { shareLinkButton(link) }
         } else {
             if case .renderFailed = machine.state {
                 Text("roam.share.renderFailed").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             CYSharePrepareButton(title: "roam.share.prepare", state: machine.state, identifier: "share.card.prepare") { prepare() }
         }
+    }
+
+    /// The activity detail's https link (MP `pages/activity/detail/index?id=`), or nil when it would not parse back.
+    static func activityURL(_ id: Int) -> URL? { PublicContentShareLink.activity(id: id) }
+
+    /// Secondary action: the page link alone (MP share path), for chats where an image has no way back.
+    private func shareLinkButton(_ link: URL) -> some View {
+        ShareLink(item: link, subject: Text(verbatim: base.title), message: Text(verbatim: base.title)) {
+            Label("share.card.shareLink", systemImage: "link")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.large)
+        .accessibilityIdentifier("share.card.shareLink")
     }
 
     /// Render off the press frame: `.rendering` commits first, the bitmap lands in the next main-actor turn.

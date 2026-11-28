@@ -243,7 +243,7 @@ private struct PlayerPreviewTaskPage: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if isPicked {
                     Image(systemName: isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
-                        .foregroundStyle(isCorrect ? Color.green : Color.red)
+                        .foregroundStyle(isCorrect ? CYColor.successText : CYColor.dangerText)
                 }
             }
         }

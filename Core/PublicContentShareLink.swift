@@ -16,6 +16,12 @@ public enum PublicContentShareLink {
         return universalLink(path: NativeContentTarget.Kind.post.sourcePath, id: id)
     }
 
+    /// Mini-program `pages/activity/detail/index?id=` (MP `onShareAppMessage` → `buildActivityShare` path). Function audit
+    /// P2-2: the activity share card carries this link back, so the receiver can open the activity. No referral `ref`.
+    public static func activity(id: Int) -> URL? {
+        universalLink(path: NativeContentTarget.Kind.activity.sourcePath, id: id)
+    }
+
     /// Mini-program `pages/topic/index/index?id=`.
     public static func topic(id: Int) -> URL? {
         universalLink(path: NativeContentTarget.Kind.topic.sourcePath, id: id)
@@ -26,9 +32,9 @@ public enum PublicContentShareLink {
         universalLink(path: NativeContentTarget.Kind.template.sourcePath, id: id)
     }
 
-    /// Mini-program `pages/templatedetail/topic-detail/index?id=` (MP topic-detail index.js:317 share path).
-    /// The universal-link parser reads it back as that MP page (PC-A-8-1), so the share is the https link like
-    /// the topic and template shares. Nil for a non-canonical id; callers then copy `topicTemplateCopyText`.
+    /// Mini-program `pages/templatedetail/topic-detail/index?id=` (MP `onShareAppMessage` path). P2-2: the universal-link
+    /// parser already types this page (PC-A-8-1, `MPReviewedPageScreen`), so the share is the https link, not a bare path.
+    /// Nil when the id is not canonical or the link would not parse back to the same page.
     public static func topicTemplate(id: Int) -> URL? {
         guard canonicalID(String(id)) != nil else { return nil }
         return reviewedPage("pages/templatedetail/topic-detail/index", items: [URLQueryItem(name: "id", value: String(id))])

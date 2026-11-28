@@ -7,7 +7,9 @@ extension AppSession {
     func receiveCheinURL(_ url: URL) -> Bool {
         guard url.scheme?.lowercased() == CheinDeepLink.scheme else { return false }
         if receiveMiniProgramPageURL(url) { return true }
-        if let link = CheinDeepLink(url: url) { pendingDeepLink = link } else { receiveNativeIntent(.routeError(.unsupported)) }
+        if let link = CheinDeepLink(url: url) { pendingDeepLink = link; return true }
+        // P1-1: `chein://activity/12`, `chein://topic/7`, `chein://club/3` open the content page like the https form.
+        if let content = AppUniversalLinkRouter.cheinContent(url) { receiveAppLink(content) } else { receiveNativeIntent(.routeError(.unsupported)) }
         return true
     }
 
@@ -17,8 +19,8 @@ extension AppSession {
 import SwiftUI
 
 /// DEBUG verification hook: `--debug-open-url <url>` hands one URL to the same `receiveNativeURL` intake as
-/// `onOpenURL`, once, after the session has restored. The app registers no URL scheme yet, so on-device checks of
-/// chein:// links need this; Release builds compile it to nothing.
+/// `onOpenURL`, once, after the session has restored. The app registers `chein` in CFBundleURLTypes (P1-1); this hook
+/// stays for simulator checks without Safari. Release builds compile it to nothing.
 struct DebugOpenURLLaunchArgument: ViewModifier {
     let session: AppSession
     func body(content: Content) -> some View {

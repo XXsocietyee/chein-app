@@ -67,7 +67,7 @@ struct LoginView: View {
             // P27: one mark, then a left-aligned title that says what happens.
             VStack(alignment: .leading, spacing: 12) {
                 brandMark
-                Text("auth.login.headline").font(.title.bold())
+                Text("auth.login.headline").cyText(.pageTitle)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                 Text("auth.login.subtitle").font(.subheadline).foregroundStyle(.secondary)
@@ -91,17 +91,18 @@ struct LoginView: View {
                     Label { Text(LocalizedStringKey(key)) } icon: {
                         Image(systemName: model.state.issue == .appleIncomplete ? "info.circle" : "exclamationmark.circle.fill")
                     }
-                    .foregroundStyle(model.state.issue == .appleIncomplete ? Color.secondary : Color.red)
+                    .foregroundStyle(model.state.issue == .appleIncomplete ? Color.secondary : CYColor.dangerText)
                     .accessibilityIdentifier("auth.channels.error")
                 }
             }
         }
     }
 
-    /// Phone entry, split out of `loginForm(_:)` so the form type-checks in time.
-    @ViewBuilder private var phoneEntrySection: some View {
-        // Phone in both markets (+86 / +1, default from the market), after Apple / WeChat (sweep 04:50);
-        // the US page appears once the deployment verified `.internationalPhone`, otherwise nothing renders.
+    /// Phone entry, split out of `loginForm(_:)` so the form type-checks in time. `prominent` only when phone is the
+    /// first method on the screen (P33: one primary action).
+    @ViewBuilder private func phoneEntrySection(prominent: Bool) -> some View {
+        // Phone in both markets (+86 / +1, default from the market). The US page appears once the deployment
+        // verified `.internationalPhone`, otherwise nothing renders.
         if session.supportsPhoneSignIn {
             Section {
                 Button {
@@ -113,13 +114,39 @@ struct LoginView: View {
                     Label("auth.channels.phoneTitle", systemImage: "iphone")
                         .frame(maxWidth: .infinity)
                 }
-                .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm))
+                .modifier(LoginOtherChannelsStyle(prominent: prominent && !showsPasswordForm))
                 .disabled(working || !consentGranted)
                 .accessibilityIdentifier("auth.otherChannels")
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             }
         }
+    }
+
+    /// P33 (audit P0-5): China leads with WeChat (only when installed and configured), then phone +86, then Sign in with
+    /// Apple; the US leads with Sign in with Apple, then phone +1. Equal-width 50 pt buttons, one primary action, terms in
+    /// the footnote. No Alipay sign-in (Alipay is payment only). Gated channels render nothing (P27).
+    @ViewBuilder private func signInChannelSections(_ model: AuthChannelModel) -> some View {
+        if session.operationalMarket == .china {
+            if consentGranted {
+                WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
+            }
+            phoneEntrySection(prominent: !weChatLeads)
+            appleSignInSection(model)
+        } else {
+            appleSignInSection(model)
+            phoneEntrySection(prominent: !appleShown(model))
+        }
+    }
+
+    /// Sign in with Apple is on screen: approved and a sign-in service behind it (same test as `appleSignInSection`).
+    private func appleShown(_ model: AuthChannelModel) -> Bool {
+        consentGranted && model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured
+    }
+
+    /// The WeChat button is on screen (it is then the first method and the primary action).
+    private var weChatLeads: Bool {
+        consentGranted && (session.weChatAuth.isOffered || session.weChatAuth.isWorking)
     }
 
     /// The sign-in form, split out of `stack(_:)` so each part type-checks in time.
@@ -130,13 +157,7 @@ struct LoginView: View {
                 // Asked here only when the launch agreement was declined (P-008: consent is asked once).
                 UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
             }
-            // Sweep 11-28 04:50 / owner 04:45: Sign in with Apple, WeChat (CN, only when installed), then phone (+86 / +1).
-            // Equal-width 50 pt buttons. No Alipay sign-in (Alipay is payment only). Gated channels render nothing (P27).
-            appleSignInSection(model)
-            if session.operationalMarket == .china && consentGranted {
-                WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
-            }
-            phoneEntrySection
+            signInChannelSections(model)
             if showsPasswordForm {
                 Section {
                     TextField("auth.username",text:$username)

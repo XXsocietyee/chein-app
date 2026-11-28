@@ -94,7 +94,7 @@ struct TopicXcxHero: View {
                             Text(verbatim: publisher.name)
                                 .font(.subheadline)
                                 .foregroundStyle(.primary)
-                                .lineLimit(1)
+                                .lineLimit(2)
                             Text("topicXcx.publisher.posted")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)

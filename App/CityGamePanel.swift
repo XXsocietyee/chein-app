@@ -111,6 +111,14 @@ struct CityGamePanel: View {
         }
     }
 
+    @ViewBuilder private func propertyActions(_ property: CityPropertyState) -> some View {
+        ForEach(model.actions(for: property), id: \.rawValue) { kind in
+            Button { Task { await model.prepare(kind, property: property) } } label: { actionText(kind) }
+                .buttonStyle(.bordered).controlSize(.small)
+                .accessibilityIdentifier("cityGame.action.\(kind.rawValue).\(property.propertyId)")
+        }
+    }
+
     @ViewBuilder private func propertyRow(_ property: CityPropertyState) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: title(for: property)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
@@ -140,9 +148,19 @@ struct CityGamePanel: View {
                     }
                 }
             }
-            ForEach(model.actions(for: property), id: \.rawValue) { kind in
-                Button { Task { await model.prepare(kind, property: property) } } label: { actionText(kind).frame(maxWidth: .infinity) }
-                    .buttonStyle(.bordered).accessibilityIdentifier("cityGame.action.\(kind.rawValue).\(property.propertyId)")
+            // ADA 1128 (d2-city): one prominent action per page (开始本轮); each property's actions are compact
+            // bordered buttons on the trailing edge, stacked when they do not fit on one line.
+            if !model.actions(for: property).isEmpty {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: CYSpacing.sm) {
+                        Spacer(minLength: 0)
+                        propertyActions(property)
+                    }
+                    VStack(alignment: .trailing, spacing: CYSpacing.sm) {
+                        propertyActions(property)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

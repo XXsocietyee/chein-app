@@ -183,7 +183,7 @@ private extension TemplateAuthoringModel {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             ConfigR4Text.text(owner.current ? "config.qimage.status." + owner.status : "config.qimage.status.changed")
                 .font(.subheadline)
-                .foregroundStyle(owner.status == "rejected" || owner.status == "unknown" ? Color.red : Color.secondary)
+                .foregroundStyle(owner.status == "rejected" || owner.status == "unknown" ? CYColor.dangerText : Color.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("config.qimage.status")
             if let crop = owner.crop, owner.current {

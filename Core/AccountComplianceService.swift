@@ -412,8 +412,11 @@ import FoundationNetworking
         }, session: session)
         return try decode(await send(outgoing, session: session), as: ComplianceDeregistration.self)
     }
-    public func apply(smscode: String, requestID: String, session: ComplianceSession, impact: AccountDeregistrationImpact? = nil, whileCurrent: () -> Bool = { true }) async throws -> ComplianceDeregistration {
+    public func apply(smscode: String, requestID: String, session: ComplianceSession, impact: AccountDeregistrationImpact? = nil,
+                      appleProof: DeregistrationAppleProof? = nil, whileCurrent: () -> Bool = { true }) async throws -> ComplianceDeregistration {
         if let client = deregistrationOriginal() {
+            // The reviewed original client is SMS-only; an Apple proof never falls back to an SMS body.
+            guard appleProof == nil else { throw ComplianceFailure.unavailable }
             try check(session)
             guard !busy, whileCurrent(), journal.isDurable, client.matches(session), client.approval.writes, client.approval.legalApproved else { throw ComplianceFailure.unavailable }
             guard try readDeregistrationConsent(session: session) == .none else { throw ComplianceFailure.unresolved }
@@ -453,9 +456,11 @@ import FoundationNetworking
             guard impact.valid(for: session.accountID), impact.confirmable else { throw ComplianceFailure.invalidInput }
         }
         guard legalApproved(.cancellation, session) else { throw ComplianceFailure.unavailable }
-        let code = try AuthChannelInput.code(smscode)
+        var code: String?
+        if appleProof == nil { code = try AuthChannelInput.code(smscode) }
         let request = try contractRequest({
-            try AccountPublishMPContract.deregisterApplyRequest(baseURL: self.configuration.baseURL, requestID: requestID, smsCode: code, token: $0)
+            try AccountPublishMPContract.deregisterApplyRequest(baseURL: self.configuration.baseURL, requestID: requestID, smsCode: code,
+                appleProof: appleProof, token: $0)
         }, session: session)
         try start("deregister", requestID: requestID, session: session); defer { busy = false }
         var result = try decode(await write(request, operation: "deregister", session: session), as: ComplianceDeregistration.self)

@@ -2,19 +2,22 @@ import PassKit
 import SafariServices
 import SwiftUI
 
-/// US launch r1 (lane app-pay). How the Apple Pay sheet ended. None of these is settlement:
-/// the caller always runs the order-status poll afterwards (except `.notPresented` / `.cancelled`).
+/// US launch r1 (lane app-pay); fix 11-28 P0-3. How the Apple Pay sheet ended. None of these is settlement:
+/// after `.authorized` / `.unknown` the caller always reads the registration status back from the server.
 enum ApplePaySheetOutcome: Equatable {
     case notPresented
     case cancelled
-    case authorized
-    case declined(String?)
-    /// The confirm call's result is unknown (timeout / transport). The webhook may still mark the order paid.
+    /// `POST /api/pay/stripe/applepay` accepted the token. `paymentStatus` in the result is the server's order state.
+    case authorized(StripeConfirmResult)
+    /// The server refused the token or the order (declined, expired, signed out, consent missing…). No charge was made.
+    case refused(StripePayFailure)
+    /// The confirm call's result is unknown (timeout / transport / PAYMENT_OUTCOME_UNKNOWN / already paid).
+    /// The charge may have landed: the status read decides.
     case unknown
 }
 
 /// `PKPaymentAuthorizationController` for a USD order. Merchant id, networks, capability, country and currency
-/// come from `StripePayWire`; the amount is the server's PaymentIntent amount. The PassKit token is handed to
+/// come from `StripePayWire`; the amount is the server's PaymentIntent `amount` in cents, shown in dollars. The PassKit token is handed to
 /// `confirm` (→ `POST /api/pay/stripe/applepay`) exactly once per sheet.
 @MainActor final class ApplePayStripeAuthorizer: NSObject, PKPaymentAuthorizationControllerDelegate {
     static let supportedNetworks: [PKPaymentNetwork] = [.visa, .masterCard, .amex, .discover]
@@ -38,7 +41,7 @@ enum ApplePaySheetOutcome: Equatable {
     private var continuation: CheckedContinuation<ApplePaySheetOutcome, Never>?
 
     static func paymentRequest(intent: StripeIntent, label: String) -> PKPaymentRequest? {
-        guard intent.currency == StripePayWire.currency, intent.amount > .zero else { return nil }
+        guard intent.currency == StripePayWire.currency, intent.amountMinor > 0 else { return nil }
         let request = PKPaymentRequest()
         request.merchantIdentifier = StripePayWire.merchantIdentifier
         request.supportedNetworks = supportedNetworks
@@ -46,7 +49,9 @@ enum ApplePaySheetOutcome: Equatable {
         request.countryCode = StripePayWire.countryCode
         request.currencyCode = StripePayWire.currency
         request.paymentSummaryItems = [
-            PKPaymentSummaryItem(label: label, amount: NSDecimalNumber(decimal: intent.amount), type: .final)
+            // Backend `amount` is minor units (2500 = $25.00); PassKit takes major units.
+            PKPaymentSummaryItem(label: label, amount: NSDecimalNumber(decimal: StripePayMoney.major(fromMinor: intent.amountMinor)),
+                                 type: .final)
         ]
         return request
     }
@@ -76,21 +81,29 @@ enum ApplePaySheetOutcome: Equatable {
     private func authorize(_ payment: PKPayment) async -> PKPaymentAuthorizationResult {
         guard !confirmed, let confirm else { return PKPaymentAuthorizationResult(status: .failure, errors: nil) }
         confirmed = true
-        switch await confirm(payment) {
-        case .success(let result) where result.authorizedOrProcessing:
-            outcome = .authorized
-            return PKPaymentAuthorizationResult(status: .success, errors: nil)
+        let result = await confirm(payment)
+        outcome = Self.sheetOutcome(for: result)
+        return PKPaymentAuthorizationResult(status: Self.sheetStatus(for: outcome), errors: nil)
+    }
+
+    /// The confirm answer → how the sheet ended. Only a Stripe status that accepted the token ends in `.authorized`.
+    static func sheetOutcome(for result: Result<StripeConfirmResult, StripePayFailure>) -> ApplePaySheetOutcome {
+        switch result {
+        case .success(let value) where value.authorizedOrProcessing || value.serverMarkedPaid:
+            return .authorized(value)
         case .success:
-            outcome = .declined(nil)
-            return PKPaymentAuthorizationResult(status: .failure, errors: nil)
-        case .failure(.rejected(let message)):
-            outcome = .declined(message)
-            return PKPaymentAuthorizationResult(status: .failure, errors: nil)
-        case .failure:
-            // Transport unknown: the charge may still land through the webhook; the poll decides.
-            outcome = .unknown
-            return PKPaymentAuthorizationResult(status: .failure, errors: nil)
+            return .refused(.declined(nil))
+        case .failure(.alreadyPaid), .failure(.outcomeUnknown), .failure(.unknown):
+            // Transport unknown or a payment that already landed: the status read decides.
+            return .unknown
+        case .failure(let failure):
+            return .refused(failure)
         }
+    }
+
+    static func sheetStatus(for outcome: ApplePaySheetOutcome) -> PKPaymentAuthorizationStatus {
+        if case .authorized = outcome { return .success }
+        return .failure
     }
 
     private func finish() {

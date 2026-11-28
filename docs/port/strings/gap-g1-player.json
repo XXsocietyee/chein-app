@@ -121,35 +121,35 @@
   },
   "playTools.title": {
     "zh-Hans": "游玩工具",
-    "en": "Play Tools"
+    "en": "Play tools"
   },
   "playTools.lead.section": {
     "zh-Hans": "队长工具",
-    "en": "Leader Tools"
+    "en": "Leader tools"
   },
   "playTools.lead.scanMemberTicket": {
     "zh-Hans": "扫成员票核销",
-    "en": "Scan Member Ticket"
+    "en": "Scan a member’s ticket"
   },
   "playTools.lead.showGroupCode": {
     "zh-Hans": "展示整团码",
-    "en": "Show Group Code"
+    "en": "Show group code"
   },
   "playTools.lead.unlockNext": {
     "zh-Hans": "解锁下一章节",
-    "en": "Unlock Next Chapter"
+    "en": "Unlock next chapter"
   },
   "playTools.lead.releaseStation": {
     "zh-Hans": "放行这一站",
-    "en": "Release Station"
+    "en": "Release this stop"
   },
   "playTools.lead.settle": {
     "zh-Hans": "整团结算",
-    "en": "Settle Team"
+    "en": "Settle for the team"
   },
   "playTools.content.section": {
     "zh-Hans": "本局信息",
-    "en": "Session Info"
+    "en": "This run"
   },
   "playTools.cast": {
     "zh-Hans": "人物表",
@@ -157,15 +157,15 @@
   },
   "playTools.evidence": {
     "zh-Hans": "证据卡",
-    "en": "Evidence Cards"
+    "en": "Evidence cards"
   },
   "playTools.rewards": {
     "zh-Hans": "各站奖励",
-    "en": "Station Rewards"
+    "en": "Rewards by stop"
   },
   "playTools.entryCode": {
     "zh-Hans": "入场码",
-    "en": "Entry Code"
+    "en": "Entry code"
   },
   "playTools.thoughts.section": {
     "zh-Hans": "伏笔",
@@ -173,7 +173,7 @@
   },
   "playTools.stats.section": {
     "zh-Hans": "本局读数",
-    "en": "Run Stats"
+    "en": "Run stats"
   },
   "playTools.stats.chapters": {
     "zh-Hans": "章节数",
@@ -185,7 +185,7 @@
   },
   "playTools.stats.remainingGames": {
     "zh-Hans": "还有游戏数",
-    "en": "Remaining Games"
+    "en": "Games left"
   },
   "playTools.preferences.section": {
     "zh-Hans": "游玩设置",
@@ -193,11 +193,11 @@
   },
   "playTools.pref.bgm": {
     "zh-Hans": "背景音乐",
-    "en": "Background Music"
+    "en": "Background music"
   },
   "playTools.pref.narration": {
     "zh-Hans": "旁白自动播放",
-    "en": "Narration Autoplay"
+    "en": "Autoplay narration"
   },
   "playTools.pref.reduceMotion": {
     "zh-Hans": "减少动态效果",

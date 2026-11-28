@@ -82,11 +82,13 @@ public struct RegistrationQuote: Decodable, Equatable {
     /// MP `paymentChannelState == 'unavailable'`: listed channels, a positive amount, and no app channel (`APP`).
     /// A missing list keeps the payment-readiness probe (baoming.js:1243-1253).
     /// US launch r1: a USD quote's `APP_STRIPE` / `APPLE_PAY` also count as app channels. China lists never carry them.
+    /// fix-1128-alipay: `APP_ALIPAY` (Alipay app pay) is an app channel too.
     public var paymentChannelUnavailable: Bool {
         guard let paymentChannels, let payAmount, payAmount > .zero else { return false }
         return !paymentChannels.contains("APP")
             && !paymentChannels.contains(StripePayWire.stripeChannel)
             && !paymentChannels.contains(StripePayWire.applePayChannel)
+            && !paymentChannels.contains(AlipayAppPayChannel.quoteChannel)
     }
     /// MP `marketingView.show`: discount > 0 and at least one adjustment (quote-view.js:102).
     public var showsMarketingAdjustments: Bool {

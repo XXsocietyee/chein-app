@@ -142,7 +142,10 @@ import SwiftUI
                         .font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier("roam.tasks.results")
                 }
-                if let error = model.error {
+                if let error = model.error, OfficialScreenIssue(error).isFailed {
+                    // MP wxml:11 `task-stale`: one line 活动列表更新失败，请稍后重试 · 重试 above the kept list.
+                    if !rows.isEmpty { Section { RoamTasksStaleLine(retry: retry) }.accessibilityIdentifier("roam.tasks.stale") }
+                } else if let error = model.error {
                     Section {
                         Text("roam.tasks.stale").cyText(.meta).foregroundStyle(.secondary)
                         OfficialIssueView(issue: .init(error), retry: retry)
@@ -152,7 +155,12 @@ import SwiftUI
                         .accessibilityIdentifier("roam.tasks.refreshing")
                 }
                 Section {
-                    if rows.isEmpty {
+                    if rows.isEmpty, let error = model.error, OfficialScreenIssue(error).isFailed {
+                        // MP wxml:10 cy-error 活动列表暂时无法更新 · sub staleError · 重试 (refresh failed, nothing to keep).
+                        RoamTasksStaleEmpty(retry: retry)
+                            .listRowBackground(Color.clear)
+                            .accessibilityIdentifier("roam.tasks.staleEmpty")
+                    } else if rows.isEmpty {
                         // MP `cy-empty size="lg"`: tab title (暂无进行中的活动 / 暂无即将开始的活动 / 还没有参与的活动),
                         // sub only while searching (没有找到相关活动 · 换个关键词试试).
                         ContentUnavailableView {
@@ -209,6 +217,46 @@ import SwiftUI
             }
             .accessibilityIdentifier("roam.tasks.browser")
             .privacySensitive()
+    }
+}
+/// MP scene-roam-task-list `task-stale`: 活动列表更新失败，请稍后重试 with 重试 beside it.
+private struct RoamTasksStaleLine: View {
+    let retry: () -> Void
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline) {
+                Label("roam.tasks.staleLine", systemImage: "exclamationmark.triangle")
+                    .font(.footnote).foregroundStyle(.secondary)
+                Spacer(minLength: 8)
+                retryButton
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                Label("roam.tasks.staleLine", systemImage: "exclamationmark.triangle")
+                    .font(.footnote).foregroundStyle(.secondary)
+                retryButton
+            }
+        }
+    }
+    private var retryButton: some View {
+        Button("official.retry", action: retry)
+            .buttonStyle(.borderless).font(.footnote.weight(.semibold))
+            .accessibilityLabel(Text("roam.tasks.staleRetryLabel"))
+            .accessibilityIdentifier("roam.tasks.staleRetry")
+    }
+}
+/// MP scene-roam-task-list wxml:10 cy-error 活动列表暂时无法更新 · sub · 重试.
+private struct RoamTasksStaleEmpty: View {
+    let retry: () -> Void
+    var body: some View {
+        ContentUnavailableView {
+            Label("roam.tasks.staleTitle", systemImage: "exclamationmark.triangle")
+        } description: {
+            Text("roam.tasks.staleLine")
+        } actions: {
+            Button("official.retry", action: retry)
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("roam.tasks.staleRetry")
+        }
     }
 }
 #if DEBUG

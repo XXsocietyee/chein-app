@@ -88,7 +88,10 @@ class Pkg19LoginDeletionChain(unittest.TestCase):
 
     def test_apply_requires_confirmation_sms_and_invalidates_only_matching_session(self):
         coordinator = src('Core/AccountComplianceCoordinator.swift')
-        self.assertIn('guard explicitlyConfirmed, noticeAccepted, state.smsSent, state.step == .review, let code = reviewCode else { return }',
+        # P0-6 (fix-1128-apple-delete): the proof is an SMS code after a send OR a fresh Sign in with Apple proof.
+        self.assertIn('guard explicitlyConfirmed, noticeAccepted, state.step == .review, hasReviewProof else { return }',
+                      coordinator)
+        self.assertIn('private var hasReviewProof: Bool { reviewAppleProof != nil || (state.smsSent && reviewCode != nil) }',
                       coordinator)
         self.assertIn('await self.invalidateSession(session)', coordinator)
         views = src('App/AccountComplianceViews.swift')
