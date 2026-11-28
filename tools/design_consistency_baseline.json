@@ -265,9 +265,6 @@
     "App/NativeR2/FreeExplore/NativeStampAlbumView.swift": {
       "manual paging": 1
     },
-    "App/NonCashRewardViews.swift": {
-      "manual paging": 1
-    },
     "App/PlayThemeRecordsView.swift": {
       "manual paging": 1
     },
@@ -289,9 +286,6 @@
     "App/RoamReceivedStampMetadataView.swift": {
       "manual paging": 1
     },
-    "App/RoamReceivedStampSectionView.swift": {
-      "manual paging": 1
-    },
     "App/RoamStampViews.swift": {
       "manual paging": 1
     },
@@ -299,9 +293,6 @@
       "manual paging": 1
     },
     "App/SettingsPostGovernanceView.swift": {
-      "manual paging": 1
-    },
-    "App/SocialRoamMounts.swift": {
       "manual paging": 1
     },
     "App/SquareGovernanceViews.swift": {

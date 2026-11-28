@@ -1383,6 +1383,35 @@ PASS (0 debt besides 39 manual paging baselined, 114 allowed), `contract_ratchet
   `NonCashRewardViews:77`, `SocialRoamMounts:310`, `RoamPassportPrivateToolsViews:548,694`, `RoamPassportToolsViews:281`;
   then Topic / Activity / stamp album with their UI tests (tap → wait for the next row instead).
 
+## Continue run 41 (2026-11-28, merged combined-r7)
+
+Merge: one conflict again on `r1club.roster.members.roles` en; combined-r7 settled on **Owner %ld · Admins %ld ·
+Members %ld** (no colons). Took the integration side (catalog, generator, pin `DesignR1ClubKitTests:114`) so the two
+lanes stop flipping it; zh 主理人 is unchanged on both sides. No new coordinator row for this lane (latest: 13:55 B lanes).
+
+Run 40 Not done row worked: **manual paging debt**, player list pages without a host test on the tap.
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| `subpackageRoam` stamp album 收到的邮票 (`onReachBottom`) → `App/RoamReceivedStampSectionView.swift:139` · B | `roam.receivedStamp.loadMore` | `.bordered` button, tap only → `CYLoadMoreRow("roam.experience.loadMore")`; now also hidden while `model.error` shows its retry (no re-fire loop) |
+| 我的奖励 non-cash rewards (`subpackageMember` reward list) → `App/NonCashRewardViews.swift:77` · C | `rewards.loadMore` | `CYPillButton(.secondary)` → `CYLoadMoreRow("accountCollection.loadMore")` (already hidden while `moreIssue` shows) |
+| 地图搜索 unified results (`pages/roam` search, `onReachBottom`) → `App/SocialRoamMounts.swift:309` · C | `searchMap.unified.more` | plain list button + `.disabled(loading)` → `CYLoadMoreRow(isLoading: loading)`; hidden while `failed` shows 重试 |
+
+Checker: manual paging 39 → **36** baselined (`--update`, ratchet down only).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
+PASS (manual paging 36 baselined, 114 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
+
+Left on purpose: `RoamCreatedStampView:137` is a lookup for one stamp, not a list (copy "Read the next page or browse
+your album" offers a choice), so the explicit button stays. Capsule / goals / anniversary
+(`RoamPassportPrivateToolsViews:548,694`, `RoamPassportToolsViews:281`) have host tests that tap the button and assert
+it then disappears (`RoamPrivateReadDenialHostTests:13,40`, `RoamAnniversaryReadIntentTests:98,110`); convert them with
+those tests.
+
+### Not done (next run)
+- manual paging debt (36): capsule / goals / anniversary with their host tests (tap → the row's `.onAppear` loads; on
+  a denied page the row must stay hidden); then Topic / Activity / stamp album with their UI tests.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
