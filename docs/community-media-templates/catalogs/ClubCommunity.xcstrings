@@ -160,7 +160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Posting isn't available right now."
+            "value": "Posting isn't available."
           }
         },
         "zh-Hans": {
@@ -194,7 +194,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pinned announcement"
+            "value": "Pinned"
           }
         },
         "zh-Hans": {
@@ -313,7 +313,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unpin announcement"
+            "value": "Unpin"
           }
         },
         "zh-Hans": {
@@ -449,7 +449,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Image upload isn't available right now."
+            "value": "Image upload isn't available right."
           }
         },
         "zh-Hans": {
@@ -687,7 +687,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write a comment…"
+            "value": "Comment…"
           }
         },
         "zh-Hans": {

@@ -374,7 +374,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original season participation source is not enabled or cannot be read"
+            "value": "Season source off or unreadable"
           }
         },
         "zh-Hans": {
@@ -422,7 +422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invalidation of season rankings and rewards is not yet confirmed"
+            "value": "Invalidation season rankings rewards isn't yet confirmed"
           }
         },
         "zh-Hans": {
@@ -454,7 +454,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only normal accounts may receive new rewards. Historical payments remain recorded. Invalidation and recovery rules are unresolved."
+            "value": "Only normal accounts may receive new rewards. Historical payments remain recorded. Invalidation recovery rules unresolved."
           }
         },
         "zh-Hans": {
@@ -566,7 +566,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "My original deletion application"
+            "value": "My original deletion request"
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request: "
+            "value": "Original request"
           }
         },
         "zh-Hans": {
@@ -726,7 +726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server confirmed cancellation of the deletion application."
+            "value": "The server confirmed cancellation of deletion request."
           }
         },
         "zh-Hans": {

@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photos can't be loaded right now"
+            "value": "Photos can't loaded right"
           }
         },
         "zh-Hans": {
@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera, location and check-in aren't available right now"
+            "value": "Camera, location and check-in aren't available right"
           }
         },
         "zh-Hans": {
@@ -422,7 +422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verification is unavailable"
+            "value": "Check is unavailable"
           }
         },
         "zh-Hans": {
@@ -806,7 +806,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amounts not yet available"
+            "value": "Amounts not yet"
           }
         },
         "zh-Hans": {
@@ -886,7 +886,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Customer support contact isn't available right now."
+            "value": "Customer support contact isn't available."
           }
         },
         "zh-Hans": {

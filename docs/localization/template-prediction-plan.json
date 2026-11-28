@@ -86,7 +86,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Question and instructions"
+            "value": "Question instructions"
           }
         },
         "zh-Hans": {
@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Two days later"
+            "value": "Two days"
           }
         },
         "zh-Hans": {

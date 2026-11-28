@@ -160,7 +160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm changes to the original local topic draft"
+            "value": "Confirm changes to original local topic draft"
           }
         },
         "zh-Hans": {
@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove this node from the local navigation declaration"
+            "value": "Remove this node from local navigation declaration"
           }
         },
         "zh-Hans": {
@@ -551,7 +551,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original navigation declaration cannot be read or its version is unsupported. Unknown fields have not been overwritten."
+            "value": "Original navigation declaration can't read version unsupported."
           }
         },
         "zh-Hans": {
@@ -636,7 +636,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Return to the original topic draft"
+            "value": "Return to original topic draft"
           }
         },
         "zh-Hans": {
@@ -687,7 +687,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Navigation authorization duration"
+            "value": "Navigation approval"
           }
         },
         "zh-Hans": {

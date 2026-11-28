@@ -14,7 +14,7 @@
   ],
   "localizations": {
     "roam.passport.title": {
-      "en": "Your local roaming overview",
+      "en": "Local roaming overview",
       "zh-Hans": "本机漫游概览"
     },
     "roam.passport.shopVisits": {

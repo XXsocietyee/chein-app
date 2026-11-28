@@ -164,7 +164,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Public-account settlement"
+          "value": "Business-account"
         }
       },
       "zh-Hans": {
@@ -260,7 +260,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Awaiting response"
+          "value": "Awaiting"
         }
       },
       "zh-Hans": {
@@ -404,7 +404,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Customers"
+          "value": "Buyers"
         }
       },
       "zh-Hans": {
@@ -516,7 +516,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Image upload isn't available right now."
+          "value": "Image upload isn't available right."
         }
       },
       "zh-Hans": {
@@ -884,7 +884,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Description"
+          "value": "Details"
         }
       },
       "zh-Hans": {
@@ -900,7 +900,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Destination"
+          "value": "Target"
         }
       },
       "zh-Hans": {
@@ -1012,7 +1012,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Head count"
+          "value": "Head"
         }
       },
       "zh-Hans": {
@@ -1236,7 +1236,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "New customers"
+          "value": "New"
         }
       },
       "zh-Hans": {
@@ -1460,7 +1460,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Awaiting reply"
+          "value": "Awaiting"
         }
       },
       "zh-Hans": {
@@ -1524,7 +1524,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Executed adjustments this month"
+          "value": "Executed changes this month"
         }
       },
       "zh-Hans": {
@@ -1572,7 +1572,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Public-channel amount pending"
+          "value": "Public-channel amount"
         }
       },
       "zh-Hans": {
@@ -1716,7 +1716,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Returning customers"
+          "value": "Returning"
         }
       },
       "zh-Hans": {
@@ -1828,7 +1828,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Settlement channel"
+          "value": "Payout channel"
         }
       },
       "zh-Hans": {
@@ -2068,7 +2068,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Source unit fee"
+          "value": "Source unit"
         }
       },
       "zh-Hans": {
@@ -2164,7 +2164,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Pending settlement"
+          "value": "Pending"
         }
       },
       "zh-Hans": {
@@ -2564,7 +2564,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Permissions for this role"
+          "value": "Access for this role"
         }
       },
       "zh-Hans": {
@@ -2692,7 +2692,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redemption details"
+          "value": "Redeem details"
         }
       },
       "zh-Hans": {
@@ -2708,7 +2708,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redemptions and refunds"
+          "value": "Redemptions refunds"
         }
       },
       "zh-Hans": {
@@ -2772,7 +2772,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This request couldn't be completed."
+          "value": "Request couldn't completed."
         }
       },
       "zh-Hans": {
@@ -2836,7 +2836,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reason for reporting"
+          "value": "Reason reporting"
         }
       },
       "zh-Hans": {
@@ -2980,7 +2980,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reputation"
+          "value": "Rating"
         }
       },
       "zh-Hans": {
@@ -3044,7 +3044,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Low ratings"
+          "value": "Low"
         }
       },
       "zh-Hans": {
@@ -3060,7 +3060,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Awaiting reply"
+          "value": "Awaiting"
         }
       },
       "zh-Hans": {
@@ -3076,7 +3076,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "With photos"
+          "value": "Photos"
         }
       },
       "zh-Hans": {
@@ -3156,7 +3156,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Check-in operator"
+          "value": "Check-in"
         }
       },
       "zh-Hans": {
@@ -3204,7 +3204,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Marketing"
+          "value": "Promo"
         }
       },
       "zh-Hans": {
@@ -3364,7 +3364,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Group code"
+          "value": "Group"
         }
       },
       "zh-Hans": {
@@ -3412,7 +3412,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Adjustment entries"
+          "value": "Change entries"
         }
       },
       "zh-Hans": {
@@ -3476,7 +3476,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Customers"
+          "value": "Buyers"
         }
       },
       "zh-Hans": {
@@ -3556,7 +3556,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redemption records"
+          "value": "Redeem records"
         }
       },
       "zh-Hans": {
@@ -3668,7 +3668,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Verification actions"
+          "value": "Check actions"
         }
       },
       "zh-Hans": {
@@ -3924,7 +3924,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Agree with request"
+          "value": "Agree request"
         }
       },
       "zh-Hans": {
@@ -3940,7 +3940,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Additional evidence"
+          "value": "Extra evidence"
         }
       },
       "zh-Hans": {
@@ -4020,7 +4020,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Check-in operator"
+          "value": "Check-in"
         }
       },
       "zh-Hans": {
@@ -4068,7 +4068,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Marketing"
+          "value": "Promo"
         }
       },
       "zh-Hans": {
@@ -4132,7 +4132,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No cash settlement"
+          "value": "No cash payout"
         }
       },
       "zh-Hans": {
@@ -4180,7 +4180,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Pending platform review"
+          "value": "Pending platform"
         }
       },
       "zh-Hans": {
@@ -4196,7 +4196,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Pending settlement"
+          "value": "Pending"
         }
       },
       "zh-Hans": {
@@ -4260,7 +4260,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Refund in progress"
+          "value": "Refund"
         }
       },
       "zh-Hans": {
@@ -4420,7 +4420,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Platform review pending"
+          "value": "Platform review"
         }
       },
       "zh-Hans": {
@@ -4436,7 +4436,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Exception"
+          "value": "Error"
         }
       },
       "zh-Hans": {
@@ -4468,7 +4468,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "New customer"
+          "value": "New"
         }
       },
       "zh-Hans": {
@@ -4484,7 +4484,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Pending verification"
+          "value": "Pending check"
         }
       },
       "zh-Hans": {
@@ -4500,7 +4500,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Returning customer"
+          "value": "Repeat"
         }
       },
       "zh-Hans": {
@@ -4740,7 +4740,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redemption records"
+          "value": "Redeem records"
         }
       },
       "zh-Hans": {

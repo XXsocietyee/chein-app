@@ -11,7 +11,7 @@ S = {
     'playHUD.backpack': ('Backpack', '背包'),
     'mp.settle.rate.submitting': ('Submitting', '正在提交'),
     'mp.settle.rate.submitted': ('Submitted', '已提交'),
-    'homeFeed.feedFailed': ("Couldn't load the home page.", '首页加载失败'),
+    'homeFeed.feedFailed': ("Couldn't load home page.", '首页加载失败'),
 }
 
 

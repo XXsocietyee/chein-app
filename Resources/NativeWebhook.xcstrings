@@ -183,7 +183,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The event catalog is unavailable. Existing subscriptions are preserved; events cannot be added or changed right now."
+            "value": "The event catalog is unavailable. Existing subscriptions are preserved; events can't be added changed right."
           }
         }
       }
@@ -234,7 +234,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This affects only the current channel. The original request will be retained to reconcile the result after submission."
+            "value": "This affects only the current channel. The original request will retained reconcile result after entry."
           }
         }
       }
@@ -302,7 +302,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allowed IP addresses"
+            "value": "Allowed IP"
           }
         }
       }
@@ -421,7 +421,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These credentials are shown only once on this screen. They are cleared when the screen closes, the app leaves the foreground, or authorization changes. Normal queries and original-request recovery cannot retrieve them."
+            "value": "These credentials are shown only once on this screen. They're cleared when the screen closes, the app leaves the foreground, approval changes. Normal queries original-request recovery can't retrieve them."
           }
         }
       }
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Outbound subscriptions"
+            "value": "Outbound"
           }
         }
       }
@@ -455,7 +455,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Delete integration"
+            "value": "Delete"
           }
         }
       }
@@ -523,7 +523,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete URL from the original operation"
+            "value": "Complete URL from original action"
           }
         }
       }
@@ -540,7 +540,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete avatar URL from the original operation"
+            "value": "Complete avatar URL from the original action"
           }
         }
       }
@@ -608,7 +608,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request needs checking"
+            "value": "Original request needs"
           }
         }
       }
@@ -1067,7 +1067,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current authorization context differs from the original request. Recovery is unavailable for now; the original record is retained."
+            "value": "The current approval context differs from the original request. Recovery is unavailable for now; original record retained."
           }
         }
       }
@@ -1186,7 +1186,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This channel has no integrations of this type yet."
+            "value": "This channel has no integrations of type yet."
           }
         }
       }
@@ -1237,7 +1237,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recover original request"
+            "value": "Recover original"
           }
         }
       }
@@ -1441,7 +1441,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The operation was canceled."
+            "value": "The action was canceled."
           }
         }
       }
@@ -1526,7 +1526,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create subscription"
+            "value": "Create"
           }
         }
       }
@@ -1543,7 +1543,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Previous credentials become invalid at"
+            "value": "Previous credentials become"
           }
         }
       }
@@ -1917,7 +1917,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This confirmation is no longer valid. Return to the current channel and check again."
+            "value": "This check is no longer valid. Return to current channel check again."
           }
         }
       }
@@ -1934,7 +1934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm submission"
+            "value": "Confirm entry"
           }
         }
       }
@@ -2019,7 +2019,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm retry of original delivery"
+            "value": "Confirm retry original"
           }
         }
       }
@@ -2087,7 +2087,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Management actions"
+            "value": "Management"
           }
         }
       }
@@ -2240,7 +2240,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Subscription settings"
+            "value": "Subscription"
           }
         }
       }
@@ -2563,7 +2563,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry original delivery"
+            "value": "Retry original"
           }
         }
       }
@@ -2597,7 +2597,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Integration details"
+            "value": "Integration"
           }
         }
       }

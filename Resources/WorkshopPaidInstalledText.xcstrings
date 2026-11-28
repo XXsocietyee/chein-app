@@ -156,7 +156,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original content hash"
+            "value": "Original content"
           }
         }
       }
@@ -220,7 +220,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Purchased original"
+            "value": "Purchased"
           }
         }
       }
@@ -300,7 +300,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Description"
+            "value": "Details"
           }
         }
       }

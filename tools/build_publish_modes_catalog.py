@@ -7,7 +7,7 @@ PAIRS={
  'quick':('Quick route setup','快速配置'), 'activity':('Publish an activity','发布活动'), 'projects':('My projects','我的项目'), 'identity':('Publisher registration','发布人登记'),
  'aiNotice':('AI only assists with drafts. Confirm every place before opening the professional editor.','AI 只协助起草；进入专业编辑器前须逐个确认地点。'),
  'aiDisabled':('AI generation is not connected. You can create nodes manually.','AI 生成尚未接入，可以手动添加点位。'),
- 'details':('Details','基本信息'), 'name':('Name','名称'), 'description':('Description','说明'), 'product':('Route type','路线类型'),
+ 'details':('Details','基本信息'), 'name':('Name','名称'), 'description':('Details','说明'), 'product':('Route type','路线类型'),
  'choosePlace':('Choose a place','选择地点'), 'remove':('Delete','删除'), 'addNode':('Add a stop','添加点位'),
  'confirmEveryPlace':('Add a title and at least one named stop, then confirm every location.','填写标题和至少一个有名称的点位，并逐个确认地点。'),
  'continueEditor':('Continue in professional editor','进入专业编辑器'), 'clubOnly':('Only club hosts can publish activities. Publishing is subject to quota and content review.','仅俱乐部主理人可发布活动，发布需符合配额与内容安全审核。'),

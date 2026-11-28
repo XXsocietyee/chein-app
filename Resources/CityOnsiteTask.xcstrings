@@ -129,7 +129,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original round"
+            "value": "Original"
           }
         }
       }
@@ -163,7 +163,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original session"
+            "value": "Original"
           }
         }
       }
@@ -180,7 +180,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frozen eligibility and configuration"
+            "value": "Frozen eligibility and setup"
           }
         }
       }
@@ -190,7 +190,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your original qualification and attempts for this point, team and round only. This does not establish arrival or success for teammates."
+            "value": "Your original qualification and attempts for this point, team and round only. Doesn't establish arrival success teammates."
           }
         },
         "zh-Hans": {
@@ -296,7 +296,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answer for this attempt"
+            "value": "Answer attempt"
           }
         }
       }
@@ -795,7 +795,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original point"
+            "value": "Original"
           }
         },
         "zh-Hans": {
@@ -859,7 +859,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original human evidence"
+            "value": "Original human"
           }
         },
         "zh-Hans": {
@@ -923,7 +923,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original acceptance request"
+            "value": "Original acceptance"
           }
         },
         "zh-Hans": {

@@ -150,7 +150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Precision"
+            "value": "Detail"
           }
         },
         "zh-Hans": {
@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Select an option"
+            "value": "Select option"
           }
         },
         "zh-Hans": {
@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm each disclosure"
+            "value": "Confirm each"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "If not already authorized, allow a foreground location permission prompt after this confirmation"
+            "value": "If not already authorized, allow a foreground location permission prompt after this check"
           }
         },
         "zh-Hans": {
@@ -294,7 +294,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original requests and pending revocations"
+            "value": "Original requests pending"
           }
         },
         "zh-Hans": {
@@ -342,7 +342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry original request revocation"
+            "value": "Retry original request"
           }
         },
         "zh-Hans": {
@@ -470,7 +470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No verifiable, valid locations are available. Locations are hidden immediately when offline, in the background, or when the lease expires."
+            "value": "No verifiable, valid locations are available. Locations are hidden now when offline, in the background, or when lease expires."
           }
         },
         "zh-Hans": {
@@ -486,7 +486,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Representative coarse-area point, not the original location"
+            "value": "Representative coarse-area point, not original location"
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Authorized original sample; not a statement of measurement accuracy"
+            "value": "Authorized original sample; not a note of measurement accuracy"
           }
         },
         "zh-Hans": {
@@ -630,7 +630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopped on this device; server revocation is awaiting confirmation"
+            "value": "Stopped on this device; server revocation is awaiting check"
           }
         },
         "zh-Hans": {
@@ -662,7 +662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request awaits verification; capture will not resume automatically"
+            "value": "Original request awaits check; capture won't resume on its own"
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share only with the explicitly identified member above"
+            "value": "Share only explicitly identified member"
           }
         },
         "zh-Hans": {
@@ -726,7 +726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Understand that sharing is foreground-only"
+            "value": "Understand sharing foreground-only"
           }
         },
         "zh-Hans": {
@@ -742,7 +742,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Understand that sharing can be stopped at any time"
+            "value": "Understand sharing can stopped any"
           }
         },
         "zh-Hans": {
@@ -758,7 +758,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Understand that information already seen cannot be recalled"
+            "value": "Understand that info already seen can't be recalled"
           }
         },
         "zh-Hans": {
@@ -1222,7 +1222,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopped on this device; server revocation is awaiting confirmation."
+            "value": "Stopped on this device; server revocation is awaiting check."
           }
         },
         "zh-Hans": {
@@ -1286,7 +1286,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This foreground location was published. Updates continue only at the approved interval and stop when offline or outside the foreground."
+            "value": "This foreground location was published. Updates continue only at the approved interval and stop when offline or outside foreground."
           }
         },
         "zh-Hans": {
@@ -1430,7 +1430,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only existing foreground location permission is used; denied or restricted permission is not bypassed. First-time permission must be explicitly selected during confirmation. Sharing is currently stopped."
+            "value": "Only existing foreground location permission is used; denied or restricted permission isn't bypassed. First-time permission must be explicitly selected during confirmation. Sharing is currently stopped."
           }
         },
         "zh-Hans": {
@@ -1446,7 +1446,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The system provides only reduced-accuracy location, which cannot be represented as original sample precision. This exact sharing was stopped."
+            "value": "The system provides only reduced-accuracy location, which can't be represented as original sample precision. This exact sharing was stopped."
           }
         },
         "zh-Hans": {
@@ -1526,7 +1526,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current relationship or account no longer permits sharing."
+            "value": "The current relationship account no longer permits sharing."
           }
         },
         "zh-Hans": {
@@ -1676,7 +1676,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reads original requests only. Does not resume location collection or replay creation."
+            "value": "Reads old requests only. Location stays off."
           }
         }
       }
@@ -1692,7 +1692,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original requests are the recovery record for unknown outcomes. Current grants and received snapshots do not prove that an original request has ended."
+            "value": "Original requests are the recovery record for unknown outcomes. Current grants and received snapshots don't prove that an original request has ended."
           }
         }
       }
@@ -1884,7 +1884,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The creation outcome is unknown. Keep the original request and query or stop it; creation will not be retried with a new request."
+            "value": "The creation outcome is unknown. Keep the original request and query or stop it; creation won't be retried with a new request."
           }
         }
       }
@@ -1916,7 +1916,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collection has stopped locally; server revocation is unconfirmed. Keep the original request for retry."
+            "value": "Collection has stopped locally; server revocation is unconfirmed. Keep the original request retry."
           }
         }
       }
@@ -1964,7 +1964,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original-request journal has been read again. Collection will not resume automatically and creation will not be replayed."
+            "value": "The original-request journal has been read again. Collection won't resume on its own creation won't replayed."
           }
         }
       }

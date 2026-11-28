@@ -517,7 +517,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Real-name verification is required for this meeting only. It is not used anywhere else in the app."
+            "value": "Real-name check is for this meeting only."
           }
         },
         "zh-Hans": {
@@ -687,7 +687,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scanning a teammate's code isn't available right now."
+            "value": "Scanning teammate's code isn't available right."
           }
         },
         "zh-Hans": {

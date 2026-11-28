@@ -3,20 +3,50 @@
   "strings": {
     "templateNarration.preview": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Preview narration audio" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "试听导览音频" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview narration audio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试听导览音频"
+          }
+        }
       }
     },
     "templateNarration.closePreview": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Close audio preview" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "关闭音频试听" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close audio preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭音频试听"
+          }
+        }
       }
     },
     "templateNarration.previewUnavailable": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Audio preview isn't available right now." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "试听暂不可用。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio preview isn't available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试听暂不可用。"
+          }
+        }
       }
     }
   },

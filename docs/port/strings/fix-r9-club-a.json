@@ -313,7 +313,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Switch to manual ledger"
+            "value": "Switch manual ledger"
           }
         },
         "zh-Hans": {
@@ -806,7 +806,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Default ending wrap-up didn't go through"
+            "value": "Default ending wrap-up didn't go"
           }
         },
         "zh-Hans": {
@@ -840,7 +840,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Application failed"
+            "value": "Request failed"
           }
         },
         "zh-Hans": {
@@ -976,7 +976,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verification failed"
+            "value": "Check failed"
           }
         },
         "zh-Hans": {
@@ -1367,7 +1367,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This session’s tools"
+            "value": "Session’s tools"
           }
         },
         "zh-Hans": {
@@ -1435,7 +1435,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notify this session’s members"
+            "value": "Notify session’s members"
           }
         },
         "zh-Hans": {
@@ -1554,7 +1554,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparation overview"
+            "value": "Prep overview"
           }
         },
         "zh-Hans": {
@@ -1819,7 +1819,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To be confirmed"
+            "value": "To confirmed"
           }
         },
         "zh-Hans": {
@@ -1938,7 +1938,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To be confirmed"
+            "value": "To confirmed"
           }
         },
         "zh-Hans": {
@@ -2006,7 +2006,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ready to start"
+            "value": "Ready start"
           }
         },
         "zh-Hans": {
@@ -2091,7 +2091,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Targeted broadcast"
+            "value": "Targeted"
           }
         },
         "zh-Hans": {
@@ -2159,7 +2159,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Group check-in code"
+            "value": "Group check-in"
           }
         },
         "zh-Hans": {
@@ -2227,7 +2227,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t read the delivery status"
+            "value": "Couldn’t read delivery status"
           }
         },
         "zh-Hans": {
@@ -2732,7 +2732,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking whether you can create a club"
+            "value": "Checking whether can create club"
           }
         },
         "zh-Hans": {
@@ -2902,7 +2902,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry the original action"
+            "value": "Retry original action"
           }
         },
         "zh-Hans": {
@@ -3004,7 +3004,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Targeted broadcast"
+            "value": "Targeted"
           }
         },
         "zh-Hans": {
@@ -3106,7 +3106,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm final price"
+            "value": "Confirm final"
           }
         },
         "zh-Hans": {
@@ -3123,7 +3123,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review undertaking"
+            "value": "Review"
           }
         },
         "zh-Hans": {
@@ -3242,7 +3242,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session management"
+            "value": "Session"
           }
         },
         "zh-Hans": {

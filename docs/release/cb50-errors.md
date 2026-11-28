@@ -31,13 +31,13 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `408` | `backendError.status.408` | The result is still unknown. Please try again later. | 结果尚未确定，请稍后再试。 |
 | `409` | `backendError.status.409` | This item changed. Refresh and try again. | 内容已变化，请刷新后再试。 |
 | `410` | `backendError.status.410` | That item is no longer available. | 该内容已不可用。 |
-| `413` | `backendError.status.413` | That request is too large. | 请求过大。 |
-| `415` | `backendError.status.415` | That request isn't in a supported format. | 请求格式不受支持。 |
+| `413` | `backendError.status.413` | Request too large. | 请求过大。 |
+| `415` | `backendError.status.415` | That request isn't in supported format. | 请求格式不受支持。 |
 | `422` | `backendError.status.422` | That request was not accepted. | 请求未被接受。 |
 | `426` | `backendError.status.426` | This app version is no longer supported. Update the app before continuing. | 当前应用版本已不受支持，请更新应用后再继续。 |
 | `429` | `backendError.status.429` | Too many attempts. Please wait and try again. | 操作过于频繁，请稍后再试。 |
 | `500` | `backendError.status.500` | The service couldn't complete that. Please try again. | 服务未能完成此操作，请重试。 |
-| `503` | `backendError.status.503` | The service is unavailable right now. Please try again. | 服务暂不可用，请重试。 |
+| `503` | `backendError.status.503` | The service is unavailable right now. Try again. | 服务暂不可用，请重试。 |
 | `520` | `backendError.status.520` | The original result is still unknown. | 原命令结果仍未知。 |
 | `501` | `backendError.status.501` | That action isn't implemented yet. Try a different action. | 此接口尚未实现，请改用其他操作。 |
 | `601` | `backendError.status.601` | The service sent a warning. Read it and try again. | 服务返回了警告，请查看后再试。 |
@@ -63,7 +63,7 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `ARRIVE_TOO_FAR` | `backendError.code.ARRIVE_TOO_FAR` | Walk closer to the stop, then locate again. | 请走近这一站后重新定位。 |
 | `BOARD_CURSOR_STALE` | `backendError.code.BOARD_CURSOR_STALE` | This list changed. Refresh and try again. | 列表已变化，请刷新后再试。 |
 | `CASH_CLOSED` | `backendError.code.CASH_CLOSED` | This cash case did not complete a payment. Cash payout is closed. Choose a non-cash reason. | 这次现金处理没有完成支付。现金发放已关闭，请改用非现金原因。 |
-| `CHAPTER_REDEEMED` | `backendError.code.CHAPTER_REDEEMED` | This chapter is already redeemed. Continue to the next stop. | 本章已核销，请前往下一站。 |
+| `CHAPTER_REDEEMED` | `backendError.code.CHAPTER_REDEEMED` | This chapter is already redeemed. Continue to next stop. | 本章已核销，请前往下一站。 |
 | `CITY_MAP_CURSOR_STALE` | `backendError.code.CITY_MAP_CURSOR_STALE` | The map changed. Refresh and try again. | 地图已变化，请刷新后再试。 |
 | `CITY_ORDERED_RESET_REQUIRED` | `backendError.code.CITY_ORDERED_RESET_REQUIRED` | The map needs to be reloaded. | 地图需要重新加载。 |
 | `CITY_QUERY_TOO_BROAD` | `backendError.code.CITY_QUERY_TOO_BROAD` | That map area is too large. Zoom in and try again. | 地图范围太大，请放大后再试。 |
@@ -90,9 +90,9 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `INTENT_SESSION_MISMATCH` | `backendError.code.INTENT_SESSION_MISMATCH` | This run is not yours. Open your own run. | 这不是你的对局，请打开自己的对局。 |
 | `INTENT_STALE_STATE` | `backendError.code.INTENT_STALE_STATE` | Refresh this run, then try again. | 请刷新本局后再试。 |
 | `INVALID_INPUT` | `backendError.code.INVALID_INPUT` | That input isn't valid. Check it and try again. | 输入无效，请检查后再试。 |
-| `LEDGER_OFF` | `backendError.code.LEDGER_OFF` | Reservations are temporarily unavailable. | 预约暂时不可用。 |
+| `LEDGER_OFF` | `backendError.code.LEDGER_OFF` | Bookings temporarily unavailable. | 预约暂时不可用。 |
 | `LOGIN_REQUIRED` | `backendError.code.LOGIN_REQUIRED` | Sign in first. | 请先登录 |
-| `MERCHANT_ENVIRONMENT_EXIT` | `backendError.code.MERCHANT_ENVIRONMENT_EXIT` | The original request used the fixed safe exit. | 原请求的固定安全退出 |
+| `MERCHANT_ENVIRONMENT_EXIT` | `backendError.code.MERCHANT_ENVIRONMENT_EXIT` | The original request used fixed safe exit. | 原请求的固定安全退出 |
 | `MERCHANT_EXITED` | `backendError.code.MERCHANT_EXITED` | The merchant has left this program. | 商家已退出该活动。 |
 | `MESSAGE_CONTEXT_UNAVAILABLE` | `backendError.code.MESSAGE_CONTEXT_UNAVAILABLE` | That message is unavailable. | 这条消息暂不可用。 |
 | `MESSAGE_VERSION_CONFLICT` | `backendError.code.MESSAGE_VERSION_CONFLICT` | This message changed. Refresh and try again. | 这条消息已变化，请刷新后再试。 |
@@ -109,7 +109,7 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `OFFER_EXPIRED` | `backendError.code.OFFER_EXPIRED` | This offer has expired. | 该优惠已过期。 |
 | `ORIENT_LOGIN_REQUIRED` | `backendError.code.ORIENT_LOGIN_REQUIRED` | Sign in to your own account to view this round. | 请登录本人账号查看对局 |
 | `ORIENT_RECEIPT_NOT_FOUND` | `backendError.code.ORIENT_RECEIPT_NOT_FOUND` | That receipt was not found. | 未找到该回执。 |
-| `OUTCOME_UNKNOWN` | `backendError.code.OUTCOME_UNKNOWN` | The result is still unknown. Check the original request before trying again. | 结果尚未确定，请先核对原请求再试。 |
+| `OUTCOME_UNKNOWN` | `backendError.code.OUTCOME_UNKNOWN` | The result is still unknown. Check original request before trying again. | 结果尚未确定，请先核对原请求再试。 |
 | `OUTSIDE_VALIDITY` | `backendError.code.OUTSIDE_VALIDITY` | The chosen time is outside your validity period. | 所选时间不在有效期内。 |
 | `POLICY_CHANGED` | `backendError.code.POLICY_CHANGED` | The service refused the current sharing policy. Sharing stopped and the received location was cleared. | 服务端拒绝当前共享政策。已同步停止采集并清除接收位置。 |
 | `POLICY_UNAVAILABLE` | `backendError.code.POLICY_UNAVAILABLE` | The service refused the current sharing policy. Sharing stopped and the received location was cleared. | 服务端拒绝当前共享政策。已同步停止采集并清除接收位置。 |
@@ -127,9 +127,9 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `PUZZLE_STATE_UNAVAILABLE` | `backendError.code.PUZZLE_STATE_UNAVAILABLE` | The puzzle couldn't be read. Try again. | 解谜状态暂时读不到，请重试。 |
 | `RELATION_UNAVAILABLE` | `backendError.code.RELATION_UNAVAILABLE` | The service refused this relationship. Sharing stopped and the received location was cleared. | 服务端拒绝当前关系授权。已同步停止采集并清除接收位置。 |
 | `REQUEST_ID_CONFLICT` | `backendError.code.REQUEST_ID_CONFLICT` | This request conflicts with an earlier one. | 此请求与先前的请求冲突。 |
-| `REQUEST_OUTCOME_UNKNOWN` | `backendError.code.REQUEST_OUTCOME_UNKNOWN` | The result is still unknown. Check the original request before trying again. | 结果尚未确定，请先核对原请求再试。 |
+| `REQUEST_OUTCOME_UNKNOWN` | `backendError.code.REQUEST_OUTCOME_UNKNOWN` | The result is still unknown. Check original request before trying again. | 结果尚未确定，请先核对原请求再试。 |
 | `REQUEST_REJECTED` | `backendError.code.REQUEST_REJECTED` | That request was not accepted. | 请求未被接受。 |
-| `RESERVATION_OFF` | `backendError.code.RESERVATION_OFF` | Reservations are temporarily unavailable. | 预约暂时不可用。 |
+| `RESERVATION_OFF` | `backendError.code.RESERVATION_OFF` | Bookings temporarily unavailable. | 预约暂时不可用。 |
 | `RESERVED_ELSEWHERE` | `backendError.code.RESERVED_ELSEWHERE` | This unit is already reserved elsewhere. | 该次数已预约其他门店。 |
 | `REVISION_CONFLICT` | `backendError.code.REVISION_CONFLICT` | This subscription changed. Refresh and try again. | 订阅已被修改，请刷新后再试。 |
 | `ROUTE_EGG_OFFLINE` | `backendError.code.ROUTE_EGG_OFFLINE` | Route eggs are offline. Continue without collecting one. | 途中彩蛋已下线。请继续路线，不必再领取。 |
@@ -143,14 +143,14 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `SENSOR_REJECTED` | `backendError.code.SENSOR_REJECTED` | The sensor check didn't pass. Complete the challenge again. | 传感器判定未通过，请重新完成挑战。 |
 | `STORE_SCAN_REQUIRED` | `backendError.code.STORE_SCAN_REQUIRED` | Location cannot replace the merchant's scan here. | 这里不能用定位代替商家扫码。 |
 | `TASK_REQUIRED` | `backendError.code.TASK_REQUIRED` | Arrival alone does not complete this stop. | 仅到达不能完成这一站。 |
-| `TEAM_LEAD_REQUIRED` | `backendError.code.TEAM_LEAD_REQUIRED` | The leader releases this chapter before anyone can continue. | 队长放行本章后才能继续。 |
+| `TEAM_LEAD_REQUIRED` | `backendError.code.TEAM_LEAD_REQUIRED` | Leader releases chapter before anyone can continue. | 队长放行本章后才能继续。 |
 | `UNKNOWN` | `backendError.code.UNKNOWN` | The result is still unknown. Please try again later. | 结果尚未确定，请稍后再试。 |
 | `US_APPLE_INVALID_CHALLENGE` | `backendError.code.US_APPLE_INVALID_CHALLENGE` | Sign in with Apple expired. Please try again. | 通过 Apple 登录已过期，请重试。 |
 | `US_APPLE_INVALID_IDENTITY` | `backendError.code.US_APPLE_INVALID_IDENTITY` | Apple couldn't confirm this sign-in. | Apple 未能确认这次登录。 |
 | `US_APPLE_INVALID_REQUEST` | `backendError.code.US_APPLE_INVALID_REQUEST` | Sign in with Apple couldn't be started. Please try again. | 无法开始通过 Apple 登录，请重试。 |
 | `US_APPLE_RATE_LIMITED` | `backendError.code.US_APPLE_RATE_LIMITED` | Too many sign-in attempts. Please wait and try again. | 登录尝试过于频繁，请稍后再试。 |
 | `US_APPLE_UNAVAILABLE` | `backendError.code.US_APPLE_UNAVAILABLE` | Sign in with Apple is unavailable right now. | 通过 Apple 登录暂不可用。 |
-| `US_SESSION_UNAVAILABLE` | `backendError.code.US_SESSION_UNAVAILABLE` | Sign-in is unavailable right now. Please try again. | 登录暂不可用，请重试。 |
+| `US_SESSION_UNAVAILABLE` | `backendError.code.US_SESSION_UNAVAILABLE` | Sign-in is unavailable right now. Try again. | 登录暂不可用，请重试。 |
 | `VERSION_CONFLICT` | `backendError.code.VERSION_CONFLICT` | This item changed. Refresh and try again. | 内容已变化，请刷新后再试。 |
 | `WEBHOOK_BODY_INVALID` | `backendError.code.WEBHOOK_BODY_INVALID` | The webhook body must be JSON with content of 1–2000 characters. Fix it and send again. | Webhook 正文须为含 1–2000 字 content 的 JSON，请修正后再发。 |
 | `WEBHOOK_BODY_TOO_LARGE` | `backendError.code.WEBHOOK_BODY_TOO_LARGE` | That webhook body is too large. Shorten it and try again. | Webhook 请求体过大，请缩短后再试。 |
@@ -167,7 +167,7 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `WEBHOOK_PAUSED` | `backendError.code.WEBHOOK_PAUSED` | This subscription is paused. Resume it before testing again. | 订阅已暂停，请恢复后再测试。 |
 | `WEBHOOK_RATE_LIMITED` | `backendError.code.WEBHOOK_RATE_LIMITED` | Too many webhook calls. Wait and try again. | Webhook 调用过于频繁，请稍后再试。 |
 | `WEBHOOK_REPLAYED` | `backendError.code.WEBHOOK_REPLAYED` | This webhook was already received. Send a new nonce. | 这条 Webhook 已接收过，请换新的 nonce。 |
-| `WEBHOOK_RESULT_UNKNOWN` | `backendError.code.WEBHOOK_RESULT_UNKNOWN` | The webhook result is still unknown. Check the original delivery before trying again. | 回调结果尚未确定，请先核对原投递再试。 |
+| `WEBHOOK_RESULT_UNKNOWN` | `backendError.code.WEBHOOK_RESULT_UNKNOWN` | The webhook result is still unknown. Check original delivery before trying again. | 回调结果尚未确定，请先核对原投递再试。 |
 | `WEBHOOK_SECRET_UNRECOVERABLE` | `backendError.code.WEBHOOK_SECRET_UNRECOVERABLE` | The signing secret can't be recovered. Rotate the secret, then try again. | 签名密钥无法恢复，请轮换密钥后再试。 |
 | `WEBHOOK_SIGNATURE_INVALID` | `backendError.code.WEBHOOK_SIGNATURE_INVALID` | The signature doesn't match. Sign again with the endpoint secret. | 签名不匹配，请用端点密钥重新签名。 |
 | `WEBHOOK_TIMESTAMP_OUT_OF_WINDOW` | `backendError.code.WEBHOOK_TIMESTAMP_OUT_OF_WINDOW` | The webhook timestamp is outside the allowed window. Send a current timestamp. | Webhook 时间戳超出允许窗口，请使用当前时间重发。 |
@@ -186,28 +186,28 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `REQUEST_ID_CONFLICT` | `backendError.message.requestIdConflict` | This request conflicts with an earlier one. | 此请求与先前的请求冲突。 |
 | `仅主理人与联席主理人可查看分润` | `backendError.message.ownerSplitOnly` | Only the owner and co-owners can view this split. | 仅主理人与联席主理人可查看分润 |
 | `仅主题发布者可查看候选池` | `backendError.message.publisherPoolOnly` | Only the topic publisher can view this pool. | 仅主题发布者可查看候选池 |
-| `仅自由探索` | `backendError.message.freeExploreOnly` | This is only available for free exploration. | 仅自由探索 |
+| `仅自由探索` | `backendError.message.freeExploreOnly` | Only available free. | 仅自由探索 |
 | `今日AI次数已用完` | `backendError.message.aiQuotaUsed` | Today's AI uses are used up. | 今日AI次数已用完 |
-| `券库存不足,核销失败` | `backendError.message.couponStock` | There isn't enough coupon stock, so redemption did not finish. | 券库存不足,核销失败 |
-| `参数错误` | `backendError.message.badParameter` | A parameter is not valid. | 参数错误 |
+| `券库存不足,核销失败` | `backendError.message.couponStock` | Not enough coupons. Redeem failed. | 券库存不足,核销失败 |
+| `参数错误` | `backendError.message.badParameter` | Bad parameter. | 参数错误 |
 | `商家不存在或未开放` | `backendError.message.storeUnavailable` | This store is unavailable. | 商家不存在或未开放 |
-| `定位精度不足` | `backendError.message.locationAccuracy` | Location accuracy is too low. | 定位精度不足 |
-| `已过期` | `backendError.message.expired` | This has expired. | 已过期 |
+| `定位精度不足` | `backendError.message.locationAccuracy` | Location accuracy too low. | 定位精度不足 |
+| `已过期` | `backendError.message.expired` | Has expired. | 已过期 |
 | `当前身份暂不支持` | `backendError.message.identityUnsupported` | This account can't do that. | 当前身份暂不支持 |
-| `据点不存在` | `backendError.message.placeMissing` | That place was not found. | 据点不存在 |
-| `无权核销该据点` | `backendError.message.redeemForbidden` | You can't redeem at this place. | 无权核销该据点 |
-| `无法访问系统资源` | `backendError.message.resourceDenied` | You can't access this right now. Please sign in again. | 无法访问系统资源 |
-| `核销码无效` | `backendError.message.redeemCodeInvalid` | That redemption code is not valid. | 核销码无效 |
-| `核销码格式错误` | `backendError.message.redeemCodeFormat` | That redemption code format is not valid. | 核销码格式错误 |
-| `格式错误` | `backendError.message.badFormat` | That format is not valid. | 格式错误 |
-| `玩家未到店打卡,或该券已核销` | `backendError.message.checkInOrRedeemed` | Check in at the store first, or this coupon was already redeemed. | 玩家未到店打卡,或该券已核销 |
+| `据点不存在` | `backendError.message.placeMissing` | Place wasn't found. | 据点不存在 |
+| `无权核销该据点` | `backendError.message.redeemForbidden` | You can't redeem at place. | 无权核销该据点 |
+| `无法访问系统资源` | `backendError.message.resourceDenied` | Can't access this resource. | 无法访问系统资源 |
+| `核销码无效` | `backendError.message.redeemCodeInvalid` | Bad code. | 核销码无效 |
+| `核销码格式错误` | `backendError.message.redeemCodeFormat` | Bad code format. | 核销码格式错误 |
+| `格式错误` | `backendError.message.badFormat` | Bad format. | 格式错误 |
+| `玩家未到店打卡,或该券已核销` | `backendError.message.checkInOrRedeemed` | Check in at the store first, or coupon already redeemed. | 玩家未到店打卡,或该券已核销 |
 | `登录状态已失效` | `backendError.message.sessionInvalid` | Your session has expired. Please sign in again. | 登录已过期，请重新登录。 |
-| `空码` | `backendError.message.emptyCode` | The redemption code is empty. | 空码 |
-| `签名不匹配` | `backendError.message.signatureMismatch` | The signature does not match. | 签名不匹配 |
-| `订单已过期` | `backendError.message.orderExpired` | This order has expired. | 订单已过期 |
-| `认证失败` | `backendError.message.authenticationFailed` | Sign-in could not be verified. Please sign in again. | 认证失败 |
+| `空码` | `backendError.message.emptyCode` | No code | 空码 |
+| `签名不匹配` | `backendError.message.signatureMismatch` | Sign doesn't match. | 签名不匹配 |
+| `订单已过期` | `backendError.message.orderExpired` | Order has expired. | 订单已过期 |
+| `认证失败` | `backendError.message.authenticationFailed` | Sign-in failed. | 认证失败 |
 | `请先登录` | `backendError.message.signInFirst` | Sign in first. | 请先登录 |
 | `途中彩蛋已下线` | `backendError.message.routeEggOffline` | Route eggs are offline. Continue without collecting one. | 途中彩蛋已下线。请继续路线，不必再领取。 |
-| `通知不存在` | `backendError.message.noticeMissing` | That notice was not found. | 通知不存在 |
-| `非据点核销码` | `backendError.message.notPlaceCode` | That is not a place redemption code. | 非据点核销码 |
+| `通知不存在` | `backendError.message.noticeMissing` | Notice wasn't found. | 通知不存在 |
+| `非据点核销码` | `backendError.message.notPlaceCode` | Not a place code. | 非据点核销码 |
 
