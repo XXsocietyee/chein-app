@@ -62,9 +62,11 @@ extension PlayKitScreen {
 
     var nativeReasoningPassed: Bool { (raw["attempts"].integer ?? 0) > 0 && raw["passed"].bool == true }
 
-    /// MP `so__fb` / `ma__fb` / `cf__fb`: only after a judged submit.
+    /// MP `so__fb` / `ma__fb`: only after a judged submit (classify draws its own verdict row).
     var nativeReasoningFeedback: (key: LocalizedStringKey, ok: Bool)? {
-        guard (raw["attempts"].integer ?? 0) > 0, let passed = raw["passed"].bool else { return nil }
+        // MP clears the verdict as soon as a row moves / a pair changes: hide it after an edit until the next judged submit.
+        guard (raw["attempts"].integer ?? 0) > 0, let passed = raw["passed"].bool,
+              reasoningFeedback.showsResult(for: projection) else { return nil }
         switch kind {
         case .sort:
             if passed { return ("playkit.sort.fb.ok", true) }
@@ -74,8 +76,7 @@ extension PlayKitScreen {
             if passed { return ("playkit.match.fb.ok", true) }
             return ("playkit.match.fb.retry", false)
         default:
-            if passed { return ("playkit.classify.fb.ok", true) }
-            return ("playkit.classify.fb.retry", false)
+            return nil
         }
     }
 
@@ -177,59 +178,91 @@ extension PlayKitScreen {
         }
     }
 
-    /// MP `playkit-classify` order: the card stack (未分类, N / total) → every bin with its count and its placed items
-    /// (swipe to take one back, MP 点小标签拿回来) → 还有 N 条没分 → feedback → 分好了 (bottom bar).
+    /// MP `playkit-classify`: prompt (shell) → the top card (n / total · label) with the bins as buttons (label · count)
+    /// → each bin's placed items (tap to take back; all green after a pass) → 还有 N 条没分 → 全分对了 / 还有分错的… → 分好了.
     @ViewBuilder var nativeClassifySections: some View {
         let placement = nativeCleanPlacement
         let items = nativeItems
         let unsorted = items.filter { placement[$0.id] == nil }
-        let passed = nativeReasoningPassed
-        if !unsorted.isEmpty {
+        let passed = raw["passed"].bool == true
+        if let top = unsorted.first, !passed {
             Section {
-                ForEach(unsorted) { item in nativeClassifyRow(item) }
-            } header: {
-                HStack {
-                    Text("nativeGames.classify.unsorted")
-                    Spacer()
-                    Text(verbatim: "\(items.count - unsorted.count + 1) / \(items.count)").monospacedDigit()
+                Text(verbatim: top.label)
+                    .font(.title3.weight(.semibold))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .accessibilityIdentifier("playkit.classify.card")
+                ForEach(nativeBins) { bin in
+                    let count = items.filter { placement[$0.id] == bin.id }.count
+                    Button {
+                        guard enabled else { return }
+                        var next = nativeCleanPlacement
+                        next[top.id] = bin.id
+                        nativePlacement = next
+                        nativeReasoningEdited()
+                    } label: {
+                        LabeledContent {
+                            Text(verbatim: String(count)).monospacedDigit()
+                        } label: {
+                            Label(bin.label, systemImage: "tray.and.arrow.down")
+                        }
+                    }
+                    .disabled(!enabled)
+                    .accessibilityLabel(Text("playkit.classify.dropInto \(bin.label) \(count)"))
+                    .accessibilityIdentifier("playkit.classify.bin." + bin.id)
                 }
+            } header: {
+                Text(verbatim: "\(items.count - unsorted.count + 1) / \(items.count)").monospacedDigit()
             }
         }
         ForEach(nativeBins) { bin in
             let placed = items.filter { placement[$0.id] == bin.id }
-            Section {
-                ForEach(placed) { item in
-                    nativeClassifyRow(item)
-                        .tint(passed ? Color.green : nil)
-                        .swipeActions(edge: .trailing) {
-                            Button("nativeGames.classify.takeBack") {
-                                var next = nativeCleanPlacement
-                                next.removeValue(forKey: item.id)
-                                nativePlacement = next
-                                nativeReasoningEdited()
+            if !placed.isEmpty {
+                Section {
+                    ForEach(placed) { item in
+                        Button {
+                            guard enabled, !passed else { return }
+                            var next = nativeCleanPlacement
+                            next.removeValue(forKey: item.id)
+                            nativePlacement = next
+                            nativeReasoningEdited()
+                        } label: {
+                            Label {
+                                Text(verbatim: item.label).foregroundStyle(.primary)
+                            } icon: {
+                                Image(systemName: passed ? "checkmark.circle.fill" : "arrow.uturn.backward.circle")
+                                    .foregroundStyle(passed ? Color.green : Color.secondary)
                             }
-                            .disabled(!enabled || passed)
                         }
+                        .disabled(!enabled || passed)
+                        .accessibilityLabel(passed ? Text("playkit.classify.placed \(item.label)") : Text("playkit.classify.takeBackItem \(item.label)"))
+                        .accessibilityIdentifier("playkit.classify.row." + item.id)
+                    }
+                } header: {
+                    HStack {
+                        Text(verbatim: bin.label)
+                        Spacer()
+                        Text(verbatim: String(placed.count)).monospacedDigit()
+                    }
                 }
-            } header: {
-                HStack {
-                    Text(verbatim: bin.label)
-                    Spacer()
-                    Text(verbatim: String(placed.count)).monospacedDigit()
-                }
-                .accessibilityElement(children: .combine)
             }
         }
-        if !unsorted.isEmpty || nativeReasoningFeedback != nil {
+        let judged = reasoningFeedback.showsResult(for: projection) && ((raw["attempts"].integer ?? 0) > 0 || passed)
+        if !unsorted.isEmpty || judged {
             Section {
-                EmptyView()
-            } footer: {
-                VStack(alignment: .leading, spacing: 6) {
-                    if !unsorted.isEmpty {
-                        Text("playkit.classify.left \(unsorted.count)")
-                            .accessibilityIdentifier("playkit.classify.remaining")
-                    }
-                    nativeReasoningFeedbackLine
+                if !unsorted.isEmpty {
+                    Text("playkit.classify.leftLine \(unsorted.count)")
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("playkit.classify.remaining")
+                }
+                if judged {
+                    let ok = passed || raw["lastCorrect"].bool == true
+                    Label(ok ? LocalizedStringKey("playkit.classify.allRight") : LocalizedStringKey("playkit.classify.someWrong"),
+                          systemImage: ok ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(ok ? Color.green : Color.red)
+                        .accessibilityIdentifier("playkit.classify.verdict")
                 }
             }
         }
@@ -249,7 +282,7 @@ extension PlayKitScreen {
             Text(verbatim: item.label)
         }
         .pickerStyle(.menu)
-        .disabled(!enabled || nativeReasoningPassed)
+        .disabled(!enabled)
         .accessibilityIdentifier("playkit.classify.row." + item.id)
     }
 
