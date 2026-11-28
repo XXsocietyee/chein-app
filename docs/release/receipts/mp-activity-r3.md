@@ -203,7 +203,7 @@ Merged `ui/combined-r7` (xcstrings conflict: HEAD side added no keys, kept their
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration suites OK (`check_contextual_flows.py` fails identically without this change).
 
 ## Round 3 continue (2026-11-28, twenty-first session — coordinator 01:50 build a32387e9b)
-Rebased on `origin/mp/r3-activity` (no new remote commits). Coordinator 01:50 row for this lane: 票种价格 still "—".
+Gates: scaffold, a11y, design consistency PASS; ratchet 52/52 new 0. Coordinator 01:50 row for this lane: 票种价格 still "—".
 
 | MP page | Native view | Change | Optimization |
 |---|---|---|---|
