@@ -58,7 +58,7 @@ private struct ChanceSymbolSize {
             // The flip itself is the shell's bottom button (`nativeKitSubmitB`); a shake does the same.
             .cyOnShake(enabled: context.enabled) { flip() }
             .sensoryFeedback(.impact, trigger: flips)
-            .sensoryFeedback(.success, trigger: key) { old, next in !next.isEmpty && old != next }
+            .sensoryFeedback(.success, trigger: key, condition: CYHapticTransition.nonEmpty)
         } header: {
             // MP `cf__k`: the server `kicker`, default 抛一次，认结果.
             if let kicker = raw["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !kicker.isEmpty {
@@ -150,7 +150,7 @@ private struct ChanceSymbolSize {
             // The roll itself is the shell's bottom button (`nativeKitSubmitB`); a shake does the same.
             .cyOnShake(enabled: context.enabled) { roll() }
             .sensoryFeedback(.impact, trigger: rolls)
-            .sensoryFeedback(.success, trigger: values) { old, next in !next.isEmpty && old != next }
+            .sensoryFeedback(.success, trigger: values, condition: CYHapticTransition.nonEmpty)
         } header: {
             // MP `dz__k`: the server `kicker`, default 掷到几就做第几件事.
             if let kicker { Text(verbatim: kicker) } else { Text("playkit.dice.kicker") }
@@ -228,7 +228,7 @@ private struct ChanceSymbolSize {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
-            .sensoryFeedback(.success, trigger: values) { old, next in !next.isEmpty && old != next }
+            .sensoryFeedback(.success, trigger: values, condition: CYHapticTransition.nonEmpty)
         }
     }
     private var rollModeLabel: Text {
@@ -333,8 +333,8 @@ private struct ChanceSymbolSize {
                         Text(verbatim: "D20")
                     }
                     .accessibilityIdentifier("journey.check.d20")
-                    .sensoryFeedback(.success, trigger: model.receipt?.success) { _, next in next == true }
-                    .sensoryFeedback(.warning, trigger: model.receipt?.success) { _, next in next == false }
+                    .sensoryFeedback(.success, trigger: model.receipt?.success == true, condition: CYHapticTransition.turnedOn)
+                    .sensoryFeedback(.warning, trigger: model.receipt?.success == false, condition: CYHapticTransition.turnedOn)
                     if let receipt = model.receipt {
                         if !receipt.dice.isEmpty {
                             LabeledContent("journey.dice") {

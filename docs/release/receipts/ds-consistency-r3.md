@@ -856,6 +856,28 @@ Gates as above, `contract_ratchet` new 0.
   `isEnabled`, `nodeID`) or span lines → move each into a small typed `ViewModifier` (pattern
   `RegistrationSelectionHaptics`), largest files first (`ChanceKits`, `NativeGameSensorKit`, `RoamFogMapView`).
 
+## Continue run 28 (2026-11-28, after merging combined-r7, 38 commits)
+
+Run 27 Not done row: the last 34 untyped haptic conditions → **0** (gate kind `untyped haptic` now baselines 0 hits).
+
+| Pattern | Sites | Change |
+|---|---|---|
+| `{ _, new in new == .x }` / `old != .x && new == .x` / `old < 1 && new >= 1` | `ChallengePOIView:81`, `IMConversationReadAllView:101`, `PlayInPlayTools:99`, `TemplateQuestionMediaPickers:221`, `BundleTransferClaimView:43`, `NativeGameShell:447`, `ChoiceKits:148`, `ChanceKits:336-337`, `ClubManagementView:561` | Bool trigger (`state == .x`) + `CYHapticTransition.turnedOn` |
+| condition mixes a constant (`let presentation`, `let kind`, `nodeID`, `isEnabled`) | `BundlePayResultView:117-118`, `NativeGameSensorKit:140-141`, `CityOrientationPunchSheet:109`, `CYPurchaseMotion:190`, `EditorKitResults:71` | constant folded into the Bool trigger + `turnedOn` |
+| `if case .x = new` (associated-value enums) | `BundleReviewComposeView`, `BundleTransferSendView`, `BundleTransferClaimView`, `ChapterReplacementInvitationView`, `IMConversationRowActionsView`, `IMSafetyReviewView` | per-view typed `static func` in a `private extension` |
+| `!next.isEmpty && old != next`, `old != nil && new != nil && old != new`, `new != nil && old != new` | `ChanceKits:61/153/231`, `CYGlassCarousel:129`, `PublishingAIDraftSheet:145` | new shared `CYHapticTransition.nonEmpty` / `bothSet`, existing `isSet` |
+| condition reads view state, or returns the feedback | `RoamFogMapView:139-140`, `CYSegmentedContent` (`CYLoadingChoreography:173`), `NativeGameTimedKit:240`, `PlayKitTimedChallengeView:134`, `TeamInvitePreview` (`TeamComponents:379`) | named instance func in a `private extension` (`revealAdvanced`, `playsSelectionHaptic`, `measuredFeedback`, `copyFeedback`) |
+
+Semantics: every Bool trigger fires on the same transitions as the closure it replaces (the folded terms are `let`
+properties or stable for the view's life); `onChange` only fires on a change, so `old != new` terms were redundant.
+No compiler in the cloud: the next integration build confirms.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(untyped haptic 0, status capsule 29 baselined), `contract_ratchet --check` see Gates.
+
+### Not done (next run)
+- status capsule (29 baselined): move per-page soft-tint capsules to `CYStatusChip`, largest files first.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
