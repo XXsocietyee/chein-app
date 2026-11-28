@@ -56,7 +56,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 4) {
             Text("clubOpsEvent.capacity.note", tableName: "ClubOpsEvent")
             if ClubOpsEventInput.capacityInvalid(capacity) {
-                Text("clubOpsEvent.capacity.invalid", tableName: "ClubOpsEvent").foregroundStyle(.red)
+                Text("clubOpsEvent.capacity.invalid", tableName: "ClubOpsEvent").foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("clubOpsEvent.capacity.invalid")
             }
             Text("clubOpsEvent.capacity.help", tableName: "ClubOpsEvent")
@@ -84,7 +84,7 @@ import SwiftUI
             Text("clubOpsEvent.offer.help", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
         }
         if ClubOpsEventInput.offerInvalid(minutes) {
-            Text("clubOpsEvent.offer.invalid", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.red)
+            Text("clubOpsEvent.offer.invalid", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("clubOpsEvent.offer.invalid")
         }
     }
@@ -111,7 +111,7 @@ import SwiftUI
                     if cancel { Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent") }
                     if invalid {
                         Text(cancel ? "clubOpsEvent.cancel.reasonInvalid" : "clubOpsEvent.correct.reasonInvalid", tableName: "ClubOpsEvent")
-                            .foregroundStyle(.red).accessibilityIdentifier("clubOpsEvent.reason.invalid")
+                            .foregroundStyle(CYColor.dangerText).accessibilityIdentifier("clubOpsEvent.reason.invalid")
                     }
                 }
             }

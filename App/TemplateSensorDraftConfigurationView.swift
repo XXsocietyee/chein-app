@@ -47,7 +47,7 @@ import SwiftUI
                             }
                         } label: { Text(LocalizedStringKey(parameter.labelKey)) }
                         Text(verbatim: "1…\(parameter.maximum)").font(.footnote).foregroundStyle(.secondary)
-                        if value.integer(parameter) == nil { Text("sensorDraft.invalidField").font(.footnote).foregroundStyle(.red) }
+                        if value.integer(parameter) == nil { Text("sensorDraft.invalidField").font(.footnote).foregroundStyle(CYColor.dangerText) }
                     }
                 }
             } else { Text("sensorDraft.preserved").foregroundStyle(.secondary).accessibilityIdentifier("sensorDraft.preserved") }

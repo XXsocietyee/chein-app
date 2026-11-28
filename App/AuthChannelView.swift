@@ -275,7 +275,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
                 .foregroundStyle(issueIsSoft ? Color.secondary : Color.red)
                 .accessibilityIdentifier("auth.channels.error")
             if requiresAppUpdate {
-                Text("auth.channels.upgradeRequired").foregroundStyle(.red)
+                Text("auth.channels.upgradeRequired").foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("auth.channels.upgradeRequired")
             }
         } else if smsSent {

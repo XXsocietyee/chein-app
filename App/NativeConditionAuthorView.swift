@@ -79,7 +79,7 @@ import SwiftUI
                 Section { ContentUnavailableView("nativeCondition.unavailable", systemImage: "doc.text") }
             }
             if let key = model.errorKey {
-                Section { Label(LocalizedStringKey(key), systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
+                Section { Label(LocalizedStringKey(key), systemImage: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText) }
             }
         }
         .navigationTitle(Text("nativeCondition.title"))

@@ -186,7 +186,7 @@ import SwiftUI
         // Destructive row: its own section, red, with the consequence stated underneath.
         Section {
             Button(role: .destructive) { selected = .cancellation } label: {
-                Label { Text("settings.deregister.row").foregroundStyle(.red) } // MP shezhi.wxml:34 账号注销
+                Label { Text("settings.deregister.row").foregroundStyle(CYColor.dangerText) } // MP shezhi.wxml:34 账号注销
                     icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcUserRoundX) }
                     .environment(\.settingsTileTint, SettingsTint.red)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -300,7 +300,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     cancellationIssue(error)
                 } else {
                     Text(LocalizedStringKey(error), tableName: error == "compliance.impactChanged" ? "AccountDeregistrationPresentation" : nil)
-                        .foregroundStyle(.red).accessibilityIdentifier("compliance.error")
+                        .foregroundStyle(CYColor.dangerText).accessibilityIdentifier("compliance.error")
                 }
             }
             switch destination {
@@ -542,7 +542,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 }
                     .disabled(model.state.busy || !model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.sendSMS")
                 if model.state.error == DeregistrationBoundPhone.missingMessage {
-                    Text(verbatim: DeregistrationBoundPhone.missingMessage).font(.subheadline).foregroundStyle(.red)
+                    Text(verbatim: DeregistrationBoundPhone.missingMessage).font(.subheadline).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("compliance.boundPhoneMissing")
                 } else if let notice = model.state.smsNotice, model.state.smsSent {
                     Text(verbatim: notice).font(.subheadline).foregroundStyle(.secondary)

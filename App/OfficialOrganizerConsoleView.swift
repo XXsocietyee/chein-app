@@ -335,7 +335,7 @@ struct OfficialOrganizerConsoleView: View {
                 Text("activityR3.official.organizer.checkFailed").font(.subheadline)
             }
             ForEach(Array(model.check.blockers.enumerated()), id: \.offset) { _, text in
-                Label(text, systemImage: "xmark.circle").foregroundStyle(.red)
+                Label(text, systemImage: "xmark.circle").foregroundStyle(CYColor.dangerText)
             }
             ForEach(Array(model.check.risks.enumerated()), id: \.offset) { _, text in
                 Label { Text("activityR3.official.organizer.risk \(text)") } icon: { Image(systemName: "exclamationmark.triangle") }
@@ -423,7 +423,7 @@ struct OfficialOrganizerConsoleView: View {
                 Text("activityR3.official.organizer.formErrorTitle").font(.footnote.weight(.semibold))
                 Text(formErrorCopy(e)).font(.footnote)
             }
-            .foregroundStyle(.red)
+            .foregroundStyle(CYColor.dangerText)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("official.organizer.formError")
         }
