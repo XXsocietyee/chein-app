@@ -614,3 +614,17 @@ Merged `origin/ui/combined-r7` (clean). Brief rows after 07:45 for mp-mine: the 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 
 Not done: `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `d2-me` and `e4-tickets`.
+## Continue 38 (11-28, half-hourly run): fixture names in the 13:03 sweep
+
+Merged `origin/ui/combined-r7` (46 commits, clean). The 13:15 coordinator rows for mp-mine are closed (ticket glyph → pass cards in continue 34; 成为商家 belongs to Cursor K12). Every MP page in `pages/member/*` and `subpackageMember/*` already has a row in this receipt, so this run re-scans the sweep. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg` (build 0446d1c4f): the public profile header reads "Synthetic medal owner" and the ticket wallet reads "Sample exploration ticket" / "Sample activity ticket".
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `subpackageMember/components/cy/profile` (own public profile, `e4-self-medals`) | `App/ProfileSelfMedalsFixture.swift`, `Tests/AppUITests/ProfileSelfMedalsFlowTests.swift` | ✓ (unchanged) | B | **Fixed (fixture).** The owner is Lin Yu / 林雨, the same member as `d2-me`; the medals read Hangzhou city medal / 杭州城市勋章 and City walker / 城市漫步者 in the UI language. UI tests read the new English names. |
+| `subpackageMember/signup` (`e4-tickets`, detail) | `App/TicketWalletFixtureSupport.swift`, `Tests/AppUITests/TicketWalletFlowTests.swift`, `Tests/AppUITests/RoamEnrolledChaptersFlowTests.swift` | ✓ (unchanged) | B | **Fixed (fixture; closes the continue 30 Not done "Sample … ticket").** The fixture reader maps the Core synthetic names to real ticket names in both languages (West Lake Night Walk / 西湖夜游探索票, Riverside Night Ride / 滨江夜骑活动票, …). Core keeps its synthetic JSON for Core tests. |
+
+For other lanes: `App/DesignFixtures/E2Fixtures.swift` `E2ChaptersHost` (mp-roam, 我的章节) decodes the Core JSON directly, so it still shows "Sample … ticket"; it could read through `TicketWalletFixtureReader`.
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Not done: `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `e4-self-medals` and `e4-tickets` (en + zh-Hans).
