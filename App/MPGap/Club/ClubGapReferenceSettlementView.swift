@@ -11,6 +11,7 @@ public struct ClubGapFEReferenceSettlementSection: View {
     public let onDispute: (Int) -> Void
 
     @State private var settlingIDs: [Int]?
+    @Environment(\.locale) private var locale
     @State private var voucherNo: String = ""
 
     public init(
@@ -48,7 +49,7 @@ public struct ClubGapFEReferenceSettlementSection: View {
                                 .foregroundStyle(.secondary)
                         }
                         HStack {
-                            Text(verbatim: item.amountText)
+                            Text(verbatim: LocaleDisplay.yuanAmounts(in: item.amountText, locale: locale))
                                 .monospacedDigit()
                             Spacer()
                             if role == .payer && allowsMoneyWrite && item.canSettle {

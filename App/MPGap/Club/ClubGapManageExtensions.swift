@@ -242,6 +242,7 @@ public struct ClubGapSettingsSheet: View {
     public var settledAmountText: String? = nil
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
 
     public init(
         clubName: String,
@@ -278,7 +279,7 @@ public struct ClubGapSettingsSheet: View {
                             onClubFinance()
                         } label: {
                             LabeledContent("club.settings.clubFinance") {
-                                if let settledAmountText { Text(verbatim: settledAmountText) }
+                                if let settledAmountText { Text(verbatim: LocaleDisplay.yuanAmounts(in: settledAmountText, locale: locale)) }
                             }
                         }
                         .accessibilityIdentifier("club.settings.clubFinance")
