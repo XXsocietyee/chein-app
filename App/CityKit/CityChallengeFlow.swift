@@ -192,6 +192,7 @@ struct CityShieldSheet: View {
     @State private var phase: CYResultPhase = .idle
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let copy = CityCopy(locale: locale)
@@ -214,12 +215,12 @@ struct CityShieldSheet: View {
                 Task {
                     phase = .loading
                     if let result = await store.shield(place) {
-                        withAnimation(CYMotion.standard) { until = result }
+                        withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { until = result }
                         phase = .done
                         try? await Task.sleep(for: .seconds(CYMotion.Delay.sheetDismiss))
                         onClose()
                     } else {
-                        withAnimation(CYMotion.release) { phase = .idle }
+                        withAnimation(CYMotion.resolve(CYMotion.release, reduceMotion: reduceMotion)) { phase = .idle }
                     }
                 }
             }
@@ -242,6 +243,7 @@ struct CityUpgradeSheet: View {
     @StateObject private var sampler = CityPresenceSampler()
     @State private var phase: CYResultPhase = .idle
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let copy = CityCopy(locale: locale)
@@ -274,7 +276,7 @@ struct CityUpgradeSheet: View {
                                 try? await Task.sleep(for: .seconds(CYMotion.Delay.sheetDismiss))
                                 onMoment(.upgraded(store.place(id: place.id) ?? place, fromLevel: from))
                             } else {
-                                withAnimation(CYMotion.release) { phase = .idle }
+                                withAnimation(CYMotion.resolve(CYMotion.release, reduceMotion: reduceMotion)) { phase = .idle }
                             }
                         }
                     }

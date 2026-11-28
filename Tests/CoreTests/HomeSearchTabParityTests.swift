@@ -82,11 +82,11 @@ final class HomeSearchTabParityTests: XCTestCase {
 
         let enLocale = Locale(identifier: "en_US")
         XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: nil, locale: enLocale), "Where to today, Traveler?")
-        XCTAssertEqual(HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, locale: enLocale), "Select City")
+        XCTAssertEqual(HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, locale: enLocale), "Select city")
         XCTAssertEqual(HomeIndexParityPresentation.citySelectorLabel(selectedCity: "上海", isNationwide: true, locale: enLocale), "Nationwide")
         XCTAssertEqual(
             HomeIndexParityPresentation.fixedActionBanners.map { $0.title(locale: enLocale) },
-            ["Become a Club", "Become a Merchant", "Join Activities with Friends"]
+            ["Become a club host", "Become a merchant", "Join activities with friends"]
         )
         XCTAssertEqual(HomeIndexParityPresentation.noMoreFooterCopy(locale: enLocale), "· No more items ·")
         XCTAssertEqual(HomeIndexParityPresentation.continuationSectionTitle(locale: enLocale), "Continue")
