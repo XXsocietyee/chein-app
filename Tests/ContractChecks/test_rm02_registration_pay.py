@@ -27,8 +27,9 @@ class Rm02RegistrationPayContractTests(unittest.TestCase):
         self.assertIn(".environment(\\.registrationPayExecutor, payExecutor)", app)
         sheet = self.read("App/RegistrationSheetView.swift")
         self.assertIn("RegistrationPaySection(", sheet)
+        # Gap #9 (1128 plan, fix/1128b-team-reg): order re-pay goes through OrderRepaySection, which wraps the same
+        # RegistrationPaySection and adds the "Pay with" picker.
         order = self.read("App/OrderLifecycleView.swift")
-        # fix-1128b gap #9: order-detail re-pay wraps the pay section with the same "Pay with" row (OrderRepaySection).
         self.assertIn("OrderRepaySection(", order)
         self.assertIn("RegistrationPaySection(", self.read("App/OrderRepaySection.swift"))
 

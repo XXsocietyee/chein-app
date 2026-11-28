@@ -161,6 +161,39 @@ import MapKit
         XCTAssertNil(PublishingMapKitAdapter.droppedPin(.init(latitude: 91, longitude: 0)))
     }
 
+    // MARK: Gap #27 activity 编辑
+
+    func testReleaseCompositionIssuesStableActivityEditingGrants() throws {
+        let root = try release()
+        let issue = MPFirstSocialApprovals.activityEditing(root)
+        let api = try APIConfiguration(baseURL: try XCTUnwrap(URL(string: Self.base)))
+        for role in ["player", "club"] {
+            let ctx = try context(root, role: role)
+            let grants = issue(ctx)
+            XCTAssertNotNil(grants.revision, role)
+            XCTAssertEqual(issue(ctx), grants, "the editing transport compares currentGrant == grants")
+            XCTAssertTrue(grants.read?.allows(configuration: api, namespace: ctx.session.namespace, accountID: 7, path: ActivityEditingService.readPath) == true)
+            XCTAssertTrue(grants.update?.allows(configuration: api, namespace: ctx.session.namespace, accountID: 7, path: ActivityEditingService.updatePath) == true)
+            XCTAssertFalse(grants.read?.allows(configuration: api, namespace: ctx.session.namespace, accountID: 7, path: ActivityEditingService.updatePath) == true)
+        }
+        XCTAssertNil(issue(try context(root, role: "merchant")).revision, "merchant stays off")
+        XCTAssertEqual(ActivityEditingService.readPath, "api/activity/info")
+        XCTAssertEqual(ActivityEditingService.updatePath, "api/activity/update")
+    }
+
+    func testActivityEditRowRuleMatchesTheMiniProgramCanEdit() throws {
+        func row(_ state: String, owner: String? = "club") throws -> CreatorContentProject {
+            var object: [String: Any] = ["bizType": "activity", "id": 41, "sourceId": 41, "state": state, "title": "城市夜跑"]
+            if let owner { object["ownerType"] = owner }
+            return try JSONDecoder().decode(CreatorContentProject.self, from: JSONSerialization.data(withJSONObject: object))
+        }
+        for state in ["running", "notStarted", "offline", "pending", "rejected"] {
+            XCTAssertTrue(MyProjectActivityEditRule.applies(try row(state), merchantScopeAccess: .init()), state)
+        }
+        XCTAssertFalse(MyProjectActivityEditRule.applies(try row("draft"), merchantScopeAccess: .init()))
+        XCTAssertFalse(MyProjectActivityEditRule.applies(try row("running", owner: "merchant"), merchantScopeAccess: .init()))
+    }
+
     func testUnitedStatesHasNoPlayerWriteGrantYet() throws {
         let root = try release(market: "US")
         let ctx = try context(root, market: .unitedStates)
