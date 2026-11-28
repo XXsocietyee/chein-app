@@ -351645,6 +351645,23 @@
           }
         }
       }
+    },
+    "roam.live.cards.teamPeople %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld/%2$lld people"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld/%2$lld 人"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
