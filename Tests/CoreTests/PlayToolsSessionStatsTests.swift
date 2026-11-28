@@ -4,8 +4,8 @@ import Foundation
 
 /// mp-journey r3: MP `play-hud-overlays.js` `scoreScreen` → 游玩工具 `sessStats` (本局用时 · 当前得分 · 第 N 名).
 final class PlayToolsSessionStatsTests: XCTestCase {
-    private func score(status: Int = 0, total: Int = 1750, deadline: String? = nil) throws -> OrientSessionScore {
-        let window = deadline.map { ",\"disputeWindowDeadline\":\"\($0)\"" } ?? ""
+    private func score(status: Int = 0, total: Int = 1750, deadline: String? = nil, times: String = "") throws -> OrientSessionScore {
+        let window = (deadline.map { ",\"disputeWindowDeadline\":\"\($0)\"" } ?? "") + times
         let json = "{\"sessionId\":9,\"topicId\":3,\"activityId\":0,\"status\":\(status),\"totalCenti\":\(total),"
             + "\"byDimension\":{\"TASK\":2000,\"PUZZLE\":0,\"BONUS\":0,\"PENALTY\":-250,\"ADJUSTMENT\":0},\"timeline\":[],\"settlement\":null,\"appeals\":[],\"disputes\":[]\(window)}"
         return try JSONDecoder().decode(OrientSessionScore.self, from: Data(json.utf8))
@@ -37,6 +37,46 @@ final class PlayToolsSessionStatsTests: XCTestCase {
         let closed = try score(status: 2, deadline: "2020-01-01T00:00:00Z")
         XCTAssertEqual(PlayToolsSessionStats.project(score: closed, board: nil, now: now),
                        .ready(elapsed: nil, score: "17.5", rank: nil, provisional: false))
+    }
+
+    /// mp-journey-b r3: MP `scoreScreen` elapsed fallback — no board `me.elapsedMs`: `startedAt → now` while running,
+    /// `startedAt → endedAt` once ended (epoch ms or China-time text); no `endedAt` on an ended round hides 本局用时.
+    func testElapsedFallsBackToStartedAtWithoutTheBoard() throws {
+        let start = 1_800_000_000_000
+        let now = Date(timeIntervalSince1970: 1_800_000_754)
+        let running = try score(times: ",\"startedAt\":\(start)")
+        XCTAssertEqual(PlayToolsSessionStats.project(score: running, board: nil, now: now),
+                       .ready(elapsed: "12:34", score: "17.5", rank: nil, provisional: true))
+        let ended = try score(status: 1, times: ",\"startedAt\":\"2027-01-15 08:00:00\",\"endedAt\":\"2027-01-15 09:02:03\"")
+        XCTAssertEqual(PlayToolsSessionStats.project(score: ended, board: nil, now: now),
+                       .ready(elapsed: "1:02:03", score: "17.5", rank: nil, provisional: false))
+        let open = try score(status: 1, times: ",\"startedAt\":\(start),\"endedAt\":null")
+        XCTAssertEqual(PlayToolsSessionStats.project(score: open, board: nil, now: now),
+                       .ready(elapsed: nil, score: "17.5", rank: nil, provisional: false))
+        let boardWins = PlayToolsSessionStats.project(score: running, board: try board(elapsed: "60000"), now: now)
+        XCTAssertEqual(boardWins, .ready(elapsed: "01:00", score: "17.5", rank: 2, provisional: true))
+        XCTAssertNil(try score(times: ",\"startedAt\":\"\"").startedAt)
+    }
+
+    /// mp-journey-b r3: MP `play-board-view.js` `project` for the orient board — SCORE rows read `centi` (N.NN), ROUTE
+    /// rows 已到达结局 / 尚未到达结局, elapsed `clock` or 用时待确认 (nil); 我 only on the player's own row.
+    func testOrientBoardProjectsScoreAndRouteRows() throws {
+        let mine = "{\"rowKey\":\"5\",\"rank\":2,\"scoreCenti\":1750,\"elapsedMs\":754000,\"reachedEnding\":false,\"mine\":true}"
+        let other = "{\"rowKey\":\"7\",\"rank\":1,\"scoreCenti\":2005,\"reachedEnding\":true,\"mine\":false}"
+        func decode(_ mode: String) throws -> OrientSessionLeaderboard {
+            let json = "{\"sessionId\":9,\"mode\":\"\(mode)\",\"list\":[\(other),\(mine)],\"me\":\(mine)}"
+            return try JSONDecoder().decode(OrientSessionLeaderboard.self, from: Data(json.utf8))
+        }
+        let score = PlayOrientBoard(try decode("SCORE"))
+        XCTAssertEqual(score.rows.map(\.points), ["20.05", "17.50"])
+        XCTAssertEqual(score.rows.map(\.elapsed), [nil, "12:34"])
+        XCTAssertEqual(score.rows.map(\.mine), [false, true])
+        XCTAssertEqual(score.me?.rank, 2)
+        let route = PlayOrientBoard(try decode("ROUTE"))
+        XCTAssertEqual(route.rows.map(\.points), [nil, nil])
+        XCTAssertEqual(route.rows.map(\.reachedEnding), [true, false])
+        XCTAssertEqual(PlayOrientBoard.centi(-5), "-0.05")
+        XCTAssertEqual(PlayOrientBoard.centi(0), "0.00")
     }
 
     func testPointsAndClockFollowTheMP() {
