@@ -33921,7 +33921,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the organiser and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
+            "value": "Only the organizer and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
           }
         },
         "zh-Hans": {
@@ -67792,7 +67792,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Colour (hex)"
+            "value": "Color (hex)"
           }
         },
         "zh-Hans": {
@@ -87967,7 +87967,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search around the map centre"
+            "value": "Search around the map center"
           }
         },
         "zh-Hans": {
@@ -205272,7 +205272,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pick a colour for this chapter."
+            "value": "Pick a color for this chapter."
           }
         },
         "zh-Hans": {
@@ -205400,7 +205400,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save the colour. Pick it again to retry."
+            "value": "Couldn't save the color. Pick it again to retry."
           }
         },
         "zh-Hans": {
@@ -210915,13 +210915,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current editor allows 2,000 text units. Shorten the text before saving; no text has been truncated."
+            "value": "This field allows up to 2,000 characters. Shorten the text before saving; nothing has been cut."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前编辑器最多支持 2,000 个文本单位。请缩短后保存；现有文字未被截断。"
+            "value": "最多 2,000 字。请缩短后保存；现有文字未被截断。"
           }
         }
       }
@@ -220909,7 +220909,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your name and mobile number go to the organiser to verify your registration."
+            "value": "Your name and mobile number go to the organizer to verify your registration."
           }
         },
         "zh-Hans": {
@@ -255182,7 +255182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send the invitation to friends travelling with you. They appear here after joining."
+            "value": "Send the invitation to friends traveling with you. They appear here after joining."
           }
         },
         "zh-Hans": {
@@ -257794,7 +257794,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settings this editor doesn't recognise are kept, but must be removed before you publish."
+            "value": "Settings this editor doesn't recognize are kept, but must be removed before you publish."
           }
         },
         "zh-Hans": {
@@ -349044,7 +349044,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Light colour"
+            "value": "Light color"
           }
         },
         "zh-Hans": {
