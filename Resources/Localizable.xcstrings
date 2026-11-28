@@ -366805,6 +366805,23 @@
           }
         }
       }
+    },
+    "mp.seats.invite.preparing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing your invite link…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在生成邀请链接…"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -921,7 +921,9 @@ private struct JourneyInviteSheet: View {
             } else if let error = content.actionError {
                 MPInlineError(text: Text(verbatim: error))
             } else {
-                ProgressView().frame(minHeight: CYSpacing.minTouchTarget)
+                ProgressView { Text("mp.seats.invite.preparing") }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("journeySeats.invite.preparing")
             }
             // seats-save (r10): MP seats 保存邀请图 (subpackageJourney/pages/seats/index.wxml) via ImageRenderer + ShareLink.
             if let inviteImage {
