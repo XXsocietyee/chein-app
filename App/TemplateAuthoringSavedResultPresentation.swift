@@ -65,19 +65,25 @@ struct TemplateAuthoringSavedResultPreferenceKey: PreferenceKey {
 @MainActor struct TemplateAuthoringSavedResultPanel: View {
     let result: TemplateAuthoringSavedResult
     let close: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var arrived = false
+    // MP cy-result-sheet (publish/temp `resultSheet`): badge → title → sub → meta 预计 N 分钟; no button,
+    // the 2 s timer lands on the template library (`close` is kept for the controller's own clock).
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "checkmark.circle.fill").accessibilityHidden(true).font(.largeTitle).foregroundStyle(CYColor.successText)
-            Text("templateSavedResult.title", tableName: "CreatorSavedResult").cyText(.sheetTitle)
-            Text(verbatim: result.title).cyText(.cardTitle)
-            Text("templateSavedResult.detail", tableName: "CreatorSavedResult").multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-            LabeledContent { Text(verbatim: String(result.memberTemplateID.rawValue)) } label: {
-                Text("templateSavedResult.identity", tableName: "CreatorSavedResult")
+        VStack(spacing: 16) {
+            Image(systemName: "checkmark.seal.fill").accessibilityHidden(true).font(.largeTitle).foregroundStyle(CYColor.successText)
+                .symbolEffect(.bounce, value: arrived && !reduceMotion)
+            Text("templateSavedResult.title", tableName: "CreatorSavedResult").cyText(.sheetTitle).multilineTextAlignment(.center)
+            Text("templateSavedResult.detail", tableName: "CreatorSavedResult").multilineTextAlignment(.center).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let minutes = result.durationMinutes {
+                Label { Text("templateSavedResult.meta \(minutes)", tableName: "CreatorSavedResult") } icon: { Image(systemName: "info.circle") }
+                    .cyText(.bodyCompact).foregroundStyle(.secondary)
             }
-            Text("templateSavedResult.destination", tableName: "CreatorSavedResult").cyText(.bodyCompact).foregroundStyle(.secondary)
-            Button(action: close) { Text("templateSavedResult.openLibrary", tableName: "CreatorSavedResult").frame(maxWidth: .infinity) }
-                .buttonStyle(.borderedProminent).accessibilityIdentifier("templateSavedResult.openLibrary")
-        }.padding(24).presentationDetents([.medium]).interactiveDismissDisabled(true)
+        }.frame(maxWidth: .infinity).padding(24).presentationDetents([.medium]).interactiveDismissDisabled(true)
+            .accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
+            .sensoryFeedback(.success, trigger: arrived)
+            .onAppear { arrived = true }
             .accessibilityIdentifier("templateSavedResult.panel")
     }
 }
