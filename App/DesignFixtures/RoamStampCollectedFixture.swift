@@ -30,7 +30,7 @@ import SwiftUI
                 }
                 .padding()
             }
-            .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea())
+            .cyGroupedBackground()
             .navigationTitle(Text(LocalizedStringKey(RoamStampSlip.titleKey(kind: "sticker"))))
             .navigationBarTitleDisplayMode(.inline)
         }
