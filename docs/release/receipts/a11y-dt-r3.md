@@ -525,6 +525,7 @@ bar, roam history tools, editor save chip and puzzle tiles already reach 44).
 | `pages/template` detail capability rows (展开 / 收起) | `TemplateDetailXbChrome.swift:157` | ✓ (mp-publish owns order) | Expand / collapse footnote button → 44 × 44 hit area; label stays a `LocalizedStringKey`. Level B | Done |
 | `pages/play` lead bar retry (网络状态暂未刷新 · 点击重试) | `MPGap/PlayRoam/PlayLeadBar.swift:11` | ✓ (mp-journey owns order) | The 8 pt bar padding sat outside the button, so only the text line was tappable → full-width 44 pt label, bar padding 2 pt (same bar height). Level A | Done |
 | `pages/search` map explorer location-denied bar (打开设置) | `MPGap/PlayerContent/SearchMapExplorerGapView.swift:105` | ✓ (mp-home owns order) | Footnote "Open Settings" button → 44 pt tall hit area; bar padding 8 → 2 so the bar keeps its height. Level B | Done |
+| `pages/im` co-op strip invite reminder (去设置) | `IMDriftEntries.swift:104` | ✓ (mp-mine owns order) | `.controlSize(.mini)` scan (3 player hits: two are spinners, one the switch group): the caption "Settings" link under the mini switch was ~16 pt tall → 44 pt hit area. Level C | Done |
 
 ### Run 33b (2026-11-28, twin of run 33)
 Same scan, widened to `.borderless` / `.plain` buttons with small labels outside `List` / `Form` (38 hits read; whole cards / tiles,
@@ -539,8 +540,8 @@ List-row buttons and the story-flow editor left). Run 33's four rows kept as pus
 
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-33).
-- Next pages without a row: 44 pt targets, third part — `.controlSize(.mini)` / `.controlSize(.small)` bordered buttons and
-  `Menu` labels with caption text on player screens (run 33 closed the padding-only footnote buttons).
+- Next pages without a row: 44 pt targets, third part — `.controlSize(.small)` borderless / plain buttons and
+  `Menu` labels with caption text on player screens (run 33 closed the padding-only footnote buttons and `.mini`).
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
