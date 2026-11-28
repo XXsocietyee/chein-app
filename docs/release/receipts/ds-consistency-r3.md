@@ -1523,6 +1523,23 @@ Further candidates checked (no code change; each stays a manual button on purpos
   container, merchant) or has UI tests on the tap. Next run: move the intentional ones to `allowed` with reasons in the
   baseline, then pick the next design-system scan for player screens.
 
+## Continue run 46 (2026-11-28, merged combined-r7 45264c9bf)
+
+Merge: fast-forward. No new coordinator row for this lane (latest: 17:30 sweep, mp-states / mp-nav); no K50
+`lane-layout` rows posted (`cursor-k50-p*.md` absent on combined-r7).
+
+Run 45 Not done row worked: **intentional manual paging → `allowed` with reasons** (baseline only, no Swift change).
+
+| Page · level | Site | Reason now in the baseline |
+|---|---|---|
+| Notification delivery log · C | `App/NativeNotificationDeliveryLogView.swift:48` | replace paging (Next page drops the previous rows) — auto-load would chain every page |
+| Club channel message context · C | `App/NativeChannelMessageContextView.swift:44` | 更早/更晚 re-anchor the context on a new message — auto-load would jump the reader |
+| Search map public layer · B | `App/MapPublicLayerSectionView.swift:270` | non-lazy `VStack` host in `SearchMapExplorerView` — the row would fire at once; until the host is lazy |
+| Merchant cooperation lists | `App/CooperationContextualViews.swift:215,386` | merchant, out of scope |
+
+Checker: manual paging 23 → **18** baselined (all remaining sites have UI/host tests on the tap or need an
+append-only read first — the run 43 list), 119 allowed.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

@@ -19,6 +19,9 @@
     "App/CloudCIShardStatusSectionView.swift": {
       "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     },
+    "App/CooperationContextualViews.swift": {
+      "manual paging": "merchant cooperation pages (lines 215/386: merchant target / proposal lists) - merchant is out of scope for the player release"
+    },
     "App/DesignSystem/CYAlbum.swift": {
       "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
     },
@@ -103,6 +106,9 @@
     "App/MapCoreEntryHubView.swift": {
       "raw colour": "map legend swatch built from the map style manifest token (data, not a literal)"
     },
+    "App/MapPublicLayerSectionView.swift": {
+      "manual paging": "non-lazy host: the section is a VStack inside SearchMapExplorerView, so an appearing load row would fire at once and chain every page; stays a 下一页 button until the host is lazy (search lane page)"
+    },
     "App/MasterSevenDayLaunchCommandCenterView.swift": {
       "list style": "unreferenced internal command hub, not reachable from player navigation"
     },
@@ -115,8 +121,14 @@
     "App/NativeChannelHistoryView.swift": {
       "list style": "chat transcript (Messages-style plain list anchored to the bottom above the composer), not a settings-style list page"
     },
+    "App/NativeChannelMessageContextView.swift": {
+      "manual paging": "re-anchor, not append: 更早/更晚 recentres the message context on a new anchor message, so an auto-load on appear would jump the reader; explicit buttons on purpose"
+    },
     "App/NativeGallery/NativeGalleryScreens.swift": {
       "locale money": "DEBUG native component gallery: static Chinese sample prices showing the zh look; not a player screen, never localized"
+    },
+    "App/NativeNotificationDeliveryLogView.swift": {
+      "manual paging": "replace paging, not append: \"Next page\" resets the stored page (read() drops the previous rows), so an auto-load on appear would chain through every page of a short log; an explicit Next page button is the right control"
     },
     "App/NativeR2/FreeExplore/NativeFreeExploreMapView.swift": {
       "hidden nav": "full-screen free-explore map"
@@ -220,19 +232,7 @@
     "App/ActivityBrowserView.swift": {
       "manual paging": 1
     },
-    "App/CooperationContextualViews.swift": {
-      "manual paging": 2
-    },
-    "App/MapPublicLayerSectionView.swift": {
-      "manual paging": 1
-    },
     "App/MessagingHistoryView.swift": {
-      "manual paging": 1
-    },
-    "App/NativeChannelMessageContextView.swift": {
-      "manual paging": 1
-    },
-    "App/NativeNotificationDeliveryLogView.swift": {
       "manual paging": 1
     },
     "App/NativeR2/FreeExplore/NativeStampAlbumView.swift": {
