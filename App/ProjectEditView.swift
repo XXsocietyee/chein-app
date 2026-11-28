@@ -27,6 +27,8 @@ import SwiftUI
         }
     }
     @Published private(set) var editorIncarnation = UUID()
+    /// MP `manageAttributeDefinitions` (初始状态 → 调整定义): bumped to ask the root view for the 主题详情 sheet.
+    @Published var topicDetailAsk = 0
     /// In-memory ABA fence for a node draft chooser; not saved or sent to the server.
     private(set) var draftMutationRevision = 0
     private(set) var issueNodeIdentityRevision = 0
@@ -700,6 +702,7 @@ import SwiftUI
         .modifier(ProjectRuntimeEndingsHost(model: model, isPresented: $runtimeEndingsOpen,
                                             rootRequestID: issueNavigation.rootRequest?.id,
                                             rootAnchor: issueNavigation.rootRequest?.capture.location.anchor))
+        .onChange(of: model.topicDetailAsk) { _, _ in topicDetailRequest = ProjectEditTopicDetailRequest(anchor: nil) }
         .onChange(of: model.revision) { _, _ in
             if model.coordinator.state == .acknowledged, let next = model.submittedHandoff, next.id != handledSubmission {
                 handledSubmission = next.id; submission = next
