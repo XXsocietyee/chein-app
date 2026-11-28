@@ -150543,6 +150543,23 @@
         }
       }
     },
+    "npcData.failure.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t export your AI chats"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出没有完成"
+          }
+        }
+      }
+    },
     "npcData.failure.unavailable": {
       "extractionState": "manual",
       "localizations": {
