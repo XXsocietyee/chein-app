@@ -230,7 +230,7 @@ struct RegistrationSheetView: View {
                         showingTicketSheet = false
                         if flow.selectTicket(id: ticket.id) { Task { await flow.requestQuote() } }
                     } label: {
-                        RegistrationPickerRow(title: ticket.name, subtitle: gatedPayAmount(ticket.price),
+                        RegistrationPickerRow(title: ticket.name, subtitle: ticketPriceText(ticket.price),
                                               selected: ticket.id == flow.selectedTicketID)
                     }
                     .accessibilityIdentifier("registration.ticketSheet.row.\(ticket.id)")
@@ -458,6 +458,13 @@ struct RegistrationSheetView: View {
             parts?.queryItems = [URLQueryItem(name: "q", value: venue)]
         }
         return parts?.url
+    }
+    private func ticketPriceText(_ price: Decimal?) -> String {
+        let copy = CoreLoopCopy(locale: locale)
+        guard let price, !price.isNaN, price >= .zero else { return copy.t("价格待定", "Price to be confirmed") }
+        if price == .zero { return copy.t("免费", "Free") }
+        return RegistrationUIMoney.display(price, locale: locale, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
+            ?? copy.t("价格待定", "Price to be confirmed")
     }
     private func gatedPayAmount(_ amount: Decimal?) -> String {
         guard let amount else { return "—" }
@@ -830,7 +837,13 @@ struct RegistrationSheetView: View {
                 .disabled(!flow.canEdit)
                 .accessibilityIdentifier("registration.form.ticketPicker")
                 if let ticket = flow.selectedTicket {
-                    RegistrationAmountRow(key: "registration.form.ticketPrice", amount: ticket.price)
+                    // MP baoming.wxml:149-153 `money.amount(selectedTicket.price)`: the ticket price is always shown
+                    // (¥ amount, 免费 when 0); a ticket without a server price reads 价格待定, never a bare dash.
+                    LabeledContent {
+                        Text(verbatim: ticketPriceText(ticket.price))
+                            .monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            .accessibilityIdentifier("registration.form.ticketPrice.amount")
+                    } label: { Text("registration.form.ticketPrice") }
                     if let description = ticket.description, !description.isEmpty { Text(verbatim: description) }
                     if ticket.isSoldOut {
                         TimelineView(.periodic(from: .now, by: 1)) { context in
