@@ -1198,6 +1198,35 @@ check_scaffold, check_design_consistency PASS; `contract_ratchet --check` 52 fai
 ### Not done (next run)
 - Badge detail name weight (needs the `test_object_badge_wall_layout…byte_identical` re-pin).
 
+## Continue run 36 (2026-11-28, merged combined-r7)
+
+Merge clean (22 files). No new coordinator row for this lane (latest: 07:45 sweep, mp-nav / mp-activity). Run 35 Not
+done: badge detail weight still waits for the `test_object_badge_wall_layout…byte_identical` re-pin. Next cross-screen
+row from the ADA audit §3 **Count format** ("3 of 12" EN passport vs "3 / 12" ZH vs "3 / 6" ring): the collection
+ring denominator. MP badge wall ring = big number over **共 N** (`subpackageP3/pages/badge-wall/index/index.wxml:41`
+`bw-ring__t`), same word as the stamp album total (`scene-roam-stamp-album/index.wxml:7` 共 N 枚).
+
+| Page (MP → native) · level | Line / key | Before → after |
+|---|---|---|
+| badge wall ring + roam stamp album ring (shared `CYAlbumProgressRing`) · B | `App/DesignSystem/CYAlbum.swift:119` | verbatim "/ N" (no EN word) → new key `collection.ofTotal %lld` en "of N" / zh "共 N" |
+| passport stamp / badge counters (number over denominator) · B | `passport.stamps.ofTotal %lld` (`PassportView:187, 398`) | zh "/ N" → "共 N" (en "of N" unchanged) |
+
+So every number-over-denominator collection count now reads N · of M / N · 共 M. Inline sentences keep the existing
+key `passport.stamps.count` (en "N of M", zh "N / M"). Kept compact "n/m" on purpose: per-badge progress
+(`ClubBadgeArtKit:182`), HUD clues, character limits, team seats (counters, not collection totals). `CYCountRing` has
+no call site. Snapshot `docs/release/ui-strings-ia.json:45` follows.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (0 debt, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- Badge detail name weight (needs the `test_object_badge_wall_layout…byte_identical` re-pin).
+- Roam stamp album ring passes `value: total ?? 0, total: total` (`RoamStampViews:358`), so it always reads full;
+  ADA "3 stamps in total while showing 2" — for mp-roam (data), see For other lanes.
+
+### For other lanes
+- mp-roam: `RoamStampViews.swift:358` ring value = total (always full); pass the collected count once the album reader
+  returns it (MP shows only 共 N 枚 there, so a plain total line may be the MP-faithful choice).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

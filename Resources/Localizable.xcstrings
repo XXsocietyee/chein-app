@@ -36394,6 +36394,24 @@
         }
       }
     },
+    "collection.ofTotal %lld": {
+      "comment": "Denominator under a collection count ring (MP badge wall bw-ring__t '共 N').",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "of %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共 %lld"
+          }
+        }
+      }
+    },
     "common.cancel": {
       "extractionState": "manual",
       "localizations": {
@@ -166798,7 +166816,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "/ %lld"
+            "value": "共 %lld"
           }
         }
       }
