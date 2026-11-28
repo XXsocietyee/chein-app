@@ -80,7 +80,7 @@ import SwiftUI
                                 }
                             }
                         }
-                        if flow.canReadMoreMembers { Button("d7.channelRoles.loadMore") { Task { await flow.readMembers(roleID:filterRole.isEmpty ? nil : filterRole,more:true) } } }
+                        if flow.canReadMoreMembers { CYLoadMoreRow("d7.channelRoles.loadMore") { Task { await flow.readMembers(roleID:filterRole.isEmpty ? nil : filterRole,more:true) } } }
                     }
                     if !flow.hasPending {
                         Section("d7.channelRoles.change") {
