@@ -214,6 +214,8 @@ my own look at `docs/sweeps/latest/mp-states/sheet-en.jpg` / `sheet-zh-Hans.jpg`
 |---|---|---|---|
 | 票夹 load failure (`TicketWalletView` → `TicketWalletIssueView`, `mp-states/en-e4-tickets-error.jpg`; level C) | MP 票夹 cy-error 票夹没能打开 · reason · 重试 | en title read **"Ticket wallet couldn't"** (the en catalog value itself was cut off, not a layout truncation); the nav title and Passport action read "Ticket" while the Me button says "Ticket wallet" | `ticketWallet.parity.error.title` en = "Couldn’t open your ticket wallet" (catalog + its source `Resources/W204TicketWalletLocalizations.fragment.json`, kept equal per `test_w2_04_ticket_wallet`); `ticketWallet.title` en = "Ticket wallet" (MP 票夹, matches the Me card). zh unchanged |
 
+**Half done (run 11-28 ~18:40):** the one new sweep row is closed; P1-9 moved to K50-R1. No other mp-states issue is visible in the b954de71c sheets (both languages) for the B half. Run stopped per the collision-fix rule.
+
 ## Contract cleanup (brief 20:40 UTC, rows owned by mp-states)
 
 | Path | Caller | Done |
