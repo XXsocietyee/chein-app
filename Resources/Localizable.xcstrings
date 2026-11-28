@@ -12100,7 +12100,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current Session Status"
+            "value": "Current session status"
           }
         },
         "zh-Hans": {
@@ -15888,7 +15888,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Accept Channel Rules & EULA"
+            "value": "Accept the channel rules & EULA"
           }
         },
         "zh-Hans": {
@@ -15956,7 +15956,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Club Channel Rules & Safety EULA"
+            "value": "Club channel rules & safety EULA"
           }
         },
         "zh-Hans": {
@@ -27294,13 +27294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Level %lld"
+            "value": "Lv.%lld"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等级 %lld"
+            "value": "Lv.%lld"
           }
         }
       }
@@ -61393,7 +61393,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not read progress. Node status is unconfirmed."
+            "value": "Couldn’t load your progress. The current stop’s status isn’t confirmed yet."
           }
         },
         "zh-Hans": {
@@ -78285,7 +78285,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Available Coop Activities"
+            "value": "Available co-op activities"
           }
         },
         "zh-Hans": {
@@ -78472,7 +78472,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Select Replacement Action"
+            "value": "Choose a replacement action"
           }
         },
         "zh-Hans": {
@@ -78676,7 +78676,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Buy Ticket for This Session"
+            "value": "Buy a ticket for this session"
           }
         },
         "zh-Hans": {
@@ -79233,7 +79233,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Level %lld"
+            "value": "Lv.%lld"
           }
         },
         "zh-Hans": {
@@ -80956,13 +80956,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Picked by our editors · see each page for entry requirements"
+            "value": "Check each page for entry rules"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "编辑精选 · 参加条件以详情为准"
+            "value": "参加条件以详情为准"
           }
         }
       }
@@ -85377,7 +85377,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "CITY Team Channel"
+            "value": "CITY team channel"
           }
         },
         "zh-Hans": {
@@ -85462,7 +85462,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nearby Roam Channel"
+            "value": "Nearby roam channel"
           }
         },
         "zh-Hans": {
@@ -87734,7 +87734,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Load Public Layers"
+            "value": "Load public layers"
           }
         },
         "zh-Hans": {
@@ -87768,7 +87768,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Load More Public Layers"
+            "value": "Load more public layers"
           }
         },
         "zh-Hans": {
@@ -87802,7 +87802,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry Current Cursor"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -88324,7 +88324,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes"
+            "value": "Stops"
           }
         },
         "zh-Hans": {
@@ -133242,7 +133242,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open conversation to view messages"
+            "value": "Open to read messages"
           }
         },
         "zh-Hans": {
@@ -138136,7 +138136,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completed nodes"
+            "value": "Completed stops"
           }
         },
         "zh-Hans": {
@@ -138835,7 +138835,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Node"
+            "value": "Stop"
           }
         },
         "zh-Hans": {
@@ -138903,7 +138903,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes"
+            "value": "Stops"
           }
         },
         "zh-Hans": {
@@ -138971,7 +138971,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completed nodes %lld"
+            "value": "Completed stops %lld"
           }
         },
         "zh-Hans": {
@@ -139141,7 +139141,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes done"
+            "value": "Stops done"
           }
         },
         "zh-Hans": {
@@ -140109,7 +140109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes"
+            "value": "Stops"
           }
         },
         "zh-Hans": {
@@ -140347,7 +140347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes %@"
+            "value": "Stops %@"
           }
         },
         "zh-Hans": {
@@ -151020,7 +151020,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photograph an item at a node you have played; once it passes review it is collected here"
+            "value": "Photograph an item at a stop you’ve played. Once it passes review, it’s collected here"
           }
         },
         "zh-Hans": {
@@ -161801,7 +161801,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Missing Task Node ID"
+            "value": "Missing task ID"
           }
         },
         "zh-Hans": {
@@ -161835,7 +161835,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal This Score Entry"
+            "value": "Appeal this score"
           }
         },
         "zh-Hans": {
@@ -162889,7 +162889,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sync Passed Tasks"
+            "value": "Sync completed tasks"
           }
         },
         "zh-Hans": {
@@ -166781,7 +166781,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "/ %lld"
+            "value": "共 %lld"
           }
         }
       }
@@ -167391,7 +167391,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open a route node to view its task and requirements."
+            "value": "Open a route stop to see its task and requirements."
           }
         },
         "zh-Hans": {
@@ -167850,7 +167850,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There are no route nodes yet. Return to the activity or route details and check again later."
+            "value": "This route has no stops yet. Go back to the activity or route details and check again later."
           }
         },
         "zh-Hans": {
@@ -168139,7 +168139,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The node is no longer visible in the current session. Return to the route to refresh."
+            "value": "This stop is no longer in your current session. Go back to the route to refresh."
           }
         },
         "zh-Hans": {
@@ -168156,7 +168156,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unnamed node"
+            "value": "Unnamed stop"
           }
         },
         "zh-Hans": {
@@ -168190,7 +168190,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No nodes are available in the current route state."
+            "value": "No stops to show on this route right now."
           }
         },
         "zh-Hans": {
@@ -175795,7 +175795,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Counts distinct normally completed nodes. Fallback completions are excluded."
+            "value": "Counts each stop you complete normally. Fallback completions are excluded."
           }
         },
         "zh-Hans": {
@@ -178894,7 +178894,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reveal Next Clue"
+            "value": "Reveal the next clue"
           }
         },
         "zh-Hans": {
@@ -185453,7 +185453,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Record Audio Clip"
+            "value": "Record an audio clip"
           }
         },
         "zh-Hans": {
@@ -190804,7 +190804,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm On-Site Photo"
+            "value": "Confirm on-site photo"
           }
         },
         "zh-Hans": {
@@ -191263,7 +191263,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh Confirmation Status"
+            "value": "Refresh confirmation status"
           }
         },
         "zh-Hans": {
@@ -197222,7 +197222,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未点亮"
+            "value": "未解锁"
           }
         }
       }
@@ -202655,7 +202655,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete on-site node interactions along the route"
+            "value": "Complete on-site tasks at each stop along the route"
           }
         },
         "zh-Hans": {
@@ -219890,7 +219890,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Club Member Priority"
+            "value": "Club member priority"
           }
         },
         "zh-Hans": {
@@ -242497,13 +242497,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Level %lld · City explorer"
+            "value": "Lv.%lld City explorer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lv.%lld · 城市探索者"
+            "value": "Lv.%lld 城市探索者"
           }
         }
       }
@@ -285840,7 +285840,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All Must Match"
+            "value": "All must match"
           }
         },
         "zh-Hans": {
@@ -286095,7 +286095,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Delete This Sentence"
+            "value": "Delete this sentence"
           }
         },
         "zh-Hans": {
@@ -289002,7 +289002,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose Another Name"
+            "value": "Choose another name"
           }
         },
         "zh-Hans": {
@@ -289019,7 +289019,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submit Chapter Answer"
+            "value": "Submit chapter answer"
           }
         },
         "zh-Hans": {
@@ -297284,7 +297284,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未点亮"
+            "value": "未解锁"
           }
         }
       }
@@ -300673,7 +300673,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Follow / Join Club"
+            "value": "Follow or join the club"
           }
         },
         "zh-Hans": {
@@ -300979,7 +300979,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No Sessions Available"
+            "value": "No sessions available"
           }
         },
         "zh-Hans": {
@@ -300996,7 +300996,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Missing Route or Session Info"
+            "value": "Route or session info is missing"
           }
         },
         "zh-Hans": {
@@ -302157,7 +302157,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try Saving Again"
+            "value": "Try saving again"
           }
         },
         "zh-Hans": {
@@ -321704,7 +321704,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Motion & Fitness Needed"
+            "value": "Motion & Fitness access needed"
           }
         },
         "zh-Hans": {
@@ -321823,7 +321823,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This Round Was Updated"
+            "value": "This round was updated"
           }
         },
         "zh-Hans": {
@@ -322405,7 +322405,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Go to Next Stop"
+            "value": "Go to the next stop"
           }
         },
         "zh-Hans": {
@@ -358735,6 +358735,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "角色「你知道的」里有一条解锁的章节已经不在了，重新选一章。"
+          }
+        }
+      }
+    },
+    "registration.result.viewTicket": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View in ticket wallet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看票夹"
           }
         }
       }
