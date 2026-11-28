@@ -454,11 +454,12 @@ light panel, i · 走起 · map fit ✓. No open coordinator finding. Not done i
 | MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
 |---|---|---|---|---|
 | Error / validation / warning text on every player page (login error, club governance + ops forms, channel moderation/roles/mention, publish validation + refusal footers, square delete failed, IM voice play failed, pass refund, enrollment issue, team join code, games notices, profile save failed, shared error state …) | 187 lines in 128 player files (Merchant / Fixture / Diagnostics / Debug skipped; `WorkshopModUpgradeSheetView.swift` left: its source is sha256-pinned by `test_workshop_paid_reentry_closure`) | ✓ (layout untouched) | `.foregroundStyle(.red)` / `.foregroundColor(.red)` on text → `CYColor.dangerText` (system red #FF3B30 on white is ~3.6:1, below 4.5:1). Image-only glyph lines and ternaries left (3:1 graphics rule) | Done |
+| Two-state status text (seat facts warning, report / complaint / club ops / host cancel counters, friend removal + blacklist result, channel banners, publish wizard chips, topic publication + location todos, login / auth channel issue, invoice notice, AI quota, team invite copy, game answer marks, sensor loudness, preview pager) | 37 ternaries in 29 player files (`*SectionView` readiness panels = internal diagnostics, skipped; club like heart = glyph, left) | ✓ (layout untouched) | `cond ? Color.red : …` → `CYColor.dangerText`, paired `Color.green` / `Color.orange` → `CYColor.successText` / `warningText` (system green ~2.2:1, red ~3.6:1 on white) | Done |
 
 ## Not done (next run starts here)
 - Continue pages without a row (largest player views next; skip Merchant / Fixture / Diagnostics). Next candidates: scan for remaining
   `.foregroundStyle(.orange)` / `.green` / `.yellow` on text (contrast) in player views, then `.lineLimit(1)` in HStacks with two texts.
-  Run 27 finished `.orange/.green/.yellow`, run 28 `.red` text. Next: `.red` in ternaries on text (`? .red : .secondary`), then `.lineLimit(1)` in HStacks with two texts.
+  Run 27 finished `.orange/.green/.yellow`, run 28 `.red` text. Run 28 also did the player `.red` ternaries. Next: `.lineLimit(1)` in HStacks with two texts.
 - Re-read the a11y sheets after the next sweep (newer than 7a7d2708a, to see runs 27-28).
 
 ## For other lanes

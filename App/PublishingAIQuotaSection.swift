@@ -25,7 +25,7 @@ import SwiftUI
                             Text(verbatim: String(remaining))
                                 .font(.headline)
                                 .monospacedDigit()
-                                .foregroundStyle(remaining == 0 ? Color.red : Color.primary)
+                                .foregroundStyle(remaining == 0 ? CYColor.dangerText : Color.primary)
                         }
                         .accessibilityIdentifier("publishingAIQuota.remaining")
                     }
