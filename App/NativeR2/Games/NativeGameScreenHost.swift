@@ -188,6 +188,7 @@ extension PlayKitScreen {
         case .musicCorner: return "playkit.music.eyebrow"
         case .silentOrder: return "playkit.silent.eyebrow"
         case .diyName: return "playkit.diy.eyebrow"
+        case .blindTaste: return "playkit.blind.eyebrow"
         case .note: return projection.title.isEmpty ? "playkit.note.kicker" : nil
         case .photoCheck: return projection.title.isEmpty ? "playkit.photo.kicker" : nil
         case .profile: return projection.title.isEmpty ? "playkit.profile.kicker" : nil
