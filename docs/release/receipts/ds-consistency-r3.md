@@ -959,6 +959,53 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 - Page-hero headers (`ActivityDetailHeader`, `ClubDetailHeader`, `TeamPageHeader`: `.title2.bold()`) vs
   `cyPageTitle`: check they share one hero title style.
 
+## Continue run 31 (2026-11-28, rebased onto run 30) — OWNER RULE 3 shared effect kit (ds-consistency goes first)
+
+Took OWNER RULE 3 (11-28 06:10) before the run 29 Not done row: "ds-consistency goes first so the others call it".
+
+| Component (`App/DesignSystem`) | Restored from `89e71d61d^` | Reduce Motion / Low Power gating |
+|---|---|---|
+| `CYBurst` (particles) | Canvas + TimelineView body | draws only when `!reduceMotion && CYLightBudget.particlesAllowed` (unchanged) |
+| `CYConfettiBurst` (`CYSignature`) | Canvas confetti body | `fire()` now also requires `CYLightBudget.particlesAllowed` (was Reduce Motion only) |
+| `CYStarBloom` | horizon / glow / silhouette / orbit | callers pass `phase: 1` under Reduce Motion and `cheap` under Low Power (`CYCelebrationViews:536`) |
+| `CYFogLayer` (`CYRoamKit`) | drifting fog Canvas + reveal spring | drift now also requires `CYLightBudget.shadersAllowed`; static frame otherwise |
+| `CYEdgeGlow` + `.cyEdgeGlow(trigger:)` | comet sweep + ring | Reduce Motion: ring fade only; Low Power: `cheap` (no blur layers); Reduce Transparency: solid ring |
+| `CYFoil` / `.cyFoil` | live foil + tilt hold | live only with `!reduceMotion && gyroAllowed`; static highlight otherwise |
+
+Not restored on purpose: `CYMapChrome` and the Roam panel (coordinator 02:05: settled, do not edit), `CYNightGlass`
+(map buttons; part of the settled map chrome), `CYGlassCarousel` / `CYGlassSliver` / `CYGlassGroup` /
+`CYCarouselBackdrop` (only mounted by `DesignFixtures/CarouselFixtures`; no distinctive surface uses it yet).
+
+Clean-page calls removed (the effect would now be live there):
+
+| MP page → native | Call removed | Why clean |
+|---|---|---|
+| `subpackageMember` ticket wallet → `App/E1TicketCard.swift:38` | `.cyFoilSheen(trigger: sheen + autoSheen)` | wallet list (OWNER RULE 3 clean list); tap keeps its selection haptic, the pass foil edge stays |
+| roam stamp album → `App/RoamStampViews.swift:439` (`RoamStampAlbumPage`) | `.cyFoilSheen(trigger:)` on flip | album grid = collection list (P24); the stamp-collected moment keeps `cyStampSlam` / celebrations |
+
+Gate: new kind **effect on clean page** (`tools/check_design_consistency.py`, `EFFECT_PATTERN`): any call to the kit
+above outside the distinctive surfaces fails. Allowed: `EFFECT_SURFACE_DIRS` (`NativeR2/Games`, `Story`,
+`FreeExplore`, `CityOrientation`, `MapHome`, `Motion`), `EFFECT_SURFACE_NAME` (play / game / chapter / story /
+pay / checkout / journey report / roam live, finish, fog / city roam / stamp capture / celebration / reward files),
+and `EFFECT_KIT_FILES` (the kit and its celebration / album / medal hosts). One allowed entry with reason:
+`CYTicketPass` `cyCodeReveal` (pass reveal after payment, no clean call site). Celebration overlays
+(`.cyCelebrations`, `.cyStampSlam`) are the allowed moments themselves and are not flagged on their host pages.
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (0 debt, 115 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+Current hits: 0. Self-test: re-adding `.cyFoilSheen(trigger: sheen)` to `E1TicketCard` fails at line 39; reverted.
+
+Callers for the other lanes (OWNER RULE 3 owners): mp-roam `CYFogLayer` (only a fixture mounts it today) and stamp
+burst; mp-journey games / story / run finish; mp-activity payment moment; mp-mine badges / level (`CYStarBloom` via
+`CYCelebrationViews`); mp-club `CYJoinReward`. All of them pass the gate when called from their surface files.
+
+No compiler in the cloud: the restored bodies are the exact pre-11-26 code; helpers they call (`draw`, `CYFogCanvas`,
+`CYFoilLive`, `cyTiltHold`, `horizon` …) were never removed. Next integration build confirms.
+
+### Not done (next run)
+- Page-hero headers (`ActivityDetailHeader`, `ClubDetailHeader`, `TeamPageHeader`: `.title2.bold()`) vs
+  `cyPageTitle`: one hero title style (run 30 row).
+- Effect kit: reduce-motion fallback for `CYBurst` / `CYConfettiBurst` is "draw nothing" (callers pair a haptic);
+  check each celebration caller also shows the static state (opacity fade) per OWNER RULE 3.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
