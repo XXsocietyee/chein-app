@@ -157,7 +157,7 @@ struct A11yPassportAX5Fixture: View {
     var body: some View {
         IAPassportFixture(count: 3, badges: [
             PassportBadge(id: 0, name: iaFixtureText("Night Owl", "夜猫子")),
-            PassportBadge(id: 1, name: iaFixtureText("First Roam", "第一次漫游"))
+            PassportBadge(id: 1, name: iaFixtureText("First Stamp", "第一枚印章"))
         ], badgeTotal: 6)
             .environment(\.dynamicTypeSize, .accessibility5)
     }

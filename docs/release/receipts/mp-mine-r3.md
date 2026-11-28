@@ -524,3 +524,16 @@ Branch was up to date with `origin/ui/combined-r7`. The twin run's continue 29 a
 Not done: P2-5b (Apple full name, waits on `fix/1128-apple-delete`), the ticket pass-card look, `CharacterCardReadbackView` byte pin.
 
 Gates (each push): generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 31 (11-28, hourly run): ADA audit rows for mp-mine (continued)
+
+Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts taken from combined-r7; `DesignFixtureRegistry.swift` kept both sides' cases; xcstrings = combined-r7 plus the branch-only keys, as JSON, no duplicates; pbxproj regenerated). The 06:25 – 07:05 coordinator notes have no new mp-mine rows. Screens checked: `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg`, `sheet-en.jpg` (build ffeef67c7, before continue 30, so 发布优惠券 still shows there). P2-5b (Apple full name) is covered by `fix/1128-apple-delete` commit `1b9caf4ee` ("send Apple givenName/familyName on first Apple sign-in"); not duplicated here, waiting for the coordinator merge.
+
+| ADA row | MP | Native file | Level | Fixed now |
+|---|---|---|---|---|
+| ia-passport (P0): badge glyphs change with the UI language (EN flag/sun, ZH lightning) and the art differs from the badge wall; names "First Roam" vs the wall's "First Stamp" | `subpackageMember` badge wall (`ObjectBadgeWallView`, server `badge.image`, MP `badge-demo.png` fallback) | `App/PassportView.swift` `PassportBadge`, `badgeObject`; `App/DesignFixtures/DesignFixtureRegistry.swift`, `E5bFixtures.swift` | B | **Fixed.** `PassportBadge` carries the server `iconUrl`; the passport rail draws `ObjectBadgeTileArtwork` (the wall's artwork, MP medal fallback) instead of `ClubBadgeArt`, whose emblem was picked from the localized name. One badge object on both screens, no locale-dependent glyph. Fixture names now match the wall (夜猫子 / 第一枚印章 / 菜场常客, total 6). |
+| d2-me (P1, P22): both [开始探索][票夹] filled | MP `pc-actions` same size; look per OWNER RULE 2 / P22 (primary filled + secondary bordered) | `App/MemberHomeHeader.swift` `actionRow`, `ticketsButton`, new `MemberCardActionStyle` | B | **Fixed.** In the pair, 开始探索 stays `.borderedProminent` and 票夹 is `.bordered`, both `.large` and equal width in the row and in the stacked fallback. A lone 票夹 (member header without 开始探索) stays the one prominent action. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Next (ADA, still open for mp-mine): e4-settings one-row cards → grouped sections; e4-tickets pass-card look (the Upcoming / Past split stays out, see the twin run above); e5b-badge-wall share + per-badge art; t5-order-center (MP order list vs lookup); CN¥ vs ¥ in EN.

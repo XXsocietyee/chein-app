@@ -23,7 +23,7 @@ import SwiftUI
     var onSnapshot: ((MemberIdentitySnapshot?) -> Void)? = nil
     /// mp-mine r3 (14:13 visual check): false keeps 积分 and 连续打卡 out of the card; the 我的 page shows them on 成就.
     var showsMetrics = true
-    /// MP cy-profile `pc-actions` (self): 开始探索 (goRoam) beside 票夹, same size, both primary. Nil keeps the single 票夹.
+    /// MP cy-profile `pc-actions` (self): 开始探索 (goRoam) beside 票夹, same size; native look P22: 开始探索 filled, 票夹 bordered. Nil keeps the single 票夹.
     var onStartExplore: (() -> Void)? = nil
     /// The ··· menu after the two primary buttons. Nil hides it.
     var moreMenu: AnyView? = nil
@@ -116,7 +116,7 @@ import SwiftUI
                     statCell(snapshot?.fansCountText, id: "fans", key: "member.card.fans")
                 }
             }
-            // MP cy-profile `pc-actions`: [开始探索] [票夹] (same size, both primary) [···] under the counters.
+            // MP cy-profile `pc-actions`: [开始探索] [票夹] (same size; P22 filled + bordered) [···] under the counters.
             if let onOpenTickets, onStartExplore != nil {
                 actionRow(onOpenTickets)
             } else if let onOpenTickets {
@@ -136,7 +136,7 @@ import SwiftUI
 
     private var snapshot: MemberIdentitySnapshot? { if case .ready(let value) = phase { return value }; return nil }
 
-    /// MP `pc-actions`: two equal primary buttons (the ··· menu is on the identity row). One-line labels; when
+    /// MP `pc-actions`: two equal buttons, 开始探索 filled and 票夹 bordered (P22) (the ··· menu is on the identity row). One-line labels; when
     /// the row does not fit (English "Start exploring" at 375 pt, accessibility sizes) both buttons stack, each
     /// full width, so the two rows always match.
     private func actionRow(_ onOpenTickets: @escaping () -> Void) -> some View {
@@ -149,7 +149,7 @@ import SwiftUI
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 8) {
                         startExploreButton(fixedLabel: true)
-                        ticketsButton(onOpenTickets, fixedLabel: true)
+                        ticketsButton(onOpenTickets, fixedLabel: true, secondary: true)
                     }
                     stackedActions(onOpenTickets)
                 }
@@ -160,7 +160,7 @@ import SwiftUI
     private func stackedActions(_ onOpenTickets: @escaping () -> Void) -> some View {
         VStack(spacing: 8) {
             startExploreButton(fixedLabel: false)
-            ticketsButton(onOpenTickets, fixedLabel: false)
+            ticketsButton(onOpenTickets, fixedLabel: false, secondary: true)
         }
     }
     /// MP `pc-primary` 开始探索 is a text-only button (no icon), unlike 票夹.
@@ -177,7 +177,9 @@ import SwiftUI
             .accessibilityIdentifier("member.card.startExplore")
         }
     }
-    private func ticketsButton(_ onOpenTickets: @escaping () -> Void, fixedLabel: Bool) -> some View {
+    /// `secondary`: beside 开始探索 the pair reads primary filled + secondary bordered (P22, ADA d2-me); alone it stays
+    /// the one prominent action.
+    private func ticketsButton(_ onOpenTickets: @escaping () -> Void, fixedLabel: Bool, secondary: Bool = false) -> some View {
         Button(action: onOpenTickets) {
             // Explicit icon + text: the system Label dropped the glyph inside the large prominent button and
             // left its gap, so 票夹 sat off centre (00:10 sweep, d2-me zh-Hans + en).
@@ -189,7 +191,7 @@ import SwiftUI
             }
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent).controlSize(.large)
+        .modifier(MemberCardActionStyle(secondary: secondary))
         .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
         .accessibilityIdentifier("member.card.tickets")
     }
@@ -745,5 +747,17 @@ private struct MemberAssetRoll: ViewModifier {
 extension MemberAchievementMetricsSection where Trailing == EmptyView {
     init(growth: any GrowthCenterReading, refreshToken: Int = 0, onOpenPoints: (() -> Void)? = nil, onOpenPointsHelp: (() -> Void)? = nil) {
         self.init(growth: growth, refreshToken: refreshToken, onOpenPoints: onOpenPoints, onOpenPointsHelp: onOpenPointsHelp, trailing: { EmptyView() })
+    }
+}
+
+/// P22 action pair: the primary action is `.borderedProminent`, the secondary `.bordered`; both `.large`, equal width.
+struct MemberCardActionStyle: ViewModifier {
+    let secondary: Bool
+    func body(content: Content) -> some View {
+        if secondary {
+            content.buttonStyle(.bordered).controlSize(.large)
+        } else {
+            content.buttonStyle(.borderedProminent).controlSize(.large)
+        }
     }
 }
