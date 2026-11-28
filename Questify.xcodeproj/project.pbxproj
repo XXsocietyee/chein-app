@@ -49118,6 +49118,7 @@
 				"608D204C409A17B569E4219F",
 				"84FFD51A31A9016872DB5A8E",
 				"E8F464C5C2204BF52C4CE0F5",
+				"37BD89D8ED178760DEDDF8D8",
 				"7B760133AF96D74758077F74",
 				"CBB8B1C0D08554A882A171D4",
 				"D3D83E11D9A48DB01B7B4B30",
@@ -64816,6 +64817,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "E8F464C5C2204BF52C4CE0F5";
 		};
+		"37BD89D8ED178760DEDDF8D8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/RoamUnitedStatesReleaseCompositionTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"AC47172312C85043D60F68D3" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "37BD89D8ED178760DEDDF8D8";
+		};
 		"7B760133AF96D74758077F74" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -67067,6 +67078,7 @@
 				"C4B9E9D9FA0D4A7F200400CC",
 				"9D5092F6DC088697BA42C59E",
 				"7A7111D7C0B2986DF7EAC2A6",
+				"AC47172312C85043D60F68D3",
 				"104EBD59971DB2874C64969F",
 				"D27115B5A2D3C99CEA5B82C2",
 				"CF961AD0D16DB75F91513B39",

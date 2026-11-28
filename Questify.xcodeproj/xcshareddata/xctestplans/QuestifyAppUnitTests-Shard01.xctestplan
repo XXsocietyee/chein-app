@@ -581,6 +581,7 @@
         "RoamStampPixelTests",
         "RoamTileIntentLifetimeTests",
         "RoamTileMemoryReadAccessTests",
+        "RoamUnitedStatesReleaseCompositionTests",
         "RuntimeSessionRoleConsistencyTests",
         "SQLiteAndJSONJournalCorruptionRecoverySectionViewTests",
         "ScheduleAndLeadProgressPollingSectionViewTests",
