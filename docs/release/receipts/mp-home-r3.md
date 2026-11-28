@@ -459,6 +459,14 @@ Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: both HEAD 
 | `fix/1128c-ai-showcase` AI card merged at the head of 编辑精选 | owner AI item (12:25), not this lane's; MP order of the other sections unchanged | left to that worker |
 
 Receipt hygiene: the topic 评价 empty-state row (two write entries) was already fixed in `fdd82efee`; marked fixed above. No open coordinator item for mp-home; remaining Not done rows need a simulator/device or the P2-3d decision.
+## Round 3 continue (37) — activity detail 集合点 map snippet (level B, P28)
+
+Rebased onto continue 36 (same merge of `origin/ui/combined-r7`). Sweep build 0446d1c4f (`sheet-zh-Hans.jpg`, `sheet-en.jpg`): no open coordinator item for mp-home; all `pages/index` targets already have rows, so this run re-scanned `zh-Hans-rep3-activity-detail.jpg`. Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `scene-play-activity-detail/index.wxml:34` 集合点 row (`hasLocation` → `openLocation`) → `App/ActivityDetailView.swift` `ActivityDetailMetaSection` | OWNER RULE 3 level B asks for a map snippet for every place (P28, as on the 首页 Today card); the detail showed 集合点 as text only. MP content unchanged: still one 集合点 fact with the same Maps target, no new section. | **Fixed** — when the activity has valid coordinates, the shared static `HomeTodayMeetingPointMap` (one marker, `interactionModes: []`, no hit testing, labelled + hinted, tap → Apple Maps) sits right under the 集合点 row (id `activity.detail.meetingPointMap`); no coordinates → no snippet. `rep3-activity-detail` fixture now carries the 灯笼广场 coordinate. Contract pins updated (`test_activity_design_structure`, `test_activity_registration_parity_w2_06`, `test_accessibility_hardening_wave`). |
+| `search2/index.wxml` / `search2/result/index.wxml` vs `d2-search(-results)` | Re-checked: 推荐搜索, 类别, 在地图上找, result chips, 没有更多了 + 重新搜索 all in MP order. | No change. |
 
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
@@ -506,6 +514,7 @@ Receipt hygiene: the topic 评价 empty-state row (two write entries) was alread
 - Needs a simulator pass (continue 33): `d2-home` greeting 今天去哪？ / role label in secondary, short 编辑精选 subtitle; activity / topic detail "···" menu, en + zh-Hans.
 - Needs a simulator pass (continue 34): `rep3-activity-detail` with an upcoming fixture date shows Add to Calendar under the hero date (en + zh-Hans, AX5); device pass: the system editor opens prefilled and Cancel/Add both close the sheet.
 - Needs a simulator pass (continue 35): `rep3-activity-detail` 「N 人已报名」 avatar wrap (en + zh-Hans, AX5: avatars grow, still wrap) and the en "When · …" hero line; UI test `testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack`.
+- Needs a simulator pass (continue 37): `rep3-activity-detail` map snippet under 集合点 (en + zh-Hans, light/dark, AX5: height scales, capped 220 pt); tap opens Maps.
 - Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
 
 ## For other lanes

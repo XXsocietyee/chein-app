@@ -954,6 +954,7 @@ struct HomeTodayCard: View {
             facts(c)
             if let point = c.meetingPoint {
                 HomeTodayMeetingPointMap(point: point, place: c.placeText)
+                    .accessibilityIdentifier("homeFeed.today.meetingPoint")
                     .padding(.top, CYSpacing.xs)
             }
             if let action = c.action {
