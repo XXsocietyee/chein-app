@@ -35,7 +35,7 @@ public struct SquareGovernanceService {
     }
     /// Dormant concrete adapter for any HTTPTransport. A separately reviewed grant
     /// activates only listed operations; neither reads nor mutations default on.
-    /// Shipped composition roots do not supply this grant.
+    /// `SquareNotificationLease` is the shipped grant (list, mark-read, appeal).
     public init(dormantBaseURL: URL, transport: any HTTPTransport, readsEnabled: Bool = false, grant: SquareGovernanceMutationGrant = .disabled) {
         baseURL = dormantBaseURL; self.transport = transport; self.readsEnabled = readsEnabled
         mutationCapabilities = grant.capabilities
@@ -185,5 +185,27 @@ public struct SquareGovernanceService {
         if let code, code != 200 { throw SquareGovernanceFailure.rejected(code) }
         guard (200..<300).contains(status), code == 200, let body else { throw mutation ? SquareGovernanceFailure.unknown : .malformed }
         return body["data"]
+    }
+}
+
+/// Plan M-11a: the notification list, mark-read and appeal the China routes already serve.
+/// Preference writes, comment approve and comment delete stay off. Reads stay off when any of
+/// the three routes is not admitted, including when a money switch blocks the path.
+public enum SquareNotificationLease {
+    public static let listPath = "/api/v1/community/notifications"
+    public static let readPath = "/api/v1/community/notifications/{}/read"
+    public static let appealPath = "/api/v1/community/appeals"
+    public static let capabilities: Set<SquareGovernanceCapability> = [.markRead, .appeal]
+
+    public static var routesLive: Bool {
+        ChinaReviewedRouteCapability.admitsChinaProductionCall(listPath)
+            && ChinaReviewedRouteCapability.admitsChinaProductionCall(readPath)
+            && ChinaReviewedRouteCapability.admitsChinaProductionCall(appealPath)
+    }
+
+    public static func service(baseURL: URL, transport: any HTTPTransport) -> SquareGovernanceService {
+        let live = routesLive
+        return SquareGovernanceService(dormantBaseURL: baseURL, transport: transport, readsEnabled: live,
+                                       grant: live ? .reviewedInjection(capabilities) : .disabled)
     }
 }

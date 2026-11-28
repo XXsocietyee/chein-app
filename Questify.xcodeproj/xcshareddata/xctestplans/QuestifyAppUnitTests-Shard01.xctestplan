@@ -196,6 +196,7 @@
         "InvoiceLaunchNavigationCancellationTests",
         "InvoiceLaunchPresentationActionTests",
         "K40HomeDiscoveryCompositionTests",
+        "K40NotificationLeaseTests",
         "LanguageSwitcherTests",
         "LocalizationCompletenessSectionViewTests",
         "LocationShareAndSideQuestViewTests",
