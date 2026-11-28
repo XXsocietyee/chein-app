@@ -245,8 +245,9 @@ HEADER_FONT_PATTERN = re.compile(
     r'|\bCYSectionHeader\(')
 RAW_COUNT = 'raw count'
 # One count style (ADA audit cross-screen): a big number is `.cyText(.dataXL)` (largeTitle, bold, rounded, monospaced
-# digits). A raw `.font(.largeTitle…)` + `.monospacedDigit()` draws the same number in a second face and weight.
-RAW_COUNT_FONT = re.compile(r'\.font\(\s*\.largeTitle\b')
+# digits), a card stat / price is `.cyText(.numericTitle)` (title3, semibold, monospaced digits). A raw
+# `.font(.largeTitle…|.title3…)` + `.monospacedDigit()` on the same chain draws it in a second face and weight.
+RAW_COUNT_FONT = re.compile(r'\.font\(\s*\.(?:largeTitle|title3)\b')
 RAW_COUNT_DIGITS = re.compile(r'\.monospacedDigit\(\)')
 EFFECT_ON_CLEAN = 'effect on clean page'
 # OWNER RULE 3 (11-28): the 11-26 no-op effects are restored, but only for games, story flow, payment, maps and
@@ -649,7 +650,8 @@ def scan_file(rel, text):
         # Games / story / play keep their own HUD numerals (OWNER RULE 3 level A).
         for index, (number, code) in enumerate(lines):
             if RAW_COUNT_FONT.search(code) and 'Image(' not in code and \
-                    any(RAW_COUNT_DIGITS.search(c) for _, c in lines[index:index + 2]):
+                    (RAW_COUNT_DIGITS.search(code) or (index + 1 < len(lines)
+                                                       and lines[index + 1][1].lstrip().startswith('.monospacedDigit()'))):
                 hits.append((number, RAW_COUNT, code.strip()))
     if is_root:
         has_large = any(ROOT_HEADER_PATTERN.search(c) or LARGE_PATTERN.search(c) for _, c in lines)

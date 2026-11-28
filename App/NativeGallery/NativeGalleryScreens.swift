@@ -450,7 +450,7 @@ struct NativeGalleryMerchant: View {
             }
             Section("收入") {
                 LabeledContent("累计收入") {
-                    Text("¥12,480.00").font(.title3).monospacedDigit()
+                    Text("¥12,480.00").cyText(.numericTitle)
                 }
                 Text("3 笔售后待回应")
                     .font(.subheadline)

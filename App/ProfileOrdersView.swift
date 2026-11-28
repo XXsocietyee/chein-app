@@ -462,7 +462,7 @@ private struct ProfileOrderRow: View {
                 if order.registrationStatus != 1 || order.pendingPayAmount != nil {
                 Text(order.registrationStatus == 1 ? "u9cde.orders.payable" : "profile.orders.paid").font(.subheadline).foregroundStyle(.secondary)
                 Text(verbatim: (order.registrationStatus == 1 ? order.pendingPayAmount : order.actualPaidAmount).map(ProfileOrderYuan.text) ?? "—")
-                    .font(.title3.weight(.semibold)).monospacedDigit().foregroundStyle(.primary)
+                    .cyText(.numericTitle).foregroundStyle(.primary)
                     .cyWrapText()
                 }
             }

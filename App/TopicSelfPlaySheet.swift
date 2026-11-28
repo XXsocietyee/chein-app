@@ -112,7 +112,7 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
                         HStack(spacing: CYSpacing.md) {
                             VStack(alignment: .leading, spacing: 2) {
                                 if let price = model.flow.topic.selfPlayPrice {
-                                    Text(verbatim: NSDecimalNumber(decimal: price).stringValue).font(.title3.weight(.semibold)).monospacedDigit()
+                                    Text(verbatim: NSDecimalNumber(decimal: price).stringValue).cyText(.numericTitle)
                                 } else {
                                     Text("topic.priceUnknown").font(.headline)
                                 }

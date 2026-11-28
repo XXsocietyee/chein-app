@@ -1102,10 +1102,35 @@ failed on `BundleTransferSendView`, `NativeMotionReminderViews:106`, `TemplateAd
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
 (0 debt, raw count 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
+### Batch 2 — mid-size counts: token `numericTitle`
+No token sat between `numericBody` (row number) and `dataXL` (hero): 18 card prices / stats used `.title3` with three
+weights (semibold 13, bold 4, regular 2). New token **`numericTitle`** = `.title3`, semibold, monospaced digits
+(`CYDesignTokens.swift`, `tools/typography_scale.py`, rule card `docs/design/type-and-chrome.md`). Folded:
+
+| Page (MP → native) · level | Lines |
+|---|---|
+| topic detail / self-play price (`pages/topic/*`) · B | `TopicDetailView:568`, `TopicXcxSections:159, 301, 314`, `TopicSelfPlaySheet:115` |
+| workshop offer price · B | `WorkshopCommerceView:92` |
+| pass plan price (`subpackagePass`) · B | `PassMembershipViews:268` (bold → semibold) |
+| bundle order total · C | `BundleOrderSummarySheet:89` |
+| Me card stats / balance · B | `MemberHomeHeader:338, 430` (balance regular → semibold) |
+| order card amount · C | `ProfileOrdersView:465` |
+| withdrawal application number · C | `BankWithdrawalView:186` |
+| club customer paid total / day · C | `ClubOpsCustomerViews:261, 380` |
+| roam runner / subpage stat · B | `RoamRunnerDetailView:121`, `RoamSubpageParityViews:23` (bold → semibold) |
+| bingo step number · C | `ProjectEditBingoPage:84` |
+| native gallery sample | `NativeGalleryScreens:453` |
+
+Gate `raw count` now also covers `.font(.title3…)`, with `.monospacedDigit()` on the same chain (same line or a
+following `.monospacedDigit()` line, so a title above a number is not flagged). Baseline 0. Kept: play surfaces
+(`PlayExperienceView:1018`, `PlayAreaPopupCloseSurfaces:540`, CityOrientation `.title2` HUD) — level A.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_typography_lint` PASS, `check_a11y_lint` PASS (0 new),
+`check_design_consistency` PASS (raw count 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
 ### Not done (next run)
 - Badge detail name weight (run 30 row; needs the `test_object_badge_wall_layout…byte_identical` re-pin).
-- Mid-size numbers: `.font(.title…)` + `.monospacedDigit()` counts vs `.cyText(.dataL…)`-style tokens (check whether a
-  mid data token exists; fold or add one).
+- `.title2` counts (`BundleDetailView:58`, `OfficialEventDetailView:118` percent) — decide numericTitle vs dataXL.
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,

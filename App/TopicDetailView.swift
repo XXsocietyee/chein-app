@@ -565,7 +565,7 @@ struct TopicDetailView: View {
                     // PC-B-1-15: the price of what unlocks (MP paywall price row); unknown price → row hidden.
                     if value.selfPlay == 1, let price = value.selfPlayPrice {
                         Text(verbatim: LocaleDisplay.money(price, locale: locale))  // owner decision 9: ¥12.50
-                            .font(.title3.weight(.semibold)).monospacedDigit()
+                            .cyText(.numericTitle)
                             .accessibilityIdentifier("topic.paywall.price")
                     }
                     if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) {

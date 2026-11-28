@@ -89,7 +89,7 @@ import SwiftUI
                 Section {
                     VStack(alignment: .leading, spacing: Theme.Space.s3) {
                         Text(verbatim: offer.title).font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: price(offer.currency, minor: offer.priceMinor)).font(.title3.weight(.semibold)).monospacedDigit()
+                        Text(verbatim: price(offer.currency, minor: offer.priceMinor)).cyText(.numericTitle)
                     }.padding(.vertical, Theme.Space.s2)
                     CommerceFact("version", offer.releaseId)
                     CommerceTermsFacts(terms: offer.terms)
