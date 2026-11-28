@@ -170,7 +170,12 @@ struct CYSegmentedContent<Selection: Hashable, Content: View>: View {
                 .transition(reduceMotion ? .opacity : .asymmetric(insertion: .opacity.combined(with: .offset(y: 8)), removal: .opacity))
         }
         .animation(.easeInOut(duration: CYMotion.Duration.quick), value: selection)
-        .cyHaptic(.selection, trigger: selection, where: { _, _ in haptic })
+        .cyHaptic(.selection, trigger: selection, where: playsSelectionHaptic)
         .onChange(of: selection) { _, _ in UIAccessibility.post(notification: .layoutChanged, argument: nil) }
     }
+}
+
+private extension CYSegmentedContent {
+    /// Typed haptic condition: the `.selection` tick plays unless the picker already plays one.
+    func playsSelectionHaptic(_ old: Selection, _ new: Selection) -> Bool { haptic }
 }

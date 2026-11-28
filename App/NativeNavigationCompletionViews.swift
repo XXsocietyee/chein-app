@@ -36,10 +36,12 @@ import SwiftUI
     /// MP PG-014 `_backToCodeEntry`: a code the server cannot resolve comes back to this field with the reason.
     @State private var lookupReason: LocalizedStringKey?
     @State private var looking = false
+    /// Counts rejected codes (format or lookup) so each rejection plays one warning haptic.
+    @State private var rejectTicks = 0
     private static let maxCodeLength = 40
     private func open() {
         guard !looking else { return }
-        guard let value = try? TeamInvitationRoute(code: code) else { invalid = true; lookupReason = nil; return }
+        guard let value = try? TeamInvitationRoute(code: code) else { invalid = true; lookupReason = nil; rejectTicks += 1; return }
         invalid = false; lookupReason = nil
         Task { await lookUp(value) }
     }
@@ -53,6 +55,7 @@ import SwiftUI
         guard value.code == (try? TeamInvitationRoute(code: code))?.code else { return }
         if coordinator.detail != nil || coordinator.messageKey == "team.signIn" { proceed(value); return }
         lookupReason = Self.reason(coordinator)
+        rejectTicks += 1
     }
     private func proceed(_ value: TeamInvitationRoute) {
         if let onOpen { onOpen(value) } else { route = TeamInvitationPresentation(route: value) }
@@ -110,6 +113,7 @@ import SwiftUI
                 TeamInvitationDestination(route: item.route, makeCoordinator: makeCoordinator, onLogin: onLogin)
             }
             .privacySensitive()
+            .cyHaptic(.warning, trigger: rejectTicks)
         .cyDomainScreen(.player)
     }
 }

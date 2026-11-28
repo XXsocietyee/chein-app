@@ -160,113 +160,11 @@
     }
   },
   "baseline": {
-    "App/AccountDeregistrationImpactSection.swift": {
-      "untyped haptic": 1
-    },
     "App/AssetPointsAndOrderCancellationSectionView.swift": {
       "status capsule": 2
     },
-    "App/AuthChannelView.swift": {
-      "untyped haptic": 1
-    },
-    "App/BankWithdrawalView.swift": {
-      "untyped haptic": 1
-    },
-    "App/BundleOrderStatusView.swift": {
-      "untyped haptic": 1
-    },
-    "App/BundlePayResultView.swift": {
-      "untyped haptic": 2
-    },
-    "App/BundleReviewComposeView.swift": {
-      "untyped haptic": 1
-    },
-    "App/BundleTransferClaimView.swift": {
-      "untyped haptic": 2
-    },
-    "App/BundleTransferSendView.swift": {
-      "untyped haptic": 1
-    },
-    "App/ChallengePOIView.swift": {
-      "untyped haptic": 1
-    },
-    "App/ChapterReplacementInvitationView.swift": {
-      "untyped haptic": 1
-    },
-    "App/CityKit/CityChallengeFlow.swift": {
-      "untyped haptic": 2
-    },
-    "App/CityNodeRedeemView.swift": {
-      "untyped haptic": 2
-    },
-    "App/CityParticipationRecoveryView.swift": {
-      "untyped haptic": 1
-    },
     "App/CloudCIShardStatusSectionView.swift": {
       "status capsule": 1
-    },
-    "App/ClubContextualViews.swift": {
-      "untyped haptic": 2
-    },
-    "App/ClubGovernanceViews.swift": {
-      "untyped haptic": 1
-    },
-    "App/ClubLeadPrimaryActionView.swift": {
-      "untyped haptic": 1
-    },
-    "App/ClubManagementView.swift": {
-      "untyped haptic": 1
-    },
-    "App/ClubOperationsReviewView.swift": {
-      "untyped haptic": 1
-    },
-    "App/CouponCodeView.swift": {
-      "untyped haptic": 1
-    },
-    "App/DesignSystem/CYCollectible.swift": {
-      "untyped haptic": 2
-    },
-    "App/DesignSystem/CYGlassCarousel.swift": {
-      "untyped haptic": 1
-    },
-    "App/DesignSystem/CYInPlaceResult.swift": {
-      "untyped haptic": 5
-    },
-    "App/DesignSystem/CYLoadingChoreography.swift": {
-      "untyped haptic": 1
-    },
-    "App/DesignSystem/CYOnboarding.swift": {
-      "untyped haptic": 2
-    },
-    "App/DesignSystem/CYPassFromCard.swift": {
-      "untyped haptic": 2
-    },
-    "App/DesignSystem/CYPurchaseMotion.swift": {
-      "untyped haptic": 1
-    },
-    "App/DesignSystem/CYRoamKit.swift": {
-      "untyped haptic": 1
-    },
-    "App/DesignSystem/CYScan.swift": {
-      "untyped haptic": 1
-    },
-    "App/DesignSystem/CYSignature.swift": {
-      "untyped haptic": 2
-    },
-    "App/DesignSystem/CYTicketPass.swift": {
-      "untyped haptic": 2
-    },
-    "App/EditorKitLists.swift": {
-      "untyped haptic": 1
-    },
-    "App/EditorKitResults.swift": {
-      "untyped haptic": 2
-    },
-    "App/EditorKitSheet.swift": {
-      "untyped haptic": 1
-    },
-    "App/ExternalGameImportView.swift": {
-      "untyped haptic": 1
     },
     "App/FinalReleaseSignoffAndZeroGapCertificateView.swift": {
       "status capsule": 1
@@ -280,113 +178,20 @@
     "App/GrowthAndLeaderboardParitySectionView.swift": {
       "status capsule": 2
     },
-    "App/IMConversationReadAllView.swift": {
-      "untyped haptic": 1
-    },
-    "App/IMConversationRowActionsView.swift": {
-      "untyped haptic": 1
-    },
-    "App/IMConversationSafetyViews.swift": {
-      "untyped haptic": 1
-    },
     "App/ImageAndVideoDiskCacheBudgetSectionView.swift": {
       "status capsule": 1
-    },
-    "App/JourneyReportViews.swift": {
-      "untyped haptic": 1
     },
     "App/LocalizationCompletenessSectionView.swift": {
       "status capsule": 1
     },
-    "App/NativeChannelCheckinView.swift": {
-      "untyped haptic": 1
-    },
-    "App/NativeChannelInlineMediaViews.swift": {
-      "untyped haptic": 2
-    },
-    "App/NativeR2/CityOrientation/CityOrientationFinishSummaryView.swift": {
-      "untyped haptic": 1
-    },
-    "App/NativeR2/CityOrientation/CityOrientationPunchSheet.swift": {
-      "untyped haptic": 3
-    },
-    "App/NativeR2/CityOrientation/CityOrientationRunView.swift": {
-      "untyped haptic": 1
-    },
-    "App/NativeR2/FreeExplore/NativeFreeExploreArrivalSheet.swift": {
-      "untyped haptic": 1
-    },
-    "App/NativeR2/FreeExplore/NativeStampCaptureView.swift": {
-      "untyped haptic": 1
-    },
-    "App/NativeR2/Games/CameraKits.swift": {
-      "untyped haptic": 3
-    },
-    "App/NativeR2/Games/ChanceKits.swift": {
-      "untyped haptic": 5
-    },
-    "App/NativeR2/Games/ChoiceKits.swift": {
-      "untyped haptic": 1
-    },
-    "App/NativeR2/Games/NativeGameKitsC.swift": {
-      "untyped haptic": 4
-    },
-    "App/NativeR2/Games/NativeGameSensorKit.swift": {
-      "untyped haptic": 3
-    },
-    "App/NativeR2/Games/NativeGameShell.swift": {
-      "untyped haptic": 2
-    },
-    "App/NativeR2/Games/NativeGameSortKits.swift": {
-      "untyped haptic": 1
-    },
-    "App/NativeR2/Games/NativeGameTimedKit.swift": {
-      "untyped haptic": 2
-    },
-    "App/NativeR2/Motion/MotionR2Flows.swift": {
-      "untyped haptic": 1
-    },
-    "App/NativeR2/Motion/MotionR2Games.swift": {
-      "untyped haptic": 1
-    },
-    "App/NativeR2/Motion/MotionR2Rewards.swift": {
-      "untyped haptic": 1
-    },
     "App/PhotoLibraryAndCameraPermissionSectionView.swift": {
       "status capsule": 2
-    },
-    "App/PlayInPlayTools.swift": {
-      "untyped haptic": 1
-    },
-    "App/PlayKitTimedChallengeView.swift": {
-      "untyped haptic": 1
-    },
-    "App/PublishingAIDraftSheet.swift": {
-      "untyped haptic": 1
-    },
-    "App/PublishingModesViews.swift": {
-      "untyped haptic": 1
-    },
-    "App/QuestifyApp.swift": {
-      "untyped haptic": 1
     },
     "App/ReformWorkPackagesW02ToW20SectionView.swift": {
       "status capsule": 2
     },
     "App/ReleaseArchiveChecklistSectionView.swift": {
       "status capsule": 2
-    },
-    "App/RoamFinishReportView.swift": {
-      "untyped haptic": 1
-    },
-    "App/RoamFogMapView.swift": {
-      "untyped haptic": 2
-    },
-    "App/RoamStampCameraView.swift": {
-      "untyped haptic": 1
-    },
-    "App/RoamSubpageParityViews.swift": {
-      "untyped haptic": 5
     },
     "App/SevenDayLaunchCriticalPathSectionView.swift": {
       "status capsule": 2
@@ -396,12 +201,6 @@
     },
     "App/StoryWalkingAndFogSectionView.swift": {
       "status capsule": 1
-    },
-    "App/TeamComponents.swift": {
-      "untyped haptic": 1
-    },
-    "App/TemplateQuestionMediaPickers.swift": {
-      "untyped haptic": 1
     },
     "App/ThreeDocumentMasterCrosswalkSectionView.swift": {
       "status capsule": 2

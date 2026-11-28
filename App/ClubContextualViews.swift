@@ -60,6 +60,8 @@ struct ClubOperatingRulesView: View {
         _date = State(initialValue: ClubOpsTimeRequest.date(original) ?? Date())
     }
     private var state: ClubOpsTimeState { let _ = revision; return owner?.state ?? .idle }
+    private static func acknowledged(_ old: ClubOpsTimeState, _ new: ClubOpsTimeState) -> Bool { new == .acknowledged }
+    private static func rejected(_ old: ClubOpsTimeState, _ new: ClubOpsTimeState) -> Bool { new == .rejected }
     private var canPreview: Bool { !busy && state != .unknown && ClubOpsTimeRequest.date(original) != nil }
     var body: some View {
         Form {
@@ -136,8 +138,8 @@ struct ClubOperatingRulesView: View {
             Text(verbatim: pending.startDate)
         }
         .onChange(of: owner?.service.session) { _, _ in review = nil; captured = nil; serverDate = nil; revision += 1 }
-        .cyHaptic(.success, trigger: state) { _, new in new == .acknowledged }
-        .cyHaptic(.warning, trigger: state) { _, new in new == .rejected }
+        .cyHaptic(.success, trigger: state, where: Self.acknowledged)
+        .cyHaptic(.warning, trigger: state, where: Self.rejected)
         .cyDomainScreen(.player)
     }
     private func save(_ review: ClubOpsTimeRequest, captured: ClubOpsTimeSession?) async {

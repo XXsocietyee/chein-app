@@ -136,8 +136,8 @@ struct RoamFogMapView: View {
             .onAppear { visible = true }
             .onDisappear { visible = false }
             // Haptics: the audit floor of 150 ms lives in CYRevealChoreographer; none while the map is off screen.
-            .cyHaptic(.success, trigger: reveal?.hapticSuccessSerial ?? 0, where: { old, new in visible && new > old })
-            .cyHaptic(.impactLight, trigger: reveal?.hapticLightSerial ?? 0, where: { old, new in visible && new > old })
+            .cyHaptic(.success, trigger: reveal?.hapticSuccessSerial ?? 0, where: revealAdvanced)
+            .cyHaptic(.impactLight, trigger: reveal?.hapticLightSerial ?? 0, where: revealAdvanced)
             .task(id: reveal?.wipes.isEmpty ?? true) {
                 guard let reveal else { return }
                 while !reveal.wipes.isEmpty, !Task.isCancelled {
@@ -179,4 +179,9 @@ struct FogPlayerDot: View {
         .accessibilityHidden(true)
         .accessibilityIdentifier("roam.fog.player")
     }
+}
+
+private extension RoamFogMapView {
+    /// Typed haptic condition: a reveal serial went up while the fog map is on screen.
+    func revealAdvanced(_ old: Int, _ new: Int) -> Bool { visible && new > old }
 }

@@ -136,7 +136,7 @@ struct MotionR2ConfirmPill: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 200)
-        .sensoryFeedback(.success, trigger: collapsed) { old, new in !old && new }
+        .sensoryFeedback(.success, trigger: collapsed, condition: CYHapticTransition.turnedOn)
         .accessibilityIdentifier("motion2.confirmPill")
         .task { await run() }
         .onDisappear { handOffToIsland() }

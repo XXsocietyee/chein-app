@@ -71,6 +71,7 @@ import SwiftUI
     var monopolyPointsBalance: (@MainActor () async -> Int64?)? = nil
 
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var selectedTab: Tab
 
     init(
@@ -211,7 +212,8 @@ import SwiftUI
                     Text(verbatim: item.title ?? item.pointId ?? item.id)
                         .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
-                    HStack(spacing: CYSpacing.sm) {
+                    // a11y-dt r3: up to six chips wrap onto new lines instead of running off the card (long English, AX sizes).
+                    ClubR1WrapLayout(spacing: CYSpacing.sm) {
                         CYStatusChip(verbatim: item.status, tone: item.isProtected ? .warning : (item.claimed ? .info : .success))
                         if let track = item.trackIndex {
                             CYStatusChip(verbatim: copy("格 #\(track)", "Tile #\(track)"), tone: .neutral)
@@ -233,7 +235,8 @@ import SwiftUI
                         .accessibilityLabel(Text(verbatim: copy("地主 \(resolvedOwner ?? copy("未知", "Unknown"))", "Owner \(resolvedOwner ?? copy("Unknown", "Unknown"))")))
                     CYFactRow(label: Text(verbatim: copy("打卡积分收益", "Check-in revenue (pts)")), value: "\(item.ownerRevenuePoints) pts")
                     CYFactRow(label: Text(verbatim: copy("访客过路积分", "Visitor toll (pts)")), value: "\(item.checkinTollPoints) pts")
-                    HStack(spacing: CYSpacing.sm) {
+                    // a11y-dt r3: the actions stack (same order) at accessibility sizes so no label is cut.
+                    actionStack {
                         CYPillButton(verbatim: copy("照片占领", "Claim (Photo)"), style: .primary, fullWidth: false) {
                             claimingItem = item
                             uploadedPhotoURL = nil
@@ -266,6 +269,13 @@ import SwiftUI
             CYEmptyState(systemImage: "map", LocalizedStringKey(copy("附近暂无已映射棋盘格子", "No mapped board spaces nearby")))
                 .accessibilityIdentifier("roamTerritory.nearby.empty")
         }
+    }
+
+    private func actionStack<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        let layout: AnyLayout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
+        return layout { content() }
     }
 
     @ViewBuilder private var myTerritoriesSection: some View {

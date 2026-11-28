@@ -76,7 +76,7 @@ import SwiftUI
         .onChange(of: issue) { _, new in if new != nil { warnPulse += 1 } }
         .sensoryFeedback(.impact(weight: .medium), trigger: commitPulse)
         .sensoryFeedback(.warning, trigger: warnPulse)
-        .sensoryFeedback(.success, trigger: receipt?.applicationID) { old, new in old == nil && new != nil }
+        .sensoryFeedback(.success, trigger: receipt?.applicationID, condition: CYHapticTransition.becameSet)
         .onDisappear { clear() }
         .cyPushedChrome(domain: .player)
         .appSwitcherPrivacyShield()

@@ -137,9 +137,9 @@ import SwiftUI
                 .accessibilityIdentifier("playkit.sensor.phase")
         }
         .sensoryFeedback(.impact(weight: .light), trigger: stage.ball.hits) { old, next in kind == .ballShake && next > old }
-        .sensoryFeedback(.warning, trigger: stage.quiet.exceeded) { old, next in kind == .quietHold && !old && next }
-        .sensoryFeedback(.alignment, trigger: stage.compass.aligned) { old, next in kind == .compass && !old && next }
-        .sensoryFeedback(.success, trigger: stage.phase == .measured) { old, next in !old && next }
+        .sensoryFeedback(.warning, trigger: kind == .quietHold && stage.quiet.exceeded, condition: CYHapticTransition.turnedOn)
+        .sensoryFeedback(.alignment, trigger: kind == .compass && stage.compass.aligned, condition: CYHapticTransition.turnedOn)
+        .sensoryFeedback(.success, trigger: stage.phase == .measured, condition: CYHapticTransition.turnedOn)
     }
 
     @ViewBuilder private var board: some View {

@@ -65,7 +65,7 @@ import SwiftUI
             .safeAreaInset(edge: .bottom) { actions.padding() }
         }
         .presentationDetents([.medium, .large])
-        .sensoryFeedback(.success, trigger: arrival.phase == .succeeded) { _, new in new }
+        .sensoryFeedback(.success, trigger: arrival.phase == .succeeded, condition: CYHapticTransition.isOn)
         .accessibilityIdentifier("nativeR2.freeExplore.arrival")
     }
 

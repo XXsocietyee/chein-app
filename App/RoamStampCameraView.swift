@@ -378,7 +378,7 @@ import UIKit
             .foregroundStyle(.green)
             .symbolEffect(.bounce, value: landed)
             .frame(maxWidth: .infinity, minHeight: 96)
-        .cyHaptic(.success, trigger: landed) { _, new in new }
+        .cyHaptic(.success, trigger: landed, where: CYHapticTransition.isOn)
         .task {
             try? await Task.sleep(for: .milliseconds(350))
             landed = true
