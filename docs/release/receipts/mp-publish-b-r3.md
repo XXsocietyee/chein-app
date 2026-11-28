@@ -15,4 +15,7 @@ MP source: `origin/mp-source:chengyinhub-xcx`. Merchant and the story-flow theme
 - none this run.
 
 ## Gates (last run on the branch head)
-See the commit message of the last push.
+`generate_project.py` ✓ · `check_scaffold.py` PASS · `check_a11y_lint.py` PASS (0 new) · `contract_ratchet.py --check` 52 failing = baseline 52, **new 0** · `check_design_consistency.py` PASS · `check_design_lint.py` PASS.
+
+## Next (bottom-up, for the next run)
+- A row "`publish/fabu` 主题详情 sheet" → **主题配乐** (MP `topic-detail-sheet.wxml:70-77`, 上传 / 更换 / 移除 on `formData.audioUrl`): the editor now has `ProjectStoryAudioSelecting` (`App/ProjectStoryAudioDocumentPicker.swift`); check whether it gives an upload path before building.
