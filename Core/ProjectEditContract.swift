@@ -42,6 +42,8 @@ public enum ProjectEditContract {
         if let clubID = draft.clubID { payload["clubId"] = .number(Decimal(clubID)) }
         if draft.product == .freeExplore, let deadline = ProjectEditValidation.dateTime(draft.recruitDeadline, endOfDay: true) { payload["recruitDeadline"] = .string(deadline) }
         for key in topicCarryOver { if let value = draft.preserved[key] { payload[key] = value } }
+        // MP theme-cast payloadOf: stale cast clues are checked when sending, not only when the 角色 sheet closes.
+        if draft.preserved[ProjectEditCastClues.key] != nil { payload[ProjectEditCastClues.key] = ProjectEditCastClues.withoutStaleClues(draft) }
         for key in ["castConfig", "look"] {
             if let wired = try carriedJSONString(payload[key]) { payload[key] = wired } else { payload.removeValue(forKey: key) }
         }

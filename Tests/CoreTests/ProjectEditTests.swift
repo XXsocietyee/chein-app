@@ -612,6 +612,32 @@ extension ProjectEditTests {
 }
 
 final class ProjectEditCastLookCarryTests: XCTestCase {
+    /// MP story-cast.js: publishing stops on a clue whose unlock chapter was deleted; a cloud draft drops it (draftView).
+    func testStaleCastClueBlocksPublishAndIsDroppedFromCloudDraft() throws {
+        var draft = ProjectEditSyntheticFixtures.draft()
+        draft.preserved["publishMode"] = .string("pro")
+        guard !draft.chapters.isEmpty else { return XCTFail("fixture has no chapter") }
+        draft.chapters[0].preserved["id"] = .number(8)
+        let kept: ProjectEditJSON = .object(["text": .string("钥匙在井边"), "chapterId": .string("8")])
+        let opening: ProjectEditJSON = .object(["text": .string("开局就有"), "chapterId": .null])
+        let stale: ProjectEditJSON = .object(["text": .string("旧章线索"), "chapterId": .number(99)])
+        let member: ProjectEditJSON = .object(["id": .string("c_abc123"), "name": .string("苏禾"), "clues": .array([kept, stale, opening])])
+        draft.preserved["castConfig"] = .object(["enabled": .bool(true), "cast": .array([member])])
+        XCTAssertTrue(ProjectEditCastClues.hasStaleClue(draft))
+        XCTAssertTrue(ProjectEditSubmissionIntent.ordinary.issues(draft, scope: .full, baseline: nil).contains { $0.id == "castClueChapter" })
+        XCTAssertThrowsError(try ProjectEditContract.payload(draft, topicID: nil, scope: .full))
+        XCTAssertFalse(ProjectEditSubmissionIntent.saveCloudDraft.issues(draft, scope: .full, baseline: nil).contains { $0.id == "castClueChapter" })
+        let saved = try ProjectEditContract.payload(draft, topicID: nil, scope: .full, intent: .saveCloudDraft)
+        let wire = try JSONDecoder().decode(ProjectEditJSON.self, from: Data(try XCTUnwrap(saved["castConfig"]?.text).utf8))
+        let clues = wire.object?["cast"]?.array?.first?.object?["clues"]?.array
+        XCTAssertEqual(clues, [kept, opening])
+        draft.chapters[0].preserved["id"] = .number(99)
+        XCTAssertTrue(ProjectEditCastClues.hasStaleClue(draft))
+        draft.chapters[0].preserved["id"] = .number(8)
+        draft.preserved["castConfig"] = .object(["enabled": .bool(true), "cast": .array([.object(["id": .string("c_abc123"), "clues": .array([kept, opening])])])])
+        XCTAssertFalse(ProjectEditCastClues.hasStaleClue(draft))
+        XCTAssertEqual(ProjectEditCastClues.withoutStaleClues(draft), draft.preserved["castConfig"])
+    }
     func testCastConfigAndLookRideOnV2SaveAndLoad() throws {
         XCTAssertTrue(ProjectEditContract.topicCarryOver.contains("castConfig"))
         XCTAssertTrue(ProjectEditContract.topicCarryOver.contains("look"))
