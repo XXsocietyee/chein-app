@@ -573,6 +573,16 @@ No new strings. Gates: generate_project OK · check_scaffold PASS · a11y lint 0
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
+## Round 3 continue (43) — ADA audit `d6-roam` (P1): the 附近活动 peek never disappears
+
+Base re-merged with `origin/ui/combined-r7` (62 commits, no conflict). Screens read: `docs/sweeps/latest/mp-roam/en-d6-roam.jpg`, `en-d2-roam.jpg`.
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| ADA `d6-roam` (P1, "blank map with three buttons and no status words"; cross-screen "d6 duplicates d2") | `pages/roam/index.wxml` entry-peek (owner P-26 2026-10-27: 附近活动 always shows; empty → `entry-peek__state` 附近暂无活动 · 打开地图寻找附近活动 → `openNearbyMap`) → `App/DesignFixtures/D6Fixtures.swift` `roamEmptyPeek` (shipping twin: `RoamMapHomeSheet.nearbyRows` empty branch) | The fixture drew the map + 规则 / 走起 / 附近 with no sheet at all, which the MP never shows; it also read as a copy of d2-roam. | d6-roam now keeps the collapsed map sheet (`cyMapSheet`, detents 236 pt / medium) holding the 附近活动 section with the MP empty state: `ContentUnavailableView` 附近暂无活动 + `.bordered` 打开地图寻找附近活动 (same keys, glyph and id as the shipping map home). The fixture now shows a distinct state (nothing nearby) instead of duplicating d2-roam. No new strings. | A · `d6-roam` |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
