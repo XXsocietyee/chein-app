@@ -24,7 +24,8 @@ import SwiftUI
                session.nearbyTeamCoordinator.session == session.nearbyTeamSession {
                 NearbyTeamsView(coordinator: session.nearbyTeamCoordinator, context: context, joinedTeams: joinedTeams, initialTab: initialTab, focusTeamID: focusTeamID, onSignIn: onSignIn,
                     joinedTeamsStatus: joinedTeamsStatus, retryJoinedTeams: retryJoinedTeams, discoverySources: discoverySources,
-                    joinCodeDestination: { AnyView(TeamInvitationEntryView(makeCoordinator: { session.makeTeamCoordinator() }, onLogin: onSignIn).cyPushedChrome()) }) {
+                    joinCodeDestination: { AnyView(TeamInvitationEntryView(makeCoordinator: { session.makeTeamCoordinator() }, onLogin: onSignIn).cyPushedChrome()) },
+                    pendingTeamCommands: { try session.pendingTeamCommandIDs() }) {
                         guard destination == nil, boundOwner == renderedOwner,
                               session.teamViewIdentity == renderedOwner, session.nearbyTeamSession == renderedSession,
                               session.nearbyTeamCoordinator.session == renderedSession else { return }

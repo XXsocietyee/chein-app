@@ -318,6 +318,8 @@ public enum ProjectEditValidation {
         need(!draft.chapters.isEmpty, "chapters", "chapters")
         // MP story-cast.js memberIssues: a cast clue must unlock in a chapter the topic still has.
         need(!ProjectEditCastClues.hasStaleClue(draft), "castClueChapter", "castClueChapter")
+        // MP theme-runtime-structure.js validate (endings part): 运行结局 rows and terminal 表决方案 endings.
+        if let key = ProjectEditRuntimeEndings.issueKey(in: draft) { issues.append(.init(ProjectEditRuntimeEndings.issueID, key)) }
         for (ci, chapter) in draft.chapters.enumerated() {
             let standaloneStory = chapter.preserved["opening"] == .bool(true) || chapter.preserved["ending"]?.object != nil
             if draft.product == .city && !standaloneStory { need(chapter.hasRealStory, "story\(ci)", "story") }

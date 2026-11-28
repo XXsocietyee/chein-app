@@ -20,20 +20,40 @@ import SwiftUI
     private static func tt(_ en: String, _ zh: String) -> String {
         Locale.preferredLanguages.first?.hasPrefix("zh") == true ? zh : en
     }
+    /// One varied author per fixture post (P2 13:15 sweep: no repeated avatar / date / text).
+    private struct DesignPost {
+        let author: String, club: String, badge: String, text: String, memoji: Int, minutesAgo: Int, likes: Int, comments: Int
+    }
+    private static func designPost(id: Int) -> DesignPost {
+        switch id {
+        case 702: return DesignPost(author: tt("Mia", "小米"), club: tt("Canal Night Walkers", "运河夜行社"), badge: tt("Guide", "领队"),
+                                    text: tt("Evening lantern walk along the canal, six stops done.", "傍晚沿运河走了一圈灯笼线，六个点全部打卡。"),
+                                    memoji: 2, minutesAgo: 190, likes: 34, comments: 8)
+        case 703: return DesignPost(author: tt("Nina Zhou", "周宁"), club: tt("West Lake Runners", "西湖跑团"), badge: tt("Member", "成员"),
+                                    text: tt("First city orienteering run with the team. We found the hidden gate on the third try!", "第一次和队友跑城市定向，第三次才找到那扇暗门！"),
+                                    memoji: 3, minutesAgo: 2 * 24 * 60 + 40, likes: 7, comments: 2)
+        default: return DesignPost(author: tt("Leo Chen", "陈乐"), club: tt("Riverside Walking Club", "河畔步行俱乐部"), badge: tt("Official", "官方"),
+                                   text: tt("Morning walk through the old town lanes. Tea at the last stop was worth it.", "清晨穿过老城小巷，最后一站的茶很值得。"),
+                                   memoji: 1, minutesAgo: 25, likes: 12, comments: 3)
+        }
+    }
     /// Coordinator 19:50: fixture data follows the UI language (no mixed `A / 一` copy, no "Synthetic" labels).
     private func post(id: Int) throws -> SquarePost {
         guard designLocalized else { return try SquareSyntheticFixtures.post(id: id) }
-        let walk = id == 702
-            ? Self.tt("Evening lantern walk along the canal, six stops done.", "傍晚沿运河走了一圈灯笼线，六个点全部打卡。")
-            : Self.tt("Morning walk through the old town lanes. Tea at the last stop was worth it.", "清晨穿过老城小巷，最后一站的茶很值得。")
+        let design = Self.designPost(id: id)
+        let createdMillis = Int64((Date().timeIntervalSince1970 - Double(design.minutesAgo * 60)) * 1000)
         let swaps: [(String, String)] = [
-            ("A synthetic city walk / 一次示例城市漫步", walk),
-            ("Example walker", id == 702 ? Self.tt("Mia", "小米") : Self.tt("Leo Chen", "陈乐")),
-            ("Example walking club", Self.tt("Riverside Walking Club", "河畔步行俱乐部")),
-            ("Synthetic notice", Self.tt("Official", "官方")),
-            ("Example guide", Self.tt("Guide", "领队")),
+            ("A synthetic city walk / 一次示例城市漫步", design.text),
+            ("Example walker", design.author),
+            ("Example walking club", design.club),
+            ("Synthetic notice", design.badge),
+            ("Example guide", design.badge),
             ("Example city", Self.tt("Hangzhou", "杭州")),
-            ("Example river route", Self.tt("Canal Lantern Route", "运河灯笼线"))
+            ("Example river route", Self.tt("Canal Lantern Route", "运河灯笼线")),
+            ("\"createTime\":\"2026-01-01 10:00\"", "\"createTime\":\"\(createdMillis)\",\"memberAvatar\":\"\(SquareAuthorAvatar.fixtureMemojiPrefix)\(design.memoji)\""),
+            ("\"memberId\":81", "\"memberId\":\(80 + design.memoji)"),
+            ("\"likeNum\":12", "\"likeNum\":\(design.likes)"),
+            ("\"commentCount\":3", "\"commentCount\":\(design.comments)")
         ]
         var json = SquareSyntheticFixtures.legacyPostJSON.replacingOccurrences(of: "\"id\":701", with: "\"id\":\(id)")
         for swap in swaps { json = json.replacingOccurrences(of: swap.0, with: swap.1) }

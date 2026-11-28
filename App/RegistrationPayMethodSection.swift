@@ -13,6 +13,9 @@ struct RegistrationPayMethodSection: View {
     var paymentChannels: [String]? = nil
     let applePayAvailable: Bool
     let enabled: Bool
+    /// Sweep 13:15 P1 / P32 "fits on one screen": the registration sheet draws this row in its bottom bar, right above
+    /// the consent switch, so the method stays in view next to the method-labelled button (no `Section` there).
+    var inCheckoutBar: Bool = false
     /// fix-1128-alipay: the quote lists `APP_ALIPAY` and the app can open Alipay.
     var alipayOffered: Bool = RegistrationPayMethod.alipayReady
 
@@ -36,29 +39,52 @@ struct RegistrationPayMethodSection: View {
 
     var body: some View {
         if (price ?? .zero) > .zero {
-            Section {
-                Picker(selection: binding) {
-                    ForEach(options, id: \.self) { channel in
-                        Text(verbatim: name(channel)).tag(channel)
-                    }
-                } label: {
-                    Text(verbatim: CoreLoopCopy(locale: locale).t("支付方式", "Pay with"))
+            if inCheckoutBar { barRow } else { listSection }
+        }
+    }
+
+    private var barRow: some View {
+        LabeledContent {
+            Picker(selection: binding) {
+                ForEach(options, id: \.self) { channel in
+                    Text(verbatim: name(channel)).tag(channel)
                 }
-                .pickerStyle(.menu)
-                .disabled(!enabled)
-                .accessibilityIdentifier("registration.form.payChannel")
-                #if DEBUG
-                if RegistrationPayMethod.showsAlipayComingSoon(market: market, alipayReady: alipayOffered) {
-                    LabeledContent {
-                        Text(verbatim: CoreLoopCopy(locale: locale).t("即将上线", "Coming soon"))
-                    } label: {
-                        Text(verbatim: name(.alipay))
-                    }
-                    .foregroundStyle(CYColor.textSecondary)
-                    .accessibilityIdentifier("registration.form.payChannel.alipaySoon")
-                }
-                #endif
+            } label: {
+                Text(verbatim: CoreLoopCopy(locale: locale).t("支付方式", "Pay with"))
             }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .disabled(!enabled)
+        } label: {
+            Text(verbatim: CoreLoopCopy(locale: locale).t("支付方式", "Pay with"))
+        }
+        .font(.footnote)
+        .accessibilityIdentifier("registration.form.payChannel")
+    }
+
+    @ViewBuilder private var listSection: some View {
+        Section {
+            Picker(selection: binding) {
+                ForEach(options, id: \.self) { channel in
+                    Text(verbatim: name(channel)).tag(channel)
+                }
+            } label: {
+                Text(verbatim: CoreLoopCopy(locale: locale).t("支付方式", "Pay with"))
+            }
+            .pickerStyle(.menu)
+            .disabled(!enabled)
+            .accessibilityIdentifier("registration.form.payChannel")
+            #if DEBUG
+            if RegistrationPayMethod.showsAlipayComingSoon(market: market, alipayReady: alipayOffered) {
+                LabeledContent {
+                    Text(verbatim: CoreLoopCopy(locale: locale).t("即将上线", "Coming soon"))
+                } label: {
+                    Text(verbatim: name(.alipay))
+                }
+                .foregroundStyle(CYColor.textSecondary)
+                .accessibilityIdentifier("registration.form.payChannel.alipaySoon")
+            }
+            #endif
         }
     }
 }

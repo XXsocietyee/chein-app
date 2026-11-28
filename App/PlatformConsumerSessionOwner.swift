@@ -69,9 +69,10 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                         AnyView(SessionPlayRuntimeView(session: session, destination: .journey(.topic(topicID))))
                     })
                     .id(session.contentDetailRevision)
-                    .environment(\.pricingChapterProjectDestination, { topicID in
+                    // K12: a chapter-supply row opens merchantinfo. Nil in Release, so the lineup stays on the partner page.
+                    .environment(\.pricingChapterProjectDestination, PlayerLaunch.merchantCenterEnabled ? { topicID in
                         AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID))
-                    })
+                    } : nil)
                     // RTEAMS-1: topic 组队 card reads nearby teams (20 km, signed in) and opens 本场招募.
                     .environment(\.topicTeamsSource, TopicTeamsSource(
                         read: { latitude, longitude in await session.topicNearbyTeams(latitude: latitude, longitude: longitude) },
@@ -104,7 +105,8 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     })
                     .environment(\.topicEditorDestination) { topicID, scope in
                         var query = ["id": String(topicID)]
-                        if let scope { query["scope"] = scope }
+                        // K12: do not carry scope=MERCHANT into the editor while merchant center is off.
+                        if let scope, scope != "MERCHANT" || PlayerLaunch.merchantCenterEnabled { query["scope"] = scope }
                         return AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: query).environmentObject(session))
                     }
                     .environment(\.playRuntimeTopicClient, PlayRuntimeGapBridge.topicClient(session: session))

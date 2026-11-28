@@ -70,7 +70,7 @@ KEYS = {
     'roam.goals.state.scheduled': ('Not started', '尚未开始'),
     'roam.goals.state.achieved': ('Achieved', '已达成'),
     'roam.goals.state.ended': ('Ended', '已结束'),
-    'roam.goals.state.cancelled': ('Cancelled', '已取消'),
+    'roam.goals.state.cancelled': ('Canceled', '已取消'),
     'roam.goals.unit.routes %lld': ('%lld distinct routes', '%lld 条不同路线'),
     'roam.goals.unit.days %lld': ('%lld exploration days', '%lld 个探索日'),
     'roam.goals.range %@ %@': ('%1$@ to %2$@ (exclusive)', '%1$@ 至 %2$@（不含）'),
@@ -116,7 +116,7 @@ KEYS = {
     'roam.export.sourceChanged': ('Your records changed while preparing. Prepare the export again.', '准备期间记录有变化，请重新准备导出。'),
     'roam.export.expired': ('The file content has expired. Prepare again.', '文件内容已过期，请重新准备'),
     'roam.export.saved': ('File saved', '文件保存已完成'),
-    'roam.export.cancelled': ('Cancelled; the file was not saved', '已取消，未完成文件操作'),
+    'roam.export.cancelled': ('Canceled; the file was not saved', '已取消，未完成文件操作'),
     'roam.export.saveFailed': ('The file could not be saved', '文件保存未完成'),
 }
 

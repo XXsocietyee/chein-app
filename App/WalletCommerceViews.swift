@@ -733,7 +733,7 @@ extension EnvironmentValues {
                 if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(.footnote).foregroundStyle(.secondary) }
                 else if let date = row.createTime {
                     // FIN-18-6: MP rows.js shortTimeText (10月27日 10:30); the month is already the group title.
-                    Text(verbatim: points ? WalletPointsShortTime.text(date, isEnglish: locale.language.languageCode?.identifier == "en") : LocaleDisplay.civil(date, locale: locale))
+                    Text(verbatim: points ? WalletPointsShortTime.text(date, locale: locale) : LocaleDisplay.civil(date, locale: locale))
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
@@ -1333,8 +1333,9 @@ private struct WalletEarningsHero: View {
 }
 
 /// FIN-18-6: MP points-history rows.js `shortTimeText`: `YYYY-MM-DD HH:MM…` → `M月D日 HH:MM`; anything else verbatim.
+/// Other locales get the localized month-day-time (`Nov 6, 6:20 PM`) from `LocaleDisplay.monthDay`.
 enum WalletPointsShortTime {
-    static func text(_ value: String, isEnglish: Bool = false) -> String {
+    static func text(_ value: String, locale: Locale? = nil) -> String {
         let text = value.trimmingCharacters(in: .whitespacesAndNewlines)
         let chars = Array(text)
         guard chars.count >= 16, chars[4] == "-", chars[7] == "-", chars[10] == " " || chars[10] == "T", chars[13] == ":",
@@ -1342,7 +1343,11 @@ enum WalletPointsShortTime {
               (1...12).contains(month), (1...31).contains(day),
               chars[11...12].allSatisfy(\.isNumber), chars[14...15].allSatisfy(\.isNumber) else { return text }
         let time = String(chars[11...15])
-        return isEnglish ? "\(month)/\(day) \(time)" : "\(month)月\(day)日 \(time)"
+        guard let locale, !LocaleDisplay.isChinese(locale),
+              let year = Int(String(chars[0...3])), let hour = Int(String(chars[11...12])), let minute = Int(String(chars[14...15])),
+              let localized = LocaleDisplay.monthDay(month: month, day: day, year: year, hour: hour, minute: minute, locale: locale)
+        else { return "\(month)月\(day)日 \(time)" }
+        return localized
     }
 }
 

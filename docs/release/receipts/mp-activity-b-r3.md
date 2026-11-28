@@ -1,0 +1,12 @@
+# mp-activity B lane r3 receipt (2026-11-28)
+
+Branch `mp/r3-activity-b` from `origin/mp/r3-activity` (49b6ede5f). Works the open rows of `docs/release/receipts/mp-activity-r3.md` **bottom-up** (brief `round3-1127.md` "B lanes"); the A receipt is never edited here. No Swift compiler in the cloud: source-only, unbuilt.
+
+## Finished A-receipt rows
+
+| A row (Not done) | MP page | Native files | Change | Level / optimization |
+|---|---|---|---|---|
+| "Coop (audited, not yet fixed): invite — … 核销据点 card copy and per-merchant picker" | `pages/coop/invite/index` (wxml:114-131 核销据点 card; wxml:151 sheet `{商家} · 接受后冻结 / 核销据点：{据点}`; js:578-650 `refreshSupplyStations` / `validateSupplyStations`; js:1015-1017 `payload.supplyStationId`) | new `Core/CoopInviteSupplyStations.swift` (`CoopInviteStationOption`, `parse`, `ready`, `attach`); `Core/CooperationFlowContracts.swift` (`CoopFlowInvitationContext.supplyStationID/Name`, `withSupplyStation`, `invitation` now passes `supplyStationID`); new `App/CoopInviteSupplyStationSection.swift`; `App/CooperationContextualViews.swift` (`CoopInvitationReadContent`, `CoopFlowBatchInviteEditor`, `CoopInviteReceiptSections`); `App/DesignFixtures/CurFixtures5.swift` | Before: a read-only 「已确定据点」 list at the **top** of the page (all merchants' station names merged), no choice, and the invite never sent `supplyStationId` (the Core body supported it, nothing set it) — a station topic's invite could not name its station. Now: the 核销据点 card sits **after ③ 邀请对象** (MP order) with the MP hint, and one native `Picker` per chosen merchant (请选择一个据点 + its confirmed stations), per-merchant loading skeleton, 据点读取失败 / 暂无已确定据点 + 刷新据点; a kept choice survives a re-read while still listed. 发送邀约(N) stays disabled until every merchant has a station (MP `validateSupplyStations`); the chosen id goes into each draft and the `POST api/coop/invite` body as `supplyStationId`; the 编辑邀约语 sheet shows `{商家} · 接受后冻结 / 核销据点：{据点}` under 拟议条款. Malformed replies (non-boolean `requiresSupplyStation`, blank name, duplicate id) count as a failed read, as the MP. Unit test `Tests/CoreTests/CoopInviteSupplyStationTests.swift` (parse rules, readiness, body carries `supplyStationId`, none for clubs / non-station topics). | C · Utility: grouped `Form` rows, system `Picker`, `CYSkeleton`, one bordered retry label per failed merchant; zh + en copy |
+
+## Gates
+- `generate_project` ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 failing / baseline 52 / **new 0**
