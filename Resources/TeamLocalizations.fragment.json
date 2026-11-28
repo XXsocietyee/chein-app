@@ -1,6 +1,91 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "team.done.join": {
+        "extractionState": "manual",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "You joined the team"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "已加入队伍"
+                }
+            }
+        }
+    },
+    "team.done.leave": {
+        "extractionState": "manual",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "You left the team"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "已退出队伍"
+                }
+            }
+        }
+    },
+    "team.done.remove": {
+        "extractionState": "manual",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Member removed"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "成员已移出"
+                }
+            }
+        }
+    },
+    "team.done.disband": {
+        "extractionState": "manual",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Team disbanded"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "队伍已解散"
+                }
+            }
+        }
+    },
+    "team.done.joinMode": {
+        "extractionState": "manual",
+        "localizations": {
+            "en": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "Join mode updated"
+                }
+            },
+            "zh-Hans": {
+                "stringUnit": {
+                    "state": "translated",
+                    "value": "组队方式已更新"
+                }
+            }
+        }
+    },
     "team.join.empty": {
         "extractionState": "manual",
         "localizations": {
@@ -823,13 +908,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The simulated request was rejected"
+            "value": "That didn't go through. Refresh and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟请求被拒绝"
+            "value": "操作没有完成，请刷新后重试"
           }
         }
       }

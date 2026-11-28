@@ -44,6 +44,8 @@ public protocol AuthChannelServing {
     func sendSMSCode(phone: String) async throws
     func loginWithPhone(phone: String, code: String) async throws -> LoginResult
     func loginWithApple(identityToken: String) async throws -> LoginResult
+    /// P2-5: Apple returns the full name only on the first authorization; the backend names a new account from it.
+    func loginWithApple(identityToken: String, givenName: String?, familyName: String?) async throws -> LoginResult
     func currentAccount(token: String) async throws -> Account
     func currentAccount(token: String, loginFallbackRole: String?) async throws -> Account
     /// Deregister posts the phone returned by `/api/user/info`, including a masked number.
@@ -51,6 +53,9 @@ public protocol AuthChannelServing {
 }
 
 public extension AuthChannelServing {
+    func loginWithApple(identityToken: String, givenName: String?, familyName: String?) async throws -> LoginResult {
+        try await loginWithApple(identityToken: identityToken)
+    }
     func currentAccount(token: String, loginFallbackRole: String?) async throws -> Account {
         try await currentAccount(token: token)
     }
@@ -121,10 +126,25 @@ public struct AuthChannelService: AuthChannelServing {
         try await login(.phone, fields: ["phone": AuthChannelInput.phone(phone), "code": AuthChannelInput.code(code)])
     }
     public func loginWithApple(identityToken: String) async throws -> LoginResult {
+        try await loginWithApple(identityToken: identityToken, givenName: nil, familyName: nil)
+    }
+    public func loginWithApple(identityToken: String, givenName: String?, familyName: String?) async throws -> LoginResult {
         // The opaque Apple credential is exchanged with the existing backend. This is
         // transport validation only, never a claim that the JWT signature was verified.
         guard AuthRequestBuilder.isValidToken(identityToken) else { throw AuthChannelError.invalidAppleCredential }
-        return try await login(.apple, fields: ["identityToken": identityToken])
+        var fields = ["identityToken": identityToken]
+        // P2-5: `POST /api/login/apple` form fields `givenName` / `familyName` (backend uses them only for a new account).
+        if let given = Self.appleNamePart(givenName) { fields["givenName"] = given }
+        if let family = Self.appleNamePart(familyName) { fields["familyName"] = family }
+        return try await login(.apple, fields: fields)
+    }
+    /// Trimmed, control characters removed, at most 30 characters (the backend cap); nil when empty.
+    static func appleNamePart(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let cleaned = String(String.UnicodeScalarView(value.unicodeScalars.filter { !CharacterSet.controlCharacters.contains($0) }))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleaned.isEmpty else { return nil }
+        return String(cleaned.prefix(30))
     }
     private func login(_ endpoint: AuthEndpoint, fields: [String: String]) async throws -> LoginResult {
         let data = try await execute(endpoint, fields: fields)

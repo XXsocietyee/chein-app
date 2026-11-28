@@ -52,6 +52,22 @@ final class AuthChannelServiceTests: XCTestCase {
         XCTAssertEqual(transport.requests[3].value(forHTTPHeaderField: "Authorization"), "synthetic-token")
         XCTAssertNil(transport.requests[3].httpBody)
     }
+    /// P2-5: the first Apple authorization's given/family name reach `/api/login/apple` so a new account is not 城瘾用户.
+    func testAppleLoginForwardsFirstAuthorizationNameParts() async throws {
+        let transport = AuthChannelFixtureTransport([(success, 200), (success, 200)])
+        let service = try service(transport)
+        _ = try await service.loginWithApple(identityToken: "synthetic.apple.token", givenName: " 三 ", familyName: "张")
+        _ = try await service.loginWithApple(identityToken: "synthetic.apple.token", givenName: "  ", familyName: nil)
+        let named = String(data: transport.requests[0].httpBody!, encoding: .utf8)!
+        XCTAssertTrue(named.contains("name=\"givenName\"\r\n\r\n三\r\n"))
+        XCTAssertTrue(named.contains("name=\"familyName\"\r\n\r\n张\r\n"))
+        XCTAssertTrue(named.contains("name=\"identityToken\"\r\n\r\nsynthetic.apple.token\r\n"))
+        let unnamed = String(data: transport.requests[1].httpBody!, encoding: .utf8)!
+        XCTAssertFalse(unnamed.contains("givenName"))
+        XCTAssertFalse(unnamed.contains("familyName"))
+        XCTAssertEqual(AuthChannelService.appleNamePart(String(repeating: "A", count: 40))?.count, 30)
+        XCTAssertNil(AuthChannelService.appleNamePart("\u{0}"))
+    }
     func testInvalidPhoneAndCodeNeverDispatch() async throws {
         let transport = AuthChannelFixtureTransport([]), service = try service(transport)
         for phone in ["", "20000000000", "1000000000", "100000000000", "+8610000000000", "１0000000000", "1000000000x", "1000\n000000"] {

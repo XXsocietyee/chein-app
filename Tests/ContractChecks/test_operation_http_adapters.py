@@ -17,6 +17,14 @@ class OperationHTTPAdapters(unittest.TestCase):
         self.assertIn('private let teamService = TeamReadOnlyService()',app)
         self.assertIn('readApproval: OperationEndpointApproval? = nil',app)
         self.assertNotIn('TeamHTTPService(',app); self.assertNotIn('approval: OperationEndpointApproval(',app)
+        # P0-8: the team write adapter is built only by the composition helper, behind the read lease and the reviewed write lease.
+        team=app.split('func makeTeamCoordinator(',1)[1].split('private let orderLifecycleService',1)[0]
+        self.assertLess(team.index('if let approval = currentTeamReadApproval'),team.index('TeamMembershipWriteComposition.service('))
+        self.assertIn('write: currentRuntimeDependencyContext.flatMap { composition.teamMembershipWriteApproval($0) }',team)
+        helper=self.text('App/TeamMembershipWriteComposition.swift')
+        self.assertEqual(helper.count('TeamHTTPService('),1)
+        self.assertIn('guard reviewed?.productionGatesEnabled == true else { return nil }',helper)
+        self.assertIn('if let write {',helper)
     def test_owned_registration_bridge_is_not_activity_id_guess(self):
         app=self.text('App/AppSession.swift')
         for guard in ['creationSource.registrationID', 'detail.teamCreationSource', 'self.currentTeamSession == session', 'path: "api/registration/info"']: self.assertIn(guard,app)

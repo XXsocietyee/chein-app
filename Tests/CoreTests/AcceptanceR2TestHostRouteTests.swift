@@ -9,10 +9,11 @@ final class AcceptanceR2TestHostRouteTests: XCTestCase {
         super.tearDown()
     }
 
-    func testTopicEditRequestRoutesAreClosedUntilTheTestHostIsActive() {
+    /// P2-6 (11-28): r3 production serves these routes, so they are admitted with or without the TEST host.
+    func testTopicEditRequestRoutesAreAdmittedOnProduction() {
         TestHostOnlyRouteAdmission.testHostActive = false
-        for path in ["/api/topic/edit-requests/submit", "/api/topic/publish-status"] {
-            XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
+        for path in TestHostOnlyRouteAdmission.rawPaths {
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
         TestHostOnlyRouteAdmission.testHostActive = true
         for path in TestHostOnlyRouteAdmission.rawPaths {

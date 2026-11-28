@@ -404,7 +404,7 @@ extension PlayKitScreen {
                                 .font(.caption.weight(.semibold))
                                 .padding(.horizontal, 8).padding(.vertical, 4)
                                 .background(.regularMaterial, in: .capsule)
-                                .foregroundStyle(mark.right ? Color.green : Color.red)
+                                .foregroundStyle(mark.right ? CYColor.successText : CYColor.dangerText)
                                 .padding(6)
                                 .accessibilityIdentifier(mark.right && result?.lastPickID != option.id
                                     ? "playkit.pricePair.answer." + option.id : "playkit.pricePair.lastPick." + option.id)

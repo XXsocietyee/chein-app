@@ -74,15 +74,16 @@ final class RegistrationUIFlowTests: XCTestCase {
                           id: Int = 7) throws -> ActivityDetail {
         try JSONDecoder().decode(ActivityDetail.self, from: Data("{\"id\":\(id),\"name\":\"Fixture activity\",\"omsTicketList\":\(tickets)}".utf8))
     }
-    private func makeCoordinator(_ service: UIRegistrationService) throws -> RegistrationCoordinator {
-        let result = RegistrationCoordinator(service: service, makeRequestID: { "fixture-ui-intent" })
+    private func makeCoordinator(_ service: UIRegistrationService, paymentsOpen: Bool = false) throws -> RegistrationCoordinator {
+        let result = RegistrationCoordinator(service: service, makeRequestID: { "fixture-ui-intent" }, paymentsOpen: { paymentsOpen })
         try result.setAccount(id: 1, token: "fixture-only-token")
         return result
     }
     private func makeFlow(_ service: UIRegistrationService, reader: UIRegistrationParticipants,
                       policy: RegistrationUICreationPolicy = .offlineFixture,
-                      detail: ActivityDetail? = nil, quoteEnabled: Bool = true) throws -> RegistrationUIFlow {
-        try RegistrationUIFlow(activity: detail ?? makeActivity(), coordinator: makeCoordinator(service),
+                      detail: ActivityDetail? = nil, quoteEnabled: Bool = true,
+                      paymentsOpen: Bool = false) throws -> RegistrationUIFlow {
+        try RegistrationUIFlow(activity: detail ?? makeActivity(), coordinator: makeCoordinator(service, paymentsOpen: paymentsOpen),
                                participantReader: reader, currentIdentity: { reader.identity },
                                quoteEnabled: quoteEnabled, creationPolicy: policy)
     }
@@ -255,6 +256,22 @@ final class RegistrationUIFlowTests: XCTestCase {
         XCTAssertEqual(unknownFlow.confirmationBlock, .quoteUnavailable)
         await unknownFlow.confirm()
         XCTAssertTrue(unknown.creates.isEmpty)
+    }
+    /// fix/1128-cn-pay P0-1: with the payment switch on, the free policy confirms a paid quote and sends `payChannel=APP`.
+    func testFreePolicyConfirmsPaidQuoteWhenPaymentsOpen() async throws {
+        let paid = UIRegistrationService()
+        paid.quoteJSON = #"{"payAmount":1,"pointsUsable":true,"quoteSign":"fixture-sign"}"#
+        let flow = try makeFlow(paid, reader: UIRegistrationParticipants(), policy: .free, paymentsOpen: true)
+        flow.open()
+        flow.setName("玩家小城")
+        flow.setPhone("13900000004")
+        flow.setConsent(true)
+        await flow.recordSignupConsent()
+        XCTAssertNil(flow.confirmationBlock)
+        XCTAssertTrue(flow.prepareConfirmation())
+        await flow.confirm()
+        XCTAssertEqual(paid.creates.count, 1)
+        XCTAssertTrue(paid.creates[0].usesAppPaymentChannel)
     }
     func testExplicitQuoteGateAndEmptyTicketsPreserveNilSelection() async throws {
         let service = UIRegistrationService(), reader = UIRegistrationParticipants()

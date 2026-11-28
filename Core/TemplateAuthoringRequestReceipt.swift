@@ -106,6 +106,12 @@ public enum TemplateAuthoringRequestReceipt {
             originalResult?.object?["memberTemplateId"]?.integer.flatMap(MemberPlayTemplateID.init(rawValue:))
         }
         public var committed: Bool { state == "COMMITTED" && memberTemplateID != nil }
+        /// r3 envelope REJECTED body `originalResult {code, msg}`: the trimmed server message, at most 200 characters.
+        public var rejectionMessage: String? {
+            guard state == "REJECTED", let text = originalResult?.object?["msg"]?.string?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !text.isEmpty else { return nil }
+            return String(text.prefix(200))
+        }
         public var terminal: Bool { committed || state == "REJECTED" }
         public func matches(_ value: Submit) -> Bool {
             value.command != nil && merchant == nil && protocolVersion == value.protocolVersion &&

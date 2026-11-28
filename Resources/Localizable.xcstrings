@@ -4526,7 +4526,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collaborators can edit content but don’t take part in settlement"
+            "value": "Collaborators can edit the content but don’t share in earnings"
           }
         },
         "zh-Hans": {
@@ -4849,7 +4849,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check collaborators. Select valid members without duplicates."
+            "value": "Check your collaborators. Choose each member only once."
           }
         },
         "zh-Hans": {
@@ -150391,13 +150391,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading your records…"
+            "value": "Reading all AI chats on your account…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在读取你的记录…"
+            "value": "正在读取你账号下的全部 AI 对话…"
           }
         }
       }
@@ -172735,7 +172735,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session Info"
+            "value": "This run"
           }
         },
         "zh-Hans": {
@@ -172752,7 +172752,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entry Code"
+            "value": "Entry code"
           }
         },
         "zh-Hans": {
@@ -172769,7 +172769,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Evidence Cards"
+            "value": "Evidence cards"
           }
         },
         "zh-Hans": {
@@ -172786,7 +172786,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Release Station"
+            "value": "Release this stop"
           }
         },
         "zh-Hans": {
@@ -172803,7 +172803,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan Member Ticket"
+            "value": "Scan a member’s ticket"
           }
         },
         "zh-Hans": {
@@ -172820,7 +172820,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leader Tools"
+            "value": "Leader tools"
           }
         },
         "zh-Hans": {
@@ -172837,7 +172837,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settle Team"
+            "value": "Settle for the team"
           }
         },
         "zh-Hans": {
@@ -172854,7 +172854,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show Group Code"
+            "value": "Show group code"
           }
         },
         "zh-Hans": {
@@ -172871,7 +172871,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlock Next Chapter"
+            "value": "Unlock next chapter"
           }
         },
         "zh-Hans": {
@@ -172888,7 +172888,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Background Music"
+            "value": "Background music"
           }
         },
         "zh-Hans": {
@@ -172905,7 +172905,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Narration Autoplay"
+            "value": "Autoplay narration"
           }
         },
         "zh-Hans": {
@@ -172956,7 +172956,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Station Rewards"
+            "value": "Rewards by stop"
           }
         },
         "zh-Hans": {
@@ -173007,7 +173007,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remaining Games"
+            "value": "Games left"
           }
         },
         "zh-Hans": {
@@ -173024,7 +173024,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Run Stats"
+            "value": "Run stats"
           }
         },
         "zh-Hans": {
@@ -173058,7 +173058,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Play Tools"
+            "value": "Play tools"
           }
         },
         "zh-Hans": {
@@ -215195,7 +215195,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nothing was sent. Access, configuration or the reviewed data changed."
+            "value": "Nothing was sent. Your access or the content changed — refresh and check it again."
           }
         },
         "zh-Hans": {
@@ -219727,22 +219727,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "运营地区"
-          }
-        }
-      }
-    },
-    "region.usLoginPending": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign-in isn't available in your region yet."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你所在的地区暂不支持登录。"
           }
         }
       }
@@ -243894,6 +243878,23 @@
         }
       }
     },
+    "share.card.shareLink": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share link"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享链接"
+          }
+        }
+      }
+    },
     "share.card.stat.category": {
       "extractionState": "manual",
       "localizations": {
@@ -252911,7 +252912,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add Condition"
+            "value": "Add condition"
           }
         },
         "zh-Hans": {
@@ -252928,7 +252929,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add Effect"
+            "value": "Add effect"
           }
         },
         "zh-Hans": {
@@ -252996,7 +252997,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Trigger Conditions"
+            "value": "Trigger conditions"
           }
         },
         "zh-Hans": {
@@ -253013,7 +253014,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Resulting Effects"
+            "value": "Effects"
           }
         },
         "zh-Hans": {
@@ -253132,7 +253133,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rename"
+            "value": "Change"
           }
         },
         "zh-Hans": {
@@ -255862,13 +255863,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The simulated request was rejected"
+            "value": "That didn't go through. Refresh and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模拟请求被拒绝"
+            "value": "操作没有完成，请刷新后重试"
           }
         }
       }
@@ -258110,6 +258111,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "将此玩法存为你的模板草稿。"
+          }
+        }
+      }
+    },
+    "templateAuthor.draftSaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template draft saved. Find it in My Projects → Templates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板草稿已保存，可在 我的项目 → 模板 中查看。"
           }
         }
       }
@@ -282311,6 +282328,23 @@
         }
       }
     },
+    "wallet.balanceHero": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account balance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户余额"
+          }
+        }
+      }
+    },
     "wallet.balanceLedger": {
       "localizations": {
         "en": {
@@ -301081,7 +301115,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Relax on Low HP"
+            "value": "Go easier at low health"
           }
         },
         "zh-Hans": {
@@ -301098,7 +301132,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Triggerable Outcomes"
+            "value": "Possible outcomes"
           }
         },
         "zh-Hans": {
@@ -301115,7 +301149,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Post-Scan Reply"
+            "value": "Reply after scanning"
           }
         },
         "zh-Hans": {
@@ -305156,7 +305190,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chapters"
+            "value": "My entitlements"
           }
         },
         "zh-Hans": {
@@ -306256,13 +306290,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Network error. Please try again."
+            "value": "Network error. Try again later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "网络异常，请重试"
+            "value": "网络异常，请稍后重试"
           }
         }
       }
@@ -306273,13 +306307,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No session can show a group code yet"
+            "value": "Session details are incomplete. Try again later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可出示团码的场次"
+            "value": "场次信息不完整，请稍后重试"
           }
         }
       }
@@ -306307,13 +306341,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load the sessions"
+            "value": "Couldn’t load the sessions. Please try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "场次加载失败"
+            "value": "场次加载失败，请重试"
           }
         }
       }
@@ -356754,6 +356788,91 @@
         }
       }
     },
+    "compliance.apple.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify it's you"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证本人身份"
+          }
+        }
+      }
+    },
+    "compliance.apple.lead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account was created with Sign in with Apple and has no phone number. Sign in with Apple again to confirm the deletion request is yours."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号通过「通过 Apple 登录」创建，未绑定手机号。请再次通过 Apple 登录，确认是你本人申请注销。"
+          }
+        }
+      }
+    },
+    "compliance.apple.failedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple verification didn't finish"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 身份验证未完成"
+          }
+        }
+      }
+    },
+    "compliance.apple.reauthFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with Apple didn't return a credential. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能通过 Apple 完成身份验证，请重试。"
+          }
+        }
+      }
+    },
+    "compliance.apple.reauthRejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Apple ID couldn't be confirmed for this account. Sign in with Apple again using the Apple ID you signed up with."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 身份与当前账号不一致或已过期，请使用注册时的 Apple ID 重新验证。"
+          }
+        }
+      }
+    },
     "auth.channels.smsDailyLimit": {
       "extractionState": "manual",
       "localizations": {
@@ -356788,19 +356907,983 @@
         }
       }
     },
-    "wallet.balanceHero": {
+    "mpPublish.look.preview.stardust.kick": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Account balance"
+            "value": "Chapter one"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "账户余额"
+            "value": "第一章"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.stardust.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Ark at Tilanqiao"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提篮桥的方舟"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.stardust.story": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One morning in November 1938, a liner docked on the Huangpu."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1938年11月的一个清晨，一艘邮轮停靠在黄浦江边。"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.stardust.option": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk to Huoshan Road"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走去霍山路"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.paper.kick": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File · page seven"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "档案 · 第七页"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.paper.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The old relief station"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "救济点旧址"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.paper.story": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The ink on the list has faded. The last line reads: six tomorrow morning, Huoshan Road."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名单上的字迹已经褪色，最后一行写着：明早六点，霍山路。"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.paper.option": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn the page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻到下一页"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.survival.kick": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Field point · 01"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外勤点 · 01"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.survival.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before the eye"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "风眼之前"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.survival.story": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The weather station says the eye passes over the city at three and stays twenty minutes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "气象台说，风眼会在下午三点经过城区，停二十分钟。"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.survival.option": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Head out while the wind drops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "趁风小出门"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.cyber.kick": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "// Stop two"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "// 第二站"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.cyber.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eleven seconds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "十一秒"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.cyber.story": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The third neon sign went dark again. You counted: exactly eleven seconds."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第三块灯牌又暗了。你数了数，正好十一秒。"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.cyber.option": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SOS, someone is calling for help"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SOS，有人在求救"
+          }
+        }
+      }
+    },
+    "roam.tasks.staleLine": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t update the event list. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动列表更新失败，请稍后重试"
+          }
+        }
+      }
+    },
+    "roam.tasks.staleTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t update the event list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动列表暂时无法更新"
+          }
+        }
+      }
+    },
+    "roam.tasks.staleRetryLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload the event list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取活动列表"
+          }
+        }
+      }
+    },
+    "alipay.pay.requesting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creating your Alipay order…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在创建支付宝订单…"
+          }
+        }
+      }
+    },
+    "alipay.pay.opening": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opening Alipay…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在打开支付宝…"
+          }
+        }
+      }
+    },
+    "alipay.pay.paid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paid. Your ticket is in the wallet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付成功，票已放入票夹"
+          }
+        }
+      }
+    },
+    "alipay.pay.viewTicket": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View ticket"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看门票"
+          }
+        }
+      }
+    },
+    "alipay.pay.cancelled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付已取消"
+          }
+        }
+      }
+    },
+    "alipay.pay.again": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新支付"
+          }
+        }
+      }
+    },
+    "alipay.pay.checking": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking payment…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在确认支付结果…"
+          }
+        }
+      }
+    },
+    "alipay.pay.refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
+          }
+        }
+      }
+    },
+    "alipay.pay.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alipay isn't available. Install Alipay, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法打开支付宝，请安装支付宝后重试。"
+          }
+        }
+      }
+    },
+    "alipay.pay.useWeChat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can switch to WeChat Pay under Pay with."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可在“支付方式”中改用微信支付。"
+          }
+        }
+      }
+    },
+    "alipay.pay.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This order has expired. Rebuild it to pay."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单已失效，请重新下单"
+          }
+        }
+      }
+    },
+    "alipay.pay.rebuild": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rebuild order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新确认并下单"
+          }
+        }
+      }
+    },
+    "alipay.pay.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Alipay payment didn't go through. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付宝支付未成功，请重试"
+          }
+        }
+      }
+    },
+    "alipay.pay.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Session expired, sign in again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录状态已过期，请重新登录"
+          }
+        }
+      }
+    },
+    "registration.payWith.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay with"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付方式"
+          }
+        }
+      }
+    },
+    "registration.payWith.wechatPay %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay %@ with WeChat Pay"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "微信支付 %@"
+          }
+        }
+      }
+    },
+    "registration.payWith.alipay %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay %@ with Alipay"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付宝支付 %@"
+          }
+        }
+      }
+    },
+    "registration.payWith.applePay %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay %@ with Apple Pay"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Pay 支付 %@"
+          }
+        }
+      }
+    },
+    "registration.payWith.card %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay %@ by card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "银行卡支付 %@"
+          }
+        }
+      }
+    },
+    "registration.pay.payWith": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay with"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付方式"
+          }
+        }
+      }
+    },
+    "registration.pay.weChatNotReady": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WeChat Pay can't open on this device yet. Install or update WeChat, then pay from Me › Orders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备暂时无法打开微信支付。请安装或更新微信后，在「我的 › 订单」中支付。"
+          }
+        }
+      }
+    },
+    "team.done.join": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You joined the team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加入队伍"
+          }
+        }
+      }
+    },
+    "team.done.leave": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You left the team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已退出队伍"
+          }
+        }
+      }
+    },
+    "team.done.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member removed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员已移出"
+          }
+        }
+      }
+    },
+    "team.done.disband": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team disbanded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍已解散"
+          }
+        }
+      }
+    },
+    "team.done.joinMode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join mode updated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组队方式已更新"
+          }
+        }
+      }
+    },
+    "ticketTeam.manage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入队伍"
+          }
+        }
+      }
+    },
+    "registration.stripe.payWithCard %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay %@ with card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用银行卡支付 %@"
+          }
+        }
+      }
+    },
+    "registration.stripe.declined": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The card was declined. Try another card."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "银行卡被拒绝，请换一张卡再试。"
+          }
+        }
+      }
+    },
+    "registration.stripe.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This order can no longer be paid. Place a new order."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该订单已无法支付，请重新下单。"
+          }
+        }
+      }
+    },
+    "registration.stripe.notCompleted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment not completed. You can pay again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付未完成，可以重新支付。"
+          }
+        }
+      }
+    },
+    "registration.stripe.noMethod": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Pay is not set up on this device. Add a card in Wallet to pay."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备尚未设置 Apple Pay，请先在钱包中添加银行卡。"
+          }
+        }
+      }
+    },
+    "registration.stripe.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Card and Apple Pay are not available for this order right now. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该订单暂时无法使用银行卡或 Apple Pay 支付，请稍后再试。"
+          }
+        }
+      }
+    },
+    "publishModes.signupCount %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld sign-up"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld sign-ups"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 人报名"
+          }
+        }
+      }
+    },
+    "clubR3b.groupCode.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open the group code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "团核销码无法打开"
+          }
+        }
+      }
+    },
+    "club.enroll.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load the sign-up roster"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名名册加载失败"
+          }
+        }
+      }
+    },
+    "club.enroll.detailFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load the sign-up details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名详情加载失败"
+          }
+        }
+      }
+    },
+    "club.enroll.detailRetry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }

@@ -83,7 +83,7 @@ import Observation
                     Text("member.card.defaultName", tableName: "MemberProfile")
                 }
             }
-            .font(.title2.weight(.semibold)).foregroundStyle(.primary)
+            .font(.title2.bold()).foregroundStyle(.primary)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("profile.avatar.current.name")

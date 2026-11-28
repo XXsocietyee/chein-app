@@ -2,3 +2,5 @@
 #import "QFWeChatSDKBridge.h"
 
 #import "QFWeChatPaymentBridge.h"
+
+#import "QFAlipayPaymentBridge.h"

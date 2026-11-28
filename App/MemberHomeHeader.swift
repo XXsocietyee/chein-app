@@ -57,7 +57,7 @@ import SwiftUI
             (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12)) : AnyLayout(HStackLayout(alignment: .center, spacing: 16))) {
                 avatarControl
                 VStack(alignment: .leading, spacing: 4) {
-                    name.font(.title2.weight(.semibold)).foregroundStyle(.primary)
+                    name.font(.title2.bold()).foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("member.card.name")
                     if let home = contractHome, !home.greeting.isEmpty {

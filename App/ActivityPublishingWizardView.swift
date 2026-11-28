@@ -77,7 +77,7 @@ enum ActivityPublishingStatusHelper {
             HStack(spacing: 8) {
                 Label { EditorKitText.text(chipState.key) } icon: { Image(systemName: chipState.symbol) }
                     .font(.footnote)
-                    .foregroundStyle(chipState.usesErrorColour ? Color.red : Color.secondary)
+                    .foregroundStyle(chipState.usesErrorColour ? CYColor.dangerText : Color.secondary)
                     .accessibilityIdentifier("editorKit.saveChip")
                 if let chipDetail {
                     chipDetail.font(.footnote).foregroundStyle(.secondary).lineLimit(1)

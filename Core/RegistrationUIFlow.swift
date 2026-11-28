@@ -163,7 +163,8 @@ public final class RegistrationUIFlow {
             if !fresh { return .quoteUnavailable }
             if case .received(let quote) = quoteState {
                 guard let amount = quote.payAmount else { return .quoteUnavailable }
-                if amount != .zero { return .paymentRequired }
+                // fix/1128-cn-pay P0-1: a paid quote confirms while the payment switch is on (MP baoming create → pay).
+                if amount != .zero, !coordinator.acceptsPaidOrders { return .paymentRequired }
             } else {
                 return .quoteUnavailable
             }
