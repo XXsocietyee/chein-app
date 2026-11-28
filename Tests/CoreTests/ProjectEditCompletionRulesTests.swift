@@ -139,4 +139,22 @@ final class ProjectEditCompletionRulesTests: XCTestCase {
         await coordinator.load(); var draft = try XCTUnwrap(coordinator.snapshot?.draft); draft.completionRules = configured()
         coordinator.prepare(draft); XCTAssertNil(coordinator.confirmation); XCTAssertTrue(service.submissions.isEmpty)
     }
+    /// MP fabu/index.js:6547: no bingo switch; the grid is on while any cell has content.
+    func testBingoTurnsOnWithCellContentLikeTheMiniProgram() throws {
+        var rules = ProjectEditCompletionRules(raw: nil)
+        XCTAssertFalse(rules.bingoEnabled); XCTAssertEqual(rules.configuredCellCount, 0)
+        var cell = rules.cells[5]; cell.feedbackText = "Nice"
+        rules.setCell(cell, at: 5)
+        XCTAssertTrue(rules.bingoEnabled); XCTAssertEqual(rules.configuredCellCount, 1); XCTAssertNil(rules.issueKey)
+        var label = rules.cells[0]; label.label = "Start"
+        rules.setCell(label, at: 0)
+        XCTAssertEqual(rules.configuredCellCount, 2)
+        cell.feedbackText = ""; rules.setCell(cell, at: 5)
+        XCTAssertEqual(rules.issueKey, "projectEdit.completion.rewardRequired")
+        XCTAssertTrue(ProjectEditCompletionRules.bingoIssueKeys.contains(try XCTUnwrap(rules.issueKey)))
+        label.label = "  "; rules.setCell(label, at: 0)
+        XCTAssertFalse(rules.bingoEnabled); XCTAssertNil(rules.issueKey)
+        rules.setCell(cell, at: 9)
+        XCTAssertEqual(rules.cells.count, 9)
+    }
 }
