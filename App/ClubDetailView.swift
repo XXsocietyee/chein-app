@@ -147,7 +147,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     ClubEditionsShareSection(clubID: club.id, access: access)
                 }
                 if tab == .manage, club.isOwner, let session = reader as? AppSession {
-                    Section { NavigationLink("context.ai.title") { SessionClubAIDesignView(session: session, clubID: id) }.accessibilityIdentifier("club.context.openAI") }
+                    // fix/1128c-ai-showcase (H-08c): Design with AI is on in Release (`.publishingAIClub`), shown with the AI glyph.
+                    Section { NavigationLink { SessionClubAIDesignView(session: session, clubID: id) } label: { Label("context.ai.title", systemImage: "wand.and.stars") }.accessibilityIdentifier("club.context.openAI") }
                     Section { NavigationLink("club.projectLaunch.title") { SessionClubProjectLaunchView(session: session, club: club) }.accessibilityIdentifier("club.projectLaunch.entry") }
                 }
                 if tab == .manage, let session = reader as? AppSession {

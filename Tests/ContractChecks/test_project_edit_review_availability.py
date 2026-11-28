@@ -9,7 +9,9 @@ ROOT = Path(__file__).resolve().parents[2]
 CAN_EDIT = '    var canEdit: Bool { ownsVisit && !coordinator.isReadOnly && !coordinator.hasUnconfirmedChapterRemoval && loadedSnapshot && loadedSession == coordinator.session && coordinator.snapshot != nil && !busy && !coordinator.isLocked && coordinator.state != .simulated && coordinator.state != .acknowledged && coordinator.state != .blocked && !hasRestore }'
 CAN_REVIEW = '    var canReview: Bool { currentReviewLease() != nil }'
 # native r2: CYPillButtonStyle(.primary) became the system .borderedProminent style inside a native bottom bar
-BUTTON = '                    Button("projectEdit.review") { focusedField = nil; model.review() }\n                        .buttonStyle(.borderedProminent).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")'
+# fix/1128c-ai-showcase (deliberate, audit H-08b): 下一步 runs the AI safety precheck first (`precheckThenReview`, which
+# degrades to pass and then calls the same `model.review(intent:)`), and stays disabled while that precheck runs.
+BUTTON = '                    Button("projectEdit.review") { focusedField = nil; precheckThenReview(.ordinary) }\n                        .buttonStyle(.borderedProminent).disabled(!model.canReview || aiPrecheck.isRunning).accessibilityIdentifier("projectEdit.review")'
 
 
 def verify(view, prepared):

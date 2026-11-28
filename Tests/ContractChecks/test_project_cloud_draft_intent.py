@@ -68,8 +68,10 @@ class ProjectCloudDraftIntentContracts(unittest.TestCase):
   self.assertIn('Button(action: confirm)',form)
  def test_three_choices_keep_existing_busy_and_lease_fences(self):
   s=self.text('App/ProjectEditView.swift')
-  for x in ['model.saveLocal()','model.review()','model.review(intent: .saveCloudDraft)','model.review(intent: .submitServerDraft)']:self.assertIn(x,s)
-  self.assertEqual(s.count('.disabled(!model.canReview)'),3)
+  # fix/1128c-ai-showcase (deliberate, audit H-08b): 下一步 / 提交草稿 go through the AI safety precheck
+  # (`precheckThenReview`, degrade-to-pass) into the same `model.review(intent:)`, disabled while it runs.
+  for x in ['model.saveLocal()','model.review(intent: intent)','model.review(intent: .saveCloudDraft)','precheckThenReview(.submitServerDraft)','precheckThenReview(.ordinary)']:self.assertIn(x,s)
+  self.assertEqual(s.count('.disabled(!model.canReview'),3)
   self.assertIn('.disabled(!model.canSaveLocal)',s)
  def test_cloud_and_unknown_receipts_remain_outside_detail_dependency(self):
   s=self.text('App/ProjectEditView.swift')
