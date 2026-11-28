@@ -354,6 +354,16 @@ Merged `origin/ui/combined-r7` (receipts of other lanes / design-consistency too
 |---|---|---|
 | 首页 Today card (native-only `HomeTodayCard`; the MP `pages/index/index.wxml` has no Today card, so no MP section is added or reordered) → `App/HomeFeedView.swift` `HomeTodayCard`, new `App/HomeTodayMeetingPointMap.swift` | Card was eyebrow + title + one meta line + button: no image, no place, nothing below. | **Fixed** — full card: 16:9 cover (fixture: bundled MP `clubCityCamera` via `homeTodayFixtureCover`, production: safe https cover, else text-only), P28 fact icon rows (`clock` time, `mappin.and.ellipse` place) instead of the `·` meta line, and a fixed meeting-point map snippet (system `Map`, one `Marker`, no gestures, tap opens Apple Maps) when the candidate has a `meetingPoint`; `@ScaledMetric` height capped at 220 pt. VoiceOver keeps the one combined card label (time · place). Fixture `wave-today-club` gets the Old Town meeting point. |
 
+## Round 3 continue (26) — next page without a row: `pages/searchmap` (Search → 在地图上找)
+
+No open coordinator item for mp-home: sweep 05:15 (build a4142df0d) predates continue 25; the other mp-home tiles read correctly in en + zh-Hans. Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (52/52) · design consistency PASS.
+
+| MP page → native view | MP sections present | Difference | Fixed / not |
+|---|---|---|---|
+| `pages/searchmap/index.wxml` → `App/SearchMapExplorerView.swift`, `App/SearchMapResultsCapsule.swift`, `App/SearchMapActivityCard.swift`, `App/SearchMapFilterSheet.swift` | search + 筛选 row ✓ (`.searchable` + 筛选 button), offline bar ✓, map ✓, result capsule (loading / empty / error / N 个结果 · N 个只在列表显示) ✓, 全部结果 sheet (正在更新商家节点… → error / empty / loading → refresh/page inline error → list → 加载更多) ✓, actItem (point label, categories, 关联主题路线, address, time) ✓, filter sheet (商家发现 / 日期 / 价格 / 排序 最近) ✓ | Selected-marker sheet `smap-sel-cta`: MP = 查看活动详情 (primary) + 查看关联主题 (ghost, when linked). Native had no details button (only the tappable card) and 查看关联主题 as an unstyled text button. | **Fixed** — `.borderedProminent` 查看活动详情 / View activity details (`searchMap.w208.viewActivity`, id `searchMap.selected.viewActivity.<id>`) then `.bordered` 查看关联主题 / View related topic, both full width, `.large`. Contract pin re-pinned with a one-line reason (`test_global_search_category_recovery.py`). |
+| same | — | MP is map-first (full-screen map, 定位 button, location-error bar over the map); native is a scrolling column (filters → layers → 搜索此区域 → map → capsule → rows). | **Not done** — a full-screen map restructure of a 714-line view with read-ownership/pagination guards is not safe blind (no compiler/simulator); needs a simulator run. Section order inside the column follows the MP. |
+| same | — | 全部结果 sheet draws a separate 在地图中打开 row under each card; MP makes the card's address row the tap target. | **Kept** — SwiftUI cannot nest the address button inside the card button; the visible row is the 44 pt target (R7-PC-A5-5). |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -386,3 +396,5 @@ Merged `origin/ui/combined-r7` (receipts of other lanes / design-consistency too
 - Needs a simulator pass (continue 23): `d2-search-empty` (没有找到 / no results) and `d2-search-failed` (没能完成搜索 + 重试) in en + zh-Hans.
 - Needs a simulator pass (continue 24): `d2-home-empty` (暂时没有主题 / No themes right now) and `d2-home-failed` (编辑精选加载失败 + 重试 above 附近活动) in en + zh-Hans.
 - Needs a simulator pass (continue 25): `wave-today-club` full card (cover, time/place icon rows, meeting-point map) in en + zh-Hans, light/dark, AX5.
+- Needs a simulator pass (continue 26): searchmap selected-marker sheet with 查看活动详情 + 查看关联主题 in en + zh-Hans, AX5.
+- searchmap full-screen map-first layout (MP `pages/searchmap`): needs a simulator run before restructuring `SearchMapExplorerView`.
