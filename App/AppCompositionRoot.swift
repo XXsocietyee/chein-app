@@ -535,7 +535,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
         self.walletHistoryReadApproval = walletHistoryReadApproval ?? (productionGatesEnabled ? { [gates] in gates.walletHistory($0) } : { _ in nil })
         self.roamSessionFactReadAccess = roamSessionFactReadAccess
-        self.roamNearbyEventsReadAccess = roamNearbyEventsReadAccess
+        // Gap #25 (1128 plan R-04c): the production gate fallback, like nearby players below.
+        self.roamNearbyEventsReadAccess = { [gates] context in roamNearbyEventsReadAccess(context) ?? (productionGatesEnabled ? gates.roamNearbyEvents(context) : nil) }
         self.roamNearbyPlayersReadAccess = { [gates] context in roamNearbyPlayersReadAccess(context) ?? (productionGatesEnabled ? gates.roamNearbyPlayers(context) : nil) }
         self.roamEntryNearbyReadAccess = { [gates] context in roamEntryNearbyReadAccess(context) ?? (productionGatesEnabled ? gates.roamEntryNearby(context) : nil) }
         self.roamReceivedStampReadAccess = roamReceivedStampReadAccess

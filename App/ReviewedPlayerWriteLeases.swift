@@ -590,6 +590,7 @@ enum ReviewedPlayerReadRoute {
     private var roamPassportHistoryByContext: [String: RoamPassportHistoryReadAccess] = [:]
     private var roamEntryNearbyByContext: [String: RoamEntryNearbyReadAccess] = [:]
     private var roamNearbyPlayersByContext: [String: RoamNearbyPlayersReadAccess] = [:]
+    private var roamNearbyEventsByContext: [String: RoamNearbyEventsReadAccess] = [:]
     private var teamReadByContext: [String: TeamReadApproval] = [:]
     private var growthNormalReadByContext: [String: GrowthNormalReadApproval] = [:]
     private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
@@ -1260,6 +1261,21 @@ enum ReviewedPlayerReadRoute {
         guard let endpoints = makeEndpoint(context, paths: [RoamNearbyPlayersReadRoute.path]),
               let issued = try? RoamNearbyPlayersReadAccess(context: context, approval: endpoints) else { return nil }
         roamNearbyPlayersByContext[key] = issued
+        return issued
+    }
+
+    /// Gap #25 (1128 plan R-04c, same root as P1-23): `GET /api/roam/hangout/nearby?lat&lng&radius` (activity + topic
+    /// kinds, BE ApiRoamHangoutController.java:47; MP subpackageRoam/nearby/index.js:273-300). Signed-in China
+    /// player/club/merchant, read only. Feeds the roam browser 活动 layer and the nearby-teams topic/activity layer;
+    /// the maps draw only rows that carry coordinates (RoamMapView skips a row without one).
+    func roamNearbyEvents(_ context: RuntimeDependencyContext) -> RoamNearbyEventsReadAccess? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamNearbyEventsByContext[key], existing.matches(context) { return existing }
+        roamNearbyEventsByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: [RoamNearbyEventsReadRoute.path]),
+              let issued = try? RoamNearbyEventsReadAccess(context: context, approval: endpoints) else { return nil }
+        roamNearbyEventsByContext[key] = issued
         return issued
     }
 
