@@ -490,3 +490,11 @@ Merged `origin/ui/combined-r7` (clean). Sweep index still build 0446d1c4f (mp-na
 | `pages/team/detail` 分享 (index.js:540-548 path `/pages/team/join/index?code=`) → App/NativeR2/CityOrientation/CityOrientationTeamLobbyView.swift bottom-bar 邀请队友 | shared the bare 6-char code | `PublicContentShareLink.teamInvite(code:)` link with the team title as preview, falling back to the code — the same item as `TeamInvitePreview` (T-02 row above) | fixed |
 
 Tests: existing `PublicContentShareLinkTests.testActivityShareCarriesTheParsedActivityLink` / `testTeamInviteShareIsTheMiniProgramJoinLinkThatParsesBack` cover both builders. Level B, navigation only, no section/order change. Not compiled here.
+
+## Re-scan 11-28 18:xx — play finish share link (merged combined-r7 89a55cd24)
+
+Merged `origin/ui/combined-r7` (clean). Sweep index still build 0446d1c4f (mp-nav sheets clean); no coordinator row for mp-nav after 07:45; Contract-cleanup `/api/compliance/usage-records` closed (21:0x / H-16). Item 3 (MP-account sync note) still blocked on the backend field. B receipt read: no overlap. Next outbound share edge without a row: the play finish screens.
+
+| MP edge → native | before | after | status |
+|---|---|---|---|
+| `subpackageJourney/pages/settle` 分享 (index.js:264-271 `onShareAppMessage`: referral landing when a token is issued, else `/pages/topic/index/index?id=<topicId>`) → App/PlayExperienceView.swift `cityFinishSummary` / medal screen, App/NativeR2/CityOrientation/CityOrientationFinishSummaryView.swift (toolbar 分享 + per-medal share), App/DesignSystem/CYMedalStack.swift `CYMedalScreen` share pill | shared only "我在…通关" text: the receiver could not open the topic | `PlayExperienceView.finishShareURL` = `PublicContentShareLink.topic(id:)` from the run's `result.topicID` (the MP fallback path; the app issues no referral here), shared with the same text as the message; text alone when there is no topic id / reviewed origin. Identifiers and layout unchanged. Level B, navigation only, no section/order change. Not compiled here | fixed |
