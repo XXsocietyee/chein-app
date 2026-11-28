@@ -526,6 +526,17 @@ bar, roam history tools, editor save chip and puzzle tiles already reach 44).
 | `pages/play` lead bar retry (网络状态暂未刷新 · 点击重试) | `MPGap/PlayRoam/PlayLeadBar.swift:11` | ✓ (mp-journey owns order) | The 8 pt bar padding sat outside the button, so only the text line was tappable → full-width 44 pt label, bar padding 2 pt (same bar height). Level A | Done |
 | `pages/search` map explorer location-denied bar (打开设置) | `MPGap/PlayerContent/SearchMapExplorerGapView.swift:105` | ✓ (mp-home owns order) | Footnote "Open Settings" button → 44 pt tall hit area; bar padding 8 → 2 so the bar keeps its height. Level B | Done |
 
+### Run 33b (2026-11-28, twin of run 33)
+Same scan, widened to `.borderless` / `.plain` buttons with small labels outside `List` / `Form` (38 hits read; whole cards / tiles,
+List-row buttons and the story-flow editor left). Run 33's four rows kept as pushed; these are the extra hits.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| Shared offline / error strips (Retry on every player list) | `DesignSystem/CYStateKit.swift:305`, `DesignSystem/CYSharedStates.swift:97,170` | ✓ | Footnote Retry ~18 pt tall → label `frame(minHeight: 44)` + `contentShape`, look unchanged. Level C | Done |
+| `pages/topic` bottom bar 场次 link, `pages/square` route map card 查看主题 | `TopicXcxSections.swift:305`, `DesignSystem/CYSquareRouteMapCard.swift:54` | ✓ (mp-publish / mp-activity own order) | Footnote links → 44 pt tall hit area. Level B | Done |
+| `pages/roam` official tasks stale retry | `RoamOfficialTasksView.swift:242` | ✓ (mp-roam owns order) | Retry → 44 pt tall hit area. Level B | Done |
+| Welcome consent links (用户协议 / 隐私指引) | `WelcomeView.swift:195,200` | ✓ (mp-nav owns order) | Both links → 44 pt tall; stacked fallback spacing 6 → 0 (the frames already separate them). Level A | Done |
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-33).
 - Next pages without a row: 44 pt targets, third part — `.controlSize(.mini)` / `.controlSize(.small)` bordered buttons and
