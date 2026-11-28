@@ -107,6 +107,22 @@ final class AuthChannelServiceTests: XCTestCase {
             XCTAssertEqual(transport.requests.count, 1)
         }
     }
+    /// P1-16: SmsVerificationService answers code 500 with a typed errorCode; each maps to its own message.
+    func testBackendSMSErrorCodesMapToTypedFailures() async throws {
+        let cases: [(String, AuthChannelError)] = [("SMS_RATE_LIMITED", .rateLimited), ("SMS_DAILY_LIMIT", .smsDailyLimit),
+                                                   ("SMS_INTL_NOT_CONFIGURED", .smsRegionUnavailable)]
+        for (code, expected) in cases {
+            let body = #"{"code":500,"msg":"private","errorCode":""# + code + #""}"#
+            let transport = AuthChannelFixtureTransport([(body, 200)])
+            do { try await service(transport).sendSMSCode(phone: "10000000000"); XCTFail("Must fail") }
+            catch { XCTAssertEqual(error as? AuthChannelError, expected) }
+            XCTAssertEqual(transport.requests.count, 1)
+        }
+        XCTAssertNil(AuthChannelError.sms(errorCode: "OTHER"))
+        XCTAssertNil(AuthChannelError.sms(errorCode: nil))
+        XCTAssertEqual(AuthChannelIssue.smsDailyLimit.localizationKey, "auth.channels.smsDailyLimit")
+        XCTAssertEqual(AuthChannelIssue.smsRegionUnavailable.localizationKey, "auth.channels.smsRegionUnavailable")
+    }
     func testBusinessAndHTTPFailuresKeepStructuredCodesWithoutRawMessage() async throws {
         for (response, expected) in [((#"{"code":500,"msg":"private server internals"}"#, 200), APIError.businessCode(500)),
                                     ((#"{"code":401}"#, 200), APIError.unauthorized),
