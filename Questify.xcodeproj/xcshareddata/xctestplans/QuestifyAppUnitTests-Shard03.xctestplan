@@ -314,6 +314,7 @@
         "NativeEnrollmentAppTests",
         "NativeFriendDirectoryNavigationHostingTests",
         "NativeFriendRequestReviewHostingTests",
+        "NativeGameStopwatchTriesLeftTests",
         "NativeHomeReturnCompositionTests",
         "NativeNotificationPermissionStatusPresentationTests",
         "NativePlatformAppTests",
