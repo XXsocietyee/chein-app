@@ -101,6 +101,8 @@ import QuestifyCore
     @State private var sessionDetent: PresentationDetent = .fraction(0.3)
     /// ROAM-r11-3: the place marker the player tapped.
     @State private var selectedPlaceID: Int?
+    /// MP `onMarkerTap`: one map selection for place pins and merchant pins (ids of the two layers may collide).
+    @State private var mapPick: RoamLiveMapPick?
     /// MP BL-02 (`utils/roam-idle.js`): display-only stationary detector; never touches time, distance or reveal.
     @State private var idle = RoamLiveIdleDetector()
     /// ROAM-r11-1: the official event carried in from 去漫游 (MP onLoad `eventId` / `missionCode`).
@@ -260,7 +262,7 @@ import QuestifyCore
             // ROAM-r11-3: the session's nearby places as markers tinted by node level (普通 / 精选 / 官方合作 / 主题路线),
             // independent of the fog flag. Tapping one opens the 附近 list. MP pages/roam/index.wxml:301-433,
             // index.js:2575 (`buildNodeLevelMarkerStyle`), node-level-style.js.
-            Map(initialPosition: .userLocation(fallback: .automatic), selection: $selectedPlaceID) {
+            Map(initialPosition: .userLocation(fallback: .automatic), selection: $mapPick) {
                 UserAnnotation()
                 ForEach(owner.places.filter { $0.coordinate != nil }) { place in
                     if let point = place.coordinate, let photo = RoamLivePhotoPin.url(for: place) {
@@ -270,13 +272,23 @@ import QuestifyCore
                                    coordinate: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)) {
                             RoamLivePhotoPin(url: photo, tint: RoamLivePlaceLevel.tint(place.nodeLevel))
                         }
-                        .tag(place.id)
+                        .tag(RoamLiveMapPick.place(place.id))
                     } else if let point = place.coordinate {
                         Marker(place.name.isEmpty ? appLocalized("roam.unnamed", locale: locale) : place.name,
                                systemImage: RoamLivePlaceLevel.symbol(place.nodeLevel),
                                coordinate: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude))
                             .tint(RoamLivePlaceLevel.tint(place.nodeLevel))
-                            .tag(place.id)
+                            .tag(RoamLiveMapPick.place(place.id))
+                    }
+                }
+                // MP `_fetchNearbyMerchants` merchant layer: grey shop pins (MP merchant grey), name or 商家 when blank.
+                ForEach(owner.registeredShops.filter { $0.coordinate != nil }) { shop in
+                    if let point = shop.coordinate {
+                        Marker(shop.addressName.isEmpty ? appLocalized("nativeR2.mapHome.kind.merchant", locale: locale) : shop.addressName,
+                               systemImage: "storefront.fill",
+                               coordinate: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude))
+                            .tint(.gray)
+                            .tag(RoamLiveMapPick.shop(shop.id))
                     }
                 }
             }
@@ -285,8 +297,20 @@ import QuestifyCore
                     MapCompass()
                     MapScaleView()
                 }
-                .onChange(of: selectedPlaceID) { _, id in
-                    guard id != nil else { return }
+                .onChange(of: mapPick) { _, pick in
+                    guard let pick else { selectedPlaceID = nil; return }
+                    switch pick {
+                    case .place(let id):
+                        selectedPlaceID = id
+                    case .shop(let id):
+                        selectedPlaceID = nil
+                        // MP `_openPlaceDetail`: a merchant pin with a topic opens the topic half-screen;
+                        // otherwise the shop strip opens on it (native: the 附近 shop rows).
+                        if roamGap != nil, let shop = owner.registeredShops.first(where: { $0.id == id }),
+                           let topic = RoamLiveTopicShop(shop: shop) {
+                            topicShop = topic
+                        }
+                    }
                     nearbyExpanded = true
                     if sessionDetent == .fraction(0.3) { sessionDetent = .medium }
                 }
@@ -1610,6 +1634,12 @@ struct RoamCheckinTarget: Identifiable {
         .accessibilityHidden(true)
         .task(id: url) { image = await PlayerFeedImages.image(for: url, maxPixel: 120) }
     }
+}
+
+/// Tag of a live-map pin: a roam place (`/api/roam/...` places) or a registered shop (merchant layer).
+enum RoamLiveMapPick: Hashable {
+    case place(Int)
+    case shop(Int)
 }
 
 enum RoamLivePlaceLevel {
