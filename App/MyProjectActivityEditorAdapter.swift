@@ -34,6 +34,7 @@ import SwiftUI
                     .id(editorIdentity)
                     .background {
                         MyProjectActivitySaveReceiptObserver(controller: controller, onReceipt: deliverReceipt)
+                        ActivityEditSavedBroadcast(controller: controller, activityID: request.activityID)
                     }
                     .accessibilityIdentifier("myProject.state.activityEditor")
             } else if resolved {
