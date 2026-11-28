@@ -7,7 +7,7 @@ import XCTest
         .init(scope: try RoamHistoryScope(market: market, deployment: URL(string: host)!, accountID: account, namespace: namespace), epoch: epoch)
     }
     private func setup() throws -> (Roam, Official, RoamOfficialTasksModel) {
-        let roam = Roam(identity: try identity()), official = Official(); official.all = try events(); official.mine = try events(#"[{"id":81,"title":"Joined","status":3,"signed":true}]"#)
+        let roam = Roam(identity: try identity()), official = Official(); official.all = try events(); official.mine = try events(#"[{"id":71,"title":"Joined","status":3,"signed":true}]"#)
         return (roam, official, .init(roam: roam, official: official))
     }
     private let live = OfficialEventBrowseQuery(bucket: .live, keyword: "")
@@ -18,14 +18,14 @@ import XCTest
     func testCompleteSceneReadsOnlyTwoExistingListContracts() async throws {
         let (roam, official, model) = try setup(); await model.load()
         XCTAssertEqual(official.calls, ["all", "mine"]); XCTAssertEqual(roam.reads, 0)
-        XCTAssertEqual(model.snapshot?.all.count, 4); XCTAssertEqual(model.snapshot?.mine.map(\.id), [81]); XCTAssertFalse(model.isLoading)
+        XCTAssertEqual(model.snapshot?.all.count, 4); XCTAssertEqual(model.snapshot?.mine.map(\.id), [71]); XCTAssertFalse(model.isLoading)
     }
     func testFourBucketsReuseExistingOfficialStatusContract() async throws {
         let (_, _, model) = try setup(); await model.load(); let snapshot = try XCTUnwrap(model.snapshot)
         XCTAssertEqual(snapshot.visible(live).map(\.id), [71, 74])
         XCTAssertEqual(snapshot.visible(.init(bucket: .upcoming, keyword: "")).map(\.id), [72])
         XCTAssertEqual(snapshot.visible(.init(bucket: .ended, keyword: "")).map(\.id), [73])
-        XCTAssertEqual(snapshot.visible(.init(bucket: .mine, keyword: "")).map(\.id), [81])
+        XCTAssertEqual(snapshot.visible(.init(bucket: .mine, keyword: "")).map(\.id), [71])
     }
     func testSourceKeywordFiltersLoadedRowsWithoutMoreReads() async throws {
         let (_, official, model) = try setup(); await model.load(); let snapshot = try XCTUnwrap(model.snapshot)
