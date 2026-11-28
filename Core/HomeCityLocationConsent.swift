@@ -57,6 +57,13 @@ public enum HomeCityLocationConsentRecord {
             && result.docVersion == UsageConsentDocument.privacyPolicy.currentVersion
     }
 
+    /// mp-home r3 (continue 32): MP `getHomeCityLocation({userInitiated})` (pages/index/index.js:1322-1323) stops
+    /// silently on a REVOKE row; any current agreement lets a user tap locate at once.
+    public static func isRevoked(_ baseline: HomeCityLocationConsentBaseline) -> Bool {
+        guard let consent = baseline.consent else { return false }
+        return isRevoke(consent)
+    }
+
     private static func isRevoke(_ consent: ComplianceConsent) -> Bool {
         consent.docType == docType && consent.scene == scene && consent.scopeType == nil && consent.scopeId == nil
             && consent.eventType == ComplianceEvent.revoke.rawValue

@@ -14,6 +14,7 @@ struct HomeHeroHeaderSectionView: View {
     var isMerchantViewer: Bool = false
     var avatarSource: String? = nil
     var onSelectCity: ((String?, Bool) -> Void)? = nil
+    var onLocateCity: (() -> Void)? = nil
     var onSelectBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
     @Environment(\.externalGameSession) private var externalGameSession
     @Environment(\.homeMoreMenuContent) private var moreMenuContent
@@ -184,6 +185,14 @@ struct HomeHeroHeaderSectionView: View {
             // MP `cy-dropdown range="{{manualCityOptions}}"` (utils/index/home-city-location.js CITY_OPTIONS): the 20 cities
             // in MP order, no 全国 entry (the old 全国 item was a no-op: the host ignores nationwide).
             Menu {
+                // mp-home r3 (continue 32): MP `onTapHomeCity` relocates from the device; the manual list stays below.
+                if let onLocateCity {
+                    Button(action: onLocateCity) {
+                        Label("homeIndex.hero.useCurrentLocation", systemImage: "location")
+                    }
+                    .accessibilityIdentifier("homeIndex.hero.city.locate")
+                    Divider()
+                }
                 ForEach(HomeHeroCityNames.manualOptions, id: \.self) { city in
                     Button {
                         onSelectCity(city, false)

@@ -571,6 +571,7 @@
         "RunAuthorityHostSectionViewTests",
         "RuntimeDependencyAppTests",
         "ScheduleAndLeadProgressPollingSectionViewTests",
+        "SearchCategorySymbolTests",
         "SearchMapDatePresetDraftTests",
         "SearchMapLayerVisibilityViewTests",
         "SearchMapPaginationPresentationTests",

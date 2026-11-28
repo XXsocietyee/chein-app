@@ -584,6 +584,7 @@
         "RuntimeDependencyAppTests",
         "RuntimeSessionRoleConsistencyTests",
         "SQLiteAndJSONJournalCorruptionRecoverySectionViewTests",
+        "SearchCategorySymbolTests",
         "SearchMapActivityCardTests",
         "SearchMapDatePickerDraftTests",
         "SearchMapDatePresetDraftTests",

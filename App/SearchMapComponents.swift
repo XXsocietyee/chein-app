@@ -223,29 +223,32 @@ struct SearchMapCard: View {
 /// MP `utils/category-icon.js` (UI-13): the backend icon column is one shared placeholder, so the glyph comes from
 /// the category name. Same keyword rules in the same order; unknown names fall back to the neutral shop glyph.
 enum SearchCategorySymbol {
+    /// MP `utils/category-icon.js` rules (Chinese, same order). mp-home r3 (continue 32): the US market and the en
+    /// fixture send English category names, which all fell back to `storefront`; each rule also matches the English
+    /// word starts (case-insensitive, `\b` so "Party" is not "art" and "Brunch" is not "run").
     private static let rules: [(String, String)] = [
-        ("运动|健身|体育", "figure.run"),
-        ("徒步|骑行|跑步|户外", "point.topleft.down.to.point.bottomright.curvepath"),
-        ("摄影|相机", "camera"),
-        ("科技|数码|电子|设备", "desktopcomputer"),
-        ("美食|餐饮|烹饪|餐厅|食堂", "fork.knife"),
-        ("咖啡|烘焙|甜品", "cup.and.saucer"),
-        ("娱乐|演艺|演出|电影|音乐|游戏|达人|竞猜", "play.circle"),
-        ("衣物|洗护|服装|服饰|鞋包|穿搭", "tshirt"),
-        ("家政|维修|家居|清洁|整理|搬家", "wrench.and.screwdriver"),
-        ("出行|交通", "car"),
-        ("旅行|旅游|路线|漫游", "point.topleft.down.to.point.bottomright.curvepath"),
-        ("生活|美学|美妆|时尚|艺术", "paintpalette"),
-        ("探索|城市|地图|街区", "map"),
-        ("文化|叙事|故事|历史|读书", "book"),
-        ("亲子|协作|团队|组队|社交|交友|俱乐部", "person.2"),
-        ("解谜|谜题|推理|机关", "lock"),
-        ("夜游|夜生活|夜", "star"),
+        ("运动|健身|体育|\\b(sport|fitness|gym)", "figure.run"),
+        ("徒步|骑行|跑步|户外|\\b(hik|cycl|bik|running|outdoor)", "point.topleft.down.to.point.bottomright.curvepath"),
+        ("摄影|相机|\\b(photo|camera)", "camera"),
+        ("科技|数码|电子|设备|\\b(tech|digital|electronic|device)", "desktopcomputer"),
+        ("美食|餐饮|烹饪|餐厅|食堂|\\b(food|dining|cook|restaurant)", "fork.knife"),
+        ("咖啡|烘焙|甜品|\\b(coffee|caf|bak|dessert)", "cup.and.saucer"),
+        ("娱乐|演艺|演出|电影|音乐|游戏|达人|竞猜|\\b(entertain|perform|show|movie|film|music|game|quiz)", "play.circle"),
+        ("衣物|洗护|服装|服饰|鞋包|穿搭|\\b(cloth|laundry|apparel|outfit)", "tshirt"),
+        ("家政|维修|家居|清洁|整理|搬家|\\b(housekeep|repair|home|clean|moving)", "wrench.and.screwdriver"),
+        ("出行|交通|\\b(transport|commut)", "car"),
+        ("旅行|旅游|路线|漫游|\\b(travel|tour|route|roam)", "point.topleft.down.to.point.bottomright.curvepath"),
+        ("生活|美学|美妆|时尚|艺术|\\b(lifestyle|aesthetic|beauty|fashion|art)", "paintpalette"),
+        ("探索|城市|地图|街区|\\b(explor|city|map|street|neighbo)", "map"),
+        ("文化|叙事|故事|历史|读书|\\b(cultur|story|histor|read|book)", "book"),
+        ("亲子|协作|团队|组队|社交|交友|俱乐部|\\b(family|kid|team|social|friend|club)", "person.2"),
+        ("解谜|谜题|推理|机关|\\b(puzzle|mystery|riddle|escape)", "lock"),
+        ("夜游|夜生活|夜|\\b(night)", "star"),
     ]
     static func name(for categoryName: String) -> String {
         let text = categoryName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return "storefront" }
-        for (pattern, symbol) in rules where text.range(of: pattern, options: .regularExpression) != nil {
+        for (pattern, symbol) in rules where text.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil {
             return symbol
         }
         return "storefront"

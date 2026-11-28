@@ -81566,6 +81566,23 @@
         }
       }
     },
+    "homeIndex.hero.useCurrentLocation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use current location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用当前位置"
+          }
+        }
+      }
+    },
     "hostTip.config.club": {
       "extractionState": "manual",
       "localizations": {
