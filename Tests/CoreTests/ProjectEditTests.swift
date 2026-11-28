@@ -728,3 +728,48 @@ final class ProjectEditRuntimeActsTests: XCTestCase {
         return draft
     }
 }
+
+/// MP theme-runtime-survival.js toggleThemeReplay / toggleThemeTeamTrail.
+final class ProjectEditThemeRulesTests: XCTestCase {
+    func testReplayDefaultsOffAndIsRefusedForTeamRuntime() throws {
+        let empty = ProjectEditSyntheticFixtures.draft(product: .city)
+        XCTAssertFalse(ProjectEditThemeRules.replayEnabled(in: empty))
+        let on = try ProjectEditThemeRules.setReplay(true, in: empty)
+        XCTAssertTrue(ProjectEditThemeRules.replayEnabled(in: on))
+        XCTAssertEqual(try theme(on)["schemaVersion"], .number(1))
+        let team = try draft(with: ["schemaVersion": .number(1), "gameplayRuntime": .object(["runtimeScope": .string("TEAM")])])
+        XCTAssertThrowsError(try ProjectEditThemeRules.setReplay(true, in: team)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeActsError, .refused(ProjectEditThemeRules.Copy.replayTeamRefused))
+        }
+        XCTAssertNoThrow(try ProjectEditThemeRules.setReplay(false, in: team))
+    }
+
+    func testTeamTrailDefaultsFollowRuntimeScope() throws {
+        let empty = ProjectEditSyntheticFixtures.draft(product: .city)
+        XCTAssertTrue(ProjectEditThemeRules.teamTrail(in: empty))
+        XCTAssertEqual(try ProjectEditThemeRules.setTeamTrail(true, in: empty), empty)
+        let player = try draft(with: ["schemaVersion": .number(1), "gameplayRuntime": .object(["runtimeScope": .string("PLAYER")])])
+        XCTAssertFalse(ProjectEditThemeRules.teamTrail(in: player))
+        let playerOn = try ProjectEditThemeRules.setTeamTrail(true, in: player)
+        XCTAssertEqual(try theme(playerOn)["teamTrail"], .bool(true))
+        let team = try draft(with: ["schemaVersion": .number(1), "teamTrail": .bool(false), "gameplayRuntime": .object(["runtimeScope": .string("TEAM")])])
+        XCTAssertFalse(ProjectEditThemeRules.teamTrail(in: team))
+        let teamOn = try ProjectEditThemeRules.setTeamTrail(true, in: team)
+        XCTAssertNil(try theme(teamOn)["teamTrail"])
+        XCTAssertTrue(ProjectEditThemeRules.teamTrail(in: teamOn))
+        let teamOff = try ProjectEditThemeRules.setTeamTrail(false, in: teamOn)
+        XCTAssertEqual(try theme(teamOff)["teamTrail"], .bool(false))
+    }
+
+    private func draft(with theme: [String: ProjectEditJSON]) throws -> ProjectEditDraft {
+        var draft = ProjectEditSyntheticFixtures.draft(product: .city)
+        let data = try JSONEncoder().encode(ProjectEditJSON.object(theme))
+        draft.preserved["themeRuntimeConfig"] = .string(try XCTUnwrap(String(data: data, encoding: .utf8)))
+        return draft
+    }
+
+    private func theme(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {
+        let text = try XCTUnwrap(draft.preserved["themeRuntimeConfig"]?.text)
+        return try XCTUnwrap(try JSONDecoder().decode(ProjectEditJSON.self, from: Data(text.utf8)).object)
+    }
+}

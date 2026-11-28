@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 17, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 18, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -123,6 +123,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 | `club.community.noticeNoText` | (No text) | （无文字内容） |
 | `club.community.noticeUnreadA11y %@` | Unread notice: %@ | 未读公告：%@ |
 | `club.community.noticeA11y %@` | Notice: %@ | 公告：%@ |
+| `club.ops.locked.sub` | Only the host can set these | 仅主理人可设置 |
 
 ## Contract test pins updated (with reason)
 
@@ -157,6 +158,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 21. Pass 11: 报名名册 escrow line removed, hideEmpty tickets, team row colours.
 22. Pass 12: merge combined-r7 (xcstrings: combined is a superset, plural variants); club fixtures follow the UI language; 创建俱乐部 intro without the checklist and 封面/Logo under the step-3 header; join-requests and apply done re-checked.
 23. Pass 17: merge combined-r7; 改为转让主理人 moved into the 解散 confirm as the MP alternative (with its hint).
+24. Pass 18: merge combined-r7 (xcstrings: combined + our `club.ops.dissolve.transferHint`); club/edit full re-check, extra header row and admin note removed, locked card gets 仅主理人可设置.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
 
 ## Sweep check (pass 7, build 070117595, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`)
@@ -226,6 +228,11 @@ Sweep check: all nine club tiles read in the UI language now (d4-badges, d4-enro
 | MP page | Native view | MP sections | Optimizations / fix |
 |---|---|---|---|
 | `pages/club/edit` + `components/cy/scene-club-edit` 危险操作, `utils/danger-actions.js` `club.dissolve` (alt `{ text: 改为转让主理人, hint: 把俱乐部交给别人打理，成员和内容都留着 }`), edit js:35-39 `goGovernance` | `ClubOperationsViews.swift` (危险操作 section), `ClubGovernanceCommandForm.transferInsteadAction`, `ClubGovernanceConsequence.sheet(alternative:)`, `ClubConsequenceSheet` | 危险操作 = 解散俱乐部 + its consequence line only; the transfer is the lighter alternative inside the dissolve confirm | **Fixed.** The permanent 改为转让主理人 row under 解散 is gone. The 解散「name」？ consequence sheet now shows 改为转让主理人 in its own section above the destructive confirm, with the MP hint as the section footer (`club.ops.dissolve.transferHint`, en + zh-Hans). Tapping it cancels the review, closes the dissolve form without dissolving, and pushes 成员治理 (governance, where the transfer lives) from the blockers page via `ClubDissolvedReturn.transferInstead` → `.navigationDestination(isPresented:)`. Only the edit page passes the callback, so other consequence sheets are unchanged |
+
+## Pass 18: club/edit full page (no new coordinator finding; latest sweep is still build 8fa84e4d3, checked in pass 17)
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/edit` → `components/cy/scene-club-edit/index.wxml` (whole page, not only 危险操作) | `ClubOperationsViews.swift` `ClubOperationsProfileForm.editSections` + edit page | MP order: load states (正在读取俱乐部资料 / missing-param / 暂无编辑权限 / 编辑资料没能打开 / 网络连接失败) → draft panel → 俱乐部形象 (头像, 封面) → 基础信息 (名称* 城市* 关键词 风格) → 俱乐部介绍 (200 counter) → 定位 (俱乐部类型, 活动倾向 as disclosure rows + half sheets) → 会员经营配置 (owner: 成员优先报名, 入会需要审批, 成员保留名额 个; admin: locked card) → 危险操作 (owner) → 保存修改. Native: all ✓ in MP order (draft recovery section, load states, 形象 → … → 危险操作, bottom save). Extra: a cover · name · city · 主理人/管理员 header row above the form (CLB-r10-nat-edit-01 cited an MP club head that the MP snapshot does not have; 头像/封面 already sit in 俱乐部形象), and a 「你是管理员 · 只能改展示信息」 line at the top of 基础信息 for admins (not on the MP page). Missing: the locked card's 「仅主理人可设置」 sub line (wxml:124) | **Fixed.** Header row removed (`clubIdentityHero`; `test_club_operations_contracts` no longer requires `PlayerFeedRemoteImage` in the edit UI, reason in the pin). Admin note removed; the locked card reads 只有主理人能改经营配置 → 仅主理人可设置 (`club.ops.locked.sub`, en + zh-Hans, one combined VoiceOver element) → 当前: … . Pins: `test_club_member_pages.test_edit_admin_note_and_locked_settings` now asserts the note is gone and the sub line present; `ClubEditAdminLockFlowTests` admin test renamed and asserts no note. Kept: 当前: with an ASCII colon (two string fragments pin it) |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.

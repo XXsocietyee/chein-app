@@ -152,6 +152,14 @@ Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs' `play
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration contract suites 58 OK.
 
+## Round 3 continue (2026-11-27, fifteenth session — sweep 22:11 build 8fa84e4d3, no newer sweep)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON + duplicate-key check ok). Re-read sheets `en-t5-pass-market`, `zh-Hans-d2-square`: no new issues for this lane. Area re-scan: no `.font(.system(size:))`, `.tracking`, `Color(red:)` or custom fonts in Square/Team/Coop/Registration/Official/Pass files (the one `LinearGradient` is the MP reveal gold step).
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/coop/list/index` topic scope (js:163-168 `只看「name」的协作`, `#id` only when the name is missing) | `App/CooperationBrowserView.swift` `topicFilterSection` | the topic picker read 「name #123」 for every topic (raw id as data). Now the name alone; `#id` stays only as the MP fallback for unnamed topics | no internal ids in the UI |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · coop topic-filter / x01 / project-navigation suites OK.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

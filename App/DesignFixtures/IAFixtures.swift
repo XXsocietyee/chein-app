@@ -86,7 +86,7 @@ struct IAPassportFixture: View {
             }
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
-            .cyRootHeader(.mine, titleKey: "tabBar.passport")
+            .cyRootHeader(.mine)
             .cyPassportStampHost()
         }
         // mp-mine r3 (18:15 sweep): fixtures follow the system appearance (player forcedColorScheme == nil);
