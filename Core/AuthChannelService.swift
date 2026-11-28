@@ -5,6 +5,17 @@ import FoundationNetworking
 
 public enum AuthChannelError: Error, Equatable {
     case invalidPhone, invalidCode, invalidAppleCredential, rateLimited
+    /// Backend `errorCode` SMS_DAILY_LIMIT / SMS_INTL_NOT_CONFIGURED (SmsVerificationService).
+    case smsDailyLimit, smsRegionUnavailable
+    /// Maps the backend envelope `errorCode` (sent with code 500) to a typed SMS failure; nil keeps the generic path.
+    public static func sms(errorCode: String?) -> AuthChannelError? {
+        switch errorCode {
+        case "SMS_RATE_LIMITED": return .rateLimited
+        case "SMS_DAILY_LIMIT": return .smsDailyLimit
+        case "SMS_INTL_NOT_CONFIGURED": return .smsRegionUnavailable
+        default: return nil
+        }
+    }
 }
 
 /// CN backend accepts an eleven-digit ASCII phone starting with 1. Its SMS service
@@ -66,7 +77,7 @@ public struct AuthChannelService: AuthChannelServing {
         let token: String?
         let data: Account?
     }
-    private struct StatusEnvelope: Decodable { let code: Int }
+    private struct StatusEnvelope: Decodable { let code: Int; let errorCode: String? }
     private func execute(_ endpoint: AuthEndpoint, fields: [String: String]) async throws -> Data {
         try Task.checkCancellation()
         let request = try builder.make(endpoint, fields: fields)
@@ -80,6 +91,7 @@ public struct AuthChannelService: AuthChannelServing {
         catch { throw APIError.malformedResponse }
         if body.code == 401 { throw APIError.unauthorized }
         if body.code == 429 { throw AuthChannelError.rateLimited }
+        if body.code != 200, let typed = AuthChannelError.sms(errorCode: body.errorCode) { throw typed }
         guard body.code == 200 else { throw APIError.businessCode(body.code) }
         return data
     }
@@ -102,6 +114,7 @@ public struct AuthChannelService: AuthChannelServing {
         catch { throw APIError.malformedResponse }
         if body.code == 401 { throw APIError.unauthorized }
         if body.code == 429 { throw AuthChannelError.rateLimited }
+        if body.code != 200, let typed = AuthChannelError.sms(errorCode: body.errorCode) { throw typed }
         guard body.code == 200 else { throw APIError.businessCode(body.code) }
     }
     public func loginWithPhone(phone: String, code: String) async throws -> LoginResult {
