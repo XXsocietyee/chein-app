@@ -304,7 +304,7 @@ enum ClubDetailR8Route: Hashable, Identifiable {
                                             coordinator: operations.coordinator, hostApplication: management.governance)
             }
         case .undertake(let topicID):
-            if let session {
+            if PlayerLaunch.merchantCenterEnabled, let session {
                 MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID)
                     .cyPushedChrome()
             }

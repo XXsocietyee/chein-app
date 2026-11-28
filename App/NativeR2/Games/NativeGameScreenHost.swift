@@ -133,6 +133,23 @@ extension PlayKitScreen {
         prepare(action, payload, completion)
     }
 
+    /// MP `readfail` / `micdenied`: the report goes straight to the server (no review, like the MP), only when
+    /// nothing else is in flight; the next state carries the server's `canSkip`.
+    func nativeReportSensorFailure(denied: Bool) {
+        guard model.pending == nil, model.phase == "ready",
+              let review = try? model.review(kind: kind.rawValue, action: PlayKitSensorStation.reportAction,
+                                             detail: ["denied": .bool(denied)]) else { return }
+        Task {
+            _ = await SessionOfflineSyncModel.shared.performWriteOptIn(
+                environmentSession: offlineWriteSession.session,
+                routes: ["/api/play/advanced/action"],
+                explicitKey: review.id.uuidString
+            ) {
+                await model.submit(review)
+            }
+        }
+    }
+
     func nativeSubmit(_ action: String, _ payload: [String: PlayWireValue], valid: Bool,
                       title: Text = Text("playkit.review"), identifier: String? = nil) -> NativeGameSubmit {
         NativeGameSubmit(title: title, enabled: enabled && valid, busy: model.phase == "submitting",
@@ -312,6 +329,7 @@ extension PlayKitScreen {
                 onDirty: { dirty = true }, requestReview: nativePrepare,
                 revisionIdentity: runtimeIdentity, currentRevisionIdentity: { model.state.map { "\($0.sessionID):\($0.version)" } ?? "" },
                 makeSensorProvider: makeSensorProvider,
+                reportFailure: { (denied: Bool) in nativeReportSensorFailure(denied: denied) },
                 publish: { nativeChildSubmit = $0 })
                 .id(childReset)
         default: nativeControlsB

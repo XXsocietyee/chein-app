@@ -143,7 +143,7 @@ final class WalkingNavigationFlowTests: XCTestCase {
         launch("routing"); tap("walking.start")
         XCTAssertTrue(app.staticTexts["Planning a walking route…"].waitForExistence(timeout: 5))
         tap("walking.cancel")
-        XCTAssertTrue(app.staticTexts["Navigation cancelled"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Navigation canceled"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["walking.steps.open"].exists)
         tap("walking.start")
         XCTAssertTrue(app.buttons["walking.steps.open"].waitForExistence(timeout: 5))

@@ -143,6 +143,23 @@ public enum LocaleDisplay {
         date(value, zhPattern: "M月d日 HH:mm", template: "MMMdjmm", locale: locale, timeZone: timeZone)
     }
 
+    /// Month and day, no year: `11月27日` (zh) / `Nov 27` (en).
+    public static func monthDay(_ value: Date, locale: Locale, timeZone: TimeZone? = nil) -> String {
+        date(value, zhPattern: "M月d日", template: "MMMd", locale: locale, timeZone: timeZone)
+    }
+
+    /// Server wall-clock parts (no zone) printed with `monthDay` / `monthDayTime` in one fixed zone, never shifted.
+    /// nil when the parts are not a real calendar date.
+    public static func monthDay(month: Int, day: Int, year: Int = 2000, hour: Int? = nil, minute: Int? = nil, locale: Locale) -> String? {
+        let utc = TimeZone(secondsFromGMT: 0)!
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = utc
+        let parts = DateComponents(year: year, month: month, day: day, hour: hour ?? 0, minute: minute ?? 0)
+        guard parts.isValidDate(in: calendar), let value = calendar.date(from: parts) else { return nil }
+        if hour == nil { return monthDay(value, locale: locale, timeZone: utc) }
+        return monthDayTime(value, locale: locale, timeZone: utc)
+    }
+
     /// Clock time: `15:05` (zh) / `3:05 PM` (en-US) / `15:05` (en-GB).
     public static func time(_ value: Date, locale: Locale, timeZone: TimeZone? = nil) -> String {
         date(value, zhPattern: "HH:mm", template: "jmm", locale: locale, timeZone: timeZone)

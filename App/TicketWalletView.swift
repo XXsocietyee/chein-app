@@ -40,13 +40,7 @@ import SwiftUI
         TicketWalletStack(embedded: !isPushed) {
             List {
                 if !reader.isAuthenticated {
-                    TicketWalletIssueView(issue: .login)
-                    if let onSignIn {
-                        Button(action: onSignIn) { Text("ticketWallet.signIn").frame(maxWidth: .infinity) }
-                            .buttonStyle(.borderedProminent).controlSize(.large)
-                            .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
-                            .accessibilityIdentifier("ticketWallet.signIn")
-                    }
+                    TicketWalletIssueView(issue: .login, signIn: onSignIn)
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
                 else if model.isLoading || model.loadedOwner != key { ProgressView { Text("mpfresh.ticketWallet.loading", tableName: "MpFresh") }.frame(maxWidth: .infinity) }
                 else if let issue = model.issue(owner: key) {

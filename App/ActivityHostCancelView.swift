@@ -157,7 +157,7 @@ import SwiftUI
                         // MP scene-play-activity-detail/index.wxml:124: cy-error 暂不能取消这场活动 · sub cancelError · 重新检查.
                         ContentUnavailableView {
                             Label {
-                                Text(verbatim: c.t("暂不能取消这场活动", "This event can't be cancelled right now"))
+                                Text(verbatim: c.t("暂不能取消这场活动", "This event can't be canceled right now"))
                             } icon: { Image(systemName: "exclamationmark.triangle") }
                         } description: {
                             Text(verbatim: shown)
@@ -193,7 +193,7 @@ import SwiftUI
                     readyContent(paidCount: paidCount)
                 case .cancelled(let serverMsg):
                     Section {
-                        Label { Text(verbatim: c.t("活动已取消", "Event cancelled")) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
+                        Label { Text(verbatim: c.t("活动已取消", "Event canceled")) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
                             .font(.headline)
                         Text(verbatim: ActivityHostCancelRules.completionNotice(serverMessage: serverMsg).map { c.tr($0) }
                                 ?? c.t("已提交全额退款，到账时间以微信通知为准",

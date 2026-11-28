@@ -70,7 +70,7 @@ import SwiftUI
                 Cloud03Note(
                     text: Text(verbatim: phrase(
                         "预约已取消（\(Cloud03Copy.shown(status))）",
-                        "Reservation cancelled (\(Cloud03Copy.shown(status)))."
+                        "Reservation canceled (\(Cloud03Copy.shown(status)))."
                     )),
                     symbol: "checkmark.circle",
                     tone: .success
