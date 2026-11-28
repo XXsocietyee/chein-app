@@ -9,13 +9,14 @@ struct ClubName: View {
 }
 
 /// Shared club list thumbnail (club home rows and the club directory): logo or cover over the system fill,
-/// a person.3 glyph while the image loads or when there is none. One size and radius for every club list.
+/// the MP default club logo (`talent/list/index.js:28` `/images/d_logo.png`, the same fallback as the club detail header)
+/// while the image loads or when there is none. One size and radius for every club list.
 struct ClubRowThumbnail: View {
     let url: URL?
 
     var body: some View {
         ZStack {
-            Image(systemName: "person.3.fill").foregroundStyle(.secondary)
+            MPAsset.BrandLogo.dLogo.resizable().scaledToFill()
             if let url {
                 PlayerFeedRemoteImage(url: url, maxPixel: 168, placeholder: { Color.clear }, failure: { Color.clear })
             }
