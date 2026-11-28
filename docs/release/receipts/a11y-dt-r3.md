@@ -334,10 +334,26 @@ lines, 印章 3 / 12 grid ✓. Then pages in the area without a row (largest pla
 | Reward pledge, wallet commerce, pass membership, profile edit | `RewardPledgeViews.swift`, `WalletCommerceViews.swift`, `PassMembershipViews.swift`, `ProfileEditView.swift` | ✓ | Audit: system Form / List rows, no fixed text frames, raw sizes or tap gestures. No change | Done |
 | Chapter story artwork zoom | `ChapterStoryView.swift` | ✓ (mp-journey owns order) | Audit: double-tap zoom animates with `CYMotion.reduced`; image has its alt text; Close in the toolbar. No change | Done |
 
+## Run 20 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7` (a32387e9b): map panel conflict → took mp-roam's follows-appearance panel, kept the grabber
+`tertiaryLabel` in both modes (the panel is never black now, a white 50 % grabber vanished on the light `bgElevated` fill).
+Sweep **a32387e9b** (01:40Z) a11y sheets read: `en/zh-Hans-a11y-badges-ax5` badge rows stack, localized date ✓;
+`a11y-passport-ax5` 票夹 / 账户收益 / 消息 full-width lines, 印章 grid ✓; `a11y-roam-ax5` "Nearby activities 2 ^" panel
+light under the light map, wraps at AX5 ✓. No open coordinator finding. Then Not done pages:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/publishkit` project editor | `ProjectEditView.swift:607-609` | ✓ (mp-publish owns order) | Chapter / ticket insert-delete and canvas changes animated with `.default` regardless of Reduce Motion → `EditorKitMotion.move(reduceMotion:)` (spring; cross-fade under Reduce Motion), same as the editor's explicit moves | Done |
+| `pages/template` authoring outline | `TemplateAuthoringView.swift` (`jump(to:)`) | ✓ (mp-publish owns order) | Outline / first-error jump scroll animated always → no animation under Reduce Motion | Done |
+| `subpackageJourney` 已完成 (mycanyu history) | `PlayerJourneyViews.swift` (`CompletedPlayHistoryView`) | ✓ (mp-journey owns order) | Progress "3 / 5" read "3 slash 5" → `a11y.value.ofTotal` ("3 of 5" / "第 3 项，共 5 项" key from run 15); unknown count keeps "— / N". Rule figure 36 pt decorative, hidden | Done |
+| Mod install, passport private tools, cooperation contextual | `ModInstallationView.swift`, `RoamPassportPrivateToolsViews.swift`, `CooperationContextualViews.swift` | ✓ | Audit: system List / Form rows, no raw sizes, fixed text frames, tap gestures, 1-line limits or unguarded animations. No change | Done |
+| `subpackageJourney` profile question (MP `pf__count`) | `NativeR2/Games/NativeGameAnswerKits.swift:623` | ✓ (mp-journey owns order) | Counter "12 / 200" read "slash" → `a11y.value.characters` ("12 of 200 characters"), same key as `PlayKitPersonalForms`. Camera placeholder 120 × 90 decorative, hidden | Done |
+| `pages/mylike` rows, search map explorer, roam item detail | `PlayerGapViews.swift`, `SearchMapExplorerView.swift`, `RoamItemDetailView.swift` | ✓ | Audit: 56 pt cover decorative + hidden, name wraps; no raw sizes, tap gestures or 1-line limits. No change | Done |
+| Native game kits C (true/false, jigsaw, scratch, compare, accusation) | `NativeR2/Games/NativeGameKitsC.swift` | ✓ (mp-journey owns order) | Audit: options are Buttons with `.isSelected`, jigsaw tiles labelled with piece + position, swaps / reveals / suspect push gated on Reduce Motion (opacity fallback). No change | Done |
+
 ## Not done (next run starts here)
-- Continue pages without a row (largest player views next): `ProjectEditView`, `TemplateAuthoringView`, `ModInstallationView`,
-  `RoamPassportPrivateToolsViews`, `CooperationContextualViews`, `PlayerJourneyViews`, `NativeR2/Games/NativeGameKitsC`.
-- Re-read the a11y sheets after the next sweep (run 19 has no fixture-visible change).
+- Continue pages without a row (largest player views next; pick by `wc -l App/*.swift`, skip Merchant / Fixture / Diagnostics).
+- Re-read the a11y sheets after the next sweep (newer than a32387e9b).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
