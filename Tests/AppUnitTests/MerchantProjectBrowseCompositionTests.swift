@@ -496,7 +496,8 @@ import XCTest
         XCTAssertEqual(wire.requests.map { $0.url!.lastPathComponent }, ["me", "dashboard", "todo-summary", "events"])
         XCTAssertTrue(wire.requests.allSatisfy { !$0.httpShouldHandleCookies && $0.value(forHTTPHeaderField: "Authorization") == "synthetic-7" })
         XCTAssertTrue(wire.requests.prefix(3).allSatisfy { $0.httpBody == nil && $0.value(forHTTPHeaderField: "Content-Type") == nil })
-        XCTAssertEqual(wire.requests.last?.httpBody, Data("{}".utf8)); XCTAssertEqual(wire.requests.last?.value(forHTTPHeaderField: "Content-Type"), "application/json")
+        // The events POST is the mini-program's empty urlencoded body. Merchant center stays closed.
+        XCTAssertEqual(wire.requests.last?.httpBody, Data()); XCTAssertEqual(wire.requests.last?.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
         let view = MerchantHomeView(reader: reader, showsRecordLinks: false)
         XCTAssertFalse(view.showsRecordLinks); XCTAssertNil(view.contentService); XCTAssertNil(view.businessReader); XCTAssertNil(view.operationsReader)
         XCTAssertNil(view.marketingModel); XCTAssertNil(view.cooperationFlowReader); XCTAssertNil(view.engagementReader); XCTAssertNil(view.exportRecovery)

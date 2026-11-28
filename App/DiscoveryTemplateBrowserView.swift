@@ -83,7 +83,7 @@ struct DiscoveryTemplateBrowserView: View {
                                 Label {
                                     Text("discovery.templateTab.accessRetry")
                                 } icon: {
-                                    Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                                    Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText)
                                 }
                                 .accessibilityIdentifier("discovery.templateTab.retryAccess")
                             }

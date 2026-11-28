@@ -67,7 +67,7 @@ public struct OfficialInviteTrackingService {
     public func invites(status: Int? = nil, token: String) async throws -> [[String: OfficialStatisticValue]] {
         guard enabled else { throw OfficialActionFailure.disabled }
         guard AuthRequestBuilder.isValidToken(token) else { throw OfficialActionFailure.invalid }
-        var components = URLComponents(url: configuration.baseURL.appendingPathComponent("api/official/invites"), resolvingAgainstBaseURL: false)!
+        guard var components = URLComponents(url: configuration.baseURL.appendingPathComponent("api/official/invites"), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if let status { components.queryItems = [URLQueryItem(name: "status", value: String(status))] }
         guard let url = components.url else { throw OfficialActionFailure.invalid }
         var request = URLRequest(url: url); request.httpMethod = "GET"

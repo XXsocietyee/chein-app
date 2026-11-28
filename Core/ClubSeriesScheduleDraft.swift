@@ -104,7 +104,7 @@ public struct ClubSeriesScheduleDraft: Equatable {
     }
     public func minimumDate(now: Date) -> Date {
         let today = Self.calendar.startOfDay(for: now)
-        return operation == .updateSeries ? Self.calendar.date(byAdding: .day, value: 1, to: today)! : today
+        return operation == .updateSeries ? (Self.calendar.date(byAdding: .day, value: 1, to: today) ?? today.addingTimeInterval(86_400)) : today
     }
     public static var timeZone: TimeZone { TimeZone(identifier: "Asia/Shanghai")! }
     public static var calendar: Calendar {

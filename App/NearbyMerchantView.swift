@@ -35,6 +35,8 @@ extension EnvironmentValues {
     var publicMerchant = PublicMerchantHomeContext()
     /// MC8-33-1/-2/-5: topic mode (邀请商家): invitable merge and 邀请补位. Nil keeps the plain 找商家 page.
     var topicScope: NearbyMerchantTopicScope? = nil
+    /// Design fixtures only: open with the consent already given (the search itself is still the caller's).
+    var startsConsented = false
     @State private var invitable: [NearbyMerchantInvitableRow] = []
     @State private var invitableFailed = false
     /// MP 选择补位操作 → chosen candidate; pushes the focused C9 flow.
@@ -202,6 +204,10 @@ extension EnvironmentValues {
             .onChange(of: model.available) { _, available in if !available { cancel() } }
         .cyToast(verbatimMessage: $toastMessage)
         .cyDomainScreen(.merchant)
+        .onAppear(perform: applyStartingConsent)
+    }
+    private func applyStartingConsent() {
+        if startsConsented { purposeAccepted = true }
     }
     private func cancel() {
         operation?.cancel(); operation = nil; publicHomeSelection = nil

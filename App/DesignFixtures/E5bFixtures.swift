@@ -37,8 +37,7 @@ struct E5bMomentFixture: View {
 
 /// Badge collection grid: real `ObjectBadgeWallBadgeLabel` wall tiles in the real `CYCollectionGrid` (one column at accessibility sizes), earned and locked.
 struct E5bBadgeWallFixture: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    private let badges: [ProfileBadgeSelection]
+    @State private var reader: AlbumBadgeFixtureReader
     init() {
         let names = [tt("Night Owl", "夜猫子"), tt("First Stamp", "第一枚印章"), tt("Market Regular", "菜场常客"),
                      tt("Ten Spots", "十处打卡"), tt("Club Founder", "俱乐部创始人"), tt("Rainy Day Walker", "雨天漫步者")]
@@ -46,44 +45,17 @@ struct E5bBadgeWallFixture: View {
                      tt("Finish a roam on a rainy day", "在雨天完成一次漫游")]
         let json = #"[{"badgeCode":"A","badgeName":"\#(names[0])","category":"EXPLORE","unlocked":true,"unlockTime":"2026-10-01 10:00:00"},{"badgeCode":"B","badgeName":"\#(names[1])","category":"EXPLORE","unlocked":true,"unlockTime":"2026-09-12 16:30:00"},{"badgeCode":"C","badgeName":"\#(names[2])","category":"FOOD","unlocked":true,"unlockTime":"2026-08-03 09:15:00"},{"badgeCode":"D","badgeName":"\#(names[3])","category":"EXPLORE","unlockHint":"\#(hints[0])","unlocked":false},{"badgeCode":"E","badgeName":"\#(names[4])","category":"SOCIAL","unlockHint":"\#(hints[1])","unlocked":false},{"badgeCode":"F","badgeName":"\#(names[5])","category":"EXPLORE","unlockHint":"\#(hints[2])","unlocked":false}]"#
         let list = (try? JSONDecoder().decode([ProfileIdentityBadge].self, from: Data(json.utf8))) ?? []
-        badges = list.map { .identity($0) }
+        _reader = State(initialValue: AlbumBadgeFixtureReader(variant: .allLocked, identityRows: list))
     }
+    // mp-mine r3 (sweep b954de71c): the sweep drew a hand-built copy of the wall (bare ScrollView, caption headers at the
+    // edge) that the app never ships. The fixture now mounts the real `ObjectBadgeWallView` (grouped List: ring header,
+    // 已点亮, 未解锁) on the same bilingual rows, so the sweep and the AX5 variant show the shipped page.
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    // a11y-dt r3 (22:11 sweep, a11y-badges-ax5): beside the ring the AX5 heading broke as "已收集 3 / 6"
-                    // over two lines; at accessibility sizes the ring sits above the heading and the count stays one token.
-                    let header = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.lg))
-                    // mp-mine r3 (P24, MP badge-wall order): same header and groups as `ObjectBadgeWallView`: the ring with the
-                    // collected / locked counts, then 已点亮, then 未解锁, so the sweep shows the real wall's structure.
-                    header {
-                        // a11y-dt r3 (sweep 733bfb368): the fixture drew `CYCountRing` (fixture-only, "3/6" ~23 pt at AX5);
-                        // the shipped wall (`ObjectBadgeWallView.ring`) uses `CYAlbumProgressRing` size 84, which grows at AX sizes.
-                        CYAlbumProgressRing(value: 3, total: 6, size: 84,
-                                            accessibilityLabel: Text(verbatim: tt("3 of 6 badges unlocked", "已点亮 3 枚徽章，共 6 枚")))
-                        CYCollectedLockedSummary(collected: 3, locked: 3)
-                    }
-                    group("profile.badges.unlocked", badges.filter { !$0.isLocked })
-                    group("profile.badges.notUnlocked", badges.filter { $0.isLocked })
-                }
-                .padding(CYSpacing.pageHorizontal)
-            }
-            .cyDomainPageBackground()
-            .navigationTitle(Text(verbatim: tt("Badges", "徽章"))).navigationBarTitleDisplayMode(.inline)
+            ObjectBadgeWallView(reader: reader)
         }
         .themeDomain(.player)
         // mp-mine r3 (18:15 rule): fixtures follow the system appearance, no forced scheme.
-    }
-    private func group(_ title: LocalizedStringKey, _ items: [ProfileBadgeSelection]) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(title).cyText(.meta).foregroundStyle(.secondary).accessibilityAddTraits(.isHeader)
-            LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
-                ForEach(Array(items.enumerated()), id: \.offset) { _, badge in
-                    ObjectBadgeWallBadgeLabel(badge: badge)
-                }
-            }
-        }
     }
 }
 

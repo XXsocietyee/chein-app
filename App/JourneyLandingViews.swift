@@ -168,11 +168,36 @@ struct JourneyLandingLink: Hashable {
     let topicID: String?
 
     init?(query: [String: String]) {
-        guard let raw = query["k"], let kind = Kind(rawValue: raw), let token = query["t"], !token.isEmpty else { return nil }
+        let activity = Self.optionalID(query["aid"])
+        let topic = Self.optionalID(query["tid"])
+        guard let raw = query["k"], let kind = Kind(rawValue: raw), let token = query["t"], Self.token(token),
+              activity != .invalid, topic != .invalid else { return nil }
         self.kind = kind
         self.token = token
-        self.activityID = query["aid"].flatMap { $0.isEmpty ? nil : $0 }
-        self.topicID = query["tid"].flatMap { $0.isEmpty ? nil : $0 }
+        self.activityID = activity.value
+        self.topicID = topic.value
+    }
+
+    /// Same bounds as a custom-scheme token, plus path metacharacters that must not survive into a later request.
+    private static func token(_ value: String) -> Bool {
+        guard !value.isEmpty, value.utf16.count <= 512,
+              value.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }),
+              value != ".", value != "..", !value.contains(".."), !value.contains("\\") else { return false }
+        let lowered = value.lowercased()
+        return !lowered.contains("%2e") && !lowered.contains("%2f") && !lowered.contains("%5c") && !lowered.contains("%00")
+    }
+
+    /// Missing or empty is absent. A present value must be a positive canonical decimal.
+    private static func optionalID(_ raw: String?) -> ParsedID {
+        guard let raw, !raw.isEmpty else { return .absent }
+        guard raw.utf8.count <= 18, raw.utf8.allSatisfy({ (48...57).contains($0) }),
+              let value = Int(raw), value > 0, String(value) == raw else { return .invalid }
+        return .value(raw)
+    }
+
+    private enum ParsedID: Equatable {
+        case absent, invalid, value(String)
+        var value: String? { if case .value(let id) = self { return id }; return nil }
     }
 }
 

@@ -48,7 +48,8 @@ public struct TemplateBranchComposition {
                 "outcomeCode": .string("COMPLETED"), "outcomeLabel": .string(Self.defaultOutcomeLabel), "options": .array([])]))
         case .terminal(let id, let terminal):
             guard let index = steps.firstIndex(where: { $0.id == id }) else { return nil }
-            var row = rows[index].object!; row["terminal"] = .bool(terminal)
+            guard var row = rows[index].object else { return nil }
+            row["terminal"] = .bool(terminal)
             if terminal {
                 row["options"] = .array([])
                 if (row["outcomeCode"]?.string ?? "").isEmpty { row["outcomeCode"] = .string("COMPLETED") }
@@ -60,7 +61,8 @@ public struct TemplateBranchComposition {
             rows[index] = .object(row)
         case .addOption(let stepID, let optionID):
             guard canAddOption(stepID), Self.validID(optionID), let index = steps.firstIndex(where: { $0.id == stepID }) else { return nil }
-            var row = rows[index].object!, options = row["options"]?.array ?? []
+            guard var row = rows[index].object else { return nil }
+            var options = row["options"]?.array ?? []
             guard !options.contains(where: { $0.object?["id"]?.string == optionID }) else { return nil }
             options.append(.object(["id": .string(optionID), "label": .string(""), "nextStepId": .string(""), "score": .number(0)]))
             row["options"] = .array(options); row["terminal"] = .bool(false); rows[index] = .object(row)

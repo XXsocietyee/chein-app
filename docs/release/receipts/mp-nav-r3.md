@@ -557,3 +557,13 @@ Other 17:30 rows (sign-in Apple button in zh, launch-logo state fixtures, search
 Merged `origin/mp/r3-nav` and `origin/ui/combined-r7` (clean). Sweep index still build 2fc0feb24; its only mp-nav finding (17:30 P2 `ia-tabs` lone glyph) is fixed above. No `cursor-k50-p*` lane-layout receipt exists on any branch yet. B receipt read: "3. MP-account sync note" marked done here "(B lane)" (Cursor K40 `0c3aaee3e`). Open rows in file order: (1) "漫游护照与工具" hub sheet (line 40) → A half, kept by owner Q9 (map home), coordinator decision; no code change to make.
 
 **Half done** (A half = one row, owner decision). Run stopped.
+
+## Run 11-28 ~18:4x UTC (half-hourly, A lane) — merged combined-r7, sweep b954de71c
+
+Merged `origin/ui/combined-r7` (clean). Brief re-read: no coordinator finding for mp-nav after 17:30 (fixed above); 18:30 sweep has none for mp-nav. Contract cleanup `/api/compliance/usage-records` and the 00:30 `readCursor` row stay closed. No `cursor-k50-p*` lane-layout receipt exists (only `k50-r*`, none naming mp-nav). B receipt: no new rows. Sweep b954de71c sheets read (`mp-nav/sheet-en.jpg`, `sheet-zh-Hans.jpg`): inbox, `ia-tabs` skeleton, login, onboarding, welcome all clean except one en string.
+
+| finding → file | before | after | status |
+|---|---|---|---|
+| `en-login-player.jpg` 欢迎回来 sheet subtitle → Resources/Localizable.xcstrings `auth.login.subtitle` (en) | "Pick up your stamps trails where left off." (missing "and" / "you": broken English) | "Pick up your stamps and trails where you left off." (matches zh 继续你的印章与路线。); zh unchanged, key unchanged | fixed |
+
+Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, owner Q9, coordinator). **Half done.**

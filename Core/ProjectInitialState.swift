@@ -176,9 +176,10 @@ public struct ProjectInitialState {
     }
     private static func resource(_ raw: ProjectEditJSON?, fallback: Resource) throws -> Resource {
         let object = try object(raw)
+        guard let initial = Int(fallback.initial), let maximum = Int(fallback.maximum) else { throw ProjectEditError.invalidDraft }
         return try .init(enabled: boolean(object["enabled"], fallback: fallback.enabled),
-                         initial: String(integer(object["init"], fallback: Int(fallback.initial)!)),
-                         maximum: String(integer(object["max"], fallback: Int(fallback.maximum)!)))
+                         initial: String(integer(object["init"], fallback: initial)),
+                         maximum: String(integer(object["max"], fallback: maximum)))
     }
     private static func same(_ lhs: Resource, _ rhs: Resource) -> Bool {
         lhs.enabled == rhs.enabled && Int(lhs.initial) == Int(rhs.initial) && Int(lhs.maximum) == Int(rhs.maximum)

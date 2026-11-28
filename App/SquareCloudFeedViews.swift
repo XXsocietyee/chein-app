@@ -521,7 +521,7 @@ struct SquareCloudCompletedActivityPicker: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
-            Image(systemName: "checkmark").accessibilityHidden(true).foregroundStyle(.green)
+            Image(systemName: "checkmark").accessibilityHidden(true).foregroundStyle(CYColor.successText)
         }
     }
 

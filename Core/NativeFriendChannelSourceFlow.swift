@@ -72,7 +72,7 @@ public struct NativeFriendChannelMember: Decodable, Equatable, Identifiable {
         if !requestedMore { rows = []; rawName = ""; cursor = nil; more = false }
         defer { if generation == stamp { busy = false } }
         do {
-            var parts = URLComponents(url: context.baseURL.appendingPathComponent(approval.path), resolvingAgainstBaseURL: false)!
+            guard var parts = URLComponents(url: context.baseURL.appendingPathComponent(approval.path), resolvingAgainstBaseURL: false) else { throw NativeFriendFailure.invalid }
             parts.queryItems = [.init(name: "limit", value: "50"), .init(name: "with", value: "relation")]
             if let requestedCursor { parts.queryItems?.append(.init(name: "cursor", value: requestedCursor)) }
             guard let url = parts.url else { throw NativeFriendFailure.invalid }

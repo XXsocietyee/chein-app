@@ -186,6 +186,10 @@ import QuestifyCore
            let attrs = result as? [String: Any],
            let stored = attrs[kSecValueData as String] as? Data,
            stored.count == 32 {
+            guard KeychainItemProtection.isDeviceOnlyUnlocked(attrs) else {
+                SecItemDelete(baseQuery as CFDictionary)
+                return nil
+            }
             return stored == raw ? stored : nil
         }
         if status == errSecItemNotFound {

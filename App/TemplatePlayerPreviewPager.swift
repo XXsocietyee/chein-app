@@ -284,7 +284,7 @@ private struct PlayerPreviewSuccessPage: View {
             Button(action: next) {
                 PlayerPreviewCard {
                     Label { ConfigR4Text.text("config.preview.success.title") } icon: {
-                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
                     }
                     .font(.title3.bold())
                     if let feedback = draft.feedbackText?.trimmingCharacters(in: .whitespacesAndNewlines), !feedback.isEmpty {
@@ -318,7 +318,7 @@ private struct PlayerPreviewFailurePage: View {
         VStack(spacing: 12) {
             PlayerPreviewCard {
                 Label { ConfigR4Text.text("config.preview.failure.title") } icon: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.red)
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(CYColor.dangerText)
                 }
                 .font(.title3.bold())
                 ConfigR4Text.text("config.preview.failure.detail")

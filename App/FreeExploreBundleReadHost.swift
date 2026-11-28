@@ -226,7 +226,7 @@ import FoundationNetworking
         }
         if let topicID { candidates.append(("catalog", "topicId", topicID.text)) }
         let accepted = candidates.contains { path, name, value in
-            var expected = URLComponents(url: context.baseURL.appendingPathComponent(prefix + path), resolvingAgainstBaseURL: false)!
+            guard var expected = URLComponents(url: context.baseURL.appendingPathComponent(prefix + path), resolvingAgainstBaseURL: false) else { return false }
             expected.queryItems = [URLQueryItem(name: name, value: value)]
             return expected.url?.absoluteString == url.absoluteString
         }

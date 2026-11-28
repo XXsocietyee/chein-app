@@ -166,7 +166,7 @@ public struct NativeChannelNotificationUnreadSummary: Decodable, Equatable {
         path: String, query: [URLQueryItem] = [], body: Data? = nil) async throws -> Value {
         guard let revision = authority.revision(operation, scope: scope) else { throw NativeChannelNotificationError.accessClosed }
         let lifecycle = operationRevision
-        var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         parts.queryItems = query.isEmpty ? nil : query
         guard let url = parts.url else { throw NativeChannelNotificationError.invalidInput }
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)

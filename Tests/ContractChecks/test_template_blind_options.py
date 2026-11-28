@@ -40,7 +40,7 @@ class BlindOptionsChecks(unittest.TestCase):
     def test_snapshot_shapes_selection_and_unknown_field_preservation(self):
         for token in ['fingerprint == Self.snapshot(draft)', 'encoder.encode(value)', '.sortedKeys',
                       'stringOrMissing', 'TemplateCreatorSchema.keyPattern', 'rows.filter { $0.key == key }.count == 1',
-                      'var row = values[index].object!', 'values.indices.contains(index)']:
+                      'guard var row = values[index].object else { return nil }', 'values.indices.contains(index)']:
             self.assertIn(token, self.core)
         self.assertNotIn('TemplateCreatorSchema.defaults', self.core)
 

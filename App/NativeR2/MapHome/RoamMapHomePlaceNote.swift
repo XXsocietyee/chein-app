@@ -79,7 +79,8 @@ struct RoamPlaceNoteRows: View {
 
     private func copy(_ url: String) {
         #if canImport(UIKit)
-        UIPasteboard.general.setItems([["public.utf8-plain-text": url]], options: [.localOnly: true])
+        UIPasteboard.general.setItems([["public.utf8-plain-text": url]], options: [
+            .localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
         #endif
         copied = true
     }

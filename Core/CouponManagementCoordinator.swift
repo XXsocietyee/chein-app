@@ -35,7 +35,7 @@ import FoundationNetworking
         try validate()
         let expected = try makeRequest(configuration: configuration, credentials: credentials)
         guard !consumed, request.httpBodyStream == nil, request.httpMethod == expected.httpMethod,
-              request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true,
+              (request.url?.absoluteString == expected.url?.absoluteString && request.url != nil) == true,
               request.httpBody == expected.httpBody,
               request.allHTTPHeaderFields == expected.allHTTPHeaderFields else { throw CouponManagementError.changed }
         consumed = true

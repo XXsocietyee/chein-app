@@ -77,23 +77,25 @@ public struct TemplateProfileQuestionComposition {
             guard let reordered = Self.moving(indexes, in: rows, to: destination) else { return nil }; rows = reordered
         case .kind(let key, let kind):
             guard ["text", "pick"].contains(kind), let index = questions.firstIndex(where: { $0.key == key }) else { return nil }
-            var row = rows[index].object!; row["kind"] = .string(kind); row["required"] = .bool(true)
+            guard var row = rows[index].object else { return nil }
+            row["kind"] = .string(kind); row["required"] = .bool(true)
             if kind == "pick", questions[index].options.count < 2 {
                 row["options"] = .array(nextOptionKeys(2).map { .object(["key": .string($0), "label": .string(""), "effects": .array([])]) })
             }
             rows[index] = .object(row)
         case .addOption(let key):
             guard canAddOption(key), let index = questions.firstIndex(where: { $0.key == key }), let optionKey = nextOptionKeys(1).first else { return nil }
-            var row = rows[index].object!, options = row["options"]?.array ?? []
+            guard var row = rows[index].object else { return nil }
+            var options = row["options"]?.array ?? []
             options.append(.object(["key": .string(optionKey), "label": .string(""), "effects": .array([])])); row["options"] = .array(options); rows[index] = .object(row)
         case .removeOptions(let key, let indexes):
             guard let index = questions.firstIndex(where: { $0.key == key && $0.kind == "pick" }) else { return nil }
-            var row = rows[index].object!
+            guard var row = rows[index].object else { return nil }
             guard let remaining = Self.removing(indexes, from: row["options"]?.array ?? [], minimum: 2) else { return nil }
             row["options"] = .array(remaining); rows[index] = .object(row)
         case .moveOptions(let key, let indexes, let destination):
             guard let index = questions.firstIndex(where: { $0.key == key && $0.kind == "pick" }) else { return nil }
-            var row = rows[index].object!
+            guard var row = rows[index].object else { return nil }
             guard let reordered = Self.moving(indexes, in: row["options"]?.array ?? [], to: destination) else { return nil }
             row["options"] = .array(reordered); rows[index] = .object(row)
         }

@@ -437,7 +437,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, signIn, other }
             if detail.isCancelled {
                 Section {
                     VStack(alignment: .leading, spacing: 6) {
-                        Label { Text("activity.cancelled.title") } icon: { Image(systemName: "xmark.octagon").foregroundStyle(.red) }
+                        Label { Text("activity.cancelled.title") } icon: { Image(systemName: "xmark.octagon").foregroundStyle(CYColor.dangerText) }
                             .font(.headline)
                         if let reason = detail.cancelReason { Text("activity.cancelled.reason \(reason)").fixedSize(horizontal: false, vertical: true) }
                         Text("activity.cancelled.hint").font(.footnote).foregroundStyle(.secondary)

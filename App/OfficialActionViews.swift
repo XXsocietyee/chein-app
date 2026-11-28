@@ -257,7 +257,7 @@ import SwiftUI
             if actionFailed, let last = lastReviewed {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("official.inbox.actionFailed", systemImage: "exclamationmark.circle")
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(.red)
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.dangerText)
                     Button("action.retry") {
                         actionFailed = false
                         reviewedAction = last.action

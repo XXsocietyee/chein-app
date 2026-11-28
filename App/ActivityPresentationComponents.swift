@@ -156,7 +156,7 @@ struct ActivityTicketCard: View {
             }
             Group {
                 if ticket.isSoldOut {
-                    Label { Text(verbatim: copy.t("已售罄", "Sold out")) } icon: { Image(systemName: "xmark.circle").foregroundStyle(.red) }
+                    Label { Text(verbatim: copy.t("已售罄", "Sold out")) } icon: { Image(systemName: "xmark.circle").foregroundStyle(CYColor.dangerText) }
                         .accessibilityIdentifier("activity.ticket.soldOut.\(ticket.id)")
                 } else if let left = ticket.remainingInventory {
                     Label { Text(verbatim: copy.t("剩余 \(left)", "\(left) left")) } icon: { Image(systemName: "ticket").foregroundStyle(left <= 10 ? Color.orange : Color.green) }

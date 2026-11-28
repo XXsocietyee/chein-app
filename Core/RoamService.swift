@@ -127,7 +127,7 @@ public struct RoamService {
         let response = try await reads.join(key) {
             var value = try self.request(path, token: token)
             if !query.isEmpty {
-                guard var url = URLComponents(url: value.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
+                guard let requestURL = value.url, var url = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
                 url.queryItems = query.keys.sorted().map { URLQueryItem(name: $0, value: query[$0]) }
                 guard let result = url.url else { throw APIError.invalidRequest }; value.url = result
             }

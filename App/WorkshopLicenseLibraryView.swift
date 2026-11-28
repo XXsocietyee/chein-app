@@ -69,7 +69,7 @@ enum WorkshopLicenseLibraryPresentation {
                             Label {
                                 Text(LocalizedStringKey(WorkshopLicenseLibraryPresentation.messageKey(message)), tableName: "WorkshopCommerce")
                                     .fixedSize(horizontal: false, vertical: true)
-                            } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange).accessibilityHidden(true) }
+                            } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText).accessibilityHidden(true) }
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("workshopLicenseLibrary.readError")
                         }

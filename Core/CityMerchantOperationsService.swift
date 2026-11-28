@@ -80,7 +80,8 @@ public enum CityMerchantIntent: String, CaseIterable, Identifiable { case pause 
         let prefix = baseURL.appendingPathComponent("api/city-game/merchant/operations").absoluteString
         if request.httpMethod == "GET", request.httpBody == nil, let query = parts.queryItems, query.count == 1,
            query[0].name == "regionId", let region = query[0].value, CityMerchantOperationsApproval.safeID(region) {
-            var canonical = URLComponents(string: prefix + "/availability")!; canonical.queryItems = [.init(name: "regionId", value: region)]
+            guard var canonical = URLComponents(string: prefix + "/availability") else { return nil }
+            canonical.queryItems = [.init(name: "regionId", value: region)]
             guard canonical.url == url else { return nil }; kind = .availability; regionID = region; return
         }
         if request.httpMethod == "GET", request.httpBody == nil, parts.query == nil,
@@ -137,9 +138,10 @@ public enum CityMerchantIntent: String, CaseIterable, Identifiable { case pause 
     public let transport: CityMerchantOperationsTransport
     public init(approval: CityMerchantOperationsApproval, transport: CityMerchantOperationsTransport) { self.approval = approval; self.transport = transport }
     public func availability() async throws -> CityMerchantSnapshot {
-        var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/merchant/operations/availability"), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/merchant/operations/availability"), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         parts.queryItems = [.init(name: "regionId", value: approval.regionID)]
-        return try await execute(url: parts.url!)
+        guard let releaseURL = parts.url else { throw APIError.invalidConfiguration }
+        return try await execute(url: releaseURL)
     }
     public func submit(id: UUID, version: Int64, kind: CityMerchantIntent, reason: String, approvalHash: String) async throws -> CityMerchantSnapshot {
         let body = try JSONSerialization.data(withJSONObject: ["requestId":id.uuidString,"expectedVersion":version,"regionId":approval.regionID,"kind":kind.rawValue,"reason":reason,"approvalHash":approvalHash], options: [.sortedKeys])

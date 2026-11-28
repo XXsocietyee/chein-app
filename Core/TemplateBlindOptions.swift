@@ -52,7 +52,7 @@ public struct TemplateBlindOptions {
             values.append(.object(["key": .string(key), "label": .string("")]))
         case .remove(let index):
             guard values.indices.contains(index) else { return nil }
-            let removed = values.remove(at: index).object!
+            guard let removed = values.remove(at: index).object else { return nil }
             if (fields["answerKey"]?.string ?? "") == (removed["key"]?.string ?? "") {
                 fields["answerKey"] = .string(values.first?.object?["key"]?.string ?? "")
             }
@@ -64,13 +64,14 @@ public struct TemplateBlindOptions {
             fields["answerKey"] = .string(rows[index].key)
         case .updateKey(let index, let text):
             guard values.indices.contains(index) else { return nil }
-            var row = values[index].object!
+            guard var row = values[index].object else { return nil }
             let previousKey = row["key"]?.string ?? ""
             row["key"] = .string(text); values[index] = .object(row)
             if (fields["answerKey"]?.string ?? "") == previousKey { fields["answerKey"] = .string(text) }
         case .updateLabel(let index, let text):
             guard values.indices.contains(index) else { return nil }
-            var row = values[index].object!; row["label"] = .string(text); values[index] = .object(row)
+            guard var row = values[index].object else { return nil }
+            row["label"] = .string(text); values[index] = .object(row)
         }
         fields["options"] = .array(values)
         var next = draft; next.value["blindTaste"] = .object(fields)

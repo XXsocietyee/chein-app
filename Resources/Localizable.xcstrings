@@ -40981,7 +40981,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket wallet"
+            "value": "Tickets"
           }
         },
         "zh-Hans": {
@@ -199232,7 +199232,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Feedback"
+            "value": "Complaints & feedback"
           }
         },
         "zh-Hans": {
@@ -273573,7 +273573,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket number"
+            "value": "Ticket #"
           }
         },
         "zh-Hans": {
@@ -273686,7 +273686,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't open your ticket wallet"
+            "value": "Couldn’t open your ticket wallet"
           }
         },
         "zh-Hans": {
@@ -294645,7 +294645,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Feedback"
+            "value": "Complaints & feedback"
           }
         },
         "zh-Hans": {
@@ -324009,7 +324009,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable"
+            "value": "Unavailable for now"
           }
         },
         "zh-Hans": {
@@ -366374,6 +366374,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "位置只在本机匹配城市，不会上传。"
+          }
+        }
+      }
+    },
+    "club.detail.next.all": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部活动"
+          }
+        }
+      }
+    },
+    "club.detail.next.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一场活动"
           }
         }
       }

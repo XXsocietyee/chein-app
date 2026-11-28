@@ -7,7 +7,8 @@ import FoundationNetworking
     public init() {}
     public func send(_ request: URLRequest, authorization: OwnMediaAudioPreviewAuthorization) async throws -> (Data, Int) {
         guard authorization.purpose == .metadata, authorization.accepts(request), authorization.isCurrent else { throw OwnMediaAudioPreviewFailure.unavailable }
-        let exchange = OwnMediaPrivateAudioExchange(endpoint: request.url!, audio: false)
+        guard let releaseURL = request.url else { throw APIError.invalidConfiguration }
+        let exchange = OwnMediaPrivateAudioExchange(endpoint: releaseURL, audio: false)
         return try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
                 exchange.install(continuation)
@@ -23,7 +24,8 @@ import FoundationNetworking
     public func audio(_ request: URLRequest, authorization: OwnMediaAudioPreviewAuthorization) async throws -> Data {
         guard authorization.purpose == .audio, request.value(forHTTPHeaderField: "Authorization") == nil,
               authorization.accepts(request), authorization.isCurrent else { throw OwnMediaAudioPreviewFailure.unavailable }
-        let exchange = OwnMediaPrivateAudioExchange(endpoint: request.url!, audio: true)
+        guard let releaseURL = request.url else { throw APIError.invalidConfiguration }
+        let exchange = OwnMediaPrivateAudioExchange(endpoint: releaseURL, audio: true)
         let (data, _) = try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
                 exchange.install(continuation)

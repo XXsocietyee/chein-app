@@ -305,7 +305,7 @@ extension EnvironmentValues {
                     Label {
                         Text("club.enroll.stale")
                     } icon: {
-                        Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                        Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText)
                     }
                     .accessibilityIdentifier("club.enroll.stale")
                 }
@@ -319,7 +319,7 @@ extension EnvironmentValues {
                 Label {
                     Text(LocalizedStringKey(issue.localizationKey))
                 } icon: {
-                    Image(systemName: "exclamationmark.circle").foregroundStyle(.red)
+                    Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.dangerText)
                 }
                 if let message = issue.message {
                     Text(verbatim: message)

@@ -54,7 +54,7 @@ import SwiftUI
                                 Spacer(minLength: 8)
                                 // State text (the row itself opens the profile): check when followed, never colour alone.
                                 HStack(spacing: 4) {
-                                    if member.isFollow { Image(systemName: "checkmark").foregroundStyle(.green) }
+                                    if member.isFollow { Image(systemName: "checkmark").foregroundStyle(CYColor.successText) }
                                     Text(verbatim: member.isFollow ? (flow.kind == .followers ? locale.pick("互相关注", "Mutual") : locale.pick("已关注", "Following")) : locale.pick("未关注", "Not following"))
                                 }
                                 .font(.footnote)

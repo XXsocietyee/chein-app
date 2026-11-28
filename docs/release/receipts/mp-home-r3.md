@@ -546,6 +546,14 @@ Merged `origin/ui/combined-r7` (Localizable.xcstrings auto-merged). Gates: gener
 |---|---|---|
 | `pages/search2/index.wxml:62` `g-type1` 类别 → `App/GlobalSearchView.swift:339` section header and `App/SearchMapFilterSheet.swift:37` (`en-d2-search.jpg`) | en heading read **Groups** above the category capsules (Culture / Outdoors / Food …): reads like clubs/teams, not MP 类别. | **Fixed** — `searchMap.categories` en → **Categories** (zh 类别 unchanged) in `Resources/Localizable.xcstrings` and the pinned fragment `docs/search-map-localizations.json`. |
 
+## Round 3 continue (47) — sweep 18:12 (build b954de71c), mp-home `sheet-en.jpg` / `sheet-zh-Hans.jpg`
+
+Rebased onto `origin/mp/r3-home` (continue 46). No coordinator item for mp-home in the 17:30 / 18:30 sections; no K50 `lane-layout` rows for mp-home. Sheets: search footer 没有更多了 + 重新搜索 matches MP `search2/result/index.wxml:85-86`; activity detail, Today card, offline Retry read clean. Open Not done rows all need a simulator/device or the P2-3d decision. Level B (Crafted).
+
+| MP page → native | Difference | Status |
+|---|---|---|
+| `pages/index/index.wxml:22-31` `v3-hero-action` 和朋友报名活动 → `Core/HomeSearchTabParity.swift` `ActionBanner.title(locale:)` / `actionTitle(locale:)` (`en-d2-home.jpg`) | en only: "Join activities with friends" + "Browse" is a few points wider than the card at default size, so `ViewThatFits` stacked title over action (zh sits on one row); "Browse" also did not say what 去报名 says. | **Fixed** — en title **Join events with friends** (the en UI already says Events for 活动) and action **Sign up** (= 去报名); one row at default size in en like zh, AX sizes still stack. zh unchanged. Test `HomeSearchTabParityTests` updated. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -606,6 +614,7 @@ Merged `origin/ui/combined-r7` (Localizable.xcstrings auto-merged). Gates: gener
 - Needs a simulator pass (continue 44): `d2-search-empty` description quotes the query + tip in en + zh-Hans, AX5.
 - Needs a simulator pass (continue 45): 首页 consent card (en + zh-Hans, AX5: buttons stack, privacy line wraps).
 - Needs a device pass (continue 43): topic 收藏 success haptic on save, warning on rollback, none on page open.
+- Needs a simulator pass (continue 47): en `d2-home` hero title + Sign up on one row (iPhone 17, default size).
 
 ## For other lanes
 - en-layout / publish lanes: other 类别/品类 keys still read "Groups" in en: `mapActivity.categories` (品类), `playkitAuthor.categories`, `projectEdit.categoriesTitle`; likely "Categories".

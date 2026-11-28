@@ -229,7 +229,7 @@ struct PassMembershipView: View {
                             if content.teammate { Label("mp.member.teammate", systemImage: "person.2") }
                             if content.expiring {
                                 Label { Text("mp.member.expiring") } icon: {
-                                    Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
+                                    Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.warningText)
                                 }
                             }
                         }

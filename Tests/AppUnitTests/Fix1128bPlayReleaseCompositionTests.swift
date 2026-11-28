@@ -144,7 +144,7 @@ import XCTest
     /// board are GET reads on the shipped China composition. A POST to either path stays refused. Sensors stay
     /// between devices and artwork hosts; egg collect stays off (the MP never calls it).
     func testReleasePlayLeaseAdmitsAdvancedStateAndLeaderboard() async throws {
-        let recorder = Fix1128bRecorder()
+        let recorder = Fix1128bPlayReleaseRecorder()
         let built = composition(recorder)
         let player = try playerContext(built)
         let configuration = try XCTUnwrap(built.sessionDependencies(player).configuration)

@@ -47,7 +47,7 @@ public struct SquareGovernanceService {
     public func allows(_ action: SquareGovernanceAction) -> Bool { mutationCapabilities.contains(SquareGovernanceCapability(action)) }
     func request(path: String, method: String, fields: [String: SquareGovernanceJSON] = [:], query: [URLQueryItem] = [], token: String, form: Bool = false) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token), baseURL.scheme == "https", !path.contains("..") else { throw SquareGovernanceFailure.invalid }
-        var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if !query.isEmpty { components.queryItems = query }
         guard let url = components.url else { throw SquareGovernanceFailure.invalid }
         var request = URLRequest(url: url); request.httpMethod = method

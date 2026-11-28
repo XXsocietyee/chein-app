@@ -74,7 +74,7 @@ public struct NativeFriendDirectoryApproval: Equatable {
     }
     private func read<T: Decodable>(_ path: String, fields: [String: String]) async throws -> T {
         guard isCurrent, !Task.isCancelled else { throw NativeFriendFailure.notSent }
-        var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         parts.queryItems = fields.sorted(by: { $0.key < $1.key }).map { URLQueryItem(name: $0.key, value: $0.value) }
         guard let url = parts.url else { throw NativeFriendFailure.invalid }
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20); request.httpMethod = "GET"; request.httpShouldHandleCookies = false

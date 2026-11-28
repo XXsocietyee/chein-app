@@ -65,7 +65,7 @@ struct SquareDeletionConfirmView: View {
             Form {
                 Section {
                     ForEach(Array(consequences.enumerated()), id: \.offset) { _, item in
-                        Label { Text(verbatim: item.text) } icon: { Image(systemName: item.systemImage).foregroundStyle(.red) }
+                        Label { Text(verbatim: item.text) } icon: { Image(systemName: item.systemImage).foregroundStyle(CYColor.dangerText) }
                     }
                 } header: {
                     Text(verbatim: titleText)
@@ -114,15 +114,15 @@ struct SquareDeletionStatusView: View {
         switch coordinator.phase {
         case .done(let target):
             if case .post = target {
-                Label { Text("square.xcx.delete.postDone") } icon: { Image(systemName: "checkmark.circle").foregroundStyle(.green) }
+                Label { Text("square.xcx.delete.postDone") } icon: { Image(systemName: "checkmark.circle").foregroundStyle(CYColor.successText) }
                     .accessibilityIdentifier("square.delete.done")
             } else {
-                Label { Text("square.xcx.delete.commentDone") } icon: { Image(systemName: "checkmark.circle").foregroundStyle(.green) }
+                Label { Text("square.xcx.delete.commentDone") } icon: { Image(systemName: "checkmark.circle").foregroundStyle(CYColor.successText) }
                     .accessibilityIdentifier("square.delete.done")
             }
         case .rejected(_, let message):
             VStack(alignment: .leading, spacing: 4) {
-                Label { Text("square.xcx.delete.failed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
+                Label { Text("square.xcx.delete.failed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText) }
                     .accessibilityIdentifier("square.delete.failed")
                 if let message, !message.isEmpty { Text(verbatim: message).font(.caption).foregroundStyle(.secondary) }
             }

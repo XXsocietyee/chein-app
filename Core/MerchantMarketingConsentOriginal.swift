@@ -57,7 +57,8 @@ public struct MerchantMarketingConsentOriginalReceipt:Decodable,Equatable,Identi
  public func canWrite(_ row:ComplianceMarketingConsent,_ channel:ComplianceMarketingChannel,_ optedIn:Bool)->Bool{isCurrent && row.valid && approval.permits(row,channel,optedIn)}
  private func check(_ session:ComplianceSession)throws{guard matches(session) else{throw ComplianceFailure.unavailable};try Task.checkCancellation()}
  private func request(_ path:String,query:[String:String]=[:],body:[String:Any]?=nil)throws->URLRequest{
-  var c=URLComponents(url:context.baseURL.appendingPathComponent(path),resolvingAgainstBaseURL:false)!;if !query.isEmpty{c.queryItems=query.sorted{$0.key<$1.key}.map{URLQueryItem(name:$0.key,value:$0.value)}}
+  guard var c = URLComponents(url:context.baseURL.appendingPathComponent(path),resolvingAgainstBaseURL:false) else { throw APIError.invalidConfiguration }
+  if !query.isEmpty{c.queryItems=query.sorted{$0.key<$1.key}.map{URLQueryItem(name:$0.key,value:$0.value)}}
   guard let url=c.url else{throw ComplianceFailure.invalidInput};var r=URLRequest(url:url);r.httpMethod=body==nil ? "GET":"POST";r.cachePolicy = .reloadIgnoringLocalCacheData;r.timeoutInterval=20;r.httpShouldHandleCookies=false
   r.setValue(context.session.token,forHTTPHeaderField:"Authorization");r.setValue("application/json",forHTTPHeaderField:"Accept")
   if let body{r.httpBody=try JSONSerialization.data(withJSONObject:body,options:.sortedKeys);r.setValue("application/json",forHTTPHeaderField:"Content-Type")};return r

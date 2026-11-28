@@ -33,7 +33,7 @@ struct ProjectEditScheduleSpan: View {
                     .accessibilityIdentifier("projectSchedule.span")
             } else if let startDate, let endDate, endDate < startDate {
                 Label("projectSchedule.endBeforeStart", systemImage: "exclamationmark.circle")
-                    .font(.footnote).foregroundStyle(.red)
+                    .font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("projectSchedule.endBeforeStart")
             }
         }

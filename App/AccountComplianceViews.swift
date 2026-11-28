@@ -521,7 +521,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Text("fixr3.deregister.blocked.lead")
                 ForEach(Array((model.state.status?.blockers ?? []).enumerated()), id: \.offset) { _, blocker in
                     Label { Text(verbatim: blocker) } icon: {
-                        Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
+                        Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.warningText)
                     }
                     .accessibilityIdentifier("compliance.blocker")
                 }
@@ -538,7 +538,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     Text("fixr3.deregister.blocked.lead")
                     ForEach(Array(model.entryBlockers.enumerated()), id: \.offset) { _, blocker in
                         Label { Text(verbatim: blocker) } icon: {
-                            Image(systemName: "exclamationmark.circle").foregroundStyle(.orange).accessibilityHidden(true)
+                            Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.warningText).accessibilityHidden(true)
                         }
                         .accessibilityIdentifier("compliance.entryBlocker")
                     }
@@ -607,7 +607,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             DeregistrationVerificationUnavailableSection(method: model.state.status?.verificationMethod) { requestCancellationRead() }
         case .review:
             Section {
-                Label { Text("compliance.reviewWarning").fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange) }
+                Label { Text("compliance.reviewWarning").fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
                     .accessibilityIdentifier("compliance.reviewWarning")
                 Text("c08.display.42", tableName: "AccountDeregistrationPresentation").font(.subheadline).foregroundStyle(.secondary)
                 if let impact = model.state.status?.impact, impact.confirmable {
@@ -695,8 +695,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     @ViewBuilder private func statusMark(_ raw: String) -> some View {
         switch raw.uppercased() {
         case "PENDING": Label { Text("compliance.status.pending") } icon: { Image(systemName: "clock").foregroundStyle(.orange) }
-        case "ELIGIBLE": Label { Text("compliance.status.eligible") } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
-        case "BLOCKED": Label { Text("compliance.status.blocked") } icon: { Image(systemName: "xmark.octagon.fill").foregroundStyle(.red) }
+        case "ELIGIBLE": Label { Text("compliance.status.eligible") } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText) }
+        case "BLOCKED": Label { Text("compliance.status.blocked") } icon: { Image(systemName: "xmark.octagon.fill").foregroundStyle(CYColor.dangerText) }
         default:
             if DeregisterIndexPageModel.knownStatuses.contains(raw.trimmingCharacters(in: .whitespacesAndNewlines)) {
                 Text(verbatim: DeregisterIndexPageModel.statusText(raw))
@@ -736,7 +736,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     || (model.state.error != nil && model.state.roamCleanup != .complete && model.state.roamConsent != .notAgreed) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Label { Text("fixr3.privacy.roam.incomplete") } icon: {
-                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText)
                         }
                         Spacer(minLength: 8)
                         Button { performRoamRevoke() } label: { Text("fixr3.common.retry") }

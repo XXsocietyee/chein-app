@@ -220,6 +220,79 @@ class AppSecReviewContractTests(unittest.TestCase):
         op_id = read("Core/ClientOperationID.swift")
         self.assertIn("UUID().uuidString.lowercased()", op_id)
 
+    # K50-R9: player-reachable leaks and unvalidated deep-link inputs. ATS stays at the system default.
+    def test_8_k50_r9_player_reachable_leaks_and_deep_link_inputs(self):
+        info = plistlib.loads((ROOT / "Config/Info.plist").read_bytes())
+        self.assertNotIn("NSAppTransportSecurity", info)
+        for cfg in (ROOT / "Config").glob("*.xcconfig"):
+            text = cfg.read_text(encoding="utf-8")
+            self.assertNotIn("NSAllowsArbitraryLoads", text)
+            self.assertNotIn("NSExceptionDomains", text)
+
+        badge = read("Core/ObjectCardContracts.swift")
+        self.assertIn("ObjectCardMediaPolicy.origin(candidate)", badge)
+        self.assertNotIn('["http", "https"]', badge)
+
+        parity = read("App/MPParityKit.swift")
+        self.assertIn('v != ".", v != "..", !v.contains("..")', parity)
+
+        landing = read("App/JourneyLandingViews.swift")
+        self.assertIn('value != ".", value != "..", !value.contains("..")', landing)
+        self.assertIn("String(value) == raw", landing)
+
+        scheme = read("Core/CheinDeepLink.swift")
+        self.assertIn('token != ".", token != ".."', scheme)
+        self.assertIn('!token.contains("\\\\")', scheme)
+        plain = scheme.split("func plainToken", 1)[1].split("func optionalID", 1)[0]
+        self.assertNotIn('token.contains("/")', plain)
+
+        page = read("Core/MiniProgramPageLink.swift")
+        self.assertIn('ids: ["id", "sessionId"]', page)
+        self.assertIn("opaqueShareToken", page)
+        self.assertIn("ObjectCardMediaPolicy.origin(value)", page)
+
+        journey = read("Core/JourneyLoopSource.swift")
+        self.assertIn('value != "." && value != ".."', journey)
+        self.assertIn("!value.contains(\"%\")", journey)
+
+        pin = read("App/ExternalGameReviewModel.swift")
+        self.assertIn("KeychainItemProtection.isDeviceOnlyUnlocked(attrs)", pin)
+        self.assertIn("SecItemDelete(baseQuery as CFDictionary)", pin)
+        protection = read("Core/KeychainItemProtection.swift")
+        self.assertIn("kSecAttrAccessibleWhenUnlockedThisDeviceOnly", protection)
+        self.assertIn("kSecAttrSynchronizable", protection)
+        for rel in (
+            "App/ImageUploadSecureStorage.swift",
+            "App/SquareWorkspaceSecureStorage.swift",
+            "App/RoamHistoryKeychainStorage.swift",
+            "App/NativeEnrollmentKeychainStore.swift",
+            "App/TemplateAuthoringSecureStorage.swift",
+            "App/ProjectEditSecureStorage.swift",
+        ):
+            self.assertIn("KeychainItemProtection.isDeviceOnlyUnlocked", read(rel), rel)
+
+        share = read("App/DesignSystem/CYSquareShareSheet.swift")
+        self.assertNotIn("UIPasteboard.general.url", share)
+        self.assertIn(".localOnly: true", share)
+        self.assertIn(".expirationDate:", share)
+        self.assertIn("ObjectCardMediaPolicy.origin", share)
+        place = read("App/NativeR2/MapHome/RoamMapHomePlaceNote.swift")
+        self.assertIn(".expirationDate:", place)
+        self.assertIn(".localOnly: true", place)
+
+        attachments = read("Core/ChannelDiscordMessaging.swift")
+        self.assertIn("ObjectCardMediaPolicy.origin(raw)", attachments)
+        self.assertNotIn("http://127.0.0.1", attachments)
+        self.assertNotIn("http://localhost", attachments)
+
+        e2e = read("App/E2ETestHostOverride.swift")
+        self.assertNotIn("data.prefix(600)", e2e)
+        self.assertIn('outgoing.url?.path', e2e)
+        self.assertNotIn("absoluteString", e2e.split("NSLog", 1)[1])
+
+        launch = read("Core/PlayerLaunch.swift")
+        self.assertIn("static let merchantCenterEnabled = false", launch)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

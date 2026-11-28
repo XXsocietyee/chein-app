@@ -1,0 +1,668 @@
+# K50-R4 release crash sites
+
+Release compile is iOS with DEBUG and TEST off. Design fixtures and `AppStoreReviewDemoAccountAndFixtureSectionView.swift` are excluded from that binary, and `#if DEBUG` bodies are not scanned.
+
+Sites reachable in Release before this pass: 661.
+Fixed: 138. Justified: 523.
+
+A fixed site could be nil on a player path. It now refuses (throws, returns nil, or uses a value the successful path already had) instead of trapping. A justified site stays, because a check already on that path makes the trap impossible. `Tests/ContractChecks/test_k50_r04_release_crashes.py` re-scans App/ and Core/ and fails if a site has no proof, or if a proof's evidence disappears.
+
+Three existing pins now name the refusal: roam live still persists the write before `requireService()`, blind-option edits return nil when a row is not an object, and `SearchMapService` still throws `APIError.invalidRequest` when the request URL is missing. Query encoding and category reads are unchanged.
+
+## Fixed
+
+- fixed `App/FreeExploreBundleReadHost.swift` (1): `var expected = URLComponents(url: context.baseURL.appendingPathComponent(prefix + path), resolvingAgainstBaseURL: false)!`
+- fixed `App/NativeChannelNotificationConversationView.swift` (1): `return Calendar.current.date(from: DateComponents(year: 2001, month: 1, day: 1, hour: parts[0], minute: parts[1]))!`
+- fixed `Core/AccountDeregistrationOriginal.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/CastService.swift` (2): `var components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!`
+- fixed `Core/CityAcquisitionService.swift` (1): `var canonical = URLComponents(string: prefix + "/" + url.lastPathComponent)!; canonical.queryItems = [.init(name: "regionId", value: region)]`
+- fixed `Core/CityAcquisitionService.swift` (1): `var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/acquisition/" + path), resolvingAgainstBaseURL: false)!; parts.queryItems = query`
+- fixed `Core/CityAcquisitionService.swift` (1): `var request = URLRequest(url: parts.url!); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body; request.httpShouldHandleCookies = false; request.cachePolicy = .reloadIgnoringLocalCacheData`
+- fixed `Core/CityArrivalEvidenceService.swift` (1): `var expected = URLComponents(string: prefix + "/state")!; expected.queryItems = [.init(name: "regionId", value: region)]`
+- fixed `Core/CityArrivalEvidenceService.swift` (1): `var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/arrival-evidence/" + path), resolvingAgainstBaseURL: false)!; parts.queryItems = query`
+- fixed `Core/CityArrivalEvidenceService.swift` (1): `var request = URLRequest(url: parts.url!); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body; request.cachePolicy = .reloadIgnoringLocalCacheData; request.httpShouldHandleCookies = false`
+- fixed `Core/CityMerchantOperationsService.swift` (1): `var canonical = URLComponents(string: prefix + "/availability")!; canonical.queryItems = [.init(name: "regionId", value: region)]`
+- fixed `Core/CityMerchantOperationsService.swift` (1): `var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/merchant/operations/availability"), resolvingAgainstBaseURL: false)!`
+- fixed `Core/CityMerchantOperationsService.swift` (1): `return try await execute(url: parts.url!)`
+- fixed `Core/CityNeutralTaskService.swift` (1): `var canonical = URLComponents(string: prefix + "/state")!; canonical.queryItems = [.init(name: "regionId", value: region)]`
+- fixed `Core/CityNeutralTaskService.swift` (1): `var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/neutral-tasks/" + path), resolvingAgainstBaseURL: false)!; parts.queryItems = query`
+- fixed `Core/CityNeutralTaskService.swift` (1): `var request = URLRequest(url: parts.url!); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body; request.cachePolicy = .reloadIgnoringLocalCacheData; request.httpShouldHandleCookies = false`
+- fixed `Core/CityOnsiteTaskService.swift` (1): `var canonical = URLComponents(string: prefix + "/state")!; canonical.queryItems = [.init(name: "regionId", value: region)]`
+- fixed `Core/CityOnsiteTaskService.swift` (1): `var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/onsite-tasks/" + path), resolvingAgainstBaseURL: false)!; parts.queryItems = query`
+- fixed `Core/CityOnsiteTaskService.swift` (1): `var request = URLRequest(url: parts.url!); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body; request.cachePolicy = .reloadIgnoringLocalCacheData; request.httpShouldHandleCookies = false`
+- fixed `Core/CityOrientationTaskOriginalSource.swift` (2): `var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!`
+- fixed `Core/CityTaskHistoryService.swift` (1): `var canonical = URLComponents(string: prefix + path)!; canonical.queryItems = query`
+- fixed `Core/CityTaskHistoryService.swift` (1): `var parts = URLComponents(string: approval.context.baseURL.appendingPathComponent("api/city-game/task-history").absoluteString + path)!`
+- fixed `Core/CityTaskHistoryService.swift` (1): `var request = URLRequest(url: parts.url!); request.httpMethod = "GET"; request.httpShouldHandleCookies = false; request.cachePolicy = .reloadIgnoringLocalCacheData`
+- fixed `Core/ClubSeriesScheduleDraft.swift` (1): `return operation == .updateSeries ? Self.calendar.date(byAdding: .day, value: 1, to: today)! : today`
+- fixed `Core/ContextualOperationProduction.swift` (1): `var components = URLComponents(url: configuration.baseURL.appendingPathComponent("api/club/lead/team-progress"), resolvingAgainstBaseURL: false)!`
+- fixed `Core/ContextualOperationProduction.swift` (1): `var leaderRequest = URLRequest(url: components.url!); leaderRequest.httpMethod = "GET"`
+- fixed `Core/CouponManagementCoordinator.swift` (1): `request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true,`
+- fixed `Core/FreeExplorationVisitConfig.swift` (1): `var components = URLComponents(url: configuration.baseURL.appendingPathComponent(Self.path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/FreeExploreLaunchService.swift` (1): `var url = URLComponents(url: session.baseURL.appendingPathComponent("api/free-explore/bundle/" + path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/MemberIdentityAvatarTransport.swift` (1): `request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true`
+- fixed `Core/MemberIdentityAvatarTransport.swift` (1): `let exchange = MemberIdentityAvatarExchange(endpoint: request.url!)`
+- fixed `Core/MerchantBusinessService.swift` (1): `var url = URLComponents(url: configuration.baseURL.appendingPathComponent(descriptor.path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/MerchantContentService.swift` (1): `var components = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/MerchantMarketingConsentOriginal.swift` (1): `var c=URLComponents(url:context.baseURL.appendingPathComponent(path),resolvingAgainstBaseURL:false)!;if !query.isEmpty{c.queryItems=query.sorted{$0.key<$1.key}.map{URLQueryItem(name:$0.key,value:$0.value)}}`
+- fixed `Core/MerchantOfferWithdrawalOriginalFlow.swift` (1): `var p=URLComponents(url:api.baseURL.appendingPathComponent(path),resolvingAgainstBaseURL:false)!;if !query.isEmpty{p.queryItems=query}`
+- fixed `Core/MerchantOfferWithdrawalOriginalFlow.swift` (1): `var r=URLRequest(url:p.url!);r.httpMethod=body==nil ? "GET":"POST";r.httpBody=body;r.httpShouldHandleCookies=false;r.cachePolicy = .reloadIgnoringLocalCacheData`
+- fixed `Core/MerchantPerkValidityDraft.swift` (1): `calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now))!`
+- fixed `Core/NativeAttributeAuthorExtendedContract.swift` (1): `let definitions = try NativeAttributeAuthorWire.decode(definitions(at: ["data","definitions"])).array!`
+- fixed `Core/NativeAttributeAuthorExtendedContract.swift` (1): `let keys = try NativeAttributeAuthorWire.decode(keys(at: ["data","keys"])).array!`
+- fixed `Core/NativeAttributeAuthorExtendedContract.swift` (3): `let definition = rawDefinition.object!, key = definition["stateKey"]!.text!`
+- fixed `Core/NativeAttributeAuthorExtendedContract.swift` (1): `let originals = try NativeAttributeAuthorWire.decode(draft.rawSource).array!`
+- fixed `Core/NativeChannelChain.swift` (1): `var url = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeChannelCheckin.swift` (1): `var url = URLComponents(url: context.baseURL.appendingPathComponent("api/im/channel/" + suffix), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeChannelMessageService.swift` (1): `var components = URLComponents(url: credentials.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeChannelNotificationService.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeChannelOnboarding.swift` (2): `answers.append(.init(promptID:prompt.id,optionIDs:choices.sorted{Int64($0)!<Int64($1)!}))`
+- fixed `Core/NativeChannelOnboarding.swift` (2): `answers.sort{Int64($0.promptID)!<Int64($1.promptID)!};let id=UUID().uuidString.lowercased()`
+- fixed `Core/NativeEnrollmentService.swift` (1): `var url = URLComponents(url: api.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeEnrollmentService.swift` (1): `var request = URLRequest(url: url.url!); request.httpMethod = payload == nil ? "GET" : "POST"`
+- fixed `Core/NativeFriendChannelInviteService.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(route), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeFriendChannelSourceFlow.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(approval.path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeFriendDirectoryService.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeFriendMetadataService.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeFriendProgressService.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(NativeFriendProgressApproval.path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeFriendRemovalService.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeFriendService.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent("api/friend/" + suffix), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeFriendTeamInviteService.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativePlatformService.swift` (1): `var components = URLComponents(url: service.configuration.baseURL.appendingPathComponent(Self.windowPath), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativePlatformService.swift` (1): `var request = URLRequest(url: components.url!); request.httpMethod = "GET"; request.timeoutInterval = 20`
+- fixed `Core/NativeProgressPrivacyService.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/NativeWebhookScopeProvider.swift` (1): `var parts = URLComponents(url: captured.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/OfficialActionService.swift` (1): `var components = URLComponents(url: configuration.baseURL.appendingPathComponent("api/official/invites"), resolvingAgainstBaseURL: false)!`
+- fixed `Core/OfficialPublicEventReadSource.swift` (1): `var expected = URLComponents(url: list, resolvingAgainstBaseURL: false)!`
+- fixed `Core/OrientSessionService.swift` (1): `guard var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }`
+- fixed `Core/OwnMediaApprovedLink.swift` (1): `request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true`
+- fixed `Core/OwnMediaApprovedLinkTransport.swift` (1): `let exchange = OwnMediaApprovedLinkExchange(endpoint: request.url!)`
+- fixed `Core/OwnMediaAudioPreview.swift` (1): `guard request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true,`
+- fixed `Core/OwnMediaImagePreview.swift` (1): `guard request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true,`
+- fixed `Core/OwnMediaModelPreview.swift` (1): `guard request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true,`
+- fixed `Core/OwnMediaPrivateAudioReader.swift` (1): `let exchange = OwnMediaPrivateAudioExchange(endpoint: request.url!, audio: false)`
+- fixed `Core/OwnMediaPrivateAudioReader.swift` (1): `let exchange = OwnMediaPrivateAudioExchange(endpoint: request.url!, audio: true)`
+- fixed `Core/OwnMediaPrivateImageReader.swift` (1): `let exchange = OwnMediaPrivateExchange(endpoint: request.url!, image: false)`
+- fixed `Core/OwnMediaPrivateImageReader.swift` (1): `let exchange = OwnMediaPrivateExchange(endpoint: request.url!, image: true)`
+- fixed `Core/OwnMediaPrivateModelReader.swift` (1): `let exchange = OwnMediaPrivateModelExchange(endpoint: request.url!, model: false)`
+- fixed `Core/OwnMediaPrivateModelReader.swift` (1): `let exchange = OwnMediaPrivateModelExchange(endpoint: request.url!, model: true)`
+- fixed `Core/OwnedTopicCoverAuthorFlow.swift` (1): `let saved = try journal.beginUpload(localDigest:digest,expected:snapshot,session:session), upload = saved.uploads.last!`
+- fixed `Core/PlayExperienceService.swift` (2): `var components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!`
+- fixed `Core/PlayExperienceService.swift` (1): `request = try AuthRequestBuilder.makeFormRequest(url: request.url!, fields: form, token: token, boundary: boundary)`
+- fixed `Core/PlayExperienceService.swift` (1): `var parts = URLComponents(url: configuration.baseURL.appendingPathComponent("api/game/session/" + kind), resolvingAgainstBaseURL: false)!`
+- fixed `Core/PlayExperienceService.swift` (1): `var request = URLRequest(url: parts.url!); request.httpMethod = kind == "command" ? "POST" : "GET"`
+- fixed `Core/PlayRuntimeGap.swift` (2): `var components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!`
+- fixed `Core/PlayService.swift` (1): `guard var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }`
+- fixed `Core/PlayService.swift` (1): `guard var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }`
+- fixed `Core/PlaySharedPlanLifecycle.swift` (1): `payload = ["proposalKey": .string("plan_" + String(UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased().prefix(26))), "endingKey": .string(row!.endingKey)]`
+- fixed `Core/PlaySharedPlanLifecycle.swift` (1): `case .start: payload = ["operationKind": .string("PLAN"), "operationKey": .string(row!.endingKey)]`
+- fixed `Core/PlayThemeBackpackActions.swift` (2): `var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!`
+- fixed `Core/PlayerGapRoutes.swift` (1): `var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!`
+- fixed `Core/ProfileCurrentReview.swift` (1): `let exchange = ProfileCurrentReviewExchange(endpoint: request.url!)`
+- fixed `Core/ProfileFollowListService.swift` (1): `var parts = URLComponents(url: context.baseURL.appendingPathComponent(ProfileFollowListApproval.path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/ProfileNicknameAvailabilityService.swift` (1): `r.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true && r.httpMethod == "POST"`
+- fixed `Core/ProfileNicknameAvailabilityService.swift` (1): `let exchange = ProfileNicknameExchange(endpoint: request.url!)`
+- fixed `Core/ProfileSavedMediaTransport.swift` (1): `request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true`
+- fixed `Core/ProfileSavedMediaTransport.swift` (1): `let exchange = ProfileSavedMediaExchange(endpoint: request.url!)`
+- fixed `Core/ProjectEditCompletionRules.swift` (1): `? .object(["mode": .string(mode), "requiredCount": .number(Decimal(Int(requiredCount)!))])`
+- fixed `Core/ProjectEditContract.swift` (1): `"startTime": .string(ProjectEditValidation.dateTime(schedule.start)!),`
+- fixed `Core/ProjectEditContract.swift` (1): `"endTime": .string(ProjectEditValidation.dateTime(schedule.end, endOfDay: true)!)`
+- fixed `Core/ProjectInitialState.swift` (1): `initial: String(integer(object["init"], fallback: Int(fallback.initial)!)),`
+- fixed `Core/ProjectInitialState.swift` (1): `maximum: String(integer(object["max"], fallback: Int(fallback.maximum)!)))`
+- fixed `Core/PublicMerchantReviews.swift` (1): `var components = URLComponents(url: configuration.baseURL.appendingPathComponent("api/merchant/reviews/public"), resolvingAgainstBaseURL: false)!`
+- fixed `Core/RoamLiveService.swift` (1): `var url = URLComponents(url: api.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/RoamLiveSessionController.swift` (1): `do { try await service!.presence(sessionID: id, fix: fix, explorationPercent: explorationPercent); try check(token); presenceError = false }`
+- fixed `Core/RoamLiveSessionController.swift` (1): `let fact = try await service!.fact(key: record.clientSessionKey); try check(token)`
+- fixed `Core/RoamLiveSessionController.swift` (1): `try await service!.finish(sessionID: id, poiIDs: draft.confirmedPOIIDs, distanceMeters: Int(draft.distanceMeters.rounded()),`
+- fixed `Core/RoamLiveSessionController.swift` (1): `let fact = try await service!.fact(key: draft.clientSessionKey); try check(token)`
+- fixed `Core/RoamLiveSessionController.swift` (1): `let receipt = try await service!.shopVisit(sessionID: id, sourceType: 1, sourceID: place.id, fix: fix)`
+- fixed `Core/RoamLiveSessionController.swift` (1): `let receipt = try await service!.discover(sessionID: id, poiID: place.id, fix: fix)`
+- fixed `Core/RoamLiveSessionController.swift` (1): `let receipt = try await service!.shopVisit(sessionID: id, sourceType: 2, sourceID: shop.id, fix: fix)`
+- fixed `Core/RoamLiveSessionController.swift` (1): `let receipt = try await service!.reveal(sessionID: draft.sessionID, clientSessionKey: draft.clientSessionKey, tiles: batch)`
+- fixed `Core/RoamLiveSessionController.swift` (1): `do { let values = try await service!.places(fix: fix); try check(token); places = values; lastPlaces = now(); placesReadError = nil }`
+- fixed `Core/RoamLiveSessionController.swift` (1): `do { let values = try await service!.registeredShops(fix: fix); try check(token); registeredShops = values; registeredShopsReadError = nil }`
+- fixed `Core/RoamService.swift` (1): `guard var url = URLComponents(url: value.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }`
+- fixed `Core/SearchMapService.swift` (1): `guard var parts = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }`
+- fixed `Core/SquareGovernanceService.swift` (1): `var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/SquareService.swift` (1): `var parts = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/SquareWorkspaceCoordinator.swift` (1): `let guidelineID = value.guideline!.id`
+- fixed `Core/SquareWorkspaceService.swift` (1): `var components = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!`
+- fixed `Core/TemplateBlindOptions.swift` (1): `let removed = values.remove(at: index).object!`
+- fixed `Core/TemplateBlindOptions.swift` (1): `var row = values[index].object!`
+- fixed `Core/TemplateBlindOptions.swift` (1): `var row = values[index].object!; row["label"] = .string(text); values[index] = .object(row)`
+- fixed `Core/TemplateBranchComposition.swift` (1): `var row = rows[index].object!; row["terminal"] = .bool(terminal)`
+- fixed `Core/TemplateBranchComposition.swift` (1): `var row = rows[index].object!, options = row["options"]?.array ?? []`
+- fixed `Core/TemplateEffectList.swift` (1): `var row = values[index].object!`
+- fixed `Core/TemplateEffectList.swift` (1): `var row = values[index].object!`
+- fixed `Core/TemplateHotspotPlacement.swift` (1): `var row = rows[index].object!; row["label"] = .string(label); rows[index] = .object(row)`
+- fixed `Core/TemplateHotspotPlacement.swift` (1): `var row = rows[index].object!; row["x"] = .number(point.x); row["y"] = .number(point.y); rows[index] = .object(row)`
+- fixed `Core/TemplateProfileQuestionComposition.swift` (1): `var row = rows[index].object!; row["kind"] = .string(kind); row["required"] = .bool(true)`
+- fixed `Core/TemplateProfileQuestionComposition.swift` (1): `var row = rows[index].object!, options = row["options"]?.array ?? []`
+- fixed `Core/TemplateProfileQuestionComposition.swift` (1): `var row = rows[index].object!`
+- fixed `Core/TemplateProfileQuestionComposition.swift` (1): `var row = rows[index].object!`
+
+## Justified
+
+- justified `App/ActivityAddToCalendar.swift:17` `!` `timezone-offset`: `let utc = TimeZone(secondsFromGMT: 0)!`
+- justified `App/ActivityHostCancelView.swift:155` `!` `same-line-nonempty-chain`: `? c.tr(msg!)`
+- justified `App/AppSession.swift:854` `!` `url-literal`: `private let dormantCommunityService = ClubCommunityService(dormantBaseURL: URL(string: "https://disabled.invalid")!, transport: CommunityDormantHTTPTransport())`
+- justified `App/AppleLocalReminderProvider.swift:47` `!` `timezone-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `App/BundleShelfView.swift:76` `!` `same-line-nonempty-trim`: `private var name: String { (item.topicName ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : item.topicName! }`
+- justified `App/CityKit/CityMapLayer.swift:172` `!` `pin-group-nonempty`: `let span = max(0.004, (lngs.max()! - lngs.min()!) * 2.2, (lats.max()! - lats.min()!) * 2.2)`
+- justified `App/CityKit/CityMapLayer.swift:172` `!` `pin-group-nonempty`: `let span = max(0.004, (lngs.max()! - lngs.min()!) * 2.2, (lats.max()! - lats.min()!) * 2.2)`
+- justified `App/CityKit/CityMapLayer.swift:172` `!` `pin-group-nonempty`: `let span = max(0.004, (lngs.max()! - lngs.min()!) * 2.2, (lats.max()! - lats.min()!) * 2.2)`
+- justified `App/CityKit/CityMapLayer.swift:172` `!` `pin-group-nonempty`: `let span = max(0.004, (lngs.max()! - lngs.min()!) * 2.2, (lats.max()! - lats.min()!) * 2.2)`
+- justified `App/ClubAttendanceCorrectionReturn.swift:163` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/ClubBanRemovalReturn.swift:167` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/ClubCommunityReadComposition.swift:113` `!` `url-literal`: `dormantBaseURL: URL(string: "https://disabled.invalid")!,`
+- justified `App/ClubContextualViews.swift:71` `!` `timezone-id`: `.environment(\.timeZone, TimeZone(identifier: "Asia/Shanghai")!)`
+- justified `App/ClubEnrollmentView.swift:694` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/ClubHostApplicationMaterials.swift:195` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/ClubHostApplicationMaterials.swift:231` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/ClubManagementReviewOwner.swift:128` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/ClubRoleManagementReturn.swift:166` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/ClubSeriesOccurrenceBrowser.swift:224` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/ClubSeriesScheduleEditor.swift:154` `!` `constant-clock-parses`: `.init(get: { ClubSeriesScheduleDraft.parseTime(schedule.startTime) ?? ClubSeriesScheduleDraft.parseTime("09:00")! }, set: { schedule.startTime = ClubSeriesScheduleDraft.time($0) })`
+- justified `App/ClubSeriesScheduleEditor.swift:704` `!` `timezone-offset`: `calendar.locale = locale; calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `App/ClubSettlementDetail.swift:192` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/ClubTopicSettingsReturn.swift:164` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/CouponManagementView.swift:227` `!` `same-line-nonempty-chain`: `Text(row.description?.isEmpty == false ? row.description! : appLocalized("couponManagement.noDescription", locale: locale))`
+- justified `App/DesignSystem/CYPassVerified.swift:87` `!` `same-line-nonempty-chain`: `Text(verbatim: (number?.isEmpty == false) ? number! : "—")`
+- justified `App/DesignSystem/CYShareCard.swift:145` `!` `same-line-nonempty-chain`: `var placeDisplay: String { place?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? place! : "—" }`
+- justified `App/E1ActivityDetailParts.swift:15` `!` `timezone-offset`: `let utc = TimeZone(secondsFromGMT: 0)!`
+- justified `App/E1ActivityDetailParts.swift:214` `!` `timezone-offset`: `let utc = TimeZone(secondsFromGMT: 0)!`
+- justified `App/E1CommerceComponents.swift:137` `!` `timezone-offset`: `let utc = TimeZone(secondsFromGMT: 0)!`
+- justified `App/FreeExploreTopicCatalogScreen.swift:65` `!` `same-line-nonempty-chain`: `title: (message?.isEmpty == false) ? Text(verbatim: message!) : Text("freeBundle.catalog.loadFailed"),`
+- justified `App/FreeExploreTopicCatalogScreen.swift:109` `!` `same-line-nonempty-chain`: `let chapter = item.name?.isEmpty == false ? item.name! : appLocalized("freeBundle.catalog.chapterFallback", locale: Locale.current)`
+- justified `App/HomeFeedView.swift:448` `!` `same-line-nonempty`: `let placeText = PageTemplateVoiceOver.spoken((place?.isEmpty == false ? place! : HomeFeedSurfaceState.unknownText), locale: locale)`
+- justified `App/MPGap/AccountPublish/AccountPublishR8Mounts.swift:305` `!` `nonempty-literal-random`: `let id = "i_" + String((0..<6).map { _ in alphabet.randomElement()! })`
+- justified `App/MPGap/AccountPublish/AccountPublishR8Mounts.swift:315` `!` `nonempty-literal-random`: `let id = "c_" + String((0..<6).map { _ in alphabet.randomElement()! })`
+- justified `App/MerchantEngagementViews.swift:211` `!` `subscript-of-own-keys`: `var body: some View { ForEach(counts.keys.sorted(), id: \.self) { key in LabeledContent(LocalizedStringKey("merchant.engagement.count." + (key)), value: String(counts[key]!)) } }`
+- justified `App/MerchantOnboardingView.swift:687` `!` `url-literal`: `private static let ruleURL = URL(string: "questify-legal://merchant-identity-rule")!`
+- justified `App/MerchantOperationsEditor.swift:111` `!` `same-line-nonempty-chain`: `LabeledContent("merchant.operations.address") { Text(verbatim: value.address?.isEmpty == false ? value.address! : "—") }`
+- justified `App/MerchantRetainedImageHost.swift:94` `!` `same-line-nil-check`: `case (.imgUrl, .template(let value), .template(let id)): return value.id == id && (id == nil || id! > 0)`
+- justified `App/MessagingHistoryView.swift:24` `!` `lease-assigned`: `return lease!`
+- justified `App/NativeChannelNotificationConversationView.swift:306` `!` `date-components-requested`: `return String(format: "%02d:%02d", parts.hour!, parts.minute!)`
+- justified `App/NativeChannelNotificationConversationView.swift:306` `!` `date-components-requested`: `return String(format: "%02d:%02d", parts.hour!, parts.minute!)`
+- justified `App/NativeMediaGallery.swift:177` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/NativeR2/Explore/ExploreDesignPass.swift:11` `!` `timezone-offset`: `let utc = TimeZone(secondsFromGMT: 0)!`
+- justified `App/NativeR2/FreeExplore/NativeFreeExploreBundleDetailView.swift:145` `!` `same-line-nonempty-chain`: `let chapter = item.name?.isEmpty == false ? item.name! : appLocalized("freeBundle.catalog.chapterFallback", locale: locale)`
+- justified `App/OfficialOrganizerConsoleView.swift:254` `!` `same-line-nonempty-chain`: `Text(verbatim: model.state?.title.isEmpty == false ? model.state!.title : c.t("未命名官方活动", "Untitled official event"))`
+- justified `App/OfficialOrganizerConsoleView.swift:448` `!` `same-line-nonempty-chain`: `let name = model.state?.title.isEmpty == false ? model.state!.title : c.t("这场活动", "this event")`
+- justified `App/OwnMediaImagePreviewView.swift:219` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/PlayCreatorTailViews.swift:461` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/PlaySharedPlanLifecycleView.swift:123` `!` `filtered-non-nil`: `Toggle(row.title, isOn: Binding(get: { acceptance.contains(row.proposalKey!) }, set: { value in`
+- justified `App/PlaySharedPlanLifecycleView.swift:124` `!` `filtered-non-nil`: `if value { acceptance.insert(row.proposalKey!) } else { acceptance.remove(row.proposalKey!) }; acceptanceDirty = true; model.invalidateReview()`
+- justified `App/PlaySharedPlanLifecycleView.swift:124` `!` `filtered-non-nil`: `if value { acceptance.insert(row.proposalKey!) } else { acceptance.remove(row.proposalKey!) }; acceptanceDirty = true; model.invalidateReview()`
+- justified `App/ProfileCoverGesturePreview.swift:96` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/ProfileCurrentMediaPreview.swift:422` `fatalError` `init-coder-no-archive`: `required init?(coder: NSCoder) { fatalError("init(coder:) unavailable") }`
+- justified `App/PublicMerchantHomeView.swift:174` `!` `same-line-nonempty-chain`: `CYHeroHeader(verbatim: value.name?.isEmpty == false ? value.name! : String(localized: LocalizedStringResource("merchant.publicHome.merchant", locale: locale)))`
+- justified `App/QuestifyImageEntityCard.swift:134` `!` `timezone-offset`: `let utc = TimeZone(secondsFromGMT: 0)!`
+- justified `App/RoamExperienceComponents.swift:178` `fatalError` `init-coder-no-archive`: `fatalError("init(coder:) has not been implemented")`
+- justified `App/RoamLiveSessionView.swift:842` `!` `complete-settlement`: `LabeledContent("roam.live.confirmedXP", value: String(fact.result!.totalXp!))`
+- justified `App/RoamLiveSessionView.swift:842` `!` `complete-settlement`: `LabeledContent("roam.live.confirmedXP", value: String(fact.result!.totalXp!))`
+- justified `App/RoamLiveSessionView.swift:843` `!` `complete-settlement`: `LabeledContent("roam.live.confirmedShops", value: String(fact.result!.sessionShops!))`
+- justified `App/RoamLiveSessionView.swift:843` `!` `complete-settlement`: `LabeledContent("roam.live.confirmedShops", value: String(fact.result!.sessionShops!))`
+- justified `App/RoamPassportPrivateToolsViews.swift:140` `!` `shanghai-offset`: `static let timeZone = TimeZone(secondsFromGMT: RoamShanghaiCalendar.offsetSeconds)!`
+- justified `App/RoamPassportToolsViews.swift:194` `!` `shanghai-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: RoamShanghaiCalendar.offsetSeconds)!; return calendar`
+- justified `App/RoamReceivedStampMetadataView.swift:74` `fatalError` `init-coder-no-archive`: `fatalError("init(coder:) has not been implemented")`
+- justified `App/TemplateCreatorRehearsalView.swift:201` `!` `same-line-nonempty-coalesce`: `case .choice: LabeledContent(LocalizedStringKey(field.labelKey)) { Text(LocalizedStringKey("creator.choice." + ((raw.string ?? "").isEmpty ? "empty" : raw.string!))) }`
+- justified `App/TicketPassSheet.swift:192` `!` `same-line-nonempty-chain`: `Text(verbatim: (t.title?.isEmpty == false ? t.title! : "—")).tag(t.id)`
+- justified `App/TicketPassSheet.swift:320` `!` `same-line-nonempty-chain`: `private func nonEmpty(_ s: String?) -> String { (s?.isEmpty == false) ? s! : "—" }`
+- justified `App/WP09AfterSaleSections.swift:69` `!` `same-line-nonempty`: `let shown = value?.isEmpty == false ? value! : WP09Copy.unknown`
+- justified `App/WP09AfterSaleSections.swift:107` `!` `same-line-nonempty`: `Text(verbatim: value?.isEmpty == false ? value! : WP09Copy.unknown).cyText(.meta)`
+- justified `Core/AccountCollectionContracts.swift:102` `!` `timezone-offset-hours`: `calendar.timeZone = TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/AccountCollectionContracts.swift:118` `!` `timezone-offset-hours`: `calendar.timeZone = TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/ActivityDetail.swift:219` `!` `timezone-offset-hours`: `calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/Adapt3ClubBackendAdapters.swift:106` `!` `same-line-nil-check`: `activityID == nil || activityID! > 0 else { throw APIError.invalidRequest }`
+- justified `Core/Adapt3ClubBackendAdapters.swift:118` `!` `same-line-nil-check`: `activityID == nil || activityID! > 0 else { throw APIError.invalidRequest }`
+- justified `Core/BankWithdrawalAdapter.swift:81` `!` `code-in-nonempty-set`: `throw BankWithdrawalFailure.rejected(safe.contains(value.businessCode ?? "") ? value.businessCode! : "REQUEST_REJECTED")`
+- justified `Core/BeijingBusinessTime.swift:15` `!` `timezone-id`: `public static var beijing: TimeZone { TimeZone(identifier: "Asia/Shanghai")! }`
+- justified `Core/BeijingDeadlineDisplay.swift:11` `!` `timezone-id`: `public static let businessZone = TimeZone(identifier: "Asia/Shanghai")!`
+- justified `Core/CastContracts.swift:139` `!` `same-line-nonempty-chain`: `self.name = trimmed?.isEmpty == false ? String(trimmed!.prefix(12)) : nil`
+- justified `Core/ChallengePOISubmission.swift:123` `!` `same-line-nonempty`: `let cleanMsg = msg?.isEmpty == false ? msg! : nil`
+- justified `Core/ChannelGovernanceProjection.swift:205` `!` `grant-after-authorize`: `return grant!`
+- justified `Core/ChannelGovernanceProjection.swift:597` `!` `nil-check-short-circuit`: `} else if Int64(next) == nil || Int64(next)! <= 0 {`
+- justified `Core/ChannelRulesAdmission.swift:51` `!` `same-line-nil-check`: `inviteID == nil || inviteID! > 0, (trimmed?.count ?? 0) <= 60 else {`
+- justified `Core/CityActionBudgetScopedTransport.swift:55` `!` `values-proven-non-nil`: `return Dictionary(uniqueKeysWithValues:query.map{($0.name,$0.value!)})`
+- justified `Core/CityCurrentSnapshotReading.swift:29` `!` `decimal-literal`: `Self.bounded(s, w, n, e, span: Decimal(string: "0.5")!), ["WGS84", "GCJ02"].contains(datum),`
+- justified `Core/CityCurrentSnapshotReading.swift:162` `!` `decimal-literal`: `try require(m.contract == "CITY_BOUNDED_MAP_V1" && m.datum == datum && m.maxViewportSpanDegrees > 0 && m.maxViewportSpanDegrees <= Decimal(string: "0.5")!)`
+- justified `Core/CityMerchantValueContracts.swift:12` `!` `fields-validated`: `regionId = fields["regionId"]!; boardId = fields["boardId"]!; seasonId = fields["seasonId"]!; rulesReleaseId = fields["rulesReleaseId"]!`
+- justified `Core/CityMerchantValueContracts.swift:12` `!` `fields-validated`: `regionId = fields["regionId"]!; boardId = fields["boardId"]!; seasonId = fields["seasonId"]!; rulesReleaseId = fields["rulesReleaseId"]!`
+- justified `Core/CityMerchantValueContracts.swift:12` `!` `fields-validated`: `regionId = fields["regionId"]!; boardId = fields["boardId"]!; seasonId = fields["seasonId"]!; rulesReleaseId = fields["rulesReleaseId"]!`
+- justified `Core/CityMerchantValueContracts.swift:12` `!` `fields-validated`: `regionId = fields["regionId"]!; boardId = fields["boardId"]!; seasonId = fields["seasonId"]!; rulesReleaseId = fields["rulesReleaseId"]!`
+- justified `Core/CityMerchantValueService.swift:86` `!` `keys-present-before-subscript`: `let value = try? CityMerchantValueScope(fields: fields), let window = try? CityMerchantValueWindow(from: fields["from"]!, to: fields["to"]!) { candidate = .report(value, window, requestID: fields["req`
+- justified `Core/CityMerchantValueService.swift:86` `!` `keys-present-before-subscript`: `let value = try? CityMerchantValueScope(fields: fields), let window = try? CityMerchantValueWindow(from: fields["from"]!, to: fields["to"]!) { candidate = .report(value, window, requestID: fields["req`
+- justified `Core/CityMerchantValueService.swift:86` `!` `keys-present-before-subscript`: `let value = try? CityMerchantValueScope(fields: fields), let window = try? CityMerchantValueWindow(from: fields["from"]!, to: fields["to"]!) { candidate = .report(value, window, requestID: fields["req`
+- justified `Core/CityMerchantValueService.swift:88` `!` `keys-present-before-subscript`: `let value = try? CityMerchantValueScope(fields: fields), let window = try? CityMerchantValueWindow(from: fields["from"]!, to: fields["to"]!) { candidate = .events(value, window, cursor: fields["cursor`
+- justified `Core/CityMerchantValueService.swift:88` `!` `keys-present-before-subscript`: `let value = try? CityMerchantValueScope(fields: fields), let window = try? CityMerchantValueWindow(from: fields["from"]!, to: fields["to"]!) { candidate = .events(value, window, cursor: fields["cursor`
+- justified `Core/CityMerchantValueService.swift:88` `!` `keys-present-before-subscript`: `let value = try? CityMerchantValueScope(fields: fields), let window = try? CityMerchantValueWindow(from: fields["from"]!, to: fields["to"]!) { candidate = .events(value, window, cursor: fields["cursor`
+- justified `Core/CityMerchantValueService.swift:90` `!` `keys-present-before-subscript`: `let value = try? CityMerchantValueScope(fields: fields), let window = try? CityMerchantValueWindow(from: fields["from"]!, to: fields["to"]!),`
+- justified `Core/CityMerchantValueService.swift:90` `!` `keys-present-before-subscript`: `let value = try? CityMerchantValueScope(fields: fields), let window = try? CityMerchantValueWindow(from: fields["from"]!, to: fields["to"]!),`
+- justified `Core/CityMerchantValueService.swift:91` `!` `keys-present-before-subscript`: `let snapshot = Int64(fields["snapshotId"]!), snapshot > 0,`
+- justified `Core/CityMonopolyScreenModels.swift:160` `!` `count-at-least-two`: `let span = fixes.count >= 2 ? fixes.last!.measuredAt.timeIntervalSince(fixes.first!.measuredAt) : 0`
+- justified `Core/CityMonopolyScreenModels.swift:160` `!` `count-at-least-two`: `let span = fixes.count >= 2 ? fixes.last!.measuredAt.timeIntervalSince(fixes.first!.measuredAt) : 0`
+- justified `Core/CityOrientationTaskOriginalTransport.swift:47` `!` `values-proven-non-nil`: `let fields = Dictionary(uniqueKeysWithValues: query.map { ($0.name, $0.value!) })`
+- justified `Core/CityParticipationCommandRecovery.swift:35` `!` `same-line-nil-check`: `record.terminalStatus == nil || [200, 400, 409].contains(record.terminalStatus!) else { throw CityParticipationCommandFailure.storage }`
+- justified `Core/CityParticipationScopedTransport.swift:55` `!` `values-proven-non-nil`: `return Dictionary(uniqueKeysWithValues:query.map{($0.name,$0.value!)})`
+- justified `Core/CityPlayerRulesClient.swift:64` `!` `valid-id-before-subscript`: `regionID = query["regionId"]!; values = query`
+- justified `Core/CityPlayerValueContracts.swift:12` `!` `fields-validated`: `regionId = fields["regionId"]!; boardId = fields["boardId"]!; seasonId = fields["seasonId"]!; rulesReleaseId = fields["rulesReleaseId"]!`
+- justified `Core/CityPlayerValueContracts.swift:12` `!` `fields-validated`: `regionId = fields["regionId"]!; boardId = fields["boardId"]!; seasonId = fields["seasonId"]!; rulesReleaseId = fields["rulesReleaseId"]!`
+- justified `Core/CityPlayerValueContracts.swift:12` `!` `fields-validated`: `regionId = fields["regionId"]!; boardId = fields["boardId"]!; seasonId = fields["seasonId"]!; rulesReleaseId = fields["rulesReleaseId"]!`
+- justified `Core/CityPlayerValueContracts.swift:12` `!` `fields-validated`: `regionId = fields["regionId"]!; boardId = fields["boardId"]!; seasonId = fields["seasonId"]!; rulesReleaseId = fields["rulesReleaseId"]!`
+- justified `Core/CityValueBoundedMapContracts.swift:29` `!` `decimal-after-valid-bounds`: `let canonical = CityValueBoundedBounds(south: Double(Self.decimal(bounds.south))!, west: Double(Self.decimal(bounds.west))!, north: Double(Self.decimal(bounds.north))!, east: Double(Self.decimal(bound`
+- justified `Core/CityValueBoundedMapContracts.swift:29` `!` `decimal-after-valid-bounds`: `let canonical = CityValueBoundedBounds(south: Double(Self.decimal(bounds.south))!, west: Double(Self.decimal(bounds.west))!, north: Double(Self.decimal(bounds.north))!, east: Double(Self.decimal(bound`
+- justified `Core/CityValueBoundedMapContracts.swift:29` `!` `decimal-after-valid-bounds`: `let canonical = CityValueBoundedBounds(south: Double(Self.decimal(bounds.south))!, west: Double(Self.decimal(bounds.west))!, north: Double(Self.decimal(bounds.north))!, east: Double(Self.decimal(bound`
+- justified `Core/CityValueBoundedMapContracts.swift:29` `!` `decimal-after-valid-bounds`: `let canonical = CityValueBoundedBounds(south: Double(Self.decimal(bounds.south))!, west: Double(Self.decimal(bounds.west))!, north: Double(Self.decimal(bounds.north))!, east: Double(Self.decimal(bound`
+- justified `Core/CityValueBoundedMapContracts.swift:75` `!` `corners-filled-or-returned`: `let b = CityValueBoundedBounds(south: corners.map(\.latitude).min()!, west: corners.map(\.longitude).min()!, north: corners.map(\.latitude).max()!, east: corners.map(\.longitude).max()!)`
+- justified `Core/CityValueBoundedMapContracts.swift:75` `!` `corners-filled-or-returned`: `let b = CityValueBoundedBounds(south: corners.map(\.latitude).min()!, west: corners.map(\.longitude).min()!, north: corners.map(\.latitude).max()!, east: corners.map(\.longitude).max()!)`
+- justified `Core/CityValueBoundedMapContracts.swift:75` `!` `corners-filled-or-returned`: `let b = CityValueBoundedBounds(south: corners.map(\.latitude).min()!, west: corners.map(\.longitude).min()!, north: corners.map(\.latitude).max()!, east: corners.map(\.longitude).max()!)`
+- justified `Core/CityValueBoundedMapContracts.swift:75` `!` `corners-filled-or-returned`: `let b = CityValueBoundedBounds(south: corners.map(\.latitude).min()!, west: corners.map(\.longitude).min()!, north: corners.map(\.latitude).max()!, east: corners.map(\.longitude).max()!)`
+- justified `Core/CloudB3Readers.swift:62` `!` `contains-or-empty`: `self.palette = Self.palettes.contains(palette ?? "") ? palette! : "DEFAULT"`
+- justified `Core/CloudB3Readers.swift:63` `!` `contains-or-empty`: `self.neon = Self.neons.contains(neon ?? "") ? neon! : "YELLOW_CYAN"`
+- justified `Core/CloudB3Readers.swift:66` `!` `contains-or-empty`: `self.climate = style == "SURVIVAL" ? (Self.climates.contains(climate ?? "") ? climate! : "RAIN") : nil`
+- justified `Core/CloudB3Readers.swift:67` `!` `contains-or-empty`: `self.volatility = style == "SURVIVAL" ? (Self.volatilities.contains(volatility ?? "") ? volatility! : "SHIFTING") : nil`
+- justified `Core/ClubAIDesignFlow.swift:9` `!` `same-line-nil-check`: `guard !idea.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, minutes == nil || minutes! > 0 else { throw ClubAIDesignFailure.invalid }`
+- justified `Core/ClubAndTeamCoopGovernanceAudit.swift:182` `!` `timezone-offset-hours`: `let beijingZone = TimeZone(identifier: governingTimeZoneID) ?? TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/ClubCommentOriginalContracts.swift:20` `!` `bound-in-throwing-init`: `"requestId":record.requestID!,"operationKind":record.operationKind,"clubId":record.target.clubID,`
+- justified `Core/ClubCommentOriginalContracts.swift:21` `!` `bound-in-throwing-init`: `"postId":record.target.postID,"commentId":0,"version":record.postVersion!]`
+- justified `Core/ClubCommentOriginalContracts.swift:45` `!` `bound-in-throwing-init`: `version.stringValue == String(version.intValue), version.intValue == record.postVersion!, post.intValue == record.target.postID,`
+- justified `Core/ClubCommunityContracts.swift:79` `!` `same-line-nil-check`: `guard identity.accountID == nil || (identity.accountID! > 0 && token.map(AuthRequestBuilder.isValidToken) == true) else { throw ClubCommunityFailure.invalid }`
+- justified `Core/ClubCommunityContracts.swift:203` `!` `allows-requires-post`: `return ["id": postID, "content": content, "images": images.joined(separator: ";"), "version": evidence.post!.version, "requestId": key]`
+- justified `Core/ClubCommunityContracts.swift:206` `!` `allows-requires-post`: `return ["id": postID, "pinned": pinned, "version": evidence.post!.version, "requestId": key]`
+- justified `Core/ClubCommunityPendingJournal.swift:218` `!` `same-line-nil-check`: `(decoded.requestID == nil || (!decoded.requestID!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && decoded.requestID!.utf8.count <= 128)),`
+- justified `Core/ClubCommunityPendingJournal.swift:218` `!` `same-line-nil-check`: `(decoded.requestID == nil || (!decoded.requestID!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && decoded.requestID!.utf8.count <= 128)),`
+- justified `Core/ClubCommunityPendingJournal.swift:219` `!` `same-line-nil-check`: `(decoded.postVersion == nil || decoded.postVersion! >= 0) else {`
+- justified `Core/ClubEventCalendar.swift:12` `!` `timezone-offset`: `calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/ClubEventCalendar.swift:28` `!` `date-components-requested`: `year = parts.year!; month = parts.month!; day = parts.day!`
+- justified `Core/ClubEventCalendar.swift:28` `!` `date-components-requested`: `year = parts.year!; month = parts.month!; day = parts.day!`
+- justified `Core/ClubEventCalendar.swift:28` `!` `date-components-requested`: `year = parts.year!; month = parts.month!; day = parts.day!`
+- justified `Core/ClubEventOpsFormRules.swift:40` `!` `timezone-offset`: `calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/ClubOpsEventPresentation.swift:37` `!` `timezone-offset-hours`: `public static let timeZone = TimeZone(identifier: "Asia/Shanghai") ?? TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/ClubOpsGovernancePresentation.swift:5` `!` `timezone-id`: `public static let timeZone = TimeZone(identifier: "Asia/Shanghai")!`
+- justified `Core/ClubOpsJoinRequestPresentation.swift:88` `try!` `static-regex`: `private static let entity = try! NSRegularExpression(pattern: "&(?:(lt|gt|amp|quot|#39)|#0*(60|62|38|34|39)|#[xX]0*(3[cCeE]|26|22|27));")`
+- justified `Core/ClubPostOriginalContracts.swift:20` `!` `bound-in-throwing-init`: `"requestId":record.requestID!,"operationKind":record.operationKind,"clubId":record.target.clubID,`
+- justified `Core/ClubPostOriginalContracts.swift:21` `!` `bound-in-throwing-init`: `"postId":record.target.postID,"commentId":0,"version":record.postVersion!]`
+- justified `Core/ClubPostOriginalContracts.swift:45` `!` `bound-in-throwing-init`: `version.stringValue == String(version.intValue), version.intValue >= record.postVersion!,`
+- justified `Core/ClubProfileLocalDraftStore.swift:223` `!` `buffer-nonempty`: `let random = tag.withUnsafeMutableBytes { SecRandomCopyBytes(kSecRandomDefault, 32, $0.baseAddress!) }`
+- justified `Core/ClubRoleAssignmentJournal.swift:30` `!` `same-line-nil-check`: `clubID > 0, activityID == nil || activityID! > 0, targetMemberID > 0, targetMemberID != accountID,`
+- justified `Core/ClubRoleAssignmentOriginal.swift:21` `!` `same-line-nil-check`: `return scope == ClubGovernanceScope(clubID: club, activityID: scope.activityID) && (scope.activityID == nil || scope.activityID! > 0)`
+- justified `Core/ClubRoleAssignmentRecovery.swift:52` `!` `applied-implies-ids`: `return .object(["id": .integer(receipt.assignmentId!), "targetMemberId": .integer(entry.targetMemberID), "roleCode": .string(entry.roleCode), "requestId": .string(receipt.requestId), "auditId": .integ`
+- justified `Core/ClubRoleAssignmentRecovery.swift:52` `!` `applied-implies-ids`: `return .object(["id": .integer(receipt.assignmentId!), "targetMemberId": .integer(entry.targetMemberID), "roleCode": .string(entry.roleCode), "requestId": .string(receipt.requestId), "auditId": .integ`
+- justified `Core/ClubRoleRevocationJournal.swift:34` `!` `same-line-nil-check`: `clubID > 0, activityID == nil || activityID! > 0, assignmentID > 0, targetMemberID > 0, assignmentVersion >= 0, assignmentVersion <= Int(Int32.max),`
+- justified `Core/ClubRoleRevocationOriginal.swift:21` `!` `same-line-nil-check`: `return scope == ClubGovernanceScope(clubID: club, activityID: scope.activityID) && (scope.activityID == nil || scope.activityID! > 0)`
+- justified `Core/ClubRoleRevocationRecovery.swift:46` `!` `applied-implies-ids`: `return .object(["requestId": .string(receipt.requestId), "auditId": .integer(receipt.auditId!), "state": .string("APPLIED")])`
+- justified `Core/ClubRosterPresentation.swift:41` `!` `same-line-nil-check`: `guard row["correctionVersion"] == .null || (version != nil && version! >= 0) else { throw ClubGovernanceFailure.malformed }`
+- justified `Core/ClubSeriesOccurrencePresentation.swift:127` `!` `timezone-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/ClubSeriesOriginalResult.swift:41` `!` `decoded-series-fields`: `public var seriesID: Int { series["id"].int! }`
+- justified `Core/ClubSeriesOriginalResult.swift:42` `!` `decoded-series-fields`: `public var requestID: String { value["requestId"].string! }`
+- justified `Core/ClubSeriesOriginalResult.swift:84` `!` `positive-integer-before-unwrap`: `occurrenceIDs.insert(row["id"].int!).inserted, activityIDs.insert(row["activityId"].int!).inserted,`
+- justified `Core/ClubSeriesOriginalResult.swift:84` `!` `positive-integer-before-unwrap`: `occurrenceIDs.insert(row["id"].int!).inserted, activityIDs.insert(row["activityId"].int!).inserted,`
+- justified `Core/ClubSeriesScheduleDraft.swift:109` `!` `timezone-id`: `public static var timeZone: TimeZone { TimeZone(identifier: "Asia/Shanghai")! }`
+- justified `Core/ClubTerminalSessionProjection.swift:80` `!` `every-row-id-int`: `return rows.map { .init(id: $0["id"].int!, name: $0["name"].string, startDate: $0["startDate"].string) }`
+- justified `Core/ClubWorkbenchTiles.swift:16` `!` `timezone-offset-hours`: `calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/ContentDraftSystemStorage.swift:191` `!` `buffer-nonempty`: `let count = Darwin.write(fd, buffer.baseAddress!.advanced(by: offset), buffer.count - offset)`
+- justified `Core/ContentDraftSystemStorage.swift:209` `!` `buffer-nonempty`: `let count = Darwin.read(fd, buffer.baseAddress!.advanced(by: offset), buffer.count - offset)`
+- justified `Core/ContentLandingSource.swift:83` `!` `id-string-is-int64`: `return try await send("/api/content-landing/info", fields: ["topicId": NSNumber(value: Int64(topicID)!)], token: token)`
+- justified `Core/ContentLandingSource.swift:136` `!` `id-string-is-int64`: `"topicId": NSNumber(value: Int64(topicID)!),`
+- justified `Core/ContentLandingSource.swift:157` `!` `id-string-is-int64`: `"topicId": NSNumber(value: Int64(topicID)!),`
+- justified `Core/CoopFinanceProfit.swift:67` `!` `same-line-nil-check`: `if settled == nil || (settled == true && (income == nil || (income! > 0 && arrived == nil))) { unknownIncome = true }`
+- justified `Core/CoopFinanceProfit.swift:109` `!` `same-line-nil-check`: `if pending == nil || pending! > 0 { stats.append(Stat(key: .adjustPending, amount: pending)) }`
+- justified `Core/CoopFinanceProfit.swift:110` `!` `same-line-nil-check`: `if executed == nil || executed! > 0 { stats.append(Stat(key: .adjustExecuted, amount: executed)) }`
+- justified `Core/CoopFinanceSummary.swift:23` `!` `same-line-nil-check`: `if settled == nil || (settled == true && (income == nil || (income! > 0 && arrived == nil))) { unknown = true }`
+- justified `Core/CooperationFlowContracts.swift:104` `!` `same-line-nil-check`: `originApplyID == nil || (kind == .club && originApplyID! > 0),`
+- justified `Core/CooperationFlowContracts.swift:105` `!` `same-line-nil-check`: `supplyStationID == nil || (kind == .merchant && supplyStationID! > 0) else { throw CoopFlowFailure.invalid("recipient") }`
+- justified `Core/CooperationFlowContracts.swift:275` `!` `decimal-literal`: `return rounded == value && value <= Decimal(string: "99999999.99")! && (positive ? value > 0 : value >= 0)`
+- justified `Core/CooperationFlowContracts.swift:390` `!` `same-line-nil-check`: `guard chapterID > 0, offerID == nil || offerID! > 0 else { throw CoopFlowFailure.invalid("offerContext") }`
+- justified `Core/CouponManagementDomain.swift:106` `!` `timezone-offset-hours`: `public static var timeZone: TimeZone { TimeZone(secondsFromGMT: 8 * 3600)! }`
+- justified `Core/DiceRulesEngine.swift:1203` `!` `same-line-nonempty-chain`: `let lbl = (skill["label"].text?.isEmpty == false) ? skill["label"].text! : W8Text.t("属性", "Attribute")`
+- justified `Core/EntitlementHoldProjection.swift:185` `!` `same-line-nil-check`: `if requestID == nil || fact.registrationID == nil || fact.registrationID! <= 0`
+- justified `Core/EntitlementHoldProjection.swift:186` `!` `same-line-nil-check`: `|| fact.chapterID == nil || fact.chapterID! <= 0`
+- justified `Core/EntitlementHoldProjection.swift:187` `!` `same-line-nil-check`: `|| fact.merchantID == nil || fact.merchantID! <= 0 {`
+- justified `Core/EnvironmentBranchHostPresentation.swift:126` `!` `timezone-offset-hours`: `?? TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/FourLedgerBillRereadProjection.swift:61` `!` `decimal-literal`: `public static let tolerance = Decimal(string: "0.01")!`
+- justified `Core/G6MarketingReads.swift:196` `!` `same-line-nil-check`: `let prefix = (currency == nil || currency == "" || currency == "CNY") ? "¥" : (currency! + " ")`
+- justified `Core/GameplayPresetClient.swift:113` `!` `same-line-nonempty`: `case .rejected: return serverMessage?.isEmpty == false ? serverMessage! : WP09Copy.text("未能建成草稿", "The draft was not created", chinese: chinese)`
+- justified `Core/GroupPollContracts.swift:110` `!` `votes-proven`: `for option in options { let addition = sum.addingReportingOverflow(option.voteCount!); guard !addition.overflow else { throw APIError.malformedResponse }; sum = addition.partialValue }`
+- justified `Core/GroupPollContracts.swift:112` `!` `votes-proven`: `myOptionId.map({ chosen in options.first(where: { $0.id == chosen })!.voteCount! > 0 }) ?? true else { throw APIError.malformedResponse }`
+- justified `Core/GroupPollContracts.swift:112` `!` `votes-proven`: `myOptionId.map({ chosen in options.first(where: { $0.id == chosen })!.voteCount! > 0 }) ?? true else { throw APIError.malformedResponse }`
+- justified `Core/HomeFeedContracts.swift:208` `!` `timezone-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/IMInbox.swift:130` `!` `timezone-offset-hours`: `public static let chinaZone = TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/IMInbox.swift:188` `!` `same-line-nil-check`: `if last == nil || date.timeIntervalSince(last!) > 5 * 60 { result[message.id] = dividerText(date, now: now) }`
+- justified `Core/ImageUploadJournal.swift:23` `!` `same-line-nil-check`: `resourceID == nil || resourceID! > 0 else { throw ImageUploadJournalFailure.corrupt }`
+- justified `Core/ImmutableReceiptProducer.swift:450` `!` `same-line-nil-check`: `if trimmedReason.count > 200 || (expectedVersion != nil && expectedVersion! <= 0) {`
+- justified `Core/ImmutableReceiptProducer.swift:528` `!` `same-line-nil-check`: `conversationID == nil || conversationID! > 0,`
+- justified `Core/ImmutableReceiptProducer.swift:529` `!` `same-line-nil-check`: `authorID == nil || authorID! > 0,`
+- justified `Core/ImmutableReceiptProducer.swift:530` `!` `same-line-nil-check`: `cursor == nil || cursor! >= 0 else {`
+- justified `Core/LocaleDisplay.swift:154` `!` `timezone-offset`: `let utc = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/LocaleDisplay.swift:180` `!` `timezone-offset`: `let utc = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/MapCoordinateObservation.swift:69` `!` `coordinate-bounds-stored`: `public var roamCoordinate: RoamCoordinate { RoamCoordinate(latitude: latitude, longitude: longitude)! }`
+- justified `Core/MapLayerSourceContracts.swift:78` `!` `subscript-of-own-keys`: `return (groups.keys.sorted().map { groups[$0]! } + singles)`
+- justified `Core/MapPublicLayerService.swift:62` `!` `decimal-literal`: `halfSpanDegrees: Decimal = Decimal(string: "0.02", locale: Locale(identifier: "en_US_POSIX"))!`
+- justified `Core/MapPublicLayerService.swift:64` `!` `decimal-literal`: `guard halfSpanDegrees > 0, halfSpanDegrees <= Decimal(string: "0.4", locale: Locale(identifier: "en_US_POSIX"))! else {`
+- justified `Core/MapVisualStyleTokens.swift:88` `!` `full-style-matrix`: `tokens[appearance]![role]!`
+- justified `Core/MapVisualStyleTokens.swift:88` `!` `full-style-matrix`: `tokens[appearance]![role]!`
+- justified `Core/MapVisualStyleTokens.swift:93` `!` `candidate-hex-literals`: `func c(_ hex: String, _ opacity: Double = 1) -> MapStyleColor { MapStyleColor(hex: hex, opacity: opacity)! }`
+- justified `Core/MapVisualStyleTokens.swift:94` `try!` `full-style-matrix`: `return try! MapVisualStyleManifest(version: "plan-v9-candidate", approval: .candidate, tokens: [`
+- justified `Core/MemberScoreAppealReadContracts.swift:39` `!` `same-line-nil-check`: `guard recordID > 0, [sessionID, topicID, nodeID].allSatisfy({ $0 == nil || $0! > 0 }) else { throw MemberScoreListFailure.malformed }`
+- justified `Core/MerchantAftercareParity.swift:105` `!` `timezone-id`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(identifier: "UTC")!`
+- justified `Core/MerchantAftercareProgress.swift:139` `!` `timezone-id`: `public static var beijing: TimeZone { TimeZone(identifier: "Asia/Shanghai")! }`
+- justified `Core/MerchantAuthoringJournal.swift:85` `!` `replay-implies-record`: `case .replay: return MerchantAuthoringClaim(record: existing!, fresh: false)`
+- justified `Core/MerchantBundleReservations.swift:42` `!` `timezone-offset-hours`: `calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/MerchantBusinessDocuments.swift:245` `!` `total-assigned-from-mbint`: `guard rows.count <= 20, rows.count <= total! else { throw MerchantBusinessFailure.malformed }`
+- justified `Core/MerchantBusinessDocuments.swift:247` `!` `total-assigned-from-mbint`: `more = query.page * 20 < total!`
+- justified `Core/MerchantBusinessDocuments.swift:268` `!` `total-assigned-from-mbint`: `guard rawRows.count <= size, through <= total!, more == (through < total!), !(more && rawRows.isEmpty) else { throw MerchantBusinessFailure.malformed }`
+- justified `Core/MerchantBusinessDocuments.swift:268` `!` `total-assigned-from-mbint`: `guard rawRows.count <= size, through <= total!, more == (through < total!), !(more && rawRows.isEmpty) else { throw MerchantBusinessFailure.malformed }`
+- justified `Core/MerchantBusinessDocuments.swift:308` `!` `total-assigned-from-mbint`: `guard rows.count <= 20, rows.count <= total! else { throw MerchantBusinessFailure.malformed }`
+- justified `Core/MerchantBusinessDocuments.swift:309` `!` `total-assigned-from-mbint`: `summary = object["summary"]?.object ?? [:]; more = query.page * 20 < total!`
+- justified `Core/MerchantBusinessMutation.swift:67` `!` `same-line-nil-check`: `guard corrects == nil || corrects! > 0 else { throw MerchantBusinessFailure.invalid }`
+- justified `Core/MerchantBusinessQuery.swift:27` `!` `same-line-nil-check`: `guard page > 0, page <= Int.max / 50, ["all", "repeat", "new", "noted"].contains(segment), tagID == nil || tagID! > 0,`
+- justified `Core/MerchantBusinessQuery.swift:28` `!` `same-line-nil-check`: `sourceType == nil || [1, 2].contains(sourceType!) else { throw MerchantBusinessFailure.invalid }`
+- justified `Core/MerchantCoopLink.swift:77` `!` `source-raw-value-checked`: `let source: Source = query["source"] == "finance" || query["source"] == "club" ? Source(rawValue: query["source"]!)! : .ledger`
+- justified `Core/MerchantCoopLink.swift:77` `!` `source-raw-value-checked`: `let source: Source = query["source"] == "finance" || query["source"] == "club" ? Source(rawValue: query["source"]!)! : .ledger`
+- justified `Core/MerchantCustomerListParity.swift:71` `!` `timezone-id`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!`
+- justified `Core/MerchantEngagementContracts.swift:16` `!` `same-line-nil-check`: `guard ["all", "repeat", "new", "noted"].contains(segment), tagID == nil || tagID! > 0,`
+- justified `Core/MerchantEngagementContracts.swift:17` `!` `same-line-nil-check`: `sourceType == nil || [1, 2].contains(sourceType!) else { throw MerchantBusinessFailure.invalid }`
+- justified `Core/MerchantInboxPreview.swift:34` `!` `timezone-offset-hours`: `public static let chinaZone = TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/MerchantMarketingService.swift:192` `!` `subscript-of-own-keys`: `let form = try fields.keys.sorted().map { try encode($0) + "=" + encode(fields[$0]!) }.joined(separator: "&")`
+- justified `Core/MerchantNPCKnowledgeDraft.swift:62` `!` `price-digits-checked`: `"products": products.map { ["name": $0.name, "priceMinor": Int64($0.priceMinor)!, "currency": $0.currency] as [String: Any] },`
+- justified `Core/MerchantNPCKnowledgeValidation.swift:120` `!` `regex-digit-slice`: `func number(_ range: Range<Int>) -> Int { Int(String(decoding: bytes[range], as: UTF8.self))! }`
+- justified `Core/MerchantNPCKnowledgeValidation.swift:125` `!` `regex-requires-zone`: `let zoneStart = suffix.firstIndex(where: { $0 == "Z" || $0 == "z" || $0 == "+" || $0 == "-" })!`
+- justified `Core/MerchantNPCKnowledgeValidation.swift:127` `!` `fraction-digits`: `let nanos = fraction.isEmpty ? 0 : Int(String(fraction) + String(repeating: "0", count: 9 - fraction.count))!`
+- justified `Core/MerchantNPCKnowledgeValidation.swift:139` `!` `timezone-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/MerchantOfferWithdrawalOriginalJournal.swift:49` `!` `dirent-name-nonempty`: `String(cString: raw.baseAddress!.assumingMemoryBound(to: CChar.self))`
+- justified `Core/MerchantOperationsContracts.swift:281` `!` `nil-check-short-circuit`: `if !text.isEmpty && (Int(text) == nil || Int(text)! < 0) { return "merchant.operations.capacityInvalid" }`
+- justified `Core/MerchantPerkValidityDraft.swift:5` `!` `timezone-offset-hours`: `public static let timeZone = TimeZone(secondsFromGMT: 8 * 60 * 60)!`
+- justified `Core/MerchantPredictionRead.swift:69` `!` `timezone-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/MerchantStationContracts.swift:151` `!` `timezone-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/MerchantStationServiceWindow.swift:40` `!` `timezone-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/MerchantSupplyDryRunProjection.swift:67` `!` `timezone-id`: `public static let shanghaiTimeZone = TimeZone(identifier: "Asia/Shanghai")!`
+- justified `Core/MerchantSupplyDryRunProjection.swift:177` `!` `same-line-nil-check`: `if requestID == nil || fact.skuID == nil || fact.skuID! <= 0`
+- justified `Core/MerchantSupplyDryRunProjection.swift:178` `!` `same-line-nil-check`: `|| fact.merchantID == nil || fact.merchantID! <= 0 {`
+- justified `Core/MiniCropSession.swift:236` `!` `same-line-nonempty-chain`: `let ratioText = ratioUnknown ? unknownDisplay : ((ratioTrimmed?.isEmpty == false) ? ratioTrimmed! : "free")`
+- justified `Core/MiniCropSession.swift:277` `!` `count-nil-already-returned`: `if let index, index < 0 || index >= count! { return .error }`
+- justified `Core/MiniCropSession.swift:278` `!` `count-nil-already-returned`: `if index == nil, count! > 1 { return .unknown }`
+- justified `Core/MiniProgramPageLink.swift:323` `!` `values-proven-non-nil`: `self.init(path: path, query: Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) }))`
+- justified `Core/ModCompositionAttemptPolicy.swift:15` `!` `same-line-nil-check`: `return (maxAttempts == nil ? onRejected == nil : (1...1_000_000).contains(maxAttempts!) && node(onRejected))`
+- justified `Core/ModCompositionAttemptPolicy.swift:16` `!` `same-line-nil-check`: `&& (timeoutSeconds == nil ? onTimedOut == nil : (1...31_536_000).contains(timeoutSeconds!) && node(onTimedOut))`
+- justified `Core/ModInstallationTemplateEdit.swift:22` `!` `same-line-nil-check`: `auditTaskId == nil || auditTaskId! > 0, auditStatus == nil || (0...4).contains(auditStatus!) else { throw ModInstallationIssue.malformed }`
+- justified `Core/ModInstallationTemplateEdit.swift:22` `!` `same-line-nil-check`: `auditTaskId == nil || auditTaskId! > 0, auditStatus == nil || (0...4).contains(auditStatus!) else { throw ModInstallationIssue.malformed }`
+- justified `Core/ModOwnedContentReport.swift:53` `!` `same-line-nil-check`: `auditStatus == nil || [0, 1, 2, 3, 4].contains(auditStatus!) else { throw ModOwnedReportIssue.invalid }`
+- justified `Core/ModSettlementService.swift:195` `!` `values-proven-non-nil`: `let query = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/MyProjectMutations.swift:163` `!` `same-line-nonempty`: `let cleanMsg = msg?.isEmpty == false ? msg! : nil`
+- justified `Core/NativeBlacklistService.swift:110` `!` `values-proven-non-nil`: `let fields = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/NativeBlacklistService.swift:122` `!` `uuid-and-integer-checked`: `let canonical = NativeBlacklistCommand(requestID: UUID(uuidString: id)!, peerID: peer, expectedBlockID: integer(fields["expected_block_id"])!)`
+- justified `Core/NativeBlacklistService.swift:122` `!` `uuid-and-integer-checked`: `let canonical = NativeBlacklistCommand(requestID: UUID(uuidString: id)!, peerID: peer, expectedBlockID: integer(fields["expected_block_id"])!)`
+- justified `Core/NativeChannelCheckin.swift:122` `!` `checkin-id-is-int64`: `guard prior.days > row.days || prior.days == row.days && Int64(prior.memberId)! < Int64(row.memberId)! else { throw APIError.malformedResponse }`
+- justified `Core/NativeChannelCheckin.swift:122` `!` `checkin-id-is-int64`: `guard prior.days > row.days || prior.days == row.days && Int64(prior.memberId)! < Int64(row.memberId)! else { throw APIError.malformedResponse }`
+- justified `Core/NativeChannelDirectory.swift:29` `!` `same-line-nonempty`: `return Self(id: key, kind: kind, spaceID: id, name: name?.isEmpty == false ? name! : key, channels: rows)`
+- justified `Core/NativeChannelMessageCoordinator.swift:148` `!` `definite-rejection-has-code`: `rejectionAfterLookup = true; state = .rejected(code: failure.errorCode!)`
+- justified `Core/NativeChannelMessageFinalForward.swift:71` `!` `values-proven-non-nil`: `let query = Dictionary(uniqueKeysWithValues: queryItems.map { ($0.name, $0.value!) })`
+- justified `Core/NativeChannelMessageProjection.swift:200` `!` `same-line-nil-check`: `list.allSatisfy({ $0.message_id == messageID && $0.revision_no > 0 && (before == nil || $0.revision_no < before!) }),`
+- justified `Core/NativeChannelMessageSearch.swift:32` `!` `message-id-raw-value`: `list.allSatisfy({ row in requested.flatMap(Int64.init).map { Int64(row.id.rawValue)! < $0 } ?? true }),`
+- justified `Core/NativeChannelMessageSearch.swift:33` `!` `message-id-raw-value`: `zip(list, list.dropFirst()).allSatisfy({ pair in Int64(pair.0.id.rawValue)! > Int64(pair.1.id.rawValue)! }),`
+- justified `Core/NativeChannelMessageSearch.swift:33` `!` `message-id-raw-value`: `zip(list, list.dropFirst()).allSatisfy({ pair in Int64(pair.0.id.rawValue)! > Int64(pair.1.id.rawValue)! }),`
+- justified `Core/NativeChannelNotificationCoordinator.swift:146` `!` `assigned-on-previous-line`: `state = .failed(storedFailure!); return`
+- justified `Core/NativeChannelNotificationCoordinator.swift:155` `!` `assigned-on-previous-line`: `state = .failed(storedFailure!); return`
+- justified `Core/NativeChannelProgressContracts.swift:94` `!` `same-line-nil-check`: `list.allSatisfy({ ($0.rank == nil || $0.rank! > 0) && $0.state == nil }),`
+- justified `Core/NativeChannelProgressContracts.swift:214` `!` `same-line-nil-check`: `teamID == nil || (teamID! > 0 && board.filterSchemaJson["team_id"] == "int") else { throw NativeChannelProgressError.invalid }`
+- justified `Core/NativeChannelProgressFinalForward.swift:126` `!` `values-proven-non-nil`: `let query = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/NativeChannelReportFlow.swift:64` `!` `subscript-of-own-keys`: `var json: String { "{" + fields.keys.sorted().map { Self.quote($0) + ":" + Self.quote(fields[$0]!) }.joined(separator: ",") + "}" }`
+- justified `Core/NativeFriendChannelInviteService.swift:163` `!` `values-proven-non-nil`: `let f = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/NativeFriendChannelSourceFlow.swift:142` `!` `values-proven-non-nil`: `let fields = Dictionary(uniqueKeysWithValues: query.map { ($0.name, $0.value!) })`
+- justified `Core/NativeFriendDirectoryService.swift:121` `!` `values-proven-non-nil`: `let fields = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/NativeFriendMetadataContracts.swift:77` `!` `subscript-of-own-keys`: `let value = fields[key]!`
+- justified `Core/NativeFriendMetadataService.swift:144` `!` `values-proven-non-nil`: `let fields = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/NativeFriendProgressService.swift:113` `!` `values-proven-non-nil`: `let fields = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/NativeFriendRemovalService.swift:118` `!` `values-proven-non-nil`: `let fields = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/NativeFriendService.swift:186` `!` `values-proven-non-nil`: `let fields = Dictionary(uniqueKeysWithValues: query.map { ($0.name, $0.value!) })`
+- justified `Core/NativeFriendTeamInviteService.swift:137` `!` `values-proven-non-nil`: `let f = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/NativeHomeReturnService.swift:65` `!` `native-run-has-scope-id`: `"expectedAccountVersion": version, "scopeType": "RUN", "scopeId": check.scope.wire["scopeId"]!,`
+- justified `Core/NativeNavigationCompletion.swift:29` `!` `values-proven-non-nil`: `let query = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/NativePushAttemptRead.swift:87` `!` `same-line-nil-check`: `return (row.attempt_id==nil || UUID(uuidString:row.attempt_id!) != nil)`
+- justified `Core/NativeWebhookContracts.swift:7` `!` `raw-value-is-int64`: `public var requestNumber: Int64 { Int64(rawValue)! }`
+- justified `Core/NativeWebhookContracts.swift:29` `!` `uuid-matches-request-id`: `public static func make() -> Self { Self(rawValue: UUID().uuidString.lowercased())! }`
+- justified `Core/NativeWebhookFinalForwardTransport.swift:63` `!` `values-proven-non-nil`: `let query = Dictionary(uniqueKeysWithValues: queryItems.map { ($0.name, $0.value!) })`
+- justified `Core/NativeZeroHPAuthorDraft.swift:36` `!` `block-key-for-known-kind`: `let key = kind.blockKey!`
+- justified `Core/NativeZeroHPAuthorDraft.swift:135` `!` `block-key-for-known-kind`: `for kind in [Policy.challenge, .steps, .wait] { let key = kind.blockKey!; survival[key] = selected == kind ? blocks[key].map(ProjectEditJSON.object) : nil }`
+- justified `Core/NativeZeroHPAuthorDraft.swift:167` `!` `block-key-for-known-kind`: `let key = kind.blockKey!`
+- justified `Core/NativeZeroHPAuthorDraft.swift:195` `!` `same-line-nil-check`: `if alternatives == nil || alternatives!.count != self.alternatives.count || self.alternatives.count > 3 || Set(self.alternatives).count != self.alternatives.count || self.alternatives.contains(where: `
+- justified `Core/NonCashRewardCollectionModel.swift:62` `!` `same-line-nil-check`: `page.nextCursor == nil || (page.nextCursor != requestedCursor && !consumedCursors.contains(page.nextCursor!))`
+- justified `Core/NonCashRewardService.swift:14` `!` `same-line-nil-check`: `guard (1...50).contains(limit), cursor == nil || Self.isAwardID(cursor!) else { throw APIError.invalidRequest }`
+- justified `Core/NonCashRewardService.swift:23` `!` `same-line-nil-check`: `page.nextCursor == nil || (Self.isAwardID(page.nextCursor!) && page.items.count == limit && page.nextCursor == page.items.last?.awardId && page.nextCursor != cursor)`
+- justified `Core/ObjectBadgePresentation.swift:27` `!` `timezone-offset-hours`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/OfficialActionContracts.swift:60` `!` `same-line-nil-check`: `guard !audience.isEmpty, !channels.isEmpty, eventID == nil || eventID! > 0 else { throw OfficialActionFailure.invalid }`
+- justified `Core/OfficialActionContracts.swift:63` `!` `copy-object-always-has-title`: `guard split ? selected.allSatisfy({ !$0.object["title"]!.isEmpty }) : !unified.object["title"]!.isEmpty else { throw OfficialActionFailure.invalid }`
+- justified `Core/OfficialActionContracts.swift:63` `!` `copy-object-always-has-title`: `guard split ? selected.allSatisfy({ !$0.object["title"]!.isEmpty }) : !unified.object["title"]!.isEmpty else { throw OfficialActionFailure.invalid }`
+- justified `Core/OfficialActionContracts.swift:67` `!` `copy-object-always-has-title`: `"eventId": eventID as Any? ?? NSNull(), "title": split ? "官方通知" : unified.object["title"]!,`
+- justified `Core/OfficialEventContracts.swift:597` `!` `same-line-nonempty-chain`: `let display = (name?.isEmpty == false) ? name! : "城瘾玩家"`
+- justified `Core/OfficialPrivatePresentation.swift:114` `!` `timezone-offset-hours`: `calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/OpsDegradedState.swift:28` `!` `global-switch-nil-id`: `public static let global = OpsKillSwitchTarget(layer: .global, identifier: nil)!`
+- justified `Core/OpsDegradedState.swift:204` `!` `deadline-literal-in-range`: `public static let disabled = OpsDeadlinePolicy()!`
+- justified `Core/OpsDegradedState.swift:206` `!` `deadline-literal-in-range`: `public static let planProposalAIOnly = OpsDeadlinePolicy(aiGeneration: .seconds(8))!`
+- justified `Core/OrientSessionContracts.swift:78` `!` `same-line-nil-check`: `startedAt == nil || startedAt! >= 0, elapsedMs == nil || elapsedMs! >= 0,`
+- justified `Core/OrientSessionContracts.swift:78` `!` `same-line-nil-check`: `startedAt == nil || startedAt! >= 0, elapsedMs == nil || elapsedMs! >= 0,`
+- justified `Core/OrientSessionContracts.swift:110` `!` `same-line-nil-check`: `guard teamID > 0, maxMembers == nil || maxMembers! >= 0, joinedCount == nil || joinedCount! >= 0,`
+- justified `Core/OrientSessionContracts.swift:110` `!` `same-line-nil-check`: `guard teamID > 0, maxMembers == nil || maxMembers! >= 0, joinedCount == nil || joinedCount! >= 0,`
+- justified `Core/OrientSessionContracts.swift:111` `!` `same-line-nil-check`: `leaderMemberID == nil || leaderMemberID! > 0 else { throw APIError.malformedResponse }`
+- justified `Core/OrientSessionContracts.swift:154` `!` `same-line-nil-check`: `referenceID == nil || referenceID! > 0 else { throw APIError.malformedResponse }`
+- justified `Core/OrientSessionContracts.swift:320` `!` `same-line-nil-check`: `entryID == nil || entryID! > 0, nodeID == nil || nodeID! > 0,`
+- justified `Core/OrientSessionContracts.swift:320` `!` `same-line-nil-check`: `entryID == nil || entryID! > 0, nodeID == nil || nodeID! > 0,`
+- justified `Core/OrientSessionContracts.swift:321` `!` `same-line-nil-check`: `resolutionEntryID == nil || resolutionEntryID! > 0 else { throw APIError.malformedResponse }`
+- justified `Core/OrientSessionContracts.swift:372` `!` `same-line-nil-check`: `guard key > 0, rank > 0, elapsedMs == nil || elapsedMs! >= 0 else { throw APIError.malformedResponse }`
+- justified `Core/OrientSessionCoordinator.swift:300` `!` `assigned-on-previous-line`: `let records = original.operation.scoreKind == "APPEAL" ? freshScore!.appealRecords : freshScore!.disputeRecords`
+- justified `Core/OrientSessionCoordinator.swift:300` `!` `assigned-on-previous-line`: `let records = original.operation.scoreKind == "APPEAL" ? freshScore!.appealRecords : freshScore!.disputeRecords`
+- justified `Core/OrientSessionService.swift:45` `!` `same-line-nil-check`: `guard topicID > 0, activityID == nil || activityID! >= 0 else { throw APIError.invalidRequest }`
+- justified `Core/ParticipantForm.swift:43` `!` `same-line-nil-check`: `guard validation == nil, id == nil || id! > 0 else { throw APIError.invalidRequest }`
+- justified `Core/PlayDirectorRecap.swift:32` `!` `counts-stores-integer`: `guard collaboration["ratePercent"]!.integer! <= 100,`
+- justified `Core/PlayDirectorRecap.swift:32` `!` `counts-stores-integer`: `guard collaboration["ratePercent"]!.integer! <= 100,`
+- justified `Core/PlayDirectorRecap.swift:33` `!` `counts-stores-integer`: `collaboration["completedTeams"]!.integer! <= collaboration["eligibleTeams"]!.integer! else { throw PlayExperienceError.malformed }`
+- justified `Core/PlayDirectorRecap.swift:33` `!` `counts-stores-integer`: `collaboration["completedTeams"]!.integer! <= collaboration["eligibleTeams"]!.integer! else { throw PlayExperienceError.malformed }`
+- justified `Core/PlayDirectorRecap.swift:33` `!` `counts-stores-integer`: `collaboration["completedTeams"]!.integer! <= collaboration["eligibleTeams"]!.integer! else { throw PlayExperienceError.malformed }`
+- justified `Core/PlayDirectorRecap.swift:33` `!` `counts-stores-integer`: `collaboration["completedTeams"]!.integer! <= collaboration["eligibleTeams"]!.integer! else { throw PlayExperienceError.malformed }`
+- justified `Core/PlayDirectorRecap.swift:57` `!` `timezone-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/PlayExperienceContracts.swift:771` `!` `same-line-nonempty`: `self.label = (rawLabel?.isEmpty == false ? rawLabel! : fallbackLabel)`
+- justified `Core/PlayPrefabRuntime.swift:55` `!` `scope-fields-nonempty`: `public static func scope(_ scope: PlaySessionScope) -> String { scope.fields.keys.first! + ":" + String(scope.id) }`
+- justified `Core/PlayRecoveryStorage.swift:66` `!` `same-line-nil-check`: `record == nil || record!.savedAt > tombstone else { throw PlayExperienceError.persistenceUnavailable }`
+- justified `Core/PlayRecoveryStorage.swift:133` `!` `same-line-nil-check`: `value.record == nil || value.record!.savedAt > value.tombstone else { throw PlayExperienceError.persistenceUnavailable }`
+- justified `Core/PlayRunLifecycle.swift:41` `!` `scope-fields-nonempty`: `public var id: String { scope.fields.keys.first! + ":" + String(scope.id) }`
+- justified `Core/PlayRunLifecycle.swift:96` `!` `scope-fields-nonempty`: `let parts = [session.namespace, String(session.accountID), scope.fields.keys.first!, String(scope.id)]`
+- justified `Core/PlaySharedRunOps.swift:163` `!` `text-required-non-nil`: `let nonce = try text(draft, "nonce", 64)!`
+- justified `Core/PlaySharedRunOps.swift:168` `!` `text-required-non-nil`: `out["reason"] = .string(try text(draft, "reason", 200)!)`
+- justified `Core/PlaySharedRunOps.swift:169` `!` `text-required-non-nil`: `if action == "ACT_UNLOCK" { out["actKey"] = .string(try text(draft, "actKey", 64)!) }`
+- justified `Core/PlaySharedRunOps.swift:171` `!` `text-required-non-nil`: `if action == "QUEST_GUIDE" || action == "LOCATION_REBIND" { out["questKey"] = .string(try text(draft, "questKey", 64)!) }`
+- justified `Core/PlaySharedRunOps.swift:178` `!` `text-required-non-nil`: `case "SIGNATURE": out["signatureId"] = .string(try text(draft, "signatureId", 128)!)`
+- justified `Core/PlaySharedRunOps.swift:181` `!` `text-required-non-nil`: `out["requestId"] = .string(try text(draft, "requestId", 64)!)`
+- justified `Core/PlayTagRevocationRecovery.swift:34` `!` `scope-fields-nonempty`: `let parts = [owner.namespace, String(owner.accountID), scope.fields.keys.first!, String(scope.id)]`
+- justified `Core/PlayThemeBackpackActions.swift:192` `!` `same-line-nil-check`: `guard scope.isValid, topicID > 0, sessionID == nil || sessionID! > 0 else { throw APIError.invalidRequest }`
+- justified `Core/PlayThemeBackpackDispatch.swift:33` `!` `values-proven-non-nil`: `let fields = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/PlayThemeGameplay.swift:231` `!` `optional-chain-implies-present`: `let fixed = amounts(rule?["costs"].object != nil ? rule!["costs"] : (row["costs"].object != nil ? row["costs"] : row), view: view).joined(separator: " · ")`
+- justified `Core/PlayerGapRoutes.swift:549` `!` `filled-before-subscript`: `colorIndex: colors[key]!, done: max(0, row["done"].tolerantInteger ?? 0), points: points))`
+- justified `Core/PostGameReport.swift:311` `!` `timezone-offset-hours`: `private static let beijing = TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/ProfileContracts.swift:638` `!` `dictionary-literal-key`: `let stageText = Self.stageText[refundStage] ?? Self.stageText["UNKNOWN"]!`
+- justified `Core/ProfileCurrentMediaReader.swift:46` `!` `subscript-of-own-keys`: `for key in value.preferenceNames.keys.sorted() { fields += [String(key), value.preferenceNames[key]!] }`
+- justified `Core/ProfileInviteTimeline.swift:8` `!` `timezone-offset`: `includesTime ? deviceTimeZone : TimeZone(secondsFromGMT: 0)!`
+- justified `Core/ProfileInviteTimeline.swift:28` `!` `timezone-offset-hours`: `let sourceTimeZone = TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/ProfileInviteTimeline.swift:72` `!` `timezone-offset`: `calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/ProfileParticipationSchedule.swift:32` `!` `timezone-id`: `calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!`
+- justified `Core/ProfileSelfProjects.swift:66` `!` `timezone-id`: `calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!`
+- justified `Core/ProfileSelfProjects.swift:68` `!` `date-components-requested`: `return String(format: "%04d-%02d-%02d", parts.year!, parts.month!, parts.day!)`
+- justified `Core/ProfileSelfProjects.swift:68` `!` `date-components-requested`: `return String(format: "%04d-%02d-%02d", parts.year!, parts.month!, parts.day!)`
+- justified `Core/ProfileSelfProjects.swift:68` `!` `date-components-requested`: `return String(format: "%04d-%02d-%02d", parts.year!, parts.month!, parts.day!)`
+- justified `Core/ProgressiveBlurParameters.swift:17` `!` `blur-literal-in-range`: `public static let cover = ProgressiveBlurParameters(start: 0.35, end: 0.9, maxRadius: 16)!`
+- justified `Core/ProjectDraftModeCopy.swift:17` `!` `nil-checked-before-else`: `for index in copy.pendingMaterials!.indices { copy.pendingMaterials?[index].node.localMetadata.removeValue(forKey: "id") }`
+- justified `Core/ProjectInitialAttributes.swift:125` `!` `same-line-nil-check`: `if original == nil || !row.label.utf8.elementsEqual(original!.label.utf8) { result["label"] = .string(row.label) }`
+- justified `Core/ProjectInitialAttributes.swift:126` `!` `same-line-nil-check`: `if original == nil || Self.inputInteger(row.initial) != Self.inputInteger(original!.initial) { result["initial"] = .number(Decimal(values.initial)) }`
+- justified `Core/ProjectInitialAttributes.swift:127` `!` `same-line-nil-check`: `if original == nil || Self.inputInteger(row.minimum) != Self.inputInteger(original!.minimum) { result["min"] = .number(Decimal(values.minimum)) }`
+- justified `Core/ProjectInitialAttributes.swift:128` `!` `same-line-nil-check`: `if original == nil || Self.inputInteger(row.maximum) != Self.inputInteger(original!.maximum) { result["max"] = .number(Decimal(values.maximum)) }`
+- justified `Core/ProjectInitialAttributes.swift:129` `!` `same-line-nil-check`: `if original == nil || row.visible != original!.visible { result["visible"] = .bool(row.visible) }`
+- justified `Core/ProjectInitialState.swift:210` `!` `subscript-of-own-keys`: `guard let before = try? Self.integer(old[key], fallback: Self.recoveryDefaults[key]!),`
+- justified `Core/ProjectMerchantDraftSelection.swift:76` `!` `same-line-nil-check`: `guard let raw = v["rows"]?.array, raw.count <= pageSize, beforeSourceID == nil || beforeSourceID! > 0,`
+- justified `Core/ProjectMerchantDraftSelection.swift:83` `!` `same-line-nil-check`: `guard previous == nil || row.sourceID < previous! else { throw ProjectMerchantDraftError.invalidResponse }`
+- justified `Core/ProjectMerchantDraftSelection.swift:92` `!` `common-requires-merchant-id`: `return .init(ownerMemberID: accountID, merchantRowID: v["merchantRowId"]!.integer!, rows: rows, nextBeforeSourceID: next)`
+- justified `Core/ProjectMerchantDraftSelection.swift:92` `!` `common-requires-merchant-id`: `return .init(ownerMemberID: accountID, merchantRowID: v["merchantRowId"]!.integer!, rows: rows, nextBeforeSourceID: next)`
+- justified `Core/ProjectMerchantDraftSelection.swift:130` `!` `same-line-nil-check`: `guard beforeSourceID == nil || beforeSourceID! > 0 else { throw ProjectMerchantDraftError.invalidResponse }`
+- justified `Core/ProjectNodeRouteMapping.swift:53` `!` `validated-route-graph`: `let edge = edges[index], trigger = edge["trigger"]!.object!`
+- justified `Core/ProjectNodeRouteMapping.swift:53` `!` `validated-route-graph`: `let edge = edges[index], trigger = edge["trigger"]!.object!`
+- justified `Core/ProjectNodeRouteMapping.swift:54` `!` `validated-route-graph`: `let type = trigger["type"]!.text!, code = trigger["outcomeCode"]!.text!`
+- justified `Core/ProjectNodeRouteMapping.swift:54` `!` `validated-route-graph`: `let type = trigger["type"]!.text!, code = trigger["outcomeCode"]!.text!`
+- justified `Core/ProjectNodeRouteMapping.swift:54` `!` `validated-route-graph`: `let type = trigger["type"]!.text!, code = trigger["outcomeCode"]!.text!`
+- justified `Core/ProjectNodeRouteMapping.swift:54` `!` `validated-route-graph`: `let type = trigger["type"]!.text!, code = trigger["outcomeCode"]!.text!`
+- justified `Core/ProjectNodeRouteMapping.swift:59` `!` `validated-route-graph`: `rows.append(.init(id: edge["id"]!.text!, label: declarations.first(where: { Self.exact($0.type, type) && Self.exact($0.code, code) })!.label,`
+- justified `Core/ProjectNodeRouteMapping.swift:59` `!` `validated-route-graph`: `rows.append(.init(id: edge["id"]!.text!, label: declarations.first(where: { Self.exact($0.type, type) && Self.exact($0.code, code) })!.label,`
+- justified `Core/ProjectNodeRouteMapping.swift:59` `!` `validated-route-graph`: `rows.append(.init(id: edge["id"]!.text!, label: declarations.first(where: { Self.exact($0.type, type) && Self.exact($0.code, code) })!.label,`
+- justified `Core/ProjectNodeRouteMapping.swift:60` `!` `validated-route-graph`: `triggerType: type, outcomeCode: code, targetID: Self.nodeID(edge["toNodeId"])!, reason: matches.count == 1 ? nil : .ambiguous, index: index))`
+- justified `Core/ProjectNodeRouteMapping.swift:100` `!` `validated-route-graph`: `var rawEdges = graph["edges"]!.array!; rawEdges[row.index] = .object(changed)`
+- justified `Core/ProjectNodeRouteMapping.swift:100` `!` `validated-route-graph`: `var rawEdges = graph["edges"]!.array!; rawEdges[row.index] = .object(changed)`
+- justified `Core/ProjectNodeRouteMapping.swift:257` `!` `declared-before-unwrap`: `guard declared[from]!.contains(where: { Self.exact($0.type, type) && Self.exact($0.code, code) }) else { throw Reason.outcomes }`
+- justified `Core/ProjectNodeRouteMapping.swift:299` `!` `scc-index-assigned`: `if indices[to] == nil { visit(to); low[node] = min(low[node]!, low[to]!) }`
+- justified `Core/ProjectNodeRouteMapping.swift:299` `!` `scc-index-assigned`: `if indices[to] == nil { visit(to); low[node] = min(low[node]!, low[to]!) }`
+- justified `Core/ProjectNodeRouteMapping.swift:300` `!` `scc-index-assigned`: `else if onStack.contains(to) { low[node] = min(low[node]!, indices[to]!) }`
+- justified `Core/ProjectNodeRouteMapping.swift:300` `!` `scc-index-assigned`: `else if onStack.contains(to) { low[node] = min(low[node]!, indices[to]!) }`
+- justified `Core/ProjectThoughtDefinitions.swift:140` `!` `indices-skip-nil`: `let blocks = (draft.chapters[ci].blocks ?? []).indices.filter { draft.chapters[ci].blocks![$0].id == blockID }`
+- justified `Core/ProjectThoughtDefinitions.swift:164` `!` `subscript-of-own-keys`: `for key in value.keys.sorted() where key != "effects" { walk(value[key]!, context: key == "options" ? next : context, depth: depth + 1) }`
+- justified `Core/PublicMerchantReviewHostGate.swift:51` `!` `nil-optional-equality-skips-unwrap`: `let revision = old?.eligibility == page.eligibility ? old!.revision : UUID()`
+- justified `Core/PublicMerchantReviewWrites.swift:56` `!` `same-line-nil-check`: `guard reviewId > 0, version == nil || version! >= 0, auditTaskId == nil || auditTaskId! > 0 else { throw PublicMerchantReviewWriteFailure.unknown }`
+- justified `Core/PublicMerchantReviewWrites.swift:56` `!` `same-line-nil-check`: `guard reviewId > 0, version == nil || version! >= 0, auditTaskId == nil || auditTaskId! > 0 else { throw PublicMerchantReviewWriteFailure.unknown }`
+- justified `Core/PublicMerchantReviews.swift:43` `!` `same-line-nil-check`: `guard loaded <= total, hasMore == (loaded < total), averageRating == nil || (1...5).contains(averageRating!),`
+- justified `Core/PublicMerchantReviews.swift:44` `!` `same-line-nil-check`: `eligibility.registrationId == nil || eligibility.registrationId! > 0,`
+- justified `Core/QuestLiveActivityContent.swift:124` `!` `url-literal`: `public static let roam = URL(string: "chein://roam/go")!`
+- justified `Core/QuestLiveActivityContent.swift:126` `!` `url-literal`: `public static let passport = URL(string: "chein://mp/subpackageP3/pages/stamp-album/index/index")!`
+- justified `Core/QuestLiveActivityContent.swift:128` `!` `url-literal`: `public static let stories = URL(string: "chein://mp/subpackageMember/mycanyu/mycanyu")!`
+- justified `Core/QuestLiveActivityContent.swift:131` `!` `url-literal`: `public static let wallet = URL(string: "chein://mp/subpackageMember/signup/index")!`
+- justified `Core/QuestWidgetBoard.swift:110` `!` `url-literal`: `public static let myActivities = URL(string: "chein://mp/subpackageMember/signup/index")!`
+- justified `Core/QuestWidgetBoard.swift:111` `!` `url-literal`: `public static let roamHistory = URL(string: "chein://mp/subpackageRoam/history/index")!`
+- justified `Core/QuestWidgetBoard.swift:112` `!` `url-literal`: `public static let messages = URL(string: "chein://mp/subpackageB/pages/im/list/index")!`
+- justified `Core/QuestWidgetBoard.swift:113` `!` `url-literal`: `public static let clubs = URL(string: "chein://mp/pages/talent/list/index")!`
+- justified `Core/RoamAnniversaryNavigation.swift:149` `!` `shanghai-offset`: `calendar.timeZone = TimeZone(secondsFromGMT: RoamShanghaiCalendar.offsetSeconds)!`
+- justified `Core/RoamEntryNearby.swift:119` `!` `timezone-offset-hours`: `public init(activity: RoamEntryActivity, teams: [NearbyTeam], now: Date = Date(), timeZone: TimeZone = TimeZone(secondsFromGMT: 8 * 3600)!) {`
+- justified `Core/RoamExperienceMath.swift:64` `!` `track-at-least-two`: `let minX = raw.map(\.x).min()!, maxX = raw.map(\.x).max()!`
+- justified `Core/RoamExperienceMath.swift:64` `!` `track-at-least-two`: `let minX = raw.map(\.x).min()!, maxX = raw.map(\.x).max()!`
+- justified `Core/RoamExperienceMath.swift:65` `!` `track-at-least-two`: `let minY = raw.map(\.y).min()!, maxY = raw.map(\.y).max()!`
+- justified `Core/RoamExperienceMath.swift:65` `!` `track-at-least-two`: `let minY = raw.map(\.y).min()!, maxY = raw.map(\.y).max()!`
+- justified `Core/RoamHistoryStore.swift:6` `!` `coordinate-validated-at-init`: `public var coordinate: RoamCoordinate { RoamCoordinate(latitude: lat, longitude: lng)! }`
+- justified `Core/RoamHistoryStore.swift:26` `!` `coordinate-validated-at-init`: `public var point: RoamHistoryPoint { RoamHistoryPoint(coordinate: RoamCoordinate(latitude: lat, longitude: lng)!) }`
+- justified `Core/RoamLiveSessionController.swift:259` `!` `same-line-nil-check`: `if lastReveal == nil || now().timeIntervalSince(lastReveal!) >= 10 || (record?.pendingTiles.count ?? 0) >= 50 { try await flushReveal(token) }`
+- justified `Core/RoamLiveSessionController.swift:260` `!` `same-line-nil-check`: `if lastPlaces == nil || now().timeIntervalSince(lastPlaces!) >= 30 { try await refreshPlaces(fix, token: token) }`
+- justified `Core/RoamLiveSessionController.swift:261` `!` `same-line-nil-check`: `if presenceEnabled, let id = record?.sessionID, lastPresence == nil || now().timeIntervalSince(lastPresence!) >= 30 {`
+- justified `Core/RoamLiveSessionController.swift:387` `!` `same-line-nonempty-chain`: `draft = record!; draft.pendingWrite = .finish; try persist(draft)`
+- justified `Core/RoamLiveSessionController.swift:435` `!` `positive-implies-present`: `let radius = shop ? 130 : Double((place.radiusM ?? 0) > 0 ? place.radiusM! : 120) + 30`
+- justified `Core/RoamLiveSessionController.swift:578` `!` `complete-settlement`: `"distance": record.distanceMeters / 1000, "shops": fact.result!.sessionShops!, "track": [], "pois": [], "photos": []]`
+- justified `Core/RoamLiveSessionController.swift:578` `!` `complete-settlement`: `"distance": record.distanceMeters / 1000, "shops": fact.result!.sessionShops!, "track": [], "pois": [], "photos": []]`
+- justified `Core/RoamPassportHistoryContracts.swift:74` `!` `coordinate-checked-before-map`: `track = pairs.map { RoamHistoryPoint(coordinate: RoamCoordinate(latitude: $0[0], longitude: $0[1])!) }`
+- justified `Core/RoamPassportPrivateCoordinators.swift:563` `!` `nil-checked-before-else`: `parts.append(chunk.data!)`
+- justified `Core/RoamPassportTools.swift:13` `!` `shanghai-offset`: `calendar.timeZone = TimeZone(secondsFromGMT: offsetSeconds)!`
+- justified `Core/RoamPassportTools.swift:15` `!` `date-components-requested`: `return Day(year: parts.year!, month: parts.month!, day: parts.day!)`
+- justified `Core/RoamPassportTools.swift:15` `!` `date-components-requested`: `return Day(year: parts.year!, month: parts.month!, day: parts.day!)`
+- justified `Core/RoamPassportTools.swift:15` `!` `date-components-requested`: `return Day(year: parts.year!, month: parts.month!, day: parts.day!)`
+- justified `Core/RoamPassportTools.swift:50` `!` `digit-indexes-checked`: `func number(_ range: Range<Int>) -> Int { Int(String(decoding: bytes[range], as: UTF8.self))! }`
+- justified `Core/RoamPlayerExtrasService.swift:89` `!` `group-filled-before-unwrap`: `if !groups[source.sourceType]!.contains(source.sourceID), groups[source.sourceType]!.count < visitorSourceMax {`
+- justified `Core/RoamPlayerExtrasService.swift:89` `!` `group-filled-before-unwrap`: `if !groups[source.sourceType]!.contains(source.sourceID), groups[source.sourceType]!.count < visitorSourceMax {`
+- justified `Core/RoamPlayerExtrasService.swift:90` `!` `group-filled-before-unwrap`: `groups[source.sourceType]!.append(source.sourceID)`
+- justified `Core/RoamPlayerExtrasService.swift:93` `!` `group-filled-before-unwrap`: `return order.sorted().map { ($0, groups[$0]!.map(String.init).joined(separator: ",")) }`
+- justified `Core/RoamTerritoryService.swift:71` `!` `same-line-nil-check`: `(payload.territoryId != nil && !payload.territoryId!.isEmpty) || payload.poiId != nil else {`
+- justified `Core/SearchMapActivityPresentation.swift:44` `!` `timezone-offset`: `let formatter = Self.formatter(format: "yyyy-MM-dd", timeZone: TimeZone(secondsFromGMT: 0)!)`
+- justified `Core/SearchMapContracts.swift:49` `!` `timezone-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/SettingsSoundPreferences.swift:25` `!` `same-enum-raw-value`: `let codingKey = CodingKeys(rawValue: key.rawValue)!`
+- justified `Core/SquareL5Logic.swift:64` `!` `same-line-nonempty-chain`: `let list = (post.picList?.isEmpty == false ? post.picList! : (post.pics ?? "").split(separator: ";").map(String.init))`
+- justified `Core/SquareWorkspaceService.swift:125` `!` `new-media-has-proof`: `let root = try await send(request("POST", "api/v1/community/media/register", token: token, body: ["uploadRequestId": "media-\(index)-\(draft.workflowID)", "mediaType": "IMAGE", "objectKey": media.obje`
+- justified `Core/SquareWorkspaceService.swift:125` `!` `new-media-has-proof`: `let root = try await send(request("POST", "api/v1/community/media/register", token: token, body: ["uploadRequestId": "media-\(index)-\(draft.workflowID)", "mediaType": "IMAGE", "objectKey": media.obje`
+- justified `Core/SquareWorkspaceService.swift:125` `!` `new-media-has-proof`: `let root = try await send(request("POST", "api/v1/community/media/register", token: token, body: ["uploadRequestId": "media-\(index)-\(draft.workflowID)", "mediaType": "IMAGE", "objectKey": media.obje`
+- justified `Core/SquareWorkspaceService.swift:130` `!` `optional-chain-implies-present`: `var payload: [String: Any] = ["clientRequestId": "post-\(draft.workflowID)", "communityId": draft.communityID as Any? ?? NSNull(), "postType": reference?.type == "ACTIVITY" ? "ACTIVITY_RECAP" : refere`
+- justified `Core/StoryParticipation.swift:177` `!` `unicode-scalar-az`: `let key = String(UnicodeScalar(65 + (idx % 26))!)`
+- justified `Core/StoryParticipation.swift:181` `!` `unicode-scalar-az`: `let key = item["key"].text ?? item["id"].text ?? String(UnicodeScalar(65 + (idx % 26))!)`
+- justified `Core/StoryRuleSentence.swift:1272` `!` `same-line-nil-check`: `var rows = (isOpen && k.names != nil) ? pick(k.names!) : []`
+- justified `Core/SupportTicketReadContracts.swift:66` `!` `coding-key-init-never-nil`: `func required<T: Decodable>(_ name: String, _: T.Type) throws -> T { try all.decode(T.self, forKey: Key(stringValue: name)!) }`
+- justified `Core/SupportTicketReadContracts.swift:67` `!` `coding-key-init-never-nil`: `func optional<T: Decodable>(_ name: String, _: T.Type) throws -> T? { try all.decodeIfPresent(T.self, forKey: Key(stringValue: name)!) }`
+- justified `Core/TeamContracts.swift:25` `!` `same-line-nil-check`: `guard joinedCount == nil || joinedCount! >= 0, maxMembers == nil || maxMembers! > 0 else { throw TeamFailure.invalidContract }`
+- justified `Core/TeamContracts.swift:25` `!` `same-line-nil-check`: `guard joinedCount == nil || joinedCount! >= 0, maxMembers == nil || maxMembers! > 0 else { throw TeamFailure.invalidContract }`
+- justified `Core/TeamContracts.swift:62` `!` `same-line-nil-check`: `guard id == nil || id! > 0 else { throw TeamFailure.invalidContract }`
+- justified `Core/TeamPagePresentation.swift:107` `!` `timezone-id`: `let utc = TimeZone(identifier: "UTC")!`
+- justified `Core/TemplateAuthoringContract.swift:29` `!` `status-target-in-range`: `marketStatus(id: id, target: current == 1 ? 3 : 1, scope: scope)!`
+- justified `Core/TemplateBranchComposition.swift:22` `!` `same-line-nil-check`: `let supported = values != nil && values!.count <= 50 && encoded != nil && values!.allSatisfy { raw in`
+- justified `Core/TemplateBranchComposition.swift:22` `!` `same-line-nil-check`: `let supported = values != nil && values!.count <= 50 && encoded != nil && values!.allSatisfy { raw in`
+- justified `Core/TemplateBranchComposition.swift:34` `!` `supported-implies-present`: `steps = supported ? values!.map { raw in`
+- justified `Core/TemplateBranchComposition.swift:35` `!` `supported-object-checked`: `let row = raw.object!`
+- justified `Core/TemplateBranchComposition.swift:36` `!` `supported-field-checked`: `return .init(id: row["id"]!.string!, terminal: row["terminal"]!.bool, optionCount: row["options"]?.array?.count ?? 0)`
+- justified `Core/TemplateBranchComposition.swift:36` `!` `supported-field-checked`: `return .init(id: row["id"]!.string!, terminal: row["terminal"]!.bool, optionCount: row["options"]?.array?.count ?? 0)`
+- justified `Core/TemplateBranchComposition.swift:36` `!` `supported-field-checked`: `return .init(id: row["id"]!.string!, terminal: row["terminal"]!.bool, optionCount: row["options"]?.array?.count ?? 0)`
+- justified `Core/TemplateChoiceMemory.swift:70` `!` `nonempty-literal-random`: `return "tag.m_" + String(letters.randomElement()!) + String((0..<5).map { _ in rest.randomElement()! })`
+- justified `Core/TemplateChoiceMemory.swift:70` `!` `nonempty-literal-random`: `return "tag.m_" + String(letters.randomElement()!) + String((0..<5).map { _ in rest.randomElement()! })`
+- justified `Core/TemplateDailyPoemPool.swift:28` `!` `supported-field-checked`: `rows = supported ? (poems ?? []).map { Row(text: $0.array!.map { $0.string! }.joined(separator: "\n")) } : []`
+- justified `Core/TemplateDailyPoemPool.swift:28` `!` `supported-field-checked`: `rows = supported ? (poems ?? []).map { Row(text: $0.array!.map { $0.string! }.joined(separator: "\n")) } : []`
+- justified `Core/TemplateEffectList.swift:60` `!` `supported-object-checked`: `let row = raw.object!`
+- justified `Core/TemplateHotspotPlacement.swift:26` `!` `same-line-nil-check`: `let supported = rows != nil && rows!.count <= 5 && (source == nil || source?.string != nil) && encoded != nil && rows!.allSatisfy { raw in`
+- justified `Core/TemplateHotspotPlacement.swift:26` `!` `same-line-nil-check`: `let supported = rows != nil && rows!.count <= 5 && (source == nil || source?.string != nil) && encoded != nil && rows!.allSatisfy { raw in`
+- justified `Core/TemplateHotspotPlacement.swift:35` `!` `supported-implies-present`: `targets = supported ? rows!.map { raw in`
+- justified `Core/TemplateHotspotPlacement.swift:36` `!` `supported-object-checked`: `let row = raw.object!`
+- justified `Core/TemplateHotspotPlacement.swift:40` `!` `supported-field-checked`: `return .init(id: row["id"]!.string!, label: row["label"]?.string ?? "", point: point)`
+- justified `Core/TemplateHotspotPlacement.swift:40` `!` `supported-field-checked`: `return .init(id: row["id"]!.string!, label: row["label"]?.string ?? "", point: point)`
+- justified `Core/TemplateLegacyVariantAuthoring.swift:58` `!` `nonempty-roll-literal`: `kept = mode == "disadvantage" ? values.min()! : values.max()!`
+- justified `Core/TemplateLegacyVariantAuthoring.swift:58` `!` `nonempty-roll-literal`: `kept = mode == "disadvantage" ? values.min()! : values.max()!`
+- justified `Core/TemplateMetadataCategorySelection.swift:17` `!` `nil-already-returned`: `let parts = raw!.components(separatedBy: ",")`
+- justified `Core/TemplateMultiplayerPlan.swift:50` `!` `supported-implies-present`: `roles = supported ? (rows ?? []).map { Role($0.object!) } : []`
+- justified `Core/TemplatePictureChoices.swift:32` `!` `supported-object-checked`: `rows = supported ? (raw ?? []).map { .init(id: UUID(), value: $0.object!) } : []`
+- justified `Core/TemplatePreferenceDraft.swift:176` `!` `nil-checked-before-else`: `else if case .bool(let bool) = value! { result = bool }`
+- justified `Core/TemplateProfileQuestionComposition.swift:31` `!` `same-line-nil-check`: `let supported = rows != nil && rows!.count <= 8 && encoded != nil && rows!.allSatisfy { raw in`
+- justified `Core/TemplateProfileQuestionComposition.swift:31` `!` `same-line-nil-check`: `let supported = rows != nil && rows!.count <= 8 && encoded != nil && rows!.allSatisfy { raw in`
+- justified `Core/TemplateProfileQuestionComposition.swift:45` `!` `supported-implies-present`: `questions = supported ? rows!.map { raw in`
+- justified `Core/TemplateProfileQuestionComposition.swift:46` `!` `supported-object-checked`: `let row = raw.object!`
+- justified `Core/TemplateProfileQuestionComposition.swift:47` `!` `supported-object-checked`: `let options = (row["options"]?.array ?? []).map { option in Entry(key: option.object!["key"]!.string!, label: option.object?["label"]?.string ?? "") }`
+- justified `Core/TemplateProfileQuestionComposition.swift:47` `!` `supported-object-checked`: `let options = (row["options"]?.array ?? []).map { option in Entry(key: option.object!["key"]!.string!, label: option.object?["label"]?.string ?? "") }`
+- justified `Core/TemplateProfileQuestionComposition.swift:47` `!` `supported-object-checked`: `let options = (row["options"]?.array ?? []).map { option in Entry(key: option.object!["key"]!.string!, label: option.object?["label"]?.string ?? "") }`
+- justified `Core/TemplateProfileQuestionComposition.swift:48` `!` `supported-field-checked`: `return .init(key: row["key"]!.string!, label: row["label"]?.string ?? "", kind: row["kind"]!.string!, options: options)`
+- justified `Core/TemplateProfileQuestionComposition.swift:48` `!` `supported-field-checked`: `return .init(key: row["key"]!.string!, label: row["label"]?.string ?? "", kind: row["kind"]!.string!, options: options)`
+- justified `Core/TemplateProfileQuestionComposition.swift:48` `!` `supported-field-checked`: `return .init(key: row["key"]!.string!, label: row["label"]?.string ?? "", kind: row["kind"]!.string!, options: options)`
+- justified `Core/TemplateProfileQuestionComposition.swift:48` `!` `supported-field-checked`: `return .init(key: row["key"]!.string!, label: row["label"]?.string ?? "", kind: row["kind"]!.string!, options: options)`
+- justified `Core/TemplateQAAnswerSelection.swift:60` `!` `objects-checked-before-map`: `var row = raw.object!`
+- justified `Core/TemplateQAAnswerSelection.swift:73` `!` `objects-checked-before-map`: `var row = raw.object!`
+- justified `Core/TemplateReactionRehearsal.swift:84` `!` `same-line-nil-check`: `private func validClock(_ now: Double) -> Bool { now.isFinite && now >= 0 && (lastClock == nil || now >= lastClock!) }`
+- justified `Core/TemplateRootAuthoring.swift:139` `!` `regex-nonempty-operation`: `let sign = operation.first!`
+- justified `Core/TemplateTimerRehearsal.swift:88` `!` `same-line-nil-check`: `return phase == .result && result?.matched == false && (triesRemaining == nil || triesRemaining! > 0)`
+- justified `Core/TemplateTimerRehearsal.swift:134` `!` `same-line-nil-check`: `private func validClock(_ now: Double) -> Bool { now.isFinite && now >= 0 && (lastClock == nil || now >= lastClock!) }`
+- justified `Core/TopicClubShareLink.swift:64` `!` `values-proven-non-nil`: `let query = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })`
+- justified `Core/TopicClubShareLink.swift:66` `!` `same-line-nonempty-chain`: `let topicRaw = (query["topicId"]?.isEmpty == false) ? query["topicId"]! : (query["id"] ?? "")`
+- justified `Core/TopicClubShareLink.swift:69` `!` `same-line-nonempty-chain`: `let codeRaw = (query["clubCode"]?.isEmpty == false) ? query["clubCode"]! : query["sourceChannelCode"]`
+- justified `Core/TopicDepartNotes.swift:30` `try!` `static-regex`: `private static let heading = try! NSRegularExpression(pattern:`
+- justified `Core/TopicDepartNotes.swift:33` `try!` `static-regex`: `private static let practical = try! NSRegularExpression(pattern:`
+- justified `Core/TopicDepartNotes.swift:35` `try!` `static-regex`: `private static let listMark = try! NSRegularExpression(pattern:`
+- justified `Core/TopicDepartNotes.swift:37` `try!` `static-regex`: `private static let sentence = try! NSRegularExpression(pattern: #"[^。！？!?；;]+[。！？!?；;]*"#)`
+- justified `Core/TopicPricingXcx.swift:15` `!` `decimal-literal`: `max(ceilInt(floor) + 100, ceilInt(floor * 2), reference.map { ceilInt($0 * Decimal(string: "1.5")!) } ?? 0)`
+- justified `Core/TopicTemplateAdoption.swift:358` `!` `empty-coalesce-true-skips-unwrap`: `return TopicLocationTodoRow(slotKey: slot.slotKey, title: (title?.isEmpty ?? true) ? W8Text.t("地点", "Place") : title!,`
+- justified `Core/TopicXcxFacts.swift:35` `!` `timezone-offset-hours`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/TopicXcxNodeFacts.swift:17` `!` `timezone-offset-hours`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/TransferSoldPolicyProjection.swift:96` `!` `same-line-nil-check`: `if fact.designatedRecipientMemberID == nil || fact.designatedRecipientMemberID! <= 0 {`
+- justified `Core/UsageConsentPolicy.swift:90` `!` `filled-before-subscript`: `return UsageConsentRecordRequest(accountID: accountID, document: document, requestID: ids[document.rawValue]!)`
+- justified `Core/UsageConsentRead.swift:86` `!` `same-line-nil-check`: `UsageConsentReadRoute.validKey(requestId), occurredAt == nil || occurredAt! >= 0 else { throw UsageConsentReadFailure.malformed }`
+- justified `Core/UsageConsentRead.swift:117` `!` `same-line-nil-check`: `items.allSatisfy({ before == nil || $0.id < before! }),`
+- justified `Core/UsageConsentRead.swift:132` `!` `same-line-nil-check`: `record.requestId.utf8.elementsEqual(requestId.utf8), latestRecordId == nil || latestRecordId! > 0 else { throw UsageConsentReadFailure.malformed }`
+- justified `Core/VideoBountySource.swift:450` `!` `empty-label-skips-unwrap`: `? label! : "UNKNOWN"`
+- justified `Core/WP09AfterSaleFacts.swift:96` `!` `same-line-nonempty`: `public func line(_ value: String?) -> String { value?.isEmpty == false ? value! : WP09Copy.unknown }`
+- justified `Core/WP09AfterSaleFacts.swift:208` `!` `same-line-nonempty`: `public var stageLine: String { refundStage?.isEmpty == false ? refundStage! : WP09Copy.unknown }`
+- justified `Core/WP09AfterSaleFacts.swift:248` `!` `same-line-nonempty`: `Line(title: WP09Copy.text("原因", "Reason", chinese: chinese), value: reason?.isEmpty == false ? reason! : WP09Copy.unknown)`
+- justified `Core/WP09AfterSaleFacts.swift:252` `!` `same-line-nonempty`: `Line(title: WP09Copy.text("应计", "Accrual", chinese: chinese), value: basisNote?.isEmpty == false ? basisNote! : WP09Copy.unknown),`
+- justified `Core/WalletCommerceService.swift:112` `!` `subscript-of-own-keys`: `let encoded = fields.keys.sorted().map { $0 + "=" + fields[$0]! }.joined(separator: "&")`
+- justified `Core/WeatherContext.swift:94` `!` `timezone-offset-hours`: `public static let serverZone: TimeZone = TimeZone(identifier: "Asia/Shanghai") ?? TimeZone(secondsFromGMT: 8 * 3600)!`
+- justified `Core/WeatherContext.swift:334` `!` `contains-or-empty`: `let climateKey = ["CLEAR", "RAIN", "STORM", "SAND"].contains(climate?.uppercased() ?? "") ? climate!.uppercased() : "RAIN"`
+- justified `Core/WeatherContext.swift:336` `!` `dictionary-literal-key`: `phases = Self.table[climateKey] ?? Self.table["RAIN"]!`
+- justified `Core/WorkshopCreatorPendingContracts.swift:288` `!` `regex-digit-slice`: `func integer(_ start: Int, _ count: Int) -> Int { Int(String(decoding: bytes[start..<(start + count)], as: UTF8.self))! }`
+- justified `Core/WorkshopCreatorPendingContracts.swift:307` `!` `timezone-offset`: `var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!`
+- justified `Core/WorkshopOriginalLedgerSplit.swift:98` `!` `outcome-enum-guard`: `requestID: requestID, action: action, outcome: outcome!,`
+- justified `Core/WorkshopPaidInstallContracts.swift:115` `!` `assigned-on-previous-line`: `guard WorkshopPurchasedWire.timestamp(holdDeadline!), try c.decode(String.self, forKey: .mode) == "PRIVATE_COPY",`
+- justified `Core/WorkshopPaidInstallController.swift:223` `!` `same-line-nil-check`: `region == nil || item.allowedRegions.contains(where: { WorkshopPaidInstallWire.same($0, region!) }) else { return }`
+- justified `Core/WorkshopPaidInstallService.swift:86` `!` `same-line-nil-check`: `guard before == nil || value.items.allSatisfy({ $0.id < before! }) else { throw WorkshopPaidInstallIssue.malformed }; return value`
+- justified `Core/WorkshopPaidInstallService.swift:91` `!` `same-line-nil-check`: `guard value.items.allSatisfy({ $0.command?.licenseId == licenseId }), before == nil || value.nextBeforeCommandKey == nil || value.nextBeforeCommandKey! < before! else { throw WorkshopPaidInstallIssue.`
+- justified `Core/WorkshopPaidInstallService.swift:91` `!` `same-line-nil-check`: `guard value.items.allSatisfy({ $0.command?.licenseId == licenseId }), before == nil || value.nextBeforeCommandKey == nil || value.nextBeforeCommandKey! < before! else { throw WorkshopPaidInstallIssue.`
+- justified `Core/WorkshopPaidProfessionalContracts.swift:28` `!` `same-line-nil-check`: `routeConfigVersion == nil || routeConfigVersion! >= 0, WorkshopPurchasedWire.hash(ownerModeFingerprint),`
+- justified `Core/WorkshopPaidProfessionalPreparation.swift:32` `!` `same-line-nil-check`: `guard cursor == nil || next < cursor! else { throw WorkshopPaidProfessionalIssue.malformed }; cursor = next`
+- justified `Core/WorkshopPaidProfessionalService.swift:118` `!` `same-line-nil-check`: `guard WorkshopPurchasedWire.license(licenseId), before == nil || before! > 0 else { throw WorkshopPaidProfessionalIssue.invalid }`
+- justified `Core/WorkshopPaidProfessionalService.swift:120` `!` `same-line-nil-check`: `guard value.licenseId == licenseId, before == nil || value.items.allSatisfy({ $0.topicId < before! }) else { throw WorkshopPaidProfessionalIssue.malformed }; return value`
+- justified `Core/WorkshopPaidProfessionalService.swift:132` `!` `same-line-nil-check`: `guard WorkshopPurchasedWire.license(licenseId), before == nil || WorkshopPurchasedWire.hash(before!) else { throw WorkshopPaidProfessionalIssue.invalid }`
+- justified `Core/WorkshopPaidProfessionalService.swift:134` `!` `same-line-nil-check`: `guard page.licenseId == licenseId, before == nil || page.items.allSatisfy({ $0.operationKey < before! }),`
+- justified `Core/WorkshopPaidProfessionalService.swift:135` `!` `same-line-nil-check`: `before == nil || page.nextBeforeOperationKey == nil || page.nextBeforeOperationKey! < before! else { throw WorkshopPaidProfessionalIssue.malformed }`
+- justified `Core/WorkshopPaidProfessionalService.swift:135` `!` `same-line-nil-check`: `before == nil || page.nextBeforeOperationKey == nil || page.nextBeforeOperationKey! < before! else { throw WorkshopPaidProfessionalIssue.malformed }`
+- justified `Core/WorkshopPaidProfessionalService.swift:221` `!` `same-line-nil-check`: `value.beforeTopicId == nil || value.beforeTopicId! > 0, (try? encoded(value)) == data else { return nil }`
+- justified `Core/WorkshopPaidProfessionalService.swift:228` `!` `same-line-nil-check`: `value.beforeOperationKey == nil || WorkshopPurchasedWire.hash(value.beforeOperationKey!), (try? encoded(value)) == data else { return nil }`
+- justified `Core/WorkshopPurchasedService.swift:69` `!` `same-line-nil-check`: `guard before == nil || before! > 0 else { throw WorkshopPurchasedIssue.invalid }`
+- justified `Core/WorkshopPurchasedService.swift:72` `!` `same-line-nil-check`: `guard before == nil || page.nextBeforeOrderLineId == nil || page.nextBeforeOrderLineId! < before! else { throw WorkshopPurchasedIssue.malformed }`
+- justified `Core/WorkshopPurchasedService.swift:72` `!` `same-line-nil-check`: `guard before == nil || page.nextBeforeOrderLineId == nil || page.nextBeforeOrderLineId! < before! else { throw WorkshopPurchasedIssue.malformed }`

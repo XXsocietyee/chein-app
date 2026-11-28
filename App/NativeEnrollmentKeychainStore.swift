@@ -6,10 +6,18 @@ import CryptoKit
 /// or authentication tokens. Device-only, unlocked-only, non-synchronizing storage.
 @MainActor final class NativeEnrollmentKeychainStore: NativeEnrollmentStoring {
     func read(scope: NativeEnrollmentScope) throws -> NativeEnrollmentRecord? {
-        var request = try query(scope); request[kSecReturnData as String] = true; request[kSecMatchLimit as String] = kSecMatchLimitOne
+        var request = try query(scope)
+        request[kSecReturnAttributes as String] = true
+        request[kSecReturnData as String] = true
+        request[kSecMatchLimit as String] = kSecMatchLimitOne
         var result: CFTypeRef?; let status = SecItemCopyMatching(request as CFDictionary, &result)
         if status == errSecItemNotFound { return nil }
-        guard status == errSecSuccess, let data = result as? Data, data.count <= 196_608 else { throw NativeEnrollmentIssue.storageUnavailable }
+        guard status == errSecSuccess, let item = result as? [String: Any],
+              let data = item[kSecValueData as String] as? Data, data.count <= 196_608,
+              KeychainItemProtection.isDeviceOnlyUnlocked(item) else {
+            SecItemDelete(try query(scope) as CFDictionary)
+            throw NativeEnrollmentIssue.storageUnavailable
+        }
         let record = try JSONDecoder().decode(NativeEnrollmentRecord.self, from: data)
         try record.validate(scope: scope); return record
     }

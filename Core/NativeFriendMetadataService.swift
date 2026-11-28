@@ -97,7 +97,7 @@ public struct NativeFriendMetadataApproval: Equatable {
     }
     private func exchange<T: Decodable>(_ path: String, fields: [String: String], body: Data?) async throws -> T {
         guard isCurrent, approval.endpoint.paths.contains(path), !Task.isCancelled else { throw NativeFriendFailure.notSent }
-        var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if body == nil && !fields.isEmpty { parts.queryItems = fields.sorted(by: { $0.key < $1.key }).map { URLQueryItem(name: $0.key, value: $0.value) } }
         guard let url = parts.url else { throw NativeFriendFailure.notSent }
         var request = URLRequest(url: url); request.cachePolicy = .reloadIgnoringLocalCacheData; request.httpShouldHandleCookies = false; request.httpMethod = body == nil ? "GET" : "POST"

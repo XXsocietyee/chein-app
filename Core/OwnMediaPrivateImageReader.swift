@@ -7,7 +7,8 @@ import FoundationNetworking
     public init() {}
     public func send(_ request: URLRequest, authorization: OwnMediaImagePreviewAuthorization) async throws -> (Data, Int) {
         guard authorization.purpose == .metadata, authorization.accepts(request), authorization.isCurrent else { throw OwnMediaImagePreviewFailure.unavailable }
-        let exchange = OwnMediaPrivateExchange(endpoint: request.url!, image: false)
+        guard let releaseURL = request.url else { throw APIError.invalidConfiguration }
+        let exchange = OwnMediaPrivateExchange(endpoint: releaseURL, image: false)
         return try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
                 exchange.install(continuation)
@@ -23,7 +24,8 @@ import FoundationNetworking
     public func image(_ request: URLRequest, authorization: OwnMediaImagePreviewAuthorization) async throws -> Data {
         guard authorization.purpose == .image, request.value(forHTTPHeaderField: "Authorization") == nil,
               authorization.accepts(request), authorization.isCurrent else { throw OwnMediaImagePreviewFailure.unavailable }
-        let exchange = OwnMediaPrivateExchange(endpoint: request.url!, image: true)
+        guard let releaseURL = request.url else { throw APIError.invalidConfiguration }
+        let exchange = OwnMediaPrivateExchange(endpoint: releaseURL, image: true)
         let (data, _) = try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
                 exchange.install(continuation)

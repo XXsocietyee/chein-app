@@ -196,7 +196,7 @@ public struct NativeWebhookContext: Equatable, Sendable {
               AuthRequestBuilder.isValidToken(captured.session.token) else {
             throw NativeWebhookClientError.sourceUnavailable("WEBHOOK_CONTEXT_ENDPOINT_APPROVAL_UNAVAILABLE")
         }
-        var parts = URLComponents(url: captured.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: captured.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         parts.queryItems = [URLQueryItem(name: "owner_id", value: scope.ownerID.rawValue),
                             URLQueryItem(name: "channel_id", value: scope.channelID.rawValue)]
         guard let url = parts.url else { throw NativeWebhookClientError.invalidWire }

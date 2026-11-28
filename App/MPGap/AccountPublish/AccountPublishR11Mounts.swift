@@ -35,7 +35,7 @@ import PhotosUI
             }
             if failedCount > 0 {
                 Text("fixr10.ap.image.failed \(failedCount) \(failureMessage ?? "")")
-                    .font(.footnote).foregroundStyle(.red)
+                    .font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier(identifier + ".failed")
             } else if uploader == nil {
                 Text("fixr10.ap.image.signIn").font(.footnote).foregroundStyle(.secondary)

@@ -2883,6 +2883,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if !templateShelfDetailClaimed, ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: captured.token) != nil {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
+        } else if ReviewedMerchantOperationsRoute.refusedBodyCheckedSave(request, baseURL: api.baseURL, token: captured.token) {
+            // Decor/NPC bodies that fail the reviewed allowlist stay refused, including when a path-only merchant route would admit them.
+            throw APIError.notConfigured
         } else if url == api.baseURL.appendingPathComponent("api/merchant/coop-profile") || url == api.baseURL.appendingPathComponent("api/coupon/command-receipt") {
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
@@ -4102,72 +4105,5 @@ enum ReviewedNearbyTeamReadRoute {
         default:
             return false
         }
-    }
-}
-
-/// Merchant operations (`MerchantOperationsService`): the four baseline reads a save needs and the four reviewed saves
-/// (decor, cooperation, NPC character, perk template). Bodies are checked against per-path key allowlists with scalar values
-/// only (`params` may carry `{"clearCapacity":true}`). Profile and story saves are not matched.
-enum ReviewedMerchantOperationsRoute {
-    enum Kind: Equatable { case read, write(path: String) }
-    static let writePaths: Set<String> = ["api/merchant/decor/save", "api/merchant/coop-profile/save", "api/merchant/npc/save", "api/merchant/city-node/template/submit", "api/merchant/business-status/update"]
-    private static let decor: Set<String> = ["coverImage", "slogan", "cityRole", "storyTitle", "gallery", "tags", "featuredType", "featuredId", "serviceTag",
-        "serviceText", "locationLat", "locationLng", "locationVerified", "categoryIds", "address"]
-    private static let coop: Set<String> = ["availableTime", "demand", "capacity", "params", "chargeType", "suitActivityTypes", "coopOpen"]
-    private static let npc: Set<String> = ["name", "avatar", "greeting", "persona", "knowledge"]
-    private static let template: Set<String> = ["id", "title", "validationMethod", "duration", "usageLocation", "ruleInstructions", "hint1", "hint2",
-        "answerReveal", "storyText", "storyJson", "activityCategoryids", "categoryId", "imgUrl", "couponId", "description", "players", "requiredMaterials",
-        "questionAnswer", "questionName", "questionA", "questionB", "questionC", "questionD", "correctAnswer", "feedbackText"]
-
-    static func kind(_ request: URLRequest, baseURL: URL, token: String?) -> Kind? {
-        guard let token, AuthRequestBuilder.isValidToken(token),
-              request.httpMethod == "POST", request.httpBodyStream == nil,
-              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
-              request.value(forHTTPHeaderField: "Accept") == "application/json",
-              request.value(forHTTPHeaderField: "Cookie") == nil,
-              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
-              let url = request.url, url.fragment == nil,
-              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
-              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              parts.user == nil, parts.password == nil, parts.query == nil else { return nil }
-        let type = request.value(forHTTPHeaderField: "Content-Type")
-        func exactPath(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path }
-        if let form = MerchantBusinessStatusAdmission.kind(contentType: type, body: request.httpBody, matches: exactPath("api/merchant/business-status/update")) { return form }
-        if exactPath("api/merchant/coop-profile") || exactPath("api/merchant/npc/profile") {
-            return type == "application/json" && request.httpBody == Data("{}".utf8) ? .read : nil
-        }
-        // Reads sent as canonical multipart: empty (`merchant/info`) or a single positive `id` (`template/myinfo`).
-        if exactPath("api/merchant/info") || exactPath("api/template/myinfo") {
-            guard let type, type.hasPrefix("multipart/form-data; boundary="), let body = request.httpBody, body.count <= 512,
-                  let text = String(data: body, encoding: .utf8) else { return nil }
-            let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
-            var fields: [String: String] = [:]
-            if exactPath("api/template/myinfo") {
-                let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"id\"\r\n\r\n"
-                guard let range = text.range(of: marker), let end = text[range.upperBound...].range(of: "\r\n"),
-                      let id = Int(text[range.upperBound..<end.lowerBound]), id > 0 else { return nil }
-                fields["id"] = String(id)
-            }
-            guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary),
-                  canonical.httpBody == body else { return nil }
-            return .read
-        }
-        guard type == "application/json", let body = request.httpBody, !body.isEmpty, body.count <= 16_384,
-              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any], !object.isEmpty else { return nil }
-        let allowed: Set<String>, required: Set<String>, path: String
-        if exactPath("api/merchant/decor/save") { allowed = decor; required = []; path = "api/merchant/decor/save" }
-        else if exactPath("api/merchant/coop-profile/save") { allowed = coop; required = ["availableTime", "demand"]; path = "api/merchant/coop-profile/save" }
-        else if exactPath("api/merchant/npc/save") { allowed = npc; required = npc; path = "api/merchant/npc/save" }
-        else if exactPath("api/merchant/city-node/template/submit") { allowed = template; required = ["title"]; path = "api/merchant/city-node/template/submit" }
-        else { return nil }
-        let keys = Set(object.keys)
-        guard keys.isSubset(of: allowed), required.isSubset(of: keys) else { return nil }
-        for (key, value) in object {
-            if key == "params" {
-                guard let params = value as? [String: Any], params.count == 1, params["clearCapacity"] as? Bool == true else { return nil }
-            } else if !(value is String || value is NSNumber || value is NSNull) { return nil }
-            if path == "api/merchant/npc/save", !(value is String) { return nil }
-        }
-        return .write(path: path)
     }
 }

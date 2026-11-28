@@ -88,7 +88,8 @@ public struct CityNeutralTaskReceipt: Equatable {
         let prefix = baseURL.appendingPathComponent("api/city-game/neutral-tasks").absoluteString
         if request.httpMethod == "GET", request.httpBody == nil {
             if let items = parts.queryItems, items.count == 1, items[0].name == "regionId", let region = items[0].value, CityReadRoute.validID(region) {
-                var canonical = URLComponents(string: prefix + "/state")!; canonical.queryItems = [.init(name: "regionId", value: region)]
+                guard var canonical = URLComponents(string: prefix + "/state") else { return nil }
+                canonical.queryItems = [.init(name: "regionId", value: region)]
                 guard canonical.url == url else { return nil }; write = false; regionID = region; return
             }
             if parts.query == nil, let id = UUID(uuidString: url.lastPathComponent), url.absoluteString == prefix + "/request/" + id.uuidString { write = false; regionID = nil; return }
@@ -196,8 +197,10 @@ public struct CityNeutralTaskReceipt: Equatable {
         }
     }
     private func execute(_ path: String, query: [URLQueryItem]? = nil, body: Data? = nil) async throws -> (Data, Int) {
-        var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/neutral-tasks/" + path), resolvingAgainstBaseURL: false)!; parts.queryItems = query
-        var request = URLRequest(url: parts.url!); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body; request.cachePolicy = .reloadIgnoringLocalCacheData; request.httpShouldHandleCookies = false
+        guard var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/neutral-tasks/" + path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
+        parts.queryItems = query
+        guard let releaseURL = parts.url else { throw APIError.invalidConfiguration }
+        var request = URLRequest(url: releaseURL); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body; request.cachePolicy = .reloadIgnoringLocalCacheData; request.httpShouldHandleCookies = false
         request.setValue(approval.context.session.token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
         if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         let result = try await transport.send(request); if result.1 == 401 { throw APIError.unauthorized }

@@ -397,7 +397,7 @@ import SwiftUI
                 // sentence (or 请重试), and 重试保存. An unknown outcome (`locked`) never offers the retry.
                 Section {
                     Label { Text("clubR3b.customer.saveFailed") } icon: { Image(systemName: "exclamationmark.circle") }
-                        .font(.headline).foregroundStyle(.red)
+                        .font(.headline).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("club.gov.formError")
                     if let message = failure.message { Text(verbatim: message).foregroundStyle(.secondary) }
                     else { Text("clubR3b.customer.saveFailedRetry").foregroundStyle(.secondary) }
@@ -426,7 +426,7 @@ import SwiftUI
                 // CLB-r8-apply-01 (fix-r8-club): MP apply wxml:157 cy-inline-error 提交没有完成 + submitError + 重试.
                 Section {
                     Label { Text("clubR8b.apply.submitFailed") } icon: { Image(systemName: "exclamationmark.circle") }
-                        .font(.headline).foregroundStyle(.red)
+                        .font(.headline).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("club.gov.formError")
                     if let message = failure.message { Text(verbatim: message).foregroundStyle(.secondary) }
                     else { Text(LocalizedStringKey(failure.localizationKey)).foregroundStyle(.secondary) }
@@ -445,7 +445,7 @@ import SwiftUI
                 // MP notify wxml:59-62: a failed 预览受众 is inline 受众预览失败 + the reason + 重试.
                 Section {
                     Label { Text("club.notify.previewFailed") } icon: { Image(systemName: "exclamationmark.circle") }
-                        .font(.headline).foregroundStyle(.red)
+                        .font(.headline).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("club.gov.formError")
                     if let message = failure.message { Text(verbatim: message).foregroundStyle(.secondary) }
                     else { Text(LocalizedStringKey(failure.localizationKey)).foregroundStyle(.secondary) }
@@ -915,7 +915,7 @@ import SwiftUI
             // Mini inline "reason required" copy; display only (the command validation still blocks blank reasons).
             if key == "reason", dirty, let mode = Self.reasonMode(route.operation), !ClubGovernanceReportPort.reasonIsValid(draft.text[key] ?? "") {
                 Text(LocalizedStringKey(ClubGovernanceReportPort.reasonRequiredKey(mode)), tableName: "ClubOpsGovernance")
-                    .font(.footnote).foregroundStyle(.red)
+                    .font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.gov.reasonRequired")
             }
         }

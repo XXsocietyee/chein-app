@@ -101,7 +101,8 @@ public struct CityArrivalReceipt: Equatable {
         let prefix = baseURL.appendingPathComponent("api/city-game/arrival-evidence").absoluteString
         if request.httpMethod == "GET", request.httpBody == nil {
             if case .player(let region) = audience {
-                var expected = URLComponents(string: prefix + "/state")!; expected.queryItems = [.init(name: "regionId", value: region)]
+                guard var expected = URLComponents(string: prefix + "/state") else { return nil }
+                expected.queryItems = [.init(name: "regionId", value: region)]
                 if url == expected.url { write = false; return }
             }
             if case .merchant = audience, url.absoluteString == prefix + "/merchant", parts.query == nil { write = false; return }
@@ -230,8 +231,10 @@ public struct CityArrivalReceipt: Equatable {
         guard status == 200, envelope.code == 200, let value = envelope.data else { throw CityArrivalEvidenceError.server(status, envelope.errorCode ?? "UNAVAILABLE") }; return value
     }
     private func execute(_ path: String, query: [URLQueryItem]? = nil, body: Data? = nil) async throws -> (Data, Int) {
-        var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/arrival-evidence/" + path), resolvingAgainstBaseURL: false)!; parts.queryItems = query
-        var request = URLRequest(url: parts.url!); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body; request.cachePolicy = .reloadIgnoringLocalCacheData; request.httpShouldHandleCookies = false
+        guard var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/arrival-evidence/" + path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
+        parts.queryItems = query
+        guard let releaseURL = parts.url else { throw APIError.invalidConfiguration }
+        var request = URLRequest(url: releaseURL); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body; request.cachePolicy = .reloadIgnoringLocalCacheData; request.httpShouldHandleCookies = false
         request.setValue(approval.context.session.token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
         if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         let result = try await transport.send(request)
