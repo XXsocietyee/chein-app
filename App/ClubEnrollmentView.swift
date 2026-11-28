@@ -179,6 +179,7 @@ extension EnvironmentValues {
                 ClubEnrollmentDestinationOwner(item: item, owner: navigation,
                     source: { currentSource(item.source) }, didClose: { closed(item) }) {
                         destination(item)
+                            .cyPushedChrome()
                     }.id(item.id)
             }
         }
