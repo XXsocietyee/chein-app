@@ -240,11 +240,12 @@ import UIKit
                 row(item, section: "stream")
             }
             if model.pageFailed { retry(Text(LocalizedStringKey("mpfresh.home.streamFailed." + (kind == .topics ? "topics" : "activities") + (model.pagination.items.isEmpty ? ".first" : ".more")), tableName: "MpFresh"), id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
-            if model.loadingPage {
-                ProgressView(model.pagination.items.isEmpty ? LocalizedStringKey("homeFeed.loading") : LocalizedStringKey("homeFeed.loadingMore"))
+            // ADA 1128 gap 4: empty is only a settled page with no rows. Until that page arrives, say what is happening.
+            if model.streamPlaceholder == .loading || (model.pagination.items.isEmpty && model.loadingPage) {
+                ProgressView("homeFeed.loading")
                     .frame(maxWidth: .infinity)
-            }
-            else if !model.pageFailed && model.pagination.items.isEmpty {
+                    .accessibilityIdentifier("homeFeed.stream.loading")
+            } else if model.streamPlaceholder == .empty {
                 // Source empty titles: 暂时没有主题 / 暂时没有活动. The keyword hint stays only after a search.
                 ContentUnavailableView {
                     Label {
@@ -264,8 +265,11 @@ import UIKit
                     .controlSize(.regular)
                     .accessibilityIdentifier("homeFeed.empty.switchKind")
                 }
+            } else if model.loadingPage {
+                ProgressView("homeFeed.loadingMore")
+                    .frame(maxWidth: .infinity)
             }
-            if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
+            if model.streamPlaceholder != .loading && model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
                 // R7-PC-A1-6 (r1 PC-A-1-11): MP pages on reach-bottom. The sentinel row loads the next page when it
                 // scrolls into view; a failed page keeps its retry row above.
                 // MP `loading-more`: 正在加载更多 in words, not a bare spinner (P10).
