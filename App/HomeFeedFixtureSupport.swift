@@ -26,6 +26,8 @@ import SwiftUI
     func section(_ section: HomeFeedSection) async throws -> [HomeFeedItem] {
         if scenario == "empty" { return [] }
         if scenario == "offline" { throw URLError(.notConnectedToInternet) }
+        // mp-home r3 (all states): MP index.wxml:92 cy-error 编辑精选加载失败 + 重试 while the other rails load.
+        if scenario == "sectionFailed", section == .recommended { throw APIError.httpStatus(503) }
         return try section == .recommended ? [HomeFixtureLanguage.topic()] : [HomeFixtureLanguage.activity()]
     }
     func page(query: HomeFeedQuery, number: Int) async throws -> HomeFeedPage {

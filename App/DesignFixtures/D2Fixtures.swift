@@ -5,7 +5,7 @@ import SwiftUI
 /// through the existing module fixture hosts and apply the player (dark) role theme the way the real tabs do.
 /// `--design-fixture d2-home | d2-search | d2-square | d2-roam`.
 struct D2Fixture: View {
-    enum Screen { case home, homeOffline, search, searchResults, searchEmpty, searchFailed, searchOffline, square, squareEmpty, roam, play, city, npc, inbox, inboxEmpty, inboxError, inboxSignedOut, inboxLoading, me }
+    enum Screen { case home, homeOffline, homeEmpty, homeSectionFailed, search, searchResults, searchEmpty, searchFailed, searchOffline, square, squareEmpty, roam, play, city, npc, inbox, inboxEmpty, inboxError, inboxSignedOut, inboxLoading, me }
     let screen: Screen
 
     var body: some View {
@@ -19,6 +19,9 @@ struct D2Fixture: View {
         switch screen {
         case .home: HomeFeedFixtureHostView(forceHero: true)
         case .homeOffline: HomeFeedFixtureHostView(forceHero: true, scenario: "offline")
+        // mp-home r3 (Next round item 3, MP index.wxml:246 cy-empty 暂时没有主题 / :92 cy-error 编辑精选加载失败).
+        case .homeEmpty: HomeFeedFixtureHostView(forceHero: true, scenario: "empty")
+        case .homeSectionFailed: HomeFeedFixtureHostView(forceHero: true, scenario: "sectionFailed")
         case .search: SearchMapFixtureHostView(showsTestControls: false)
         case .searchResults:
             NavigationStack {
