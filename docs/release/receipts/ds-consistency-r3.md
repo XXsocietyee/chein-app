@@ -1344,6 +1344,42 @@ Gates (both batches): `generate_project` PASS, `check_scaffold` PASS, `check_a11
   album root (`systemGroupedBackground` for a list/grid page) and keep `systemBackground` only for chat bodies;
   consider a checker kind if more than one page differs.
 
+## Continue run 40 (2026-11-28, merged combined-r7)
+
+Merge: one conflict, `r1club.roster.members.roles` (this lane: MP 主理人 / Owner; en-layout `721a8166c`: "Creator: 1 ·
+Admins: 1 …" with colons). Kept both intents: zh 主理人 %ld · 管理员 %ld · 成员 %ld, en **Owner: %ld · Admins: %ld ·
+Members: %ld**; generator re-run, pin `DesignR1ClubKitTests:114` follows.
+
+Run 39 Not done row (**ADA §3 Background**, stamp album white): already fixed by mp-roam `4a8fd8fe2`
+(`NativeStampAlbumView` `.cyGroupedBackground()`); channel chat keeps `systemBackground` (chat body, as the audit asks).
+No checker kind: only one page differed. Done.
+
+### ADA §3 **Refresh / paging** — one paging row (P1 fix #12 "replace load buttons with system behaviours")
+The MP pages every list on `onReachBottom`; the app had 4 looks for "加载更多" (`.bordered` large capsule, plain list
+row, `CYPillButton(.secondary)`, a row with a hand `HStack { Spacer … Spacer }`) and most needed a tap.
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| — (shared) | `App/DesignSystem/CYLoadMoreRow.swift` (new) | full-width `.borderless` row, `CYBusyLabel` while loading, 44 pt; loads on `.onAppear` when idle; caller keeps its identifier and shows it only while another page exists and no page error is shown (so a failed page never re-fires) |
+| `subpackageMember` follow / fans list → `App/ProfileFollowListView.swift:76` · B | `profile.followList.more` | `.bordered` `.large` capsule, tap only → `CYLoadMoreRow("square.loadMore")` |
+| `subpackageRoam/history` server records → `App/RoamPassportHistoryView.swift:102` · B | `roam.serverHistory.more` | plain button, tap only → `CYLoadMoreRow`; hidden while `pageError` shows its retry |
+| `scene-member-withdraw-history` 提现记录 → `App/WithdrawalHistoryView.swift:44` · C | `withdrawal.history.loadMore` | plain button + `.frame(minHeight: 44)` → `CYLoadMoreRow("wallet.loadMore")` (MP 加载更多 kept as the VoiceOver button) |
+| 漫游 history (MP gap) → `App/MPGap/PlayRoam/NearbyAndHistoryGapViews.swift:175` · B | `common.loadMore` | hand `HStack { Spacer; CYBusyLabel; Spacer }` button → `CYLoadMoreRow(isLoading:action:)` |
+
+New checker kind **manual paging** (`tools/check_design_consistency.py`): a `Button` titled with a catalog key whose en
+value starts "Load more" / "Load earlier" / "Show more" and no `.onAppear` / `.task` / `CYLoadMoreRow` within the
+next lines. 39 existing hits baselined as debt (34 files; new ones fail). Self-test: each of the three pre-fix files
+above fails the kind (`ProfileFollowListView`, `RoamPassportHistoryView`, `WithdrawalHistoryView`).
+
+Left on purpose this run: `TopicBrowserView`, `ActivityBrowserView`, `NativeStampAlbumView` (UI tests
+`TopicFlowTests:21,50,64`, `ActivityFlowTests:91`, `RoamExperienceFlowTests:63` tap the button and assert it then
+disappears; auto-loading changes that contract, so those need the tests updated together).
+
+### Not done (next run)
+- manual paging debt (39): convert the player list pages next — `RoamCreatedStampView:137`, `RoamReceivedStampSectionView:140`,
+  `NonCashRewardViews:77`, `SocialRoamMounts:310`, `RoamPassportPrivateToolsViews:548,694`, `RoamPassportToolsViews:281`;
+  then Topic / Activity / stamp album with their UI tests (tap → wait for the next row instead).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
