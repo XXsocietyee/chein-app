@@ -118,6 +118,16 @@ public enum StripePayEligibility {
         return isUSDOrder(currency: currency, paymentChannels: paymentChannels) ? .unitedStates : .china
     }
 
+    /// `/api/registration/payment-readiness` reports WeChat Pay only (`isPaymentReady() = wechatPayService.isReady()`).
+    /// For a USD order the backend's own `paymentChannels` are the readiness (APPLE_PAY only when Stripe `isReady()`),
+    /// so a WeChat outage never blocks a Stripe order and a Stripe outage never falls back to the China route (409).
+    /// Nil for a non-USD order: keep the WeChat probe.
+    public static func readiness(currency: String?, paymentChannels: [String]?) -> RegistrationPaymentReadiness? {
+        guard isUSDOrder(currency: currency, paymentChannels: paymentChannels) else { return nil }
+        let ready = offersApplePay(paymentChannels: paymentChannels) || offersCard(paymentChannels: paymentChannels)
+        return RegistrationPaymentReadiness(ready: ready, message: nil)
+    }
+
     /// P32: Apple Pay first when the device can pay and the order offers it, else Card. Empty when neither is offered.
     public static func methods(paymentChannels: [String]?, applePayAvailable: Bool) -> [RegistrationPayMethod] {
         var methods: [RegistrationPayMethod] = []

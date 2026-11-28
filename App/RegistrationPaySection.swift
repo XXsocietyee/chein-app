@@ -177,8 +177,14 @@ extension EnvironmentValues {
                         RegistrationStripePayRows(context: stripePay, registrationID: registrationID,
                                                   paymentChannels: payChannels,
                                                   amountText: payableAmount == nil ? nil : amountText,
-                                                  consented: consented, readiness: readiness,
+                                                  consented: consented,
                                                   preferredMethod: payMethod, onPaid: onPaid)
+                    } else if isUSDOrder {
+                        // A USD order never goes to the China route (backend 409 STRIPE_CHANNEL_REQUIRED).
+                        Text("registration.stripe.unavailable")
+                            .cyText(.body)
+                            .foregroundStyle(CYColor.warningText)
+                            .accessibilityIdentifier("registration.pay.stripe.unavailable")
                     } else if canTapPay {
                         CYPillButton(verbatim: c.t("立即支付", "Pay now"), style: .primary) {
                             Task {
@@ -212,7 +218,7 @@ extension EnvironmentValues {
                          "Payment runs once with no automatic retry. Rebuild the order manually if it expires."))
             }
             .task(id: registrationID) {
-                if readiness == nil, let readinessReader {
+                if readiness == nil, !isUSDOrder, let readinessReader {
                     readiness = await readinessReader()
                 }
             }
@@ -223,6 +229,16 @@ extension EnvironmentValues {
     /// China (CNY) quotes never match and keep WeChat Pay / Alipay.
     private func usesStripe(_ context: StripePayContext) -> Bool {
         StripePayEligibility.applies(currency: payCurrency, paymentChannels: payChannels)
+    }
+
+    /// The quote / order is USD: Stripe only, readiness from its channels (the WeChat probe does not apply).
+    private var isUSDOrder: Bool {
+        StripePayEligibility.isUSDOrder(currency: payCurrency, paymentChannels: payChannels)
+    }
+
+    /// The readiness shown above the button: the order's Stripe channels for USD, else the WeChat probe.
+    private var shownReadiness: RegistrationPaymentReadiness? {
+        StripePayEligibility.readiness(currency: payCurrency, paymentChannels: payChannels) ?? readiness
     }
 
     /// A missing amount stays on screen as an em dash. A decoded zero stays off this section.
@@ -256,7 +272,7 @@ extension EnvironmentValues {
     @ViewBuilder private var statusView: some View {
         switch viewModel.model.outcome {
         case .idle:
-            if let readiness, !readiness.ready {
+            if let readiness = shownReadiness, !readiness.ready, !isUSDOrder {
                 Text(verbatim: readiness.message ?? c.t("支付服务暂不可用", "Payment service unavailable"))
                     .cyText(.body)
                     .foregroundStyle(CYColor.warningText)

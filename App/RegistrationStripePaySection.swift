@@ -14,7 +14,6 @@ import SwiftUI
 /// not completed → Pay again. Only the server's `paymentStatus == 2` says paid.
 @MainActor struct RegistrationStripePayRows: View {
     @Environment(\.locale) private var locale
-    @Environment(\.registrationPaymentReadiness) private var readinessReader
 
     let context: StripePayContext
     let registrationID: Int
@@ -22,7 +21,6 @@ import SwiftUI
     /// The order's amount due, already formatted in USD for the card button label. Nil shows the plain label.
     let amountText: String?
     let consented: Bool
-    let readiness: RegistrationPaymentReadiness?
     /// The sheet's "Pay with" row choice (P32). Nil (order detail) uses the default and offers the other method too.
     let preferredMethod: RegistrationPayMethod?
     /// Called once the server says paid, so the host screen can read its order again.
@@ -222,7 +220,8 @@ import SwiftUI
 
     // MARK: Actions
 
-    /// Same gates as the China step before any money call.
+    /// Same gates as the China step before any money call. Readiness is the order's own Stripe channels
+    /// (`StripePayEligibility.readiness`), not the WeChat-only `payment-readiness` probe.
     private func preflight() async -> StripeIntentRequest? {
         guard ReleaseMoneyWriteSwitch.paymentEnabled,
               StripePayEligibility.applies(currency: StripePayWire.currency, paymentChannels: paymentChannels) else {
@@ -230,11 +229,6 @@ import SwiftUI
         }
         guard consented else {
             phase = .notice(c.t("请先阅读并同意报名须知", "Agree to the registration terms first.")); return nil
-        }
-        var current = readiness
-        if current == nil { current = await readinessReader?() }
-        guard let current, current.ready else {
-            phase = .notice(current?.message ?? c.t("支付服务暂不可用", "Payment service unavailable")); return nil
         }
         return try? StripeIntentRequest(registrationID: registrationID)
     }

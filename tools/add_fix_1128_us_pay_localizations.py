@@ -11,6 +11,8 @@ STRINGS = {
     'registration.stripe.declined': ('The card was declined. Try another card.', '银行卡被拒绝，请换一张卡再试。'),
     'registration.stripe.expired': ('This order can no longer be paid. Place a new order.', '该订单已无法支付，请重新下单。'),
     'registration.stripe.notCompleted': ('Payment not completed. You can pay again.', '支付未完成，可以重新支付。'),
+    'registration.stripe.unavailable': ('Card and Apple Pay are not available for this order right now. Try again later.',
+                                        '该订单暂时无法使用银行卡或 Apple Pay 支付，请稍后再试。'),
     'registration.stripe.noMethod': ('Apple Pay is not set up on this device. Add a card in Wallet to pay.',
                                      '此设备尚未设置 Apple Pay，请先在钱包中添加银行卡。'),
 }

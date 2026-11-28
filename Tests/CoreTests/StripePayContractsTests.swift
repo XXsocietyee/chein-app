@@ -106,6 +106,15 @@ final class StripePayContractsTests: XCTestCase {
                                                      paymentChannels: both), [.applePay, .card])
     }
 
+    func testUSDReadinessComesFromStripeChannelsNotTheWeChatProbe() {
+        // payment-readiness = wechatPayService.isReady(); a USD order is ready when the quote lists a Stripe channel.
+        XCTAssertEqual(StripePayEligibility.readiness(currency: "USD", paymentChannels: ["APPLE_PAY"])?.ready, true)
+        XCTAssertEqual(StripePayEligibility.readiness(currency: "USD", paymentChannels: ["APP_STRIPE"])?.ready, true)
+        XCTAssertEqual(StripePayEligibility.readiness(currency: "USD", paymentChannels: [])?.ready, false)
+        XCTAssertNil(StripePayEligibility.readiness(currency: nil, paymentChannels: ["APP"]))
+        XCTAssertNil(StripePayEligibility.readiness(currency: "CNY", paymentChannels: nil))
+    }
+
     func testUSDQuoteChannelsCountAsAppChannels() throws {
         let usd = try JSONDecoder().decode(RegistrationQuote.self, from: Data(
             #"{"payAmount":"25.00","quoteSign":"s","currency":"USD","paymentChannels":["APP_STRIPE","APPLE_PAY"]}"#.utf8))
