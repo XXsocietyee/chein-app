@@ -149,23 +149,23 @@ public struct ClubAccessAndSettlementSectionView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllScopedAndFailClosed ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllScopedAndFailClosed ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("clubAccessSettlement.statusBadge")
             }
 
             Text(verbatim: accessMeRouteSummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.accessMeUsesPOSTJSON ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.accessMeUsesPOSTJSON ? Color.secondary : CYColor.dangerText)
                 .accessibilityIdentifier("clubAccessSettlement.accessMeRouteSummary")
 
             Text(verbatim: governanceSummaryText)
                 .font(.subheadline)
-                .foregroundStyle(snapshot.governanceRoleVerified ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.governanceRoleVerified ? Color.secondary : CYColor.dangerText)
                 .accessibilityIdentifier("clubAccessSettlement.governanceSummary")
 
             Text(verbatim: settlementParitySummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.liveSettlementPayoutEnabled ? Color.red : Color.secondary)
+                .foregroundStyle(snapshot.liveSettlementPayoutEnabled ? CYColor.dangerText : Color.secondary)
                 .accessibilityIdentifier("clubAccessSettlement.settlementParitySummary")
 
             VStack(alignment: .leading, spacing: 8) {

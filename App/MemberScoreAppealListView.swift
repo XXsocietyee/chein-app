@@ -212,7 +212,7 @@ private struct MemberScoreReputationRow: View {
     var body: some View {
         LabeledContent {
             memberScoreText(reputation == .normal ? "score.reputation.sheet.normal" : "score.reputation.sheet.restricted")
-                .foregroundStyle(reputation == .normal ? Color.green : Color.secondary)
+                .foregroundStyle(reputation == .normal ? CYColor.successText : Color.secondary)
         } label: {
             memberScoreText("score.reputation.sheet.title")
                 .foregroundStyle(.primary)
@@ -391,19 +391,8 @@ struct MemberScoreChipChrome<Label: View>: View {
             label()
         }
         .font(.footnote)
-        .foregroundStyle(foreground)
+        .foregroundStyle(CYStatusChip.systemStyle(for: tone))
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
-    }
-
-    private var foreground: Color {
-        switch tone {
-        case .neutral: return .secondary
-        case .success: return .green
-        case .warning: return .orange
-        case .danger: return .red
-        case .info: return .blue
-        case .rare: return .indigo
-        }
     }
 }

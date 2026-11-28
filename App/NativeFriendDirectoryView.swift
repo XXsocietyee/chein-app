@@ -342,7 +342,7 @@ import SwiftUI
                     LabeledContent {
                         Label(localized(item.starred == 1 ? "friendDirectory.starred" : "friendDirectory.notStarred"),
                               systemImage: item.starred == 1 ? "star.fill" : "star")
-                            .foregroundStyle(item.starred == 1 ? Color.orange : Color.secondary)
+                            .foregroundStyle(item.starred == 1 ? CYColor.warningText : Color.secondary)
                     } label: { Text("friendMeta.starred", tableName: "NativeFriendMetadata") }
                 }
                 if let progressCard, flow.canOpen {

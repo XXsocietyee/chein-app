@@ -134,7 +134,7 @@ public struct PrivacyAndSecurityRedactionSectionView: View {
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
                     .font(.subheadline)
-                    .foregroundStyle(snapshot.isAllCompliant ? .green : .red)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("privacyRedaction.overallStatus")
 
                 Text(verbatim: Self.homeRedactionStatusText(for: snapshot))
@@ -210,7 +210,7 @@ private struct PrivacyRedactionPillarRowView: View {
                 Spacer()
                 Text(verbatim: row.isEnforced ? "已生效" : "未生效")
                     .cyText(.meta)
-                    .foregroundStyle(row.isEnforced ? .green : .red)
+                    .foregroundStyle(row.isEnforced ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: row.summary)

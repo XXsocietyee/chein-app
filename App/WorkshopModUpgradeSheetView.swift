@@ -65,7 +65,7 @@ public struct WorkshopModUpgradeSheetView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("workshopUpgrade.added")
                                 .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.green)
+                                .foregroundStyle(CYColor.successText)
                             ForEach(presentation.addedCapabilities, id: \.self) { cap in
                                 Text(verbatim: "+ \(cap)")
                                     .font(.footnote.monospaced())
@@ -129,7 +129,7 @@ public struct WorkshopModUpgradeSheetView: View {
                 if confirmedRequestId != nil {
                     Label("workshopUpgrade.saved", systemImage: "checkmark.circle")
                         .font(.footnote)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(CYColor.successText)
                         .accessibilityIdentifier("workshop.upgrade.confirmedReceipt")
                 }
 

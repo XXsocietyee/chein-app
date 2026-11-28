@@ -125,7 +125,7 @@ extension ClubLeadPrimaryAction {
                 Label {
                     Text(LocalizedStringKey("club.leadPrimary." + notice.rawValue))
                 } icon: {
-                    Image(systemName: "info.circle").foregroundStyle(notice == .changed ? Color.orange : Color.secondary)
+                    Image(systemName: "info.circle").foregroundStyle(notice == .changed ? CYColor.warningText : Color.secondary)
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.leadPrimary.notice")

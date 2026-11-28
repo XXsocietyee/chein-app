@@ -128,7 +128,7 @@ public struct ReceivedStampsAndPassportToolsSectionView: View {
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
                     .font(.subheadline)
-                    .foregroundStyle(snapshot.isAllCompliant ? .green : .red)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("receivedStampsPassport.overallStatus")
 
                 Text(verbatim: Self.sessionAdmissionStatusText(for: snapshot))
@@ -206,7 +206,7 @@ private struct PassportToolAuditRowView: View {
                 Spacer()
                 Text(verbatim: row.isVerified ? "已核验" : "待修复")
                     .cyText(.meta)
-                    .foregroundStyle(row.isVerified ? .green : .red)
+                    .foregroundStyle(row.isVerified ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: row.summary)

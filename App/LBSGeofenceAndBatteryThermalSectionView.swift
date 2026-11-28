@@ -116,7 +116,7 @@ public struct LBSGeofenceAndBatteryThermalSectionView: View {
                 Spacer()
                 Text(verbatim: snapshot.isBatteryAndThermalSafe ? "OPTIMAL" : "DRAIN_RISK")
                     .font(.caption.monospaced())
-                    .foregroundStyle(snapshot.isBatteryAndThermalSafe ? .green : .red)
+                    .foregroundStyle(snapshot.isBatteryAndThermalSafe ? CYColor.successText : CYColor.dangerText)
             }
             .accessibilityIdentifier("lbsBatteryThermal.summary")
 

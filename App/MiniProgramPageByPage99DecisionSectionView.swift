@@ -161,7 +161,7 @@ public struct MiniProgram99DecisionLedgerSnapshot: Sendable, Equatable {
             ForEach(snapshot.rows) { row in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: row.isCompliant ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
-                        .accessibilityHidden(true).foregroundStyle(row.isCompliant ? .green : .red)
+                        .accessibilityHidden(true).foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: "\(row.title)（共 \(row.totalPageCount) 页）")
                             .cyText(.bodyMedium)
@@ -172,7 +172,7 @@ public struct MiniProgram99DecisionLedgerSnapshot: Sendable, Equatable {
                     Spacer()
                     Text(verbatim: row.isCompliant ? "已锁定" : "待裁决")
                         .cyText(.meta, weight: .semibold)
-                        .foregroundStyle(row.isCompliant ? .green : .red)
+                        .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("mp99DecisionLedger.row." + row.groupID)
             }

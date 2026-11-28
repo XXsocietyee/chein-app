@@ -146,13 +146,13 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.footnote)
-                    .foregroundStyle(snapshot.isAllCompliant ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("memberSubscriptionOrder.statusBadge")
             }
 
             Text(verbatim: subscriptionSummaryText)
                 .font(.subheadline)
-                .foregroundStyle(snapshot.storeKit2GateFailClosed ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.storeKit2GateFailClosed ? Color.secondary : CYColor.dangerText)
                 .accessibilityIdentifier("memberSubscriptionOrder.subscriptionSummary")
 
             Text(verbatim: lifecycleStatesSummaryText)
@@ -166,7 +166,7 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
 
             Text(verbatim: refundReceiptSummaryText)
                 .font(.subheadline)
-                .foregroundStyle(snapshot.refundReceiptReadbackRequired ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.refundReceiptReadbackRequired ? Color.secondary : CYColor.dangerText)
                 .accessibilityIdentifier("memberSubscriptionOrder.refundReceiptSummary")
 
             VStack(alignment: .leading, spacing: 8) {

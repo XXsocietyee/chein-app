@@ -471,15 +471,15 @@ private struct TicketWalletCardTag: View {
                         Text("passme.ticket.startsIn")
                         CYCountdown(until: soon, style: nil, tint: nil)
                     }
-                } icon: { Image(systemName: "timer").foregroundStyle(.blue) }
+                } icon: { Image(systemName: "timer").foregroundStyle(CYColor.infoText) }
                     .font(.footnote).foregroundStyle(.secondary)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("ticketWallet.startsIn.\(ticket.id)")
             } else if let start = ticket.upcomingStartMonthDay {
-                Label { Text("ticketWallet.tag.startsOn \(start.month) \(start.day)") } icon: { Image(systemName: "calendar").foregroundStyle(.blue) }
+                Label { Text("ticketWallet.tag.startsOn \(start.month) \(start.day)") } icon: { Image(systemName: "calendar").foregroundStyle(CYColor.infoText) }
                     .font(.footnote).foregroundStyle(.secondary)
             } else {
-                Label { Text("ticketWallet.tag.upcoming") } icon: { Image(systemName: "calendar").foregroundStyle(.blue) }
+                Label { Text("ticketWallet.tag.upcoming") } icon: { Image(systemName: "calendar").foregroundStyle(CYColor.infoText) }
                     .font(.footnote).foregroundStyle(.secondary)
             }
         } else if ticket.isRefunding {
@@ -489,7 +489,7 @@ private struct TicketWalletCardTag: View {
             Label {
                 Text(LocalizedStringKey(cleared ? "ticketWallet.tag.cleared" : "ticketWallet.tag.notCleared"))
             } icon: {
-                Image(systemName: cleared ? "checkmark.seal.fill" : "circle.dashed").foregroundStyle(cleared ? Color.green : Color.secondary)
+                Image(systemName: cleared ? "checkmark.seal.fill" : "circle.dashed").foregroundStyle(cleared ? CYColor.successText : Color.secondary)
             }
             .font(.footnote).foregroundStyle(.secondary)
             .accessibilityIdentifier("ticketWallet.topicCompleted.\(ticket.id)")

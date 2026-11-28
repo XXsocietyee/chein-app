@@ -192,7 +192,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
                         .accessibilityIdentifier("appStoreReadiness.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .font(.subheadline)
-                        .foregroundStyle(snapshot.allPassingForSubmission ? .green : .orange)
+                        .foregroundStyle(snapshot.allPassingForSubmission ? CYColor.successText : CYColor.warningText)
                         .accessibilityIdentifier("appStoreReadiness.header.summary")
                 }
                 Spacer()
@@ -233,7 +233,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).ref")
                 Text(verbatim: item.statusBadgeText)
                     .cyText(.caption, weight: .semibold)
-                    .foregroundStyle(item.isPassingForSubmission ? .green : .red)
+                    .foregroundStyle(item.isPassingForSubmission ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).status")
             }
 

@@ -716,7 +716,7 @@ extension EnvironmentValues {
             if !stacked {
                 Image(systemName: isIn ? "arrow.down.left.circle.fill" : "arrow.up.right.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(isIn ? Color.green : Color.secondary)
+                    .foregroundStyle(isIn ? CYColor.successText : Color.secondary)
                     .accessibilityHidden(true)
             }
             VStack(alignment: .leading, spacing: 4) {

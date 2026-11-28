@@ -313,7 +313,7 @@ struct RoamPOIActionRows: View {
         }
         if let receipt = model.checkInSuccess {
             Label(LocalizedStringKey(receipt.needRedeem ? "roam.poi.checkIn.needRedeem" : (receipt.alreadyClaimed ? "roam.poi.checkIn.already" : "roam.poi.checkIn.success")),
-                  systemImage: "checkmark.seal.fill").foregroundStyle(.green)
+                  systemImage: "checkmark.seal.fill").foregroundStyle(CYColor.successText)
                 .accessibilityIdentifier("roam.poi.checkin.success")
         }
         }

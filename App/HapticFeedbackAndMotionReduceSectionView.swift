@@ -149,7 +149,7 @@ public struct MotionHapticComplianceSnapshot: Sendable, Equatable {
             ForEach(snapshot.rows) { row in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: row.isCompliant ? "hand.tap.fill" : "exclamationmark.triangle.fill")
-                        .accessibilityHidden(true).foregroundStyle(row.isCompliant ? .green : .red)
+                        .accessibilityHidden(true).foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
                             .cyText(.bodyMedium)
@@ -160,7 +160,7 @@ public struct MotionHapticComplianceSnapshot: Sendable, Equatable {
                     Spacer()
                     Text(verbatim: row.isCompliant ? "合规" : "告警")
                         .cyText(.meta, weight: .semibold)
-                        .foregroundStyle(row.isCompliant ? .green : .red)
+                        .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("hapticMotionCompliance.row." + row.surfaceID)
             }

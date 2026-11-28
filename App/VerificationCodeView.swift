@@ -55,7 +55,7 @@ extension EnvironmentValues {
                         let active = !consumed && detail.registrationStatus == 2
                         let orderKey: LocalizedStringKey = consumed ? "verificationCode.order.used" : (active ? "verificationCode.order.active" : "verificationCode.order.ended")
                         Label(orderKey, systemImage: active ? "checkmark.circle" : "clock")
-                            .foregroundStyle(active ? Color.green : Color.secondary)
+                            .foregroundStyle(active ? CYColor.successText : Color.secondary)
                             .accessibilityIdentifier("verificationCode.orderState")
                     }
                 }

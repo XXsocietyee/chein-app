@@ -606,7 +606,7 @@ struct MemberBenefitRow: View {
             label.foregroundStyle(benefit.unlocked ? Color.primary : Color.secondary)
         } icon: {
             Image(systemName: benefit.unlocked ? "checkmark.circle.fill" : "lock.fill")
-                .accessibilityHidden(true).foregroundStyle(benefit.unlocked ? Color.green : Color.secondary)
+                .accessibilityHidden(true).foregroundStyle(benefit.unlocked ? CYColor.successText : Color.secondary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityValue(benefit.unlocked ? Text("member.benefit.unlocked", tableName: "MemberProfile")

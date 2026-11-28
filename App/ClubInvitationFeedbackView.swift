@@ -447,7 +447,7 @@ private struct ClubInvitationFeedbackRowLabel: View {
             Label {
                 Text(LocalizedStringKey(row.statusKey)).foregroundStyle(.secondary)
             } icon: {
-                Image(systemName: "circle.fill").imageScale(.small).foregroundStyle(row.status == 1 ? Color.green : Color.secondary)
+                Image(systemName: "circle.fill").imageScale(.small).foregroundStyle(row.status == 1 ? CYColor.successText : Color.secondary)
             }
             .font(.subheadline)
         }

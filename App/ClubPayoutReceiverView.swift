@@ -375,7 +375,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                         if row.showsPaidText { Text(verbatim: row.paidText).font(.subheadline).foregroundStyle(.secondary) }
                         Text(verbatim: payoutText(row.chipKey, locale))
                             .font(.subheadline)
-                            .foregroundStyle(row.status == "settled" && row.amountText != nil ? Color.green : Color.secondary)
+                            .foregroundStyle(row.status == "settled" && row.amountText != nil ? CYColor.successText : Color.secondary)
                     }
                     }
                     .accessibilityElement(children: .combine)

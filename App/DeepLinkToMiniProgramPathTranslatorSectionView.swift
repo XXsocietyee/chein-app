@@ -134,7 +134,7 @@ public struct MiniProgramPathTranslatorSnapshot: Sendable, Equatable {
             ForEach(snapshot.rows) { row in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: row.isCompliant ? "arrow.left.arrow.right.circle.fill" : "exclamationmark.triangle.fill")
-                        .accessibilityHidden(true).foregroundStyle(row.isCompliant ? .green : .red)
+                        .accessibilityHidden(true).foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: "\(row.miniProgramPath) ⇄ \(row.universalLinkPath)")
                             .cyText(.bodyMedium)
@@ -145,7 +145,7 @@ public struct MiniProgramPathTranslatorSnapshot: Sendable, Equatable {
                     Spacer()
                     Text(verbatim: row.isCompliant ? "无损" : "异常")
                         .cyText(.meta, weight: .semibold)
-                        .foregroundStyle(row.isCompliant ? .green : .red)
+                        .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("mpPathTranslator.row." + row.routeID)
             }

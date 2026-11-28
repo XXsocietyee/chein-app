@@ -134,7 +134,7 @@ public struct NetworkReachabilityAndRetryBackoffSectionView: View {
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
                     .font(.subheadline)
-                    .foregroundStyle(snapshot.isAllSafe ? .green : .red)
+                    .foregroundStyle(snapshot.isAllSafe ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("networkReachabilityRetry.overallStatus")
 
                 Text(verbatim: Self.reachabilityStatusText(for: snapshot))
@@ -202,7 +202,7 @@ private struct NetworkRetryPolicyRowView: View {
                 Spacer()
                 Text(verbatim: row.isPolicySafe ? "安全" : "告警")
                     .cyText(.meta)
-                    .foregroundStyle(row.isPolicySafe ? .green : .red)
+                    .foregroundStyle(row.isPolicySafe ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: row.summary)

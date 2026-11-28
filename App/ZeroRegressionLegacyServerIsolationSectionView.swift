@@ -167,7 +167,7 @@ public struct ZeroRegressionLegacyServerIsolationSectionView: View {
                         .accessibilityIdentifier("legacyServerIsolation.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .font(.subheadline)
-                        .foregroundStyle(snapshot.isFullyIsolated ? .green : .red)
+                        .foregroundStyle(snapshot.isFullyIsolated ? CYColor.successText : CYColor.dangerText)
                         .accessibilityIdentifier("legacyServerIsolation.header.summary")
                 }
                 Spacer()
@@ -208,7 +208,7 @@ public struct ZeroRegressionLegacyServerIsolationSectionView: View {
                     .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).layer")
                 Text(verbatim: row.statusBadgeText)
                     .cyText(.caption, weight: .semibold)
-                    .foregroundStyle(row.isIsolated ? .green : .red)
+                    .foregroundStyle(row.isIsolated ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).status")
             }
 

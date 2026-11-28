@@ -134,7 +134,7 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
                 Spacer()
                 Text(verbatim: snapshot.isCrossCityIsolationSafe ? "ISOLATED" : "BLEED_RISK")
                     .font(.caption.monospaced())
-                    .foregroundStyle(snapshot.isCrossCityIsolationSafe ? .green : .red)
+                    .foregroundStyle(snapshot.isCrossCityIsolationSafe ? CYColor.successText : CYColor.dangerText)
             }
             .accessibilityIdentifier("citySwitchIsolation.summary")
 

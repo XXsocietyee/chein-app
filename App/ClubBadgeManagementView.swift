@@ -343,7 +343,7 @@ import SwiftUI
             Image(systemName: known ? "checkmark.seal" : "questionmark.circle")
                 .accessibilityHidden(true)
         }
-        .foregroundStyle(known ? Color.green : Color.secondary)
+        .foregroundStyle(known ? CYColor.successText : Color.secondary)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
     }

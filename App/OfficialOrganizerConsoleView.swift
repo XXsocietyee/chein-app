@@ -259,7 +259,7 @@ struct OfficialOrganizerConsoleView: View {
     private var controlBadge: some View {
         Text(verbatim: controlText)
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(model.state?.control == .paused ? Color.orange : Color.secondary)
+            .foregroundStyle(model.state?.control == .paused ? CYColor.warningText : Color.secondary)
     }
     /// Page-model empty / unknown notice. R3: the blocker/risk count line is gone (the MP lists them in 发布活动).
     @ViewBuilder private var snapshotSection: some View {

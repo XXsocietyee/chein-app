@@ -142,7 +142,7 @@ struct ClubDirectorTeamSheet: View {
     private func teamRow(_ row: ClubDirectorTeamRow) -> some View {
         LabeledContent {
             Text(LocalizedStringKey("club.director.teamStatus." + row.statusCode))
-                .foregroundStyle(row.abnormal ? Color.orange : Color.secondary)
+                .foregroundStyle(row.abnormal ? CYColor.warningText : Color.secondary)
         } label: {
             if let title = row.title { Text(verbatim: title) } else { Text("club.director.team.unnamed") }
             VStack(alignment: .leading, spacing: 2) {

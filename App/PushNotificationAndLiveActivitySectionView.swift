@@ -195,7 +195,7 @@ public struct PushNotificationAndLiveActivitySectionView: View {
     private var headerRow: some View {
         HStack(spacing: 8) {
             Image(systemName: "bell.badge.fill")
-                .accessibilityHidden(true).foregroundStyle(.teal)
+                .accessibilityHidden(true).foregroundStyle(CYColor.brand)
             Text(verbatim: "Push Notification & Live Activity Parity")
                 .cyText(.cardTitle)
                 .accessibilityIdentifier("pushNotificationParity.header")

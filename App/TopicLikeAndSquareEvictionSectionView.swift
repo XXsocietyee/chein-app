@@ -148,7 +148,7 @@ public struct TopicLikeAndSquareEvictionSnapshot: Equatable, Sendable {
             ForEach(snapshot.rows) { row in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: row.isEnforced ? "trash.slash.fill" : "exclamationmark.triangle.fill")
-                        .accessibilityHidden(true).foregroundStyle(row.isEnforced ? .green : .red)
+                        .accessibilityHidden(true).foregroundStyle(row.isEnforced ? CYColor.successText : CYColor.dangerText)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
                             .cyText(.bodyMedium)
@@ -159,7 +159,7 @@ public struct TopicLikeAndSquareEvictionSnapshot: Equatable, Sendable {
                     Spacer()
                     Text(verbatim: row.isEnforced ? "已生效" : "未生效")
                         .cyText(.meta, weight: .semibold)
-                        .foregroundStyle(row.isEnforced ? .green : .red)
+                        .foregroundStyle(row.isEnforced ? CYColor.successText : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("topicLikeEviction.row." + row.ruleID)
             }

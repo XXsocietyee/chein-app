@@ -195,7 +195,7 @@ extension EnvironmentValues {
             VStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.largeTitle)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(CYColor.successText)
                     .accessibilityHidden(true)
                 Text("u9cde.coupon.used").font(.headline)
                 if let time = model.useTime { Text(verbatim: LocaleDisplay.civil(time, locale: locale)).font(.footnote).monospacedDigit().foregroundStyle(.secondary) }

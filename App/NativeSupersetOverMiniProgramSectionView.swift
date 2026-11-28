@@ -170,7 +170,7 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
                     Image(systemName: snapshot.isSupersetIntact ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
                 }
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(snapshot.isSupersetIntact ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isSupersetIntact ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("nativeSupersetPolicy.overallBadge")
             } label: {
                 Text(verbatim: "iOS 原生超集与小程序契约对齐策略")

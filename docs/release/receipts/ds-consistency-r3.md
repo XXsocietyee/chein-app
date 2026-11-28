@@ -1689,6 +1689,105 @@ baseline 46, **new 0**.
   leaderboard / club management, ~9 sites) vs the default tint elsewhere — check each MP switch colour first
   (`switch color=`) before choosing one rule; raw `.green` success foregrounds without a checkmark glyph.
 
+## Continue run 49 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane (latest: 18:30 sweep, mp-club / mp-journey). The twin run's batch 2
+(warning hue) landed first; this run's duplicate of it was dropped and only the non-overlapping work kept.
+
+### Batch 1 — one success / info hue (run 48 Not done row: "raw `.green` success foregrounds without a checkmark")
+
+| Page · level | Site | Before → after |
+|---|---|---|
+| workshop mod upgrade added / saved · C | `App/WorkshopModUpgradeSheetView.swift:68,132` | `.green` → `successText` |
+| club original recovery restored · C | `App/ClubActionOriginalRecoveryView.swift:50` | `.green` → `successText` |
+| coupon redeemed · C | `App/CouponCodeView.swift:198` | `.green` → `successText` |
+| 漫游 POI check-in result · B | `App/RoamPOIActions.swift:316` | `.green` → `successText` |
+| ticket wallet timer / starts on / upcoming tags · B | `App/TicketWalletView.swift:474,479,482` | `.blue` → `infoText` |
+| team meeting time-zone note · B | `App/TeamMeetingHandshakeSectionView.swift:78` | `.blue` → `infoText` |
+
+Not changed: `.teal` header glyphs on release-checklist section views (5 unmounted, 1 inside the internal
+`ReformWorldHostWorkbenchView`; not player surfaces); effect surfaces (`PlayExperienceView`, `RoamStampCameraView`,
+`JourneyReportViews`); merchant cooperation invite (allowed).
+
+New checker kind **semantic hue**: a raw `.green` / `.blue` foreground outside App/DesignSystem and the effect surfaces
+(a `status hue` line is not double counted). Baseline 0, nothing allowed. Self-test: with the App changes stashed the
+checker fails at the sites above.
+
+Re-pin (colour only): `test_workshop_paid_reentry_closure.py` whole-file hash, reason line added.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
+PASS (semantic hue 0, warning hue 0, manual paging 18, 121 allowed), `contract_ratchet --check` 46 failing, baseline
+46, **new 0**.
+
+### Toggle colour — checked against the MP first (run 48 Not done row): **not changed, design decision needed**
+MP `components/cy/switch/index.js:1-7` + `style/tokens.wxss:484-490`: one shared `cy-switch`, and since the owner's
+2026-08-05 ruling (规范真源 §3.3) **every switch is green** (`--cy-comp-switch-on`, a track green darker than the
+status-success text green). The MP gate `tests/unit/ds-规范真源-gate.test.js:42-44` bans raw `<switch>` because pages
+had drifted to purple / ink-blue / iOS green. In the app, 7 Toggles set `.tint(.green)` (roam share ×2, roam reduce
+motion, poster consent, live presence consent, director leaderboard, shared-plan accept) and the other ~217 inherit
+the root `.tint(CYColor.brand)` (`QuestifyApp.swift:168`). So the 7 green ones match the MP and iOS Settings; the
+majority do not. A first attempt this run removed the 7 overrides (brand everywhere); reverted before push because it
+moves away from the MP rule.
+
+### Not done (next run)
+- manual paging debt (18): tests-first sites only (run 43 list); leave for a lane that can run Swift.
+- **One switch colour = MP green:** add a design-system `CYSwitchToggleStyle` (or a `cySwitch()` modifier applying
+  `.toggleStyle(.switch).tint(CYColor.switchOn)`, new token = MP `--cy-comp-switch-on` #0E9E73 (`tokens.wxss:498`), light + dark), apply it to all
+  ~224 player Toggles, then add a checker kind for a Toggle without it. Needs a simulator look (track contrast in dark
+  mode); coordinator / owner to confirm green over brand before the sweep.
+- **Accent colours, next:** raw `.purple` / `.pink` / `.yellow` / `.teal` foregrounds on player pages (scan; map to
+  tokens or allow with a reason when they are art).
+
+## Continue run 50 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane (latest: 18:30 sweep, mp-journey / mp-club); no K50 `lane-layout`
+rows for this lane. Run 49 Not done: the MP-green switch row waits for the coordinator / owner (unchanged); took the
+"Accent colours, next" row.
+
+### Batch 1 — hue kinds read ternaries; one brand accent (ADA audit §3 **Accent colours**, OWNER RULE 3)
+
+The run 47–49 hue kinds only matched `.foregroundStyle(.green)`; the same raw hue inside a ternary
+(`.foregroundStyle(ok ? Color.green : .red)`) slipped through. All hue kinds now read ternary branches, which surfaced
+86 lines in 54 files (ready / not-ready rows, live / done marks, in / out amounts); each branch now uses the token
+(`.green` → `successText`, `.red` → `dangerText`, `.orange` → `warningText`, `.blue` → `infoText`; `.secondary`
+branches unchanged). Levels: release-readiness section views (C, internal), club action panel / settlement / payout /
+badge management / director team / invitation feedback / activity list (C), wallet in/out amount (C), verification
+code timer (C), ticket wallet cleared seal (B), team live mark (B), official event detail (B), member home header (B),
+badges (B), friend directory (C), blacklist (C), channel management / check-in (C), order meeting point (C).
+
+| Page · level | Site | Before → after |
+|---|---|---|
+| character sheet attribute stars · B | `App/CharacterSheetDetailView.swift:176` | `Color.yellow` → `CYColor.ratingStar` (one rating hue) |
+| journey settle 评分 stars · B | `App/JourneyReportViews.swift:1196` | `Color.yellow` → `CYColor.ratingStar` (file is allowed for the 谢谢 celebration star only) |
+| growth leaderboard podium ring + crown · B | `App/GrowthLeaderboardView.swift:308` | `.yellow / .gray / .brown` → `CYColor.medalGold / medalSilver / medalBronze` |
+| member score status chip · C | `App/MemberScoreAppealListView.swift` `MemberScoreChipChrome` | private tone → colour switch (green / orange / red / blue / indigo) deleted; reads `CYStatusChip.systemStyle(for:)`, the same colours as every `CYStatusChip` |
+| 8 release-readiness section headers · C (internal) | `*SectionView.swift` header glyphs, `RoamAndExplorationParitySectionView:260`, `MiniProgramVsNativeSupersetClassifierSectionView:234` | `.teal` → `CYColor.brand`; `.teal : .red` → `successText : dangerText` |
+
+Not changed: Settings icon squares (`SettingsView` `.pink` / `.indigo` / `.teal`, the iOS Settings pattern); 漫游
+intro row symbol spines (per-row Settings-style tint); cast colour palette swatches (user data); map / game / motion
+palettes (effect surfaces).
+
+New checker kind **accent hue**: a raw `.purple` / `.pink` / `.yellow` / `.teal` / `.indigo` / `.mint` / `.cyan` /
+`.brown` foreground (incl. ternary branches) outside App/DesignSystem and the effect surfaces. Baseline 0, nothing
+allowed. `rating hue` also reads ternaries now (the character-sheet star was missed). Self-test: before the App
+changes the widened checker failed with the 120 hits fixed above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
+PASS (accent hue 0, semantic / warning / error / status / rating hue 0, manual paging 18, 121 allowed),
+`contract_ratchet --check` 46 failing, baseline 46, **new 0**.
+
+### For other lanes
+- **a11y-dt:** club channel roster swipe action 举报 / Report uses `.tint(.yellow)` with a white label
+  (`App/ClubChannelMessagingView.swift:1197`), about 1.5:1 contrast; 拉黑 uses `.orange`. Pick swipe tints with ≥ 3:1
+  for the label (e.g. `.orange` for Report, `.gray` / `.indigo` for Block).
+
+### Not done (next run)
+- manual paging debt (18): tests-first sites only (run 43 list); leave for a lane that can run Swift.
+- **One switch colour = MP green** (run 49 row): waiting on the coordinator / owner (green over brand).
+- **`CYStatusChip.systemStyle`** renders system green / orange / red while the status tokens (`successText` …) render
+  the palette hues: two sets of status colours inside the design system itself. Decide one (palette tokens match the
+  MP) and update the chip + its token tests together.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

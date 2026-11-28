@@ -116,7 +116,7 @@ struct ClubWorkbenchNowCard: View {
                 ClubR4Text.text("r4club.now.title")
             } icon: {
                 Image(systemName: actionable ? "exclamationmark.circle.fill" : "checkmark.circle")
-                    .foregroundStyle(actionable ? Color.orange : Color.secondary)
+                    .foregroundStyle(actionable ? CYColor.warningText : Color.secondary)
                     .accessibilityHidden(true)
             }
             .font(.subheadline)

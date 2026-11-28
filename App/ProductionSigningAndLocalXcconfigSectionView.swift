@@ -139,7 +139,7 @@ public struct ProductionSigningAndLocalXcconfigSectionView: View {
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
                     .font(.subheadline)
-                    .foregroundStyle(snapshot.isAllValid ? .green : .red)
+                    .foregroundStyle(snapshot.isAllValid ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("productionSigningValidator.overallStatus")
 
                 Text(verbatim: Self.baseDefaultsStatusText(for: snapshot))
@@ -207,7 +207,7 @@ private struct XcconfigCoordinateRowView: View {
                 Spacer()
                 Text(verbatim: row.isCoordinateValid ? "就绪" : "告警")
                     .cyText(.meta)
-                    .foregroundStyle(row.isCoordinateValid ? .green : .red)
+                    .foregroundStyle(row.isCoordinateValid ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: "Base 默认：\(row.baseFailClosedDefault)")

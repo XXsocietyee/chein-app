@@ -1193,7 +1193,7 @@ struct JourneySettleView: View {
                         } label: {
                             Image(systemName: value <= stars ? "star.fill" : "star")
                                 .font(.title)
-                                .foregroundStyle(value <= stars ? Color.yellow : Color.secondary)
+                                .foregroundStyle(value <= stars ? CYColor.ratingStar : Color.secondary)
                                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         }
                         .buttonStyle(.plain)

@@ -150,7 +150,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
             } icon: {
                 Image(systemName: day.kind == "MAKEUP" ? "calendar.badge.plus" : "checkmark.seal")
-                    .foregroundStyle(day.kind == "MAKEUP" ? Color.orange : Color.green)
+                    .foregroundStyle(day.kind == "MAKEUP" ? CYColor.warningText : CYColor.successText)
             }
         }
         .accessibilityElement(children: .combine)

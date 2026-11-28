@@ -135,7 +135,7 @@ public struct AccessibilityReadinessSectionView: View {
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
                     .font(.subheadline)
-                    .foregroundStyle(snapshot.isAllCompliant ? .green : .red)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("accessibilityReadiness.overallStatus")
 
                 Text(verbatim: Self.voiceOverSummaryText(for: snapshot))
@@ -209,7 +209,7 @@ private struct AccessibilitySurfaceRowView: View {
                 Spacer()
                 Text(verbatim: row.isCompliant ? "达标" : "待修复")
                     .cyText(.meta)
-                    .foregroundStyle(row.isCompliant ? .green : .red)
+                    .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: "VoiceOver 锚点：\(row.voiceOverAnchorIdentifier)（\(row.voiceOverMounted ? "已挂载" : "缺失")）")

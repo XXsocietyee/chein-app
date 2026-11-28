@@ -138,7 +138,7 @@ public struct ExplorationPrivateToolsAndCapsuleSectionView: View {
                 Spacer()
                 Text(verbatim: snapshot.allCompliant ? "READY" : "WARNING")
                     .font(.caption.monospaced())
-                    .foregroundStyle(snapshot.allCompliant ? .green : .red)
+                    .foregroundStyle(snapshot.allCompliant ? CYColor.successText : CYColor.dangerText)
             }
             .accessibilityIdentifier("explorationPrivateTools.summary")
 
