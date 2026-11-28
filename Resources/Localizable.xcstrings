@@ -80956,13 +80956,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Picked by our editors · see each page for entry requirements"
+            "value": "Check each page for entry rules"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "编辑精选 · 参加条件以详情为准"
+            "value": "参加条件以详情为准"
           }
         }
       }

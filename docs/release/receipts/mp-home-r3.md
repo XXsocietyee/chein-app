@@ -416,6 +416,19 @@ Merged `origin/ui/combined-r7` (clean, 124 commits incl. fix/1128b-*). Gates: ge
 | `pages/index/index` `onTapHomeCity` → `getHomeCityLocation({ userInitiated: true })` (index.js:1294-1330, 1438) → `App/HomeSearchTabParityViews.swift` city `Menu`, `App/SessionHomeFeedView.swift` `relocateHomeCity()`, `App/HomeCityLocationConsentHost.swift` `userAsksToLocate` | Tapping the city only offered the manual list; the MP tap re-locates from the device (consent read first; REVOKE stops; no agreement shows the consent prompt; the manual `cy-dropdown` is the fallback). | **Fixed** — signed-in only, the menu's first item is 使用当前位置 / Use current location (`location` symbol, divider, then the 20 MP cities; id `homeIndex.hero.city.locate`, key `homeIndex.hero.useCurrentLocation` en + zh-Hans). It reads the consent baseline: REVOKE → nothing (MP), no agreement → the consent card comes back (a local 暂不 is cleared, the user asked), agreement → one foreground fix matched on the device to the nearest 首页 city (coordinate never sent). Guests keep the menu only (MP guest path). New `HomeCityLocationConsentRecord.isRevoked`, test `HomeCityLocationConsentRevokeTests`. |
 
 
+## Round 3 continue (33) — ADA audit 11-28 (`audit/1128-ada`) mp-home rows: `d2-home`, `d2-home-offline`
+
+Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (52/52) · design consistency PASS. Sweep still build 3348aa51f (covered in continue 32); no open coordinator item, no Not done row that can be closed without a simulator. Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `pages/index/index.wxml:44-48` `v3-hero-mem` (member badge + 玩家 · city) → `App/HomeSearchTabParityViews.swift` `greetingRow` | ADA `d2-home` + coordinator 15:09: the role read as a purple (`.rare`) chip beside the secondary city — a second accent on a clean row. | **Fixed** — role (玩家 / merchant) is a system `Label` in `.secondary` with its glyph, the same treatment as the city beside it; id `homeIndex.hero.role` kept. |
+| `utils/index/home-greeting.js` `homeGreeting` (guests and default nicknames 城瘾用户 / 微信用户 / 旅人 / `用户\d+` are not named) → `Core/HomeSearchTabParity.swift` `greetingText` | Native addressed guests as 旅人 / Traveler and default nicknames by name; ADA: zh question had no "？". | **Fixed** — new `isPlaceholderNickname` (MP list + "Traveler"); placeholder → 今天去哪？ / Where to today?, named → 阿明，今天去哪？ / Where to today, Mia? (PL-54 wording kept). `HomeSearchTabParityTests` updated (微信用户, 用户123, 用户小明, en Mia). |
+| `pages/index/index.wxml:123` reco meta 编辑精选 · 参加条件以详情为准 → `App/HomeFeedView.swift` 编辑精选 header subtitle (`homeFeed.editorsPicksFootnote`) | ADA: the zh subtitle repeats the section title right under it; the en line is long. | **Fixed** — zh 参加条件以详情为准, en "Check each page for entry rules" (MP disclaimer kept, repeat dropped). |
+| `pages/index/index` load failure → `HomeFeedView.feedDownState` / empty `actions:` | ADA `d2-home-offline`: Retry rendered as a small capsule. | **Fixed** — `.bordered` + `.controlSize(.regular)` on Retry and on the empty-state 看看活动 / 看看主题 button. |
+| `pages/activity/detail` / `pages/topic/index` share + 举报 (MP: share in the page, 举报 in the `···` action sheet) → `App/ActivityDetailView.swift`, `App/TopicDetailView.swift` toolbar, `App/UGCSafetyComponents.swift` `UGCSafetyMenuButton` | ADA `rep3-activity-detail`: Report showed as a top-level flag icon in the bar. | **Fixed** — new opt-in `moreGlyph:` draws the standard `ellipsis.circle`; the menu (举报 / 屏蔽 / 联系客服) and its VoiceOver label "安全选项：举报或屏蔽" are unchanged. Only these two mp-home pages opt in; other callers keep their label. |
+| ADA `d2-home` banner (black slab, custom dots) | Banner art is the fixture's bundled illustration; dots follow MP `v3-hero-dots` with system colours. | Not changed — art is content; owner-approved banner treatment (13:34 / 15:09) stays. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -459,6 +472,7 @@ Merged `origin/ui/combined-r7` (clean, 124 commits incl. fix/1128b-*). Gates: ge
 - Needs a simulator pass (continue 28): 首页 map button opens the explorer titled with the 首页 city and 搜索此区域 enabled.
 - Needs a device pass (continue 29): 首页 city rail with location not determined shows no prompt and loads around the chosen area.
 - Needs a simulator pass (continue 30): `d2-home-empty` with the 看看活动 / See activities button in en + zh-Hans, AX5.
+- Needs a simulator pass (continue 33): `d2-home` greeting 今天去哪？ / role label in secondary, short 编辑精选 subtitle; activity / topic detail "···" menu, en + zh-Hans.
 - Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
 
 ## For other lanes
