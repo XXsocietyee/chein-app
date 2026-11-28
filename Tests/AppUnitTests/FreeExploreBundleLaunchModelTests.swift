@@ -146,15 +146,19 @@ import XCTest
         let catalog = try String(contentsOf: root.appendingPathComponent("Resources/FreeExploreBundleLaunch.xcstrings"), encoding: .utf8)
         for token in ["chapterContent(chapterID:", "shopName(offerID:", "unit.validTo", "reservation.canCancel",
                       "reservation.cancel", "reservation.monthlyWaiver", "freeBundle.refundHold", "exitCases.title",
-                      "exitCase.SWAP_CONSENTED", "exitCase.REFUND_UNFULFILLED", "refundHold.PREPARED"] {
+                      "exitCase.SWAP_CONSENTED", "exitCase.REFUND_UNFULFILLED", "refundHold.PREPARED",
+                      "freeBundle.unit.reserve.", "reserve.title", "displayedComponents: .hourAndMinute"] {
             XCTAssertTrue(page.contains(token), token)
         }
+        // MP: the reserve form opens from a unit's 预约 and has no step counter or standing chapter picker.
+        XCTAssertFalse(page.contains("stepHeader"))
+        XCTAssertFalse(page.contains("Picker(selection: $unitID)"))
         XCTAssertFalse(page.contains("cancel-quote"))
         XCTAssertFalse(page.contains("makeCancel"))
         XCTAssertFalse(page.contains("exit-decision"))
         for copy in ["有效期至 %@", "退款准备中", "退款已申请", "退款已批准", "原路退款已确认到账",
                      "无现金取消已完成，没有现金退款", "退款未通过，权益暂时冻结", "退款人工处理中，权益暂时冻结",
-                     "退款处理中", "售后记录", "已同意替换商家", "已申请未使用部分退款", "取消预约", "使用每月免费取消", "预约"] {
+                     "退款处理中", "售后记录", "已同意替换商家", "已申请未使用部分退款", "取消预约", "使用每月免费取消", "预约", "预约 %@", "日期", "时间"] {
             XCTAssertTrue(catalog.contains(copy), copy)
         }
     }
