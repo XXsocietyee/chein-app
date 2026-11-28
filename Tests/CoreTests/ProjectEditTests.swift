@@ -921,7 +921,12 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         XCTAssertThrowsError(try ProjectEditRuntimeValues.remove(row.key, in: saved)) { error in
             XCTAssertEqual(error as? ProjectEditRuntimeValues.Refusal, .referenced([.link("link_1")]))
         }
+        // MP onRuntimeStatToggle: 生命值 cannot switch off while the link still targets sys.hp.
+        XCTAssertThrowsError(try ProjectEditRuntimeStats.setEnabled(false, .hp, in: saved)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeValues.Refusal, .referenced([.link("link_1")]))
+        }
         let unlinked = try ProjectEditRuntimeValues.save(row, link: false, in: saved)
+        XCTAssertFalse(ProjectEditRuntimeStats.enabled(.hp, in: try ProjectEditRuntimeStats.setEnabled(false, .hp, in: unlinked)))
         XCTAssertFalse(ProjectEditRuntimeValues.linked(row.key, in: unlinked))
         let removed = try ProjectEditRuntimeValues.remove(row.key, in: unlinked)
         XCTAssertTrue(ProjectEditRuntimeValues.values(in: removed).isEmpty)

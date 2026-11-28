@@ -29,7 +29,7 @@ struct DiscoveryTemplateDetailParitySections: View {
             if showsPublisherRow { publisherRow }
             if let feedback = presentation.reviewFeedback {
                 Text("discovery.templateDetail.reviewFeedback \(feedback)")
-                    .font(.subheadline).foregroundStyle(.orange)
+                    .font(.subheadline).foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("discovery.templateDetail.reviewFeedback")
             }
             if !stats.isEmpty {

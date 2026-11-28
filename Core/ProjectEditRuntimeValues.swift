@@ -144,6 +144,10 @@ public enum ProjectEditRuntimeValues {
         return try ProjectEditD20Rules.write(rules, into: draft)
     }
 
+    /// MP reference keys for the two built-in values (`sys.hp` / `sys.luck`).
+    public static let hpKey = "sys.hp"
+    public static let luckKey = "sys.luck"
+
     /// MP `values.references` for the runtime config (chapter `statCosts`, item `statKey`) and
     /// journeyRules `statLinks`. The MP also walks node gameplay bindings; native nodes carry no stat keys.
     public static func references(_ key: String, in draft: ProjectEditDraft) -> [Reference] {
@@ -155,8 +159,19 @@ public enum ProjectEditRuntimeValues {
             let costs = object["statCosts"]?.array ?? []
             if costs.contains(where: { $0.object?["statKey"]?.text == key }) { found.append(.chapterCost(number)) }
         }
+        // MP: 生命值 / 幸运值 are also spent through the chapter hpCost / luckCost fields.
+        for (index, chapter) in (theme["chapters"]?.array ?? []).enumerated() {
+            guard let object = chapter.object else { continue }
+            let number = (object["index"]?.integer ?? index) + 1
+            let hpCost = object["hpCost"]?.integer ?? 0
+            let luckCost = object["luckCost"]?.integer ?? 0
+            if (key == hpKey && hpCost > 0) || (key == luckKey && luckCost > 0) { found.append(.chapterCost(number)) }
+        }
         for item in theme["items"]?.array ?? [] {
-            guard let object = item.object, object["statKey"]?.text == key else { continue }
+            guard let object = item.object else { continue }
+            let stat = object["stat"]?.text ?? ""
+            let uses = object["statKey"]?.text == key || (key == hpKey && stat == "HP") || (key == luckKey && stat == "LUCK")
+            guard uses else { continue }
             let name = object["name"]?.text ?? ""
             found.append(.item(name.isEmpty ? (object["id"]?.text ?? "") : name))
         }

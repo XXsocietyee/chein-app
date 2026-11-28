@@ -72,8 +72,8 @@ import QuestifyCore
         let report = outcome.report
         Section {
             HStack {
-                if report.mature { Label("creatorStudio.outcome.mature", systemImage: "checkmark.seal").foregroundStyle(.green) }
-                else { Label("creatorStudio.outcome.notMature", systemImage: "hourglass").foregroundStyle(.orange) }
+                if report.mature { Label("creatorStudio.outcome.mature", systemImage: "checkmark.seal").foregroundStyle(CYColor.successText) }
+                else { Label("creatorStudio.outcome.notMature", systemImage: "hourglass").foregroundStyle(CYColor.warningText) }
                 Spacer()
             }.accessibilityIdentifier("creatorStudio.outcome.maturity")
             if !report.mature { Text("creatorStudio.outcome.notMatureBody").font(.footnote).foregroundStyle(.secondary) }

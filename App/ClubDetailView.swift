@@ -812,7 +812,7 @@ private struct ClubDetailHeader: View {
                     HStack(spacing: CYSpacing.md) {
                         if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
                         else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
-                        else if club.joinPending { Label("club.membership.pending", systemImage: "clock").foregroundStyle(.orange) }
+                        else if club.joinPending { Label("club.membership.pending", systemImage: "clock").foregroundStyle(CYColor.warningText) }
                         if club.viewerIsAdmin { Label("club.viewerAdministrator", systemImage: "person.badge.shield.checkmark") }
                     }
                     .font(.subheadline)

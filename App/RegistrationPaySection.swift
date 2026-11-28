@@ -9,7 +9,7 @@ import SwiftUI
 
     static func pay(_ session: AppSession,
                     registrationID: Int,
-                    channel: RegistrationPayChannel = .standard,
+                    channel: RegistrationPayChannel = RegistrationAppPayResolver.inAppChannel,
                     readiness: RegistrationPaymentReadiness,
                     quoteUsable: Bool,
                     quoteFresh: Bool,
@@ -94,6 +94,8 @@ extension EnvironmentValues {
     @Environment(\.registrationPayExecutor) private var payExecutor
     /// US launch r1: non-nil only in the US market with payments open. Nil keeps the China flow exactly as before.
     @Environment(\.stripePayContext) private var stripePay
+    /// Owner check 11-28 05:35: the WeChat SDK hand-off for APP pay params. Nil keeps the status chip only.
+    @Environment(\.registrationAppPay) private var appPay
 
     let registrationID: Int
     let payableAmount: Decimal?
@@ -116,7 +118,7 @@ extension EnvironmentValues {
          quoteReceivedAt: Date? = nil,
          consented: Bool,
          requiresFreshQuote: Bool = true,
-         channel: RegistrationPayChannel = .standard,
+         channel: RegistrationPayChannel = RegistrationAppPayResolver.inAppChannel,
          onExpiredRebuild: (() -> Void)? = nil,
          orderCurrency: String? = nil,
          orderPaymentChannels: [String]? = nil) {
@@ -267,21 +269,10 @@ extension EnvironmentValues {
                 .foregroundStyle(CYColor.warningText)
                 .accessibilityIdentifier("registration.pay.blocked")
         case .paidOrParametersReceived(let response):
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                CYStatusChip(
-                    verbatim: response.message ?? (response.hasPaymentParameters
-                        ? c.t("订单已创建，请完成支付", "Order created. Complete the payment.")
-                        : c.t("支付成功，票已放入票夹", "Paid. Your ticket is in the wallet.")),
-                    tone: .success
-                )
-                .accessibilityIdentifier("registration.pay.succeeded")
-                #if DEBUG
-                if let params = response.payParams, !params.isEmpty {
-                    Text(c.t("支付通道参数已就绪 (\(params.count) 项)", "Payment channel ready (\(params.count) fields)"))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                }
-                #endif
+            if let params = response.payParams, !params.isEmpty {
+                RegistrationAppPayRows(context: appPay, registrationID: response.registrationID, parameters: params)
+            } else {
+                paidChip(response)
             }
         case .expiredNeedsRebuild(let message):
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -318,6 +309,15 @@ extension EnvironmentValues {
                 if let row = RequestReferenceRow(pathFragment: "/api/registration/pay") { row }
             }
         }
+    }
+
+    /// Paid without provider params (or no params): the MP success copy as a chip.
+    private func paidChip(_ response: RegistrationPayResponse) -> some View {
+        CYStatusChip(
+            verbatim: response.message ?? c.t("支付成功，票已放入票夹", "Paid. Your ticket is in the wallet."),
+            tone: .success
+        )
+        .accessibilityIdentifier("registration.pay.succeeded")
     }
 
     private func blockedCopy(_ reason: RegistrationPayBlockReason) -> String {

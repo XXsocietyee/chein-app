@@ -90,7 +90,7 @@ import SwiftUI
             if model.busy { NativeChannelProgressPrivacyLoading() }
             if !model.isCurrent {
                 Label { Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.closed")) } icon: { Image(systemName: "lock") }
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .accessibilityLabel(Text("d7.channelProgress.closed", tableName: "NativeChannelProgress"))
             }
             if model.isCurrent, let values = draft {
@@ -141,7 +141,7 @@ import SwiftUI
                 }
                 if let receipt = model.receipt, receipt.status == "APPLIED" {
                     Label { Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.applied")) } icon: { Image(systemName: "checkmark.circle") }
-                        .foregroundStyle(.green)
+                        .foregroundStyle(CYColor.successText)
                         .accessibilityIdentifier("channelProgress.applied")
                         .accessibilityLabel(Text("d7.channelProgress.applied", tableName: "NativeChannelProgress"))
                 }

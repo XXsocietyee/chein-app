@@ -41,6 +41,17 @@ struct RegistrationPayMethodSection: View {
                 .pickerStyle(.menu)
                 .disabled(!enabled)
                 .accessibilityIdentifier("registration.form.payChannel")
+                #if DEBUG
+                if RegistrationPayMethod.showsAlipayComingSoon(market: market) {
+                    LabeledContent {
+                        Text(verbatim: CoreLoopCopy(locale: locale).t("即将上线", "Coming soon"))
+                    } label: {
+                        Text(verbatim: name(.alipay))
+                    }
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("registration.form.payChannel.alipaySoon")
+                }
+                #endif
             }
         }
     }

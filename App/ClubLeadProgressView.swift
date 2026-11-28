@@ -170,7 +170,7 @@ enum ClubOwnerStageNow {
                             .accessibilityIdentifier("club.leadProgress.stage")
                         if snapshot.hasPartialProjects {
                             Label("club.leadProgress.partial", systemImage: "exclamationmark.triangle")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(CYColor.warningText)
                                 .accessibilityIdentifier("club.leadProgress.partial")
                         }
                         countRow("club.leadProgress.topicCount", snapshot.topicCount, symbol: "map")

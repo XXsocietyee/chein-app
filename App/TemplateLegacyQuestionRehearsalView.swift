@@ -85,7 +85,7 @@ import Combine
                 Section("templateLegacyQuiz.question") {
                     Text(verbatim: editor.question).font(.headline)
                     if editor.state == .completed {
-                        Label("templateLegacyQuiz.completed", systemImage: "checkmark.circle").foregroundStyle(.green).accessibilityIdentifier("templateLegacyQuiz.completed")
+                        Label("templateLegacyQuiz.completed", systemImage: "checkmark.circle").foregroundStyle(CYColor.successText).accessibilityIdentifier("templateLegacyQuiz.completed")
                     } else {
                         if editor.method == .text {
                             TextField("templateLegacyQuiz.answer", text: editor.answerInput(), axis: .vertical).textInputAutocapitalization(.never).autocorrectionDisabled()

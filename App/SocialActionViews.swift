@@ -38,7 +38,7 @@ public enum SocialEditorPurpose: String, Identifiable {
         Form {
             Section {
                 if coordinator.availability == .syntheticOnly { Label("social.offline", systemImage: "wifi.slash").foregroundStyle(.secondary) }
-                else if coordinator.availability(for: command(), target: target) == .disabled { Label("social.writesDisabled", systemImage: "lock").foregroundStyle(.orange) }
+                else if coordinator.availability(for: command(), target: target) == .disabled { Label("social.writesDisabled", systemImage: "lock").foregroundStyle(CYColor.warningText) }
                 if coordinator.identity.accountID == nil { SocialIssueView(error: SocialActionBlock.signIn) }
                 if let memberID = target.memberID { LabeledContent("social.targetMember", value: String(memberID)) }
                 if let postID = target.postID { LabeledContent("social.targetPost", value: String(postID)) }
@@ -292,11 +292,11 @@ private struct SocialActionStateView: View {
                 }
             case .outcomeUnknown:
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Label("social.unknown", systemImage: "questionmark.circle").foregroundStyle(.orange).accessibilityIdentifier("social.state.unknown")
+                    Label("social.unknown", systemImage: "questionmark.circle").foregroundStyle(CYColor.warningText).accessibilityIdentifier("social.state.unknown")
                     if let row = RequestReferenceRow(pathFragment: "/api/") { row }
                 }
             case .acknowledged(let receipt):
-                Label(LocalizedStringKey(receipt.synthetic ? "social.simulated" : "social.acknowledged"), systemImage: "checkmark").foregroundStyle(.green).accessibilityIdentifier("social.state.acknowledged")
+                Label(LocalizedStringKey(receipt.synthetic ? "social.simulated" : "social.acknowledged"), systemImage: "checkmark").foregroundStyle(CYColor.successText).accessibilityIdentifier("social.state.acknowledged")
             }
         }.accessibilityElement(children: .combine)
     }

@@ -135,7 +135,7 @@ struct ProjectChapterAtmosphereHostIdentity: Hashable {
             }
             if controller.saveUnconfirmed {
                 Label("projectChapterAtmosphere.saveUnconfirmed", systemImage: "exclamationmark.circle")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("projectChapterAtmosphere.saveUnconfirmed")
             }
         } header: {

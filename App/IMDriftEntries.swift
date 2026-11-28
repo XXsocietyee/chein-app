@@ -203,7 +203,7 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("im.review.record.loading")
                 case .failed:
                     Label("mpd.review.failed", systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                     Button("mpd.common.retry") { Task { await load(reader, taskID) } }
                         .accessibilityIdentifier("im.review.record.retry")
                 case .ready(let record):
