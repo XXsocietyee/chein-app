@@ -14,6 +14,7 @@ import SwiftUI
 /// not completed → Pay again. Only the server's `paymentStatus == 2` says paid.
 @MainActor struct RegistrationStripePayRows: View {
     @Environment(\.locale) private var locale
+    @Environment(\.analyticsEventClient) private var analytics
 
     let context: StripePayContext
     let registrationID: Int
@@ -338,7 +339,14 @@ import SwiftUI
     }
 
     private func apply(_ next: StripePayStage) {
+        let becamePaid = next == .paid && stage != .paid
         stage = next
+        if becamePaid, registrationID > 0 {
+            MiniProgramAnalytics.track(analytics, "payment_success", bizType: "activity",
+                pagePath: "/pages/activity/baoming/baoming",
+                properties: ["registrationId": .integer(Int64(registrationID))],
+                idempotencyKey: "payment_success_registration_\(registrationID)")
+        }
         if next == .paid { onPaid?() }
     }
 
