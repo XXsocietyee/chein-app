@@ -383,7 +383,7 @@ import SwiftUI
             if item.starred == 1 {
                 Spacer(minLength: 0)
                 Image(systemName: "star.fill")
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(CYColor.ratingStar)
                     .accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata"))
             }
         }

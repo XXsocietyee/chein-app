@@ -83,7 +83,7 @@ private struct ActivityReviewCard: View {
                         }
                     }
                     .font(.footnote)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.ratingStar)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("a11y.value.ofTotal \(rating) \(5)"))
                 } else {

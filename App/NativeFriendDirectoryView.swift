@@ -87,7 +87,7 @@ import SwiftUI
                         LabeledContent {
                             if item.starred == 1 {
                                 Image(systemName: "star.fill")
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(CYColor.ratingStar)
                                     .accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata"))
                             }
                         } label: {
