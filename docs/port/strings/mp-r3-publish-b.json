@@ -627,5 +627,158 @@
         }
       }
     }
+  },
+  "templateAuthor.prompt.requiredMaterials": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "e.g. phone, pen"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "如：手机、笔"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.hint1": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "First hint, e.g. Look at the flagstones under your feet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "一级提示，如：留意脚下的石板"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.hint2": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Second hint (optional)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "二级提示（可选）"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.answerReveal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Fallback answer, given straight away when players are stuck"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "备用答案，卡住时直接给出"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.feedbackText": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "e.g. Congratulations, you solved the old town's first secret!"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "例如：恭喜你解开了老城的第一个秘密！"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.medalName": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Medal name, e.g. Old Town Explorer"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "勋章名称，如 老城探秘者"
+        }
+      }
+    }
+  },
+  "templateRewardKinds.coupon": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Coupon"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "优惠券"
+        }
+      }
+    }
+  },
+  "templateRewardKinds.medal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Medal"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "勋章"
+        }
+      }
+    }
+  },
+  "templateLegacyHints.enabled": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hints"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提示"
+        }
+      }
+    }
   }
 }
