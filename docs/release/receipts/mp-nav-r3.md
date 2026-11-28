@@ -521,3 +521,13 @@ Merged `origin/ui/combined-r7` (clean). Sweep index still build 0446d1c4f (mp-na
 | passport / stories / wallet widget links, Live Activity roam / event, team-invite plan link `pages/team/detail/index?teamId=` (MP onLoad `options.teamId`), club / messages / roam-history board links | all parse (`MiniProgramPageLink` rules :37, :129, :158, :204) | unchanged; parse now pinned for every `QuestWidgetLinks` / `QuestPlanLinks.team` URL | verified |
 
 Test: Tests/CoreTests/QuestWidgetBoardTests.swift (`myActivities == QuestWidgetLinks.wallet`; every widget link parses). Navigation only, no section/order change. Not compiled here.
+
+## Run 11-28 16:xx — half split (merged combined-r7 a7c956335)
+
+Merged `origin/ui/combined-r7` (clean). Sweep build c4e43841a, mp-nav sheets: zh-Hans `d2-inbox` inline 消息, `ia-tabs` large 首页, `login-player` (phone + system black Sign in with Apple, one mark), `onboarding-1`, `welcome` all read correctly; en `welcome` tile is the black launch frame (logo only), the same sweep warm-up issue the 15:50 sweep lists for mp-roam: a sweep timing item for the coordinator, not an app change. No coordinator row for mp-nav after 07:45.
+
+Open rows in file order (half split, "B lanes: collision fix" 15:45): (1) "漫游护照与工具" hub sheet (line 40), A half; (2) "3. MP-account sync note", B half (still blocked: `WeChatAppAuthService.Envelope` has no mini-program-origin field). Row (1) is kept by owner Q9 (map home) and stays with the coordinator: no code change to make.
+
+Scan for edges without a row: every non-merchant MP page in `app.json` is either accepted by `MiniProgramPageLink.reviewedPages` or is `pages/playkit|publishkit/index/index` (MP coverage exemptions, no share/notification path) or `pages/club/settlement|payout-receiver/index` (owner money pages reached only by in-app navigateTo; `MPParityRoute` already opens them in-app). The full inbound catalog (https, `/app/`, `chein://`, `chengyin://` spellings for 174 pages) is Cursor K30 (`cursor/1128-deep-links`), so this lane does not duplicate it. Order card 立即支付 / 取消 sheet (ProfileOrdersView.swift:225) checked: an action sheet over the list, while the row itself pushes the order detail (MP orderinfo navigateTo): OK.
+
+**Half done** (A half = one row, kept by owner decision). Run stopped.
