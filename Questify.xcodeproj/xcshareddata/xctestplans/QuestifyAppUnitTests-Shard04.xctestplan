@@ -17,6 +17,7 @@
     {
       "parallelizable": false,
       "skippedTests": [
+        "AICreationReleaseCompositionTests",
         "AcceptanceR2ClubChatComposerTests",
         "AcceptanceR2GateTests",
         "AccessibilityReadinessSectionViewTests",

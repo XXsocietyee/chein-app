@@ -547,8 +547,11 @@ final class UGCContentSafetyServiceTests: XCTestCase {
         XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), token)
         let body = try jsonObject(request)
-        XCTAssertEqual(body["content"] as? String, "hello")
-        XCTAssertEqual(body["scene"] as? String, "comment")
+        // fix/1128c-ai-showcase (H-08b, deliberate): the wire is the backend AiSafetyPrecheckReq, not {content, scene}.
+        XCTAssertEqual(Set(body.keys), ["title", "subtitle", "description", "nodes"])
+        XCTAssertEqual(body["description"] as? String, "hello")
+        XCTAssertEqual((body["nodes"] as? [Any])?.count, 0)
+        XCTAssertNil(body["scene"])
 
         let passFlag = UGCRecordingTransport(#"{"code":200,"data":{"pass":false,"reason":""}}"#)
         let passed = try await service(passFlag).precheckContent(text: "x", scene: "chat", token: token)
@@ -558,7 +561,7 @@ final class UGCContentSafetyServiceTests: XCTestCase {
         let allowedWins = UGCRecordingTransport(#"{"code":0,"data":{"allowed":true,"pass":false}}"#)
         let allowed = try await service(allowedWins).precheckContent(text: "x", scene: "", token: token)
         XCTAssertEqual(allowed, UGCPrecheckResult(allowed: true, message: nil))
-        XCTAssertEqual(try jsonObject(try XCTUnwrap(allowedWins.requests.first))["scene"] as? String, "")
+        XCTAssertEqual(try jsonObject(try XCTUnwrap(allowedWins.requests.first))["description"] as? String, "x")
 
         let numericZero = UGCRecordingTransport(#"{"code":0,"msg":"held"}"#)
         let held = try await service(numericZero).precheckContent(text: "x", scene: "feed", token: token)

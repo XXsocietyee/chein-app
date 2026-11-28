@@ -17,6 +17,7 @@
     {
       "parallelizable": false,
       "skippedTests": [
+        "AICreationReleaseCompositionTests",
         "AccessibilityHardeningWaveTests",
         "AccessibilityReadinessSectionViewTests",
         "AccountDeletionAndGDPRPIPLSectionViewTests",
