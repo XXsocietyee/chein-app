@@ -314,13 +314,14 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)))
             } else if let playReaderForActivity { PlaySessionView(reader: playReaderForActivity(id)) }
         }
-        .cySheet(isPresented:$showsTicketWallet, onDismiss: { tileOpenedSheet = false }) {
-            // Source: a registered viewer's CTA opens the ticket wallet (subpackageMember/signup).
+        // mp-nav-b r3: a registered viewer's CTA opens the 票夹 page (MP navigateTo subpackageMember/signup/index): a push
+        // with system back, like 首页 today's ticket and 我的 → 票夹 (OWNER RULE 2), not a sheet with 关闭.
+        .navigationDestination(isPresented: $showsTicketWallet) {
             if let session = reader as? AppSession {
-                SessionTicketWalletHost(onClose:{ showsTicketWallet=false })
+                SessionTicketWalletHost(isPushed: true)
                     .environmentObject(session)
                     .themeDomain(.player)
-                    .cySheet(detents: [.large])
+                    .cyPushedChrome()
             }
         }
     }
@@ -605,7 +606,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         return CityOrientationEventCTA(titleKey: action.titleKey, identifier: "activity.primaryAction",
                                        enabled: !(action == .cancelled || (!walletAvailable && !canPlay))) {
             if canPlay { showsPlay = true }
-            else if action != .cancelled, walletAvailable { tileOpenedSheet = true; showsTicketWallet = true }
+            else if action != .cancelled, walletAvailable { showsTicketWallet = true }
         }
     }
     /// Secondary sections behind the "More info" disclosure.
@@ -693,7 +694,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             if let guestSignIn { guestSignIn(); return }
             tileOpenedSheet = true; showsRegistration = true
         } else if primaryAction == .continueExploring, playReaderForActivity != nil { showsPlay = true }
-        else if reader is AppSession { tileOpenedSheet = true; showsTicketWallet = true }
+        else if reader is AppSession { showsTicketWallet = true }
     }
     /// "From ¥58 · 24 going"; an unknown price or count is an em dash, never 0.
     /// Known parts only: price and attendee count joined by a dot. Nil (line hidden) when neither is known.
