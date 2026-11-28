@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cash out"
+            "value": "Withdrawal request debits"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Returned cash-out request"
+            "value": "Returned withdrawal request"
           }
         }
       }

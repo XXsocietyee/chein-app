@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redeems"
+            "value": "Redemptions"
           }
         },
         "zh-Hans": {
@@ -86,7 +86,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payouts"
+            "value": "Settlements"
           }
         },
         "zh-Hans": {

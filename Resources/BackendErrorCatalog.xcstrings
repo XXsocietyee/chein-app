@@ -1030,7 +1030,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bookings temporarily unavailable."
+            "value": "Reservations are temporarily unavailable."
           }
         },
         "zh-Hans": {
@@ -1654,7 +1654,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bookings temporarily unavailable."
+            "value": "Reservations are temporarily unavailable."
           }
         },
         "zh-Hans": {
@@ -2518,7 +2518,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not enough coupons. Redeem failed."
+            "value": "There isn't enough coupon stock, so redemption did not finish."
           }
         },
         "zh-Hans": {
@@ -2534,7 +2534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bad parameter."
+            "value": "A parameter is not valid."
           }
         },
         "zh-Hans": {
@@ -2646,7 +2646,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Can't access this resource."
+            "value": "You can't access this right now. Please sign in again."
           }
         },
         "zh-Hans": {
@@ -2662,7 +2662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bad code."
+            "value": "That redemption code is not valid."
           }
         },
         "zh-Hans": {
@@ -2678,7 +2678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bad code format."
+            "value": "That redemption code format is not valid."
           }
         },
         "zh-Hans": {
@@ -2694,7 +2694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bad format."
+            "value": "That format is not valid."
           }
         },
         "zh-Hans": {
@@ -2742,7 +2742,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No code"
+            "value": "The redemption code is empty."
           }
         },
         "zh-Hans": {
@@ -2758,7 +2758,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign doesn't match."
+            "value": "The signature does not match."
           }
         },
         "zh-Hans": {
@@ -2790,7 +2790,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign-in failed."
+            "value": "Sign-in could not be verified. Please sign in again."
           }
         },
         "zh-Hans": {

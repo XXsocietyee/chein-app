@@ -90,7 +90,7 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `INTENT_SESSION_MISMATCH` | `backendError.code.INTENT_SESSION_MISMATCH` | This run is not yours. Open your own run. | 这不是你的对局，请打开自己的对局。 |
 | `INTENT_STALE_STATE` | `backendError.code.INTENT_STALE_STATE` | Refresh this run, then try again. | 请刷新本局后再试。 |
 | `INVALID_INPUT` | `backendError.code.INVALID_INPUT` | That input isn't valid. Check it and try again. | 输入无效，请检查后再试。 |
-| `LEDGER_OFF` | `backendError.code.LEDGER_OFF` | Bookings temporarily unavailable. | 预约暂时不可用。 |
+| `LEDGER_OFF` | `backendError.code.LEDGER_OFF` | Reservations are temporarily unavailable. | 预约暂时不可用。 |
 | `LOGIN_REQUIRED` | `backendError.code.LOGIN_REQUIRED` | Sign in first. | 请先登录 |
 | `MERCHANT_ENVIRONMENT_EXIT` | `backendError.code.MERCHANT_ENVIRONMENT_EXIT` | The original request used the fixed safe exit. | 原请求的固定安全退出 |
 | `MERCHANT_EXITED` | `backendError.code.MERCHANT_EXITED` | The merchant has left this program. | 商家已退出该活动。 |
@@ -129,7 +129,7 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `REQUEST_ID_CONFLICT` | `backendError.code.REQUEST_ID_CONFLICT` | This request conflicts with an earlier one. | 此请求与先前的请求冲突。 |
 | `REQUEST_OUTCOME_UNKNOWN` | `backendError.code.REQUEST_OUTCOME_UNKNOWN` | The result is still unknown. Check the original request before trying again. | 结果尚未确定，请先核对原请求再试。 |
 | `REQUEST_REJECTED` | `backendError.code.REQUEST_REJECTED` | That request was not accepted. | 请求未被接受。 |
-| `RESERVATION_OFF` | `backendError.code.RESERVATION_OFF` | Bookings temporarily unavailable. | 预约暂时不可用。 |
+| `RESERVATION_OFF` | `backendError.code.RESERVATION_OFF` | Reservations are temporarily unavailable. | 预约暂时不可用。 |
 | `RESERVED_ELSEWHERE` | `backendError.code.RESERVED_ELSEWHERE` | This unit is already reserved elsewhere. | 该次数已预约其他门店。 |
 | `REVISION_CONFLICT` | `backendError.code.REVISION_CONFLICT` | This subscription changed. Refresh and try again. | 订阅已被修改，请刷新后再试。 |
 | `ROUTE_EGG_OFFLINE` | `backendError.code.ROUTE_EGG_OFFLINE` | Route eggs are offline. Continue without collecting one. | 途中彩蛋已下线。请继续路线，不必再领取。 |
@@ -188,24 +188,24 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `仅主题发布者可查看候选池` | `backendError.message.publisherPoolOnly` | Only the topic publisher can view this pool. | 仅主题发布者可查看候选池 |
 | `仅自由探索` | `backendError.message.freeExploreOnly` | This is only available for free exploration. | 仅自由探索 |
 | `今日AI次数已用完` | `backendError.message.aiQuotaUsed` | Today's AI uses are used up. | 今日AI次数已用完 |
-| `券库存不足,核销失败` | `backendError.message.couponStock` | Not enough coupons. Redeem failed. | 券库存不足,核销失败 |
-| `参数错误` | `backendError.message.badParameter` | Bad parameter. | 参数错误 |
+| `券库存不足,核销失败` | `backendError.message.couponStock` | There isn't enough coupon stock, so redemption did not finish. | 券库存不足,核销失败 |
+| `参数错误` | `backendError.message.badParameter` | A parameter is not valid. | 参数错误 |
 | `商家不存在或未开放` | `backendError.message.storeUnavailable` | This store is unavailable. | 商家不存在或未开放 |
 | `定位精度不足` | `backendError.message.locationAccuracy` | Location accuracy is too low. | 定位精度不足 |
 | `已过期` | `backendError.message.expired` | This has expired. | 已过期 |
 | `当前身份暂不支持` | `backendError.message.identityUnsupported` | This account can't do that. | 当前身份暂不支持 |
 | `据点不存在` | `backendError.message.placeMissing` | That place was not found. | 据点不存在 |
 | `无权核销该据点` | `backendError.message.redeemForbidden` | You can't redeem at this place. | 无权核销该据点 |
-| `无法访问系统资源` | `backendError.message.resourceDenied` | Can't access this resource. | 无法访问系统资源 |
-| `核销码无效` | `backendError.message.redeemCodeInvalid` | Bad code. | 核销码无效 |
-| `核销码格式错误` | `backendError.message.redeemCodeFormat` | Bad code format. | 核销码格式错误 |
-| `格式错误` | `backendError.message.badFormat` | Bad format. | 格式错误 |
+| `无法访问系统资源` | `backendError.message.resourceDenied` | You can't access this right now. Please sign in again. | 无法访问系统资源 |
+| `核销码无效` | `backendError.message.redeemCodeInvalid` | That redemption code is not valid. | 核销码无效 |
+| `核销码格式错误` | `backendError.message.redeemCodeFormat` | That redemption code format is not valid. | 核销码格式错误 |
+| `格式错误` | `backendError.message.badFormat` | That format is not valid. | 格式错误 |
 | `玩家未到店打卡,或该券已核销` | `backendError.message.checkInOrRedeemed` | Check in at the store first, or this coupon was already redeemed. | 玩家未到店打卡,或该券已核销 |
 | `登录状态已失效` | `backendError.message.sessionInvalid` | Your session has expired. Please sign in again. | 登录已过期，请重新登录。 |
-| `空码` | `backendError.message.emptyCode` | No code | 空码 |
-| `签名不匹配` | `backendError.message.signatureMismatch` | Sign doesn't match. | 签名不匹配 |
+| `空码` | `backendError.message.emptyCode` | The redemption code is empty. | 空码 |
+| `签名不匹配` | `backendError.message.signatureMismatch` | The signature does not match. | 签名不匹配 |
 | `订单已过期` | `backendError.message.orderExpired` | This order has expired. | 订单已过期 |
-| `认证失败` | `backendError.message.authenticationFailed` | Sign-in failed. | 认证失败 |
+| `认证失败` | `backendError.message.authenticationFailed` | Sign-in could not be verified. Please sign in again. | 认证失败 |
 | `请先登录` | `backendError.message.signInFirst` | Sign in first. | 请先登录 |
 | `途中彩蛋已下线` | `backendError.message.routeEggOffline` | Route eggs are offline. Continue without collecting one. | 途中彩蛋已下线。请继续路线，不必再领取。 |
 | `通知不存在` | `backendError.message.noticeMissing` | That notice was not found. | 通知不存在 |

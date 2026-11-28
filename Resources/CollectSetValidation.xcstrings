@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original set identifier is invalid. Check it in the original editor; it won't be rewritten automatically."
+            "value": "The original set identifier is invalid. Check it in the original editor; it will not be rewritten automatically."
           }
         }
       }
