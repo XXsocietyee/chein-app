@@ -456,6 +456,16 @@ Merged `origin/ui/combined-r7` (543d9033b, clean).
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS.
 
+## Pass 48: next MP gap in area — club/event-ops 主题 facts under the dropdown (no new coordinator finding for mp-club; latest sweep c4e43841a covers mp-home / mp-roam; no K50 `lane-layout` rows for club)
+Merged `origin/ui/combined-r7` (2b6ff8700, clean). Every `pages/club/*` and `pages/talent/*` MP page already has a row; the open rows are 重复方式 step 3 and P2-4 name-check.
+| MP page | Native view | MP sections | Fix |
+|---|---|---|---|
+| `pages/club/event-ops` 重复方式 card (wxml:196-198 `factsText` / `paymentNotice` under the 主题 dropdown; js:396-401 `sessionFactsText` C-17, js:581 C-02; level C) | `App/ClubOpsEventView.swift` `topicFactRows`; `Core/ClubOpsEventPresentation.swift` `ClubOpsEventTopicFact.price` / `.meetingPoint` / `.priceFact`, `ClubOpsEventTopicPrice` | ① 「票价 ¥X」 (或 「免费」 at 0) · 「集合点 …」, read-only, what the player sees at checkout ② the no-online-payment warning for a priced topic | **Fixed.** Before: the hub showed only the 主题 menu; the C-17 facts line existed nowhere in the app and the C-02 warning only inside the series form sheet. Now the picked topic's facts line (subheadline, secondary) and the warning label (`CYColor.warningText`, same key `club.eventOps.paymentNotice`) sit right under the 主题 picker in MP order, and follow the picked topic. Price uses the shared two-decimal `MoneyDisplay`. 3 new keys `clubOpsEvent.topic.price %@`, `.free`, `.meetingPoint %@` (en + zh-Hans). Test: `ClubOpsEventPresentationTests.testTopicFactsCarryPriceAndMeetingPointLikeMiniSessionFactsText` |
+| club/event-ops 重复方式 step 3 (form inline on the hub) | — | — | Still **Not done** (moves `ClubGovernanceCommandForm` review/return ownership onto the hub) |
+| P2-4 rest | `/api/club/name-check` | — | Still **Not done** (backend route unconfirmed) |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS, en strings: no new club rows.
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.

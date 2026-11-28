@@ -231,7 +231,9 @@ public enum ClubOpsEventTopicNames {
             result.append(.init(id: id, name: name?.isEmpty == false ? name : nil, sessionTicketCount: count, paymentNotice: notice,
                                 startDate: ClubOccurrenceClock.instant(row["startDate"]),
                                 endDate: ClubOccurrenceClock.instant(row["endDate"]),
-                                ownClub: owner == clubID))
+                                ownClub: owner == clubID,
+                                price: price.flatMap { $0.isFinite ? $0 : nil },
+                                meetingPoint: meetingPoint(row)))
         }
         return result
     }
@@ -240,6 +242,13 @@ public enum ClubOpsEventTopicNames {
     public static func windowWarning(receipt: ClubGovernanceValue, submittedTopicID: Int, selectedTopicID: Int) -> String {
         guard selectedTopicID == submittedTopicID, let warning = receipt["windowWarning"].string else { return "" }
         return warning
+    }
+
+    /// C-17 (MP event-ops js:396-401 sessionFactsText): the checkout meeting point, trimmed; nil when blank.
+    private static func meetingPoint(_ row: ClubGovernanceValue) -> String? {
+        guard let text = row["sessionMeetingPoint"].string?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !text.isEmpty else { return nil }
+        return text
     }
 
     private static func sessionTicketCount(_ row: ClubGovernanceValue) -> Int {
@@ -260,6 +269,19 @@ public struct ClubOpsEventTopicFact: Equatable, Identifiable {
     public internal(set) var endDate: Date? = nil
     /// MP `String(row.clubId) === String(clubId)`: 自有 when the topic belongs to this club, else 合作.
     public internal(set) var ownClub: Bool = true
+    /// C-17 (MP event-ops js:396-401): the player checkout price (`sessionPrice`); nil when the read sent none.
+    public internal(set) var price: Double? = nil
+    /// C-17: the player checkout meeting point (`sessionMeetingPoint`), trimmed; nil when blank.
+    public internal(set) var meetingPoint: String? = nil
+    /// MP sessionFactsText price part: 「票价 ¥X」 above zero, 「免费」 at zero or below, nothing without a price.
+    public var priceFact: ClubOpsEventTopicPrice? {
+        guard let price, price.isFinite else { return nil }
+        guard price > 0 else { return .free }
+        let cents = Int((price * 100).rounded())
+        return .paid(MoneyDisplay.plain(Decimal(cents) / Decimal(100)))
+    }
+    /// True when the MP would draw its facts line (price or meeting point).
+    public var hasSessionFacts: Bool { priceFact != nil || meetingPoint != nil }
     public var showsCapacity: Bool { ClubEventOpsFormRules.showsCapacity(sessionTicketCount: sessionTicketCount) }
     /// MP topicDropdownLabel range: 「M月d日–M月d日」, one side when only one parses, nil for 日期未定.
     public func rangeText(locale: Locale) -> String? {
@@ -270,6 +292,12 @@ public struct ClubOpsEventTopicFact: Equatable, Identifiable {
         if let start, let end { return start + "–" + end }
         return start ?? end
     }
+}
+
+/// C-17 price part of the topic facts line under the 主题 dropdown.
+public enum ClubOpsEventTopicPrice: Equatable {
+    case free
+    case paid(String)
 }
 
 /// Mini handleSeriesConflict (系列已被更新，正在刷新): only a definite 409 on updateSeries re-reads the series.

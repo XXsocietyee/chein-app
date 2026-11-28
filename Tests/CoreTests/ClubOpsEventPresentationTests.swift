@@ -195,4 +195,19 @@ final class ClubOpsEventPresentationTests: XCTestCase {
         XCTAssertNil(facts[2].name)
     }
 
+    func testTopicFactsCarryPriceAndMeetingPointLikeMiniSessionFactsText() throws {
+        let scope = ClubGovernanceScope(clubID: 81)
+        let value = ClubGovernanceValue.array([
+            .object(["id": .integer(7), "sessionPrice": .decimal(39.5), "sessionMeetingPoint": .string("  南门 ")]),
+            .object(["id": .integer(8), "sessionPrice": .integer(0)]),
+            .object(["id": .integer(9), "sessionPrice": .null, "sessionMeetingPoint": .string(" ")]),
+            .object(["id": .integer(10), "sessionPrice": .integer(20), "onlinePaymentAvailable": .bool(false)])
+        ])
+        let facts = ClubOpsEventTopicNames.facts(.init(operation: .eventTopics, scope: scope, permissions: nil, value: value), clubID: 81)
+        XCTAssertEqual(facts.map(\.priceFact), [.paid("39.50"), .free, nil, .paid("20.00")])
+        XCTAssertEqual(facts.map(\.meetingPoint), ["南门", nil, nil, nil])
+        XCTAssertEqual(facts.map(\.hasSessionFacts), [true, true, false, true])
+        XCTAssertEqual(facts[3].paymentNotice, ClubOpsEventTopicNames.onlinePaymentNotice)
+    }
+
 }
