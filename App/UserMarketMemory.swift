@@ -25,6 +25,12 @@ enum UserMarketMemory {
         defaults.set(market.rawValue, forKey: accountRegionKey)
     }
 
+    /// Legal pages follow the storefront. A US player must not be shown the China source as if it were US law.
+    /// The catalog then returns `.missing(.regionalTextNotProvided)` — a placeholder, not legal copy.
+    static func legalDocumentMarket(deployment: RegionalMarket?) -> RegionalMarket? {
+        USLaunchPresentation.market(storefront: RegionalLaunchConfiguration.storefrontMarket, deployment: deployment)
+    }
+
     /// A phone sign-in stores its dial code; an Apple sign-in (`nil`) clears it, so the device region decides.
     static func recordSignIn(phoneCountry: PhoneCountryCode?, defaults: UserDefaults = .standard) {
         defaults.removeObject(forKey: accountRegionKey)

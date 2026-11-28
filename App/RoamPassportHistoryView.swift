@@ -74,7 +74,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                 if model.isVisible {
                     Section {
                         if let value = model.summary {
-                            metric("trips", String(value.trips)); metric("distance", value.distanceM.map { String(format: "%.1f km", locale: locale, Double($0) / 1000) } ?? "—")
+                            metric("trips", String(value.trips)); metric("distance", value.distanceM.map { LocaleDisplay.walkedKilometers(Double($0) / 1000, locale: locale) } ?? "—")
                             metric("days", value.days.map(String.init) ?? "—"); metric("shops", value.shops.map(String.init) ?? "—")
                         }
                         if let error = model.summaryError {
@@ -94,7 +94,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                                     Text(verbatim: "#" + item.sessionID).cyText(.cardTitle)
                                     if let date = passportDate(item.timestamp) { Text(date, format: .dateTime.year().month().day().hour().minute()) }
                                     else { passportText("dateUnknown") }
-                                    HStack { Text(verbatim: item.distanceKM.map { String(format: "%.1f km", locale: locale, $0) } ?? "—"); Spacer(); Image(systemName: "chevron.forward") }
+                                    HStack { Text(verbatim: item.distanceKM.map { LocaleDisplay.walkedKilometers($0, locale: locale) } ?? "—"); Spacer(); Image(systemName: "chevron.forward") }
                                 }
                             }.accessibilityIdentifier("roam.serverHistory.record")
                         }
@@ -164,6 +164,13 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
     private func metric(_ key: String, _ value: String) -> some View { LabeledContent { Text(verbatim: value) } label: { passportText(key) } }
 }
 
+private func passportDuration(_ seconds: Int, locale: Locale) -> String {
+    if LocaleDisplay.isChinese(locale) {
+        return "\(seconds / 3600):" + String(format: "%02lld", seconds % 3600 / 60)
+    }
+    return LocaleDisplay.duration(seconds: Double(seconds), locale: locale) ?? "—"
+}
+
 @MainActor struct RoamPassportRecordView: View {
     let reader: any RoamPassportHistoryReading
     let owner: RoamPassportHistoryOwner
@@ -190,9 +197,9 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                         Text(verbatim: "#" + fact.sessionID).cyText(.cardTitle)
                         if let date = passportDate(fact.timestamp) { Text(date, format: .dateTime.year().month().day().hour().minute()) }
                         else { passportText("dateUnknown") }
-                        LabeledContent { Text(verbatim: fact.distanceKM.map { String(format: "%.1f km", locale: locale, $0) } ?? "—") } label: { passportText("distance") }
+                        LabeledContent { Text(verbatim: fact.distanceKM.map { LocaleDisplay.walkedKilometers($0, locale: locale) } ?? "—") } label: { passportText("distance") }
                         LabeledContent { Text(verbatim: fact.shops.map(String.init) ?? "—") } label: { passportText("shops") }
-                        LabeledContent { Text(verbatim: fact.durationSeconds.map { "\($0 / 3600):" + String(format: "%02lld", $0 % 3600 / 60) } ?? "—") } label: { passportText("duration") }
+                        LabeledContent { Text(verbatim: fact.durationSeconds.map { passportDuration($0, locale: locale) } ?? "—") } label: { passportText("duration") }
                         RoamPassportTrackView(track: model.track, places: model.supplement?.pois.map(\.point) ?? [])
                         passportText("trackBoundary").cyText(.meta).foregroundStyle(.secondary)
                     }
