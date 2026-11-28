@@ -59,8 +59,16 @@ struct ConsentFixture: View {
 }
 
 struct LoginFixture: View {
+    /// Sweep 04:50: render the shipped CN channel set (Apple approved), not the unreviewed bare session.
+    @State private var channels = AuthChannelCoordinator(
+        service: nil, appleSignInApproved: true,
+        currentSession: { AuthChannelSessionSnapshot(epoch: 0, accountID: nil) },
+        commitLogin: { (_: LoginResult, _: AuthChannelSessionSnapshot) -> Bool in false })
+    @StateObject private var session = AppSession()
     var body: some View {
-        LoginView(intent: .player).environmentObject(AppSession())
+        var view = LoginView(intent: .player)
+        view.designOverride = LoginView.DesignOverride(showsPassword: false, authChannels: channels)
+        return view.environmentObject(session)
     }
 }
 #endif
