@@ -151,3 +151,15 @@ No new user-visible keys. The team rejection shows the server's own text verbati
 - Device check against the CN backend (no deploy from here): a captain kick that the server REJECTS (for example a member
   already left) shows the server text; a sold-out ticket joins the waitlist; a v2 arrival on roam; a cancel from the order card
   refreshes the list.
+
+## Gates (run here)
+
+- `python3 tools/generate_project.py` ✓
+- `python3 tools/check_scaffold.py` ✓ (AppSession / AppCompositionRoot ratchet unchanged)
+- `python3 tools/check_design_consistency.py` ✓
+- `python3 tools/check_a11y_lint.py` ✓
+- `python3 tools/contract_ratchet.py --check`: the full run on `7270c627f` reported 53 failing against a baseline of 52, with
+  1 new: `test_rm02_registration_pay`, which pinned `RegistrationPaySection(` inside `OrderLifecycleView`. That pin was updated
+  for gap #9 in `1102c7654`, and the test now passes on its own. The full ratchet was not re-run after that commit. The earlier
+  new failures were fixed and re-run on their own: `check_nearby_write_repair`, `test_operation_http_adapters`,
+  `test_official_action_*` and `test_profile_order_filters`.
