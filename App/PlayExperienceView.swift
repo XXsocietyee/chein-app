@@ -848,7 +848,13 @@ struct PlayThemeMusicKey: Equatable {
     }
     @ViewBuilder private var cityRunPanel: some View {
         VStack(spacing: 0) {
-            CityOrientationRunMetricsRow(model: model, walkedMeters: cityLocation.walkedMeters, nextStopMeters: cityNextStopMeters) { cityRunPrimary }
+            CityOrientationRunMetricsRow(model: model, walkedMeters: cityLocation.walkedMeters, nextStopMeters: cityNextStopMeters) {
+                // Next round (motion): start / resume taps land with a medium impact, pause with a light one; a restored
+                // paused record (idle → paused) stays silent.
+                cityRunPrimary
+                    .cyHaptic(.impactMedium, trigger: model.clock.phase) { old, new in old != .running && new == .running }
+                    .cyHaptic(.impactLight, trigger: model.clock.phase) { old, new in old == .running && new == .paused }
+            }
             NavigationStack {
                 List {
                     if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
