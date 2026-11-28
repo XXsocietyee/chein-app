@@ -41,8 +41,11 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 8) {
             CYPillButton("platform.map.open", style: .secondary) { review = true }.disabled(model.state == .gated || model.state == .opening)
                 .accessibilityIdentifier("platform.map.open")
-            Text(LocalizedStringKey("platform.map." + String(describing: model.state))).cyText(.meta)
-                .accessibilityIdentifier("platform.map.state")
+            // P1-21: the driver is live now; the resting state needs no caption, only results do.
+            if model.state != .idle {
+                Text(LocalizedStringKey("platform.map." + String(describing: model.state))).cyText(.meta)
+                    .accessibilityIdentifier("platform.map.state")
+            }
             if model.state == .launchFailed || model.state == .copyFailed || model.state == .noCoordinates {
                 CYPillButton("platform.map.copy", style: .tertiary) { model.copySelectedAddress() }.accessibilityIdentifier("platform.map.copy")
             }

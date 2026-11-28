@@ -195,6 +195,8 @@ public enum ChinaReviewedRouteCapability {
         "/api/registration/payment-readiness": .payment, "/api/registration/pay": .payment, "/api/registration/pay/app": .payment,
         // US launch r1 (lane app-pay): Stripe / Apple Pay for USD orders on the same backend. Payment kind only.
         "/api/pay/stripe/intent": .payment, "/api/pay/stripe/applepay": .payment, "/api/pay/stripe/checkout": .payment,
+        // fix-1128-alipay (P0-4): Alipay app pay for CNY registrations (order string + post-return query).
+        "/api/pay/alipay/order": .payment, "/api/pay/alipay/query": .payment,
         "/api/fund/preflight/bank-withdrawal": .withdrawal, "/api/fund/preflight/{}/confirm": .withdrawal,
         "/api/fund/preflight/{}/reject": .withdrawal, "/api/withdrawal/create": .withdrawal,
         // CLB-r11-settlement-01 (MP components/cy/fe-reference-settlement/index.js:68-69): 标记已结清, payer side only.
@@ -300,7 +302,13 @@ public enum ChinaReviewedRouteCapability {
         "/api/topic/invite-chapters",
         "/api/topic/chapter/supply-terms",
         "/api/topic/host-qrcode",
-        "/api/topic/free-explore/visit-config"
+        "/api/topic/free-explore/visit-config",
+        // P2-6 (function audit 11-28): r3 serves publish-status (ApiTopicStateKeyController.java:267) and the
+        // edit-request receipts (ApiAppGapsTopicController.java:68-75), so production grants them too.
+        "/api/topic/edit-requests/read",
+        "/api/topic/edit-requests/submit",
+        "/api/topic/edit-requests/resume-post-processing",
+        "/api/topic/publish-status"
     ]
 
     /// `PUT /api/topic/state-keys/{stateKey}` names a key such as `clue.door`, not a numeric id.
@@ -2743,6 +2751,9 @@ public enum ReleaseMoneyWriteSwitch {
             "/api/marketing/group-checkout/create", "/api/marketing/product/activate",
             "/api/marketing/product/orders/{}/pay", "/api/platform-pass/orders/{}/pay",
             "/api/external-game/orders", "/api/external-game/orders/{}/confirm-test":
+            return .payment
+        case "/api/pay/alipay/order":
+            // fix-1128-alipay (P0-4): the Alipay order string is a payment write; `query` is a status read.
             return .payment
         case "/api/pay/stripe/intent", "/api/pay/stripe/applepay", "/api/pay/stripe/checkout":
             // US launch r1: Stripe channel for USD orders. Same payment switch as the China pay routes.

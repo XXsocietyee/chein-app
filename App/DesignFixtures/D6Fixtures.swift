@@ -47,7 +47,7 @@ struct D6MapFixture: View {
                 HStack {
                     CYGlassButton(systemImage: "chevron.left", label: "Back", action: {})
                     Spacer()
-                    CYGlassButton(systemImage: "location.fill", label: "Locate", action: {})
+                    // ADA 1128: the MP play map has no locate control (P9); only More stays.
                     CYGlassButton(systemImage: "ellipsis", label: "More", action: {})
                 }
                 .padding(.horizontal, CYSpacing.lg)

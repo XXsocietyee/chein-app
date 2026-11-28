@@ -263,7 +263,9 @@ class ReleasePaymentGatingTests(unittest.TestCase):
         # sessionDependencies moved to the player-write lease file; the money switches stay closed there.
         deps = func_body(read("App/ReviewedPlayerWriteLeases.swift"), "sessionDependencies(")
         self.assertIn("externalCheckoutApproved: false", deps)
-        self.assertIn("devicePaymentApproved: false", deps)
+        # fix/1128-cn-pay P0-2: device (WeChat SDK) payment follows the payment switch; external checkout stays closed.
+        self.assertIn("devicePaymentApproved: ReleaseMoneyWriteSwitch.paymentEnabled", deps)
+        self.assertIn("weChatPaymentConfiguration: WeChatPaymentBuildSettings.current", deps)
         self.assertNotIn("bankCreate", deps)
         self.assertNotIn("bankPrepare", deps)
         self.assertNotIn("topicSelfPlayPay", deps)

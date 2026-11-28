@@ -129,7 +129,7 @@ import Combine
                 Section {
                     Button(action: controller.action(.tap)) {
                         VStack(spacing: 16) {
-                            Text(LocalizedStringKey(stageKey(state))).font(.title.bold())
+                            Text(LocalizedStringKey(stageKey(state))).cyText(.pageTitle)
                             Text(LocalizedStringKey(hintKey(state))).font(.body).foregroundStyle(.secondary)
                         }.frame(maxWidth: .infinity, minHeight: 180)
                             .contentShape(Rectangle())

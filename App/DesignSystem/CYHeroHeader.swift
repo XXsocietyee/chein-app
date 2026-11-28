@@ -39,7 +39,7 @@ struct CYHeroHeader<Illustration: View>: View {
             illustration
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 title
-                    .font(.title.bold())
+                    .cyText(.pageTitle)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                     .modifier(CYOptionalAccessibilityIdentifier(identifier: titleIdentifier))

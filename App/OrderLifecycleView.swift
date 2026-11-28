@@ -116,7 +116,7 @@ import SwiftUI
             #if DEBUG
             // Design fixtures only: `--design-auto-review` opens the first reviewable action so the confirm sheet can be shot.
             if ProcessInfo.processInfo.arguments.contains("--design-auto-review"), let d = coordinator.detail,
-               let a = OrderLifecycleAction.allCases.first(where: { OrderLifecycleCoordinator.isReviewable($0, detail: d) }) {
+               let a = OrderLifecycleCoordinator.detailActions(detail: d).first {
                 try? await Task.sleep(nanoseconds: 800_000_000); model.prepare(a, orderID: id)
             }
             #endif
@@ -143,14 +143,16 @@ import SwiftUI
         }
         .accessibilityIdentifier("orderLifecycle.detail")
     }
-    /// The first reviewable action is the screen's one primary CTA, pinned above the home indicator.
+    /// The first working detail action (cancel / refund) is pinned above the home indicator. fix/1128-cn-pay P1-4: the
+    /// dead 审核支付 is gone; while the order awaits payment, Pay (in the pay step) is the prominent button, so the
+    /// pinned cancel is the secondary style.
     @ViewBuilder private var pinnedPrimary: some View {
         if let detail = coordinator.detail, detail.id == id,
-           let action = OrderLifecycleAction.allCases.first(where: { OrderLifecycleCoordinator.isReviewable($0, detail: detail) }) {
+           let action = OrderLifecycleCoordinator.detailActions(detail: detail).first {
             Button { model.prepare(action, orderID: id) } label: {
                 Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)).frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
+            .modifier(OrderLifecyclePinnedStyle(prominent: detail.summary().state != .pendingPayment))
             .controlSize(.large)
             .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
             .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
@@ -159,6 +161,11 @@ import SwiftUI
             .background(.bar)
         }
     }
+    /// Fix 11-28 (US pay): once the server says paid, read the order again so status, pass and actions refresh.
+    private func reloadAfterPayment(_ orderID: Int) {
+        Task { await model.load(id: orderID) }
+    }
+
     /// The accepted order detail, split out so the list body type-checks in reasonable time.
     @ViewBuilder private func acceptedDetail(_ detail: OrderLifecycleDetail) -> some View {
             summary(detail)
@@ -171,7 +178,10 @@ import SwiftUI
                     requiresFreshQuote: false,
                     channel: RegistrationAppPayResolver.inAppChannel,
                     orderCurrency: detail.currency,
-                    orderPaymentChannels: detail.paymentChannels
+                    orderPaymentChannels: detail.paymentChannels,
+                    // fix/1128-cn-pay P1-2: a server-confirmed paid read reloads this order detail.
+                    onSettled: { Task { await model.load(id: id) } },
+                    onPaid: { reloadAfterPayment(detail.id) }
                 )
             }
             timeline(detail)
@@ -292,9 +302,9 @@ import SwiftUI
     }
     private func actions(_ detail: OrderLifecycleDetail) -> some View {
         Section("orderLifecycle.actions") {
-            let reviewable = OrderLifecycleAction.allCases.filter { OrderLifecycleCoordinator.isReviewable($0, detail: detail) }
-            ForEach(OrderLifecycleAction.allCases, id: \.self) { action in
-                if OrderLifecycleCoordinator.isReviewable(action, detail: detail), action != reviewable.first {
+            let reviewable = OrderLifecycleCoordinator.detailActions(detail: detail)
+            ForEach(reviewable, id: \.self) { action in
+                if action != reviewable.first {
                     Button { model.prepare(action, orderID: id) } label: { Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)) }
                         .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
                         .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
@@ -404,5 +414,17 @@ struct OrderLifecycleField: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .cyDomainScreen(.player)
+    }
+}
+
+/// fix/1128-cn-pay P1-4: the pinned detail action is prominent unless the order's Pay button is on screen.
+private struct OrderLifecyclePinnedStyle: ViewModifier {
+    let prominent: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if prominent {
+            content.buttonStyle(.borderedProminent)
+        } else {
+            content.buttonStyle(.bordered)
+        }
     }
 }

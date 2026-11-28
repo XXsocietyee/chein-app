@@ -19,7 +19,7 @@ PAIRS={
  'confirm':('Confirm request','确认请求'), 'cancel':('Cancel','取消'), 'invalid':('Check the required fields, event times and ticket windows. Publishing also requires a current club-leader role.','请检查必填项、活动时间和票种履约窗口；发布还需要当前主理人身份。'),
  'acknowledged':('Request received. Refresh to see the latest status.','请求已收到，请刷新查看最新状态。'),
  'unknown':('The outcome is uncertain. This operation is locked across restarts to prevent duplicates. Do not resubmit; contact support to establish the result.','结果尚不确定。为防止重复提交，本次操作已跨重启锁定。请勿重发，请联系客服核实结果。'),
- 'notSent':('Nothing was sent. Access, configuration or the reviewed data changed.','未发送请求；权限、配置或审核内容发生变化。'), 'rejected':('This request couldn\'t be completed.','请求未能完成。'),
+ 'notSent':('Nothing was sent. Your access or the content changed — refresh and check it again.','未发送请求；权限、配置或审核内容发生变化。'), 'rejected':('This request couldn\'t be completed.','请求未能完成。'),
  'readFailed':('Could not load this list. Check your connection and sign-in, then retry.','列表加载失败，请检查网络和登录状态后重试。'), 'retry':('Retry','重试'), 'empty':('No results','暂无结果'),
  'selected':('Selected','已选择'), 'notSelected':('Not selected','未选择'), 'choose':('Choose','选择'), 'done':('Done','完成'),
  'mapUnavailable':('Place search isn\'t available right now. Confirm a place to continue quick setup.','地点搜索暂不可用；需确认地点后才能继续快速配置。'),

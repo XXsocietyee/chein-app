@@ -240,6 +240,28 @@ import FoundationNetworking
         XCTAssertThrowsError(try authorization.consume(.clubTime(first), owner: "exact-owner"))
         XCTAssertThrowsError(try ContextualOperationAuthorization(command: .clubTime(first), owner: "exact-owner", pending: { false }).consume(.clubTime(first), owner: "exact-owner"))
     }
+    /// Audit P1-8: the session approval reviews any positive topic / activity id the player opens,
+    /// and a host built while signed out reads the approval live once it exists.
+    func testSessionReviewApprovalAllowsAnyPositiveTargetAndIsReadLive() async throws {
+        let open = try ContextualReviewApproval(market: .china, endpoints: endpoints(reviewPaths), targets: [], allowsAnyPositiveTarget: true)
+        let c = try context()
+        XCTAssertTrue(open.permits(.topic(8), context: c)); XCTAssertTrue(open.permits(.activity(41), context: c))
+        XCTAssertFalse(open.permits(.topic(0), context: c))
+        XCTAssertFalse(open.permits(.topic(8), context: try context(account: 9)))
+        let fixed = try reviewApproval(targets: [.topic(8)])
+        XCTAssertFalse(fixed.permits(.topic(9), context: c))
+        var source: ContextualReviewApproval?
+        let wire = ContextualProductionWire()
+        let writer = ContextualReviewConfiguredWriter(configuration: try .init(baseURL: url), approvalSource: { source },
+            transport: wire, current: { c })
+        XCTAssertFalse(writer.isConfigured)
+        source = open
+        XCTAssertTrue(writer.isConfigured)
+        let owner = ContextualReviewHost(writer: writer, journal: try journal()).coordinator(.topic(8))
+        await owner.submit(draft, expected: try XCTUnwrap(writer.session))
+        XCTAssertEqual(owner.state, .acknowledged); XCTAssertEqual(wire.writes, 1)
+        XCTAssertEqual(wire.requests.last?.url, url.appendingPathComponent("api/comment/add"))
+    }
 }
 
 @MainActor private final class ContextualProductionWire: HTTPTransport {
