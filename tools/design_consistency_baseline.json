@@ -1,5 +1,8 @@
 {
   "allowed": {
+    "App/AssetPointsAndOrderCancellationSectionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
+    },
     "App/CityKit/CityMomentView.swift": {
       "raw radius": "procedural reward art: the tilted gold coin ticket that lands on a city moment (P7), drawn to its own size, not a card"
     },
@@ -15,6 +18,9 @@
     },
     "App/CityPlayerView.swift": {
       "refresh no pull": "城市 board toolbar item is the read-failure retry (action.retry) that also cancels the place selection; the MP city page has no onPullDownRefresh"
+    },
+    "App/CloudCIShardStatusSectionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     },
     "App/DesignSystem/CYAlbum.swift": {
       "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
@@ -61,6 +67,15 @@
     "App/DiceD20View.swift": {
       "raw colour": "game HUD: shaded 3D dice faces computed per face"
     },
+    "App/FinalReleaseSignoffAndZeroGapCertificateView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
+    },
+    "App/FinalThreeDocumentAndSevenDayGoalCompletionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
+    },
+    "App/FinalTwentyBatchMasterCompletionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
+    },
     "App/FogOverlayLayer.swift": {
       "raw colour": "full-screen map fog layer: colour components come from the fog engine"
     },
@@ -70,11 +85,20 @@
     "App/GroupPollViews.swift": {
       "refresh no pull": "IM poll: refresh clears the chosen option and runs the poll owner command (.refresh); a pull gesture would drop an unsent vote; MP im poll has no onPullDownRefresh"
     },
+    "App/GrowthAndLeaderboardParitySectionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
+    },
     "App/HomeFeedView.swift": {
       "list style": "首页 is a shelf feed (App Store-style horizontal rails that run to the screen edge, no cell chrome); .grouped is the full-width variant of the grouped system list"
     },
     "App/HomeSearchTabParityViews.swift": {
       "custom tabs": "MerchantRootModeSwitchBannerView: merchant root container mode switch (merchant is out of scope)"
+    },
+    "App/ImageAndVideoDiskCacheBudgetSectionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
+    },
+    "App/LocalizationCompletenessSectionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     },
     "App/MapCoreEntryHubView.swift": {
       "raw colour": "map legend swatch built from the map style manifest token (data, not a literal)"
@@ -109,6 +133,9 @@
     "App/ParticipantManagementDetailView.swift": {
       "refresh no pull": "常用参与人 detail: refresh is disabled while a delete awaits confirmation / runs; a pull gesture cannot carry that guard; MP page has no onPullDownRefresh"
     },
+    "App/PhotoLibraryAndCameraPermissionSectionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
+    },
     "App/PlayHUD.swift": {
       "button style": "game HUD circle controls over the live play surface"
     },
@@ -139,8 +166,14 @@
     "App/QuestifyPalette.swift": {
       "raw colour": "brand tint token definition (light/dark), the palette itself"
     },
+    "App/ReformWorkPackagesW02ToW20SectionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
+    },
     "App/RegistrationPaySection.swift": {
       "locale money": "amountText is RegistrationUIMoney.display(_:locale:currencyCode:) — already the locale money rule (CN¥ in en, ¥ in zh) from the order currency"
+    },
+    "App/ReleaseArchiveChecklistSectionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     },
     "App/RoamBrowserView.swift": {
       "custom search": "漫游 browser map mode: Maps-style search field pinned inside the persistent results sheet over the live map; list mode uses system .searchable (RoamBrowserView searchable modifier)",
@@ -155,64 +188,30 @@
     "App/SearchMapCanvas.swift": {
       "raw colour": "map route stroke with light/dark values on a full-screen map"
     },
+    "App/SevenDayLaunchCriticalPathSectionView.swift": {
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
+    },
     "App/SocialPublicProfileView.swift": {
       "hidden nav": "full-screen photo viewer (black stage), system close button"
-    }
-  },
-  "baseline": {
-    "App/AssetPointsAndOrderCancellationSectionView.swift": {
-      "status capsule": 2
-    },
-    "App/CloudCIShardStatusSectionView.swift": {
-      "status capsule": 1
-    },
-    "App/FinalReleaseSignoffAndZeroGapCertificateView.swift": {
-      "status capsule": 1
-    },
-    "App/FinalThreeDocumentAndSevenDayGoalCompletionView.swift": {
-      "status capsule": 1
-    },
-    "App/FinalTwentyBatchMasterCompletionView.swift": {
-      "status capsule": 2
-    },
-    "App/GrowthAndLeaderboardParitySectionView.swift": {
-      "status capsule": 2
-    },
-    "App/ImageAndVideoDiskCacheBudgetSectionView.swift": {
-      "status capsule": 1
-    },
-    "App/LocalizationCompletenessSectionView.swift": {
-      "status capsule": 1
-    },
-    "App/PhotoLibraryAndCameraPermissionSectionView.swift": {
-      "status capsule": 2
-    },
-    "App/ReformWorkPackagesW02ToW20SectionView.swift": {
-      "status capsule": 2
-    },
-    "App/ReleaseArchiveChecklistSectionView.swift": {
-      "status capsule": 2
-    },
-    "App/SevenDayLaunchCriticalPathSectionView.swift": {
-      "status capsule": 2
     },
     "App/StoreKit2SubscriptionAndRefundSectionView.swift": {
-      "status capsule": 2
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     },
     "App/StoryWalkingAndFogSectionView.swift": {
-      "status capsule": 1
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     },
     "App/ThreeDocumentMasterCrosswalkSectionView.swift": {
-      "status capsule": 2
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     },
     "App/UITestFlowReadinessAnchorSectionView.swift": {
-      "status capsule": 2
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     },
     "App/Wave3HandoffStatusSectionView.swift": {
-      "status capsule": 2
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     },
     "App/WeChatAndAppleSignInNonceStateSectionView.swift": {
-      "status capsule": 1
+      "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     }
-  }
+  },
+  "baseline": {}
 }

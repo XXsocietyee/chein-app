@@ -878,6 +878,54 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 - status capsule (29 baselined): move per-page soft-tint capsules to `CYStatusChip`, largest files first.
 
+## Continue run 29 (2026-11-28, after merging combined-r7)
+
+Run 28 Not done row (status capsule, 29 baselined in 18 files). Checked every file before converting: **none is a player
+surface.** Each is an internal release-checklist status page (`AssetPointsAndOrderCancellationSectionView`,
+`CloudCIShardStatusSectionView`, `FinalReleaseSignoff…`, `ReleaseArchiveChecklistSectionView`, `Wave3HandoffStatus…`, …)
+whose `struct …: View` has **no call site in `App/`** (one, `FinalThreeDocumentAndSevenDayGoalCompletionView`, is mounted
+only by `DesignFixtures/CurFixtures8.swift`). Their copy is internal Chinese QA wording (`MASTER_OK`, `I04_OK`), so a
+restyle changes nothing a player sees; the brief also scopes `*SectionView` internal screens out of the native lanes.
+
+| Change | Where |
+|---|---|
+| 29 `status capsule` hits moved from `baseline` (debt) to `allowed` with reason `unmounted internal screen: …` | `tools/design_consistency_baseline.json` (18 files) |
+| New guard: an allowed entry whose reason starts `unmounted internal screen` **fails** as soon as the file's `struct …: View` (any access level) is called from an `App/` file outside `DesignFixtures` / `*Fixture*` — mounting it for players means converting its capsules to `CYStatusChip` first | `tools/check_design_consistency.py` (`mounted_unmounted`, docstring) |
+
+Self-test: appending `CloudCIShardStatusSectionView()` to `App/GrowthCenterView.swift` fails the gate with
+"CloudCIShardStatusSectionView is now called from App/GrowthCenterView.swift"; reverted. All 18 files resolve a view name.
+
+Result: **0 baselined debt in every kind** (status capsule 0), 114 allowed hits, each with a reason.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt), `contract_ratchet --check` 52 failing, baseline 52, **new 0** (both batches).
+
+### Batch 2 — one section-header pattern (sweep build a4142df0d, `mp-home/en-rep3-activity-detail`)
+The activity detail showed two header looks in one list: "About this activity" as the system section header
+(footnote, secondary) and "Tickets" as a bold `.sectionTitle` heading with an icon. Same mix in the registration sheet
+(Activity / Participant / Ticket / Price details bold; host reservation / waitlist system headers).
+
+| MP page → native | Change |
+|---|---|
+| `pages/activity/detail` → `ActivityDetailView:459`; `pages/activity/baoming` → `RegistrationSheetView:453/763/865/1070` | shared `E1IconHeader` (`E1CommerceComponents.swift`) drops the custom `.cyText(.sectionTitle, .semibold)` + primary colour + secondary icon tint and inherits the List's system section-header style (`Label` with the SF Symbol kept, `.textCase(nil)`, `.isHeader`). Call sites, MP sections and order unchanged; contract pins on `E1IconHeader(systemImage: "ticket"` still hold. |
+
+### Batch 3 — gate kind `header font`
+Brace-balanced scan of every `header: { … }` closure on player files: 6 set a font; 5 are footnote/meta trailing
+accessories (fine, header size), 1 was a heading: `NPCChatDataView:325` (AI chat records → delete section) used
+`.cyText(.sectionTitle)` + primary colour → plain system header text. New checker kind **header font**
+(`header_font_hits`): heading text styles / `.bold()` / `.fontWeight(.bold…)` inside a header closure fail; baseline 0.
+Self-test: the pre-fix `NPCChatDataView` fails at line 327. Gates: `generate_project` PASS, `check_scaffold` PASS,
+`check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (header font 0), `contract_ratchet --check` 52 failing,
+baseline 52, **new 0**.
+
+### For other lanes
+- debt-r3: the 18 unmounted `*SectionView` release-checklist pages above (plus their unit tests) are dead code in the
+  player target; deleting them would shrink the app and the allowed list.
+
+### Not done (next run)
+- Shared header components outside `header:` closures (`E1IconHeader`-like wrappers in page files) are not seen by
+  `header font`; scan for `View` structs used only as section headers and fold them into the system header.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
