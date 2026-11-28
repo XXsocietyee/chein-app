@@ -109,9 +109,11 @@ final class FogCellBitmapTests: XCTestCase {
         XCTAssertEqual(b.north - b.south, 180.0 / 131072.0, accuracy: 1e-9)
     }
 
-    func testFixStreamStaysGatedOff() {
-        XCTAssertFalse(PersonalFogFeature.liveRevealEnabled)
-        XCTAssertEqual(RoamFixStreamGate.decide(authorization: .authorized, appActive: true), .blocked(.featureOff))
+    func testFixStreamGateFollowsTheLiveRevealSwitch() {
+        // Gap #24 (1128 plan R-02d): the live fog reveal is on in every build; the gate still needs permission and foreground.
+        XCTAssertTrue(PersonalFogFeature.liveRevealEnabled)
+        XCTAssertEqual(RoamFixStreamGate.decide(authorization: .authorized, appActive: true), .allowed)
+        XCTAssertEqual(RoamFixStreamGate.decide(authorization: .authorized, appActive: true, liveRevealEnabled: false), .blocked(.featureOff))
         XCTAssertEqual(RoamFixStreamGate.decide(authorization: .authorized, appActive: true, liveRevealEnabled: true), .allowed)
         XCTAssertEqual(RoamFixStreamGate.decide(authorization: .denied, appActive: true, liveRevealEnabled: true), .blocked(.permissionMissing))
         XCTAssertEqual(RoamFixStreamGate.decide(authorization: .notDetermined, appActive: true, liveRevealEnabled: true), .blocked(.permissionNotDetermined))

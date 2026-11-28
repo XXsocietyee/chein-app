@@ -1,7 +1,7 @@
 import Foundation
 
 /// Roam fog spec stage 4 (core only). Foreground location stream boundary: WGS-84 fixes in, the caller projects once.
-/// No concrete provider here and no background modes; `liveRevealEnabled` stays false until a reviewed change.
+/// No concrete provider here and no background modes; `liveRevealEnabled` is on since gap #24 (1128 plan).
 public struct RoamFixStreamPolicy: Equatable {
     public let distanceFilterMeters: Double
     public let desiredAccuracyMeters: Double
