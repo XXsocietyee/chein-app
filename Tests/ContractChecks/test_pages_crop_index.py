@@ -108,6 +108,9 @@ class PagesCropIndexTests(unittest.TestCase):
                 value = (node.get("stringUnit") or {}).get("value")
                 if isinstance(value, str):
                     present.add(value)
+        # mp-states r3: the MP cy-error title 图片没能打开 / inline 裁剪没有完成 now ship as catalog copy (undecodable-source state, cover export failure).
+        for key in ("pages.crop.openFailed", "profile.localCover.cropFailed"):
+            owned.update(node["stringUnit"]["value"].strip() for node in catalog[key]["localizations"].values())
         for literal in MISSING_STRINGS:
             self.assertIn(literal, note)
             if literal not in owned:

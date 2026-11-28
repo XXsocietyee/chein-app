@@ -136,11 +136,10 @@ import SwiftUI
                 .accessibilityIdentifier("roam.receivedStamp.loading")
         }
 
-        if model.hasMore && !model.isLoading && !model.visibleStamps.isEmpty {
-            Button("roam.experience.loadMore") {
+        if model.hasMore && !model.isLoading && model.error == nil && !model.visibleStamps.isEmpty {
+            CYLoadMoreRow("roam.experience.loadMore") {
                 Task { await model.loadNextIfNeeded() }
             }
-            .buttonStyle(.bordered)
             .accessibilityIdentifier("roam.receivedStamp.loadMore")
         }
     }

@@ -1228,7 +1228,7 @@ private struct PassOrderRefusedWrites: View {
                                     .foregroundStyle(CYColor.dangerText)
                                     .accessibilityIdentifier("passOrder.refund.reasonMissing")
                             }
-                            Text(verbatim: "\(reason.count)/200").monospacedDigit()
+                            Text(verbatim: "\(reason.count)/200").monospacedDigit().accessibilityLabel(Text("a11y.value.characters \(Int(reason.count)) \(Int(200))"))
                         }
                     }
                     Section {

@@ -306,9 +306,9 @@ extension EnvironmentValues {
                         }
                         .accessibilityIdentifier("search.unified.\(item.id)")
                     }
-                    if hasMore {
-                        Button("context.picker.more") { Task { await load(page + 1) } }
-                            .disabled(loading).accessibilityIdentifier("searchMap.unified.more")
+                    if hasMore && !failed {
+                        CYLoadMoreRow("context.picker.more", isLoading: loading) { Task { await load(page + 1) } }
+                            .accessibilityIdentifier("searchMap.unified.more")
                     }
                     if failed {
                         Button("searchMap.retryPage") { Task { await load(max(page, 0) + 1) } }

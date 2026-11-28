@@ -12,6 +12,7 @@ struct CYSquareActivityPicker: View {
     @State private var phase: Phase = .loading
     @State private var attempt = 0
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     private enum Phase: Equatable { case loading, failed, ready([CYSquareCompletedActivity]) }
 
     var body: some View {
@@ -77,7 +78,9 @@ struct CYSquareActivityPicker: View {
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(verbatim: activity.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                Text(verbatim: activity.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    .lineLimit(typeSize.isAccessibilitySize ? 4 : 2)
+                    .fixedSize(horizontal: false, vertical: typeSize.isAccessibilitySize)
                 Text("activityPicker.progress \(Self.count(activity.doneCount)) \(Self.count(activity.total))", tableName: "SocialParity")
                     .cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary)
             }

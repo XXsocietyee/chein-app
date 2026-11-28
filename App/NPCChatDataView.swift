@@ -195,24 +195,21 @@ struct NPCChatDataPresentation: Identifiable {
                 }
                 if let failure = coordinator.failure {
                     if errorOwnsRetry {
+                        // MP npc-chat wxml:25 cy-inline-error 导出没有完成 · sub exportError · 重试 (onExportData).
                         Section {
-                            CYErrorState(LocalizedStringKey(failure.messageKey), retryTitle: "npcData.reload") {
+                            CYEmptyState(systemImage: "exclamationmark.triangle", "npcData.failure.title",
+                                         detail: LocalizedStringKey(failure.messageKey),
+                                         actionTitle: "action.retry", actionIdentifier: "npcData.reload",
+                                         kind: .failure) {
                                 query = ""; model.requestLoad()
                             }
-                            .accessibilityIdentifier("npcData.reload")
                         }
                         .accessibilityIdentifier("npcData.failure")
                     } else {
                         Section {
-                            Label {
-                                Text(LocalizedStringKey(failure.messageKey))
-                                    .fixedSize(horizontal: false, vertical: true)
-                            } icon: {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                            }
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.dangerText)
-                            .accessibilityIdentifier("npcData.failure")
+                            CYEmptyState(systemImage: "exclamationmark.triangle", "npcData.failure.title",
+                                         detail: LocalizedStringKey(failure.messageKey),
+                                         messageIdentifier: "npcData.failure", kind: .failure)
                         }
                     }
                 }

@@ -263,7 +263,7 @@ struct CoopFlowHandleEditor: View {
             }
             TextField("coopflow.field.reason", text: $reason, axis: .vertical)
                 .onChange(of: reason) { _, value in if value.count > 100 { reason = String(value.prefix(100)) } }
-            Text(verbatim: "\(reason.count) / 100").font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: "\(reason.count) / 100").font(.caption).foregroundStyle(.secondary).accessibilityLabel(Text("a11y.value.characters \(Int(reason.count)) \(Int(100))"))
             // Source invite-detail: accepting takes an optional note; declining, withdrawing and cancelling need a reason.
             if action == .cancel && currentStatus == 1 { Text("coopflow.cancel.reason") }
             else if action == .reject { Text("cooperation.detail.reject.reasonRequired") }

@@ -180,4 +180,14 @@ final class PublicContentShareLinkTests: XCTestCase {
         XCTAssertNil(MiniProgramPageLink(path: "subpackageRoam/poi-detail/index", query: [:]))
         XCTAssertNil(MiniProgramPageLink(path: "subpackageRoam/poi-detail/index", query: ["poiId": "5", "id": "5"]))
     }
+
+    /// mp-roam r3: MP official-route `onShareAppMessage` path `/subpackageRoam/official-route/index?id=` parses back to that page.
+    func testOfficialRouteShareIsTheMiniProgramRoutePageThatParsesBack() throws {
+        let url = try XCTUnwrap(PublicContentShareLink.officialRoute(id: "12"))
+        XCTAssertEqual(url.absoluteString, "https://www.chengyinhub.com/subpackageRoam/official-route/index?id=12")
+        XCTAssertEqual(UniversalLinkParser(verifiedHTTPSOrigins: [PublicContentShareLink.httpsOrigin]).parse(url),
+                       .miniProgramPage(try XCTUnwrap(MiniProgramPageLink(path: "subpackageRoam/official-route/index", query: ["id": "12"]))))
+        XCTAssertNil(PublicContentShareLink.officialRoute(id: "012"))
+        XCTAssertNil(PublicContentShareLink.officialRoute(id: "r-1"))
+    }
 }
