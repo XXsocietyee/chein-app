@@ -121,6 +121,9 @@ private struct D4JoinStage: View {
                                          blockedUsersStore: D4MemoryBlockedStore())
             } else { ProgressView() }
         }
+        // mp-club r3 pass 27 (sweep ad55acd94, d4-channels): same inline title as the production host `ClubChannelMessagingHostView`.
+        .navigationTitle(Self.tt("\(club?.name ?? "") · Channels", "\(club?.name ?? "") · 频道"))
+        .navigationBarTitleDisplayMode(.inline)
         .task { club = try? await reader.clubDetail(id: 81) }
     }
     // mp-club r3 (19:50 sweep): channel data follows the UI language (fixture data, `tt(en, zh)`); the en UI test pins stay English.
