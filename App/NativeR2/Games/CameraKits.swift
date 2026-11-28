@@ -149,7 +149,7 @@ import VisionKit
                 }
                 Button("playkit.cancel", role: .cancel) {}
             } message: { Text("playkit.photo.uploadBoundary") }
-            .sensoryFeedback(.success, trigger: uploadedURL != nil) { _, next in next }
+            .sensoryFeedback(.success, trigger: uploadedURL != nil, condition: CYHapticTransition.isOn)
             .onAppear { mounted = true; model.cancel() }
             .onChange(of: identity) { _, _ in capturedIdentity = nil; cameraPurpose = false; uploadReview = false; model.cancel() }
             .onDisappear { mounted = false; capturedIdentity = nil; model.cancel() }
@@ -261,7 +261,7 @@ import VisionKit
                     }
                 }
             }
-            .sensoryFeedback(.success, trigger: code) { _, next in next != nil }
+            .sensoryFeedback(.success, trigger: code, condition: CYHapticTransition.isSet)
             .cyFullScreenCover(isPresented: $scanning) {
                 NativeQRScanner { scanned in
                     guard mounted, enabled else { return }
@@ -429,7 +429,7 @@ import VisionKit
         }
         .privacySensitive()
         .accessibilityIdentifier("playCard.reveal")
-        .sensoryFeedback(.success, trigger: appeared) { _, next in next }
+        .sensoryFeedback(.success, trigger: appeared, condition: CYHapticTransition.isOn)
         .onAppear { withAnimation(.easeOut) { appeared = true } }
         .onDisappear { scope = UUID(); frame = 0 }
     }

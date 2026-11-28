@@ -76,7 +76,7 @@ import SwiftUI
             if arrival == nil { arrival = PlayArrivalService(runtime: model, location: RuntimeNativeLocationProvider(enabled: true)) }
         }
         .onDisappear { arrival?.cancel(); if review != nil { model.cancelReview(); review = nil } }
-        .sensoryFeedback(.success, trigger: done) { old, new in !old && new }
+        .sensoryFeedback(.success, trigger: done, condition: CYHapticTransition.turnedOn)
         .onChange(of: done) { old, new in
             // P-054: the punch is announced, not only shown.
             if !old, new { AccessibilityNotification.Announcement(appLocalized("nativeR2.city.punch.done", locale: locale)).post() }
@@ -107,7 +107,7 @@ import SwiftUI
             if !visible, review != nil { model.cancelReview(); review = nil }
         }
         .sensoryFeedback(.error, trigger: model.arrivalFailure?.nodeID) { _, new in NativeR2Flags.motion && new == nodeID }
-        .sensoryFeedback(.error, trigger: refusal) { _, new in new != nil }
+        .sensoryFeedback(.error, trigger: refusal, condition: CYHapticTransition.isSet)
         .modifier(CityOrientationStartModeDialogs(arrival: arrival, model: model, nodeID: nodeID,
                                                   startModesShown: $startModesShown, deskConfirmShown: $deskConfirmShown))
         .accessibilityIdentifier("nativeR2.city.punch")

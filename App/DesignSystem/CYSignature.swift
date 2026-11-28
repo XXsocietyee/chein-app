@@ -74,7 +74,7 @@ struct CYPressScaleStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed && !reduceMotion ? scale : 1)
             .opacity(configuration.isPressed && reduceMotion ? 0.7 : 1)
             .animation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.62), value: configuration.isPressed)
-            .cyHaptic(.selection, trigger: configuration.isPressed) { old, new in !old && new }
+            .cyHaptic(.selection, trigger: configuration.isPressed, where: CYHapticTransition.turnedOn)
     }
 }
 
@@ -106,7 +106,7 @@ private struct CYGoPressBody: View {
                     CYGoHoldRing(pressed: configuration.isPressed)
                 }.allowsHitTesting(false)
             }
-            .cyHaptic(.impactHeavy, trigger: configuration.isPressed) { old, new in !old && new }
+            .cyHaptic(.impactHeavy, trigger: configuration.isPressed, where: CYHapticTransition.turnedOn)
             .onChange(of: configuration.isPressed) { old, new in if old && !new { burst += 1 } }
     }
 }

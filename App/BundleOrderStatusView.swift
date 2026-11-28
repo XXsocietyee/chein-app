@@ -111,7 +111,7 @@ enum BundleOrderStatusPresentation {
             }
         }
         .cyAnimation(value: poller?.state)
-        .cyHaptic(.success, trigger: receiptFound) { _, new in new }
+        .cyHaptic(.success, trigger: receiptFound, where: CYHapticTransition.isOn)
         .onDisappear { poller?.poller.stop() }
     }
 
