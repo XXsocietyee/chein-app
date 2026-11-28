@@ -4526,7 +4526,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Summary before publishing"
+            "value": "Review before publishing"
           }
         },
         "zh-Hans": {
@@ -57511,7 +57511,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Featured examples could not be loaded."
+            "value": "Couldn’t load featured examples"
           }
         },
         "zh-Hans": {
@@ -57527,7 +57527,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading featured examples"
+            "value": "Loading featured examples…"
           }
         },
         "zh-Hans": {
@@ -57543,7 +57543,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry examples"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -216331,7 +216331,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn a stretch you have played"
+            "value": "Turn a route you’ve explored"
           }
         },
         "zh-Hans": {
@@ -304612,7 +304612,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Organizer details didn't load"
+            "value": "Couldn’t load organizer details"
           }
         },
         "zh-Hans": {
