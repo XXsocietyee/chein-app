@@ -287,6 +287,10 @@ struct PlayThemeMusicKey: Equatable {
         }
     }
     var body: some View {
+        playExperienceTail
+    }
+
+    private var playExperienceScene: some View {
         presentationLayer
         // fix/1128c-ai-weather: story weather (SURVIVAL look) or live weather + weather events over the play scene.
         .modifier(PlaySceneWeather(topicID: model.snapshot?.result.topicID, latitude: sceneWeatherPoint?.latitude,
@@ -298,6 +302,10 @@ struct PlayThemeMusicKey: Equatable {
         // One page-level host (the lead section used to own the poll, so it only ran while that row was on screen).
         .task(id: model.interactionContext) { await model.probeLead(context: model.interactionContext) }
         .modifier(PlayLeadProgressPollingModifier(model: model, context: model.interactionContext))
+    }
+
+    private var playExperienceLoads: some View {
+        playExperienceScene
         .modifier(ActiveSessionPlayHostMarker())
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
@@ -327,6 +335,10 @@ struct PlayThemeMusicKey: Equatable {
             // guard still fails, so the run record was never read and Start did nothing. Restore once the load is done.
             if model.gameplayMode == .cityOrientation { await model.restoreRun(); projectAmbient() }
         }
+    }
+
+    private var playExperienceOuter: some View {
+        playExperienceLoads
         .onChange(of: model.gameplayMode) { _, mode in
             let previous = presentedMode
             if let mode { presentedMode = mode }
@@ -347,6 +359,10 @@ struct PlayThemeMusicKey: Equatable {
                   model.hasCurrentMediaSnapshot, finishShownFor != model.identity else { return }
             finishShownFor = model.identity; finishScreen = true
         }
+    }
+
+    private var playExperienceTail: some View {
+        playExperienceOuter
         .cyFullScreenCover(isPresented: $finishScreen) {
             if NativeR2Flags.cityOrientation { cityFinishSummary } else { finishMedalScreen }
         }
@@ -367,6 +383,7 @@ struct PlayThemeMusicKey: Equatable {
         // started and not ended, in the background; the run's end stops it.
         .onChange(of: model.clock.phase, initial: true) { _, phase in syncCityRunTracking(phase) }
     }
+
     private func syncCityRunTracking(_ phase: PlayRunClock.Phase) {
         guard NativeR2Flags.cityOrientation, model.gameplayMode == .cityOrientation else { return }
         cityLocation.setRunActive(phase == .running || phase == .paused)
@@ -1301,8 +1318,12 @@ struct PlayThemeMusicKey: Equatable {
         return PlayGameStage.resolve(nodeID: nodeID, nodes: result.nodes, chapters: result.chapters)
     }
     var body: some View {
+        nodeExperienceOuter
+    }
+
+    private var nodeExperienceBase: some View {
         let context = model.interactionContext
-        nodeWithConfirms(context: context)
+        return nodeWithConfirms(context: context)
             .environment(\.playGameStage, gameStage)
             // Native r2 games: the kit shell shows the same ladder from its toolbar hint button.
             .environment(\.nativeGameHelp, helpEnabled ? help.map { NativeGameHelpContext(model: $0, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts,
@@ -1323,6 +1344,10 @@ struct PlayThemeMusicKey: Equatable {
             }
             .cyToast(verbatimMessage: $nodeToastMessage)
             // Native r2 M4: a revealed hint (story or game stop) also shows as a hint island; "下一条提示" reopens the ladder.
+    }
+
+    private var nodeExperienceChrome: some View {
+        nodeExperienceBase
             .islandHints(helpEnabled ? help : nil) { showHelpPanel = true }
             .onChange(of: answer) { _, _ in refusal = nil }
             // A new read (advanced step accepted, stop done, run resynced) replaces the reason from the last tap.
@@ -1338,9 +1363,14 @@ struct PlayThemeMusicKey: Equatable {
                     Task { await model.load() }
                 }
             }
+    }
+
+    private var nodeExperienceOuter: some View {
+        nodeExperienceChrome
             .onAppear { if arrival == nil { arrival = PlayArrivalService(runtime: model, location: RuntimeNativeLocationProvider(enabled: true)) } }
             .onDisappear { journey?.roleContent.close(); device?.cancel(); arrival?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
     }
+
 
     @ViewBuilder
     private func nodeList(context: PlayInteractionContext?) -> some View {

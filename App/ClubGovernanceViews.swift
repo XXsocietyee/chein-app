@@ -1459,6 +1459,113 @@ struct ClubGovernanceReadView: View {
     @ViewBuilder private func content(_ snapshot: ClubGovernanceSnapshot) -> some View {
         let value = snapshot.value
         if operation == .access {
+            contentAccess(snapshot)
+        } else if operation == .hostStatus {
+            contentHostStatus(snapshot)
+        } else if operation == .roster {
+            contentRoster(snapshot)
+        } else if operation == .roles {
+            contentRoles(snapshot)
+        } else if operation == .bans, let bans = try? ClubOpsBanList(snapshot: snapshot) {
+            contentBans(snapshot, bans)
+        } else if operation == .members, let members = try? ClubOpsGovernanceMembers(snapshot: snapshot) {
+            contentMembers(snapshot, members)
+        } else if operation == .cases, let cases = try? ClubOpsCaseList(snapshot: snapshot) {
+            contentCases(snapshot, cases)
+        } else if operation == .recruit {
+            contentRecruit(snapshot)
+        } else if operation == .topicOverview {
+            contentTopicOverview(snapshot)
+        } else if operation == .audienceCounts {
+            contentAudienceCounts(snapshot)
+        } else if operation == .dissolutionBlockers {
+            contentDissolutionBlockers(snapshot)
+        } else if operation == .settlement {
+            let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
+            if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
+            // CLB-settlement-01: the same /settlement/summary carries F-16 sessions; show 各场次结算 here too.
+            if let sessions = ClubSettlementSummaryView(governanceValue: value)?.sessions { ClubSettlementSessionsSection(sessions: sessions) }
+            // WP-01: cy-club-direct-ledger and the owner's 个人收款 entry (mini-program openPayoutReceiver).
+            // mp-club r3 (MP settlement wxml:9): the direct ledger is the owner's only (`summary.isOwner`). The 已入账 card
+            // stays above the funds section because that section carries the withdraw button the MP puts under the card.
+            if let clubID = scope.clubID, clubID > 0, settlementSummary?.isOwner == true {
+                ClubDirectLedgerSection(scope: .club(clubID: clubID, topicID: nil))
+                ClubPayoutReceiverLink(clubID: clubID)
+            }
+            if let target = ClubOwnerFundsTarget(snapshot: snapshot, context: readContext) {
+                let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
+                ClubOwnerFundsSection(target: target, access: access, context: ownerFunds, sourceGeneration: sourceGeneration,
+                    sourceIsCurrent: {
+                        snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
+                        generation == sourceGeneration && identity == access.identity && sourceNamespace == access.storageNamespace
+                    }, workflow: ownerFundsParent.workflow, parent: ownerFundsParent,
+                    currentSource: { ownerFundsSource }, otherPresented: { settlementReturn.retainsChild }).id(sourceContext)
+            } else if let settlementSummary, !settlementSummary.isOwner, settlementSummary.hasTopics {
+                ClubOpsSettlementOwnerOnlyWithdraw()
+            }
+            if let presentation = try? ClubSettlementDetailPresentation(snapshot: snapshot, context: readContext) {
+                let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
+                let source = ClubSettlementReturnOwner.Source(presentation: presentation, context: sourceContext,
+                    generation: sourceGeneration, namespace: sourceNamespace)
+                Section {
+                ClubSettlementRows(presentation: presentation, context: sourceContext, snapshotGeneration: sourceGeneration,
+                    namespace: sourceNamespace, identity: identity, access: access,
+                    sourceIsCurrent: {
+                        snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
+                        generation == sourceGeneration && identity == access.identity && sourceNamespace == access.storageNamespace
+                    }, source: source, owner: settlementReturn, currentSource: { settlementSource }, active: { scenePhase == .active })
+                    .disabled(ownerFundsParent.retainsContact || ownerFundsParent.workflow.loading)
+                } header: { Text("clubOps.settlement.topicsHeader", tableName: "ClubOpsCustomer") } footer: { if !presentation.records.isEmpty { ClubOpsSettlementFootnote() } }
+            } else { Text("club.gov.malformed").accessibilityIdentifier("club.settlementDetail.malformed") }
+        } else if operation == .feed {
+            contentFeed(snapshot)
+        } else if operation == .nodeAnswer {
+            ClubNodeAnswerContent(value: value)
+        } else if operation == .customer {
+            let customerPage = ClubCustomerDetailPage.project(value: value, memberID: scope.memberID, capability: .init(permissions: snapshot.permissions, scope: scope))
+            if let detail = customerPage.detail ?? (try? ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID)) {
+                ClubOpsCustomerDetailContent(detail: detail, page: customerPage, topicAction: { record in
+                    customerTopicRoute(record.source).map { target in (id: target.topicID, open: { selectCustomerTopic(target) }) }
+                }, editSection: detail.canEdit ? { rows in customerInlineEditor(value, rows: rows) } : nil)
+            } else if !customerPage.hidden, let metrics = customerPage.metrics {
+                Section {
+                    ClubOpsCustomerMetricTile(value: metrics.arrived, label: "clubOps.customer.arrived")
+                    ClubOpsCustomerMetricTile(value: metrics.pending, label: "clubOps.customer.pending")
+                    ClubOpsCustomerMetricTile(value: metrics.refunded, label: "clubOps.customer.refunded")
+                    if let paid = customerPage.paidAmount?.displayText {
+                        Text(verbatim: paid).monospacedDigit().accessibilityIdentifier(ClubCustomerDetailPage.Accessibility.paidAmount)
+                    }
+                }
+            } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customer.malformed") }
+        } else if operation == .notificationStatus, let campaign = try? ClubOpsNotifyCampaign(value: value) {
+            let delivery = ClubNotifyDeliveryPage.project(value: value, capability: .init(permissions: snapshot.permissions, scope: scope))
+            Section { ClubOpsNotifyCampaignRows(campaign: campaign, delivery: delivery.hidden ? nil : delivery) } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.title") }
+            if campaign.canRetryFailed {
+                // CLB-notify-09/-10 (fix-r3-club-b): the retry button itself reads 只重试失败项 (fragment value of
+                // club.gov.action.retryNotification), so the separate footnote is gone.
+                Text("club.gov.deliveryPending").cyText(.meta).foregroundStyle(.secondary)
+                if delivery.retryOffered { edit(.retryNotification) }
+            }
+        } else {
+            if operation == .customers {
+                if let list = try? ClubOpsCustomerListPresentation(value: value) {
+                    let pageFilters = snapshotCustomerFilters ?? customerFilters
+                    ClubOpsCustomerListContent(first: list, filtered: snapshotCustomerFilters?.isFiltered == true, pager: customerPager,
+                        readPage: { pageNum in
+                            try await access.read(.customers, scope: scope, options: [
+                                "filter": .string(pageFilters.filter), "keyword": .string(pageFilters.keyword),
+                                "pageNum": .integer(pageNum), "pageSize": .integer(ClubOpsCustomerListPresentation.pageSize)]).value
+                        }) { id in
+                        AnyView(ClubGovernanceReadView(operation: .customer, scope: .init(clubID: scope.clubID, memberID: id), identity: identity, access: access, coordinator: coordinator))
+                    }
+                } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
+            } else {
+                contentOtherReads(snapshot)
+            }
+        }
+    }
+
+    @ViewBuilder private func contentAccess(_ snapshot: ClubGovernanceSnapshot) -> some View {
             // Viewer's own roles, by name. Unrecognised internal codes are not shown.
             let knownRoles = (snapshot.permissions?.roleCodes ?? []).filter { ["CLUB_OWNER", "CLUB_CO_OWNER", "CLUB_OPERATOR", "CLUB_MEMBER", "EVENT_LEAD", "EVENT_CHECKIN"].contains($0) }
             if !knownRoles.isEmpty {
@@ -1506,7 +1613,11 @@ struct ClubGovernanceReadView: View {
                     }
                 }
             }
-        } else if operation == .hostStatus {
+        
+    }
+
+    @ViewBuilder private func contentHostStatus(_ snapshot: ClubGovernanceSnapshot) -> some View {
+        let value = snapshot.value
             // Mini-program club/apply: intro → form; merchant accounts get a blocked state; hosts see the done card.
             if value["accountRole"] == .string("merchant") {
                 // CLB-apply-04 (r9, MP apply js:94-96, 108, 159-163): a merchant-role account is an active merchant
@@ -1572,7 +1683,10 @@ struct ClubGovernanceReadView: View {
                     edit(.hostApply, role: .primary)
                 }
             }
-        } else if operation == .roster {
+        
+    }
+
+    @ViewBuilder private func contentRoster(_ snapshot: ClubGovernanceSnapshot) -> some View {
             if let roster = try? ClubRosterPresentation(snapshot: snapshot, context: readContext) {
                 let source = attendanceSource
                 ClubRosterBucketContent(roster: roster, context: readContext, snapshotGeneration: snapshotGeneration,
@@ -1582,14 +1696,20 @@ struct ClubGovernanceReadView: View {
                     attendanceReturn.open(target, source: source, access: access, active: scenePhase == .active)
                 }.disabled(attendanceReturn.retainsReturn)
             } else { Text("club.gov.malformed").accessibilityIdentifier("club.roster.malformed") }
-        } else if operation == .roles {
+        
+    }
+
+    @ViewBuilder private func contentRoles(_ snapshot: ClubGovernanceSnapshot) -> some View {
             ClubOpsRoleSection(roles: snapshot, context: readContext, access: access, assign: AnyView(edit(.assignRole))) { row in
                 AnyView(edit(.revokeRole, seed: row.revokeSeed, role: .inlineDestructive))
             }
             ClubRoleRevocationRecoverySection(recovery: coordinator.roleRevocation, context: readContext, access: access) { Task { await load() } }
             ClubRoleAssignmentRecoverySection(recovery: coordinator.roleAssignment, context: readContext, access: access) { Task { await load() } }
             // CLB-roles-05: the MP roles page has no 可委派角色 list; the role choice lives in the assign picker.
-        } else if operation == .bans, let bans = try? ClubOpsBanList(snapshot: snapshot) {
+        
+    }
+
+    @ViewBuilder private func contentBans(_ snapshot: ClubGovernanceSnapshot, _ bans: ClubOpsBanList) -> some View {
             if bans.rows.isEmpty, governanceMemberCount == 0 {
                 // MP governance wxml:18 (state === 'empty'): nobody to govern and no records is one full-page 暂无可治理成员.
                 ContentUnavailableView {
@@ -1609,18 +1729,31 @@ struct ClubGovernanceReadView: View {
                 },
                 transfer: { AnyView(edit(.transferOwner, seed: $0.seed, role: .inlineDestructive)) },
                 fallback: AnyView(link(.members)))
-        } else if operation == .members, let members = try? ClubOpsGovernanceMembers(snapshot: snapshot) {
+        
+    }
+
+    @ViewBuilder private func contentMembers(_ snapshot: ClubGovernanceSnapshot, _ members: ClubOpsGovernanceMembers) -> some View {
             ClubOpsGovernanceMembersSection(roster: members, ban: { AnyView(edit(.ban, seed: $0.seed, role: .inlineDestructive)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed, role: .inlineDestructive)) },
                 scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value,
                 showsBan: snapshot.permissions?.canGovernMembers == true,
                 memberGovernanceDenial: snapshot.permissions?.permissions.contains("club:member:manage") == true && snapshot.permissions?.canGovernMembers != true
                     ? ClubGovernancePermissions.memberGovernanceDenial : nil)
-        } else if operation == .cases, let cases = try? ClubOpsCaseList(snapshot: snapshot) {
+        
+    }
+
+    @ViewBuilder private func contentCases(_ snapshot: ClubGovernanceSnapshot, _ cases: ClubOpsCaseList) -> some View {
             ClubOpsCaseSection(list: cases, report: cases.canReport ? AnyView(edit(.report)) : nil, appeal: cases.canAppeal ? AnyView(edit(.appeal)) : nil,
                 scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value)
-        } else if operation == .recruit {
+        
+    }
+
+    @ViewBuilder private func contentRecruit(_ snapshot: ClubGovernanceSnapshot) -> some View {
             ClubTopicMerchantContent(snapshot: snapshot, context: readContext, snapshotGeneration: snapshotGeneration, readGeneration: generation, access: access)
-        } else if operation == .topicOverview {
+        
+    }
+
+    @ViewBuilder private func contentTopicOverview(_ snapshot: ClubGovernanceSnapshot) -> some View {
+        let value = snapshot.value
             let terminalContext = readContext, terminalGeneration = snapshotGeneration
             // Mini-program club/topic-detail order: title + status → quick entries → 未通过原因 →
             // 剧情与玩法 → 接下来 (sessions) → director (terminal sessions); rules sit in the bottom bar (topicRulesNote).
@@ -1631,6 +1764,12 @@ struct ClubGovernanceReadView: View {
             let canDirect = stats["canDirect"] == .bool(true)
             let topicDisplay = canDirect ? ClubTopicDetailPort.Display(state: topicState, cancelled: false)
                 : ClubTopicDetailPort.display(audit: topicState, sessionStatus: stats["sessionStatus"].string)
+        contentTopicHeader(value: value, stats: stats, topicDisplay: topicDisplay)
+            contentTopicQuick(value: value, stats: stats, canDirect: canDirect)
+        contentTopicTail(snapshot, value: value, stats: stats, topicDisplay: topicDisplay, canDirect: canDirect, terminalContext: terminalContext, terminalGeneration: terminalGeneration)
+    }
+
+    @ViewBuilder private func contentTopicHeader(value: ClubGovernanceValue, stats: ClubGovernanceValue, topicDisplay: ClubTopicDetailPort.Display) -> some View {
             Section {
                 // CLB-topic-detail-08 (MP wxml:28-61): cover (none → no block), merchant logo, status, the name as the
                 // page title, one date-range line and the verify-mode line.
@@ -1710,6 +1849,9 @@ struct ClubGovernanceReadView: View {
             }
             // CLB-G12 rows (编辑主题内容 / 确认终价 / 承接审核) live in the 更多 sheet (CLB-r9-topic-detail-02: one 更多 entry).
             .navigationDestination(item: $topicMoreRoute) { route in MPReviewedPageScreen(page: route.page, query: route.query) }
+    }
+
+    @ViewBuilder private func contentTopicQuick(value: ClubGovernanceValue, stats: ClubGovernanceValue, canDirect: Bool) -> some View {
             // CLB-topic-detail-05 (MP wxml:63-80): 商家 · 报名参与者 · 团码 · 更多 as round actions that open half sheets.
             // 商家 goes to the merchantinfo recruit layer when the stats grant canReviewChapterApplications (MP ROUND4).
             Section {
@@ -1805,6 +1947,9 @@ struct ClubGovernanceReadView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
             }
+    }
+
+    @ViewBuilder private func contentTopicTail(_ snapshot: ClubGovernanceSnapshot, value: ClubGovernanceValue, stats: ClubGovernanceValue, topicDisplay: ClubTopicDetailPort.Display, canDirect: Bool, terminalContext: ClubGovernanceReadContext, terminalGeneration: UInt64) -> some View {
             // Mini 核销 card: only for running/ended, uncancelled sessions the server granted `canViewVerify`;
             // the counts come from topic-manage-stats. Missing counts render as an em dash.
             // mp-club r3 (MP topic-detail wxml:86-109): 未通过原因 comes before 核销 + 台账.
@@ -1891,7 +2036,11 @@ struct ClubGovernanceReadView: View {
             // (K8 banner, 准备总览, director tools, 排行榜), only where topic-manage-stats grants canDirect.
             if let activityID = scope.activityID, canDirect { ClubTopicDirectorEmbeddedMount(activityID: activityID, topicID: scope.topicID) }
             // CLB-topic-detail-02: the phase primary is the pinned footer (`topicPrimaryFooter`), not the last row.
-        } else if operation == .audienceCounts {
+        
+    }
+
+    @ViewBuilder private func contentAudienceCounts(_ snapshot: ClubGovernanceSnapshot) -> some View {
+        let value = snapshot.value
             let notifyPage = ClubNotifyPage.project(value: value, capability: .init(permissions: snapshot.permissions, scope: scope))
             Section {
                 if let rows = try? ClubOpsNotifyPresentation.audienceRows(value) { ClubOpsNotifyAudienceRows(rows: rows) }
@@ -1899,48 +2048,18 @@ struct ClubGovernanceReadView: View {
                 if !notifyPage.hidden, notifyPage.broadcastOffered { edit(.sendNotification) }
             } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.audience.title") }
             .accessibilityValue(Text(verbatim: notifyPage.hidden ? ClubNotifyPage.unknownDisplay : (notifyPage.rows?.map(\.count.displayText).joined(separator: " ") ?? ClubNotifyPage.unknownDisplay)))
-        } else if operation == .dissolutionBlockers {
+        
+    }
+
+    @ViewBuilder private func contentDissolutionBlockers(_ snapshot: ClubGovernanceSnapshot) -> some View {
+        let value = snapshot.value
             Section("club.gov.deposits") { dataRows(value["deposits"].array ?? []) }
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
             edit(.dissolve, role: .destructive)
-        } else if operation == .settlement {
-            let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
-            if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
-            // CLB-settlement-01: the same /settlement/summary carries F-16 sessions; show 各场次结算 here too.
-            if let sessions = ClubSettlementSummaryView(governanceValue: value)?.sessions { ClubSettlementSessionsSection(sessions: sessions) }
-            // WP-01: cy-club-direct-ledger and the owner's 个人收款 entry (mini-program openPayoutReceiver).
-            // mp-club r3 (MP settlement wxml:9): the direct ledger is the owner's only (`summary.isOwner`). The 已入账 card
-            // stays above the funds section because that section carries the withdraw button the MP puts under the card.
-            if let clubID = scope.clubID, clubID > 0, settlementSummary?.isOwner == true {
-                ClubDirectLedgerSection(scope: .club(clubID: clubID, topicID: nil))
-                ClubPayoutReceiverLink(clubID: clubID)
-            }
-            if let target = ClubOwnerFundsTarget(snapshot: snapshot, context: readContext) {
-                let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
-                ClubOwnerFundsSection(target: target, access: access, context: ownerFunds, sourceGeneration: sourceGeneration,
-                    sourceIsCurrent: {
-                        snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
-                        generation == sourceGeneration && identity == access.identity && sourceNamespace == access.storageNamespace
-                    }, workflow: ownerFundsParent.workflow, parent: ownerFundsParent,
-                    currentSource: { ownerFundsSource }, otherPresented: { settlementReturn.retainsChild }).id(sourceContext)
-            } else if let settlementSummary, !settlementSummary.isOwner, settlementSummary.hasTopics {
-                ClubOpsSettlementOwnerOnlyWithdraw()
-            }
-            if let presentation = try? ClubSettlementDetailPresentation(snapshot: snapshot, context: readContext) {
-                let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
-                let source = ClubSettlementReturnOwner.Source(presentation: presentation, context: sourceContext,
-                    generation: sourceGeneration, namespace: sourceNamespace)
-                Section {
-                ClubSettlementRows(presentation: presentation, context: sourceContext, snapshotGeneration: sourceGeneration,
-                    namespace: sourceNamespace, identity: identity, access: access,
-                    sourceIsCurrent: {
-                        snapshotContext == sourceContext && readContext == sourceContext && snapshotGeneration == sourceGeneration &&
-                        generation == sourceGeneration && identity == access.identity && sourceNamespace == access.storageNamespace
-                    }, source: source, owner: settlementReturn, currentSource: { settlementSource }, active: { scenePhase == .active })
-                    .disabled(ownerFundsParent.retainsContact || ownerFundsParent.workflow.loading)
-                } header: { Text("clubOps.settlement.topicsHeader", tableName: "ClubOpsCustomer") } footer: { if !presentation.records.isEmpty { ClubOpsSettlementFootnote() } }
-            } else { Text("club.gov.malformed").accessibilityIdentifier("club.settlementDetail.malformed") }
-        } else if operation == .feed {
+        
+    }
+
+    @ViewBuilder private func contentFeed(_ snapshot: ClubGovernanceSnapshot) -> some View {
             if let feed = try? ClubFeedPresentation(snapshot: snapshot) {
                 if feed.posts.isEmpty {
                     if feed.clubCount == 0 {
@@ -1955,47 +2074,12 @@ struct ClubGovernanceReadView: View {
                         openClub: target.map { route in { selectFeedClub(route) } })
                 }
             } else { Text("club.gov.malformed").accessibilityIdentifier("club.feed.malformed") }
-        } else if operation == .nodeAnswer {
-            ClubNodeAnswerContent(value: value)
-        } else if operation == .customer {
-            let customerPage = ClubCustomerDetailPage.project(value: value, memberID: scope.memberID, capability: .init(permissions: snapshot.permissions, scope: scope))
-            if let detail = customerPage.detail ?? (try? ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID)) {
-                ClubOpsCustomerDetailContent(detail: detail, page: customerPage, topicAction: { record in
-                    customerTopicRoute(record.source).map { target in (id: target.topicID, open: { selectCustomerTopic(target) }) }
-                }, editSection: detail.canEdit ? { rows in customerInlineEditor(value, rows: rows) } : nil)
-            } else if !customerPage.hidden, let metrics = customerPage.metrics {
-                Section {
-                    ClubOpsCustomerMetricTile(value: metrics.arrived, label: "clubOps.customer.arrived")
-                    ClubOpsCustomerMetricTile(value: metrics.pending, label: "clubOps.customer.pending")
-                    ClubOpsCustomerMetricTile(value: metrics.refunded, label: "clubOps.customer.refunded")
-                    if let paid = customerPage.paidAmount?.displayText {
-                        Text(verbatim: paid).monospacedDigit().accessibilityIdentifier(ClubCustomerDetailPage.Accessibility.paidAmount)
-                    }
-                }
-            } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customer.malformed") }
-        } else if operation == .notificationStatus, let campaign = try? ClubOpsNotifyCampaign(value: value) {
-            let delivery = ClubNotifyDeliveryPage.project(value: value, capability: .init(permissions: snapshot.permissions, scope: scope))
-            Section { ClubOpsNotifyCampaignRows(campaign: campaign, delivery: delivery.hidden ? nil : delivery) } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.title") }
-            if campaign.canRetryFailed {
-                // CLB-notify-09/-10 (fix-r3-club-b): the retry button itself reads 只重试失败项 (fragment value of
-                // club.gov.action.retryNotification), so the separate footnote is gone.
-                Text("club.gov.deliveryPending").cyText(.meta).foregroundStyle(.secondary)
-                if delivery.retryOffered { edit(.retryNotification) }
-            }
-        } else {
-            if operation == .customers {
-                if let list = try? ClubOpsCustomerListPresentation(value: value) {
-                    let pageFilters = snapshotCustomerFilters ?? customerFilters
-                    ClubOpsCustomerListContent(first: list, filtered: snapshotCustomerFilters?.isFiltered == true, pager: customerPager,
-                        readPage: { pageNum in
-                            try await access.read(.customers, scope: scope, options: [
-                                "filter": .string(pageFilters.filter), "keyword": .string(pageFilters.keyword),
-                                "pageNum": .integer(pageNum), "pageSize": .integer(ClubOpsCustomerListPresentation.pageSize)]).value
-                        }) { id in
-                        AnyView(ClubGovernanceReadView(operation: .customer, scope: .init(clubID: scope.clubID, memberID: id), identity: identity, access: access, coordinator: coordinator))
-                    }
-                } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
-            } else if operation == .checkin {
+        
+    }
+
+    @ViewBuilder private func contentOtherReads(_ snapshot: ClubGovernanceSnapshot) -> some View {
+        let value = snapshot.value
+            if operation == .checkin {
                 let page = ClubCheckinDetailPage.bind(clientCapabilityPresent: access.isConfigured, loading: loading, failure: failure, value: value)
                 // CLB-checkin-detail-03 (fix-r3-club-b): an error phase is one full-page state (drawn by the rail view), no rows.
                 let isErrorPhase: Bool = { if case .error(_)? = page.phase { return true }; return false }()
@@ -2106,8 +2190,10 @@ struct ClubGovernanceReadView: View {
             if operation == .cases { edit(.report); edit(.appeal) }
             if operation == .bans { link(.members) }
             if operation == .notificationStatus && (value["failedCount"].int ?? 0) > 0 { Text("club.gov.deliveryPending"); edit(.retryNotification) }
-        }
+        
     }
+
+
     /// CLB-topic-detail-02 (MP wxml:322-341 `cy-bottom-bar`): the topic page's one primary stays pinned above the
     /// home indicator on a system bar material while the page scrolls. Only a loaded, current topic overview shows it.
     @ViewBuilder private var topicPrimaryFooter: some View {
