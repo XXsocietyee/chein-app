@@ -332,6 +332,8 @@ Merged `origin/ui/combined-r7` (clean). Gates: scaffold, a11y (0 new), design co
 ## Round 3 continue (2026-11-28, thirty-sixth session — planning audit G-01a follow-up)
 Merged `origin/ui/combined-r7` (0446d1c4f; `Localizable.xcstrings` conflict resolved by key union, 2 lane keys `mpr3.order.reorder.*` kept). Gates: scaffold, a11y (0 new), design consistency PASS; ratchet 52/52 new 0. No sweep since 07:26 (3348aa51f); no open coordinator finding for this lane. G-01a's detail re-read landed via `fix/1128b-team-reg` #28; its second half (a 查看票夹 step on the free success result) was still open.
 
+Twin run (same session number): the merge's key union had kept this branch's older copy for 55 keys that `ui/combined-r7` had changed (e.g. `growth.level.value %lld` Level → Lv.), which made 2 new ratchet failures (`test_club_member_display`, `test_growth_center_index_page_ready`); restored to the combined-r7 values in 1561618a4, ratchet back to 52/52 new 0. A duplicate G-01a link was dropped in favour of `RegistrationFreeTicketLink`.
+
 | MP page | Native view | Change | Level / optimization |
 |---|---|---|---|
 | `pages/activity/baoming/baoming` free success (js:1922-1925 `finishSignup` 报名成功 · 票已放入票夹，出发前 30 分钟到集合点核验) | `App/RegistrationSheetView.swift` result section; new `RegistrationFreeTicketLink` (`App/RegistrationAppPayRows.swift`) | **added** 查看门票 / View ticket under the free 报名成功 result, opening `SessionTicketWalletHost` focused on the registration as a sheet — the same row and sheet the paid result already shows, so free and paid results end the same way. Paid / awaiting-payment results unchanged; 查看订单 kept | B · Crafted; one row pattern (`Label` + `ticket` symbol) across free and paid results |
