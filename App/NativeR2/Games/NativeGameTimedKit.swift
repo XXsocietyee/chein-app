@@ -28,6 +28,9 @@ import SwiftUI
     @State private var countdownStart: Date?
     /// Stopwatch kit: MP `round` (第 N 局), counted per acknowledged start.
     @State private var stopwatchRound = 0
+    /// Stopwatch kit: the last stop's reading (MP `over` phase). It stays on screen after the submit resets the run, so a
+    /// missed stop keeps 没停准 · deviation · 还有 N 次机会 with 再来一局 as the action; cleared when the next run starts.
+    @State private var lastStopMs: Int?
     @FocusState private var typingFocused: Bool
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
@@ -185,7 +188,7 @@ import SwiftUI
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("nativeGames.countdown.kicker")
                 }
-                if kind == .stopwatch, timing.phase != .idle {
+                if kind == .stopwatch, timing.phase != .idle || stopwatchReadoutMs != nil {
                     // MP `sw__chip` 第 N 局 while running; `sw__miss` 没停准 once a stop missed the window.
                     Group {
                         if stopwatchOutcome == false {
@@ -216,7 +219,9 @@ import SwiftUI
                 }
                 if kind == .stopwatch, timing.phase == .running {
                     // MP `sw__cap`: 1 秒后数字会藏起来, then 凭感觉 once the numbers are hidden.
-                    Text(LocalizedStringKey(elapsed >= 1000 ? "playkit.stopwatch.capHidden" : "playkit.stopwatch.capOn"))
+                    // MP `sw__hat` 已暂停 while the clock is paused.
+                    Text(LocalizedStringKey(timing.isPaused ? "playkit.stopwatch.paused"
+                                            : elapsed >= 1000 ? "playkit.stopwatch.capHidden" : "playkit.stopwatch.capOn"))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -242,7 +247,7 @@ import SwiftUI
                 ContentUnavailableView("playkit.configurationInvalid", systemImage: "exclamationmark.triangle")
             }
         }
-        if timing.phase == .measured, kind == .stopwatch { stopwatchResultSection }
+        if kind == .stopwatch, stopwatchReadoutMs != nil { stopwatchResultSection }
     }
 
     @ViewBuilder private var reactionSections: some View {
@@ -319,6 +324,18 @@ import SwiftUI
                     Label("playkit.challenge.interrupted", systemImage: "pause.circle").foregroundStyle(CYColor.warningText)
                 }
                 if expired { Label("playkit.challenge.expired", systemImage: "timer").foregroundStyle(CYColor.dangerText) }
+                if kind == .stopwatch, timing.phase == .running {
+                    // MP `sw__ico` 暂停 / 继续: the clock holds while paused; 停 is off until it runs again.
+                    Button {
+                        let now = ProcessInfo.processInfo.systemUptime
+                        if timing.isPaused { timing.resume(now: now) } else { timing.pause(now: now) }
+                    } label: {
+                        Label(LocalizedStringKey(timing.isPaused ? "playkit.stopwatch.resume" : "playkit.stopwatch.pause"),
+                              systemImage: timing.isPaused ? "play.fill" : "pause.fill")
+                    }
+                    .disabled(!enabled)
+                    .accessibilityIdentifier("nativeGames.stopwatch.pause")
+                }
                 if running {
                     Button("playkit.challenge.abort", role: .destructive) { interrupt() }
                         .accessibilityIdentifier("playkit.challenge.abort")
@@ -328,7 +345,7 @@ import SwiftUI
     }
 
     @ViewBuilder private var stopwatchResultSection: some View {
-        let stopped = timing.elapsedMilliseconds
+        let stopped = stopwatchReadoutMs ?? 0
         let diff = stopped - Int(seconds * 1000)
         resultSection(outcome: stopwatchOutcome,
                       value: PlayTimedDisplayLocalization.seconds(Double(stopped) / 1000, locale: locale),
@@ -379,7 +396,7 @@ import SwiftUI
     // MARK: Bottom-bar action
 
     private var submitKey: String {
-        "\(timing.phase.rawValue)|\(reaction.phase.rawValue)|\(enabled)|\(active)|\(input.isEmpty)|\(validConfiguration)"
+        "\(timing.phase.rawValue)|\(reaction.phase.rawValue)|\(enabled)|\(active)|\(input.isEmpty)|\(validConfiguration)|\(timing.isPaused)|\(lastStopMs ?? -1)"
     }
 
     private var primaryAction: NativeGameSubmit? {
@@ -402,17 +419,23 @@ import SwiftUI
         }
         switch timing.phase {
         case .idle, .interrupted:
-            return NativeGameSubmit(title: Text("playkit.challenge.start"), enabled: enabled && validConfiguration,
-                                    identifier: "playkit.challenge.start", action: { start() })
+            // MP 再来一局 after a missed stop that still has chances: the same START_CHALLENGE, next 第 N 局.
+            let again = kind == .stopwatch && stopwatchOutcome == false && (Self.triesLeft(segment: segment) ?? 1) > 0
+            return NativeGameSubmit(title: Text(LocalizedStringKey(again ? "playkit.stopwatch.again" : "playkit.challenge.start")),
+                                    enabled: enabled && validConfiguration,
+                                    identifier: again ? "nativeGames.stopwatch.again" : "playkit.challenge.start", action: { start() })
         case .running:
             if kind == .countdown {
                 // MP `g-btn--disabled` 计时中 while the clock runs.
                 return NativeGameSubmit(title: Text("playkit.countdown.running"), enabled: false,
                                         identifier: "playkit.countdown.running", action: {})
             }
-            return NativeGameSubmit(title: Text(kind == .stopwatch ? "playkit.stopwatch.stop" : "playkit.type.finish"), enabled: enabled,
+            return NativeGameSubmit(title: Text(kind == .stopwatch ? "playkit.stopwatch.stop" : "playkit.type.finish"),
+                                    enabled: enabled && !timing.isPaused,
                                     identifier: "playkit.challenge.measure", action: {
                 timing.measure(now: ProcessInfo.processInfo.systemUptime); elapsed = timing.elapsedMilliseconds; typingFocused = false
+                // MP playkit-stopwatch `onStop`: the stop itself is the submit (SUBMIT_STOPWATCH with the stopped reading).
+                if kind == .stopwatch, timing.phase == .measured { lastStopMs = timing.elapsedMilliseconds; reviewMeasurement() }
             })
         case .measured:
             if kind == .countdown {
@@ -427,9 +450,15 @@ import SwiftUI
 
     // MARK: Logic (unchanged from PlayKitTimedChallengeView)
 
+    /// The reading the stopwatch shows as its result: the measured stop, or the last stop once the submit reset the run.
+    private var stopwatchReadoutMs: Int? {
+        guard kind == .stopwatch else { return nil }
+        if timing.phase == .measured { return timing.elapsedMilliseconds }
+        return timing.phase == .idle ? lastStopMs : nil
+    }
     private var stopwatchOutcome: Bool? {
-        guard kind == .stopwatch, timing.phase == .measured, let tolerance = segment["toleranceMs"].integer else { return nil }
-        return abs(timing.elapsedMilliseconds - Int(seconds * 1000)) <= tolerance
+        guard let stopped = stopwatchReadoutMs, let tolerance = segment["toleranceMs"].integer else { return nil }
+        return abs(stopped - Int(seconds * 1000)) <= tolerance
     }
     private var typeInPrompt: String {
         let text = segment["target"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -485,6 +514,9 @@ import SwiftUI
     }
     private var clockLabel: String {
         if kind == .stopwatch && timing.phase == .running && elapsed >= 1000 { return "—.—" }
+        if kind == .stopwatch, timing.phase == .idle, let lastStopMs {
+            return PlayTimedDisplayLocalization.seconds(Double(lastStopMs) / 1000, locale: locale)
+        }
         // design-r2-play P1: before the start the countdown shows the challenge length it will run, not a dash.
         // Once started the server-acknowledged clock (NativeGameCountdownClock) takes over; nothing is computed here.
         if kind == .countdown {
@@ -506,7 +538,7 @@ import SwiftUI
             else {
                 input = ""; elapsed = 0; timing.beginAfterAcknowledgement(now: ProcessInfo.processInfo.systemUptime); typingFocused = kind == .typeIn
                 countdownStart = kind == .countdown ? Date() : nil
-                if kind == .stopwatch { stopwatchRound += 1 }
+                if kind == .stopwatch { stopwatchRound += 1; lastStopMs = nil }
             }
             ticker = UUID()
         }

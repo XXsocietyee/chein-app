@@ -39,6 +39,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld places"
+          },
           "variations": {
             "plural": {
               "one": {
@@ -73492,6 +73496,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld chapters"
+          },
           "variations": {
             "plural": {
               "one": {
@@ -153280,6 +153288,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld days"
+          },
           "variations": {
             "plural": {
               "one": {
@@ -153309,6 +153321,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld hours"
+          },
           "variations": {
             "plural": {
               "one": {
@@ -156976,6 +156992,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ended · %lld events"
+          },
           "variations": {
             "plural": {
               "one": {
@@ -157005,6 +157025,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live · %lld events"
+          },
           "variations": {
             "plural": {
               "one": {
@@ -157034,6 +157058,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mine · %lld events"
+          },
           "variations": {
             "plural": {
               "one": {
@@ -157080,6 +157108,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coming soon · %lld events"
+          },
           "variations": {
             "plural": {
               "one": {
@@ -327385,6 +327417,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld results"
+          },
           "variations": {
             "plural": {
               "one": {
@@ -327499,6 +327535,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld stamps collected"
+          },
           "variations": {
             "plural": {
               "one": {
@@ -362235,6 +362275,10 @@
                 }
               }
             }
+          },
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld topics published"
           }
         },
         "zh-Hans": {
@@ -362281,6 +362325,10 @@
                 }
               }
             }
+          },
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld invitations sent"
           }
         },
         "zh-Hans": {
@@ -365740,6 +365788,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "暂时不能查看订单"
+          }
+        }
+      }
+    },
+    "playkit.stopwatch.paused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已暂停"
+          }
+        }
+      }
+    },
+    "playkit.stopwatch.pause": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停"
+          }
+        }
+      }
+    },
+    "playkit.stopwatch.resume": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续"
+          }
+        }
+      }
+    },
+    "playkit.stopwatch.again": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再来一局"
           }
         }
       }
