@@ -184,6 +184,20 @@ import SwiftUI
         }
         memberTotal = max(directory.club.memberCount, directory.members.count)
     }
+    /// mp-club r3 pass 52 (P38, MP detail js:509-515 `canSeeClubRoster`): a signed-in visitor of a public-join club sees
+    /// the roster in the MP, so the header face pile reads the public roster reader (members mode, first four faces).
+    func loadPublicMemberAvatars(key: String, clubID: Int, source: ClubPublicRosterReader) async {
+        guard avatarsKey != key else { return }
+        avatarsKey = key; memberAvatars = []; memberTotal = 0
+        let read = try? await source.read(clubID: clubID, mode: .members, isCurrent: { [weak self] in self?.avatarsKey == key })
+        if Task.isCancelled { if avatarsKey == key { avatarsKey = nil }; return }
+        guard let snapshot = read, avatarsKey == key else { return }
+        memberAvatars = snapshot.members.prefix(4).map {
+            .init(id: String($0.memberId), name: $0.nickname ?? "", url: ClubCloud14HTTPS.url($0.avatar),
+                  memberID: $0.memberId, roleKey: nil)
+        }
+        memberTotal = max(snapshot.club.memberCount, snapshot.members.count)
+    }
 }
 
 /// Pushed pages the r8 mounts open. `ClubDetailView` owns the one `navigationDestination` (none inside list rows).

@@ -496,6 +496,15 @@ Merged `origin/ui/combined-r7` (5375df502).
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS.
 
+## Pass 52: pass-51 Not done row (face pile for public-join visitors); no new coordinator finding for mp-club since 18:30; no K50 `lane-layout` rows for club
+Merged `origin/ui/combined-r7`.
+| MP page | Native view | MP sections | Fix |
+|---|---|---|---|
+| `pages/club/detail` header member count + faces (js:509-515 `canSeeClubRoster`: owner / member, or a visitor of a public-join club; level B, P6/P38) | `App/ClubDetailView.swift` `showsPublicFacePile`, `loadR8Mounts`, `pageHeader`; `App/ClubDetailR8Mounts.swift` `loadPublicMemberAvatars` | Sweep 18:30 (`mp-club/sheet-zh-Hans.jpg`, 概览): the member side had the face pile, a visitor did not | **Fixed.** A signed-in visitor of a 公开加入 club (the same gate as the existing 查看成员 → `ClubPublicRosterView` link: approved public roster for this identity + `ClubPublicRosterEligibility.mayRequest`) now gets the header face pile beside the member count, read from `ClubPublicRosterReader` members mode (first four faces, total = max(club count, roster)). Same key/cancel handling as the member read; a failed read draws nothing. 需审核 clubs stay faceless for applicants, as in the MP. No new keys |
+| club/event-ops 重复方式 step 3 (form inline on the hub) | — | — | Still **Not done** (moves `ClubGovernanceCommandForm` review/return ownership onto the hub; step 2 already opens the form for the picked topic in one tap) |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS.
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.
