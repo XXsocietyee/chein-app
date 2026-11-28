@@ -14,7 +14,12 @@ class RewardKindContracts(unittest.TestCase):
             self.assertIn(f"isOn: rewards.toggle(.{kind})", reward)
             self.assertIn(f"if rewards.isEnabled(.{kind})", reward)
             self.assertIn(f'templateRewardKinds.{kind}', reward)
-        for control in ["text: rewards.coupon()", "text: rewards.text(.feedback)", "text: rewards.text(.medalName)",
+        # The coupon control moved into `couponField` (MP reward-selector, plain ID field without a session).
+        self.assertIn("couponField", reward)
+        field = forms.split("@ViewBuilder private var couponField", 1)[1].split("var body: some View", 1)[0]
+        self.assertIn("couponID: rewards.coupon()", field)
+        self.assertIn("text: rewards.coupon()", field)
+        for control in ["text: rewards.text(.feedback)", "text: rewards.text(.medalName)",
                         "text: rewards.text(.medalImage)", "selection: rewards.medalStyle()", "isOn: rewards.moduleEnabled()"]:
             self.assertIn(control, reward)
         self.assertIn("if !rewards.hasSelection", reward)
