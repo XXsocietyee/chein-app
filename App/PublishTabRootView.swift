@@ -18,6 +18,8 @@ import SwiftUI
     @State private var publishHome: [String: ProjectEditJSON]?
     /// MP `toast` for the pre-checks (发布信息尚未就绪 / 当前身份不可发布主题).
     @State private var publishNotice: LocalizedStringKey?
+    /// P2-6 (MP `components/tabBar/index.js:88-93` `ensureLoginFor('publish', …)`): signed out, “+” opens sign-in.
+    @State private var showsSignIn = false
 
     var body: some View {
         DiscoveryTemplateBrowserView(
@@ -35,7 +37,11 @@ import SwiftUI
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if session.isConfigured {
-                    publishMenu
+                    if session.isSignedIn {
+                        publishMenu
+                    } else {
+                        signInPublishButton
+                    }
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -68,6 +74,26 @@ import SwiftUI
             await loadPublishHome()
         }
         .cyToast(message: $publishNotice)
+        .cySheet(isPresented: $showsSignIn) {
+            Group { LoginView(intent: .player).environmentObject(session) }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+
+    /// Signed out: the same “+” in the same place, but it asks for sign-in first (MP `ensureLoginFor`). After sign-in the
+    /// “+” becomes the publish menu.
+    private var signInPublishButton: some View {
+        Button {
+            showsSignIn = true
+        } label: {
+            Label("discovery.templateTab.publish", systemImage: "plus")
+                .labelStyle(.iconOnly)
+                .frame(minWidth: 44, minHeight: 44)
+        }
+        .accessibilityLabel(Text("discovery.templateTab.publish"))
+        .accessibilityHint(Text("action.goSignIn"))
+        .accessibilityIdentifier("publishTab.publish.signIn")
     }
 
     private func loadPublishHome() async {
