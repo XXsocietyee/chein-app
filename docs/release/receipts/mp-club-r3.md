@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 18, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 23, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -158,6 +158,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 21. Pass 11: 报名名册 escrow line removed, hideEmpty tickets, team row colours.
 22. Pass 12: merge combined-r7 (xcstrings: combined is a superset, plural variants); club fixtures follow the UI language; 创建俱乐部 intro without the checklist and 封面/Logo under the step-3 header; join-requests and apply done re-checked.
 23. Pass 17: merge combined-r7; 改为转让主理人 moved into the 解散 confirm as the MP alternative (with its hint).
+28. Pass 23: merge combined-r7; club detail join action as a full-width bottom bar (01:20 sweep).
 27. Pass 22: topic-detail director load states (empty / network / business error, a refused read no longer renders nothing).
 26. Pass 21: merge combined-r7; apply note moved into an MP-style 申请加入 sheet, capsule always enabled (d4-detail).
 25. Pass 19: merge combined-r7; declined club detail follows the MP (no red tag, reason line only, 重新申请 capsule in d4-detail).
@@ -259,6 +260,12 @@ The ten director sheets were compared by MP copy against native. 结束这场活
 | MP page | Native view | MP sections | Optimizations / fix |
 |---|---|---|---|
 | `pages/club/topic-detail` director load states (wxml:159-171; director.js:378-385 `classifyLoadError`, 812-818) | `App/ClubTopicDirectorMount.swift` `ClubTopicDirectorEmbeddedMount` | MP: loading skeleton; `business-error` 导演台读取失败 + server sentence (default 活动导演台暂时无法打开) + 重新加载; `network-error` 网络连接失败 + 重新连接; `empty` (NOT_FOUND) 还没有可管理的活动局 + 先从俱乐部管理区开一场，再进入导演台。 Native drew only one 导演台加载失败 state for transport errors, and **nothing at all** when the server refused the read (`phase == "rejected"`), so the director block silently vanished. | **Fixed.** `loadState(phase:issue:)` maps the coordinator: `rejected(404)` → empty (server sentence or the MP sub line), other refusals → 导演台读取失败 + sentence + 重新加载, `failed` with `.unknownResult` (transport / non-2xx) → 网络连接失败 + 重新连接, other `failed` → 导演台读取失败. All `ContentUnavailableView`, `.bordered` retry (same id `club.topic.director.retry`). zh title now reads the MP 导演台读取失败. New keys `club.topic.director.empty`, `.emptySub`, `.network`, `.reconnect`, `.failedSub` (en + zh-Hans). Test `ClubTopicDirectorLoadStateTests` |
+
+## Pass 23: coordinator sweep 01:20 UTC (build 907570051, `docs/sweeps/latest/mp-club/en-d4-detail.jpg`, `zh-Hans-d4-detail.jpg`)
+Merged `origin/ui/combined-r7`.
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/detail` join capsule on 概览 (wxml:1028-1036) | `App/ClubActionPanel.swift` `floatingBar` (mounted by `ClubDetailView.floatingJoin` in the List's `.safeAreaInset(edge: .bottom)`) | Shot: "Apply again" / 重新申请 is a centred capsule floating over the 概览 list and covers the "Club contribution this week" header. MP content unchanged: one 加入 / 申请加入 / 重新申请 action on 概览, greyed 等待主理人审核 when pending, guests sign in first. | **Fixed.** The action is now a bottom bar: full-width `.borderedProminent` capsule (`.large`) on `.bar` material with a top divider, extending under the home indicator; the list scrolls above it so nothing is covered. Status / progress / error lines sit above the button inside the same bar (the separate see-through material card is gone). The bar draws only when it holds something (`floatingHasContent`), so members and the owner get no empty strip. Same ids (`club.action.join/apply/gated/signIn`), apply sheet and confirmation dialog. Re-check on the next sweep |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
