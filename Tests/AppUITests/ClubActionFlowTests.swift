@@ -69,6 +69,25 @@ final class ClubActionFlowTests: XCTestCase {
         // a second readiness deadline: slow AX reads can expire it before any tap.
         confirmation.tap()
     }
+    /// MP detail js:2537-2548: the 申请加入 capsule opens the apply sheet (required note); 提交申请 sends it once.
+    private func openApplication() -> XCUIElement {
+        let action = app.buttons["club.action.apply"]
+        reveal(action); tap(action)
+        let field = element("club.application.message")
+        XCTAssertTrue(field.waitForExistence(timeout: 5), app.debugDescription)
+        return field
+    }
+    private func submitApplication(_ message: String) {
+        let field = openApplication()
+        tap(field); field.typeText(message)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Fixture club")).firstMatch.exists,
+                      "The apply sheet must name the club")
+        assertCount(0)
+        let submit = app.buttons["club.application.submit"]
+        XCTAssertTrue(submit.isEnabled, app.debugDescription)
+        capture("Club application before dispatch")
+        submit.tap()
+    }
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
@@ -87,28 +106,22 @@ final class ClubActionFlowTests: XCTestCase {
     }
     func testOptionalMessageIsReviewedAndSentExactlyOnce() {
         launch("apply")
-        let field = element("club.application.message")
-        reveal(field); tap(field); field.typeText("Night walks please")
-        confirm("apply", message: "Night walks please")
+        submitApplication("Night walks please")
         assertCount(1)
         XCTAssertEqual(app.staticTexts["club.application.fixture.message"].label, "Night walks please")
         assertMembership("Join request pending")
     }
     func testOverlongMessageCannotOpenReview() {
         launch("apply")
-        let field = element("club.application.message")
-        reveal(field); tap(field); field.typeText(String(repeating: "a", count: 61))
-        let action = app.buttons["club.action.apply"]
-        reveal(action)
-        XCTAssertFalse(action.isEnabled)
+        let field = openApplication()
+        tap(field); field.typeText(String(repeating: "a", count: 61))
+        XCTAssertFalse(app.buttons["club.application.submit"].isEnabled)
         XCTAssertTrue(element("club.application.messageTooLong").exists)
         assertCount(0)
     }
     func testUnknownApplicationCannotBeEditedOrResentAfterReadback() {
         launch("applyUnknown")
-        let field = element("club.application.message")
-        reveal(field); tap(field); field.typeText("Hello club")
-        confirm("apply")
+        submitApplication("Hello club")
         assertCount(1)
         let refresh = app.buttons["club.action.readback"]
         reveal(refresh); tap(refresh)
@@ -118,20 +131,18 @@ final class ClubActionFlowTests: XCTestCase {
     }
     func testAccountSwitchClearsApplicationDraft() {
         launch("apply")
-        let field = element("club.application.message")
-        reveal(field); tap(field); field.typeText("Private draft")
+        let field = openApplication()
+        tap(field); field.typeText("Private draft")
+        tap(app.buttons["club.application.cancel"])
         let switcher = app.buttons["club.action.fixture.switchAccount"]
         tap(switcher)
-        let replacement = element("club.application.message")
-        reveal(replacement)
+        let replacement = openApplication()
         XCTAssertNotEqual(replacement.value as? String, "Private draft")
         assertCount(0)
     }
     func testApplicationStaysPendingWithoutMembershipAccess() {
         launch("apply")
-        let field = element("club.application.message")
-        reveal(field); tap(field); field.typeText("Night walks please")
-        confirm("apply", message: "Night walks please")
+        submitApplication("Night walks please")
         assertCount(1)
         let pending = element("club.action.gated")
         XCTAssertTrue(pending.waitForExistence(timeout: 10), app.debugDescription)
