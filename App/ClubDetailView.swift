@@ -547,7 +547,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                          facts: (meta: String, raw: String, channels: Bool, content: ClubDetailPageContent?)) -> some View {
         Section {
             ClubDetailHeader(club: club, memberText: facts.meta, content: facts.content,
-                             people: club.canSeeMembers ? r8Mounts.memberAvatars.map { CYFacePile.Person(id: $0.id, name: $0.name, url: $0.url) } : [],
+                             people: club.canSeeMembers || showsPublicFacePile(club) ? r8Mounts.memberAvatars.map { CYFacePile.Person(id: $0.id, name: $0.name, url: $0.url) } : [],
                              peopleTotal: r8Mounts.memberTotal)
                 .listRowInsets(EdgeInsets())
         }
@@ -664,6 +664,11 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         await r8Mounts.loadProjects(key: r8Key(club, tab: tab), clubID: club.id, showsDirector: club.isOwner || club.viewerIsAdmin,
                                     locale: locale, access: governance.access, force: true)
     }
+    /// MP `canSeeClubRoster` visitor branch: public-join club, signed-in viewer, public roster approved for this identity.
+    private func showsPublicFacePile(_ club: ClubRecord) -> Bool {
+        publicRoster?.authorization?.identity == reader.clubIdentity
+            && ClubPublicRosterEligibility.mayRequest(club, identity: reader.clubIdentity)
+    }
     private func r8Key(_ club: ClubRecord, tab: ClubDetailTab) -> String {
         "\(club.id)|\(tab.rawValue)|\(club.isOwner)|\(club.canGovern)|\(reader.clubIdentity.accountID ?? 0)|\(managementRevision)"
     }
@@ -680,6 +685,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         // shows on every tab. The key ignores the tab; switching tabs never reloads or clears the strip.
         if club.canSeeMembers {
             await r8Mounts.loadMemberAvatars(key: r8Key(club, tab: .overview), clubID: club.id, reader: reader)
+        } else if let source = publicRoster, showsPublicFacePile(club) {
+            await r8Mounts.loadPublicMemberAvatars(key: r8Key(club, tab: .overview), clubID: club.id, source: source)
         }
         if tab == .overview, club.canSeeMembers {
             if let governance = management?.governance { await loadInlineLeaderboard(club: club, governance: governance) }
