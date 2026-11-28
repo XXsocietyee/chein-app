@@ -328,10 +328,16 @@ lines, 印章 3 / 12 grid ✓. Then pages in the area without a row (largest pla
 | `pages/topic/index` no-cover hero | `TopicDetailView.swift:294` | ✓ (mp-publish owns order) | Hero intro 1 → 3 lines at AX sizes (one line stays the MP look at regular sizes) | Done |
 | `subpackageMember` 我的订单 (order card meta) | `ProfileOrdersView.swift` (`ProfileOrderRow.meta`) | ✓ (mp-mine owns order) | MP time / address icons fixed 16 pt → `@ScaledMetric(relativeTo: .subheadline)` so they keep pace with the text; footer AX stacking already present | Done |
 | `pages/activity` detail, `pages/club` detail | `ActivityDetailView.swift`, `ClubDetailView.swift` | ✓ | Audit: no fixed frames, raw sizes, tap gestures or 1-line limits. No change | Done |
+| `pages/publish/activity` 选择时间段 row | `PublishingModesViews.swift` (`ActivityPublishingView`) | ✓ (mp-publish owns order) | MP `icon_date3` fixed 12 pt → `@ScaledMetric(relativeTo: .body)` | Done |
+| `subpackageTools` monthly recap week bars | `RoamPassportToolsViews.swift` (`RoamRecapWeekChart`) | ✓ (mp-roam owns order) | Non-max bars `.secondary.opacity(0.4)` (≈ 1.6:1) → `.secondary` (≥ 3:1 non-text contrast); each bar keeps its spoken week + count. Prev / next month chevrons already 44 pt | Done |
+| `subpackageRoam` passport tiles, `pages/roam` home intro rows | `RoamHomeTabsView.swift` | ✓ | Audit: 36 pt list-row icons (Settings-style, not text), entry covers decorative. No change | Done |
+| Reward pledge, wallet commerce, pass membership, profile edit | `RewardPledgeViews.swift`, `WalletCommerceViews.swift`, `PassMembershipViews.swift`, `ProfileEditView.swift` | ✓ | Audit: system Form / List rows, no fixed text frames, raw sizes or tap gestures. No change | Done |
+| Chapter story artwork zoom | `ChapterStoryView.swift` | ✓ (mp-journey owns order) | Audit: double-tap zoom animates with `CYMotion.reduced`; image has its alt text; Close in the toolbar. No change | Done |
 
 ## Not done (next run starts here)
-- Continue pages without a row: `RewardPledgeViews`, `PublishingModesViews`, `WalletCommerceViews`, `ProfileEditView`,
-  `RoamPassportToolsViews`, `PassMembershipViews`, `RoamHomeTabsView`, `ChapterStoryView` (largest player views first).
+- Continue pages without a row (largest player views next): `ProjectEditView`, `TemplateAuthoringView`, `ModInstallationView`,
+  `RoamPassportPrivateToolsViews`, `CooperationContextualViews`, `PlayerJourneyViews`, `NativeR2/Games/NativeGameKitsC`.
+- Re-read the a11y sheets after the next sweep (run 19 has no fixture-visible change).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
