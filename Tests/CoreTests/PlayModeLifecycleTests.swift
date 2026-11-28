@@ -143,6 +143,19 @@ import FoundationNetworking
         XCTAssertEqual(wire.requests.last?.url?.path, "/api/play/ending")
         XCTAssertFalse(wire.requests.contains { $0.url?.path.contains("leaderboard") == true })
     }
+    /// mp-journey-b r3: MP mode 2 `loadEnding` failure is `endingError` (one soft line + 重新加载), not a page error.
+    func testFreeEndingFailureIsSoftAndRetryClearsIt() async throws {
+        let owner = try session(), wire = PlayRecoveryRecordingTransport()
+        wire.responses["/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(free(arrived: true, reported: true, done: true)), 200)
+        wire.responses["/api/play/ending"] = .failure(.unsupported)
+        let value = try model(wire, ModePauseSpy(), owner); await value.load()
+        let phase = value.phase
+        await value.loadFreeExplorationEnding()
+        XCTAssertTrue(value.freeEndingUnavailable); XCTAssertNil(value.ending); XCTAssertEqual(value.phase, phase)
+        wire.responses["/api/play/ending"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"opener":"Synthetic ending","fragments":[]}"#), 200)
+        await value.loadFreeExplorationEnding()
+        XCTAssertFalse(value.freeEndingUnavailable); XCTAssertNotNil(value.ending)
+    }
     private func interactionNodes(_ mode: Int) -> String {
         "{\"mode\":\(mode),\"topicId\":71,\"registered\":true,\"playable\":true,\"nodes\":[{\"nodeId\":701,\"done\":false,\"arrived\":true,\"validationMethod\":1,\"question\":\"Question\",\"advancedConfigJson\":{\"timer\":{\"enabled\":true}}}]}"
     }

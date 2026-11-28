@@ -244,19 +244,66 @@ import UIKit
     @State private var invalid = false
     var body: some View {
         Form {
+            if action == .broadcast {
+                broadcastBody
+            } else {
+                commandBody
+            }
+        }.cyGroupedSurface().cyPageTitle(action == .broadcast ? "club.topic.broadcast" : "playx.director.title")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playx.cancel") { dismiss() }.accessibilityIdentifier("playx.director.cancelEditor") } }
+            .cyModalOverlay(isPresented: confirm) {
+                CYModal(
+                    title: PlayCloseCopy.text("确认指令", "Confirm command", locale),
+                    message: directorLocalized(noticeKey),
+                    cancelTitle: PlayCloseCopy.cancel(locale),
+                    confirmTitle: PlayCloseCopy.confirm(locale),
+                    onCancel: { confirm = false },
+                    onConfirm: {
+                        confirm = false
+                        if let draft { submit(draft) }
+                    }
+                )
+            }
+    }
+    /// MP club-director-broadcast-sheet: 发给 → 范围 → rows → 内容 → 发送给 N 人 (one primary).
+    @ViewBuilder private var broadcastBody: some View {
+        PlayDirectorBroadcastSections(projection: projection, targetType: $targetType, teamID: $teamID, roleCode: $roleCode, content: $content)
+        Section {
+            if invalid { Text("playx.director.invalid").foregroundStyle(CYColor.dangerText) }
+            Button { prepare() } label: {
+                broadcastSendTitle.frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(!broadcastReady)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+            .accessibilityIdentifier("playx.director.review")
+        }
+    }
+    private var broadcastRecipients: Int? {
+        let selected = targetType == "TEAM" ? String(teamID) : (targetType == "ROLE" ? roleCode : "")
+        return PlayDirectorBroadcastAudience.recipientCount(targetType, selectedID: selected, projection: projection)
+    }
+    /// director.js:409 confirm-disabled: no confirmed recipients or no text.
+    private var broadcastReady: Bool {
+        (broadcastRecipients ?? 0) > 0 && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    @ViewBuilder private var broadcastSendTitle: some View {
+        if let count = broadcastRecipients, count > 0 {
+            Text("playx.director.broadcast.sendTo \(count)")
+        } else {
+            Text("playx.director.broadcast.send")
+        }
+    }
+    @ViewBuilder private var commandBody: some View {
             Section {
                 Text(LocalizedStringKey("playx.director.action." + action.rawValue)).cyText(.cardTitle)
                 Text("playx.director.commandNotice").cyText(.bodyCompact)
-                if action == .broadcast {
-                    Picker("playx.director.target", selection: $targetType) {
-                        Text("playx.director.target.all").tag("ALL"); Text("playx.director.target.team").tag("TEAM"); Text("playx.director.target.role").tag("ROLE")
-                    }
-                    TextField("playx.lead.text", text: $content, axis: .vertical)
-                }
-                if action == .assign || action == .takeover || (action == .broadcast && targetType == "TEAM") {
+                if action == .assign || action == .takeover {
                     idPicker("playx.director.team", rows: projection.teams, idKey: "teamId", labelKeys: ["name", "teamName"], selection: $teamID)
                 }
-                if action == .assign || (action == .broadcast && targetType == "ROLE") {
+                if action == .assign {
                     Picker("playx.director.role", selection: $roleCode) {
                         Text("playx.choose").tag("")
                         ForEach(Array(projection.roleOptions.enumerated()), id: \.offset) { _, role in
@@ -291,21 +338,6 @@ import UIKit
                 if invalid { Text("playx.director.invalid").foregroundStyle(CYColor.dangerText) }
                 CYPillButton("playx.review") { prepare() }.listRowBackground(Color.clear).accessibilityIdentifier("playx.director.review")
             }
-        }.cyGroupedSurface().cyPageTitle("playx.director.title")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playx.cancel") { dismiss() }.accessibilityIdentifier("playx.director.cancelEditor") } }
-            .cyModalOverlay(isPresented: confirm) {
-                CYModal(
-                    title: PlayCloseCopy.text("确认指令", "Confirm command", locale),
-                    message: directorLocalized(noticeKey),
-                    cancelTitle: PlayCloseCopy.cancel(locale),
-                    confirmTitle: PlayCloseCopy.confirm(locale),
-                    onCancel: { confirm = false },
-                    onConfirm: {
-                        confirm = false
-                        if let draft { submit(draft) }
-                    }
-                )
-            }
     }
     private var noticeKey: String.LocalizationValue {
         switch action {
@@ -332,7 +364,7 @@ import UIKit
         case .assign: payload = ["teamId": .int(teamID), "assignments": .array([.object(["memberId": .int(memberID), "roleCode": .string(roleCode)])])]
         case .takeover: payload = ["teamId": .int(teamID), "sourceMemberId": .int(sourceMemberID), "targetMemberId": .int(memberID), "reason": .string(reason)]
         case .broadcast:
-            payload = ["targetType": .string(targetType), "content": .string(content)]
+            payload = ["targetType": .string(targetType), "content": .string(content.trimmingCharacters(in: .whitespacesAndNewlines))]
             if targetType == "TEAM" { payload["targetId"] = .int(teamID) }
             if targetType == "ROLE" { payload["roleCode"] = .string(roleCode) }
         case .unlock: payload = ["chapterId": .int(chapterID), "reason": .string(reason)]

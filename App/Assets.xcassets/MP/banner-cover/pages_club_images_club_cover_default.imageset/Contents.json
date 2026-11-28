@@ -1,13 +1,22 @@
 {
-  "images": [
+  "images" : [
     {
-      "filename": "club_cover_default.png",
-      "idiom": "universal",
-      "scale": "1x"
+      "filename" : "club_cover_en.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "club_cover_zh.png",
+      "idiom" : "universal",
+      "locale" : "zh-Hans",
+      "scale" : "1x"
     }
   ],
-  "info": {
-    "author": "xcode",
-    "version": 1
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "localizable" : true
   }
 }
