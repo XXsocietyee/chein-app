@@ -10,17 +10,30 @@ public struct PlayKitTimingRun: Equatable {
     public init() {}
     public mutating func beginAfterAcknowledgement(now: TimeInterval) {
         guard now.isFinite, now >= 0 else { return }
-        startedAt = now; elapsedMilliseconds = 0; phase = .running
+        startedAt = now; elapsedMilliseconds = 0; pausedElapsed = nil; phase = .running
+    }
+    /// MP playkit-stopwatch 暂停 / 继续 (`onPause`): the clock holds its reading while paused and resumes from it.
+    /// A paused run stays `.running` (backgrounding still interrupts it) but cannot be measured (MP: 暂停中不接受停).
+    public private(set) var pausedElapsed: Int?
+    public var isPaused: Bool { phase == .running && pausedElapsed != nil }
+    public mutating func pause(now: TimeInterval) {
+        guard phase == .running, pausedElapsed == nil, startedAt != nil, now.isFinite else { return }
+        pausedElapsed = elapsed(now: now)
+    }
+    public mutating func resume(now: TimeInterval) {
+        guard phase == .running, let held = pausedElapsed, now.isFinite, now >= 0 else { return }
+        startedAt = now - Double(held) / 1000; pausedElapsed = nil
     }
     public func elapsed(now: TimeInterval) -> Int {
+        if phase == .running, let pausedElapsed { return pausedElapsed }
         guard phase == .running, let startedAt, now.isFinite, now >= startedAt else { return elapsedMilliseconds }
         return Int(min(3_600_000, ((now - startedAt) * 1000).rounded(.down)))
     }
     public mutating func measure(now: TimeInterval) {
-        guard phase == .running, let startedAt, now.isFinite, now >= startedAt else { return }
+        guard phase == .running, pausedElapsed == nil, let startedAt, now.isFinite, now >= startedAt else { return }
         elapsedMilliseconds = elapsed(now: now); self.startedAt = nil; phase = .measured
     }
-    public mutating func interrupt() { if phase == .running { startedAt = nil; elapsedMilliseconds = 0; phase = .interrupted } }
+    public mutating func interrupt() { if phase == .running { startedAt = nil; elapsedMilliseconds = 0; pausedElapsed = nil; phase = .interrupted } }
 }
 
 public struct PlayKitReactionRun: Equatable {

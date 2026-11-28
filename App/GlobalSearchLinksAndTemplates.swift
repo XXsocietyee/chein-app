@@ -327,7 +327,7 @@ enum PlayerContentMPAppWire {
     }
 
     private func clubRows(_ query: GlobalSearchQuery, token: String?) async throws -> [ClubRecord] {
-        guard token != nil else { throw APIError.unauthorized }
+        // MP discover-search sends club/list for guests too; the backend route is @Anonymous (guest projection).
         guard let base = baseURL() else { throw APIError.notConfigured }
         let drafted = try PlayerContentMPContract.searchClubList(baseURL: base, name: query.keyword, categoryID: query.categoryID)
         let data = try await post(drafted, token: token)
