@@ -504,7 +504,7 @@ struct RegistrationSheetView: View {
         }
     }
     private var confirmationTitle: String {
-        let titleKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"
+        let titleKey = "registration.waitlist.confirmTitle"
         return appLocalized(String.LocalizationValue(stringLiteral: titleKey), locale: locale)
     }
     private var confirmationMessage: String {
@@ -516,7 +516,7 @@ struct RegistrationSheetView: View {
         return base + gatedPayAmount(review.quote.payAmount) + nonRefundableSuffix
     }
     @ViewBuilder private var confirmationButtons: some View {
-        let confirmKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate"
+        let confirmKey = "registration.waitlist.confirmCreate"
         Button(appLocalized(String.LocalizationValue(stringLiteral: confirmKey), locale: locale)) { confirmRegistration() }
             .accessibilityIdentifier("registration.form.confirm")
         Button(appLocalized("action.cancel", locale: locale), role: .cancel) {
@@ -641,7 +641,7 @@ struct RegistrationSheetView: View {
                 // MP baoming.wxml:325-328 bmbottom_box: the separate, unticked sharing consent (PIPL Art. 23) sits
                 // in the bottom bar directly above the button, so "tick it first" points at something in view.
                 if flow.creationPolicy.permitsCreation {
-                    Toggle(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.fixtureConsent" : "registration.r3.hostShareConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
+                    Toggle(LocalizedStringKey("registration.r3.hostShareConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
                         .font(.footnote)
                         .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.consent")
                 }

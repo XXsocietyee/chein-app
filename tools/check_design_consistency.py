@@ -17,6 +17,8 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
   hidden nav      `.navigationBarHidden(true)`, `.toolbar(.hidden, for: .navigationBar)`,
                   `.toolbarBackground(.hidden, for: .navigationBar)`, `.navigationBarBackButtonHidden(true)`
                   (custom back buttons / MP custom nav chrome)
+  fixed surface   a shared colour token `let x = Color.black` / `.white` (design system included): it ignores
+                  light / dark -> CYColor / palette / system colours
   custom back     `CYNavBar(` / `CYBareBackButton(` / `CYHeroBackButton(` outside App/DesignSystem
                   (use the system bar; `cyGuardedBack(when:onBack:)` for an unsaved-changes exit)
   button style    a page-level `struct …: ButtonStyle` outside App/DesignSystem, or `.buttonStyle(.questifyPrimary)`
@@ -170,12 +172,17 @@ GRID_OPEN = re.compile(r'\b(?:Lazy[VH]Grid\(|Grid\s*[({])')
 GRID_CONTAINER = re.compile(r'\b(List|ScrollView)\s*[({]')
 GRID_HELPER_CALL = re.compile(r'(?<![.\w])([a-z]\w*)\(')
 GRID_HELPER_DECL = re.compile(r'\bfunc\s+([a-z]\w*)\s*[(<]')
+FIXED_SURFACE = 'fixed surface'
+# One appearance: a shared colour token pinned to black / white ignores light / dark (the map panel was a fixed black
+# slab under a light map). Tokens resolve through CYColor / the palette / system colours.
+FIXED_SURFACE_PATTERN = re.compile(r'^\s*(?:(?:public|internal|private|fileprivate|static)\s+)*let\s+\w+\s*(?::\s*Color\s*)?='
+                                   r'\s*(?:Color\.|\.)(?:black|white)\s*$')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
-         ALL_CAPS, GRID_LINK, DUPLICATE_TYPE, UNDECLARED_STATE)
+         ALL_CAPS, GRID_LINK, FIXED_SURFACE, DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -370,6 +377,8 @@ def scan_file(rel, text):
             hits.append((number, HAND_DIVIDER, code.strip()))
         if ALL_CAPS_PATTERN.search(code):
             hits.append((number, ALL_CAPS, code.strip()))
+        if FIXED_SURFACE_PATTERN.search(code):
+            hits.append((number, FIXED_SURFACE, code.strip()))
         if not colour_exempt and STATUS_CAPSULE_SHAPE.search(code) and STATUS_CAPSULE_TINT.search(code) and 'strokeBorder' not in code:
             hits.append((number, STATUS_CAPSULE, code.strip()))
         if not design_system and rel != APP_ROOT and DS_TAB_BAR.search(code):

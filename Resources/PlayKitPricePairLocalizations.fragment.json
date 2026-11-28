@@ -8,13 +8,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last pick: correct"
+            "value": "That's it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次选择：正确"
+            "value": "就是它"
           }
         }
       }
@@ -25,13 +25,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last pick: wrong"
+            "value": "Not this one"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次选择：错误"
+            "value": "不是"
           }
         }
       }
@@ -42,13 +42,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revealed answer"
+            "value": "Correct answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "揭晓的正确图"
+            "value": "正确答案"
           }
         }
       }
