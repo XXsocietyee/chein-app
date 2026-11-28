@@ -423,7 +423,8 @@ import SwiftUI
                 } header: { OpsR3Text.text("editor.settings") }
                 // r8 C-F5 (MP fabu wxml:172): 角色 card, city themes only, never in the whitelist scope.
                 if model.draft.product == .city, model.coordinator.snapshot?.scope != .whitelist {
-                    ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly, chapters: model.draft.chapters)
+                    ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly, chapters: model.draft.chapters,
+                                        avatarUpload: ProjectEditCastAvatarUpload.make(model))
                 }
                 // U02-03 place to-dos (MP fabu wxml:187: page 1, right above 章节) for an adopted template copy. Hidden while gated or without a place contract.
                 if let topicID = model.coordinator.snapshot?.topicID, TopicTemplateAdoptionFactory.bindingIsLive {
