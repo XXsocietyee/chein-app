@@ -1522,12 +1522,14 @@ private struct ClubCommunityReferenceCover: View {
                 }
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityLabel(Text("club.community.image") + Text(verbatim: " \(index + 1)"))
+                .accessibilityAddTraits(.isImage)
             if !trimmed.isEmpty {
                 Text(verbatim: trimmed)
                     .font(.footnote)
                     .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
+                    .accessibilityHidden(true)
             }
         }
     }
