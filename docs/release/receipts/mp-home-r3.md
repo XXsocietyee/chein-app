@@ -562,6 +562,8 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 |---|---|---|
 | `pages/topic/index/index.wxml:393-410` `route-top` (cy-route-progress → map / cy-route-sketch → route-note → 参与商家 cy-merchant-cards) → `App/TopicXcxSections.swift` `TopicXcxRouteSection` | Order re-checked: map with progress → 固定路线 / 没有固定路线 + note sentence → (free explore) merchant cards inside the map block → stops. | No change. |
 | `pages/topic/index/index.wxml:405-406` `cy-empty` 路线配置中 + cta 浏览其他主题 (`goTopicList`) → same view | The empty route was a bare `.headline` line plus an unstyled row button, not the one empty pattern (OWNER RULE 2, P41). | **Fixed** — `ContentUnavailableView` (`map` symbol, title 路线配置中 / Route being set up) with 浏览其他主题 / Browse other topics as its `.bordered` regular action (shown only when the tab switch is available); ids `topic.route.empty` / `topic.route.browseOthers` kept. |
+| `pages/topic/index/index.wxml:426-438` stop card (seq → photo → merchant name else stop name → 地址 → 营业时间 → 到店礼 · …) → same view, stop rows | Native read stop name → 营业时间 → 到店礼 → 地址 and always used the stop name, so a stop hosted by a shop showed the node label instead of the shop the player walks to. | **Fixed** — title = first merchant's name, else the stop name (`TopicXcxRouteSection.stopTitle`); lines now 地址 (Maps link) → 营业时间 → 到店礼 in MP order. Number badge leading and the 56 pt photo trailing kept (native list thumbnail placement); ids unchanged. |
+| `pages/topic/index/index.wxml:419` stop list is `wx:if="{{!isExplore}}"` (free explore shows only 没有固定路线 + 参与商家) | Native also lists the stops for free explore, under the 地点 / Places header (earlier R7 decision). | **Not done — needs coordinator check**: removing the free-explore stop list drops content an earlier lane added on purpose; MP shows merchant cards only. |
 
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
@@ -624,6 +626,8 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 - Needs a simulator pass (continue 45): 首页 consent card (en + zh-Hans, AX5: buttons stack, privacy line wraps).
 - Needs a device pass (continue 43): topic 收藏 success haptic on save, warning on rollback, none on page open.
 - Needs a simulator pass (continue 47): en `d2-home` hero title + Sign up on one row (iPhone 17, default size).
+- Needs a simulator pass (continue 48): stop rows with a shop (shop name, address → hours → gift) in en + zh-Hans, AX5.
+- Needs a coordinator check (continue 48): free-explore 地点 stop list (MP hides it; native shows it).
 - Needs a simulator pass (continue 48): topic with no stops, 路线 tab shows the 路线配置中 empty view + 浏览其他主题 (en + zh-Hans, AX5).
 
 ## For other lanes
