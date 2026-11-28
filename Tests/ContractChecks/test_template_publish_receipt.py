@@ -40,10 +40,10 @@ class PublishReceiptSourceChecks(unittest.TestCase):
         self.assertNotIn('URLSession', source)
     def test_five_explicit_bilingual_keys_and_review_semantics(self):
         catalog = json.loads(read('Resources/CreatorPublishResult.xcstrings'))['strings']
-        self.assertEqual(len(catalog), 5)
+        self.assertEqual(len(catalog), 3)  # MP result sheet: title · sub · meta (mp-publish r3)
         for row in catalog.values(): self.assertEqual(set(row['localizations']), {'en','zh-Hans'})
         self.assertIn('review', catalog['templatePublishResult.detail']['localizations']['en']['stringUnit']['value'])
         panel = read('App/TemplateAuthoringPublishResultPresentation.swift')
-        self.assertEqual(panel.count('tableName: "CreatorPublishResult"'), 5)
-        for key in catalog: self.assertIn('"'+key+'"', panel)
+        self.assertEqual(panel.count('tableName: "CreatorPublishResult"'), 3)
+        for key in catalog: self.assertIn('"'+key.replace(' %lld', ' \\(minutes)')+'"', panel)
 if __name__ == '__main__': unittest.main()

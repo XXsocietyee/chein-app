@@ -6,6 +6,8 @@ public struct TemplateAuthoringSavedResult: Equatable, Identifiable {
     public let receipt: TemplateAuthoringSavedDraft
     public let session: TemplateAuthoringSession
     public let title: String
+    /// MP result-sheet meta: 预计 N 分钟, only when the saved body carries a positive whole duration.
+    public let durationMinutes: Int?
     public var id: UUID { receipt.operationID }
     public var memberTemplateID: MemberPlayTemplateID { receipt.memberTemplateID }
     public init?(receipt: TemplateAuthoringSavedDraft?, pending: TemplateAuthoringPending?, session: TemplateAuthoringSession?, identity: TemplateAuthoringIdentity) {
@@ -14,6 +16,11 @@ public struct TemplateAuthoringSavedResult: Equatable, Identifiable {
               receipt.matches(pending, session: session), case .json(let fields) = pending.request.body,
               let title = fields["title"]?.string else { return nil }
         self.receipt = receipt; self.session = session; self.title = title
+        self.durationMinutes = Self.minutes(fields["duration"])
+    }
+    static func minutes(_ value: TemplateAuthoringJSON?) -> Int? {
+        guard case .some(.number(let raw)) = value, raw.isFinite, raw >= 1, raw < 100_000, raw.rounded() == raw else { return nil }
+        return Int(raw)
     }
     @MainActor public init?(coordinator: TemplateAuthoringCoordinator) {
         guard coordinator.state == .acknowledged else { return nil }
