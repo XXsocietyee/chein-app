@@ -171,18 +171,8 @@ public struct RoamMergedHistoryListView: View {
                 }
 
                 if hasMore {
-                    Button {
-                        onLoadMore()
-                    } label: {
-                        HStack {
-                            Spacer()
-                            CYBusyLabel(busy: isLoadingMore) {
-                                Text("common.loadMore").cyText(.label)
-                            }
-                            Spacer()
-                        }
-                    }
-                    .disabled(isLoadingMore)
+                    // ADA 11-28 §3: the shared paging row (loads when it scrolls in, MP onReachBottom).
+                    CYLoadMoreRow(isLoading: isLoadingMore, action: onLoadMore)
                 }
             }
         }

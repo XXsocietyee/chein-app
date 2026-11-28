@@ -292,12 +292,18 @@ struct CYCarouselCaption: View {
     var place: String?
     var contrast: ColorSchemeContrast = .standard
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         let reduced = reduceMotion
+        let ax = typeSize.isAccessibilitySize
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(verbatim: title).cyText(.sectionTitle).lineLimit(2)
+            Text(verbatim: title).cyText(.sectionTitle).lineLimit(ax ? 4 : 2).fixedSize(horizontal: false, vertical: ax)
             if let date, !date.isEmpty { Text(verbatim: date).cyText(.meta).monospacedDigit() }
-            if let place, !place.isEmpty { Text(verbatim: place).cyText(.meta).opacity(contrast == .increased ? 1 : 0.85).lineLimit(1) }
+            if let place, !place.isEmpty {
+                Text(verbatim: place).cyText(.meta).opacity(contrast == .increased ? 1 : 0.85)
+                    .lineLimit(ax ? 2 : 1)
+                    .fixedSize(horizontal: false, vertical: ax)
+            }
         }
         .foregroundStyle(.white)
         .padding(CYSpacing.lg)

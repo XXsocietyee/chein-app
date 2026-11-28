@@ -31,6 +31,16 @@ final class PlayStationImageTests: XCTestCase {
         XCTAssertEqual(PlayStationImageResolver.game(gameCover: nil, stationImage: nil, chapterImages: [], routeCover: nil), .texture)
     }
 
+    /// mp-journey-b r3: the mode-2 shop tile (MP `fx-tile__im`, `_stationPhotos`) uses the same chain; a locked shop decodes `locked`.
+    func testFreeExploreShopTileUsesStationChain() throws {
+        let chapters = #"[{"chapterId":81,"imgArr":"https://x.example/c1.jpg"}]"#
+        var value = try result(#"{"mode":2,"topicCover":"https://x.example/t.jpg","chapters":"# + chapters + #","nodes":[{"nodeId":3,"chapterId":81,"imgUrl":"https://x.example/shop.jpg"}]}"#)
+        XCTAssertEqual(PlayStationImageResolver.station(for: value.nodes[0], in: value), .init(source: "https://x.example/shop.jpg", tier: .station))
+        value = try result(#"{"mode":2,"topicCover":"https://x.example/t.jpg","chapters":"# + chapters + #","nodes":[{"nodeId":3,"chapterId":81,"imgUrl":"https://x.example/shop.jpg","imgHidden":true,"locked":true}]}"#)
+        XCTAssertEqual(PlayStationImageResolver.station(for: value.nodes[0], in: value), .init(source: "https://x.example/c1.jpg", tier: .chapter))
+        XCTAssertEqual(value.nodes[0].locked, true)
+    }
+
     func testImageListShapes() {
         XCTAssertEqual(PlayStationImageResolver.list("a.jpg, b.jpg;c.jpg" as String?), ["a.jpg", "b.jpg", "c.jpg"])
         XCTAssertEqual(PlayStationImageResolver.list(#"["a.jpg","b.jpg"]"# as String?), ["a.jpg", "b.jpg"])

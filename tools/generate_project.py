@@ -10,7 +10,7 @@ def obj(object_key, **fields):
 METAL_ON = os.environ.get('CY_ENABLE_METAL') == '1'
 METAL_COND = ' CY_METAL_SHADERS' if METAL_ON else ''
 sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/DesignSystem/*.swift'), *(ROOT.glob('App/DesignSystem/*.metal') if METAL_ON else []), *ROOT.glob('App/DesignFixtures/*.swift'), *ROOT.glob('App/ClubKit/*.swift'), *ROOT.glob('App/MerchantKit/*.swift'), *ROOT.glob('App/MerchantApprovals/*.swift'), *ROOT.glob('App/CityKit/*.swift'), *ROOT.glob('App/NativeGallery/*.swift'), *ROOT.glob('App/MPGap/**/*.swift'), *ROOT.glob('App/NativeR2/**/*.swift'), *ROOT.glob('App/AIGuide/*.swift'), *ROOT.glob('App/MPAssets/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift'), *ROOT.glob('Core/MPGap/**/*.swift')])
-ui_source_paths = sorted(ROOT.glob('Tests/AppUITests/*.swift'))
+ui_source_paths = sorted([*ROOT.glob('Tests/AppUITests/*.swift'), *ROOT.glob('Tests/AppUITests/Accept/*.swift')])
 # Compile this canonical demo source in the app only for Debug. Release AppUnit
 # retains the old tests by compiling that same source in the test bundle instead.
 release_test_fixture_sources = [ROOT/'App/AppStoreReviewDemoAccountAndFixtureSectionView.swift']

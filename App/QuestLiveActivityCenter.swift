@@ -46,6 +46,12 @@ import QuestifyCore
 
     func attach(roam controller: RoamLiveSessionController) { roamController = controller }
 
+    /// Plan audit H-02b: the scope of the play run published under `key` (`play:<scope>`), while its coordinator lives.
+    /// The P21 HUD uses it to reopen that run's game screen; nil once the run is gone.
+    func playScope(forKey key: String) -> PlaySessionScope? {
+        playCoordinators[key]?.value?.scope
+    }
+
     /// The run screen's punch sheet for the current stop. A check-in that launched the app is applied now.
     func setCheckInHandler(_ handler: (() -> Void)?) {
         checkInHandler = handler
