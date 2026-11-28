@@ -141,7 +141,13 @@ import Combine
                 NavigationLink("templateFrame.title") { TemplatePhotoFrameEditor(model: model) }
             } else {
             VStack(alignment: .leading) {
-                TextField(LocalizedStringKey(field.labelKey), text: text, axis: .vertical).textInputAutocapitalization(.never)
+                // MP card: the label stays above the field when the MP gives its own placeholder.
+                if let promptKey = field.promptKey {
+                    Text(LocalizedStringKey(field.labelKey)).font(.subheadline).foregroundStyle(.secondary).accessibilityHidden(true)
+                    TextField(LocalizedStringKey(field.labelKey), text: text, prompt: Text(LocalizedStringKey(promptKey)), axis: .vertical).textInputAutocapitalization(.never)
+                } else {
+                    TextField(LocalizedStringKey(field.labelKey), text: text, axis: .vertical).textInputAutocapitalization(.never)
+                }
                 HStack { if required { Text("creator.required") }; Spacer(); Text(verbatim: "\(text.wrappedValue.utf16.count)/\(max)").accessibilityLabel(Text("a11y.value.characters \(Int(text.wrappedValue.utf16.count)) \(Int(max))")) }.font(.footnote).foregroundStyle(.secondary)
             }
             }

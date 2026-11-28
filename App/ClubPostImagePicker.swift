@@ -319,6 +319,7 @@ struct ClubPostImageSectionView: View {
                 }
                 #endif
                 Text(verbatim: image).lineLimit(1)
+                    .accessibilityHidden(true)
                 Spacer()
                 if bridge.canSelectImage {
                     Button {
@@ -378,6 +379,7 @@ struct ClubPostImageSectionView: View {
                 Text("\(candidate.width)×\(candidate.height)")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel(Text("a11y.label.pixelSize \(candidate.width) \(candidate.height)"))
                 Spacer()
                 if bridge.canSelectImage {
                     Button {
@@ -481,6 +483,7 @@ private struct ClubPostImagePreviewSheet: View {
                 Text("\(candidate.width)×\(candidate.height)")
                     .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel(Text("a11y.label.pixelSize \(candidate.width) \(candidate.height)"))
             }
             .padding()
             .navigationTitle(Text("club.community.imagePreview")).navigationBarTitleDisplayMode(.inline)

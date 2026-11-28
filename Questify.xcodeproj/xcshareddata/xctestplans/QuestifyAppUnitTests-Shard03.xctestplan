@@ -519,6 +519,7 @@
         "RegistrationWaitlistOrderVisitTests",
         "ReleaseArchiveChecklistSectionViewTests",
         "ReleasePreflightDiagnosticsViewTests",
+        "RemotePushRegistrationClientTests",
         "RetainedImageNormalHostTests",
         "ReviewedAreaSwitchTests",
         "ReviewedChinaLaunchCompositionTests",
