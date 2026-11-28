@@ -583,7 +583,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "chapter %1$lld stop “%2$@” gameplay binding · %3$@"
+          "value": "gameplay binding of chapter %1$lld, stop “%2$@” (%3$@)"
         }
       },
       "zh-Hans": {

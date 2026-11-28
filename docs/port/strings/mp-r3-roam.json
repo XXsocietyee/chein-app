@@ -1455,7 +1455,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "A bit far away. Walk closer"
+          "value": "Too far away. Walk closer"
         }
       },
       "zh-Hans": {
@@ -1472,7 +1472,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "+%1$lld exploration · %2$@ lit up"
+          "value": "+%1$lld exploration XP · %2$@ lit up"
         }
       },
       "zh-Hans": {
