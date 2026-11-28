@@ -351934,6 +351934,23 @@
           }
         }
       }
+    },
+    "playkit.hidden.progress %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Found %1$lld of %2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已找到 %1$lld / %2$lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
