@@ -163,13 +163,15 @@ struct HomeHeroHeaderSectionView: View {
                 .accessibilityIdentifier("homeIndex.hero.greeting")
             (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
                 if hasNickname {
-                    // MP `v3-hero-mem` (index.wxml:44): a filled `--cy-color-rare` member badge + 玩家 (no tick, no checkbox).
-                    // Native: the design-system role label `CYStatusChip` (same as other identity/role rows), person glyph in indigo (= rare).
+                    // MP `v3-hero-mem` (index.wxml:44): member badge + 玩家 (no tick, no checkbox), then · city.
+                    // ADA 11-28 (d2-home): one accent — the role reads as a system `Label` in `.secondary`, like the city beside it.
                     if isMerchantViewer {
-                        CYStatusChip("account.role.merchant", tone: .info, systemImage: "storefront.fill")
+                        Label("account.role.merchant", systemImage: "storefront.fill")
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("homeIndex.hero.role")
                     } else {
-                        CYStatusChip("homeFeed.player", tone: .rare, systemImage: "person.fill")
+                        Label("homeFeed.player", systemImage: "person.fill")
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("homeIndex.hero.role")
                     }
                 }

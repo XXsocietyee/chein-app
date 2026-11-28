@@ -255,6 +255,7 @@ import UIKit
                         kind = kind == .topics ? .activities : .topics
                     }
                     .buttonStyle(.bordered)
+                    .controlSize(.regular)
                     .accessibilityIdentifier("homeFeed.empty.switchKind")
                 }
             }
@@ -466,6 +467,7 @@ import UIKit
         } actions: {
             Button("homeFeed.retry", action: action)
                 .buttonStyle(.bordered)
+                .controlSize(.regular)
                 .accessibilityIdentifier("homeFeed.retry.feed")
         }
         .frame(maxWidth: .infinity)
