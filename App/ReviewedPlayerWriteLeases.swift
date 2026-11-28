@@ -802,6 +802,8 @@ enum ReviewedPlayerReadRoute {
         "api/community-trust/contributions/taxonomy", "api/community-trust/safety/taxonomy",
         "api/community-trust/safety/merchants/{}", "api/template/adoption-source", "api/template/adoption-receipt",
         "api/template/adoption-detail", "api/map/weather", "api/search/unified", "api/free-explore/bundle/exit-options",
+        // fix/1128c-ai-weather: the topic environment + weather events read (`ApiPlayEnvironmentController`, GET, signed in).
+        "api/play/environment",
         "api/free-explore/bundle/order/receipt",
         // G6 player reads on the same reviewed gate. Money, attribution, and order reads are not here.
         "api/ai/npc/profile", "api/ai/npc/event", "api/ai/theme/draft/recovery",

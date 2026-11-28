@@ -355,7 +355,9 @@ public enum ChinaReviewedRouteCapability {
         "/api/map/geocode",
         "/api/map/place-search",
         "/api/map/weather",
-        "/api/search/unified"
+        "/api/search/unified",
+        // fix/1128c-ai-weather: `GET api/play/environment?topicId=` (topic weather snapshot + weather_event_rule events).
+        "/api/play/environment"
     ]
 
     /// Parity package P-B (PlayerGapService.parityBPaths): organiser shared-run control, the lead's group member
