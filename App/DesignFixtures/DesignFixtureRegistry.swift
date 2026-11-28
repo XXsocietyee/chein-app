@@ -135,6 +135,13 @@ enum DesignFixtureRegistry {
         // mp-roam r3: 集邮册 (scene-roam-stamp-album) empty / error states for the sweep (content = e2-stamp-album).
         case "r3-roam-stamp-album-empty": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
         case "r3-roam-stamp-album-error": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
+        // mp-roam r3: 官方线路 (subpackageRoam/official-routes) list / empty / error on the shipping map-home list.
+        case "r3-roam-routes": return RoamR3RoutesFixture.make(.content)
+        case "r3-roam-routes-empty": return RoamR3RoutesFixture.make(.empty)
+        case "r3-roam-routes-error": return RoamR3RoutesFixture.make(.failure)
+        case "r3-roam-route": return RoamR3RoutesFixture.makeDetail(.content)
+        case "r3-roam-route-error": return RoamR3RoutesFixture.makeDetail(.failure)
+        case "r3-roam-route-notfound": return RoamR3RoutesFixture.makeDetail(.notFound)
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
@@ -254,7 +261,10 @@ enum E4Fixtures {
         case "e4-self-medals": return wrap(ProfileSelfMedalsFixtureHost(scenario: "content", showsTestControls: false))
         case "e4-template-mine": return wrap(TemplateAuthoringFixtureHostView())
         case "e4-wallet-income": return wrap(WalletCommerceFixtureHost(designPage: "income"))
+        case "e4-wallet-income-empty": return wrap(WalletCommerceFixtureHost(designPage: "income", stateArguments: ["--wallet-paged-ledger-empty"]))
         case "e4-wallet-points": return wrap(WalletCommerceFixtureHost(designPage: "points"))
+        case "e4-wallet-points-empty": return wrap(WalletCommerceFixtureHost(designPage: "points", stateArguments: ["--wallet-paged-ledger-empty"]))
+        case "e4-wallet-points-error": return wrap(WalletCommerceFixtureHost(designPage: "points", stateArguments: ["--wallet-paged-ledger-recover"]))
         case "e4-wallet-balance": return wrap(WalletCommerceFixtureHost(designPage: "balance"))
         // mp-mine r3 (Next round 3): ledger empty and error (first read fails, 重试 recovers) for the sweep.
         case "e4-wallet-balance-empty": return wrap(WalletCommerceFixtureHost(designPage: "balance", stateArguments: ["--wallet-ledger-empty"]))

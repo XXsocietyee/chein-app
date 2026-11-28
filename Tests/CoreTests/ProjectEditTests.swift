@@ -855,6 +855,32 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         XCTAssertEqual(ProjectEditThemeRules.votePolicy(in: voting), .majorityAcceptance)
     }
 
+    func testActionCountAndConsumeOnNoEffectFollowTheRuntimeValuesCard() throws {
+        let base = try draft(with: ["schemaVersion": .number(1)])
+        XCTAssertNil(ProjectEditThemeRules.actionLimit(in: base))
+        XCTAssertEqual(try ProjectEditThemeRules.setActionLimit(30, in: base), base)
+        let on = try ProjectEditThemeRules.setActionEnabled(true, in: base)
+        XCTAssertEqual(ProjectEditThemeRules.actionLimit(in: on), 20)
+        let thirty = try ProjectEditThemeRules.setActionLimit(30, in: on)
+        XCTAssertEqual(ProjectEditThemeRules.actionLimit(in: thirty), 30)
+        XCTAssertThrowsError(try ProjectEditThemeRules.setActionLimit(0, in: thirty))
+        XCTAssertThrowsError(try ProjectEditThemeRules.setActionLimit(100_000, in: thirty))
+        let named = try ProjectEditThemeRules.setActionName(String(repeating: "步", count: 25), in: thirty)
+        XCTAssertEqual(ProjectEditThemeRules.actionName(in: named).count, 20)
+        let off = try ProjectEditThemeRules.setActionEnabled(false, in: named)
+        XCTAssertNil(try theme(off)["actionLimit"])
+
+        XCTAssertFalse(ProjectEditThemeRules.consumeOnNoEffectAvailable(in: base))
+        XCTAssertThrowsError(try ProjectEditThemeRules.setConsumeOnNoEffect(true, in: base))
+        let team = try draft(with: ["schemaVersion": .number(1), "gameplayRuntime": .object(["runtimeScope": .string("TEAM")])])
+        XCTAssertTrue(ProjectEditThemeRules.consumeOnNoEffectAvailable(in: team))
+        XCTAssertEqual(try ProjectEditThemeRules.setConsumeOnNoEffect(false, in: team), team)
+        let consuming = try ProjectEditThemeRules.setConsumeOnNoEffect(true, in: team)
+        XCTAssertTrue(ProjectEditThemeRules.consumeOnNoEffect(in: consuming))
+        let stopped = try ProjectEditThemeRules.setConsumeOnNoEffect(false, in: consuming)
+        XCTAssertEqual(try theme(stopped)["gameplayRuntime"]?.object?["survival"]?.object?["consumeOnNoEffect"], .bool(false))
+    }
+
     func testD20RulesFollowTheMiniProgramSheet() throws {
         var draft = ProjectEditSyntheticFixtures.draft(product: .city)
         let source: ProjectEditJSON = .object([

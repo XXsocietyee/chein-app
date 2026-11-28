@@ -516,7 +516,6 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             }
         }
         .listStyle(.insetGrouped)
-        .listSectionSpacing(CYSpacing.xl)
         .refreshable { await loads.run { await load() } }
         .accessibilityIdentifier("activity.detail.content")
         .cyTracksHeroScroll($heroScrolledAway)
