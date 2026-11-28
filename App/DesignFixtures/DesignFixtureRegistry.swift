@@ -108,6 +108,8 @@ enum DesignFixtureRegistry {
         case "d4-ops-create": return AnyView(D4ClubOpsFixture(screen: .operations(create: true)))
         case "d4-ops-facts": return AnyView(D4ClubOpsFixture(screen: .operationsFacts(unknown: false)))
         case "d4-ops-facts-unknown": return AnyView(D4ClubOpsFixture(screen: .operationsFacts(unknown: true)))
+        case "d4-event-ops": return AnyView(D4ClubOpsFixture(screen: .eventOps(emptySeries: false)))
+        case "d4-event-ops-empty": return AnyView(D4ClubOpsFixture(screen: .eventOps(emptySeries: true)))
         // D5 merchant console (synthetic data, light, real views under .roleTheme(.merchant))
         case "merchant-home": return merchantConsoleFixture(.home)
         case "merchant-home-unknown": return merchantConsoleFixture(.homeUnknown)
