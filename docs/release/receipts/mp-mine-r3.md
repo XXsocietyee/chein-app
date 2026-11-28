@@ -629,3 +629,18 @@ For other lanes: `App/DesignFixtures/E2Fixtures.swift` `E2ChaptersHost` (mp-roam
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 
 Not done: `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `e4-self-medals` and `e4-tickets` (en + zh-Hans).
+
+## Continue 39 (11-28, hourly run): planning-audit mine rows (`audit/1128-plan` domain "mine")
+
+Merged `origin/ui/combined-r7` (49 commits, clean). No B lane branch exists yet (`mp/r3-mine-b`), so nothing to skip. The only Not done row (`CharacterCardReadbackView` byte pin) is still blocked. Sweep unchanged (build 0446d1c4f); re-checked `docs/sweeps/latest/mp-mine/zh-Hans-e4-wallet-balance.jpg` (raw `2026-11-06 18:20:00`: already fixed upstream by ds-consistency `72011dadb`, zh drops server seconds), `zh-Hans-d2-me.jpg`, `en-e4-self-medals.jpg` (predates continue 38), `en-t5-order-center.jpg`, `en-e5b-badge-wall.jpg`: no new mp-mine issue. This run takes the planning audit's mine table (O-xx) that no fix worker owns (`fix/1128b-club-mine` has O-08 withdrawal popup and O-14b invite list; O-02/O-05/O-07 are mp-activity).
+
+| Audit row | MP source | Native file | Level | Result |
+|---|---|---|---|---|
+| O-01 order state classifier vs MP `utils/order-status.js` | `summarizeOrderState`, `orderClockNow` (U-033) | `Core/ProfileOrderHistoryFilter.swift` | C | **Already ported** (gap #28: cancelTime, topicCompleted, exploreProgress, serverNow, whole-day end, pass rules, refunded beats 人工售后). **Fixed now:** `showsUnusedPass` compared the start with the device clock while `historyState` used `serverNow`, so a phone whose clock is behind read 未开始 where the MP reads 可使用. It now uses `serverNow ?? now`. Test: `ProfileOrderHistoryFilterTests.testUnusedSelfPlayPassReadsReadyInsteadOfInProgress` (served pass case). |
+| O-17 new participant cannot be created as default | `pages/addressinfo/addressinfo.js:28` (`isDefault: 0` on create), `.wxml` has no default switch | `Core/ProfileParticipantTransport.swift:54` | C | **Kept as MP.** The MP create always sends `isDefault: 0` (no control on the page; only edit keeps the loaded value), which is exactly what the app sends and admits. No change. |
+| O-21b Me card reads "Lv.N" without 城市探索者 | `profile/index.wxml:69` | `App/MemberHomeHeader.swift` | B | **Already done**: the sweep shows `Lv.3 城市探索者` / `Lv.3 City explorer` (`zh-Hans-d2-me.jpg`, `en-e4-settings.jpg`). |
+| 我的资产 card at ¥0 with no ledger rows (MP 1121 N5) | `profile/index.wxml` `pc-asset wx:if="!(balanceText === '0.00' && balanceFlowCount === 0)"`, `index.js loadUsageCounts` (`/api/user/balance/list` pageSize 1) | `App/AccountView.swift` `mineTabSections` | B | **Not done.** Needs a one-row ledger count read through the wallet-history lease; left until it can be compiled. The 14:13 coordinator check asked for ¥0 (never "—"), which the row shows. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Not done: `CharacterCardReadbackView` byte pin; 我的资产 N5 hide (above); O-22 creator apply / reapply, O-11c activity edit from 我的项目, O-03 (MP has no 1-week hide; product decision), O-04 (MP has text only) — next runs.
