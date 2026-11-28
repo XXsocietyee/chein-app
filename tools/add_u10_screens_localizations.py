@@ -81,8 +81,21 @@ OVERRIDES = {
 }
 
 
+# en-layout r3: English count strings vary by plural; the S value is the `other` form.
+EN_ONE = {
+    'u10.template.summary.games %lld': '%lld play',
+    'u10.template.summary.stops %lld': '%lld stop',
+}
+
+
 def unit(value):
     return {'stringUnit': {'state': 'translated', 'value': value}}
+
+
+def english(key, en):
+    if key in EN_ONE:
+        return {'variations': {'plural': {'one': unit(EN_ONE[key]), 'other': unit(en)}}}
+    return unit(en)
 
 
 def main():
@@ -90,7 +103,7 @@ def main():
     catalog = json.loads(path.read_text(encoding='utf-8'))
     strings = catalog['strings']
     for key, (en, zh) in S.items():
-        strings[key] = {'extractionState': 'manual', 'localizations': {'en': unit(en), 'zh-Hans': unit(zh)}}
+        strings[key] = {'extractionState': 'manual', 'localizations': {'en': english(key, en), 'zh-Hans': unit(zh)}}
     for key, (en, zh) in OVERRIDES.items():
         entry = strings[key]
         entry['localizations']['en'] = unit(en)

@@ -37,9 +37,11 @@ import SwiftUI
 @MainActor struct SessionTeamCreateView: View {
     let activityID: Int
     let registrationID: Int
+    var sessionStarted: Bool = false
     @EnvironmentObject private var session: AppSession
     var body: some View {
-        TeamCreateView(activityID: activityID, coordinator: session.teamCreateCoordinator(registrationID: registrationID))
+        TeamCreateView(activityID: activityID, coordinator: session.teamCreateCoordinator(registrationID: registrationID),
+                       sessionStarted: sessionStarted)
             .id(session.teamViewIdentity)
     }
 }

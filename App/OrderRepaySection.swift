@@ -22,10 +22,8 @@ import SwiftUI
 
     /// US only: the picker's method when it is still offered, else nil so the pay rows pick their default.
     private var chosen: RegistrationPayMethod? {
-        guard isUSD, let method else { return nil }
-        let offered = StripePayEligibility.methods(paymentChannels: detail.paymentChannels,
-                                                   applePayAvailable: ApplePayStripeAuthorizer.canMakePayments)
-        return offered.contains(method) ? method : nil
+        OrderRepayChoice.method(currency: detail.currency, paymentChannels: detail.paymentChannels,
+                                selection: method, applePayAvailable: ApplePayStripeAuthorizer.canMakePayments)
     }
 
     var body: some View {

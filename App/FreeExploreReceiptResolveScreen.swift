@@ -111,6 +111,7 @@ import SwiftUI
         case .unauthorized: phase = .signedOut
         // R8-MEM-7-3: MP free-explore/index.js:116 `res.msg || '加载失败，请稍后重试'`.
         case .refused(_, let message): phase = .failed(message: message)
+        case .retryable(let message): phase = .failed(message: message)
         case .unknown: phase = .failed(message: nil)
         }
     }

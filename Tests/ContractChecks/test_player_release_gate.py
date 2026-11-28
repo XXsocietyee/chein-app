@@ -22,7 +22,7 @@ def read(rel: str) -> str:
 
 # Mirror of Core/PlayerLaunch.swift.
 PREFIXES = ("pages/merchant/", "pages/coop/", "pages/cooperation/")
-SINGLES = {"pages/topic/merchantapply/index", "pages/topic/merchantinfo/merchantinfo"}
+SINGLES = {"pages/topic/merchantapply/index", "pages/topic/merchantinfo/merchantinfo", "pages/topic/settlement/index"}
 PLAYER_VISIBLE = {"pages/merchant/profile/index"}
 
 

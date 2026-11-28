@@ -77,6 +77,11 @@ struct PlayThemeMusicKey: Equatable {
     @State private var showPlayTools = false
     /// MP `playContact` (联系主办 / 联系商家) for the 游玩工具 row; nil hides it.
     @State private var playContact: PlayContact?
+    /// mp-journey r3: MP 游玩工具 `sessStats` (本局用时 · 当前得分 · 同行者榜 第 N 名), read when the sheet opens.
+    @State private var sessionStats: PlayToolsSessionStats?
+    @State private var sessionStatsOff = false
+    @Environment(\.playToolsSessionStatsLoader) private var sessionStatsLoader
+    @Environment(\.playOrientBoardLoader) private var orientBoardLoader
     @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
     @StateObject private var musicLifetime = PlayBackgroundMusicLifetime()
     @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
@@ -359,6 +364,10 @@ struct PlayThemeMusicKey: Equatable {
             guard model.gameplayMode == .cityOrientation, old == .active, new == .completed,
                   model.hasCurrentMediaSnapshot, finishShownFor != model.identity else { return }
             finishShownFor = model.identity; finishScreen = true
+        }
+        .onChange(of: finishScreen) { _, shown in
+            // MP chapter finish (`index.js:9039`): re-read `sessStats` for the 本局成绩 rank.
+            if shown { Task { await loadSessionStats() } }
         }
     }
 
@@ -791,7 +800,25 @@ struct PlayThemeMusicKey: Equatable {
                               openPreferences: openPlayTools)
             }
     }
-    private func openPlayTools() { showPlayTools = true }
+    private func openPlayTools() {
+        showPlayTools = true
+        Task { await loadSessionStats() }
+    }
+    /// MP `loadSessionStats`: city orientation (mode 1) with an orient session only; keeps shown values while re-reading.
+    private func loadSessionStats() async {
+        guard let loader = sessionStatsLoader, let result = model.snapshot?.result, result.mode == 1,
+              let sessionID = result.routeState?.sessionID, sessionID > 0,
+              let topicID = result.topicID, topicID > 0 else { sessionStats = nil; return }
+        var activityID = 0
+        if case .activity(let id) = model.scope { activityID = id }
+        guard let scope = try? OrientSessionScope(topicID: topicID, activityID: activityID, productType: 1) else { sessionStats = nil; return }
+        var showsValues = false
+        if case .some(.ready) = sessionStats { showsValues = true }
+        if !showsValues { sessionStats = .loading }
+        let read = await loader(sessionID, scope)
+        sessionStatsOff = read == nil
+        sessionStats = read
+    }
     /// PLAY-6a: lead actions already sit in `PlayLeadSection` on the page, so the sheet carries stats + preferences.
     private var playToolsSheet: some View {
         PlayToolsAndLeadSheetView(
@@ -808,8 +835,12 @@ struct PlayThemeMusicKey: Equatable {
             teamLead: model.lead,
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
             journalAttributes: model.snapshot.map(PlayJournal.attributes(in:)) ?? [],
-            boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
+            boardDestination: model.snapshot == nil ? nil : { [model, sessionID = orientBoardSessionID, read = orientBoardLoader] in
+                AnyView(PlayCompanionBoardView(model: model, orientSessionID: sessionID, orientRead: read)) },
             scoreDestination: orientScoreDestination,
+            sessionStats: sessionStats,
+            sessionStatsOff: sessionStatsOff,
+            onRetrySessionStats: { Task { await loadSessionStats() } },
             entryCodeRegistrationID: entryCode?.registrationID,
             contact: playContact,
             onTeamBroadcast: teamBroadcast
@@ -1009,6 +1040,17 @@ struct PlayThemeMusicKey: Equatable {
             }
         }
     }
+    /// MP `openBoard`: `mode === 1` with `routeState.sessionId` reads the orient-scoring board.
+    private var orientBoardSessionID: Int? {
+        guard let result = model.snapshot?.result, result.mode == 1,
+              let sessionID = result.routeState?.sessionID, sessionID > 0 else { return nil }
+        return sessionID
+    }
+    /// MP `finish-journal-entry` value: `{{provisional ? '暂列' : ''}}第 N 名` once `sessStats` has a rank.
+    private var finishScoreRank: CityOrientationScoreRank? {
+        guard case .ready(_, _, let rank, let provisional)? = sessionStats, let rank else { return nil }
+        return CityOrientationScoreRank(rank: rank, provisional: provisional)
+    }
     @ViewBuilder private var cityFinishSummary: some View {
         let snapshot = model.snapshot
         let medals = model.reward.map { PlayRewardSection.medals(in: $0, locale: locale) } ?? []
@@ -1020,7 +1062,8 @@ struct PlayThemeMusicKey: Equatable {
             model: model, titleKey: key, subtitle: [topic, earned].compactMap { $0 }.joined(separator: " · "),
             medals: medals, shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
             shareURL: Self.finishShareURL(snapshot), walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
-            scoreDestination: (snapshot?.result.allDone ?? false) ? nil : orientScoreDestination?(),
+            scoreDestination: (snapshot?.result.allDone ?? false) || sessionStatsOff ? nil : orientScoreDestination?(),
+            scoreRank: finishScoreRank,
             collectionDestination: cityCollectionDestination,
             onClose: { finishScreen = false })
     }
@@ -1297,6 +1340,7 @@ struct PlayThemeMusicKey: Equatable {
     @State private var review: PlayCompletionReview?
     @State private var showReview = false
     @State private var showHint = false
+    @State private var showReveal = false
     @State private var hintContext: PlayInteractionContext?
     @State private var hintLevel: Int?
     /// F-05: why the last submit tap was refused. Shown beside the button and as a toast, never silently dropped.
@@ -1492,6 +1536,21 @@ struct PlayThemeMusicKey: Equatable {
                     let context = hintContext, level = hintLevel
                     hintContext = nil
                     Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
+                }
+            ))
+            .modifier(PlaySystemConfirm(
+                isPresented: showReveal,
+                title: appLocalized("playx.hints.reveal", locale: .current),
+                message: appLocalized("playx.hints.revealDetail", locale: .current),
+                cancelTitle: appLocalized("playx.cancel", locale: .current),
+                confirmTitle: appLocalized("playx.hints.reveal", locale: .current),
+                confirmIdentifier: "playx.hints.reveal.confirm",
+                onCancel: { showReveal = false },
+                onConfirm: {
+                    showReveal = false
+                    let context = hintContext
+                    hintContext = nil
+                    Task { await model.requestReveal(nodeID: nodeID, context: context) }
                 }
             ))
     }
@@ -1867,6 +1926,18 @@ struct PlayThemeMusicKey: Equatable {
             }
             .disabled(!model.canWrite || (extra.puzzleScoring != true && extra.hintCost == nil))
             .accessibilityIdentifier("playx.hints.request")
+            // K40 J-09b: the legacy ladder's 揭晓答案. The server help ladder (ANSWER → help/use) replaces this
+            // section when it is on. Same confirm pattern as the hint request; the server scores the reveal.
+            if extra.puzzleScoring == true {
+                Button {
+                    hintContext = context
+                    showReveal = true
+                } label: {
+                    Text("playx.hints.reveal")
+                }
+                .disabled(!model.canWrite)
+                .accessibilityIdentifier("playx.hints.reveal")
+            }
         }
     }
 

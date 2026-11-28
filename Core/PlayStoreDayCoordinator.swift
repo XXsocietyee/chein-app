@@ -152,6 +152,9 @@ public enum PlayStoreDayPreparedProof: Equatable { case scan(code: String), phot
         game.submitting = true; game.error = nil; game.receipt = .submitting
         switch await service.answer(scope: scope, nodeID: node.id, answer: answer) {
         case .unknown: await resolveGameUnknown()
+        case .notedUnknown(let message):
+            await resolveGameUnknown()
+            if game.receipt != .confirmed { game.error = .wrong(message) }
         case .rejected(let message): game.submitting = false; game.receipt = .failed; game.error = .wrong(message)
         case .confirmed(let message, let data):
             game.submitting = false; game.receipt = .confirmed; game.error = nil
@@ -185,6 +188,9 @@ public enum PlayStoreDayPreparedProof: Equatable { case scan(code: String), phot
             case .scanRequired: notice = .arriveScanRequired
             }
         case .write(.unknown): await resolveProofUnknown(autoPopup: node.hasGame || node.hasAdvanced)
+        case .write(.notedUnknown(let message)):
+            await resolveProofUnknown(autoPopup: node.hasGame || node.hasAdvanced)
+            if receipt != .confirmed { notice = .server(message) }
         case .write(.rejected(let message)):
             busy = false; receipt = .failed; arriveRetry = .locate
             notice = message.flatMap { $0.isEmpty ? nil : .server($0) } ?? .proofFailed
@@ -256,6 +262,9 @@ public enum PlayStoreDayPreparedProof: Equatable { case scan(code: String), phot
         }
         switch outcome {
         case .unknown: await resolveProofUnknown(autoPopup: autoPopup)
+        case .notedUnknown(let message):
+            await resolveProofUnknown(autoPopup: autoPopup)
+            if receipt != .confirmed { notice = .server(message) }
         case .rejected(let message):
             busy = false; receipt = .failed; degraded = nil
             notice = message.flatMap { $0.isEmpty ? nil : .server($0) } ?? .proofFailed
@@ -333,7 +342,9 @@ public enum PlayStoreDayPreparedProof: Equatable { case scan(code: String), phot
         let matched = readback?.matches(PlayStoreDayConsent.subject(merchantID: merchantID), event: event) == true
         consentBusy = false
         consent = matched ? (event == .agree ? .agree : .revoke) : .unavailable
-        if matched { preparedConsent = nil; notice = nil } else { notice = .consentUnconfirmed }
+        if matched { preparedConsent = nil; notice = nil }
+        else if case .notedUnknown(let message) = outcome { notice = .server(message) }
+        else { notice = .consentUnconfirmed }
         return matched
     }
 }

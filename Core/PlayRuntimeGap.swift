@@ -230,15 +230,16 @@ public struct PlayCheckPending: Codable, Equatable, Sendable {
         let data = response.data
         guard response.code == 200, data.object != nil, data["sessionId"].playPositiveID == original.sessionID,
               data["nodeId"].playPositiveID == original.nodeID, data["checkId"].text == original.checkID,
-              data["actionId"].text == pending.actionID, let parsed = try? JourneyCheckReceipt(data) else { markUnknown(); return }
+              data["actionId"].text == pending.actionID, let parsed = try? JourneyCheckReceipt(data) else { markUnknown(message: response.msg); return }
         try? store.write(nil, key: key)
         acting = false; loading = false; unknown = false; disabledReason = ""
         receipt = parsed; detailsHidden = Self.hidden(data)
     }
 
-    private func markUnknown() {
+    private func markUnknown(message: String? = nil) {
         acting = false; loading = false; unknown = true
-        disabledReason = "原检定结果待确认，请再次查询；未查到不代表未写入"
+        let note = PlayerGapReply.sentence(message)
+        disabledReason = note ?? "原检定结果待确认，请再次查询；未查到不代表未写入"
     }
 
     /// `checkReceiptView` hidden test: a redacted receipt never leaks totals, modifiers or dice.
@@ -291,7 +292,11 @@ public enum PlayCoopHelp {
         public var id: Int { level }
     }
     public struct Skip: Equatable { public let level: Int; public let usable: Bool; public let reason: String }
-    public enum Outcome: Equatable { case ok(PlayWireValue), rejected(String), unknown }
+    public enum Outcome: Equatable {
+        case ok(PlayWireValue), rejected(String), unknown
+        /// A non-2xx (or otherwise unproven) write that still carried a server sentence.
+        case notedUnknown(String)
+    }
 
     static var typeText: [String: String] {
         ["TEXT": W8Text.t("文字提示", "Text hint"), "IMAGE": W8Text.t("图片提示", "Picture hint"), "LETTER": W8Text.t("揭示字母", "Reveal a letter"),
@@ -365,7 +370,10 @@ public enum PlayCoopHelp {
         do {
             let response = try await client.postJSON("api/play/help/shared", body: body)
             // `res.httpFail`: an HTTP status outside 2xx proves nothing about the write.
-            guard (200..<300).contains(response.status) else { return .unknown }
+            guard (200..<300).contains(response.status) else {
+                if let note = PlayerGapReply.sentence(response.msg) { return .notedUnknown(note) }
+                return .unknown
+            }
             if response.code == 200, response.data.object != nil { return .ok(response.data) }
             return .rejected(response.msg ?? "操作失败")
         } catch { return .unknown }
@@ -515,7 +523,11 @@ public struct PlayContact: Equatable {
 // MARK: - Theme gameplay (personal) and the shared (team) preview
 
 public enum PlayThemeGameplayExchange {
-    public enum Outcome: Equatable { case applied(PlayWireValue), rejected(String), unknown }
+    public enum Outcome: Equatable {
+        case applied(PlayWireValue), rejected(String), unknown
+        /// The write is not proven, and the server still sent a sentence to show beside retry.
+        case notedUnknown(String)
+    }
 
     /// SOLO command: `{sessionId, expectedVersion, actionId, operation, contentId, ...selections}`.
     public static func command(view: PlayWireValue, operation: String, contentID: String, actionID: String,
@@ -546,7 +558,10 @@ public enum PlayThemeGameplayExchange {
         let receipt = response.data
         if response.ok, receipt.object != nil, receipt["sessionId"].playPositiveID == command["sessionId"]?.integer,
            receipt["version"].integer != nil { return .applied(receipt) }
-        if response.code == 200 || !(200..<300).contains(response.status) { return .unknown }
+        if response.code == 200 || !(200..<300).contains(response.status) {
+            if let note = PlayerGapReply.sentence(response.msg) { return .notedUnknown(note) }
+            return .unknown
+        }
         return .rejected(response.msg ?? "操作失败")
     }
 

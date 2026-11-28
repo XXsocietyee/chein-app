@@ -116,6 +116,27 @@ class PlayExperienceSourceChecks(unittest.TestCase):
             for key in keys:
                 self.assertIn(key,strings,(file.name,key))
                 self.assertTrue(strings[key]['en']); self.assertTrue(strings[key]['zh-Hans'])
+    def test_release_play_reads_admit_advanced_state_and_legacy_reveal(self):
+        leases = (ROOT / 'App/ReviewedPlayerWriteLeases.swift').read_text()
+        block = leases.split('static let playRuntimeReadPaths', 1)[1].split('static let clubLeadWritePaths', 1)[0]
+        for path in ['api/play/advanced/state', 'api/play/advanced/leaderboard']:
+            self.assertIn('"' + path + '"', block)
+        # Init order the release configuration must keep: devices, then sensors, then artwork hosts.
+        init_line = leases.split('RuntimeDependencyConfiguration(market: .china', 1)[1].split('playConfigurationByContext', 1)[0]
+        self.assertLess(init_line.index('devices:'), init_line.index('sensors:'))
+        self.assertLess(init_line.index('sensors:'), init_line.index('artworkHosts:'))
+        coordinator = self.core('PlayExperienceCoordinator.swift')
+        self.assertIn('public func requestReveal(nodeID: Int', coordinator)
+        self.assertIn('service.reveal(scope: scope, nodeID: nodeID, advance: nil', coordinator)
+        self.assertIn('gameplayMode == .cityOrientation', coordinator.split('public func requestReveal', 1)[1].split('public func makeCastCoordinator', 1)[0])
+        view = (ROOT / 'App/PlayExperienceView.swift').read_text()
+        self.assertIn('model.requestReveal(nodeID: nodeID, context: context)', view)
+        self.assertIn('Text("playx.hints.reveal")', view)
+        catalog = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']
+        for key in ['playx.hints.reveal', 'playx.hints.revealDetail']:
+            for language in ('en', 'zh-Hans'):
+                self.assertTrue(catalog[key]['localizations'][language]['stringUnit']['value'].strip())
+
     def test_runtime_verification_is_explicitly_not_run(self):
         verification=json.loads((ROOT/'docs/play-experience-verification.json').read_text())
         for key in ['swift_tests','ios_build','ui_tests','device_acceptance','backend_acceptance']:

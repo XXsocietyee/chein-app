@@ -12,7 +12,8 @@ import SwiftUI
 
     private var mapCache: [String: (at: Date, weather: MapSearchPlayerService.Weather?)] = [:]
     private var environmentCache: [Int: (at: Date, snapshot: PlayEnvironmentService.Snapshot?)] = [:]
-    static let ttl: TimeInterval = 600
+    /// Same 10 minutes as `MapWeatherServiceImpl.TTL_MINUTES` and `WeatherContext.mapFreshFor`.
+    static let ttl: TimeInterval = WeatherContext.mapFreshFor
 
     struct Request: Hashable {
         let cell: String
@@ -82,8 +83,13 @@ import SwiftUI
         }
     }
 
-    /// Pull-to-refresh / session reload: re-read the topic environment (event rules can flip on the hour).
-    func invalidateEnvironment() { environmentCache.removeAll() }
+    /// Pull-to-refresh / session reload: drop both caches and read again. Event rules can flip on the hour, and the
+    /// map cell is only fresh for `ttl`.
+    func reload(latitude: Double?, longitude: Double?, topicID: Int?, client: PlayerCapabilityClient?, now: Date = Date()) async {
+        mapCache.removeAll()
+        environmentCache.removeAll()
+        await refresh(latitude: latitude, longitude: longitude, topicID: topicID, client: client, now: now)
+    }
 }
 
 /// Map weather ambience (MP `cy-map-weather`): particles and light above the map, below cards and buttons.

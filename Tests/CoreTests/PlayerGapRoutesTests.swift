@@ -42,8 +42,16 @@ import XCTest
     func testClassifyOnlyFourHundredsRefuse() {
         XCTAssertEqual(PlayerGapReply.classify(data: Data(#"{"code":409,"msg":"x"}"#.utf8), status: 200), .refused(code: 409, message: "x"))
         XCTAssertEqual(PlayerGapReply.classify(data: Data(#"{"code":500}"#.utf8), status: 200), .unknown)
+        XCTAssertEqual(PlayerGapReply.classify(data: Data(#"{"code":500,"msg":"  "}"#.utf8), status: 200), .unknown)
+        XCTAssertEqual(PlayerGapReply.classify(data: Data(#"{"code":500,"msg":"线路忙"}"#.utf8), status: 200), .retryable(message: "线路忙"))
+        XCTAssertEqual(PlayerGapReply.classify(data: Data(#"{"msg":"网关超时"}"#.utf8), status: 502), .retryable(message: "网关超时"))
         XCTAssertEqual(PlayerGapReply.classify(data: Data(), status: 502), .unknown)
         XCTAssertEqual(PlayerGapReply.classify(data: Data(#"{"code":401}"#.utf8), status: 200), .unauthorized)
+        XCTAssertFalse(PlayerGapReply.ok(.null, message: nil).offersRetry)
+        XCTAssertFalse(PlayerGapReply.unauthorized.offersRetry)
+        XCTAssertTrue(PlayerGapReply.unknown.offersRetry)
+        XCTAssertTrue(PlayerGapReply.retryable(message: "线路忙").offersRetry)
+        XCTAssertEqual(ActivityPublishPrecheck.make(.retryable(message: "还不能发")), .failed("还不能发"))
     }
 
     func testNoTokenSendsNothing() async {
@@ -71,7 +79,7 @@ import XCTest
         stub.replies["api/official/signup-command"] = ("", 502)
         let flow = OfficialSignupCommandFlow(service: make(stub), store: store, accountID: 7, eventID: 71)
         let first = await flow.start()
-        XCTAssertNil(first); XCTAssertEqual(flow.phase, .unknown)
+        XCTAssertNil(first); XCTAssertEqual(flow.phase, .unknown); XCTAssertNil(flow.failureMessage)
         XCTAssertEqual(stub.last.url?.path, "/native/api/official/signup-command")
         let requestID = stub.lastJSON["requestId"] as? String
         XCTAssertEqual(stub.lastJSON["targetId"] as? String, "71"); XCTAssertEqual(stub.lastJSON["action"] as? String, "signup")
@@ -91,6 +99,17 @@ import XCTest
         let r3 = await flow.cancel()
         XCTAssertEqual(r3, .cancelled)
         XCTAssertEqual(stub.last.url?.path, "/native/api/official/signup-command/cancel")
+    }
+
+    func testSignupUnknownKeepsTheServerSentence() async {
+        let stub = Stub(), store = OfficialSignupCommandDefaultsStore(defaults: UserDefaults(suiteName: "gap-signup-\(UUID())")!)
+        let flow = OfficialSignupCommandFlow(service: make(stub), store: store, accountID: 7, eventID: 71)
+        stub.replies["api/official/signup-command"] = (#"{"code":500,"msg":"报名通道忙"}"#, 200)
+        let started = await flow.start()
+        XCTAssertNil(started)
+        XCTAssertEqual(flow.phase, .unknown)
+        XCTAssertEqual(flow.failureMessage, "报名通道忙")
+        XCTAssertTrue(flow.hasPending)
     }
 
     func testSignupRejectedSafetyBlocked() async {
@@ -210,6 +229,10 @@ import XCTest
         stub.replies["api/city/nodes/3/favorite"] = ok(#"{"favorited":false}"#)
         let toggled = await service.toggleCityNodeFavorite(poiID: 3)
         XCTAssertEqual(toggled, false)
+        stub.replies["api/city/nodes/3/favorite"] = (#"{"code":500,"msg":"收藏服务忙"}"#, 200)
+        let favoriteReply = await service.postCityNodeFavorite(poiID: 3)
+        XCTAssertEqual(favoriteReply, .retryable(message: "收藏服务忙"))
+        XCTAssertNil(await service.toggleCityNodeFavorite(poiID: 3))
         stub.replies["api/media/asset/attribution"] = ok(#"{"attribution":"Photo by Lin","aiGenerated":true}"#)
         let credit = await service.assetCredit(reference: "https://m/1.jpg")
         XCTAssertEqual(credit, "Photo by Lin")
@@ -221,6 +244,9 @@ import XCTest
         stub.replies["api/object-card/rename"] = (#"{"code":400,"msg":"too long"}"#, 200)
         let failed = await service.renameObjectCard(id: 4, title: "x")
         XCTAssertEqual(failed, .failed(message: "too long"))
+        stub.replies["api/object-card/rename"] = (#"{"code":500,"msg":"稍后再改"}"#, 200)
+        let unprovenRename = await service.renameObjectCard(id: 4, title: "x")
+        XCTAssertEqual(unprovenRename, .failed(message: "稍后再改"))
         stub.replies["api/user/player-code"] = ok(#"{"qr":" https://q/me.png "}"#)
         let qr = await service.playerCode()
         XCTAssertEqual(qr, URL(string: "https://q/me.png"))
