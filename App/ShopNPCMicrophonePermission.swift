@@ -23,9 +23,11 @@ import AVFoundation
         case .undetermined:
             waiting = true
             cancelled = false
+            // Copy the value out of the main-actor parameter before the Sendable permission callback.
+            let capturedGrants = grants
             AVAudioApplication.requestRecordPermission { [weak self] allowed in
                 Task { @MainActor in
-                    self?.resume(allowed: allowed, grants: grants, onEnded: onEnded)
+                    self?.resume(allowed: allowed, grants: capturedGrants, onEnded: onEnded)
                 }
             }
         default:

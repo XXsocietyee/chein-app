@@ -11,6 +11,7 @@ import SwiftUI
     @State private var historyRead = RoamHistoryListRead()
     /// RHIST-3: empty / in-progress states offer the MP next step (出发第一次漫游 / 回到地图).
     @Environment(\.dismiss) private var dismissHistory
+    @Environment(\.locale) private var historyLocale
     @State private var startFirstWalk = false
     @State private var liveEntry = RoamHistoryLiveEntry()
     @State private var localWalk = RoamHistoryLocalWalkState()
@@ -105,7 +106,7 @@ import SwiftUI
                                 }
                         }
                             .cyHeroSource(record.ts, in: hero)
-                            .accessibilityLabel(record.portRunCardAccessibilityLabel)
+                            .accessibilityLabel(record.portRunCardAccessibilityLabel(locale: historyLocale))
                             .accessibilityIdentifier("roam.experience.history.record")
                     }
                 }

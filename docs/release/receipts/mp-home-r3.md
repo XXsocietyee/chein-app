@@ -468,6 +468,17 @@ Rebased onto continue 36 (same merge of `origin/ui/combined-r7`). Sweep build 04
 | `scene-play-activity-detail/index.wxml:34` 集合点 row (`hasLocation` → `openLocation`) → `App/ActivityDetailView.swift` `ActivityDetailMetaSection` | OWNER RULE 3 level B asks for a map snippet for every place (P28, as on the 首页 Today card); the detail showed 集合点 as text only. MP content unchanged: still one 集合点 fact with the same Maps target, no new section. | **Fixed** — when the activity has valid coordinates, the shared static `HomeTodayMeetingPointMap` (one marker, `interactionModes: []`, no hit testing, labelled + hinted, tap → Apple Maps) sits right under the 集合点 row (id `activity.detail.meetingPointMap`); no coordinates → no snippet. `rep3-activity-detail` fixture now carries the 灯笼广场 coordinate. Contract pins updated (`test_activity_design_structure`, `test_activity_registration_parity_w2_06`, `test_accessibility_hardening_wave`). |
 | `search2/index.wxml` / `search2/result/index.wxml` vs `d2-search(-results)` | Re-checked: 推荐搜索, 类别, 在地图上找, result chips, 没有更多了 + 重新搜索 all in MP order. | No change. |
 
+## Round 3 continue (38) — ADA `d2-search-results` rows and scope chips
+
+Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: the HEAD hunk was empty and ours added no unique keys; took theirs). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (52/52; `test_global_search_category_recovery` hash re-pinned with a one-line reason) · design consistency PASS. Sweep still build 0446d1c4f (covered in continue 36); no open coordinator item, the Not done rows above all need a simulator/device or the P2-3d decision, and every 首页-reachable MP page already has a row, so this run took the remaining ADA `d2-search-results` items. Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `pages/search2/result/index.wxml:37,72` `result-card__detail` = `utils/discover-search.js` `decorateItem` detail (topic / activity → addressName, club → city, shop → cityRole ‖ address) → `App/SearchMapFixtureSupport.swift` `rowDetail` (design fixture of `GlobalSearchView`) | ADA + `en/zh-Hans-d2-search-results.jpg`: every row's second line read "Old Town · Lantern" / 老城 · 灯笼 — the query echoed four times instead of the per-type place line. | **Fixed** — the design fixture now gives each kind its MP-shaped line (Hefang Street · Old Town / 河坊街 · 老城区, Lantern Square / 灯笼广场, Hangzhou / 杭州, City stop · 88 Hefang Street / 城市驿站 · 河坊街 88 号). Non-fixture UI-test runs keep the pinned "Offline <keyword>" / 离线示例 text. |
+| `search2/result` `cy-tabs variant="chip"` → `App/GlobalSearchView.swift` `resultScopeChips` | ADA `zh-Hans-d2-search-results.jpg`: the chip row was cut flat at the row inset (「商」 half visible), so it did not read as scrollable. | **Fixed** — `.scrollClipDisabled()` on the chip scroll view (same as the 首页 city rail): the chips run on to the screen edge. Selection, counts, haptic and ids unchanged. |
+| ADA `d2-search` "Filters sits alone in a full card" (MP `search2/index.wxml`: 筛选 sits beside the field) → `App/GlobalSearchView.swift` first section | A trailing toolbar 筛选 button would match the MP row better, but the view has no `.toolbar` today and if any host lacks a navigation container the toolbar would not show, leaving 筛选 with no entry point. | **Not done** — needs a simulator pass over every host (首页 push, search tab, map explorer) before moving it; the row stays (documented Mail/Files pattern). |
+| ADA `d2-search-results` "No more results / Search again footer card does not need to exist" | MP `search2/result/index.wxml:82-86` has 没有更多了 + 重新搜索 (ghost) at the end of the list. | Not changed — MP content (OWNER RULE). |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -515,6 +526,7 @@ Rebased onto continue 36 (same merge of `origin/ui/combined-r7`). Sweep build 04
 - Needs a simulator pass (continue 34): `rep3-activity-detail` with an upcoming fixture date shows Add to Calendar under the hero date (en + zh-Hans, AX5); device pass: the system editor opens prefilled and Cancel/Add both close the sheet.
 - Needs a simulator pass (continue 35): `rep3-activity-detail` 「N 人已报名」 avatar wrap (en + zh-Hans, AX5: avatars grow, still wrap) and the en "When · …" hero line; UI test `testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack`.
 - Needs a simulator pass (continue 37): `rep3-activity-detail` map snippet under 集合点 (en + zh-Hans, light/dark, AX5: height scales, capped 220 pt); tap opens Maps.
+- Needs a simulator pass (continue 38): `d2-search-results` per-kind second lines and the scope chips running to the screen edge (zh: 商家 chip partly visible past the inset), en + zh-Hans.
 - Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
 
 ## For other lanes

@@ -53,7 +53,7 @@ public enum PlayKitActionCatalog {
         "qa": ["SUBMIT_QA"], "branch": ["CHOOSE"], "estimate": ["SUBMIT_ESTIMATE"],
         "pricePair": ["SUBMIT_PRICE_PAIR"], "hiddenObject": ["SUBMIT_HIDDEN_OBJECT"],
         "countdown": ["START_CHALLENGE", "SUBMIT_COUNTDOWN"], "stopwatch": ["START_CHALLENGE", "SUBMIT_STOPWATCH"],
-        "blindTaste": ["SUBMIT_BLIND_TASTE"], "diyName": ["SUBMIT_DIY_NAME"], "steps": ["SUBMIT_STEPS"],
+        "blindTaste": ["SUBMIT_BLIND_TASTE"], "diyName": ["SUBMIT_DIY_NAME"], "steps": ["SUBMIT_STEPS", PlayKitSensorStation.reportAction, PlayKitSensorStation.skipAction],
         "dailySign": ["CLAIM_DAILY_SIGN"], "slowTask": ["START_SLOW_TASK", "CLAIM_SLOW_TASK"], "silentOrder": [],
         "coinFlip": ["FLIP_COIN"], "diceRoll": ["ROLL_DICE"], "predict": ["SUBMIT_PREDICT", "SKIP_CLOSED_PREDICT"],
         "reaction": ["START_CHALLENGE", "SUBMIT_REACTION"],
@@ -99,7 +99,7 @@ public enum PlayKitActionCatalog {
 public enum PlayKitSensorStation {
     public static let reportAction = "REPORT_SENSOR_FAILURE"
     public static let skipAction = "SKIP_SENSOR_STATION"
-    public static let kinds: Set<String> = ["compass", "ballShake", "quietHold", "shout"]
+    public static let kinds: Set<String> = ["compass", "ballShake", "quietHold", "shout", "steps"]
     public static func payload(kind: String, action: String, denied: Bool) -> [String: PlayWireValue] {
         if action == reportAction, denied { return ["game": .string(kind), "denied": .bool(true)] }
         return ["game": .string(kind)]
@@ -107,7 +107,7 @@ public enum PlayKitSensorStation {
     /// The skip control follows the server only: `canSkip`, not yet skipped, not already done.
     public static func offersSkip(_ segment: PlayWireValue) -> Bool {
         segment["canSkip"].bool == true && segment["skipped"].bool != true && segment["done"].bool != true
-            && segment["submitted"].bool != true
+            && segment["submitted"].bool != true && segment["reached"].bool != true
     }
 }
 

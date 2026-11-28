@@ -116,7 +116,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                         // reason under it and 重试 — the one state pattern (ContentUnavailableView, one system button).
                         ContentUnavailableView {
                             Label { Text(LocalizedStringKey(complaintStateTitleKey(issue))).accessibilityIdentifier("profile.complaint.issueTitle") } icon: {
-                                Image(systemName: issue == .signIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle")
+                                Image(systemName: issue == .signIn ? "person.crop.circle.badge.exclamationmark" : issue == .denied ? "lock" : "exclamationmark.triangle")
                             }
                         } description: {
                             if issue == .failed {
@@ -124,7 +124,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                                     .accessibilityIdentifier("profile.complaint.issue")
                             }
                         } actions: {
-                            if issue == .failed {
+                            if issue == .failed || issue == .denied {
                                 Button("action.retry") { Task { await model.load() } }
                                     .buttonStyle(.bordered)
                                     .disabled(model.isLoading).accessibilityIdentifier("profile.complaint.retry")
@@ -198,6 +198,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
         case .signIn: return "profile.complaint.state.signIn"
         case .failed: return "profile.complaint.state.failed"
         case .unavailable: return issue.titleKey
+        case .denied: return "profile.complaint.state.denied"
         }
     }
     private func editor(_ topics: [ProfileComplaintTopic]) -> some View {
