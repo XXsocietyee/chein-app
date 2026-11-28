@@ -14,6 +14,7 @@ struct TopicSessionSelectionView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     /// R7-PC-B1-13: MP pages/topic/index/index.js:1312-1351 goes from a picked session straight to baoming (checkout).
     @Environment(\.topicSessionRegistrationDestination) private var registrationDestination
     @State private var flow = TopicSessionSelectionFlow()
@@ -86,8 +87,8 @@ struct TopicSessionSelectionView: View {
                                     if ticket.remaining == 0 {
                                         Text("topic.sessionSelection.soldOut").font(.footnote).foregroundStyle(.secondary)
                                     }
-                                    if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
-                                    if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
+                                    if let start = ticket.startTime { LabeledContent("topic.start", value: LocaleDisplay.civil(start, locale: locale)) }
+                                    if let end = ticket.endTime { LabeledContent("topic.end", value: LocaleDisplay.civil(end, locale: locale)) }
                                 }
                                 if preferred {
                                     Spacer()
@@ -135,8 +136,8 @@ struct TopicSessionSelectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: activity.name).font(.headline).foregroundStyle(.primary)
             if let address = activity.addressName { Text(verbatim: address) }
-            if let start = activity.startDate { LabeledContent("topic.start", value: start) }
-            if let end = activity.endDate { LabeledContent("topic.end", value: end) }
+            if let start = activity.startDate { LabeledContent("topic.start", value: LocaleDisplay.civil(start, locale: locale)) }
+            if let end = activity.endDate { LabeledContent("topic.end", value: LocaleDisplay.civil(end, locale: locale)) }
         }
     }
 }
