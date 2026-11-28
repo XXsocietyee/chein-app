@@ -16,6 +16,9 @@ TOPIC_REGISTRY = ROOT / 'docs/topic-localizations.json'
 def entry(row, existing=None):
     value = dict(existing or {})  # keep sibling metadata such as extractionState
     value['localizations'] = {lang: {'stringUnit': {'state': 'translated', 'value': row[lang]}} for lang in ('en', 'zh-Hans')}
+    if row.get('en_one'):  # en-layout r3: English count strings vary by plural; `en` is the `other` form.
+        unit = lambda text: {'stringUnit': {'state': 'translated', 'value': text}}
+        value['localizations']['en'] = {'variations': {'plural': {'one': unit(row['en_one']), 'other': unit(row['en'])}}}
     return value
 
 

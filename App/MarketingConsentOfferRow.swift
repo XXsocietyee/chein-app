@@ -67,6 +67,8 @@ import SwiftUI
                 save = .saved
             case .refused(_, let message):
                 save = .failed(message.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("marketingConsent.failed", locale: locale))
+            case .retryable(let message):
+                save = .failed(message)
             case .unauthorized, .unknown:
                 save = .failed(appLocalized("marketingConsent.networkFailed", locale: locale))
             }

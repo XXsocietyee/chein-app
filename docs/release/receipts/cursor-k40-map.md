@@ -11,7 +11,7 @@ Base `origin/ui/combined-r7` at pin `a7c956335`. Counts below: **n** = closed in
 | Audit | What changed |
 |---|---|
 | Plan H-04b | Guest GET `/api/city/nodes` and `/api/city/nodes/{id}`. The two `SearchMapService` token gates are gone. The composition admits that pair only for a pure China guest when the deployment grants `.manualMap` and a manual area is already selected. Places, nearby, favorites, and complete stay signed in. The publish place picker still requires `manualMapApprovalRevision`. |
-| Plan R-07 | `RoamRouteNode` decodes `namePinyin` and `nameInitials` from `/api/map/nearby`. The live address sheet matches MP `matchPlaces` (name/address contains, pinyin prefix, initials prefix) across nearby places and registered shops, capped at five. A shop pick moves the camera and selects `RoamLiveMapPick.shop`. The client does not invent pinyin. |
+| Plan R-07 | `RoamRouteNode` decodes `namePinyin` and `nameInitials` from `/api/map/nearby`. The live address sheet matches MP `matchPlaces` (name/address contains, pinyin prefix, initials prefix) across nearby places and registered shops, then the existing remote place-search / city-node keyword leg, capped at five. A shop pick moves the camera and selects `RoamLiveMapPick.shop`. The client does not invent pinyin. |
 
 Backend: no branch. `NearbyNodeVO` on `us/r3-functional` already sends `namePinyin` / `nameInitials`. `ApiCityNodeController` already returns `CityNodeGuestProjection` for `uid() <= 0`, and SecurityConfig already permits those GETs. No 404.
 

@@ -1112,6 +1112,8 @@ import XCTest
             ("api/play/encounter", ["topicId": "12", "nodeId": "34"]),
             ("api/play/check/receipt", ["sessionId": "41", "nodeId": "34", "checkId": "c_1", "action": "roll"]),
             ("api/play/advanced/receipt", ["sessionId": "9", "idempotencyKey": "k-1"]),
+            ("api/play/advanced/state", ["sessionId": "41"]),
+            ("api/play/advanced/leaderboard", ["activityId": "3", "topicId": "12", "nodeId": "34"]),
             ("api/play/history", ["activityId": "0", "topicId": "12", "routeSessionId": "41"]),
             ("api/play/setup", ["topicId": "12"]),
             ("api/play/contact", ["topicId": "12", "nodeId": "34"])

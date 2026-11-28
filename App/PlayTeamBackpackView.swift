@@ -286,8 +286,12 @@ import SwiftUI
         Group {
             switch issue {
             case .stale: Text("playTeam.help.stale")
-            case .viewUnknown: Text("playTeam.help.viewUnknown")
-            case .writeUnknown: Text("playTeam.help.writeUnknown")
+            case .viewUnknown:
+                if let message = flow.serverMessage, !message.isEmpty { Text(verbatim: message) }
+                Text("playTeam.help.viewUnknown")
+            case .writeUnknown:
+                if let message = flow.serverMessage, !message.isEmpty { Text(verbatim: message) }
+                Text("playTeam.help.writeUnknown")
             case .rejected(let message): Text(verbatim: message)
             }
         }

@@ -55,6 +55,7 @@ import SwiftUI
 @MainActor struct ProjectInitialStateEntry: View {
     @ObservedObject private var model: ProjectEditModel
     @StateObject private var controller: ProjectInitialStateController
+    @Environment(\.topicPlaySetupSource) private var source
     init(model: ProjectEditModel, chapterID: String) {
         self.model = model; _controller = StateObject(wrappedValue: .init(model: model, chapterID: chapterID))
     }
@@ -65,7 +66,7 @@ import SwiftUI
                 .disabled(!controller.available).accessibilityIdentifier("projectInitialState.open")
             ProjectInitialAttributesEntry(model: model, chapterID: controller.chapterID)
         }
-        .cySheet(item: controller.binding(original)) { original in Group { ProjectInitialStateSheet(controller: controller, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: controller.binding(original)) { original in Group { ProjectInitialStateSheet(controller: controller, original: original, service: source?.make()) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }
     }
@@ -79,9 +80,14 @@ import SwiftUI
     @State private var invalid = false
     @State private var pickingCarry = false
     @Environment(\.topicPlaySetupSource) private var source
-    init(controller: ProjectInitialStateController, original: ProjectInitialStateController.Presentation) {
+    @StateObject private var registry: ProjectInitialStateRegistryStore
+    init(controller: ProjectInitialStateController, original: ProjectInitialStateController.Presentation,
+         service: TopicCreatorEditorService?) {
         self.controller = controller; self.original = original; model = controller.model
         _buffer = State(initialValue: original.initial)
+        let topicID = controller.model.coordinator.publicationTopicID.flatMap { $0 > 0 ? Int64($0) : nil }
+        let version = controller.model.draft.preserved["configVersion"]?.integer.flatMap { $0 > 0 ? String($0) : nil }
+        _registry = StateObject(wrappedValue: ProjectInitialStateRegistryStore(service: service, topicID: topicID, configVersion: version))
     }
     private func resource(_ kind: ProjectInitialState.Kind) -> Binding<ProjectInitialState.Resource> { kind == .hp ? $buffer.hp : $buffer.luck }
     var body: some View {
@@ -96,6 +102,17 @@ import SwiftUI
                             buffer.removeCarry(key); invalid = false
                         }
                     }
+                    // MP `fabu/index.wxml:1923-1928` 数值 card: the attribute-binding editor right after 开局带着.
+                    ProjectInitialStateBindingSection(store: registry, rules: buffer.bindingRules, storedKeys: buffer.bindingEnabledKeys,
+                                                      readOnly: !model.canEdit, confirm: { confirmed in
+                        buffer.bind(confirmed); invalid = false
+                    }, manage: {
+                        controller.close(original)
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 450_000_000)
+                            model.topicDetailAsk += 1
+                        }
+                    })
                     ForEach(ProjectInitialState.Kind.allCases.filter { resource($0).wrappedValue.enabled }, id: \.self) { kind in
                         ProjectInitialStateResourceSection(kind: kind, resource: resource(kind),
                             remove: { buffer.setEnabled(false, kind: kind); invalid = false }, edited: { invalid = false })

@@ -197,6 +197,7 @@ import SwiftUI
         Group {
             switch problem {
             case .pending: Text("playHelp.pending")
+            case .pendingNote(let message): Text(verbatim: message)
             case .insufficient: Text("playHelp.insufficient")
             case .refused(let message):
                 if let message, !message.isEmpty { Text(verbatim: message) } else { Text("playHelp.refused") }
@@ -237,6 +238,7 @@ import SwiftUI
             switch notice {
             case .storageUnavailable: Text("playHelp.storageUnavailable")
             case .pending: Text("playHelp.pending")
+            case .pendingNote(let message): Text(verbatim: message)
             case .refused(let message):
                 if let message, !message.isEmpty { Text(verbatim: message) } else { Text("playHelp.skip.refused") }
             }

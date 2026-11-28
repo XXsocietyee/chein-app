@@ -85,7 +85,7 @@ struct HomeHeroHeaderSectionView: View {
                         Button {
                             onSelectBanner?(banner)
                         } label: {
-                            HomeActionBannerSlide(id: banner.id, title: banner.title(locale: locale))
+                            HomeActionBannerSlide(id: banner.id, title: banner.title(locale: locale), actionTitle: banner.actionTitle(locale: locale))
                         }
                         .buttonStyle(.plain)
                         .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -283,29 +283,67 @@ private struct HomeHeroAvatar: View {
     }
 }
 
-/// One MP `v3-hero-action` slide: the poster centred on its dark stage (`aspectFit`) in a rounded card, the title
-/// under it in a text style (no scrim over the art).
+/// One MP `v3-hero-action` slide: the poster centred on its dark stage (`aspectFit`) in a rounded card. Sweep 11-28
+/// 15:50 (P34): the card carries its own title (MP `v3-hero-copy` sits inside the slide) and one action, on the
+/// stage's black under the art (no scrim over the poster). The whole card stays one button, as the MP slide is.
 private struct HomeActionBannerSlide: View {
     let id: String
     let title: String
+    let actionTitle: String
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(spacing: 0) {
             Color.black
-                .aspectRatio(4.0 / 3.0, contentMode: .fit)
+                .aspectRatio(16.0 / 10.0, contentMode: .fit)
                 .overlay {
                     HomeActionBannerPoster(id: id)
-                        .padding(.vertical, 16)
+                        .padding(.top, 16)
                         .accessibilityHidden(true)
                 }
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-                .accessibilityHidden(true)
-            Text(verbatim: title)
-                .font(.headline)
-                .foregroundStyle(.primary)
-                .multilineTextAlignment(.leading)
-                .fixedSize(horizontal: false, vertical: true)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .center, spacing: CYSpacing.sm) {
+                    titleText
+                    Spacer(minLength: CYSpacing.sm)
+                    actionCapsule
+                }
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    titleText
+                    actionCapsule
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .contentShape(Rectangle())
+    }
+
+    private var titleText: some View {
+        Text(verbatim: title)
+            .font(.headline)
+            .foregroundStyle(.white)
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// Looks like the system prominent capsule on a dark surface; it is the slide button's label, not a second control.
+    private var actionCapsule: some View {
+        Label {
+            Text(verbatim: actionTitle)
+        } icon: {
+            Image(systemName: "arrow.right")
+        }
+        .labelStyle(.titleAndIcon)
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(.black)
+        .lineLimit(1)
+        .fixedSize()
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        .background(Color.white, in: Capsule())
+        .accessibilityHidden(true)
     }
 }
 

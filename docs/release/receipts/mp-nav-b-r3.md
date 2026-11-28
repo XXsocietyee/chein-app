@@ -12,3 +12,8 @@ Skipped (bottom-up): "3. MP-account sync note" (A receipt OWNER REQUIREMENT 04:3
 | "signed-out 我的 root ⋯ → 设置 (App/WelcomeView.swift:66)" (A receipt Re-scan 11-27 23:xx, status still `open`) | MP profile 设置 navigateTo pages/shezhi/shezhi → App/WelcomeView.swift | — | verified already a push: `navigationDestination(isPresented: $showsSettings)` → `SettingsView(isPushed: true).cyPushedChrome()` (WelcomeView.swift:67-68), as the A receipt "Open (carried)" note says (23:3x). Only the table cell was never updated; A lane can mark it done | verified, no change |
 
 Remaining open A rows (this run, bottom-up): "3. MP-account sync note" still blocked on a backend field; "漫游护照与工具 hub sheet" is kept by owner Q9 (map home) and stays with the coordinator.
+
+## Run 11-28 (hourly, half split per "B lanes: collision fix" 15:45)
+Merged `origin/mp/r3-nav` (clean). Open rows in `mp-nav-r3.md`, file order: (1) "漫游护照与工具" hub sheet (line 40, kept by owner Q9, coordinator) → A half; (2) "3. MP-account sync note" (line 339) → B half. Row (2) still blocked: `WeChatAppAuthService.Envelope` (Core/WeChatAppAuth.swift:83) decodes only `code`, `token`, `data` and `api/login/wechat/app` exposes no mini-program-origin field. No code change possible without that backend field; not crossing the middle.
+
+**Half done** (B half = one row, blocked on the backend field). Run stopped.

@@ -384,6 +384,7 @@
         "PlayBranchHistoryAppTests",
         "PlayBranchHistoryFixtureHandshakeTests",
         "PlayDirectorIncidentSheetTests",
+        "PlayDirectorRoleSheetTests",
         "PlayExperiencePresentationMountTests",
         "PlayKitGLBDecoderTests",
         "PlayKitSensorStageLifecycleTests",

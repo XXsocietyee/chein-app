@@ -432,7 +432,7 @@ struct CYRoamNearbyCard: View {
     var body: some View {
         Button(action: onTap) {
             // Art beside the title at the default size. At an accessibility size the 64 pt tile sits above the title.
-            if typeSize.isAccessibilitySize {
+            Group { if typeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     HStack(spacing: CYSpacing.md) {
                         art
@@ -448,7 +448,7 @@ struct CYRoamNearbyCard: View {
                     Spacer(minLength: 0)
                     nearbyChevron
                 }
-            }
+            } }
             .padding(CYSpacing.md)
             .background(selected ? CYColor.brandSoft : CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)

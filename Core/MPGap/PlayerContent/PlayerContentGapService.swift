@@ -176,7 +176,8 @@ public final class PlayerContentGapService {
             let raw = (try? JSONDecoder().decode(PlayWireValue.self, from: data)) ?? .null
             let code = raw["code"].text ?? raw["code"].tolerantInteger.map(String.init)
             let decision = PlayerOrientSafetyDecision.decide(
-                code: code, errorCode: raw["errorCode"].text, allowed: raw["data"]["allowed"].bool)
+                code: code, errorCode: raw["errorCode"].text, allowed: raw["data"]["allowed"].bool,
+                serverMessage: raw["msg"].text)
             return OrientSafetyCheck(reply: reply, decision: decision)
         } catch {
             return OrientSafetyCheck(reply: .unknown, decision: .retry(PlayerOrientSafetyDecision.retryLine))
@@ -202,9 +203,9 @@ public enum PlayerOrientSafetyDecision: Equatable, Sendable {
     case retry(String)
     public static let refusedLine = "按平台规则，现在不能开始这个主题。"
     public static let retryLine = "网络异常，请重试"
-    public static func decide(code: String?, errorCode: String?, allowed: Bool?) -> PlayerOrientSafetyDecision {
+    public static func decide(code: String?, errorCode: String?, allowed: Bool?, serverMessage: String? = nil) -> PlayerOrientSafetyDecision {
         if errorCode == "ORIENT_DISABLED" || errorCode == "ORIENT_NOT_ORIENTEERING" { return .proceed }
-        if code != "200" || allowed == nil { return .retry(retryLine) }
+        if code != "200" || allowed == nil { return .retry(PlayerGapReply.sentence(serverMessage) ?? retryLine) }
         if allowed != true { return .refused(refusedLine) }
         return .proceed
     }

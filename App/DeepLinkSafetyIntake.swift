@@ -2,13 +2,13 @@ import Foundation
 
 extension AppSession {
     /// Audits `url` before any legacy parser. Returns true when this intake owns the URL
-    /// (routed, or inert). Returns false only for `chein://` and `wx…` callbacks that are
-    /// not payment or password routes, so those existing handlers still run.
+    /// (routed, or inert). Returns false only for `chein://`, its `chengyin://` alias, and `wx…`
+    /// callbacks that are not payment or password routes, so those existing handlers still run.
     /// Unsafe, unknown, cross-realm, unauthenticated, payment, and password URLs do not navigate.
     func consumeDeepLinkSafetyAudit(_ url: URL) -> Bool {
         let scheme = url.scheme?.lowercased() ?? ""
         let closed = DeepLinkAndUniversalLinkSafetyAudit.isPaymentOrPasswordRoute(url)
-        if !closed, scheme == CheinDeepLink.scheme || scheme.hasPrefix("wx") {
+        if !closed, CheinDeepLink.isPlayerScheme(scheme) || scheme.hasPrefix("wx") {
             return false
         }
         let context = DeepLinkAndUniversalLinkSafetyAudit.SessionContext(
