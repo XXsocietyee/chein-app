@@ -142783,7 +142783,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submission not confirmed yet. Checking…"
+            "value": "Submission result not confirmed. Checking…"
           }
         },
         "zh-Hans": {
@@ -143514,13 +143514,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This appeal isn't showing yet. Pull down later to check."
+            "value": "Submission result not confirmed yet. Refresh later to check."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有查到这条申诉，请稍后下拉刷新确认"
+            "value": "提交结果暂未确认，请稍后刷新确认"
           }
         }
       }
@@ -363586,6 +363586,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "发送"
+          }
+        }
+      }
+    },
+    "mpd.postGov.pendingUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result of your last appeal is not confirmed yet. Pull down to refresh later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次申诉的提交结果未确认，请稍后下拉刷新确认"
           }
         }
       }
