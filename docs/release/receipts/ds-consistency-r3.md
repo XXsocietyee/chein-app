@@ -1023,6 +1023,13 @@ No compiler in the cloud: the restored bodies are the exact pre-11-26 code; help
 - Effect kit: reduce-motion fallback for `CYBurst` / `CYConfettiBurst` is "draw nothing" (callers pair a haptic);
   check each celebration caller also shows the static state (opacity fade) per OWNER RULE 3.
 
+### Run 30 batch 4 — `docs/design/levels.md` (OWNER RULE 3 clarified, 06:20)
+The brief asks ds-consistency for a map of every screen to A · Signature / B · Crafted / C · Utility. Written from the
+function audit's screen list (`origin/audit/1128-functions`, 5 tabs + cross-tab payment) plus the play/game/story
+screens (not in that audit): each row = screen → native view → level → owner-lane note (P-principle where it applies).
+Level rules and the "never" column per level match the brief; the gate kind `effect on clean page` (run 31) enforces A
+effects off B/C files. Lanes add a row for any screen not listed, at its closest sibling's level.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
