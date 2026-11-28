@@ -603,6 +603,7 @@
         "StoreKit2CloseoutLayoutTests",
         "StoryWalkingFogAndWorkshopUpgradeViewTests",
         "TeamMeetingHandshakeSectionViewTests",
+        "TeamMembershipWriteRouteTests",
         "TeamNoticePresentationTests",
         "TeamReadCompositionTests",
         "TeamScreenLifecycleTests",
