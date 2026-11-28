@@ -6,7 +6,7 @@ extension AppSession {
     /// (default `www.chengyinhub.com`, docs/release/owner-values.md). iOS delivers a Universal Link only when the
     /// associated-domains entitlement is signed in (`QUESTIFY_ASSOCIATED_DOMAINS = YES`) and the AASA file is hosted,
     /// so a verified origin here never opens links on its own.
-    static func verifiedLinkOrigins(_ bundle: Bundle = .main) -> Set<String> {
+    nonisolated static func verifiedLinkOrigins(_ bundle: Bundle = .main) -> Set<String> {
         let domain = bundle.object(forInfoDictionaryKey: "QuestifyAppLinkDomain") as? String
         guard let origin = AppUniversalLinkRouter.origin(domain: domain) else { return [] }
         return [origin]
