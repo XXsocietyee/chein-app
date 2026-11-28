@@ -168,6 +168,16 @@ extension PlayKitScreen {
                 Text(verbatim: projection.title).font(.title2.bold())
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
+            } else if kind == .scan, raw["kind"].text?.uppercased() != "OVERLAY" {
+                // MP scan TITLE default 扫描这一站的二维码 (the server title wins when it sends one).
+                Text("playkit.scan.title").font(.title2.bold())
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            if kind == .scan {
+                // MP `matchNote` right under the title: a code match, not an on-site check.
+                Text("playkit.scan.matchNote").font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("playkit.scan.matchNote")
             }
             ForEach(nativeHeaderTextKeys, id: \.self) { key in
                 if let value = raw[key].text, !value.isEmpty {
@@ -188,6 +198,7 @@ extension PlayKitScreen {
         case .musicCorner: return "playkit.music.eyebrow"
         case .silentOrder: return "playkit.silent.eyebrow"
         case .diyName: return "playkit.diy.eyebrow"
+        case .blindTaste: return "playkit.blind.eyebrow"
         case .note: return projection.title.isEmpty ? "playkit.note.kicker" : nil
         case .photoCheck: return projection.title.isEmpty ? "playkit.photo.kicker" : nil
         case .profile: return projection.title.isEmpty ? "playkit.profile.kicker" : nil
@@ -397,10 +408,6 @@ extension PlayKitScreen {
         }
         if kind == .typeIn, let result = projection.typeInResultKey {
             Text(LocalizedStringKey(result)).accessibilityIdentifier("playkit.type.result")
-        }
-        if [PlayKitScreenKind.sort, .match, .classify].contains(kind), (raw["attempts"].integer ?? 0) > 0,
-           let resultKey = projection.reasoningResultKey {
-            Text(LocalizedStringKey(resultKey)).accessibilityIdentifier("playkit.reasoning.result")
         }
     }
 }

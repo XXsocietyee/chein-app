@@ -609,7 +609,7 @@ struct RegistrationSheetView: View {
         // MP baoming.wxml:329 cy-btn label while `!canPay`: 请先勾选信息共享同意 / 请选择参与人信息 / 报名已截止.
         if blocked {
             switch flow.confirmationBlock {
-            case .missingConsent?: return copy.t("请先勾选信息共享同意", "Tick the sharing consent first")
+            case .missingConsent?: return copy.t("请先勾选信息共享同意", "Turn on sharing consent first")
             case .invalidForm?: return copy.t("请选择参与人信息", "Choose a participant")
             case .signupClosed?: return copy.t("报名已截止", "Registration is closed")
             default: return nil

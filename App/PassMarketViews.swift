@@ -543,6 +543,8 @@ enum PassBuyState: Equatable {
     case unavailable(reason: String?)
     /// Group / school products: go through the registration checkout (activity signup), not this page.
     case checkout(activityID: String?, ticketID: String?)
+    /// Group quote failed: MP `market/pass` buy.state `requote` (报价暂不可用 + 重试, index.js:108, wxml:42).
+    case requote
     /// Quote allows these pay modes. Drawn read-only while `MPCommerceGate.purchasesEnabled` is false.
     case buyable(payModes: [PassPayMode], cashReason: String?)
     /// Guest: 购买 asks to sign in first (`market/pass` index.js:80).
@@ -639,6 +641,7 @@ extension PassDetailBinding {
 
 struct PassDetailView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
     let state: PassDetailState
     let onRetry: () -> Void
     let onSetForGift: (Bool) -> Void
@@ -661,9 +664,16 @@ struct PassDetailView: View {
                 ContentUnavailableView {
                     Label { reason.map { Text(verbatim: $0) } ?? Text("mp.common.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle") }
                 } actions: {
-                    Button(action: onRetry) { Text("action.retry") }
-                        .buttonStyle(.bordered).controlSize(.large)
-                        .accessibilityIdentifier("passDetail.retry")
+                    // MP `market/pass` index.js:61: a server reason (off sale, not found …) takes 返回; a read failure takes 重试.
+                    if reason != nil {
+                        Button { dismiss() } label: { Text("action.back") }
+                            .buttonStyle(.bordered).controlSize(.large)
+                            .accessibilityIdentifier("passDetail.back")
+                    } else {
+                        Button(action: onRetry) { Text("action.retry") }
+                            .buttonStyle(.bordered).controlSize(.large)
+                            .accessibilityIdentifier("passDetail.retry")
+                    }
                 }
                 .accessibilityIdentifier("passDetail.error")
             case .ready(let product):
@@ -771,6 +781,13 @@ struct PassDetailView: View {
                 .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .accessibilityIdentifier("passDetail.unavailable")
+        case .requote:
+            Text("mp.pass.buy.requote")
+                .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+            Button(action: onRetry) { Text("action.retry").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .accessibilityIdentifier("passDetail.requote")
         case .signIn:
             Button { onSignIn?() } label: { Text("mp.pass.buy.signIn").frame(maxWidth: .infinity) }
                 .buttonStyle(.borderedProminent).controlSize(.large)

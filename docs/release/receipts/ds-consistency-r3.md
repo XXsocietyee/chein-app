@@ -618,6 +618,61 @@ Simulator check of d2-roam / d6-roam panel in light and dark still needed (next 
 ### Not done (next run)
 None from this run.
 
+## Continue run 20 (2026-11-28, after merging combined-r7 f8574edab)
+
+Merge clean (61 files). Run 19 Not done: none. Coordinator 00:50 row (mp-roam / a11y-dt: "附近活动 sheet is solid black
+over the light map", `a11y-dt/sheet-zh-Hans.jpg` tile `a11y-roam-ax5`): the sweep build f8574edab predates run 19
+(ff2548a23 is not in it); that black panel is `cyMapPanelColor`, already `CYColor.bgElevated` on this branch — answered,
+next sweep should show it light.
+
+Scan: the same appearance bug one level smaller. Two map chips drew a fixed `Color.black.opacity(0.5)` layer under an
+`.ultraThinMaterial`, then put semantic text on it: in light mode that is black text on a dark-grey capsule.
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| `pages/roam/index` fog coverage chip (已探索 37% · 4 待确认) | `App/DesignSystem/CYFogEngine.swift:43` `CYFogCoverageBadge` | unchanged | black layer removed; `.regularMaterial` capsule (follows light / dark) |
+| `pages/roam/index` "new area revealed" toast | `App/DesignSystem/CYRoamKit.swift:288` `CYRevealToast` | unchanged | black layer removed; `.regularMaterial`; white 16 % hairline → `CYColor.borderSubtle` |
+
+New checker kind **dark backing**: `.background(Color.black.opacity(…))` on the same or the line after a material
+`.background` (design system included). Baseline 0, nothing allowed. Self-test: the pre-fix tree fails in exactly the
+two files above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(dark backing 0, status capsule 29 baselined, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+Simulator check of d6-roam chips in light and dark still needed (next sweep).
+
+### Not done (next run)
+None from this run.
+
+## Continue run 21 (2026-11-28, after merging combined-r7 907570051)
+
+Merge clean (59 files). Run 20 Not done: none. No new coordinator row for this lane since 00:50 (answered in run 20).
+Sweep `docs/sweeps/latest` = build 907570051 (01:10Z, light); sheets read: `mp-mine/sheet-en.jpg`,
+`mp-journey/sheet-en.jpg`.
+
+Scan: one money label. `mp-mine/sheet-en.jpg` shows three ways to write the same CNY amount in English:
+`en-d2-me` balance **CN¥0.00**, `en-t5-order-center` **CN¥168.00**, but `en-e4-wallet-balance` (余额流水) **¥128.50** /
+**+¥58.00**. The shared rule (`LocaleDisplay.money`, used by Me balance, orders, coop, topic, E1 commerce) is `¥` in
+Chinese and `CN¥` in other languages; the wallet screens had their own currency table (`WalletCurrencySymbol`) that
+returned a bare `¥` in every language. zh is unchanged (`¥128.50`).
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| `subpackageA/components/scene-asset-income-detail` 余额流水 hero + rows (`e4-wallet-balance`) | `App/WalletCommerceViews.swift:668` hero glyph, `App/WalletNumberLocalization.swift:48` `symbolMoney` (row delta + after-balance) | unchanged | currency glyph through the new `WalletCurrencySymbol.symbol(_:locale:)` → `CN¥128.50` / `+CN¥58.00` in en; the one-character check became `isGlyph` (a drawn symbol, not an ISO code) so `CN¥` is still drawn before the number instead of falling back to `128.50 CNY`. |
+| 我的资产 / 账户收益 hero, income rows, asset rows | `App/WalletCommerceViews.swift:182`, `:292`, `:343` | unchanged | same locale-aware symbol. |
+| — | `App/WalletCommerceViews.swift` `WalletCurrencySymbol` | — | `symbol(_:locale:)` (CNY → `LocaleDisplay.currencySymbol`, other codes as before) + `isGlyph(_:)`. |
+
+New checker kind **locale money**: `WalletCurrencySymbol.symbol(…)` without `locale:`, or a `Text("¥…")` literal.
+Baseline 0; allowed: DEBUG native gallery sample prices (reason in the baseline). Self-test: the pre-fix
+`WalletCommerceViews.swift` fails at lines 182, 292, 343, 668.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(locale money 0, status capsule 29 baselined, 79 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+Simulator check of `en-e4-wallet-balance` / `en-d2-me` (CN¥ everywhere in English) still needed (next sweep).
+
+### Not done (next run)
+None from this run.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

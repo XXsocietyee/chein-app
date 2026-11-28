@@ -66,7 +66,7 @@ updated en of `roamSub.w208.history.loading`.
 | `route-thumb` (scene-roam-history run card) | `RoamRouteThumbView.swift` | Already mapped (real basemap with coordinates, sketch otherwise); no type/tracking violations. | No change. |
 | `share-card` (pages/roam/index.wxml:1059) | — | MP roam mounts it but never sets `shareCard.show = true` (only the close handler writes it); roam sharing is the C2 share sheet (`RoamHistoryShareView`). | No change (nothing to show). |
 | `slide-confirm` | — | Only MP use is `pages/play` 勋章颁发 Woo! (play flow, not the roam tab). Native one-off confirms use `CYGoHoldPill` / `confirmationDialog`. | Not in roam scope; noted for the play lane. |
-| `map-weather` (wxml:251) | — | Decoration only (`aria-hidden`, no gesture, nothing shown on failure/clear/reduced motion); needs a new `/api/map/weather` read. | Not ported (no content; new endpoint would need review). |
+| `map-weather` (wxml:251) | — | Decoration only (`aria-hidden`, no gesture, nothing shown on failure/clear/reduced motion); needs a new `/api/map/weather` read. | Superseded: ported to the live map in continue (25). |
 | `roam-atmos-entry` (wxml:1076) | — | First-entry video transition, decoration only, skipped on slow net / reduced motion. | Not ported (no content). |
 | `team-recovery-panel` (my-teams wxml:16, nearby:271) | `NearbyTeamViews.swift` `notice` | MP panel sits under the title, above `.mt-stats` and the segment; native notice (unknown-outcome chip + read messages) sat under the segment. Per-command 查询结果 / 原请求重试 / 终止未执行请求 rows exist on the team page (`TeamHomeView` C-D12); the list page has no persisted command store to list. | **Fixed position:** notice moved above stats and segment. Per-row list not added (needs a persisted team-command store; `TeamCommandWriter` keeps ids in memory per page). |
 | citystamp drag note → mailbox | `RoamSubpageParityViews.swift` `RoamCityStampFlowView` | Not ported. | **Fixed:** the note (header + field) is one card with `DragGesture` (tilt ±6°, scale .88 while held); finger over the mailbox (MP `_overBox`: ±34 pt sides, 24 pt above) lifts the box and switches the hint to 松手，投进去; dropping there sends, else it springs back (no animation under Reduce Motion). MP `sghint` line added; 投进信箱 button kept for accessibility. |
@@ -331,6 +331,31 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings: one pure-addition confli
 
 Gates: generate_project OK · check_scaffold PASS (20986 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (24) — coordinator 00:50 finding: black 附近活动 panel (build f8574edab)
+
+Base re-merged with `origin/ui/combined-r7` (clean). Screens read: `docs/sweeps/latest/a11y-dt/zh-Hans-a11y-roam-ax5.jpg` (black panel under the light map, 附近活动 2 on its own grey pill) and `mp-roam/zh-Hans-d2-roam.jpg` (launch tile, timing).
+
+| MP page → native | Finding | Fix |
+|---|---|---|
+| `pages/roam/index` entry map 附近活动 sheet → `App/RoamBrowserView.swift` map mode (`CYMapScaffold` panel) + `App/DesignSystem/CYMapChrome.swift` | Coordinator 00:50: the 附近活动 sheet is solid black over the light map (`cyMapPanelColor = .black`); rows and peek use semantic text colours, so light mode drew black-on-black, patched only by a material pill behind the peek line. | **Fixed:** new environment flag `cyMapPanelFollowsAppearance` (default off — play / nearby-teams / play-session scaffolds keep their look, their lanes decide); when on, the panel fill is the system `.regularMaterial` (follows light / dark like the map), lighter shadow (0.15), grabber `.tertiary`. The roam browser sets it on its scaffold, its list background in map mode is clear (was black), and the peek line drops its own material pill (the panel is the material now). No new strings; same MP content and order (peek 附近活动 · count → rows). |
+
+Gates: generate_project OK · check_scaffold PASS (21016 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
+## Round 3 continue (25) — live-map weather layer (MP `cy-map-weather`) + sweep 01:10 (build 907570051)
+
+Base re-merged with `origin/ui/combined-r7`: two conflicts with ds-consistency's map-panel change (`cyMapPanelColor` is now
+`CYColor.bgElevated`, grabber `tertiaryLabel`). Kept both: the default panel is ds-consistency's elevated surface; roam keeps its
+`cyMapPanelFollowsAppearance` opt-in (regular material); the grabber is theirs for every scaffold. Screens read:
+`docs/sweeps/latest/mp-roam/sheet-zh-Hans.jpg`, `sheet-en.jpg` (d2-roam, d6-roam, e2-stamp-album, e5b-stamp).
+
+| MP page → native | Difference | Fix |
+|---|---|---|
+| `pages/roam/index` live map `cy-map-weather` (wxml:251, `active = roamPageShown && screen == 'map'`; `subpackageRoam/components/map-weather`, `weather-core.js` cell cache) → `App/RoamLiveSessionView.swift` `sessionContent` | Earlier row (continue 2) said "not ported, needs a new endpoint". The read already exists (`MapSearchPlayerService.weather`, `MapWeatherModel`, `MapWeatherOverlay`) but was mounted only on the legacy `RoamBrowserView` search map, not on the live map where the MP shows it. | **Fixed:** new `RoamLiveMapWeather` modifier (`App/SocialRoamMounts.swift`) on the live map: player GCJ-02 fix → 20-per-degree cell, only the cell centre is sent, re-read only when the cell (or account) changes, 10 min cache. Nothing drawn without a fix, signed out (no `socialRoamCapabilities`), clear, reduced motion or any failure — as the MP. Overlay is hit-test-off and VoiceOver-hidden. No new strings. |
+| `subpackageRoam/components/cy/scene-roam-stamp-album` → `NativeStampAlbumView` (`e2-stamp-album`, both languages) | Design fixture showed the offline note 示例内容 / Example content above 共 N 枚, and stamps named 示例城市邮票 / "Synthetic city stamp" (coordinator 19:50 asked for real fixture names). | **Fixed:** the note hides under `--design-fixture` (same rule as Search / Square; offline still keeps the album local); design-fixture stamp names 外滩夜色 / The Bund at night and 老街霓虹 / Old street neon (match the bundled photos). UI tests (no flag) keep the pinned captions. |
+| `roam-atmos-entry` (wxml:1076) | First-entry cloud video over the map. | Still not ported: decoration only, and the 16:53 rule says no overlay may dim a tab root. |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
@@ -339,7 +364,7 @@ Gates: generate_project OK · check_scaffold PASS (20986 keys) · a11y lint 0 ne
 - team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen from merchant pins + shop photo pins: done in continue (23).
-- For other lanes (ds-consistency): `cyMapPanelColor = Color.black` (`App/DesignSystem/CYMapChrome.swift:391`) draws a black panel under light content in light mode (en-d2-roam, every sweep since 20:45).
+- For other lanes (ds-consistency, mp-journey, mp-activity): the default panel is now ds-consistency's elevated surface (follows the appearance); roam additionally opts into `.environment(\.cyMapPanelFollowsAppearance, true)` (continue 24). The other `CYMapScaffold` users (`PlayExperienceView`, `PlaySessionView`, `NearbyTeamViews`) and `CYRoamNearbySheet` (fixture only) still use the black `cyMapPanelColor`; opt in once their panel content is checked for semantic colours.
 - Entry peek `.login`: 401 part done in continue (16); the no-deployment `.login` fixture state stays (not reachable by players).
 - Live map bottom strip P-32: done in continue (21) for the map home (shipping tab root); the legacy `RoamBrowserView` live cover (flag off) gets no feed.
 - No Swift build ran here; integrator compiles.

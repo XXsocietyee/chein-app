@@ -406,7 +406,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Trying again will not help. The organiser needs to fix this stop."
+            "value": "Trying again will not help. The organizer needs to fix this stop."
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This stop isn't set up. Ask the organiser to fix it."
+            "value": "This stop isn't set up. Ask the organizer to fix it."
           }
         },
         "zh-Hans": {
