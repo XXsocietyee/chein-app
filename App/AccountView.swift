@@ -208,7 +208,7 @@ import SwiftUI
         // MP 我的项目 (管理全部): the same project preview the public profile 我的 tab shows; legacy host keeps the creator rows.
         if showsPassportOverview {
             ProfileSelfProjectsEntry(memberID: account.id, accountReader: session.socialAccountReader,
-                access: .init(session: session), isCurrent: { session.account?.id == account.id })
+                access: .init(session: session), isCurrent: { session.account?.id == account.id }, refreshTrigger: memberRefreshToken)
         }
         MPParityAccountLinks(part: .bounty) // promo / video bounty; hidden until their bindings are injected
         Section("wallet.assets") {

@@ -78,7 +78,7 @@ class ProfileAuthorPostsRefreshSourceChecks(unittest.TestCase):
             self.assertIn('"profile.postsRefresh.' + key + '"', self.view)
         self.assertNotIn('"profile.postsRefresh.refresh"', self.view)
         self.assertIn('.onChange(of: refreshTrigger)', self.view)
-        self.assertIn('.cyRefreshable { await refreshAuthorPosts() }', self.host)
+        self.assertIn('.cyRefreshable { await refreshPage() }', self.host)
         self.assertIn('.disabled(model.isBusy)', self.view)
         self.assertIn('if model.failedOperation != nil', self.view)
     def test_empty_requires_successfully_loaded_page(self):

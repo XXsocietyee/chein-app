@@ -27,6 +27,7 @@ import SwiftUI
     @Environment(\.dynamicTypeSize) private var typeSize
     private enum Tab: String, CaseIterable { case mine, posts, achievements, about }
     @State private var authorPosts = ProfileAuthorPostsRefreshController()
+    @State private var pullRefreshToken = 0
     @State private var authorPostTicket: ProfileAuthorPostTicket?
     @State private var tab = Tab.posts
     @State private var appliedInitialTab = false
@@ -230,7 +231,8 @@ import SwiftUI
                             ProfileSelfOrdersEntry(memberID: memberID, social: reader, access: selfOrdersAccess, isCurrent: isCurrent)
                         }
                         if let selfProjectsAccess {
-                            ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent)
+                            ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent,
+                                refreshTrigger: pullRefreshToken)
                         }
                     case .posts:
                         // r8 A1-01: own profile only.
@@ -331,7 +333,7 @@ import SwiftUI
         }
             .cyPageTitle("social.profile")
             // 11-28 05:35 sweep: posts refresh by pull-down, as in the MP (no refresh row).
-            .cyRefreshable { await refreshAuthorPosts() }
+            .cyRefreshable { await refreshPage() }
             .cyHideTabBar()
             .navigationDestination(item: selfEditBinding) { ticket in
                 ProfileSelfEditDestination(ticket: ticket, access: selfEditAccess,
@@ -381,8 +383,9 @@ import SwiftUI
                 if context == nil && tab == .mine && selfProjectsAccess?.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) == nil { tab = .posts }
             }
     }
-    /// Pull to refresh on the 帖文 tab reloads the retained author feed (the other tabs refresh their own sections).
-    private func refreshAuthorPosts() async {
+    /// Pull to refresh (MP pull-down): 帖文 reloads the retained author feed; 我的项目 reloads on the bumped token.
+    private func refreshPage() async {
+        pullRefreshToken &+= 1
         guard tab == .posts, !authorPosts.isBusy else { return }
         await authorPosts.refresh(memberID: memberID, accountReader: reader, squareReader: squareReader, isCurrent: isCurrent)
     }
