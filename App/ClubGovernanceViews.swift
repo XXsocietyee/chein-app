@@ -2,7 +2,7 @@ import SwiftUI
 
 /// P044 keyword-only scheduling. The view still owns authorization and response fences.
 @MainActor final class ClubCustomerKeywordDebounce {
-    static let delayNanoseconds: UInt64 = 300_000_000
+    nonisolated static let delayNanoseconds: UInt64 = 300_000_000
     private var pending: Task<Void, Never>?
     private var revision: UInt64 = 0
     private let sleep: @MainActor @Sendable () async throws -> Void

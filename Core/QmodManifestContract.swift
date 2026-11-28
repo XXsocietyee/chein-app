@@ -131,7 +131,7 @@ enum QmodJSONInspection {
 /// (25 MiB archive, 100 MiB expanded, 20 MiB per file, 2,000 files, 200-char paths,
 /// depth 8) as pre-load-test proposals; `reviewProposalV1` carries them only for
 /// local authoring hints and tests, labelled as a proposal, never as server truth.
-public enum QmodManifestIssue: Error, Equatable {
+public enum QmodManifestIssue: Error, Equatable, Sendable {
     case malformed, unsupportedFormat, h5DesignOnly, invalidPackage, invalidVersion, invalidEntrypoint
     case invalidLocale, invalidDependency, unsafePath(String), duplicatePath(String), fileTooLarge(String, actual: Int64, limit: Int64)
     case tooManyFiles(actual: Int, limit: Int), expandedTooLarge(actual: Int64, limit: Int64)
