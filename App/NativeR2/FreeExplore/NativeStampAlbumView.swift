@@ -66,6 +66,8 @@ import SwiftUI
         .onAppear { presentation.appear(foreground: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in presentation.setForeground(phase == .active) }
         .onChange(of: receivedReader.map { RoamAlbumReadOwner(reader: $0, scope: nil) }) { _, _ in tab = .mine }
+        .cyAnimation(CYMotion.standard, value: tab)
+        .cyHaptic(.selection, trigger: tab)
         .onDisappear { presentation.disappear() }
         .accessibilityIdentifier("roam.experience.album")
     }

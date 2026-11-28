@@ -5,39 +5,30 @@ struct ProjectEditCompletionRulesForm: View {
     let city: Bool
     let fullEdit: Bool
     let totalNodes: Int
+    /// MP `topic-detail-sheet.wxml:217-234` 通关条件 card: city topics switch to 完成 N / 总节点 个节点即通关;
+    /// free explore shows the title only (always ALL). The 宾果九宫格 cells moved to `ProjectEditBingoRow`.
     var body: some View {
-        Section("projectEdit.completion.title") {
+        Section {
             if rules.readOnly {
                 Label("projectEdit.completion.readOnly", systemImage: "lock")
                     .accessibilityIdentifier("projectEdit.completion.readOnly")
-            } else {
-                if city {
-                    Picker("projectEdit.completion.mode", selection: $rules.mode) {
-                        Text("projectEdit.completion.all").tag("ALL")
-                        Text("projectEdit.completion.atLeast").tag("AT_LEAST")
-                    }.accessibilityIdentifier("projectEdit.completion.mode")
-                    if rules.mode == "AT_LEAST" {
+            } else if city {
+                Picker("projectEdit.completion.mode", selection: $rules.mode) {
+                    Text("projectEdit.completion.all").tag("ALL")
+                    Text("projectEdit.completion.atLeast").tag("AT_LEAST")
+                }.accessibilityIdentifier("projectEdit.completion.mode")
+                if rules.mode == "AT_LEAST" {
+                    HStack {
                         TextField("projectEdit.completion.count", text: $rules.requiredCount)
                             .keyboardType(.numberPad).accessibilityIdentifier("projectEdit.completion.count")
+                        Text(verbatim: "/ \(totalNodes)").monospacedDigit().foregroundStyle(.secondary)
                     }
                 }
-                Toggle("projectEdit.completion.enabled", isOn: $rules.bingoEnabled)
-                    .accessibilityIdentifier("projectEdit.completion.enabled")
-                if let key = rules.validationIssue(totalNodes: totalNodes) { Label(LocalizedStringKey(key), systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) }
-                if rules.bingoEnabled, rules.cells.count == 9 {
-                    ForEach(ProjectEditCompletionRules.displayOrder, id: \.self) { position in
-                        DisclosureGroup {
-                            TextField("projectEdit.completion.label", text: $rules.cells[position].label)
-                                .accessibilityIdentifier("projectEdit.completion.label.\(position)")
-                            TextField("projectEdit.completion.coupon", text: $rules.cells[position].couponID)
-                                .keyboardType(.numberPad).accessibilityIdentifier("projectEdit.completion.coupon.\(position)")
-                            TextField("projectEdit.completion.feedback", text: $rules.cells[position].feedbackText, axis: .vertical)
-                                .accessibilityIdentifier("projectEdit.completion.feedback.\(position)")
-                        } label: {
-                            Text(LocalizedStringKey("projectEdit.completion.condition." + String(position)))
-                        }.accessibilityIdentifier("projectEdit.completion.cell.\(position)")
-                    }
-                }
+            } else {
+                LabeledContent("projectEdit.completion.mode") { Text("projectEdit.completion.all") }
+            }
+            if let key = rules.validationIssue(totalNodes: totalNodes), !ProjectEditCompletionRules.bingoIssueKeys.contains(key) {
+                Label(LocalizedStringKey(key), systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText)
             }
         }.disabled(!fullEdit || rules.readOnly)
     }

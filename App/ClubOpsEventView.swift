@@ -33,6 +33,9 @@ import SwiftUI
     /// CLB-r9-event-ops-01 (MP event-ops topic dropdown): the hub's eventTopics read feeds an inline topic menu;
     /// 添加日期 opens the picked topic first (ClubOpsEventAccess.focusFirst on the pushed list).
     @State private var topicFacts: [ClubOpsEventTopicFact] = []
+    /// mp-club r3 (MP event-ops wxml:121-170): the 日期清单 card lists each series inline (nil = not read yet).
+    @State private var seriesRows: [ClubOpsEventSeriesRow]?
+    @State private var seriesFailed = false
     @State private var pickedTopicID: Int?
     private var key: Key { .init(identity: identity, authorization: access.authorizationGeneration, reader: ObjectIdentifier(access), scope: scope) }
     private var accessScope: ClubGovernanceScope { .init(clubID: scope.clubID, activityID: scope.activityID) }
@@ -165,16 +168,25 @@ import SwiftUI
                 }
             }
         case .series:
-            // Mini-program 日期清单 card: title row + its one-line rule 「仅可修改无报名的未来场次」.
+            // mp-club r3 (MP event-ops wxml:121-170): the 日期清单 card lists the series inline —
+            // error 系列列表加载失败 + 重试, empty 还没有系列场次, else one row per series (「主题 · 重复方式」, 候补开启/关闭)
+            // that opens 编辑未来场次, then the full date list (含已过去与已取消的场次). Rule line as the footer.
             Section {
-                push(.series, .init(clubID: scope.clubID)) {
-                    Label {
-                        Text("clubOpsEvent.section.series", tableName: "ClubOpsEvent")
-                    } icon: {
-                        Image(systemName: "calendar")
+                ClubOpsEventSeriesInlineRows(rows: seriesRows, failed: seriesFailed, retry: { Task { await load() } }) { row in
+                    ClubGovernanceReadView(operation: .seriesDetail,
+                                           scope: .init(clubID: scope.clubID, topicID: row.topicID, seriesID: row.id),
+                                           identity: identity, access: access, coordinator: coordinator)
+                }
+                if seriesRows?.isEmpty == false {
+                    push(.series, .init(clubID: scope.clubID)) {
+                        Label {
+                            Text("clubOpsEvent.series.allDates", tableName: "ClubOpsEvent")
+                        } icon: {
+                            Image(systemName: "calendar")
+                        }
                     }
                 }
-            } footer: { Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent") }
+            } header: { Text("clubOpsEvent.section.series", tableName: "ClubOpsEvent") } footer: { Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent") }
         case .recurrence where publishEmpty:
             // mp-club r3 (MP event-ops wxml:178): with no topic and no series, 重复方式 is not shown — only 发布主题 above.
             EmptyView()
@@ -242,6 +254,7 @@ import SwiftUI
             }
             model = ClubOpsEventAccess(permissions: permissions, scope: eventScope); loadedKey = expected
             occurrenceStatus = nil; rosterTotal = nil; rosterSnapshot = nil; publishEmpty = false; topicFacts = []
+            seriesRows = nil; seriesFailed = false
             if let model, model.sections.contains(.series) || model.sections.contains(.recurrence) {
                 let clubScope = ClubGovernanceScope(clubID: scope.clubID)
                 let topics = try? await access.read(.eventTopics, scope: clubScope, options: [:], check: check)
@@ -251,11 +264,18 @@ import SwiftUI
                     pickedTopicID = topicFacts.first(where: { $0.id == scope.topicID })?.id ?? topicFacts.first?.id
                 }
                 // MP `topicsLoaded && topics.length === 0 && seriesState === 'empty'`: both reads must answer.
-                if model.sections.contains(.series), let topics,
-                   let series = try? await access.read(.series, scope: clubScope, options: [:], check: check) {
+                if model.sections.contains(.series) {
+                    let series = try? await access.read(.series, scope: clubScope, options: [:], check: check)
                     guard revision == generation, expected == key else { return }
-                    let seriesRows = series.value.array ?? series.value["rows"].array ?? series.value["items"].array
-                    publishEmpty = topics.value.array?.isEmpty == true && seriesRows?.isEmpty == true
+                    if let series {
+                        let list = series.value.array ?? series.value["rows"].array ?? series.value["items"].array
+                        var names: [Int: String] = [:]
+                        for fact in topicFacts { if let name = fact.name { names[fact.id] = name } }
+                        seriesRows = ClubOpsEventSeriesList(value: .array(list ?? []), topicNames: names).rows
+                        if let topics { publishEmpty = topics.value.array?.isEmpty == true && list?.isEmpty == true }
+                    } else {
+                        seriesFailed = true
+                    }
                 }
             }
             if (scope.activityID ?? 0) > 0, let model {
@@ -318,6 +338,65 @@ import SwiftUI
             }
         }
         return text + Text("i18nR3.parenClose")
+    }
+}
+
+/// mp-club r3 (MP event-ops wxml:124-160): the hub's inline 日期清单 rows. Each row is the MP
+/// 「主题 · 重复方式」 + 候补 line with the trailing 编辑未来场次, and opens the series detail (where the edit lives).
+@MainActor struct ClubOpsEventSeriesInlineRows<Destination: View>: View {
+    let rows: [ClubOpsEventSeriesRow]?
+    let failed: Bool
+    let retry: () -> Void
+    @ViewBuilder let destination: (ClubOpsEventSeriesRow) -> Destination
+    var body: some View {
+        if failed {
+            VStack(alignment: .leading, spacing: 8) {
+                Label {
+                    Text("clubOpsEvent.series.loadFailed", tableName: "ClubOpsEvent")
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+                .foregroundStyle(.secondary)
+                Button("action.retry", action: retry)
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("clubOpsEvent.series.retry")
+            }
+            .accessibilityIdentifier("clubOpsEvent.series.failed")
+        } else if let rows {
+            if rows.isEmpty {
+                Label {
+                    Text("clubOpsEvent.series.empty", tableName: "ClubOpsEvent")
+                } icon: {
+                    Image(systemName: "calendar")
+                }
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("clubOpsEvent.series.empty")
+            } else {
+                ForEach(rows) { row in
+                    NavigationLink {
+                        destination(row)
+                    } label: {
+                        ViewThatFits(in: .horizontal) {
+                            HStack(alignment: .firstTextBaseline) {
+                                ClubOpsEventSeriesRowView(row: row)
+                                Spacer(minLength: 8)
+                                editLabel
+                            }
+                            VStack(alignment: .leading, spacing: 4) {
+                                ClubOpsEventSeriesRowView(row: row)
+                                editLabel
+                            }
+                        }
+                    }
+                    .accessibilityIdentifier("clubOpsEvent.series.edit.\(row.id)")
+                }
+            }
+        }
+    }
+    private var editLabel: some View {
+        Text("clubOpsEvent.series.editFuture", tableName: "ClubOpsEvent")
+            .font(.subheadline)
+            .foregroundStyle(.tint)
     }
 }
 

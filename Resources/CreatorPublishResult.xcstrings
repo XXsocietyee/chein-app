@@ -1,22 +1,6 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "templatePublishResult.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Publication submitted"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "发布提交成功"
-          }
-        }
-      }
-    },
     "templatePublishResult.detail": {
       "localizations": {
         "en": {
@@ -33,50 +17,46 @@
         }
       }
     },
-    "templatePublishResult.identity": {
+    "templatePublishResult.meta %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Template number"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "About %lld minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "About %lld minutes"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模板编号"
+            "value": "预计 %lld 分钟"
           }
         }
       }
     },
-    "templatePublishResult.destination": {
+    "templatePublishResult.title": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opening your template library in a moment."
+            "value": "Publication submitted"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "即将返回我的模板库。"
-          }
-        }
-      }
-    },
-    "templatePublishResult.openLibrary": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open my template library"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "前往我的模板库"
+            "value": "发布提交成功"
           }
         }
       }

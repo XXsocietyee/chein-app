@@ -37,10 +37,12 @@ class SavedLibrarySourceContracts(unittest.TestCase):
   self.assertIn('.onDisappear { controller.retire() }',FLOW);self.assertIn('else { controller.suspend() }',FLOW)
  def test_destination_replacement_and_result_ui_are_complete(self):
   for x in ['if controller.showingLibrary { library() }','TemplateAuthoringView(coordinator: coordinator','.onPreferenceChange(TemplateAuthoringSavedResultPreferenceKey.self)','.cySheet(item: controller.presentationBinding())','close: controller.closeAction(value)']:self.assertIn(x,FLOW)
-  self.assertIn('result.memberTemplateID.rawValue',PANEL);self.assertIn('.interactiveDismissDisabled(true)',PANEL)
+  # MP cy-result-sheet has no id row / button (mp-publish r3); the panel shows the MP duration meta instead.
+  self.assertIn('result.durationMinutes',PANEL);self.assertIn('.interactiveDismissDisabled(true)',PANEL)
  def test_bilingual_named_table_is_exact(self):
-  keys=set(re.findall(r'"(templateSavedResult\.(?:title|detail|identity|destination|openLibrary))"',PANEL))
-  self.assertEqual(keys,set(LOC));self.assertEqual(len(LOC),5);self.assertEqual(PANEL.count('tableName: "CreatorSavedResult"'),5)
+  # MP result sheet = title · sub · meta (mp-publish r3 dropped identity / destination / openLibrary).
+  keys=set(re.findall(r'"(templateSavedResult\.(?:title|detail|meta %lld))',PANEL.replace('meta \\(minutes)','meta %lld')))
+  self.assertEqual(keys,set(LOC));self.assertEqual(len(LOC),3);self.assertEqual(PANEL.count('tableName: "CreatorSavedResult"'),3)
   self.assertTrue(all(set(v['localizations'])=={'en','zh-Hans'} for v in LOC.values()));self.assertEqual(REG['tableName'],'CreatorSavedResult')
  def test_native_tests_cover_boundaries_without_claiming_execution(self):
   self.assertEqual(CT.count('func test'),12);self.assertEqual(AT.count('func test'),27)

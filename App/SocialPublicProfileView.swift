@@ -221,6 +221,7 @@ import SwiftUI
                             .accessibilityElement(children: .contain)
                             .accessibilityLabel(Text("social.profileSection"))
                             .accessibilityIdentifier("social.profile.tabs")
+                            .sensoryFeedback(.selection, trigger: tab)
                     }
                     switch tab {
                     case .mine:
