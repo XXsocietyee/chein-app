@@ -450,9 +450,29 @@ struct CityNearbyDrawer: View {
             .onTapGesture { set(detent == .peek ? .medium : .peek) }
             .accessibilityElement()
             .accessibilityLabel(Text(verbatim: copy("附近列表", "Nearby list")))
-            .accessibilityValue(Text(verbatim: detent == .peek ? copy("已收起", "Collapsed") : copy("已展开", "Expanded")))
+            .accessibilityValue(Text(verbatim: detentValue))
+            .accessibilityHint(Text(verbatim: copy("向上或向下轻扫以调整高度", "Swipe up or down to resize")))
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { set(detent == .peek ? .medium : .peek) }
+            .accessibilityAdjustableAction { direction in
+                if direction == .increment { step(by: 1) } else if direction == .decrement { step(by: -1) }
+            }
+    }
+
+    /// a11y-dt r3: VoiceOver hears all three heights (Roam map panel pattern), not "Expanded" for both medium and large.
+    private var detentValue: String {
+        switch detent {
+        case .peek: return copy("已收起", "Collapsed")
+        case .medium: return copy("半屏", "Half height")
+        case .large: return copy("全屏", "Full height")
+        }
+    }
+
+    private func step(by delta: Int) {
+        let order: [CityDrawerDetent] = [.peek, .medium, .large]
+        let index = order.firstIndex(of: detent) ?? 0
+        let next = min(max(index + delta, 0), order.count - 1)
+        if next != index { set(order[next]) }
     }
 
     @ViewBuilder private var content: some View {

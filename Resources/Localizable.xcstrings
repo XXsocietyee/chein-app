@@ -33921,7 +33921,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the organiser and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
+            "value": "Only the organizer and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
           }
         },
         "zh-Hans": {
@@ -67792,7 +67792,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Colour (hex)"
+            "value": "Color (hex)"
           }
         },
         "zh-Hans": {
@@ -87967,7 +87967,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search around the map centre"
+            "value": "Search around the map center"
           }
         },
         "zh-Hans": {
@@ -169258,13 +169258,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The collection could not be read. Refresh to try again."
+            "value": "Your badge data didn’t arrive"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法读取收藏，请刷新重试。"
+            "value": "勋章数据没有到达"
           }
         }
       }
@@ -205272,7 +205272,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pick a colour for this chapter."
+            "value": "Pick a color for this chapter."
           }
         },
         "zh-Hans": {
@@ -205400,7 +205400,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save the colour. Pick it again to retry."
+            "value": "Couldn't save the color. Pick it again to retry."
           }
         },
         "zh-Hans": {
@@ -209959,13 +209959,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket price"
+            "value": "Ticket price (¥)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "票价"
+            "value": "票单价格 (¥)"
           }
         }
       }
@@ -210055,13 +210055,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Total stock"
+            "value": "Tickets issued"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "总库存"
+            "value": "发行数量 (张)"
           }
         }
       }
@@ -210915,13 +210915,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current editor allows 2,000 text units. Shorten the text before saving; no text has been truncated."
+            "value": "This field allows up to 2,000 characters. Shorten the text before saving; nothing has been cut."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前编辑器最多支持 2,000 个文本单位。请缩短后保存；现有文字未被截断。"
+            "value": "最多 2,000 字。请缩短后保存；现有文字未被截断。"
           }
         }
       }
@@ -220909,7 +220909,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your name and mobile number go to the organiser to verify your registration."
+            "value": "Your name and mobile number go to the organizer to verify your registration."
           }
         },
         "zh-Hans": {
@@ -255199,7 +255199,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send the invitation to friends travelling with you. They appear here after joining."
+            "value": "Send the invitation to friends traveling with you. They appear here after joining."
           }
         },
         "zh-Hans": {
@@ -257811,7 +257811,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settings this editor doesn't recognise are kept, but must be removed before you publish."
+            "value": "Settings this editor doesn't recognize are kept, but must be removed before you publish."
           }
         },
         "zh-Hans": {
@@ -349061,7 +349061,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Light colour"
+            "value": "Light color"
           }
         },
         "zh-Hans": {
@@ -355751,6 +355751,108 @@
         }
       }
     },
+    "mpPublish.values.hp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.luck": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幸运值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.hp.maxInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max HP must be a whole number from 1 to 20."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值上限须为 1 至 20 的整数"
+          }
+        }
+      }
+    },
+    "mpPublish.values.luck.maxInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max luck must be a whole number from 0 to 5."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幸运值上限须为 0 至 5 的整数"
+          }
+        }
+      }
+    },
+    "mpPublish.values.stat.initialOver": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The chapter 1 starting value is above the max. Adjust the starting state."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第一章开局值超过上限，请调整初始状态"
+          }
+        }
+      }
+    },
+    "mpPublish.values.stat.schemaTwo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic uses the older resource rules. Edit them in the resource section below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个主题使用旧版资源规则，请在下方资源设置中修改"
+          }
+        }
+      }
+    },
     "mpPublish.values.action": {
       "extractionState": "manual",
       "localizations": {
@@ -355876,7 +355978,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use up even with no effect"
+            "value": "Count recoveries that have no effect"
           }
         },
         "zh-Hans": {
@@ -355934,6 +356036,584 @@
           "stringUnit": {
             "state": "translated",
             "value": "请先选择进行方式"
+          }
+        }
+      }
+    },
+    "profile.selfGrowth.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your growth record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成长记录加载失败"
+          }
+        }
+      }
+    },
+    "playBadge.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading badges…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载勋章…"
+          }
+        }
+      }
+    },
+    "playBadge.signIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see your badges"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看我的勋章"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom whole-number values"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义整数值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.addA11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a custom whole-number value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加自定义整数值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.addTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加数值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.editTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑数值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.visible": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visible to players"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家可见"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.range": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "范围"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.min": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最小值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.max": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.links": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Links"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关联"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.link %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also take %@ when it drops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下降时一起扣%@"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除数值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.visibleLine %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On · Visible to players · %1$lld to %2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已启用 · 玩家可见 · %1$lld 至 %2$lld"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.hiddenLine %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On · Hidden from players · %1$lld to %2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已启用 · 玩家隐藏 · %1$lld 至 %2$lld"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.initialOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " · Starting value out of range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " · 开局值越界"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.labelInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The name must be 1 to 24 characters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数值名称须为 1 至 24 字"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.rangeInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The range must be whole numbers from -10,000 to 10,000, with the minimum not above the maximum."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "范围须为 -10000 至 10000 的整数，且最小值不大于最大值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.tooMany": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can set up to 32 starting values."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初始属性最多配置 32 项"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.needsHP": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on HP first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先启用生命值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.bound": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjust the enabled values in the starting state. Their definitions come from the registry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在初始状态中调整启用属性；定义由注册表管理"
+          }
+        }
+      }
+    },
+    "mpPublish.values.custom.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This value's ID isn't valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数值编号无效"
+          }
+        }
+      }
+    },
+    "mpPublish.values.ref.blocked %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove the references first: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先移除引用：%@"
+          }
+        }
+      }
+    },
+    "mpPublish.values.ref.chapter %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "chapter %lld cost"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第%lld章费用"
+          }
+        }
+      }
+    },
+    "mpPublish.values.ref.item %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "effect of item “%@”"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "物品「%@」效果"
+          }
+        }
+      }
+    },
+    "mpPublish.values.ref.link %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "link “%@”"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关联「%@」"
+          }
+        }
+      }
+    },
+    "club.ops.edit.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading club details…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取俱乐部资料"
+          }
+        }
+      }
+    },
+    "club.ops.edit.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open the club details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑资料没能打开"
+          }
+        }
+      }
+    },
+    "club.ops.edit.reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载"
           }
         }
       }

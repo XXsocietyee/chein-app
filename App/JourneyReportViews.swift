@@ -998,6 +998,8 @@ struct JourneySettleView: View {
         }
         .onChange(of: rate) { _, value in
             if value == .thanks && step == .rate {
+                // Motion r3: the rating landed (MP 谢谢 pop) — one success tap.
+                HapticsService.shared.play(.success)
                 withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { thanksPop = true }
             }
         }
@@ -1129,7 +1131,7 @@ struct JourneySettleView: View {
         .padding(.horizontal, CYSpacing.pageHorizontal)
         .contentShape(Rectangle())
         .onTapGesture { if !skipped { skipped = true } }
-        .cyHaptic(.success, trigger: sealSuccess) { _, new in new }
+        .cyHaptic(.success, trigger: sealSuccess, where: CYHapticTransition.isOn)
         .onAppear {
             // The seal owns its spring (`CYMotion.seal`) and its heavy impact at contact.
             overviewOn = true
@@ -1286,11 +1288,11 @@ struct JourneySettleView: View {
             withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { thanksPop = true }
             return
         }
-        guard stars > 0 else { localError = "mp.settle.rate.needStars"; return }
+        guard stars > 0 else { localError = "mp.settle.rate.needStars"; HapticsService.shared.play(.warning); return }
         let picked = Self.tagKeys.indices.filter { tags.contains($0) }.map { String(localized: Self.tagResource[$0], locale: locale) }
         let text = review.trimmingCharacters(in: .whitespacesAndNewlines)
         let joined = [picked.joined(separator: "，"), text].filter { !$0.isEmpty }.joined(separator: "。")
-        guard !joined.isEmpty else { localError = "mp.settle.rate.needText"; return }
+        guard !joined.isEmpty else { localError = "mp.settle.rate.needText"; HapticsService.shared.play(.warning); return }
         onSubmitRating(stars, String(joined.prefix(Self.reviewMax)))
     }
 

@@ -855,6 +855,84 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         XCTAssertEqual(ProjectEditThemeRules.votePolicy(in: voting), .majorityAcceptance)
     }
 
+    func testHPAndLuckRowsFollowTheRuntimeValuesCard() throws {
+        // MP story-initial-state.js parse: empty journeyRules = fresh topic, both off.
+        let fresh = try draft(with: ["schemaVersion": .number(1)])
+        XCTAssertTrue(ProjectEditRuntimeStats.available(in: fresh))
+        XCTAssertFalse(ProjectEditRuntimeStats.enabled(.hp, in: fresh))
+        XCTAssertEqual(ProjectEditRuntimeStats.maximum(.hp, in: fresh), 10)
+        XCTAssertEqual(ProjectEditRuntimeStats.maximum(.luck, in: fresh), 3)
+        // MP onRuntimeStatToggle: hp on keeps luck off, turns stateEnabled and checkEnabled on.
+        let hpOn = try ProjectEditRuntimeStats.setEnabled(true, .hp, in: fresh)
+        XCTAssertTrue(ProjectEditRuntimeStats.enabled(.hp, in: hpOn))
+        XCTAssertFalse(ProjectEditRuntimeStats.enabled(.luck, in: hpOn))
+        let rules = try journeyRules(hpOn)
+        XCTAssertEqual(rules["stateEnabled"], .bool(true))
+        XCTAssertEqual(rules["checkEnabled"], .bool(true))
+        XCTAssertEqual(rules["schemaVersion"], .number(1))
+        XCTAssertEqual(try ProjectEditRuntimeStats.setEnabled(true, .hp, in: hpOn), hpOn)
+        // MP onRuntimeStatMax + serialize ranges.
+        XCTAssertThrowsError(try ProjectEditRuntimeStats.setMaximum(21, .hp, in: hpOn))
+        XCTAssertThrowsError(try ProjectEditRuntimeStats.setMaximum(6, .luck, in: hpOn))
+        let lowered = try ProjectEditRuntimeStats.setMaximum(5, .hp, in: hpOn)
+        XCTAssertEqual(ProjectEditRuntimeStats.maximum(.hp, in: lowered.draft), 5)
+        XCTAssertEqual(lowered.warning, ProjectEditRuntimeStats.Copy.initialOverMaximum)
+        XCTAssertNil(try ProjectEditRuntimeStats.setMaximum(12, .hp, in: hpOn).warning)
+        // MP onRuntimeName: theme hpName, cut to 20.
+        let named = try ProjectEditRuntimeStats.setName(String(repeating: "精", count: 25), .hp, in: hpOn)
+        XCTAssertEqual(ProjectEditRuntimeStats.name(.hp, in: named).count, 20)
+        let off = try ProjectEditRuntimeStats.setEnabled(false, .hp, in: hpOn)
+        XCTAssertEqual(try journeyRules(off)["stateEnabled"], .bool(false))
+        // Schema-2 rules keep the older resource editor.
+        var schemaTwo = fresh
+        schemaTwo.preserved["journeyRules"] = .string("{\"schemaVersion\":2}")
+        XCTAssertFalse(ProjectEditRuntimeStats.available(in: schemaTwo))
+        XCTAssertThrowsError(try ProjectEditRuntimeStats.setEnabled(true, .hp, in: schemaTwo))
+    }
+
+    func testCustomValuesFollowTheRuntimeValuesCard() throws {
+        // MP openValueEditor: a new row is counter.*, 0 至 100, 开局 0, visible.
+        let base = try ProjectEditRuntimeStats.setEnabled(true, .hp, in: try draft(with: ["schemaVersion": .number(1)]))
+        XCTAssertTrue(ProjectEditRuntimeValues.values(in: base).isEmpty)
+        var row = ProjectEditRuntimeValues.newValue(in: base, now: Date(timeIntervalSince1970: 1_000))
+        XCTAssertTrue(row.key.hasPrefix("counter.value_"))
+        XCTAssertEqual(row.min, 0)
+        XCTAssertEqual(row.max, 100)
+        // MP values.attribute: 名称 1–24, range -10000…10000 with min ≤ max.
+        XCTAssertThrowsError(try ProjectEditRuntimeValues.save(row, link: false, in: base))
+        row.label = "体力"
+        row.min = 5
+        row.max = 4
+        XCTAssertThrowsError(try ProjectEditRuntimeValues.save(row, link: false, in: base))
+        row.max = 50
+        // MP saveValueEditor: a new row keeps the editor's 开局值 (0 here, so 开局值越界 shows).
+        let saved = try ProjectEditRuntimeValues.save(row, link: true, in: base)
+        let values = ProjectEditRuntimeValues.values(in: saved)
+        XCTAssertEqual(values.map(\.label), ["体力"])
+        XCTAssertTrue(values[0].invalidInitial)
+        XCTAssertEqual(try journeyRules(saved)["stateEnabled"], .bool(true))
+        // MP addValueLink: link_1, PER_POINT onto sys.hp.
+        XCTAssertTrue(ProjectEditRuntimeValues.linked(row.key, in: saved))
+        let link = try XCTUnwrap(try journeyRules(saved)["statLinks"]?.array?.first?.object)
+        XCTAssertEqual(link["id"], .string("link_1"))
+        XCTAssertEqual(link["targetKey"], .string("sys.hp"))
+        XCTAssertEqual(link["trigger"], .string("PER_POINT"))
+        // MP removeValue: refused while referenced (its own link counts), allowed after the link is off.
+        XCTAssertThrowsError(try ProjectEditRuntimeValues.remove(row.key, in: saved)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeValues.Refusal, .referenced([.link("link_1")]))
+        }
+        let unlinked = try ProjectEditRuntimeValues.save(row, link: false, in: saved)
+        XCTAssertFalse(ProjectEditRuntimeValues.linked(row.key, in: unlinked))
+        let removed = try ProjectEditRuntimeValues.remove(row.key, in: unlinked)
+        XCTAssertTrue(ProjectEditRuntimeValues.values(in: removed).isEmpty)
+        XCTAssertEqual(try journeyRules(removed)["stateEnabled"], .bool(true))
+        // MP addValueLink: 请先启用生命值 when HP is off.
+        let hpOff = try ProjectEditRuntimeStats.setEnabled(false, .hp, in: base)
+        XCTAssertThrowsError(try ProjectEditRuntimeValues.save(row, link: true, in: hpOff)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeValues.Refusal, .copy(ProjectEditRuntimeValues.Copy.needsHP))
+        }
+    }
+
     func testActionCountAndConsumeOnNoEffectFollowTheRuntimeValuesCard() throws {
         let base = try draft(with: ["schemaVersion": .number(1)])
         XCTAssertNil(ProjectEditThemeRules.actionLimit(in: base))
@@ -960,6 +1038,11 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         let data = try JSONEncoder().encode(ProjectEditJSON.object(theme))
         draft.preserved["themeRuntimeConfig"] = .string(try XCTUnwrap(String(data: data, encoding: .utf8)))
         return draft
+    }
+
+    private func journeyRules(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {
+        let text = try XCTUnwrap(draft.preserved["journeyRules"]?.text)
+        return try XCTUnwrap(try JSONDecoder().decode(ProjectEditJSON.self, from: Data(text.utf8)).object)
     }
 
     private func theme(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {

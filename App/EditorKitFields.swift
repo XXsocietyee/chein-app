@@ -95,7 +95,7 @@ struct EditorField: View {
                 .modifier(EditorOptionalIdentifier(identifier: accessibilityID))
             EditorFieldFootnote(help: help, error: error)
         }
-        .sensoryFeedback(.warning, trigger: limit.map { EditorCounter(text: text, limit: $0).isAtLimit } ?? false) { _, new in new }
+        .sensoryFeedback(.warning, trigger: limit.map { EditorCounter(text: text, limit: $0).isAtLimit } ?? false, condition: CYHapticTransition.isOn)
     }
 
     private var borderColor: Color {

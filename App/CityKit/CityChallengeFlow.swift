@@ -154,7 +154,7 @@ struct CityChallengeSheet: View {
                 }
                 // When the last check passes the button fills in place (surface-3 → cta) and the reason fades.
                 .cyAnimation(CYMotion.standard, value: canStart)
-                .cyHaptic(.selection, trigger: canStart) { _, new in new }
+                .cyHaptic(.selection, trigger: canStart, where: CYHapticTransition.isOn)
                 Text(verbatim: copy("没掷够，挑战费的 30% 给守方，其余销毁。", "If you miss, 30% of the fee goes to the holder and the rest is burned."))
                     .cyText(.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
@@ -391,7 +391,7 @@ struct CityClaimedMoment: View {
                 landed = true
             }
         }
-        .sensoryFeedback(.success, trigger: landed) { _, new in new }
+        .sensoryFeedback(.success, trigger: landed, condition: CYHapticTransition.isOn)
     }
 
     /// The one moving lead: the claim photo, from the thumbnail's frame to the deed's photo slot.

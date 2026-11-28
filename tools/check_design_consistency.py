@@ -417,10 +417,10 @@ def scan_file(rel, text):
             hits.append((number, RAW_RADIUS, code.strip()))
         if not colour_exempt and LINE_SPACING_PATTERN.search(code):
             hits.append((number, LINE_SPACING, code.strip()))
-        if UNTYPED_HAPTIC_PATTERN.search(code):
-            hits.append((number, UNTYPED_HAPTIC, code.strip()))
         if not colour_exempt and SECTION_SPACING_PATTERN.search(code):
             hits.append((number, SECTION_SPACING, code.strip()))
+        if UNTYPED_HAPTIC_PATTERN.search(code):
+            hits.append((number, UNTYPED_HAPTIC, code.strip()))
         if not colour_exempt and HAND_DIVIDER_PATTERN.search(code):
             hits.append((number, HAND_DIVIDER, code.strip()))
         if ALL_CAPS_PATTERN.search(code):

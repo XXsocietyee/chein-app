@@ -96,7 +96,7 @@ enum PlayEmergencyHelp {
             }
         }
         .cySheet(detents: [.medium])
-        .sensoryFeedback(.success, trigger: notice) { _, new in new == "mpd.sos.copied" }
+        .sensoryFeedback(.success, trigger: notice == "mpd.sos.copied", condition: CYHapticTransition.turnedOn)
         .accessibilityIdentifier("play.sos.sheet")
     }
 

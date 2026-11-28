@@ -128,6 +128,8 @@ public final class WeChatSDKAuthAdapter: WeChatAppAuthorizing {
         })
     }
     /// Local cancellation detaches callbacks; it cannot dismiss the external WeChat UI.
+    /// No driver, or WeChat not installed / too old: the login screen renders no WeChat button.
+    public var isAppAvailable: Bool { driver?.isInstalledAndSupported == true }
     public func cancel(attemptID: UUID) {
         guard pending?.request.attemptID == attemptID else { return }
         pending = nil; driver?.detach()

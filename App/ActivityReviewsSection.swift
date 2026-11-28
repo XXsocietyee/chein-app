@@ -85,7 +85,7 @@ private struct ActivityReviewCard: View {
                     .font(.footnote)
                     .foregroundStyle(.orange)
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text(verbatim: "\(rating) / 5"))
+                    .accessibilityLabel(Text("a11y.value.ofTotal \(rating) \(5)"))
                 } else {
                     Text(verbatim: "—").font(.subheadline).foregroundStyle(.secondary)
                 }

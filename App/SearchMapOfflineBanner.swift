@@ -64,7 +64,7 @@ struct SearchMapOfflineBannerView: View {
                 }
                 if stillOffline {
                     Text("searchMap.w208.offline.stillOffline").font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("searchMap.w208.offline.stillOffline")
                 }
                 Button("searchMap.w208.offline.retry", action: retry)

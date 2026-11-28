@@ -93,7 +93,9 @@ public struct RegionalConfiguration {
     /// route requires a mini-program WeChat code; a capability flag cannot supply it.
     /// Provider/deployment verification is still required before enabling SMS.
     public var implementedCapabilities: Set<RegionalCapability> {
-        market == .china ? [.domesticChinaPhone] : []
+        // Owner 11-28 04:30: the US market signs in with a +1 phone (E.164 through the same `api/login/phone` /
+        // `api/sms/send` routes). Still gated: the deployment must verify `.internationalPhone` before it shows.
+        market == .china ? [.domesticChinaPhone] : [.internationalPhone]
     }
     public func availability(of capability: RegionalCapability) -> RegionalCapabilityAvailability {
         guard desiredCapabilities.contains(capability) else { return .notRequested }
@@ -109,6 +111,12 @@ public struct RegionalConfiguration {
     public var canUseDomesticChinaPhone: Bool {
         availability(of: .domesticChinaPhone) == .available
     }
+    /// US +1 phone sign-in (E.164). Verified per deployment like the CN phone; never inferred from the language.
+    public var canUseInternationalPhone: Bool {
+        availability(of: .internationalPhone) == .available
+    }
+    /// Either market's phone sign-in can be called by this deployment.
+    public var canUsePhoneSignIn: Bool { canUseDomesticChinaPhone || canUseInternationalPhone }
 
     /// Absent capabilities stay hidden. Only an available capability is shown.
     public func isFeatureShown(_ capability: RegionalCapability) -> Bool {

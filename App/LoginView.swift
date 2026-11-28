@@ -14,7 +14,11 @@ struct LoginView: View {
 
 #if DEBUG
     /// Design fixtures only: stub values injected into the real page (no network, no session mutation).
-    struct DesignOverride { var showsPassword = true; var username = ""; var errorKey: String?; var working = false }
+    struct DesignOverride {
+        var showsPassword = true; var username = ""; var errorKey: String?; var working = false
+        /// The `login-player` fixture has no reviewed composition; this coordinator shows the approved Apple button.
+        var authChannels: AuthChannelCoordinator?
+    }
     var designOverride: DesignOverride?
 #endif
     private var showsPasswordForm: Bool {
@@ -45,9 +49,16 @@ struct LoginView: View {
     var body: some View {
         // The sign-in sheet owns one `AuthChannelModel`: Sign in with Apple on the first screen and the pushed phone
         // page share it, so a push never restarts or cancels a running authorization.
-        LoginAuthChannelHost(coordinator: session.authChannels) { model in
+        LoginAuthChannelHost(coordinator: channelCoordinator) { model in
             stack(model)
         }
+    }
+
+    private var channelCoordinator: AuthChannelCoordinator {
+#if DEBUG
+        if let fixture = designOverride?.authChannels { return fixture }
+#endif
+        return session.authChannels
     }
 
     /// Split out of `stack(_:)` so the login form type-checks in time.
@@ -86,14 +97,11 @@ struct LoginView: View {
         }
     }
 
-    /// The sign-in form, split out of `stack(_:)` so each part type-checks in time.
-    private func loginForm(_ model: AuthChannelModel) -> some View {
-        Form {
-            loginHeaderSection
-            if !consentGranted {
-                // Asked here only when the launch agreement was declined (P-008: consent is asked once).
-                UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
-            }
+    /// Phone entry, split out of `loginForm(_:)` so the form type-checks in time.
+    @ViewBuilder private var phoneEntrySection: some View {
+        // Phone in both markets (+86 / +1, default from the market), after Apple / WeChat (sweep 04:50);
+        // the US page appears once the deployment verified `.internationalPhone`, otherwise nothing renders.
+        if session.supportsPhoneSignIn {
             Section {
                 Button {
                     session.weChatAuth.cancel(); password=""; path.append(.phone)
@@ -101,7 +109,7 @@ struct LoginView: View {
                     recordIntegratedLoginPhase("other_action")
 #endif
                 } label: {
-                    Label(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title"), systemImage: "iphone")
+                    Label("auth.channels.phoneTitle", systemImage: "iphone")
                         .frame(maxWidth: .infinity)
                 }
                 .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm))
@@ -110,12 +118,24 @@ struct LoginView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             }
-            // L1 P-006: Sign in with Apple is on the first screen, Apple's own button, under phone sign-in (20:55 sweep);
-            // gated channels render nothing (P27).
+        }
+    }
+
+    /// The sign-in form, split out of `stack(_:)` so each part type-checks in time.
+    private func loginForm(_ model: AuthChannelModel) -> some View {
+        Form {
+            loginHeaderSection
+            if !consentGranted {
+                // Asked here only when the launch agreement was declined (P-008: consent is asked once).
+                UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
+            }
+            // Sweep 11-28 04:50 / owner 04:45: Sign in with Apple, WeChat (CN, only when installed), then phone (+86 / +1).
+            // Equal-width 50 pt buttons. No Alipay sign-in (Alipay is payment only). Gated channels render nothing (P27).
             appleSignInSection(model)
             if session.operationalMarket == .china && consentGranted {
                 WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
             }
+            phoneEntrySection
             if showsPasswordForm {
                 Section {
                     TextField("auth.username",text:$username)
@@ -149,10 +169,6 @@ struct LoginView: View {
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                 }
-            } else if session.operationalMarket != .china {
-                Section {
-                    Text("region.usLoginPending").foregroundStyle(.secondary).accessibilityIdentifier("region.auth.pending")
-                }
             }
             if !showsPasswordForm, let key = shownErrorKey {
                 Section {
@@ -172,7 +188,7 @@ struct LoginView: View {
         switch route {
         case .phone:
             AuthChannelView(embeddedModel: model, sessionSnapshot: session.authChannelSnapshot,
-                            domesticPhoneVisible: session.supportsDomesticPhoneInput)
+                            domesticPhoneVisible: session.supportsPhoneSignIn)
 #if DEBUG
                 .onAppear { recordIntegratedLoginPhase("channels_appear") }
                 .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
