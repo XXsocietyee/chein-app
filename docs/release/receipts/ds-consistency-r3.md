@@ -761,6 +761,35 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 None from this run.
 
+## Continue run 25 (2026-11-28, combined-r7 ad55acd94 already merged)
+
+Merge: already up to date. Run 24 Not done: none. No new coordinator row for this lane (latest sweep still build
+ad55acd94, 03:15 rows are mp-club / mp-home).
+
+Scan: one refresh pattern (OWNER RULE 2 "consistent logic and patterns"). 22 player pages pair the toolbar
+`arrow.clockwise` refresh with `.refreshable` (pull-to-refresh, the MP `onPullDownRefresh`); six had only the button.
+Two of them are MP pages with `"enablePullDownRefresh": true` and `onPullDownRefresh` (re-reads overview + rank / the
+board), so they could not be pulled down like the MP or their siblings. MP content unchanged.
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| `subpackageP3/pages/growthcenter/index` (成长中心; `onPullDownRefresh` index.js:215) | `App/GrowthCenterView.swift:96` | unchanged (score card → 足迹 → 我的徽章) | `.refreshable { await load() }` on the List (same read as the toolbar refresh and the lifecycle) |
+| `subpackageP3/pages/growthcenter/leaderboard` (排行榜; `enablePullDownRefresh`) | `App/GrowthLeaderboardView.swift:107` | unchanged (周榜/总榜 → podium → 积分榜/成长榜 → rows → 我) | `.refreshable { await load() }` on the List |
+
+New checker kind **refresh no pull**: a toolbar `"arrow.clockwise"` button (within 8 lines of `.toolbar` /
+`ToolbarItem`) in a file with a `List` / `Form` / `ScrollView` and no `.refreshable`. Baseline 0. Allowed with reasons
+(MP page has no pull-down refresh, or the button carries a guard a pull cannot): `CityPlayerView` (read-failure retry
+that also cancels the place selection), `GroupPollViews` (refresh drops the unsent option and runs the poll command),
+`GroupPollOriginalResultView` (in-chat poll result), `ParticipantManagementDetailView` (disabled while a delete awaits
+confirmation). Self-test: the pre-fix growth files fail at `GrowthCenterView.swift:100` and
+`GrowthLeaderboardView.swift:111`.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(refresh no pull 0, status capsule 29 baselined, 85 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+None from this run. Simulator check: pull down on growth center / leaderboard (no design fixture yet; next sweep).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
