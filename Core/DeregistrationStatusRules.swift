@@ -6,7 +6,7 @@ import Foundation
 public enum DeregistrationStatusRules {
     /// Source `verificationMethod` normalization. Absent keeps the established SMS contract; a present
     /// but unknown value is never treated as usable.
-    public enum Verification: String, Equatable { case sms = "SMS", wechat = "WECHAT", unavailable = "UNAVAILABLE" }
+    public enum Verification: String, Equatable { case sms = "SMS", wechat = "WECHAT", apple = "APPLE", unavailable = "UNAVAILABLE" }
 
     public enum PrecheckVerdict: Equatable {
         case eligible(Verification)
