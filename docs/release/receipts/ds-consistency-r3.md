@@ -666,7 +666,8 @@ New checker kind **locale money**: `WalletCurrencySymbol.symbol(…)` without `l
 Baseline 0; allowed: DEBUG native gallery sample prices (reason in the baseline). Self-test: the pre-fix
 `WalletCommerceViews.swift` fails at lines 182, 292, 343, 668.
 
-GATES_PLACEHOLDER
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(locale money 0, status capsule 29 baselined, 79 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 Simulator check of `en-e4-wallet-balance` / `en-d2-me` (CN¥ everywhere in English) still needed (next sweep).
 
 ### Not done (next run)
