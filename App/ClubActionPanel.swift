@@ -462,6 +462,7 @@ struct ClubActionPanel: View {
             } catch {
                 guard operation == generation, coordinator.identity == snapshot, !Task.isCancelled else { return }
                 issueKey = (error as? ClubActionBlock) == .eligibilityChanged ? "club.action.changed" : "club.action.prepareFailed"
+                CYHaptics.warning.play()
             }
         }
     }
@@ -489,6 +490,10 @@ struct ClubActionPanel: View {
             }()
             if value.action == .leave, acknowledged {
                 rewardAction = nil; rewardHandedOff = false; rewardPhase = .landing
+                CYHaptics.success.play()
+            } else if case .rejected = coordinator.state(clubID: club.id) {
+                // A refused join / apply / leave reads as a warning, like the MP toast.
+                CYHaptics.warning.play()
             } else if value.action != .leave, acknowledged {
                 // The joined / pending status row replaces the button at once; the system haptic marks success.
                 rewardAction = value.action
