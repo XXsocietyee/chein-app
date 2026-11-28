@@ -18,6 +18,11 @@ struct MemberReportProgressTimeView: View {
     @State private var showsSignIn = false
     @State private var refreshToast: LocalizedStringKey?
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
+    /// MP `rp-row__head`: stage at the end of the line; under the target · reason at accessibility sizes.
+    private var headLayout: AnyLayout {
+        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+    }
     var body: some View {
         let rendered = readIntent()
         List {
@@ -41,7 +46,7 @@ struct MemberReportProgressTimeView: View {
                         HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             // mp-mine r3: MP `rp-row__head` — 「对象 · 原因」 with the stage tag at the end of the same line.
-                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            headLayout {
                                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                                     memberReportProgressText("report.target.\(record.targetKey)")
                                     Text(verbatim: "·").accessibilityHidden(true)
