@@ -654,7 +654,7 @@ final class AppSession: ObservableObject {
     var rememberedPersistenceAccountID: Int?
     @Published private(set) var isWorking = false { didSet { synchronizeAccountMarketingEntry() } }
     @Published private(set) var errorKey: String?
-    let platformConsumers = PlatformConsumerSessionOwner()
+    let platformConsumers = PlatformConsumerSessionOwner(maps: PlatformConsumerSessionOwner.appleMaps)
     let retainedImagePickerHost = RetainedImagePickerHost()
     private var publicMerchantReviewEpoch = UUID()
     var currentRetainedImageCredentials: RetainedImageHostCredentials? {

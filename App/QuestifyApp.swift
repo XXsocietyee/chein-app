@@ -387,6 +387,7 @@ struct SessionRootView: View {
             nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: signIn)) },
             searchReader: session.searchMapReader,
             onChooseArea: { showsAreaPicker = true },
+            locateArea: { try await session.locateRoamArea() },
             onOpenAccount: openAccount,
             experienceReader: session.roamExperienceReader)
     }
