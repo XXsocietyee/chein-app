@@ -233,7 +233,7 @@ public enum CYColor {
 enum CYTextStyle: String, CaseIterable {
     case display, pageTitle, sheetTitle, sectionTitle, cardTitle, button
     case body, bodyMedium, bodyCompact, label, meta, caption, micro
-    case numericBody, dataXL, data2XL
+    case numericBody, numericTitle, dataXL, data2XL
 }
 
 /// One row of the scale.
@@ -334,6 +334,8 @@ extension CYTextStyle {
         case .micro: return CYTypeSpec(.caption, .medium)
         // Inline numbers: price, points, counts in rows (rounded dropped so it matches row text).
         case .numericBody: return CYTypeSpec(.body, .semibold, monospacedDigit: true)
+        // Card stat / price one step below the hero number (offer price, points in a card, runner stat).
+        case .numericTitle: return CYTypeSpec(.title3, .semibold, monospacedDigit: true)
         // Stat hero number (wallet, leaderboard).
         case .dataXL: return CYTypeSpec(.largeTitle, .bold, design: .rounded, monospacedDigit: true)
         // Balance / settlement total: the ONLY fixed size (42), scaled with `.largeTitle` by `.cyText(_:)`.

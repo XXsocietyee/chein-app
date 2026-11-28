@@ -136,8 +136,7 @@ import SwiftUI
         Section {
             if let code = model.oneTimeCode {
                 Text(verbatim: code.reveal())
-                    .font(.largeTitle.weight(.semibold))
-                    .monospacedDigit()
+                    .cyText(.dataXL)
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("bundleTransfer.code")
@@ -146,7 +145,7 @@ import SwiftUI
                     .privacySensitive()
             } else {
                 Text(verbatim: "—")
-                    .font(.largeTitle.weight(.semibold))
+                    .cyText(.dataXL)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("bundleTransfer.code")
             }

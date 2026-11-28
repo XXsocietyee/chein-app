@@ -63,7 +63,7 @@ struct BundleRefundQuoteView: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: Cloud03Copy.shown(presentation.amountText))
-                .font(.largeTitle.weight(.semibold).monospacedDigit())
+                .cyText(.dataXL)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

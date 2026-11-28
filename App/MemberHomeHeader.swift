@@ -335,7 +335,7 @@ import SwiftUI
         let shown = value ?? MemberHomePageModel.unknownDisplay
         return VStack(spacing: 2) {
             Text(verbatim: shown)
-                .font(.title3.weight(.semibold)).monospacedDigit()
+                .cyText(.numericTitle)
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .modifier(MemberAssetRoll(value: Double(shown)))
             Text(key, tableName: "MemberProfile")
@@ -390,7 +390,7 @@ import SwiftUI
             }
             .font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: pointsText)
-                .font(.largeTitle.weight(.semibold))
+                .cyText(.dataXL)
                 .foregroundStyle(points == nil ? Color.secondary : Color.primary)
                 .lineLimit(1).minimumScaleFactor(0.6)
                 .modifier(MemberAssetRoll(value: points.map { Double($0) }))
@@ -427,7 +427,7 @@ import SwiftUI
             Text("member.card.balance", tableName: "MemberProfile")
                 .font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: balance)
-                .font(.title3).monospacedDigit()
+                .cyText(.numericTitle)
                 .foregroundStyle(.primary)
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .accessibilityLabel(PageTemplateVoiceOver.spoken(balance, locale: locale))
@@ -711,7 +711,7 @@ private struct MemberAssetRoll: ViewModifier {
             }
             .font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: pointsText)
-                .font(.largeTitle.weight(.semibold)).monospacedDigit()
+                .cyText(.dataXL)
                 .foregroundStyle(points == nil ? Color.secondary : Color.primary)
                 .lineLimit(1).minimumScaleFactor(0.6)
                 .modifier(MemberAssetRoll(value: points.map { Double($0) }))

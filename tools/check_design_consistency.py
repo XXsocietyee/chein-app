@@ -243,6 +243,12 @@ HEADER_FONT_PATTERN = re.compile(
     r'|\.(?:bold|fontWeight)\(\s*(?:\.(?:bold|semibold|heavy|black))?\s*\)'
     # `CYSectionHeader` is the `.headline` header for scroll pages; inside a List/Form `header:` it must be system text.
     r'|\bCYSectionHeader\(')
+RAW_COUNT = 'raw count'
+# One count style (ADA audit cross-screen): a big number is `.cyText(.dataXL)` (largeTitle, bold, rounded, monospaced
+# digits), a card stat / price is `.cyText(.numericTitle)` (title3, semibold, monospaced digits). A raw
+# `.font(.largeTitle…|.title3…)` + `.monospacedDigit()` on the same chain draws it in a second face and weight.
+RAW_COUNT_FONT = re.compile(r'\.font\(\s*\.(?:largeTitle|title3)\b')
+RAW_COUNT_DIGITS = re.compile(r'\.monospacedDigit\(\)')
 EFFECT_ON_CLEAN = 'effect on clean page'
 # OWNER RULE 3 (11-28): the 11-26 no-op effects are restored, but only for games, story flow, payment, maps and
 # celebration moments. Every other page stays clean (system components, no glow / foil / particles / glass).
@@ -272,7 +278,7 @@ KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, C
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
          ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, SECTION_SPACING, DUPLICATE_TYPE,
-         UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT, EFFECT_ON_CLEAN)
+         UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT, EFFECT_ON_CLEAN, RAW_COUNT)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -640,6 +646,13 @@ def scan_file(rel, text):
     if not design_system:
         hits.extend(header_font_hits(lines))
         hits.extend(header_wrapper_font_hits(lines))
+    if not design_system and not effect_surface(rel):
+        # Games / story / play keep their own HUD numerals (OWNER RULE 3 level A).
+        for index, (number, code) in enumerate(lines):
+            if RAW_COUNT_FONT.search(code) and 'Image(' not in code and \
+                    (RAW_COUNT_DIGITS.search(code) or (index + 1 < len(lines)
+                                                       and lines[index + 1][1].lstrip().startswith('.monospacedDigit()'))):
+                hits.append((number, RAW_COUNT, code.strip()))
     if is_root:
         has_large = any(ROOT_HEADER_PATTERN.search(c) or LARGE_PATTERN.search(c) for _, c in lines)
         if not has_large:

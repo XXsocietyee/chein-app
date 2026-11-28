@@ -186,7 +186,7 @@ private struct PassportRollingCount: View {
                         .font(.headline).monospacedDigit().foregroundStyle(.secondary)
                 }
             } else {
-                Text(verbatim: "—").font(.largeTitle.bold()).foregroundStyle(.secondary)
+                Text(verbatim: "—").cyText(.dataXL).foregroundStyle(.secondary)
             }
         }
     }
@@ -398,7 +398,7 @@ private struct PassportRollingCount: View {
                         }
                     }
                 }
-                else { Text(verbatim: "—").font(.largeTitle.bold()).foregroundStyle(.secondary) }
+                else { Text(verbatim: "—").cyText(.dataXL).foregroundStyle(.secondary) }
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("passport.badges.title"))

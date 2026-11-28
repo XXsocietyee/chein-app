@@ -26,6 +26,7 @@ Base: mini-program `style/tokens.wxss` (`docs/design/handoff-r1/mp-tokens.json` 
 | `caption` | 22 → 11 | regular | 1.45 | 16.0 pt (+0.55) | 0 | `.caption2` (native) | tag, badge, caption |
 | `micro` | 20 → 10 | medium | 1.3 | 14.0 pt (natural) | 0 | `.caption2` | counter, legal footnote |
 | `numericBody` | 28 → 14 | semibold, rounded, tabular | 1.3 | — | 0 | `.body` | price, points, counts in rows |
+| `numericTitle` | 40 → 20 | semibold, tabular | 1.25 | — | 0 | `.title3` | card stat / price one step below the hero number |
 | `dataXL` | 64 → 32 | bold, rounded, tabular | 1.05 | — | 0 | `.largeTitle` | stat hero number |
 | `data2XL` | 84 → 42 | bold, rounded, tabular | 1.05 | — | 0 | `.largeTitle` | balance / settlement total |
 

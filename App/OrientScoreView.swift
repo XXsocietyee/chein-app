@@ -222,7 +222,7 @@ import QuestifyCore
                 // Round 4: MP head line 「本局计分 · {phase}」 (orient-score wxml:20); no session id (PG-090).
                 Text("orientScore.titlePhase \(summary.phase)").font(.footnote).foregroundStyle(.secondary)
                 Text(verbatim: facts?.totalText ?? summary.total)
-                    .font(.largeTitle.weight(.bold)).monospacedDigit()
+                    .cyText(.dataXL)
                     .contentTransition(.numericText())
                     .accessibilityLabel(summary.totalAccessibility)
                 Text("orientScore.precision")
