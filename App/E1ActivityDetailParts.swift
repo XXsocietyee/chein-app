@@ -70,7 +70,19 @@ struct E1ActivityHero: View {
                     // Accessibility sizes stack the chips so neither is squeezed or clipped over the photo.
                     let chipLayout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs)) : AnyLayout(HStackLayout(spacing: CYSpacing.xs))
                     chipLayout {
-                        if let state = E1ActivityState.of(start: summary.startDate, end: summary.endDate) { state.chip(copy) }
+                        if let state = E1ActivityState.of(start: summary.startDate, end: summary.endDate) {
+                            if state == .ended {
+                                // mp-home r3 (01:40 sweep, rep3-activity-detail): the neutral `.secondary` word was grey on the photo;
+                                // over the cover it reads in the cover foreground like the MP light 已结束 tag.
+                                Label { Text(verbatim: copy.t("已结束", "Ended")) } icon: { Image(systemName: "checkmark") }
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(palette.onCoverFg)
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityIdentifier("activity.detail.state")
+                            } else {
+                                state.chip(copy)
+                            }
+                        }
                     }
                     Text(verbatim: ActivityPresentation.nonempty(summary.name) ?? "—")
                         .font(.system(dynamicTypeSize.isAccessibilitySize ? .title : .largeTitle, design: .default).weight(.bold))
@@ -98,7 +110,8 @@ struct E1ActivityHero: View {
                     LinearGradient(
                         stops: [
                             .init(color: .clear, location: 0),
-                            .init(color: Color.black.opacity(0.65), location: 0.45),
+                            .init(color: Color.black.opacity(0.5), location: 0.25),
+                            .init(color: Color.black.opacity(0.75), location: 0.5),
                             .init(color: Color.black, location: 1)
                         ],
                         startPoint: .top,
