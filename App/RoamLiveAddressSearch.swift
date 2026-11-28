@@ -233,7 +233,7 @@ struct RoamLiveAddressSearchSheet: View {
     private func row(_ item: RoamLiveAddressRow) -> some View {
         let symbol = item.shopID != nil ? "storefront.fill" : (item.localPlaceID == nil ? "mappin" : RoamLivePlaceLevel.symbol(item.nodeLevel))
         let tint: Color = item.shopID != nil ? .gray : (item.localPlaceID == nil ? .secondary : RoamLivePlaceLevel.tint(item.nodeLevel))
-        let blank = item.shopID == nil ? "roam.unnamed" : "nativeR2.mapHome.kind.merchant"
+        let blank: String.LocalizationValue = item.shopID == nil ? "roam.unnamed" : "nativeR2.mapHome.kind.merchant"
         return HStack(spacing: 12) {
             Image(systemName: symbol)
                 .foregroundStyle(tint)
