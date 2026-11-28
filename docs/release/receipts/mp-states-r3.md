@@ -149,6 +149,7 @@ The sweep script lives with the coordinator, so this lane lists the fixtures to 
 | AI 对话记录 loader (`NPCChatDataView`, 设置 · AI 对话记录) | `subpackageMember/components/cy/npc-chat/index.wxml:24` visible 正在读取你账号下的全部 AI 对话… | native `CYSkeleton` with the words for VoiceOver only; the file bytes are sha256-pinned by `test_category_roam_registration` (`feature_batch_support_sha256`), so the labelled `ProgressView` swap needs that pin refreshed first (debt lane) |
 | 参与人信息 save rejected (`ParticipantOperationSections`, add/edit form) | `pages/addressinfo/addressinfo.wxml:44` cy-inline-error 参与人信息没有保存 · sub · 重试保存 | the section title 修改未被接受 is shared with the delete / detail flows, so it cannot take the save-only MP title without a save/delete split in the coordinator state |
 | 参与人信息 form signed out (`ParticipantFormView`) | MP global 登录 | the form is always presented in a sheet; opening root sign-in from inside it needs the sheet to dismiss first — left without a button |
+| P1-9 remote push (function audit 11-28: `Core/DevicePushRegistrationLifecycle.swift:3-5`, `Config/Questify.entitlements`) | MP has no push (WeChat subscribe messages); app-side `registerForRemoteNotifications` + device-token upload | blocked on the backend: no device-token route / APNs sender on `us/r3-functional` yet (audit row owner = backend + mp-states). Registering without a route would upload nowhere; wire it when the route lands, with a unit test of the request shape |
 
 ## Contract cleanup (brief 20:40 UTC, rows owned by mp-states)
 
