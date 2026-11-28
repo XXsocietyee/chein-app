@@ -14,7 +14,7 @@ class IntegratedReadCompositionContracts(unittest.TestCase):
         # The admission guard grew more reviewed route predicates; a query is still admitted only via an exact validated route.
         self.assertIn('url.query == nil || ProjectExactReadRoute(request: request, baseURL: api.baseURL) != nil || admitsPlayerWriteQuery(request, baseURL: api.baseURL) || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil', source)
         self.assertIn('guard deployment?.playerWritesEnabled == true, deployment?.regional.market == .china', source)
-        self.assertIn('return relative.hasPrefix("api/v1/community/") || relative == "api/community-trust/reports/mine" || relative.hasPrefix("api/friend/")', source)
+        self.assertIn('return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/")', source)
         self.assertIn('sessionFactRoute != nil else { throw APIError.notConfigured }', source)
         self.assertIn('OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)', source)
         self.assertIn('issued.permits(route.operation, configuration: api, session: editor)', source)
