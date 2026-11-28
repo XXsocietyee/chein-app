@@ -108,6 +108,7 @@ struct SquareCloudStravaBlock: View {
     var onDoubleTapLike: (() -> Void)?
     var onRepost: (() -> Void)?
     @Environment(\.locale) private var locale
+    @ScaledMetric(relativeTo: .caption) private var kudosFaceSide: CGFloat = 20
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -123,7 +124,7 @@ struct SquareCloudStravaBlock: View {
             }
             HStack(alignment: .top) {
                 stat(copy("距离", "Distance"), LocaleDisplay.isChinese(locale) ? SquareStravaCard.distanceText(card.distanceKilometers) : (card.distanceKilometers.flatMap { LocaleDisplay.distance(kilometers: $0, locale: locale) } ?? SquareStravaCard.distanceText(card.distanceKilometers))).accessibilityIdentifier("square.cloud.stat.distance")
-                stat(copy("完成节点", "Nodes done"), SquareStravaCard.nodeText(done: card.nodeDone, total: card.nodeTotal)).accessibilityIdentifier("square.cloud.stat.nodes")
+                stat(copy("完成节点", "Stops done"), SquareStravaCard.nodeText(done: card.nodeDone, total: card.nodeTotal)).accessibilityIdentifier("square.cloud.stat.nodes")
                 stat(copy("时长", "Duration"), SquareStravaCard.durationText(card.durationSeconds)).accessibilityIdentifier("square.cloud.stat.duration")
             }
             // MP `components/cy/post-card`: the route block exists only when there is a route; no "no route" line.
@@ -170,9 +171,9 @@ struct SquareCloudStravaBlock: View {
     private var kudos: some View {
         HStack {
             HStack(spacing: -6) {
-                ForEach(Array(card.kudosAvatars.prefix(3).enumerated()), id: \.offset) { _, _ in
-                    Image(systemName: "person.crop.circle.fill").foregroundStyle(.secondary)
-                        .accessibilityHidden(true)
+                ForEach(Array(card.kudosAvatars.prefix(3).enumerated()), id: \.offset) { _, source in
+                    SquareAuthorAvatar(source: source, size: kudosFaceSide)
+                        .overlay(Circle().strokeBorder(CYColor.bgSurface, lineWidth: 1.5))
                 }
             }
             Text(verbatim: card.kudosText ?? SquareCountDisplay.unknownMark)

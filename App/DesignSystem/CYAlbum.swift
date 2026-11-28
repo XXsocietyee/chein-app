@@ -116,7 +116,7 @@ struct CYAlbumProgressRing: View {
             VStack(spacing: 0) {
                 if known {
                     CYCountUpLabel(number: shown ? Double(value) : 0, font: .system(size: ringSize * 0.30, weight: .bold, design: .rounded))
-                    Text(verbatim: "/ \(total ?? 0)")
+                    Text("collection.ofTotal \(total ?? 0)")
                         .font(.system(size: ringSize * 0.14, weight: .semibold, design: .rounded)).monospacedDigit()
                         .foregroundStyle(palette.textTertiary)
                 } else {

@@ -6,7 +6,7 @@
   },
   {
     "key": "play.active.detail",
-    "en": "Open a route node to view its task and requirements.",
+    "en": "Open a route stop to see its task and requirements.",
     "zh-Hans": "打开路线节点，查看任务和要求。"
   },
   {
@@ -136,7 +136,7 @@
   },
   {
     "key": "play.empty.detail",
-    "en": "There are no route nodes yet. Return to the activity or route details and check again later.",
+    "en": "This route has no stops yet. Go back to the activity or route details and check again later.",
     "zh-Hans": "本场路线尚无节点，请返回活动或路线详情，稍后再查看。"
   },
   {
@@ -221,12 +221,12 @@
   },
   {
     "key": "play.node.unavailable.detail",
-    "en": "The node is no longer visible in the current session. Return to the route to refresh.",
+    "en": "This stop is no longer in your current session. Go back to the route to refresh.",
     "zh-Hans": "当前游玩中已不再显示此节点，请返回路线刷新。"
   },
   {
     "key": "play.node.untitled",
-    "en": "Unnamed node",
+    "en": "Unnamed stop",
     "zh-Hans": "未命名节点"
   },
   {
@@ -236,7 +236,7 @@
   },
   {
     "key": "play.nodes.hidden",
-    "en": "No nodes are available in the current route state.",
+    "en": "No stops to show on this route right now.",
     "zh-Hans": "当前路线状态下没有可显示的节点。"
   },
   {

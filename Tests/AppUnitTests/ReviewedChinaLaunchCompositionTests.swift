@@ -161,6 +161,17 @@ import XCTest
         XCTAssertTrue(grant.play.paths.contains("api/game/session/recap/export"))
         XCTAssertTrue(ReviewedProductionGateLeases.playRuntimeReadPaths.contains("api/game/session/recap/export"))
         XCTAssertTrue(ReviewedProductionGateLeases.isPlayGrantPath("api/game/session/recap/export"))
+        // J-18 / P2-4: the club-lead bar (team read, chapter receipt) and the lead tools ride the play grant.
+        for read in ["api/club/lead/team-progress", "api/club/lead/unlock-chapter-receipt"] {
+            XCTAssertTrue(grant.play.paths.contains(read), read)
+            XCTAssertTrue(ReviewedProductionGateLeases.playRuntimeReadPaths.contains(read), read)
+        }
+        for write in ["api/club/lead/start", "api/club/lead/unlock-chapter", "api/club/lead/release-station",
+                      "api/club/lead/edit-ops", "api/club/lead/settle"] {
+            XCTAssertTrue(grant.play.paths.contains(write), write)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + write), write)
+        }
+        XCTAssertTrue(ReviewedProductionGateLeases.playCapabilities.contains(.leader))
         // P1-13: the club post image upload (uploadOSS bizType=club_post_image) is issued per club, stable, picker on.
         let image = try XCTUnwrap(admitted.clubPostImageUploadApproval(player, 3))
         XCTAssertTrue(image.nativePicker)
@@ -971,14 +982,13 @@ import XCTest
         _ = await service.playerCode(); sent("api/user/player-code")
         let before = recorder.paths.count
         let base = player.baseURL
-        // Moderator pin and the leader tools are host-only; the player grant does not name them.
-        for host in ["api/club/post/pin", "api/club/lead/start", "api/club/lead/settle", "api/club/lead/unlock-chapter"] {
-            XCTAssertFalse(grant.play.paths.contains(host), host)
-        }
+        // Moderator pin rides the club community grant (P1-10), not the play grant. The club-lead tools moved to the
+        // play grant in mp-club r3 J-18 (MP pages/play/index.js lead tools); the server admits only the activity's lead.
+        XCTAssertFalse(grant.play.paths.contains("api/club/post/pin"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/settlement/mine"))
         for money in ["api/registration/payment-readiness", "api/club/personal-receiver/bind", "api/club/personal-receiver/unbind",
                       "api/club/settlement/withdraw", "api/wallet/withdraw", "api/registration/pay",
-                      "api/club-compensation/editions/empty-reason", "api/club/lead/release-station", "api/merchant/payout-account/save"] {
+                      "api/club-compensation/editions/empty-reason", "api/merchant/payout-account/save"] {
             XCTAssertFalse(grant.play.paths.contains(money), money)
             await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent(money), #"{"activityId":3}"#, token: player.session.token)) }
         }

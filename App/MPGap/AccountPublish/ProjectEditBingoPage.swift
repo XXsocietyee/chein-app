@@ -117,6 +117,24 @@ struct ProjectEditBingoCellPage: View {
     @Binding var cell: ProjectEditCompletionRules.Cell
     let position: Int
     let editable: Bool
+    @Environment(\.rewardCouponSource) private var couponSource
+    @State private var couponName = ""
+
+    /// MP `cy-reward-selector` (occasion topic, placeholder 选择奖励) when the session can list the author's coupons.
+    @ViewBuilder private var couponField: some View {
+        if let couponSource {
+            RewardCouponSelectorRow(source: couponSource, couponID: $cell.couponID, couponName: $couponName,
+                                    label: "rewardCoupon.label.default", occasion: "rewardCoupon.occasion.topic",
+                                    placeholder: "rewardCoupon.placeholder.reward")
+                .accessibilityIdentifier("projectEdit.completion.coupon.\(position)")
+        } else {
+            TextField(text: $cell.couponID, prompt: Text("projectEdit.completion.coupon")) {
+                Text("projectEdit.completion.coupon")
+            }
+            .keyboardType(.numberPad)
+            .accessibilityIdentifier("projectEdit.completion.coupon.\(position)")
+        }
+    }
 
     var body: some View {
         Form {
@@ -133,13 +151,11 @@ struct ProjectEditBingoCellPage: View {
                 }
                 .lineLimit(2...5)
                 .accessibilityIdentifier("projectEdit.completion.feedback.\(position)")
-                TextField(text: $cell.couponID, prompt: Text("projectEdit.completion.coupon")) {
-                    Text("projectEdit.completion.coupon")
-                }
-                .keyboardType(.numberPad)
-                .accessibilityIdentifier("projectEdit.completion.coupon.\(position)")
+                couponField
             } footer: {
-                Text("projectEdit.completion.couponHint")
+                if couponSource == nil {
+                    Text("projectEdit.completion.couponHint")
+                }
             }
         }
         .disabled(!editable)

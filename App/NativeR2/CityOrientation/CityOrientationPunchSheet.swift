@@ -147,6 +147,7 @@ import SwiftUI
                         Section { PlayExperienceIssueView(issue: issue) }
                     }
                     taskSection(snapshot: snapshot, node: node)
+                    if let card = model.aiScores[nodeID] { PlayAIScoreSection(card: card) }
                 }
                 .safeAreaInset(edge: .bottom, spacing: 0) { bottomActions }
             }
@@ -180,7 +181,8 @@ import SwiftUI
                 }
                 .listRowInsets(EdgeInsets())
                 .accessibilityIdentifier("nativeR2.city.punch.cover")
-            if let meta = (node.hookText ?? node.address)?.trimmingCharacters(in: .whitespacesAndNewlines), !meta.isEmpty {
+            // MP sheet-meta is the address (`metaLine`, pages/play/index.js:6124); the hook is not on the mode-1 sheet.
+            if let meta = node.address?.trimmingCharacters(in: .whitespacesAndNewlines), !meta.isEmpty {
                 Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary)
             }
             if snapshot.isStoryLocked(node) == false, let body = node.description?.trimmingCharacters(in: .whitespacesAndNewlines), !body.isEmpty {
