@@ -5207,7 +5207,6 @@ final class AppSession: ObservableObject {
     }
     private var retainedSquareGovernance: SquareGovernanceCoordinator?
     func squareGovernance() -> SquareGovernanceCoordinator? {
-        if let model = retainedSquareGovernance { return model }
         guard let configuration = regionalConfiguration?.apiConfiguration else { return nil }
         let model = SquareGovernanceCoordinator(service: SquareNotificationLease.service(baseURL: configuration.baseURL, transport: runtimeHTTPTransport))
         retainedSquareGovernance = model; return model

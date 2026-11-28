@@ -519,6 +519,7 @@ struct SessionRootView: View {
                 .environment(\.cyTabBarHidden, isTabBarHidden)
                 .onPreferenceChange(CYTabBarHiddenPreferenceKey.self) { isTabBarHidden = $0 }
                 .environment(\.imRecipientPreviewLeases, session.imRecipientPreviewLeaseSource)
+                .environment(\.squareDeletion, SquarePlayerDeletionHost.coordinator(session))
                 .modifier(AIExperienceRootEnvironment(session: session))
                 .onChange(of: selectedTab) { _, tab in if !tab.isPlayerTab { selectedTab = .home } }
                 .roleTheme(.player)
