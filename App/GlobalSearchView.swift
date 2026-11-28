@@ -472,7 +472,7 @@ import SwiftUI
                         Image(systemName: "magnifyingglass")
                     }
                 } description: {
-                    EmptyView()
+                    GlobalSearchEmptyDescription(keyword: filter.keyword)
                 } actions: {
                     // mp-states r3: the MP footer 刷新 sits inside the empty state (one action), not as a separate row.
                     Button("searchMap.refreshResults") { Task { await search() } }
@@ -620,3 +620,22 @@ extension View {
 
 /// mp-home r3 (00:10 sweep d2-search / d2-search-results): demo wording must not appear in a rendered fixture.
 @MainActor protocol SearchMapOfflineNoteHiding { var hidesOfflineExampleNote: Bool { get } }
+
+/// mp-home r3 (P41): the MP `search2/result` empty state is 没有找到 with no sub line; the description now quotes the
+/// query and gives one tip, so no-results reads as a turn, not a wall. Category-only searches show the tip alone.
+struct GlobalSearchEmptyDescription: View {
+    let keyword: String
+
+    private var trimmed: String { keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    var body: some View {
+        VStack(spacing: CYSpacing.xs) {
+            if !trimmed.isEmpty {
+                Text("globalSearch.emptyQuery \(trimmed)")
+            }
+            Text("searchMap.emptyHint")
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("globalSearch.emptyDescription")
+    }
+}
