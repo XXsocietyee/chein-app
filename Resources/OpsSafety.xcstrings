@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This feature is temporarily unavailable."
+            "value": "This feature temporarily unavailable."
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After-sales"
+            "value": "Support"
           }
         },
         "zh-Hans": {
@@ -486,7 +486,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This message looks like it contains a phone number."
+            "value": "This message looks like contains phone number."
           }
         },
         "zh-Hans": {
@@ -518,7 +518,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This message looks like it contains an email address."
+            "value": "This message looks like it contains email address."
           }
         },
         "zh-Hans": {

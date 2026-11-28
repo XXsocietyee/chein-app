@@ -107,7 +107,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Finished at the desk"
+          "value": "Finished at desk"
         }
       },
       "zh-Hans": {
@@ -124,7 +124,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Started at an alternate stop"
+          "value": "Started alternate stop"
         }
       },
       "zh-Hans": {
@@ -158,7 +158,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Opens the leaderboard"
+          "value": "Opens the ranks"
         }
       },
       "zh-Hans": {
@@ -209,7 +209,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Exploration records"
+          "value": "Exploration"
         }
       },
       "zh-Hans": {
@@ -481,7 +481,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Leaderboard could not be loaded"
+          "value": "Leaderboard couldn't be loaded"
         }
       },
       "zh-Hans": {
@@ -566,7 +566,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This account cannot view growth records. Check its access and refresh."
+          "value": "Account can't view growth records."
         }
       },
       "zh-Hans": {

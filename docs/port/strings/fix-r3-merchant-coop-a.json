@@ -92,7 +92,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your application has been submitted"
+            "value": "Request has been submitted"
           }
         },
         "zh-Hans": {
@@ -126,7 +126,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "License Verification"
+            "value": "License Check"
           }
         },
         "zh-Hans": {
@@ -194,7 +194,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for identity conditions"
+            "value": "Waiting for identity rules"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submit Application"
+            "value": "Submit Request"
           }
         },
         "zh-Hans": {
@@ -1214,7 +1214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Please sign in first"
+            "value": "Please sign first"
           }
         },
         "zh-Hans": {
@@ -1350,7 +1350,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This redemption record isn't visible"
+            "value": "Redeem record isn't visible"
           }
         },
         "zh-Hans": {
@@ -1775,7 +1775,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Co-op Revenue Share"
+            "value": "Co-op Revenue"
           }
         },
         "zh-Hans": {
@@ -1860,7 +1860,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settlement"
+            "value": "Payout"
           }
         },
         "zh-Hans": {

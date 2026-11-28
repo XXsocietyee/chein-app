@@ -127,7 +127,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue the story"
+            "value": "Continue story"
           }
         },
         "zh-Hans": {
@@ -229,7 +229,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Letter choices"
+            "value": "Letter"
           }
         },
         "zh-Hans": {
@@ -263,7 +263,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Empty slot"
+            "value": "Empty"
           }
         },
         "zh-Hans": {
@@ -433,7 +433,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Report a problem with this stage"
+            "value": "Report a problem stage"
           }
         },
         "zh-Hans": {
@@ -467,7 +467,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Can't read it clearly"
+            "value": "Can't read"
           }
         },
         "zh-Hans": {
@@ -501,7 +501,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The search picture is on its way"
+            "value": "The search picture is on way"
           }
         },
         "zh-Hans": {
@@ -773,7 +773,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This picture can’t be shown right now"
+            "value": "This picture can’t shown right"
           }
         },
         "zh-Hans": {

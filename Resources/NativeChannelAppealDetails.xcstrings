@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Processing deadline"
+            "value": "Processing"
           }
         },
         "zh-Hans": {
@@ -319,7 +319,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not provided by the original service"
+            "value": "Not provided original"
           }
         }
       }
@@ -347,7 +347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Attachments"
+            "value": "Files"
           }
         },
         "zh-Hans": {
@@ -840,7 +840,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Moderation details"
+            "value": "Review details"
           }
         },
         "zh-Hans": {
@@ -874,7 +874,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request record is temporarily unavailable. Refresh to read it again; this will not create another appeal or resend automatically."
+            "value": "The original request record is temporarily unavailable. Refresh to read it again; this won't create another appeal or auto-resend."
           }
         },
         "zh-Hans": {
@@ -897,7 +897,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The outcome still needs confirmation from the original receipt. No new appeal will be created."
+            "value": "The outcome still needs check from original receipt. No new appeal will created."
           }
         }
       }
@@ -925,7 +925,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review before retrying original request"
+            "value": "Review before retrying original"
           }
         },
         "zh-Hans": {
@@ -942,7 +942,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recover original request"
+            "value": "Recover original"
           }
         },
         "zh-Hans": {
@@ -965,7 +965,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm submission"
+            "value": "Confirm entry"
           }
         }
       }
@@ -993,7 +993,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm original action"
+            "value": "Confirm original"
           }
         },
         "zh-Hans": {
@@ -1010,7 +1010,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reason for appeal, additional statement, or reason for withdrawal"
+            "value": "Reason for appeal, extra statement, or reason for cash-out"
           }
         },
         "zh-Hans": {
@@ -1061,7 +1061,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add one additional statement"
+            "value": "Add one extra statement"
           }
         },
         "zh-Hans": {
@@ -1095,7 +1095,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Statement"
+            "value": "Note"
           }
         },
         "zh-Hans": {
@@ -1129,7 +1129,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current session or access is no longer valid. The original pending request is still saved."
+            "value": "The current session or access is no longer valid. Original pending request still saved."
           }
         },
         "zh-Hans": {
@@ -1231,7 +1231,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original appeal deadline"
+            "value": "Original appeal"
           }
         },
         "zh-Hans": {
@@ -1288,7 +1288,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A submission receipt only confirms that the appeal was accepted for processing. It does not mean the original action was reversed."
+            "value": "A receipt only confirms the appeal was accepted. It does not reverse the original action."
           }
         }
       }
@@ -1350,7 +1350,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw original appeal"
+            "value": "Withdraw original"
           }
         },
         "zh-Hans": {
@@ -1367,7 +1367,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original action"
+            "value": "Original"
           }
         },
         "zh-Hans": {
@@ -1384,7 +1384,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal status cannot currently be confirmed"
+            "value": "Appeal status can't be confirmed"
           }
         },
         "zh-Hans": {

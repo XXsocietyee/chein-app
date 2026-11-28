@@ -858,6 +858,8 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
     let reader: any SquareReading
     let onSelectTopic: (SquareRelatedTopicSelection) -> Void
     @Environment(\.topicTemplateCopiedDestination) private var copiedDestination
+    @Environment(\.topicEditorDestination) private var editorDestination
+    @State private var copiedDraft: CopiedTopicDraft?
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if post.isTopicTemplate {
@@ -865,12 +867,17 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
             }
             if let title = post.referenceTitle { Text(verbatim: title).font(.headline).fixedSize(horizontal: false, vertical: true) }
             if post.isTopicTemplate, let topicID = post.topicID, topicID > 0, TopicTemplateUseFactory.isLive {
-                TopicTemplateUseSection(templateID: topicID, scope: nil, readOnly: false) { copiedDestination?($0) }
+                TopicTemplateUseSection(templateID: topicID, scope: nil, readOnly: false) { topicID in
+                    if let copiedDestination { copiedDestination(topicID) } else { copiedDraft = CopiedTopicDraft(id: topicID) }
+                }
             }
             SquareRelatedTopicLink(post: post, source: source, squareReader: reader, titleKey: "square.play.try", onSelect: onSelectTopic)
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("square.detail.playCard")
+        .navigationDestination(item: $copiedDraft) { draft in
+            if let editorDestination { editorDestination(draft.id, nil) }
+        }
     }
 }
 

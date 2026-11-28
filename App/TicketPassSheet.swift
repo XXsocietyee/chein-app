@@ -59,7 +59,15 @@ enum CYPassCardPick {
                                            makeTeamCoordinator: makeTeamCoordinator, autoStartsPlay: true)
                 }
         }
-        .task(id: TaskKey(scope: reader.scope, token: loadToken, active: scenePhase == .active)) { await load() }
+        .task(id: TaskKey(scope: reader.scope, token: loadToken, active: scenePhase == .active)) {
+            // G-09: while the pass is open, re-read on the same lead as the entry code so a merchant
+            // scan flips the chip (ready → verified) without a pull or a background trip.
+            guard scenePhase == .active else { return }
+            while !Task.isCancelled {
+                await load()
+                do { try await Task.sleep(for: .seconds(TicketEntryCodeRefresh.leadSeconds)) } catch { return }
+            }
+        }
         .sensoryFeedback(.success, trigger: glowTick)
         .themeDomain(.player)
         .accessibilityIdentifier("ticketPass.sheet")

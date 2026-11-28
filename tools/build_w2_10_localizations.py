@@ -19,7 +19,7 @@ PAIRS = {
     'badgeWall.summary %lld %lld %lld': ('%1$lld of %2$lld lit · %3$lld still waiting to be explored', '已点亮 %1$lld / %2$lld · 还有 %3$lld 枚等待探索'),
     'badgeWall.focus.onWall %@': ('“%@” is on your wall', '「%@」已在墙上'),
     'badgeWall.focus.locked %@': ('“%@” is not lit yet', '「%@」还没点亮'),
-    'badgeWall.focus.elsewhere': ('This badge is not an identity card; it is recorded in the growth center', '这枚不是身份卡，记在成长中心'),
+    'badgeWall.focus.elsewhere': ('This badge isn\'t identity card; it\'s recorded growth center', '这枚不是身份卡，记在成长中心'),
     'badgeWall.explore': ('Go explore', '去探索'),
     'badgeWall.threeD.open': ('View 3D badge', '查看 3D 徽章'),
     'objectCards.denied': ('This identity can’t view it', '当前身份不能查看'),

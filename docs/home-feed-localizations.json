@@ -26,7 +26,7 @@
   },
   {
     "key": "homeFeed.activities",
-    "en": "Activities",
+    "en": "Events",
     "zh-Hans": "活动"
   },
   {
@@ -96,7 +96,7 @@
   },
   {
     "key": "homeFeed.noLocation",
-    "en": "Ordered by time. Location has not been requested.",
+    "en": "Ordered by time. Location hasn't been requested.",
     "zh-Hans": "按时间排序，未请求定位"
   },
   {
@@ -106,12 +106,12 @@
   },
   {
     "key": "homeFeed.recommended",
-    "en": "Recommended routes",
+    "en": "Recommended",
     "zh-Hans": "推荐路线"
   },
   {
     "key": "homeFeed.activityHighlights",
-    "en": "Activity highlights",
+    "en": "Activity",
     "zh-Hans": "活动精选"
   },
   {

@@ -330,4 +330,13 @@ public struct RoamStampSlip: Equatable {
         let parts = calendar.dateComponents([.month, .day], from: date)
         return "\(parts.month ?? 0)." + String(format: "%02d", parts.day ?? 0)
     }
+    /// Header date for the UI language: MP `M.dd` in Chinese, `Nov 28` (locale month-day) elsewhere.
+    public static func dateLabel(_ date: Date, locale: Locale, calendar: Calendar = .current) -> String {
+        if LocaleDisplay.isChinese(locale) { return dateLabel(date, calendar: calendar) }
+        return LocaleDisplay.monthDay(date, locale: locale, timeZone: calendar.timeZone)
+    }
+    /// 留于 time for the UI language: Chinese keeps the server `yyyy-MM-dd HH:mm`; English reads `Jan 2, 2026, 12:00 PM`.
+    public func leftAtText(locale: Locale) -> String? {
+        leftAt.map { LocaleDisplay.civil($0, locale: locale) }
+    }
 }

@@ -147,7 +147,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This active supply can be exited"
+          "value": "This active supply can exited"
         }
       }
     }
@@ -538,7 +538,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Leaving isn't available right now. You can still check eligibility and impact."
+          "value": "Leaving isn't available right now. Can still check eligibility impact."
         }
       }
     }

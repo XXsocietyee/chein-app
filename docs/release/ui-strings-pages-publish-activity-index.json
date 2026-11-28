@@ -3,7 +3,7 @@
   "native": "App/PublishingModesViews.swift",
   "strings": {
     "publishModes.activity": {
-      "en": "Publish an activity",
+      "en": "Publish activity",
       "zh-Hans": "发布活动"
     },
     "publishModes.addressName": {
@@ -51,7 +51,7 @@
       "zh-Hans": "删除"
     },
     "publishModes.ticket": {
-      "en": "Ticket option",
+      "en": "Ticket",
       "zh-Hans": "票单"
     },
     "publishModes.addTicket": {
@@ -111,7 +111,7 @@
       "zh-Hans": "项目已变化或暂时无权访问，请刷新后重新审核。"
     },
     "publishModes.rejected": {
-      "en": "This request couldn't be completed.",
+      "en": "Request couldn't completed.",
       "zh-Hans": "请求未能完成。"
     },
     "publishModes.clear": {
@@ -199,7 +199,7 @@
       "zh-Hans": "活动内容"
     },
     "publishModes.wizard.step.ticket": {
-      "en": "Tickets and collaborators",
+      "en": "Tickets collaborators",
       "zh-Hans": "票务与合作"
     },
     "publishModes.selectedCount %lld": {
@@ -215,7 +215,7 @@
       "zh-Hans": "活动标题"
     },
     "publishParity.activity.description": {
-      "en": "Activity description",
+      "en": "Activity details",
       "zh-Hans": "活动说明"
     },
     "publishParity.activity.type": {
@@ -295,7 +295,7 @@
       "zh-Hans": "第 %@ 个票种：请填写有效的起止日期和时间，结束须晚于开始，且都在活动时段内。"
     },
     "activityWizardValidation.none": {
-      "en": "No field-specific validation message is currently shown.",
+      "en": "No field-specific validation message is shown.",
       "zh-Hans": "当前没有字段校验提示。"
     },
     "activityWizardValidation.unknown": {
@@ -315,11 +315,11 @@
       "zh-Hans": "这场活动怎么卖票？"
     },
     "activityPublishing.review.createHeading": {
-      "en": "Review before publishing",
+      "en": "Review before",
       "zh-Hans": "发布前摘要"
     },
     "activityPublishing.review.editHeading": {
-      "en": "Summary of changes",
+      "en": "Summary changes",
       "zh-Hans": "修改摘要"
     },
     "activityPublishing.review.name": {
@@ -359,11 +359,11 @@
       "zh-Hans": "保持当前关联模板不变"
     },
     "activityPublishing.review.collaboratorNotice": {
-      "en": "Collaborators can edit the content but don’t share in earnings",
+      "en": "Collaborators can edit the content but don’t share earnings",
       "zh-Hans": "合作者可编辑内容，不参与结算"
     },
     "activityPublishing.review.merchantFreeNotice": {
-      "en": "Merchant activities only support free tickets for now",
+      "en": "Merchant events only support free tickets for now",
       "zh-Hans": "商家活动暂时只支持免费票"
     },
     "activityPublishing.review.createVisibility": {

@@ -585,7 +585,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pause or Resume"
+            "value": "Pause or resume run"
           }
         },
         "zh-Hans": {
@@ -670,7 +670,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opens check-in for the current stop."
+            "value": "Opens the punch sheet for the current stop."
           }
         },
         "zh-Hans": {
@@ -1163,7 +1163,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start Roaming"
+            "value": "Start roam"
           }
         },
         "zh-Hans": {
@@ -1197,7 +1197,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check In"
+            "value": "Check in"
           }
         },
         "zh-Hans": {

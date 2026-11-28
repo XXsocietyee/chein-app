@@ -132,7 +132,7 @@ public struct ClubAIDesignResult: Equatable {
             }
             catch { failure = error as? ClubAIDesignFailure ?? .parse }
         case .rejected(let message):
-            if message.contains("今日AI次数已用完") { failure = .quota }
+            if message == AISafetyPrecheckVerdict.quotaHint { failure = .quota }
             else if message.contains("身份") || message.contains("登录") { failure = .identity }
             else { failure = .unavailable }
         case .unknown: failure = .unknown

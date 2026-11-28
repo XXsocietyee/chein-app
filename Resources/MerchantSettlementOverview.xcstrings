@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Adjustments"
+            "value": "Changes"
           }
         },
         "zh-Hans": {
@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settlement batches"
+            "value": "Payout batches"
           }
         },
         "zh-Hans": {

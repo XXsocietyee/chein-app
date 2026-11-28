@@ -285,7 +285,6 @@ public struct PlayToolsAndLeadSheetView: View {
         .accessibilityIdentifier(identifier)
     }
 
-    /// MP 队伍位置: the arrived count on the right; the pushed page lists who has arrived (positions stay private).
     /// MP 同行者榜 `dv`: 第 N 名 once the score read has a rank.
     private var boardRank: Int? {
         if case .ready(_, _, let rank, _)? = sessionStats { return rank }

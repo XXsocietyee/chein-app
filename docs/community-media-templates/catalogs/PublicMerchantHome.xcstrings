@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This isn't available right now"
+            "value": "Isn't available"
           }
         },
         "zh-Hans": {
@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Merchant does not exist or is not open to the public"
+            "value": "Shop doesn't exist or isn't open public"
           }
         },
         "zh-Hans": {
@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Try"
           }
         },
         "zh-Hans": {
@@ -150,7 +150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Merchant cover image"
+            "value": "Shop cover image"
           }
         },
         "zh-Hans": {
@@ -294,7 +294,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo preview isn't available right now"
+            "value": "Photo preview isn't available right"
           }
         },
         "zh-Hans": {
@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hosting and cooperation"
+            "value": "Hosting and collab"
           }
         },
         "zh-Hans": {
@@ -518,7 +518,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verified redemption"
+            "value": "Verified"
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send this report for platform review. Reporting does not delete the review"
+            "value": "Send this report platform review. Reporting doesn't delete review"
           }
         },
         "zh-Hans": {
@@ -806,7 +806,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This submission couldn't be completed. Refresh and try again"
+            "value": "This entry couldn't be completed. Refresh and try again"
           }
         },
         "zh-Hans": {
@@ -902,7 +902,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reference number"
+            "value": "Number"
           }
         },
         "zh-Hans": {
@@ -918,7 +918,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write a review"
+            "value": "Write review"
           }
         },
         "zh-Hans": {

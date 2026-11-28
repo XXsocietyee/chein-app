@@ -175,7 +175,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Available industries"
+          "value": "Available"
         }
       },
       "zh-Hans": {
@@ -294,7 +294,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Previous industry ID"
+          "value": "Previous industry"
         }
       },
       "zh-Hans": {

@@ -107,7 +107,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Maximum participants"
+          "value": "Maximum people"
         }
       },
       "zh-Hans": {
@@ -192,7 +192,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Enter participation time as a positive whole number of minutes."
+          "value": "Enter participation time positive whole number minutes."
         }
       },
       "zh-Hans": {

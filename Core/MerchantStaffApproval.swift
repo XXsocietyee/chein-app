@@ -108,8 +108,6 @@ public struct MerchantStaffApprovalClient {
     }
 
     private static func code(_ value: Any?) -> Int? {
-        if value is Bool { return nil }
-        if let number = value as? Int { return number }
         if let number = value as? NSNumber {
             if CFGetTypeID(number) == CFBooleanGetTypeID() { return nil }
             return number.intValue

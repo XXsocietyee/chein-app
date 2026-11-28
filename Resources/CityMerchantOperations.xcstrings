@@ -177,7 +177,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submit my store’s intention"
+            "value": "Submit my store’s"
           }
         },
         "zh-Hans": {
@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request a pause for my store"
+            "value": "Request a pause my store"
           }
         },
         "zh-Hans": {
@@ -228,7 +228,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request restoration for my store"
+            "value": "Request restoration my"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request"
+            "value": "Original"
           }
         },
         "zh-Hans": {
@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm submission"
+            "value": "Confirm entry"
           }
         },
         "zh-Hans": {
@@ -398,7 +398,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request restoration"
+            "value": "Request"
           }
         },
         "zh-Hans": {
@@ -432,7 +432,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This changes only my store’s operational intention and awaits authorized review."
+            "value": "Changes only my store’s operational intention awaits authorized review."
           }
         },
         "zh-Hans": {
@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This confirmation has expired. Refresh and confirm again."
+            "value": "This check has expired. Refresh confirm again."
           }
         },
         "zh-Hans": {
@@ -551,7 +551,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check the original request first."
+            "value": "Check original request."
           }
         },
         "zh-Hans": {
@@ -585,7 +585,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request did not take effect. Refresh your store’s status before confirming a new request."
+            "value": "The original request didn't take effect. Refresh store’s status before confirming new request."
           }
         },
         "zh-Hans": {
@@ -636,7 +636,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your sign-in has expired."
+            "value": "Sign-in has expired."
           }
         },
         "zh-Hans": {
@@ -755,7 +755,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The request was not approved. The existing operational fact is unchanged."
+            "value": "The request wasn't approved. The existing operational fact unchanged."
           }
         },
         "zh-Hans": {

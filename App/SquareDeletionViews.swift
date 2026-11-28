@@ -2,7 +2,7 @@ import SwiftUI
 
 private struct SquareDeletionKey: EnvironmentKey { static let defaultValue: SquareDeletionCoordinator? = nil }
 extension EnvironmentValues {
-    /// Nil (the default) keeps delete visible but disabled; no host supplies an approved coordinator yet.
+    /// Nil keeps delete hidden. `SquarePlayerDeletionHost` supplies the coordinator on the player tabs.
     var squareDeletion: SquareDeletionCoordinator? {
         get { self[SquareDeletionKey.self] }
         set { self[SquareDeletionKey.self] = newValue }
@@ -137,5 +137,50 @@ struct SquareDeletionStatusView: View {
             Text("square.xcx.delete.unavailable").font(.subheadline).foregroundStyle(.secondary).accessibilityIdentifier("square.delete.unavailable")
         default: EmptyView()
         }
+    }
+}
+
+/// K40 M-01d: one deletion coordinator per signed-in player or club. Merchant, US, and signed-out stay `.disabled()`,
+/// so the v1 删除 row stays hidden (`isAllowed` is false). The cache keeps the confirm sheet's phase across redraws.
+@MainActor enum SquarePlayerDeletionHost {
+    private final class Slot {
+        weak var session: AppSession?
+        var key: String
+        var coordinator: SquareDeletionCoordinator
+        init(session: AppSession, key: String, coordinator: SquareDeletionCoordinator) {
+            self.session = session
+            self.key = key
+            self.coordinator = coordinator
+        }
+    }
+    private static var slots: [Slot] = []
+
+    static func coordinator(_ session: AppSession) -> SquareDeletionCoordinator {
+        slots.removeAll { $0.session == nil }
+        let key = identity(session)
+        if let slot = slots.first(where: { $0.session === session && $0.key == key }) { return slot.coordinator }
+        slots.removeAll { $0.session === session }
+        let coordinator = make(session, key: key)
+        slots.append(Slot(session: session, key: key, coordinator: coordinator))
+        return coordinator
+    }
+
+    private static func identity(_ session: AppSession) -> String {
+        guard let context = session.currentRuntimeDependencyContext,
+              MPFirstSocialApprovals.deletionApproval(session.composition, context) != nil else { return "off" }
+        return "\(context.session.accountID)|\(context.session.epoch)|\(context.session.namespace)"
+    }
+
+    private static func make(_ session: AppSession, key: String) -> SquareDeletionCoordinator {
+        guard key != "off", let context = session.currentRuntimeDependencyContext,
+              let approval = MPFirstSocialApprovals.deletionApproval(session.composition, context),
+              let api = session.regionalConfiguration?.apiConfiguration else { return .disabled() }
+        return SquareDeletionCoordinator(
+            service: SquareDeletionService(configuration: api, transport: session.runtimeHTTPTransport),
+            configuration: api, approval: approval, current: { [weak session] in
+                guard let session, let live = session.currentRuntimeDependencyContext, let token = session.token,
+                      live.session.accountID == approval.accountID, live.session.namespace == approval.namespace else { return nil }
+                return (namespace: live.session.namespace, accountID: live.session.accountID, token: token)
+            })
     }
 }

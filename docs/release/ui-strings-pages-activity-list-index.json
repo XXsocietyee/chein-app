@@ -50,7 +50,7 @@
     },
     {
       "key": "official.inboxLink",
-      "en": "Invitations",
+      "en": "Invites",
       "zh-Hans": "邀约"
     },
     {
@@ -130,7 +130,7 @@
     },
     {
       "key": "official.notConfigured",
-      "en": "Official events aren't available right now",
+      "en": "Official events aren't available",
       "zh-Hans": "官方活动暂不可用"
     },
     {
@@ -180,7 +180,7 @@
     },
     {
       "key": "official.status.registration",
-      "en": "Registration open",
+      "en": "Sign-up open",
       "zh-Hans": "报名中"
     },
     {
@@ -210,7 +210,7 @@
     },
     {
       "key": "official.informationIncomplete",
-      "en": "Information incomplete",
+      "en": "Info incomplete",
       "zh-Hans": "信息不全"
     },
     {

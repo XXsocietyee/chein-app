@@ -9,7 +9,7 @@
     },
     "merchant.approvals.denied" : {
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "You do not have permission to approve requests." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Don't have permission." } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有审核权限" } }
       }
     },
