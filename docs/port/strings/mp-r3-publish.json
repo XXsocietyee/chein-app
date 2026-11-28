@@ -6436,5 +6436,158 @@
         }
       }
     }
+  },
+  "castMember.voice.record": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Record your own voice"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "用自己的声音录"
+        }
+      }
+    }
+  },
+  "castMember.voice.recording": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recording. Tap to stop."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "录音中，点一下停止"
+        }
+      }
+    }
+  },
+  "castMember.voice.stopLabel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Stop recording"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "停止录音"
+        }
+      }
+    }
+  },
+  "castMember.voice.recorded": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recorded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已录好"
+        }
+      }
+    }
+  },
+  "castMember.voice.own": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Own recording"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "自己录的"
+        }
+      }
+    }
+  },
+  "castMember.voice.uploading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Uploading the recording"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在上传录音"
+        }
+      }
+    }
+  },
+  "castMember.voice.notStarted": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recording didn't start. Check microphone access in Settings."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "录音没有开始，请检查麦克风权限"
+        }
+      }
+    }
+  },
+  "castMember.voice.tooShort": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "That recording is too short. Record again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "录音太短，请再录一次"
+        }
+      }
+    }
+  },
+  "castMember.voice.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The recording didn't upload. Try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "录音上传失败，请重试"
+        }
+      }
+    }
   }
 }
