@@ -117,7 +117,7 @@ public struct SquareGovernanceService {
             return try request(path: "api/comment/delete", method: "POST", fields: ["id": .string(String(id))], token: token, form: true)
         }
     }
-    func dispatch(_ review: SquareGovernanceReview, token: String, check: () throws -> Void) async throws -> SquareGovernanceReceipt {
+    func dispatch(_ review: SquareGovernanceReview, token: String, release: () -> Void = {}, check: () throws -> Void) async throws -> SquareGovernanceReceipt {
         guard allows(review.action) else { throw SquareGovernanceFailure.disabled }
         let request = try command(review, token: token)
         try Task.checkCancellation(); try check()
@@ -125,9 +125,32 @@ public struct SquareGovernanceService {
         do { (data, status) = try await transport.send(request) } catch { throw SquareGovernanceFailure.unknown }
         // Once dispatched, cancellation cannot prove non-execution or release the original lock.
         do { try Task.checkCancellation(); try check() } catch { throw SquareGovernanceFailure.unknown }
+        if case .appeal = review.action {
+            // MP post-governance settles an appeal as `rejected` (new appeal allowed) on a definite refusal,
+            // and reads back on 409 (an appeal for this enforcement already exists) like any unknown result.
+            switch Self.appealOutcome(data, status: status) {
+            case .rejected: release()
+            case .alreadyExists: throw SquareGovernanceFailure.unknown
+            case .other: break
+            }
+        }
         _ = try Self.decode(data, status: status, mutation: true)
         // Ajax success is acknowledgement only: no invented appeal result, deletion or approval.
         return .acknowledgedNeedsRefresh
+    }
+    enum AppealOutcome: Equatable { case rejected, alreadyExists, other }
+    /// MP `post-governance/index.js` submit: HTTP 2xx with a body code other than 200 is a refusal
+    /// (409 reads back); HTTP 4xx other than 408 / 409 is a refusal; everything else stays unknown.
+    static func appealOutcome(_ data: Data, status: Int) -> AppealOutcome {
+        let body = try? JSONDecoder().decode(SquareGovernanceJSON.self, from: data)
+        let code = body?["code"].int ?? body?["code"].string.flatMap(Int.init)
+        if (200..<300).contains(status) {
+            guard let code, code != 200 else { return .other }
+            return code == 409 ? .alreadyExists : .rejected
+        }
+        if status == 409 { return .alreadyExists }
+        if (400..<500).contains(status), status != 408 { return .rejected }
+        return .other
     }
     static func decode(_ data: Data, status: Int, mutation: Bool) throws -> SquareGovernanceJSON {
         let body = try? JSONDecoder().decode(SquareGovernanceJSON.self, from: data)
