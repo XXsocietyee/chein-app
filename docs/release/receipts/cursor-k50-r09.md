@@ -1,8 +1,8 @@
 # cursor-k50-r09
 
-Branch `cursor/1128-k50-r09` from `origin/ui/combined-r7` (`b954de71cd6669256c49785864504f8e05ba05d9`). No force-push, no `main`, no deploy, no secrets, no SQL, no `xcodebuild`. This machine has no `swiftc`.
+Branch `cursor/1128-k50-r09` from `origin/ui/combined-r7` (`b954de71cd6669256c49785864504f8e05ba05d9`), then merged `origin/ui/combined-r7` at `5375df502` before push. No force-push, no `main`, no deploy, no secrets, no SQL, no `xcodebuild`. This machine has no `swiftc`.
 
-ATS is unchanged: `Config/Info.plist` has no `NSAppTransportSecurity`, and no xcconfig sets `NSAllowsArbitraryLoads` or `NSExceptionDomains`. `DeepLinkSafetyAudit.verifiedHTTPSHosts` stays empty. `PlayerLaunch.merchantCenterEnabled` stays `false` in Release. Money writes, auth bypasses, and `App/AppSession.swift` were not edited (7976 lines, ceiling 7977). Device, sensor, and artwork-host declarations stay at their existing positions (`playNativeDeviceProvider`, `playKitArtworkHosts`, `playKitSensorFactory`). No `String(localized:)` was added. Search-history Keychain (`AfterFirstUnlock`) was left as pinned.
+ATS is unchanged: `Config/Info.plist` has no `NSAppTransportSecurity`, and no xcconfig sets `NSAllowsArbitraryLoads` or `NSExceptionDomains`. `DeepLinkSafetyAudit.verifiedHTTPSHosts` stays empty. `PlayerLaunch.merchantCenterEnabled` stays `false` in Release. Money writes, auth bypasses, and `App/AppSession.swift` were not edited (7976 lines, ceiling 7977). `ReviewedPlayerWriteLeases` still passes devices, then sensors, then artworkHosts. No `String(localized:)` was added. Search-history Keychain (`AfterFirstUnlock`) was left as pinned.
 
 ## Fixes
 
