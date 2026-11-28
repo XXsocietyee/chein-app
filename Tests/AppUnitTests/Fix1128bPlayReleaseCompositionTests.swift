@@ -123,6 +123,22 @@ import XCTest
         XCTAssertNotNil(consentLatest.httpBody)
     }
 
+    /// mp-journey r3 (plan audit J-09a / J-10b): the Release play lease admits the MP hint ladder and the points hint
+    /// unlock (form fields session scope, nodeId, level match `PlayExperienceService.hint`; pinned in PlayModeLifecycleTests).
+    func testReleasePlayLeaseAdmitsPuzzleHintAndHintUnlock() throws {
+        let built = composition(Fix1128bRecorder())
+        let player = try playerContext(built)
+        let configuration = try XCTUnwrap(built.sessionDependencies(player).configuration)
+        XCTAssertTrue(configuration.play.contains(.hints))
+        for path in ["api/play/puzzle/hint", "api/play/hint/unlock"] {
+            XCTAssertTrue(configuration.endpoints.paths.contains(path), path)
+            XCTAssertTrue(ReviewedProductionGateLeases.isPlayGrantPath(path), path)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+        }
+        let grant = try XCTUnwrap(built.playerWriteGrant(player))
+        XCTAssertTrue(grant.play.paths.isSuperset(of: ["api/play/puzzle/hint", "api/play/hint/unlock"]))
+    }
+
     /// #21: the store-day gates the Release session builds permit proof and consent writes; merchant gates do not.
     func testStoreDayGatesOpenProofAndConsentWritesForThePlayerOnly() throws {
         let gates = MerchantCityNPCParityGates.playStoreDay

@@ -904,7 +904,11 @@ enum ReviewedPlayerReadRoute {
         "api/play/preference/{}", "api/play/preference/{}/submit",
         "api/play/tag/{}/confirm", "api/play/tag/{}/correct", "api/play/tag/{}/revoke", "api/play/os/{}",
         "api/compliance/consents", "api/compliance/consents/latest",
-        "api/common/uploadOSS"
+        "api/common/uploadOSS",
+        // mp-journey r3 (plan audit J-09a / J-10b): the stop hint ladder (MP pages/play/index.js useHint → puzzle/hint
+        // {session, nodeId, level}) and the points hint unlock after the 解锁提示 confirm (unlockHint → hint/unlock
+        // {session, nodeId}). Points, not money; the server checks the run.
+        "api/play/puzzle/hint", "api/play/hint/unlock"
     ]
     /// Handover 35, WP-06. Same paths as `ChinaReviewedRouteCapability.wp06PartialPagesOwnerGrant`.
     /// Address, invoice, roam, and passport calls stay on their dedicated transports: this set does not
