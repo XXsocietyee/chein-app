@@ -17,6 +17,8 @@ import SwiftUI
     @State private var sendGate = AIOutgoingSendGate<ShopNPCScope, UUID?>()
     @State private var sensitiveFindings: Set<AIOutgoingSensitiveKind> = []
     @State private var pendingSend: (current: () -> (String, UUID?)?, run: () -> Void)?
+    /// fix/1128c: on-device read-aloud of the reviewed reply text (voice out).
+    @State private var voice = AIVoiceOut()
     @FocusState private var typing: Bool
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -24,6 +26,8 @@ import SwiftUI
     @Environment(\.locale) private var locale
     @Environment(\.offlineWriteSession) private var offlineWriteSession
     private var sending: Bool { coordinator.busy }
+    private var aiBadge: String { AIStoryContent.text(.npcAIBadge, locale: locale) }
+    private var fallbackGreeting: String { AIStoryContent.text(.npcFallbackGreeting, locale: locale) }
     private var showsConversation: Bool { coordinator.active && !coordinator.isSuspended }
     private var canCompose: Bool {
         showsConversation && coordinator.grants.textAllowed && !sending && !recording && coordinator.pending == nil
@@ -35,11 +39,12 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 4) {
                 if showsConversation {
                     HStack(spacing: CYSpacing.md) {
-                        CYAvatarView(name: name, size: .lg, isOnline: true)
+                        AINPCPresenceAvatar(name: name, active: sending || voice.speakingID != nil)
                         VStack(alignment: .leading, spacing: 4) {
                             Text(verbatim: name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                             HStack(spacing: CYSpacing.xs) {
-                                CYStatusChip(verbatim: ChannelCopy.text("AI 向导", "AI guide", locale: locale), tone: .info, systemImage: "sparkles")
+                                // fix/1128c: the identity line comes from the owner's script file (Resources/Story).
+                                if !aiBadge.isEmpty { CYStatusChip(verbatim: aiBadge, tone: .info, systemImage: "sparkles") }
                                 if let relation = coordinator.relation {
                                     CYStatusChip(
                                         LocalizedStringKey("journey.record.relation." + relation.state.rawValue),
@@ -68,10 +73,8 @@ import SwiftUI
                                 ShopNPCScriptedGuideView(source: scriptedGuide, coordinator: coordinator, returnToNode: { dismiss() })
                             }
                             if let greeting, !greeting.isEmpty { NPCChatBubble(name: name, isOwn: false) { Text(verbatim: greeting) } }
-                            if (greeting ?? "").isEmpty, coordinator.messages.isEmpty, coordinator.grants.textAllowed {
-                                NPCChatBubble(name: name, isOwn: false) {
-                                    Text(verbatim: ChannelCopy.text("你好，想了解什么？点下面的问题或直接输入。", "Hi! Tap a question below or type your own.", locale: locale))
-                                }
+                            if (greeting ?? "").isEmpty, coordinator.messages.isEmpty, coordinator.grants.textAllowed, !fallbackGreeting.isEmpty {
+                                NPCChatBubble(name: name, isOwn: false) { Text(verbatim: fallbackGreeting) }
                             }
                             if !coordinator.grants.textAllowed { Text("shopNPC.disabled").accessibilityIdentifier("shopNPC.disabled") }
                             ForEach(coordinator.messages) { message in
@@ -79,8 +82,10 @@ import SwiftUI
                                     NPCChatBubble(name: name, isOwn: message.mine) {
                                         if message.voiceTranscriptMissing {
                                             Text("shopNPCQuestionReuse.noTranscript")
-                                        } else {
+                                        } else if message.mine {
                                             Text(verbatim: message.text).textSelection(.enabled)
+                                        } else {
+                                            AITypingRevealText(text: message.text, animates: message.id == coordinator.messages.last?.id)
                                         }
                                     }
                                     if message.mine, message.source == .voice {
@@ -104,6 +109,7 @@ import SwiftUI
                                                 }
                                             }
                                         }
+                                        AIReadAloudButton(id: message.id.uuidString, text: message.text, voice: voice)
                                         Button { typing = false; attempt { try coordinator.reviewRegeneration(answerID: message.id) } } label: {
                                             Label("shopNPC.regenerate", systemImage: "arrow.clockwise").cyText(.label).frame(minHeight: 44).contentShape(Rectangle())
                                         }.buttonStyle(.plain).foregroundStyle(CYColor.textSecondary)
@@ -164,6 +170,7 @@ import SwiftUI
         .modifier(AIOutgoingSensitiveConfirmation(findings: $sensitiveFindings, send: confirmedSend, cancel: cancelSensitiveConfirmation))
         .onChange(of: draft) { _, _ in cancelSensitiveConfirmation() }
         .onDisappear { cancelSensitiveConfirmation(); invalidate() }
+        .onDisappear { voice.stop() }
         .onChange(of: coordinator.active) { _, active in if !active { clearTransient() } }
         .onChange(of: coordinator.scope) { _, _ in clearTransient() }
         .onChange(of: coordinator.grants) { _, _ in clearTransient() }
