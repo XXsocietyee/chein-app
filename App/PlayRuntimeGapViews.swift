@@ -394,7 +394,7 @@ import SwiftUI
                             .disabled(flow.busy)
                             .accessibilityIdentifier("play.gameplay.discard.\(reward.itemId)")
                         }
-                        LabeledContent(copy("Backpack", "背包")) { Text(verbatim: "\(owner.finalUsed) / \(owner.capacity)").monospacedDigit() }
+                        LabeledContent(copy("Backpack", "背包")) { Text(verbatim: "\(owner.finalUsed) / \(owner.capacity)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotal \(owner.finalUsed) \(owner.capacity)")) }
                     }
                     if preview.pack.overflow {
                         Text(verbatim: copy("Not enough room. Give up part of this reward to continue.", "容量不足，需调整本次奖励"))
