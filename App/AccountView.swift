@@ -134,7 +134,7 @@ import SwiftUI
             .navigationDestination(isPresented:$showsPassportBadges) { ObjectBadgeWallView(reader: session.profileReader, media: session.makeObjectCardImageLoader()).cyPushedChrome() }
             .background {
                 ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
-                    ProfileFavoriteTopicDestination(selection: selected, session: session,
+                    ProfileFavoriteTopicDestination(selection: selected, session: session, navigationOwner: savedTopicOwner,
                         makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id).cyPushedChrome()
                 }
                 ProfileFavoriteNavigationLayer(owner: savedPostOwner) { selected in

@@ -1308,7 +1308,7 @@ private struct MPTabHandoff: View {
             .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
             .background {
                 ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
-                    ProfileFavoriteTopicDestination(selection: selected, session: session,
+                    ProfileFavoriteTopicDestination(selection: selected, session: session, navigationOwner: savedTopicOwner,
                         makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id).cyPushedChrome()
                 }
                 ProfileFavoriteNavigationLayer(owner: savedPostOwner) { selected in

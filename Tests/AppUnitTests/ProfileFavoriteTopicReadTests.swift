@@ -132,28 +132,29 @@ import UIKit
         defer { probe.trace.emit() }
         probe.trace.record("test.begin")
         let detail=try await reader.topicDetail(id:201);let chapter=try XCTUnwrap(detail.chapters.first);h.wire.requests=[]
-        let host=UIHostingController(rootView:AnyView(NormalHost(owner:owner,scope:scope,reader:reader,session:h.session,chapter:chapter,probe:probe)))
-        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window;window.rootViewController=host;window.makeKeyAndVisible()
+        let sceneWindow = try HostedNavigationSceneWindow()
+        let host = hostedMount(sceneWindow.window, root: NormalHost(owner:owner,scope:scope,reader:reader,session:h.session,chapter:chapter,probe:probe))
         defer { sceneWindow.retire() }
-        host.loadViewIfNeeded();host.view.layoutIfNeeded()
-        for _ in 0..<100 where probe.rootAppearances==0 {try await Task.sleep(for:.milliseconds(20))}
+        await until { probe.rootAppearances > 0 }
         XCTAssertGreaterThan(probe.rootAppearances,0);XCTAssertTrue(h.wire.requests.isEmpty)
         XCTAssertTrue(owner.open(selected,scope:scope))
-        for _ in 0..<100 where !h.wire.paths.contains("info-to-user") {try await Task.sleep(for:.milliseconds(20))}
+        await until { h.wire.paths.contains("info-to-user") }
         XCTAssertTrue(h.wire.paths.contains("info-to-user"));XCTAssertEqual(probe.readerCreations,1)
         probe.trace.record("test.cover.request")
-        probe.covered=true
-        for _ in 0..<100 where probe.childAppearances==0 {try await Task.sleep(for:.milliseconds(20))}
+        try await openChapter(in: sceneWindow.window)
+        await until { probe.childAppearances > 0 }
         XCTAssertGreaterThan(probe.childAppearances,0);XCTAssertGreaterThan(probe.detailDisappearances,0)
         XCTAssertTrue(selected.isCurrent);XCTAssertEqual(owner.selection?.id,selected.id)
         probe.trace.record("test.return.request")
-        probe.covered=false
-        for _ in 0..<100 where probe.detailAppearances<2 {try await Task.sleep(for:.milliseconds(20))}
+        let nav = try XCTUnwrap(navigationController(sceneWindow.window.rootViewController))
+        XCTAssertGreaterThan(nav.viewControllers.count, 2)
+        XCTAssertNotNil(nav.popViewController(animated: false))
+        await until { probe.detailAppearances >= 2 }
         XCTAssertGreaterThanOrEqual(probe.detailAppearances,2);XCTAssertEqual(probe.readerCreations,1);XCTAssertTrue(reader.isConfigured)
         XCTAssertTrue(h.wire.paths.allSatisfy{$0=="info-to-user"})
         probe.trace.record("test.root.remove")
         host.rootView=AnyView(Text("Root left"));host.view.layoutIfNeeded()
-        for _ in 0..<100 where selected.isCurrent {try await Task.sleep(for:.milliseconds(20))}
+        await until { !selected.isCurrent }
         XCTAssertFalse(selected.isCurrent);XCTAssertNil(owner.selection)
     }
     func testNormalHostWithoutTopicApprovalDoesNotDispatchOrPretendLoaded() async throws {
@@ -167,6 +168,42 @@ import UIKit
         XCTAssertFalse(reader.isConfigured);XCTAssertTrue(h.wire.requests.isEmpty)
     }
 
+    /// Sheet and push callbacks land on run-loop turns. Task.sleep does not return to that loop on the iOS 27 host.
+    private func until(_ ready: () -> Bool) async {
+        for _ in 0..<100 where !ready() {
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try? await Task.sleep(for: .milliseconds(20))
+        }
+    }
+    private func openChapter(in window: UIWindow) async throws {
+        await until { find("favorite.topic.chapter.cover", in: window) != nil }
+        let target = try XCTUnwrap(find("favorite.topic.chapter.cover", in: window))
+        if let control = target as? UIControl { control.sendActions(for: .touchUpInside) }
+        else { XCTAssertTrue(target.accessibilityActivate()) }
+        await until { probeChildAppeared(in: window) }
+    }
+    private func probeChildAppeared(in window: UIWindow) -> Bool {
+        navigationController(window.rootViewController)?.viewControllers.count ?? 0 > 2
+    }
+    private func find(_ id: String, in window: UIWindow) -> NSObject? {
+        var seen = Set<ObjectIdentifier>()
+        func visit(_ root: NSObject) -> NSObject? {
+            guard seen.insert(ObjectIdentifier(root)).inserted, !hostedHiddenView(root) else { return nil }
+            if (root as? UIAccessibilityIdentification)?.accessibilityIdentifier == id { return root }
+            if let view = root as? UIView { for child in view.subviews { if let result = visit(child) { return result } } }
+            if let children = root.accessibilityElements { for child in children { if let child = child as? NSObject, let result = visit(child) { return result } } }
+            let count = root.accessibilityElementCount()
+            if count > 0 && count < 1000 { for index in 0..<count { if let child = root.accessibilityElement(at: index) as? NSObject, let result = visit(child) { return result } } }
+            return nil
+        }
+        return visit(window)
+    }
+    private func navigationController(_ controller: UIViewController?) -> UINavigationController? {
+        guard let controller else { return nil }
+        if let result = controller as? UINavigationController { return result }
+        for child in controller.children { if let result = navigationController(child) { return result } }
+        return nil
+    }
     @MainActor private final class DiagnosticTrace {
         private var events: [String] = []
         func record(_ event: String) { events.append("\(events.count + 1):\(event)") }
@@ -175,7 +212,6 @@ import UIKit
 
     @MainActor private final class Probe:ObservableObject {
         let trace = DiagnosticTrace()
-        @Published var covered=false
         var rootAppearances=0,readerCreations=0,detailAppearances=0,detailDisappearances=0,childAppearances=0
     }
     @MainActor private struct NormalHost:View {
@@ -189,12 +225,14 @@ import UIKit
             NavigationStack {
                 Text("Saved topics").background {
                     ProfileFavoriteTopicNavigationLayer(owner:owner) { selected in
-                        ZStack {
-                            ProfileFavoriteTopicDestination(selection:selected,session:session,makeReader:{probe.trace.record("detail.reader.create");probe.readerCreations += 1;return reader})
-                            // The original chapter is a child link, not a replacement root destination.
-                            NavigationLink(isActive:$probe.covered) {
+                        VStack {
+                            ProfileFavoriteTopicDestination(selection:selected,session:session,navigationOwner:owner,makeReader:{probe.trace.record("detail.reader.create");probe.readerCreations += 1;return reader})
+                            // The chapter stays a child link. A stack destination on this row can replace the detail.
+                            NavigationLink {
                                 TopicChapterView(chapter:chapter,reader:reader,scope:reader.scope).onAppear{probe.trace.record("chapter.appear");probe.childAppearances += 1}.onDisappear{probe.trace.record("chapter.disappear")}
-                            } label: { EmptyView() }
+                            } label: {
+                                Text("Open chapter").accessibilityIdentifier("favorite.topic.chapter.cover")
+                            }
                         }
                         .onAppear{probe.trace.record("detail.appear");probe.detailAppearances += 1}.onDisappear{probe.trace.record("detail.disappear");probe.detailDisappearances += 1}
                     }

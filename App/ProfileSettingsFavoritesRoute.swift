@@ -185,7 +185,7 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
                         accountReader: session.socialAccountReader, actions: session.socialActionCoordinator).id(selected.id)
                 }
                 ProfileFavoriteTopicNavigationLayer(owner: owner.topics) { selected in
-                    ProfileFavoriteTopicDestination(selection: selected, session: session,
+                    ProfileFavoriteTopicDestination(selection: selected, session: session, navigationOwner: owner.topics,
                         makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id)
                 }
             }
