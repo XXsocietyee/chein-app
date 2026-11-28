@@ -218,7 +218,7 @@ Merged `origin/ui/combined-r7` (41374363f, clean). Gates: scaffold, a11y (0 new)
 | `subpackagePass/pages/passes/index` mk-card__foot (wxml:34-36: cover line + price) | `App/PassMarketViews.swift` `PassProductCardView` | screenshot `en-t5-pass-market`: "Covers 3 plays · 2 people" broke mid-phrase onto two lines beside "¥168.00 / 1,200 points". The foot is now `ViewThatFits`: one row (cover leading, price trailing) when both fit unbroken, otherwise the price stacks under the cover line; AX sizes always stack. zh (含 3 个作品 · 2 人) keeps one row | stack instead of wrap/shrink; Dynamic Type text styles only |
 
 ## Round 3 continue (2026-11-28, twenty-third session — sweep 02:10 build 41374363f, no newer sweep)
-Merged `origin/ui/combined-r7` (ad55acd94, clean). No open coordinator finding for this lane; Not done rows are documented keeps, so this session works the 01:40 "Next round" list (motion and feedback).
+Merged `origin/ui/combined-r7` (ad55acd94, clean). Gates: scaffold, a11y (0 new), design consistency PASS; ratchet 52/52 new 0. No open coordinator finding for this lane; Not done rows are documented keeps, so this session works the 01:40 "Next round" list (motion and feedback).
 
 | MP page | Native view | Change | Optimization |
 |---|---|---|---|
