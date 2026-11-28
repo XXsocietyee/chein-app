@@ -323,6 +323,7 @@ public struct ClubChannelMessagingView: View {
         .padding(.horizontal)
         .padding(.vertical, CYSpacing.sm)
         .background(.bar)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("club.channel.rulesGate")
     }
 
@@ -343,7 +344,7 @@ public struct ClubChannelMessagingView: View {
                 .frame(maxWidth: horizontal ? nil : .infinity)
         }
         .buttonStyle(.borderedProminent)
-        .controlSize(horizontal ? .small : .regular)
+        .controlSize(.regular)
         .accessibilityIdentifier("club.channel.rulesGate.review")
         if horizontal {
             HStack(spacing: CYSpacing.sm) { label; Spacer(minLength: CYSpacing.sm); button }

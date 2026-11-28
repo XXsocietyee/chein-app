@@ -707,10 +707,11 @@ open coordinator finding for this lane; no K50 `lane-layout` rows on any branch 
 | MP page | Native file | MP sections | Optimization | Status |
 |---|---|---|---|---|
 | `pages/club/channel` composer bar (screenshot `mp-club/en-d4-channel-chat`) | `ClubChannelMessagingView.swift:677` (`channelComposerBar`) | ✓ (reply-to chip → rules lock / announcement note / input + send) | Message field was one line (long text scrolled out of sight at AX sizes) → `TextField(axis: .vertical)` grows 1–5 lines (1–3 at AX sizes so the transcript keeps room), send button bottom-aligned. Send glyph `.title` sat in a fixed 44×44 frame (overflowed at AX5) → `minWidth/minHeight: 44`. Reply-to chip: 2 → 4 lines at AX sizes, `Spacer(minLength: 0)` so the 44 pt cancel stays on screen, chip is a labelled container. Rules-locked and announcement notes read as one VoiceOver element. Level B | Done |
+| `pages/club/channel` rules gate row | `ClubChannelMessagingView.swift:318` (`channelRulesGateRow`) | ✓ (notice → 查看公约) | "Review rules" was `.controlSize(.small)` (~28 pt tall) in the one-row layout → `.regular` in both layouts (ViewThatFits still stacks it under the notice when the row is too narrow); row is a labelled VoiceOver container. Rules sheet audit: system `List` text, `.medium`/`.large` detents (drag to large at AX5), Cancel / Accept in standard toolbar places. Level C | Done |
 | `pages/club/channel` thread sheet | — | — | Checked: the club channel has no separate thread sheet; reply / thread is the composer reply chip (above) and the per-message "Reply" VoiceOver action (run 42). No row needed | Done |
 
 ## Not done (next run starts here)
-- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club channel rules gate "Review rules" `.small` button hit target (< 44 pt in the one-row layout), club channel rules sheet at AX5 (`.medium` detent), then the club 动态 composer.
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): the club 动态 (square/post) composer, club post detail comments at AX5.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
