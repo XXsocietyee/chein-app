@@ -103,7 +103,7 @@ public enum ActivityPublishingWizard {
     // MARK: - Mini-Program `pages/publish/activity` Parity Rules
 
     public static var timeLocationLockedNotice: String { W8Text.t("已售出，时间和地点不可改", "Tickets have been sold, so the time and place can’t be changed") }
-    public static var collaboratorSettlementNotice: String { W8Text.t("合作者可编辑内容，不参与结算", "Collaborators can edit content but don’t take part in settlement") }
+    public static var collaboratorSettlementNotice: String { W8Text.t("合作者可编辑内容，不参与结算", "Collaborators can edit the content but don’t share in earnings") }
     public static var merchantFreeTicketOnlyNotice: String { W8Text.t("商家活动暂时只支持免费票", "Merchant activities only support free tickets for now") }
     public static var merchantPaidTicketBlockedMessage: String { W8Text.t("商家主办活动还没开通收款，票价只能是 0", "Payments aren’t enabled for merchant-hosted activities yet, so the ticket price must be 0") }
     public static var createReviewHeading: String { W8Text.t("发布前摘要", "Review before publishing") }

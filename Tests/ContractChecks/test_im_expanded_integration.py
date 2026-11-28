@@ -14,7 +14,9 @@ class IMExpandedIntegrationTests(unittest.TestCase):
         self.assertIn('name=\\"file\\"',s)
     def test_normal_account_host_wires_optional_context(self):
         self.assertIn('expanded: session.imExpandedNavigation',self.read('App/SessionMessagingEntry.swift'))
-        self.assertIn('IMStartConversationView',self.read('App/MessagingHomeView.swift'))
+        # P2-6 (11-28): MP im/list has no raw-member-ID new-chat entry, so the inbox no longer pushes IMStartConversationView.
+        self.assertNotIn('IMStartConversationView(',self.read('App/MessagingHomeView.swift'))
+        self.assertIn('struct IMStartConversationView',self.read('App/IMExpandedViews.swift'))
         self.assertIn('IMConversationControlsView',self.read('App/MessagingHistoryView.swift'))
         self.assertIn('IMImageComposeView',self.read('App/IMExpandedViews.swift'))
     def test_stable_scope_and_dormant_session(self):

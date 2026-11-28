@@ -46,7 +46,7 @@ import QuestifyCore
                                 .foregroundStyle(.primary)
                             Spacer()
                             Text(countText(todos))
-                                .foregroundStyle(todos.blockingCount > 0 ? Color.red : Color.secondary)
+                                .foregroundStyle(todos.blockingCount > 0 ? CYColor.dangerText : Color.secondary)
                         }
                     }
                     .accessibilityIdentifier("locationTodos.entry")
@@ -155,7 +155,7 @@ import QuestifyCore
             }
             if let mapped { Text(mapped.node.place).font(.subheadline).foregroundStyle(.secondary).lineLimit(1) }
             Text(TopicLocationTodos.statusText(row.status)).font(.subheadline)
-                .foregroundStyle(row.blocking ? Color.red : Color.secondary)
+                .foregroundStyle(row.blocking ? CYColor.dangerText : Color.secondary)
             // MP b4-u02-03: each row is name + current address + status, then its actions (no extra lines).
             HStack(spacing: CYSpacing.sm) {
                 if let mapped, let replace {

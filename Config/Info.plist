@@ -4,9 +4,21 @@
     <key>QuestifyMarket</key><string>$(QUESTIFY_MARKET)</string>
     <key>QuestifyAPIBaseURL</key><string>$(QUESTIFY_API_BASE_URL)</string>
     <key>QuestifySessionRealm</key><string>$(QUESTIFY_SESSION_REALM)</string>
+    <key>QuestifyAlipayAppScheme</key><string>$(QUESTIFY_ALIPAY_APP_SCHEME)</string>
     <key>QuestifyCityGameRegion</key><string>$(QUESTIFY_CITY_GAME_REGION)</string>
     <key>QuestifyDeploymentEnvironment</key><string>$(QUESTIFY_DEPLOYMENT_ENVIRONMENT)</string>
+    <key>QuestifyWeChatAppID</key><string>$(QUESTIFY_WECHAT_APP_ID)</string>
+    <key>QuestifyWeChatUniversalLink</key><string>$(QUESTIFY_WECHAT_UNIVERSAL_LINK)</string>
+    <key>QuestifyWeChatPayMerchantID</key><string>$(QUESTIFY_WECHAT_PAY_MERCHANT_ID)</string>
     <key>ITSAppUsesNonExemptEncryption</key><false/>
+    <key>QuestifyWeChatAppID</key><string>$(QUESTIFY_WECHAT_APP_ID)</string>
+    <key>QuestifyWeChatUniversalLink</key><string>$(QUESTIFY_WECHAT_UNIVERSAL_LINK)</string>
+    <key>QuestifyAppLinkDomain</key><string>$(QUESTIFY_APP_LINK_DOMAIN)</string>
+    <key>CFBundleURLTypes</key><array>
+        <dict><key>CFBundleTypeRole</key><string>Editor</string><key>CFBundleURLName</key><string>weixin</string><key>CFBundleURLSchemes</key><array><string>$(QUESTIFY_WECHAT_APP_ID)</string></array></dict>
+        <dict><key>CFBundleTypeRole</key><string>Editor</string><key>CFBundleURLName</key><string>chein</string><key>CFBundleURLSchemes</key><array><string>chein</string></array></dict>
+    </array>
+    <key>LSApplicationQueriesSchemes</key><array><string>weixin</string><string>weixinULAPI</string><string>weixinURLParamsAPI</string><string>alipay</string></array>
     <key>NSPhotoLibraryAddUsageDescription</key><string>Save a walk card, a medal card, or a city stamp slip picture to Photos when you choose Save to Photos.</string>
     <key>NSSupportsLiveActivities</key><true/>
     <key>UIBackgroundModes</key><array><string>audio</string><string>location</string></array>

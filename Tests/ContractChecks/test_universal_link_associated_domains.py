@@ -19,7 +19,16 @@ class UniversalLinkAssociatedDomains(unittest.TestCase):
                                  "com.apple.developer.in-app-payments": ["merchant.com.chengyinhub.chengyinApp"],
                                  "com.apple.security.application-groups": ["group.com.chengyinhub.chengyinApp"]})
         self.assertNotIn("associated-domains", (ROOT / "Config/Questify.entitlements").read_text())
-        self.assertNotIn("CFBundleURLTypes", self.read("Config/Info.plist"))
+        # P1-1 (audit 11-28): applinks live only in the opt-in file, picked by QUESTIFY_ASSOCIATED_DOMAINS (default NO).
+        linked = plistlib.loads((ROOT / "Config/QuestifyAssociatedDomains.entitlements").read_bytes())
+        self.assertEqual(linked.pop("com.apple.developer.associated-domains"), ["applinks:www.chengyinhub.com"])
+        self.assertEqual(linked, plist)
+        self.assertIn("\nQUESTIFY_ASSOCIATED_DOMAINS = NO\n", self.read("Config/Base.xcconfig"))
+        self.assertIn('"CODE_SIGN_ENTITLEMENTS" = "$(QUESTIFY_APP_ENTITLEMENTS_$(QUESTIFY_ASSOCIATED_DOMAINS))";',
+                      self.read("Questify.xcodeproj/project.pbxproj"))
+        info = plistlib.loads((ROOT / "Config/Info.plist").read_bytes())
+        self.assertEqual([t["CFBundleURLSchemes"] for t in info["CFBundleURLTypes"]], [["$(QUESTIFY_WECHAT_APP_ID)"], ["chein"]])
+        self.assertEqual(info["LSApplicationQueriesSchemes"], ["weixin", "weixinULAPI", "weixinURLParamsAPI", "alipay"])
         self.assertNotIn("applinks:", self.read("Config/Info.plist"))
         self.assertNotIn("applinks:", self.read("Config/Base.xcconfig"))
 
@@ -32,7 +41,7 @@ class UniversalLinkAssociatedDomains(unittest.TestCase):
         self.assertNotIn("applinks:", parser)
         self.assertNotIn("URLSession", parser)
         self.assertNotIn("associated-domains", parser)
-        self.assertIn("NativeEntryLinkPolicy(verifiedHTTPSOrigins: [])", self.read("App/AppSession.swift"))
+        self.assertIn("AppUniversalLinkRouter(verifiedHTTPSOrigins: AppSession.verifiedLinkOrigins())", self.read("App/AppSession.swift"))
         self.assertIn("verifiedHTTPSOrigins: Set<String> = []", self.read("Core/NativeEntryRouting.swift"))
 
     def test_release_identity_stays_unconfigured(self):

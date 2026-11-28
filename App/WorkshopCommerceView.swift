@@ -435,7 +435,7 @@ struct WorkshopCommerceLibraryNotice: View {
     var body: some View {
         HStack(alignment: .top, spacing: Theme.Space.s3) {
             Image(systemName: symbol)
-                .foregroundStyle(isError ? Color.red : Color.secondary)
+                .foregroundStyle(isError ? CYColor.dangerText : Color.secondary)
                 .accessibilityHidden(true)
             text.foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)

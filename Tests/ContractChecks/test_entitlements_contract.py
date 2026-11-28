@@ -22,7 +22,8 @@ class EntitlementsContract(unittest.TestCase):
 
     def test_app_target_sets_code_sign_entitlements(self):
         project = (ROOT / 'Questify.xcodeproj/project.pbxproj').read_text()
-        hits = re.findall(r'"CODE_SIGN_ENTITLEMENTS" = "Config/Questify\.entitlements";', project)
+        # P1-1: the app target picks Config/Questify.entitlements or the applinks variant via QUESTIFY_ASSOCIATED_DOMAINS.
+        hits = re.findall(r'"CODE_SIGN_ENTITLEMENTS" = "\$\(QUESTIFY_APP_ENTITLEMENTS_\$\(QUESTIFY_ASSOCIATED_DOMAINS\)\)";', project)
         self.assertEqual(len(hits), 2, 'Debug and Release of the app target')
         widget = re.findall(r'"CODE_SIGN_ENTITLEMENTS" = "Config/QuestifyLiveActivity\.entitlements";', project)
         self.assertEqual(len(widget), 2, 'Debug and Release of the widget extension')

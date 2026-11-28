@@ -96,7 +96,7 @@ class AppSecReviewContractTests(unittest.TestCase):
         self.assertIn("positiveIDString(", init_fn)
 
         push = read("Core/NativeEntryRouting.swift")
-        self.assertIn("NativeEntryLinkPolicy(verifiedHTTPSOrigins: [])", read("App/AppSession.swift"))
+        self.assertIn("AppUniversalLinkRouter(verifiedHTTPSOrigins: AppSession.verifiedLinkOrigins())", read("App/AppSession.swift"))
         self.assertIn("NativeNavigationContract.parseInternal", push)
 
     # (4) External-games WKWebView sandbox

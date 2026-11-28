@@ -40,8 +40,9 @@ class PlayerWriteGrantContracts(unittest.TestCase):
             self.assertNotIn(banned, paths.replace('"api/merchant/reviews/report"', ""))
         route = leases.split("func acceptsPlayerWrite", 1)[1].split("@MainActor final class ReviewedProductionGateLeases", 1)[0]
         self.assertIn("ReleaseMoneyWriteSwitch.blocks", route)
-        self.assertIn("freeRegistrationBody", route)
-        self.assertIn('object["payChannel"] == nil', route)
+        # fix/1128-cn-pay P0-1: paid creates are admitted with payChannel=APP only while the payment switch is on.
+        self.assertIn("registrationCreateBody(request, paymentsOpen: ReleaseMoneyWriteSwitch.paymentEnabled)", route)
+        self.assertIn('return paymentsOpen && (channel as? String) == "APP"', route)
         self.assertIn("stableCommunityRequestID", route)
         self.assertIn("api/roam/presence", route)
         self.assertIn("api/club/roles/", route)
@@ -49,8 +50,9 @@ class PlayerWriteGrantContracts(unittest.TestCase):
         self.assertIn("clubCommunityWriteService", source)
         self.assertNotIn("reviewedInjection", (ROOT / "App/AppSession.swift").read_text())
         coordinator = (ROOT / "Core/RegistrationCoordinator.swift").read_text()
-        self.assertIn("quote.payAmount == .zero", coordinator)
-        self.assertIn("usesAppPaymentChannel: false", coordinator)
+        # fix/1128-cn-pay P0-1: a paid quote is blocked only while payments are closed; paid creates send APP.
+        self.assertIn("amount > .zero, !paymentsOpen() { return .blocked(.paymentRequired) }", coordinator)
+        self.assertIn("usesAppPaymentChannel: Self.sendsAppPaymentChannel(quote: quote, participant: participant)", coordinator)
         self.assertIn("case paymentRequired", coordinator)
         team = (ROOT / "Core/TeamHTTPService.swift").read_text()
         self.assertIn("savedRequestIDs[key] = nil", team)

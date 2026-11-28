@@ -103,6 +103,7 @@ struct TopicDetailView: View {
                         presentation: UGCReportPresentationTarget(
                             target: .topic(id: value.id),
                             subjectTitle: value.name,
+                            authorMemberID: value.ownerMemberID,
                             authorName: value.clubName
                         )
                     )

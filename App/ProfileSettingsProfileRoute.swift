@@ -28,7 +28,7 @@ import SwiftUI
         target = .personal; self.coordinator = coordinator; merchantReader = nil
     }
     init?(accountID: Int, role: String, viewerRevision: UInt64, merchantReader: any MerchantOperationsReading) {
-        guard accountID > 0, role == "merchant", merchantReader.isAuthenticated else { return nil }
+        guard PlayerLaunch.merchantCenterEnabled, accountID > 0, role == "merchant", merchantReader.isAuthenticated else { return nil }
         key = .init(accountID: accountID, role: role, viewerRevision: viewerRevision,
             dependency: ObjectIdentifier(merchantReader), personalIdentity: nil,
             personalRevision: nil, merchantScope: merchantReader.scope, configured: merchantReader.isConfigured)
@@ -37,6 +37,7 @@ import SwiftUI
     static func current(_ session: AppSession) -> Self? {
         guard let account = session.account else { return nil }
         if account.effectiveRole == "merchant" {
+            guard PlayerLaunch.merchantCenterEnabled else { return nil }
             return .init(accountID: account.id, role: account.effectiveRole,
                 viewerRevision: session.contentDetailRevision, merchantReader: session.merchantOperationsReader)
         }
@@ -147,7 +148,7 @@ struct ProfileSettingsProfileRoute: Hashable {
                             categoryReader: categoryReader, avatarDependencies: avatarDependencies, currentReviewReader: currentReviewReader, nicknameReader: nicknameReader, savedMedia: savedMedia).id(route.id)
                     }
                 case .brand:
-                    if let reader = route.access.merchantReader {
+                    if PlayerLaunch.merchantCenterEnabled, let reader = route.access.merchantReader {
                         MerchantOperationsDocumentView(reader: reader, destination: .decor,
                             imageHost: merchantImages, templateAssistFactory: merchantAssist).id(route.id)
                     }

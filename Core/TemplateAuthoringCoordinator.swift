@@ -32,6 +32,8 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
     public private(set) var pending: TemplateAuthoringPending?
     public private(set) var rows: [DiscoveryPlayTemplate] = []
     public private(set) var messageKey: String?
+    /// fix-1128-publish: the server's own reason when the original draft/publish was REJECTED (MP shows `res.msg`).
+    public private(set) var rejectionReason: String?
     public private(set) var shelfReview: TemplateOwnShelfReview?
     public private(set) var shelfPending: TemplateOwnShelfPending?
     public private(set) var shelfBusy = false
@@ -109,7 +111,7 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
             pending = try store.pending(session: session, identity: identity)
             if let pending {
                 if case .ready(let envelope) = restore { draft = envelope.draft }
-                if pending.serverReceipt?.state == "REJECTED" { state = .blocked; messageKey = "templateAuthor.invalid"; return }
+                if pending.serverReceipt?.state == "REJECTED" { state = .blocked; messageKey = "templateAuthor.rejected"; rejectionReason = pending.serverReceipt?.rejectionMessage; return }
                 state = pending.terminal ? (pending.acknowledged == true ? .acknowledged : .simulated) : .uncertain
                 messageKey = pending.terminal ? (pending.acknowledged == true ? "templateAuthor.acknowledged" : "templateAuthor.simulated") : "templateAuthor.uncertain"; return
             }
@@ -158,7 +160,7 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
         synchronizeSession()
         guard !locked, review == value, value.session == currentSession(), value.identity == identity, value.generation == generation, value.draft == draft else { return }
         guard canSubmit, requestService == nil || requestService?.canSubmit(path: value.request.path) == true else { cancelReview(); messageKey = "templateAuthor.unavailable"; return }
-        let session = value.session; generation += 1; let stamp = generation; review = nil
+        let session = value.session; generation += 1; let stamp = generation; review = nil; rejectionReason = nil
         do {
             if let existing = try store.pending(session: session, identity: identity) { pending = existing; state = .uncertain; messageKey = "templateAuthor.uncertain"; return }
             // Both active pointer and full intent must survive before the transport is called.
@@ -234,7 +236,8 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
         guard active(session, stamp), pending == intent else { throw TemplateAuthoringError.changedSession }
         pending = saved
         state = receipt.committed ? .acknowledged : receipt.state == "REJECTED" ? .blocked : .uncertain
-        messageKey = receipt.committed ? "templateAuthor.acknowledged" : receipt.state == "REJECTED" ? "templateAuthor.invalid" : "templateAuthor.uncertain"
+        messageKey = receipt.committed ? (intent.request.path == "/api/template/draft" ? "templateAuthor.draftSaved" : "templateAuthor.acknowledged") : receipt.state == "REJECTED" ? "templateAuthor.rejected" : "templateAuthor.uncertain"
+        rejectionReason = receipt.committed ? nil : receipt.rejectionMessage
     }
     public func readOriginalRequest() async {
         synchronizeSession()
