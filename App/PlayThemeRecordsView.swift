@@ -21,13 +21,13 @@ import SwiftUI
             if model.busy, model.cardSessionID == nil { ProgressView("playx.themeRecords.loading") }
             if model.cardSessionID == nil, let issue = model.issue { issueText(issue) }
             if PlayThemeRecordsPagination.isOffered(model) {
-                Button(model.issue == .historyFailed ? "playx.themeRecords.reload" : "playx.themeRecords.more") {
-                    Task {
-                        guard PlayThemeRecordsPagination.isOffered(model), !model.busy else { return }
-                        await model.loadMore()
-                    }
+                if model.issue == .historyFailed {
+                    Button("playx.themeRecords.reload") { readMore() }
+                        .disabled(model.busy).accessibilityIdentifier("playx.themeRecords.more")
+                } else {
+                    CYLoadMoreRow("playx.themeRecords.more", isLoading: model.busy) { readMore() }
+                        .accessibilityIdentifier("playx.themeRecords.more")
                 }
-                    .disabled(model.busy).accessibilityIdentifier("playx.themeRecords.more")
             }
         }.cyGroupedSurface()
         .scrollContentBackground(.hidden)
@@ -44,6 +44,12 @@ import SwiftUI
         }.cySheet(detents: [.large]) }
     }
 
+    private func readMore() {
+        Task {
+            guard PlayThemeRecordsPagination.isOffered(model), !model.busy else { return }
+            await model.loadMore()
+        }
+    }
     private func rowLabel(_ row: PlayThemeHistoryRow) -> some View {
         HStack {
             Image(systemName: row.hasCard ? "checkmark.circle.fill" : "clock")

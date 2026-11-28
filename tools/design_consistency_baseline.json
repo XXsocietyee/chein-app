@@ -229,9 +229,6 @@
     "App/MessagingHistoryView.swift": {
       "manual paging": 1
     },
-    "App/NativeChannelChainView.swift": {
-      "manual paging": 1
-    },
     "App/NativeChannelMessageContextView.swift": {
       "manual paging": 1
     },
@@ -239,9 +236,6 @@
       "manual paging": 1
     },
     "App/NativeR2/FreeExplore/NativeStampAlbumView.swift": {
-      "manual paging": 1
-    },
-    "App/PlayThemeRecordsView.swift": {
       "manual paging": 1
     },
     "App/ProjectStoryTemplateView.swift": {

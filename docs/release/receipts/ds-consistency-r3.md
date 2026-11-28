@@ -1496,6 +1496,33 @@ PASS (manual paging 25 baselined, 114 allowed), `contract_ratchet --check` 46 fa
   more-flag). Capsule / goals / anniversary, Topic / Activity / stamp album, favorites, post / square governance and
   `TemplateAuthoringMineView` stay as listed in run 43 (tests or append-only reads first).
 
+## Continue run 45 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane; no K50 `lane-layout` rows posted (`cursor-k50-p*.md` absent).
+
+Run 44 Not done row worked:
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| Club channel 接龙 (chain) entries → `App/NativeChannelChainView.swift:107` · C | `d7.chain.showMore` | plain `Button` → `CYLoadMoreRow(isLoading: flow.busy)`, still disabled during a review; `read(more:)` guards `!busy` / `review == nil`, failure clears `page` so `hasMore` row goes away (`Core/NativeChannelChain.swift:318,344`) |
+| Theme play records → `App/PlayThemeRecordsView.swift:23` · B | `playx.themeRecords.more` | plain `Button` → `CYLoadMoreRow(isLoading: model.busy)` while no error; on `.historyFailed` the explicit 重新加载 button stays (same identifier, so `PlayThemeRecordsFlowTests.testEmptyAndFailureStates` holds) — an error never auto-retries |
+| Notification delivery log → `App/NativeNotificationDeliveryLogView.swift:48` · C | `d7.deliveryLog.next` | **kept**: "next" *replaces* the page (`read` resets `storedPage`, no append), so an auto-load on appear would chain through every page on a short list. Stays a manual "Next page" button; baselined on purpose |
+
+Checker: manual paging 25 → **23** baselined (`--update`, ratchet down only).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (manual paging 23 baselined, 114 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
+
+Further candidates checked (no code change; each stays a manual button on purpose):
+- `App/NativeChannelMessageContextView.swift:44` 更早/更晚: re-anchors the context on a new message (no append), so an auto-load would jump the reader.
+- `App/MapPublicLayerSectionView.swift:270` 下一页: rows do append, but the section is a non-lazy `VStack` inside `SearchMapExplorerView`, so `.onAppear` fires at once and would chain every page. Needs a lazy container first (search lane's page).
+- `App/MessagingHistoryView.swift:330` 更早消息: three UI tests tap `messaging.history.earlier` (`ReferenceChatTaskFlowTests:105`, `ModuleFlowTests:291`, `IntegratedNativeAcceptanceFlowTests:378`); tests-first, like run 43's list.
+- `App/CooperationContextualViews.swift` 215/386: merchant cooperation pages — out of scope.
+
+### Not done (next run)
+- manual paging debt (23): every remaining site is now either intentional (replace/re-anchor paging, non-lazy
+  container, merchant) or has UI tests on the tap. Next run: move the intentional ones to `allowed` with reasons in the
+  baseline, then pick the next design-system scan for player screens.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
