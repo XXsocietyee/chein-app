@@ -405,6 +405,15 @@ Merged `origin/ui/combined-r7` (clean; fix/1128-* receipts arrived). No new coor
 |---|---|---|
 | **P2-3b** `pages/index/index` city consent 同意 → MP `getHomeCityLocation` → `App/SessionHomeFeedView.swift` `agreeAndLocateHomeCity()` + `HomeCityCentre.nearest(to:)` | 同意 recorded consent but never located the city. | **Fixed** — after `cityConsent.agree` (consent write unchanged), one foreground fix through the existing `session.cityCaptureFix()` (the tap is the permission ask; `RuntimeNativeLocationProvider` asks only when not determined), matched **on the device** to the nearest supported 首页 city within 100 km (great-circle); the coordinate is never sent, so no reverse-geocode route or transport admission is needed. No fix / out of range keeps the label. Test `HomeCityCentreNearestTests` (Shanghai, Hangzhou vs Shanghai, New York → nil). Tap-to-relocate on the city label (`onTapHomeCity`) stays the MP menu pick. |
 
+## Round 3 continue (32) — sweep 07:26 UTC (build 3348aa51f), `d2-search` 类别
+
+Merged `origin/ui/combined-r7` (clean, 124 commits incl. fix/1128b-*). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (52/52) · design consistency PASS. `sheet-zh-Hans.jpg` / `sheet-en.jpg`: d2-home, d2-home-offline, d2-search-results, wave-today-club, rep3-activity-detail read correctly; no open coordinator item for mp-home. Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `pages/search2/index` 类别 (`categoryList`, icon per `utils/category-icon.js`) → `App/SearchMapComponents.swift` `SearchCategorySymbol` | `en-d2-search.jpg`: English category names have no icon rule (MP rules are Chinese only), so every US-market category gets the neutral `storefront` glyph. | **Fixed** — each MP rule also matches English word starts, case-insensitive with `\b` (Food → fork.knife, Photography → camera, Culture → book, Night walks → star, Family → person.2; "Party"/"Brunch" stay neutral). Chinese rules and order unchanged. Test `SearchCategorySymbolTests`. |
+| same → `App/SearchMapFixtureSupport.swift` (`d2-search` design fixture) | `zh-Hans-d2-search.jpg` / `en-d2-search.jpg`: the 类别 card held one capsule (人文 / Culture with the shop glyph), reading as a stray chip rather than the MP category grid. | **Fixed** — under `--design-fixture` only: 文化 / 户外 / 美食 / 摄影 / 夜游 / 亲子 (en Culture / Outdoors / Food / Photography / Night walks / Family), each with its MP icon; UI-test runs keep the pinned synthetic list. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -447,6 +456,7 @@ Merged `origin/ui/combined-r7` (clean; fix/1128-* receipts arrived). No new coor
 - Needs a simulator pass (continue 28): 首页 map button opens the explorer titled with the 首页 city and 搜索此区域 enabled.
 - Needs a device pass (continue 29): 首页 city rail with location not determined shows no prompt and loads around the chosen area.
 - Needs a simulator pass (continue 30): `d2-home-empty` with the 看看活动 / See activities button in en + zh-Hans, AX5.
+- Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
 
 ## For other lanes
 - mp-states: the 07:05 `d2-home-empty` next-step item is done on `mp/r3-home` (continue 30); `r3-roam-routes-empty` stays yours / mp-roam.
