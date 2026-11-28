@@ -84,9 +84,11 @@ final class SquareXcxParityTests: XCTestCase {
             let raw: [String: Any] = ["id": 12, "memberId": 3, "contents": text]
             return try JSONDecoder().decode(SquarePost.self, from: JSONSerialization.data(withJSONObject: raw)).qualified(as: .legacySquare)
         }
-        XCTAssertTrue(SquarePostCardFacts(try body(String(repeating: "字", count: 41))).bodyExpandable)
-        XCTAssertTrue(SquarePostCardFacts(try body("a\nb\nc")).bodyExpandable)
-        XCTAssertFalse(SquarePostCardFacts(try body(String(repeating: "字", count: 40))).bodyExpandable)
+        // MP post-card js:77 (round-3 posts): more than 120 characters or more than 6 lines.
+        XCTAssertTrue(SquarePostCardFacts(try body(String(repeating: "字", count: 121))).bodyExpandable)
+        XCTAssertTrue(SquarePostCardFacts(try body("a\nb\nc\nd\ne\nf\ng")).bodyExpandable)
+        XCTAssertFalse(SquarePostCardFacts(try body("a\nb\nc\nd\ne\nf")).bodyExpandable)
+        XCTAssertFalse(SquarePostCardFacts(try body(String(repeating: "字", count: 120))).bodyExpandable)
     }
 }
 

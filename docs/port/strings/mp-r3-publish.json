@@ -2650,5 +2650,90 @@
         }
       }
     }
+  },
+  "mpPublish.rules.allowTrade": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Teams can trade items"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍之间可以交换物资"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.votePolicy": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Voting"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "表决方式"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.vote.majority": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Majority"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "过半数"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.vote.unanimous": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Everyone agrees"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全体同意"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.vote.majorityAcceptance": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Majority accepts (a tie can be voted again)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "过半接受（平票可复议）"
+        }
+      }
+    }
   }
 }

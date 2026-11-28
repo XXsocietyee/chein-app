@@ -104,18 +104,33 @@ private struct HomeFeedFixtureHero: ViewModifier {
 /// mp-home r3 (19:50 sweep): 首页 fixture data follows the UI language (zh-Hans gets Chinese names).
 enum HomeFixtureLanguage {
     static var zh: Bool { Locale.preferredLanguages.first?.hasPrefix("zh") == true }
+    /// mp-home r3 (23:07 sweep): `--design-fixture` shots show real names, not 示例… / Sample… placeholders;
+    /// UI-test runs keep the synthetic values.
+    static var isDesignFixture: Bool { ProcessInfo.processInfo.arguments.contains("--design-fixture") }
     static func topic() throws -> HomeFeedItem {
-        guard zh else { return try HomeFeedSyntheticFixtures.topic() }
+        let names: (String, String)
+        if zh {
+            names = isDesignFixture ? ("老城灯笼夜行", "老城") : ("示例街区路线", "示例街区")
+        } else {
+            guard isDesignFixture else { return try HomeFeedSyntheticFixtures.topic() }
+            names = ("Old Town Lantern Walk", "Old Town")
+        }
         let json = HomeFeedSyntheticFixtures.topicJSON
-            .replacingOccurrences(of: "Sample neighborhood route", with: "示例街区路线")
-            .replacingOccurrences(of: "Sample district", with: "示例街区")
+            .replacingOccurrences(of: "Sample neighborhood route", with: names.0)
+            .replacingOccurrences(of: "Sample district", with: names.1)
         return .topic(try JSONDecoder().decode(TopicSummary.self, from: Data(json.utf8)))
     }
     static func activity() throws -> HomeFeedItem {
-        guard zh else { return try HomeFeedSyntheticFixtures.activity() }
+        let names: (String, String)
+        if zh {
+            names = isDesignFixture ? ("滨江灯笼漫步", "西岸码头") : ("示例滨江漫步", "示例集合点")
+        } else {
+            guard isDesignFixture else { return try HomeFeedSyntheticFixtures.activity() }
+            names = ("Riverside Lantern Walk", "West Bund Pier")
+        }
         let json = HomeFeedSyntheticFixtures.activityJSON
-            .replacingOccurrences(of: "Sample riverside walk", with: "示例滨江漫步")
-            .replacingOccurrences(of: "Sample meeting point", with: "示例集合点")
+            .replacingOccurrences(of: "Sample riverside walk", with: names.0)
+            .replacingOccurrences(of: "Sample meeting point", with: names.1)
         return .activity(try JSONDecoder().decode(ActivitySummary.self, from: Data(json.utf8)))
     }
 }

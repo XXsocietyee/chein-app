@@ -323,7 +323,6 @@ struct OnboardingCopy: View {
         VStack(alignment: .center, spacing: CYSpacing.sm) {
             Text(step.eyebrowKey)
                 .font(.footnote.weight(zh ? .medium : .semibold))
-                .textCase(.uppercase)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(step.titleKey)

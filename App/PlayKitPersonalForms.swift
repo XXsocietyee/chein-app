@@ -118,7 +118,7 @@ extension PlayKitScreen {
                 }), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
                     .accessibilityLabel(Text(verbatim: question["label"].text ?? key))
                     .accessibilityIdentifier("playkit.profile.field." + key)
-                Text(verbatim: "\((answers[key] ?? "").utf16.count) / \(limit)")
+                Text(verbatim: "\((answers[key] ?? "").utf16.count) / \(limit)").accessibilityLabel(Text("a11y.value.characters \(Int((answers[key] ?? "").utf16.count)) \(Int(limit))"))
                     .cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
@@ -154,7 +154,7 @@ extension PlayKitScreen {
             }
         }
         TextField("playkit.note.placeholder", text: textBinding(limit: limit), axis: .vertical).lineLimit(3...8).textFieldStyle(.roundedBorder).disabled(!enabled)
-        Text(verbatim: "\(text.utf16.count) / \(limit)").cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity, alignment: .trailing)
+        Text(verbatim: "\(text.utf16.count) / \(limit)").accessibilityLabel(Text("a11y.value.characters \(Int(text.utf16.count)) \(Int(limit))")).cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity, alignment: .trailing)
         // Preset lines sit under the field as small chips, as in the mini-program.
         let presets = (raw["presets"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
         if !presets.isEmpty {

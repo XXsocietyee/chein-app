@@ -350,9 +350,17 @@ extension PlayKitScreen {
     @ViewBuilder var nativeDiyName: some View {
         let maxLength = max(1, raw["maxLength"].integer ?? 16)
         Section {
+            // MP `dn__shot`: the photo, or a camera placeholder until one exists.
             if let photo = raw["photoUrl"].text, !photo.isEmpty {
                 artwork(photo).frame(maxWidth: 120, alignment: .leading)
                     .accessibilityLabel(Text("playkitLegacy.name.photo"))
+            } else {
+                Image(systemName: "camera")
+                    .font(.title)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 120, height: 90)
+                    .background(.fill.tertiary, in: .rect(cornerRadius: CYRadius.card))
+                    .accessibilityHidden(true)
             }
             TextField("playkitLegacy.name.placeholder", text: textBinding(limit: maxLength))
                 .submitLabel(.done)
@@ -382,8 +390,11 @@ extension PlayKitScreen {
 
     // MARK: note
 
+    /// MP `playkit-note` body under the shell header (kicker title, default 留一句 · prompt): 前面的人写过 (text · MM-dd HH:mm)
+    /// → field (写在下面) → n/max count → preset lines (hidden once done) → 这句已经留在这儿了 → 留下这句 / 已留下 on the bottom bar.
     @ViewBuilder var nativeNote: some View {
         let limit = PlayKitShortMessageLimit.resolve(raw["maxLength"])
+        let done = raw["done"].bool == true
         let previous = (raw["previous"].array ?? []).filter { !($0["text"].text ?? "").isEmpty }
         if !previous.isEmpty {
             Section {
@@ -391,9 +402,13 @@ extension PlayKitScreen {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: note["text"].text ?? "")
                         if let at = note["at"].double, at.isFinite {
-                            Text(Date(timeIntervalSince1970: at / 1000), style: .date).font(.footnote).foregroundStyle(.secondary)
+                            Text(Date(timeIntervalSince1970: at / 1000), format: .dateTime.month(.twoDigits).day(.twoDigits).hour().minute())
+                                .font(.footnote).foregroundStyle(.secondary)
+                        } else if let at = note["at"].text, !at.isEmpty {
+                            Text(verbatim: at).font(.footnote).foregroundStyle(.secondary)
                         }
                     }
+                    .accessibilityElement(children: .combine)
                 }
             } header: {
                 Text("playkit.note.previousLabel")
@@ -403,21 +418,34 @@ extension PlayKitScreen {
         Section {
             TextField("playkit.note.placeholder", text: textBinding(limit: limit), axis: .vertical)
                 .lineLimit(3...8)
-                .disabled(!enabled)
+                .disabled(!enabled || done)
+                .accessibilityLabel(raw["prompt"].text.flatMap { $0.isEmpty ? nil : Text(verbatim: $0) } ?? Text("playkit.note.fieldLabel"))
                 .accessibilityIdentifier("playkit.note.field")
-            if !presets.isEmpty {
-                Menu {
-                    ForEach(Array(presets.enumerated()), id: \.offset) { _, preset in
-                        Button(preset) { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true }
-                    }
-                } label: {
-                    Label("nativeGames.note.presets", systemImage: "text.bubble")
-                }
-                .disabled(!enabled)
-                .accessibilityIdentifier("nativeGames.note.presets")
-            }
         } footer: {
-            Text("playkit.note.audience")
+            Text(verbatim: "\(text.count)/\(limit)").monospacedDigit()
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .accessibilityLabel(Text("playkit.note.count \(text.count) \(limit)"))
+        }
+        if !done, !presets.isEmpty {
+            Section {
+                ForEach(Array(presets.enumerated()), id: \.offset) { _, preset in
+                    Button { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true } label: {
+                        Label { Text(verbatim: preset).foregroundStyle(.primary) } icon: {
+                            Image(systemName: text == preset ? "checkmark" : "text.bubble")
+                        }
+                    }
+                    .disabled(!enabled)
+                    .accessibilityLabel(Text("playkit.note.usePreset \(preset)"))
+                }
+            }
+            .accessibilityIdentifier("nativeGames.note.presets")
+        }
+        if done {
+            Section {
+                Label("playkit.note.doneLine", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                    .accessibilityIdentifier("playkit.note.done")
+            }
         }
     }
 
