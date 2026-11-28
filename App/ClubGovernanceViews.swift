@@ -236,6 +236,9 @@ struct ClubGovernanceReadView: View {
     @State private var pickedSession: ClubGovernanceScope?
     /// CLB-topic-detail-04: /api/club/crm/topic-manage-stats read beside the topic overview (MP loadManageStats).
     @State private var topicStats: ClubGovernanceValue?
+    /// 1128 gap #13: the topic-manage-stats read failed (not a role refusal), so the console shows a retry row.
+    @State private var topicStatsFailed = false
+    @State private var topicStatsAttempt = 0
     /// CLB-G12: the reviewed MP page the topic 更多 menu opens.
     @State private var topicMoreRoute: ClubTopicMoreRoute?
     /// CLB-topic-detail-05: the half sheet a topic round action opened.
@@ -269,6 +272,11 @@ struct ClubGovernanceReadView: View {
     @State private var page = 1
     @State private var editor: ClubGovernanceFormRoute?
     private var title: LocalizedStringKey { LocalizedStringKey("club.gov." + operation.rawValue) }
+    /// 1128 gap #13: re-run the topic-manage-stats read after a failure.
+    private func retryTopicStats() {
+        topicStatsFailed = false
+        topicStatsAttempt += 1
+    }
     /// The failure's reason line: the server sentence when it sent one, else the generic key.
     private func failureReason(_ failure: ClubGovernanceFailure) -> Text {
         if let message = failure.message { return Text(verbatim: message) }
@@ -1690,13 +1698,15 @@ struct ClubGovernanceReadView: View {
                     .font(.subheadline).foregroundStyle(.secondary)
                     .accessibilityIdentifier("club.topic.chips")
                 }
+                if topicStatsFailed { ClubTopicStatsRetryRow(retry: retryTopicStats) }
             }
-            .task(id: snapshotGeneration) {
-                guard scope.clubID != nil, scope.topicID != nil else { topicStats = nil; return }
+            .task(id: ClubTopicStatsLoadKey(generation: snapshotGeneration, attempt: topicStatsAttempt)) {
+                guard scope.clubID != nil, scope.topicID != nil else { topicStats = nil; topicStatsFailed = false; return }
                 let expected = readContext
-                let read = try? await access.read(.topicStats, scope: scope, options: [:]).value
+                let outcome = await ClubTopicStatsLoad.run(access: access, scope: scope)
                 guard expected == readContext, !Task.isCancelled else { return }
-                topicStats = read
+                topicStats = outcome.value
+                topicStatsFailed = outcome.retryable
             }
             // CLB-G12 rows (编辑主题内容 / 确认终价 / 承接审核) live in the 更多 sheet (CLB-r9-topic-detail-02: one 更多 entry).
             .navigationDestination(item: $topicMoreRoute) { route in MPReviewedPageScreen(page: route.page, query: route.query) }

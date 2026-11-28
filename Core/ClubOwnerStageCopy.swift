@@ -97,6 +97,9 @@ public struct ClubOwnerStageInput: Equatable, Sendable {
     public var projects: [ClubOwnerStageProject]
     public var sentInvites: [ClubOwnerStageInvite]
     public var messages: [ClubOwnerStageMessage]
+    /// 1128 gap #30 (C-15): merchant is out of the first release, so the 邀请商家 / 查看邀请进度 / 合作邀约 steps are
+    /// skipped and a published topic goes straight to 开一场. Tests set it to pin either release.
+    public var merchantEnabled: Bool = PlayerLaunch.merchantCenterEnabled
     public init(isOwner: Bool, canGovern: Bool, clubID: Int, topicState: String = "ready",
                 ownerProjectState: String = "ready", inviteFeedbackState: String = "ready",
                 topics: [ClubOwnerStageTopic] = [], manageTopicIDs: Set<Int> = [],
@@ -150,7 +153,8 @@ public enum ClubOwnerStageMachine {
             else if input.ownerProjectState == "error" { stage = .error }
             else if input.ownerProjectState == "ready", input.inviteFeedbackState == "error" { stage = .error }
             else if input.ownerProjectState == "ready", input.inviteFeedbackState == "ready" {
-                stage = pending ? .pending : (reviewing ? .review : (allOrienteering ? .run : .invite))
+                let merchant = input.merchantEnabled
+                stage = (merchant && pending) ? .pending : (reviewing ? .review : ((allOrienteering || !merchant) ? .run : .invite))
             }
             if !execution, [.run, .invite, .review, .pending, .accepted].contains(stage) {
                 if let recruiting { stage = .recruit; stageTopic = recruiting }
@@ -170,7 +174,7 @@ public enum ClubOwnerStageMachine {
                 }
             }
             receivedPending = input.messages.filter { $0.status == 0 && $0.toType == "club" && $0.toID == input.clubID }.count
-            if receivedPending > 0, [.publish, .review, .invite, .run, .pending].contains(stage) { stage = .coopInvite }
+            if input.merchantEnabled, receivedPending > 0, [.publish, .review, .invite, .run, .pending].contains(stage) { stage = .coopInvite }
         }
         var shown = stage
         if stage == .accepted, execution { shown = .executionAccepted }

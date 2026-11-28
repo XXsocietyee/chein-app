@@ -153,11 +153,16 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 if tab == .manage, let session = reader as? AppSession {
                     // Keep the scope binder mounted for non-owners so owner loss fences old callbacks immediately;
                     // leaving the manage tab unmounts it with the rest of the tab.
-                    SessionClubMerchantProfileHost(session: session) {
-                        ClubMerchantDiscoveryView(club: club, clubReader: reader, reader: session.cooperationFlowReader)
+                    // 1128 gap #30 (C-01b): 可对接商家 and 收到的邀约 are merchant surfaces; merchant is out of the first release.
+                    if PlayerLaunch.merchantCenterEnabled {
+                        SessionClubMerchantProfileHost(session: session) {
+                            ClubMerchantDiscoveryView(club: club, clubReader: reader, reader: session.cooperationFlowReader)
+                        }
                     }
                     if let governance = management?.governance {
-                        ClubInvitationFeedbackEntry(club: club, clubReader: reader, reader: session.cooperationFlowReader, access: governance.access)
+                        if PlayerLaunch.merchantCenterEnabled {
+                            ClubInvitationFeedbackEntry(club: club, clubReader: reader, reader: session.cooperationFlowReader, access: governance.access)
+                        }
                         ClubLeadProgressEntry(club: club, clubReader: reader, reader: session.cooperationFlowReader, access: governance.access, projects: session.creatorContentReader, destinations: session.clubLeadPrimaryDestinations(club: club, governance: governance))
                     }
                 }

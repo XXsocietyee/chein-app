@@ -357887,6 +357887,23 @@
           }
         }
       }
+    },
+    "club.topic.stats.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the session console."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次管理台加载失败"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
