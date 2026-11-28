@@ -153,7 +153,15 @@ import SwiftUI
                 }
                 Section {
                     if rows.isEmpty {
-                        Text(LocalizedStringKey(query.emptyKey)).accessibilityIdentifier("roam.tasks.empty")
+                        // MP `cy-empty size="lg"`: tab title (暂无进行中的活动 / 暂无即将开始的活动 / 还没有参与的活动),
+                        // sub only while searching (没有找到相关活动 · 换个关键词试试).
+                        ContentUnavailableView {
+                            Label(LocalizedStringKey(query.emptyTitleKey), systemImage: query.isSearching ? "magnifyingglass" : "flag")
+                        } description: {
+                            if query.isSearching { Text(LocalizedStringKey(query.emptyDetailKey)) }
+                        }
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("roam.tasks.empty")
                     }
                     ForEach(rows) { event in
                         Button {
@@ -172,9 +180,16 @@ import SwiftUI
                     .accessibilityIdentifier("roam.tasks.error")
             }
             if model.snapshot == nil, model.isLoading || model.error == nil {
-                ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading")
+                // MP `cy-skeleton type="card" count="3"` before the first snapshot: the shared loading state with words.
+                CYLoadingStateView(rows: 3, label: "official.loading")
+                    .listRowBackground(Color.clear)
+                    .accessibilityIdentifier("roam.tasks.loading")
             }
-            } else { ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading") }
+            } else {
+                CYLoadingStateView(rows: 3, label: "official.loading")
+                    .listRowBackground(Color.clear)
+                    .accessibilityIdentifier("roam.tasks.loading")
+            }
         }.cyGroupedSurface().navigationTitle("roam.tasks.title").navigationBarTitleDisplayMode(.inline)
             // MP `task-search` keyword box, always visible above the tabs: the system search field.
             .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("official.search"))
