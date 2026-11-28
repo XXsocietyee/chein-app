@@ -62,6 +62,19 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
                                      kind: .failure) { Task { await model.load(reader: reader) } }
                             .disabled(model.isLoading)
                             .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    } else if model.issue == .signIn && model.rows == nil {
+                        // mp-states r3: MP profile index.wxml:177-180 orderAuthError → cy-error 登录未成功 · sub · 重试.
+                        CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "profile.selfOrders.signIn.title",
+                                     detail: "profile.selfOrders.signIn", messageIdentifier: "profile.selfOrders.issue",
+                                     actionTitle: "action.retry", actionIdentifier: "profile.selfOrders.retry",
+                                     kind: .failure) { Task { await model.load(reader: reader) } }
+                            .disabled(model.isLoading)
+                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    } else if model.issue == .unavailable && model.rows == nil {
+                        // mp-states r3: reader not switched on — one state view, not a bare list line.
+                        CYEmptyState(systemImage: "lock", "profile.selfOrders.unavailable.title",
+                                     detail: "profile.selfOrders.unavailable", messageIdentifier: "profile.selfOrders.issue")
+                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
                     } else if let issue = model.issue {
                         Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier("profile.selfOrders.issue")
                         if model.rows != nil { Text("profile.selfOrders.stale").font(.footnote).foregroundStyle(.secondary) }

@@ -420,11 +420,29 @@ struct PlayerCodeAndJoinSection: View {
     /// open (正在加载邀请二维码 · 加载完成后即可扫码邀请好友), a failed read is cy-error 个人码加载失败 · 重新生成.
     @ViewBuilder private var codeState: some View {
         if let qr {
-            AsyncImage(url: qr) { $0.resizable().scaledToFit() } placeholder: {
-                ProgressView { Text("playerGap.playerCode.loading") }
+            // mp-states r3: MP scene-share-invite wxml:17-19 — a code image that will not load is
+            // cy-error 二维码加载失败 · 重新生成 (was an endless spinner).
+            AsyncImage(url: qr) { phase in
+                if let image = phase.image {
+                    image.resizable().scaledToFit()
+                        .frame(maxWidth: 180, maxHeight: 180)
+                        .accessibilityLabel(Text("playerGap.playerCode.image"))
+                } else if phase.error != nil {
+                    ContentUnavailableView {
+                        Label("playerGap.playerCode.imageFailed", systemImage: "qrcode")
+                    } description: {
+                        Text("playerGap.playerCode.failedHint")
+                    } actions: {
+                        Button(action: regenerate) { Text("playerGap.playerCode.retry") }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("gap.playerCode.regenerate")
+                    }
+                    .accessibilityIdentifier("gap.playerCode.imageFailed")
+                } else {
+                    ProgressView { Text("playerGap.playerCode.loading") }
+                        .frame(maxWidth: 180, maxHeight: 180)
+                }
             }
-            .frame(maxWidth: 180, maxHeight: 180)
-            .accessibilityLabel(Text("playerGap.playerCode.image"))
         } else if failed && !loading {
             ContentUnavailableView {
                 Label("playerGap.playerCode.failed", systemImage: "qrcode")
@@ -474,6 +492,12 @@ struct PlayerCodeAndJoinSection: View {
 
     private func retry() {
         guard !loading else { return }
+        Task { await loadCode() }
+    }
+
+    private func regenerate() {
+        guard !loading else { return }
+        qr = nil
         Task { await loadCode() }
     }
 
