@@ -37,7 +37,7 @@ struct TeamSeatFactsCard: View {
         switch line {
         case .unavailable:
             Label("team.invite.unavailable", systemImage: "clock.badge.xmark")
-                .font(.subheadline).foregroundStyle(.orange)
+                .font(.subheadline).foregroundStyle(CYColor.warningText)
                 .accessibilityIdentifier("teamSeats.invite")
         case .expires(let raw):
             let chinese = locale.language.languageCode?.identifier == "zh"

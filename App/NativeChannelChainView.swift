@@ -188,9 +188,9 @@ import SwiftUI
         if page.chain.status == "CLOSED" {
             Label("d7.chain.status.closed", systemImage: "lock").foregroundStyle(.secondary)
         } else if page.chain.accepting {
-            Label("d7.chain.status.open", systemImage: "checkmark.circle").foregroundStyle(.green)
+            Label("d7.chain.status.open", systemImage: "checkmark.circle").foregroundStyle(CYColor.successText)
         } else {
-            Label("d7.chain.status.ended", systemImage: "clock").foregroundStyle(.orange)
+            Label("d7.chain.status.ended", systemImage: "clock").foregroundStyle(CYColor.warningText)
         }
     }
     @ViewBuilder private var status: some View {

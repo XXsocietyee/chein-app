@@ -152,7 +152,7 @@ private struct TeamHomeRow: View {
             }
             if model.coordinator.retiredMembershipTeamID != nil {
                 Label("team.changed", systemImage: "person.crop.circle.badge.xmark")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("teamMembershipRetired")
             }
@@ -304,7 +304,7 @@ private struct TeamHomeRow: View {
             TeamJoinRetryNotice(reasonKey: model.coordinator.rejectionCode.map { TeamSeatPresentation.rejectionKey($0) })
         } else if detail.joined != true, model.coordinator.postJoinDetailID == nil, let blocker {
             Label(LocalizedStringKey(blocker), systemImage: "exclamationmark.circle")
-                .font(.subheadline).foregroundStyle(.orange)
+                .font(.subheadline).foregroundStyle(CYColor.warningText)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("teamViewer.joinHint")

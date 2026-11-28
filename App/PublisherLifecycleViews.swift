@@ -71,7 +71,7 @@ import SwiftUI
                 // MP cy-inline-error 最新定价暂未取回 with its 重试 action (pages/topic/pricing/index.wxml:13).
                 HStack {
                     Label("publisherPricing.stalePreview", systemImage: "clock.arrow.circlepath")
-                        .font(.footnote).foregroundStyle(.orange).accessibilityIdentifier("publisher.pricing.stale")
+                        .font(.footnote).foregroundStyle(CYColor.warningText).accessibilityIdentifier("publisher.pricing.stale")
                     Spacer()
                     Button { beginLoad() } label: { Text("topic.retry") }
                         .buttonStyle(.borderless).accessibilityIdentifier("publisher.pricing.staleRetry")
@@ -149,7 +149,7 @@ import SwiftUI
                     }
                     // MP k3 (p3 N11): no reference price → no reference row, no 样本不足 line.
                     switch TopicPricingXcx.delta(price: Decimal(string: price) ?? preview.minimum, reference: preview.reference, sampleSize: preview.sampleSize) {
-                    case .above(let percent)?: Text("publisherPricing.aboveReference \(percent)").font(.footnote).foregroundStyle(.orange)
+                    case .above(let percent)?: Text("publisherPricing.aboveReference \(percent)").font(.footnote).foregroundStyle(CYColor.warningText)
                     case .notAbove?: Text(text("publisherPricing.notAboveTheLocalReferencePrice")).font(.footnote).foregroundStyle(.secondary)
                     case nil: EmptyView()
                     }
@@ -194,10 +194,10 @@ import SwiftUI
                         else { Text("publisherPricing.priceConfirmed").font(.footnote).foregroundStyle(.secondary) }
                     } else if preview.canConfirm == false {
                         if preview.productType == 2 {
-                            Text(verbatim: preview.confirmBlockReason ?? text("publisherPricing.notInPricingPhase")).font(.footnote).foregroundStyle(.orange)
+                            Text(verbatim: preview.confirmBlockReason ?? text("publisherPricing.notInPricingPhase")).font(.footnote).foregroundStyle(CYColor.warningText)
                                 .accessibilityIdentifier("publisher.phaseBlocked")
                         } else {
-                            Text("publisherPricing.phaseBlockedDetail").font(.footnote).foregroundStyle(.orange)
+                            Text("publisherPricing.phaseBlockedDetail").font(.footnote).foregroundStyle(CYColor.warningText)
                                 .accessibilityIdentifier("publisher.phaseBlocked")
                         }
                     }

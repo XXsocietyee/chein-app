@@ -274,7 +274,7 @@ import SwiftUI
                     Image(systemName: "hand.tap")
                 }
                 if reaction.phase == .early {
-                    Label("playkit.reaction.early", systemImage: "hare").foregroundStyle(.orange)
+                    Label("playkit.reaction.early", systemImage: "hare").foregroundStyle(CYColor.warningText)
                 }
                 if reaction.phase == .betweenRounds, let last = reaction.roundsMilliseconds.last {
                     // MP between rounds: the round's figure (毫秒) over 「N/M 轮」; the next round starts from the bottom bar.
@@ -316,7 +316,7 @@ import SwiftUI
         if timing.phase == .interrupted || reaction.phase == .interrupted || expired || running {
             Section {
                 if timing.phase == .interrupted || reaction.phase == .interrupted {
-                    Label("playkit.challenge.interrupted", systemImage: "pause.circle").foregroundStyle(.orange)
+                    Label("playkit.challenge.interrupted", systemImage: "pause.circle").foregroundStyle(CYColor.warningText)
                 }
                 if expired { Label("playkit.challenge.expired", systemImage: "timer").foregroundStyle(.red) }
                 if running {
