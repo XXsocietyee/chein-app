@@ -128,6 +128,10 @@ enum DesignFixtureRegistry {
         case "r3-roam-history": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .content), toolsReader: RoamPassportToolsFixtureReader(scenario: .content)) })
         case "r3-roam-history-empty": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
         case "r3-roam-history-error": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
+        // mp-roam r3: 本次漫游 (scene-roam-session) content / not-found / error states for the sweep.
+        case "r3-roam-session": return AnyView(NavigationStack { RoamHistoryDetailView(reader: RoamExperienceFixtureReader(scenario: .content), timestamp: 1_700_000_000_000) })
+        case "r3-roam-session-missing": return AnyView(NavigationStack { RoamHistoryDetailView(reader: RoamExperienceFixtureReader(scenario: .content), timestamp: 1) })
+        case "r3-roam-session-error": return AnyView(NavigationStack { RoamHistoryDetailView(reader: RoamExperienceFixtureReader(scenario: .failure), timestamp: 1_700_000_000_000) })
         // mp-roam r3: 集邮册 (scene-roam-stamp-album) empty / error states for the sweep (content = e2-stamp-album).
         case "r3-roam-stamp-album-empty": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
         case "r3-roam-stamp-album-error": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
