@@ -33,6 +33,8 @@ import UIKit
         monitor.start(queue: DispatchQueue(label: "personal-location-share-path"))
     }
     deinit { monitor.cancel() }
+    /// P1-24: entries show only once a reviewed read approval is installed (the MP has no personal sharing page).
+    var isOffered: Bool { readApproval() != nil && baseURL() != nil }
     func coordinator() -> PersonalLocationShareCoordinator? {
         guard let scope = currentScope(), authorizationBlockedScope != scope, let url = baseURL() else { return nil }
         if let retained, retained.scope == scope { return retained }
@@ -289,6 +291,21 @@ extension EnvironmentValues {
     var personalLocationShareHost: PersonalLocationShareHost? {
         get { self[PersonalLocationShareHostKey.self] }
         set { self[PersonalLocationShareHostKey.self] = newValue }
+    }
+}
+/// Settings / public-profile row: hidden while personal sharing is off, so no entry opens onto a refused request.
+@MainActor struct PersonalLocationShareOfferedLink: View {
+    @Environment(\.personalLocationShareHost) private var host
+    let recipientId: Int64?
+    let titleKey: String
+    let identifier: String
+    var body: some View {
+        if let host, host.isOffered {
+            NavigationLink { PersonalLocationShareEntry(recipientId: recipientId) } label: {
+                Label { Text(LocalizedStringKey(titleKey), tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
+            }
+            .accessibilityIdentifier(identifier)
+        }
     }
 }
 @MainActor struct PersonalLocationShareEntry: View {

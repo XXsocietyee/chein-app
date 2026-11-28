@@ -193,9 +193,7 @@ import SwiftUI
                         }
                         if profile.id == memberID, let accountID = reader.identity.accountID,
                            accountID != memberID, memberID > 0, isCurrent() {
-                            NavigationLink { PersonalLocationShareEntry(recipientId: Int64(memberID)) } label: {
-                                Label { Text("personalLocationShare.title.person", tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
-                            }.accessibilityIdentifier("social.personalLocationShare")
+                            PersonalLocationShareOfferedLink(recipientId: Int64(memberID), titleKey: "personalLocationShare.title.person", identifier: "social.personalLocationShare")
                         }
                     }
                     // Mini-program cy-profile counters: 好友 / 关注 / 粉丝, em dash when the server omitted one.

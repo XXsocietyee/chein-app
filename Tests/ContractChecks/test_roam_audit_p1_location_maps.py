@@ -32,6 +32,29 @@ class RoamAuditLocationMapsChecks(unittest.TestCase):
         sheet = self.read('NativeR2/MapHome/RoamMapHomeSheet.swift')
         self.assertIn('Button("nativeR2.mapHome.start.action", action: startRoam)', sheet)
         self.assertIn('if let gate = dependencies.signInToStart { gate { model.showsLive = true } }', sheet)
+    def test_empty_official_routes_offer_back_to_map(self):
+        # Coordinator 07:05: r3-roam-routes-empty needs a next step (MP goBack → pages/roam/index).
+        routes = self.read('NativeR2/MapHome/RoamMapHomeRoutes.swift')
+        self.assertIn('Button("roamSub.w208.poi.backToMap") { dismiss() }', routes)
+
+    def test_live_lease_carries_presence_like_mp_report_presence(self):
+        # P1-18: MP _reportPresence POST /api/roam/presence {sessionId, lat, lng, explorePct}, after the separate consent.
+        leases = self.read('ReviewedPlayerWriteLeases.swift')
+        self.assertIn('RoamLiveApproval.requiredPaths.union(["api/roam/presence"])', leases)
+        self.assertIn('RoamLiveApproval(endpoints: endpoints, foregroundLocation: true, presence: true)', leases)
+        controller = (ROOT / 'Core' / 'RoamLiveSessionController.swift').read_text(encoding='utf-8')
+        self.assertIn('presenceAccepted: Bool = false', controller)
+        self.assertIn('presenceEnabled = visible && presenceAvailable', controller)
+        fields = (ROOT / 'Core' / 'RoamExperienceMutationContracts.swift').read_text(encoding='utf-8')
+        self.assertIn('["sessionId": String(id), "explorePct": String(percent)]', fields)
+
+    def test_personal_location_share_entries_hide_while_off(self):
+        # P1-24: no MP page; approvals are never installed, so the Settings / profile rows must not show.
+        host = self.read('PersonalLocationShareHost.swift')
+        self.assertIn('var isOffered: Bool { readApproval() != nil && baseURL() != nil }', host)
+        self.assertIn('if let host, host.isOffered {', host)
+        self.assertIn('PersonalLocationShareOfferedLink(recipientId: nil', self.read('SettingsView.swift'))
+        self.assertIn('PersonalLocationShareOfferedLink(recipientId: Int64(memberID)', self.read('SocialPublicProfileView.swift'))
 
 
 if __name__ == '__main__':

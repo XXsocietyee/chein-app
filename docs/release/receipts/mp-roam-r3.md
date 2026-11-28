@@ -511,10 +511,21 @@ before design work, P0-8 (team writes) is on `fix/1128-team`, not here. Map pane
 
 Gates: generate_project OK · check_scaffold PASS (21277 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
+## Round 3 continue (37) — coordinator 07:05 finding (`r3-roam-routes-empty` next step), P1-18 presence heartbeat, P1-24 location-share entries
+
+(P1-19 and P2-7 guest 走起 / city titles landed from the twin run in continue 36 — not repeated here.)
+
+| MP page → native | Difference | Fix | Fixture |
+|---|---|---|---|
+| `subpackageRoam/official-routes` (`cy-empty 还没有上架的官方线路`; page `goBack` → `navigateBack` / `switchTab pages/roam/index`) → `App/NativeR2/MapHome/RoamMapHomeRoutes.swift` `.empty` | The empty `ContentUnavailableView` had title + icon only (coordinator 07:05, P2). | `ContentUnavailableView` actions gain `.bordered` 返回地图 / Back to map (existing key `roamSub.w208.poi.backToMap`) → `dismiss()` pops the routes list back to the map sheet (the MP `goBack` target). Id `officialRoute.list.empty.backToMap`; UI test `Fixture_r3_roamRoutesStatesTests.testRoutesEmptyShowsMPEmptyState` checks the button. No new strings. | `r3-roam-routes-empty` |
+| **P1-18** — `pages/roam/index` `_reportPresence` (index.js 2796: every 30 s on a real fix, `POST /api/roam/presence {sessionId, lat, lng, explorePct}`, sharing off by default, only the separate consent endpoint turns it on) → `App/ReviewedPlayerWriteLeases.swift` `roamLive` | The live lease was `presence: false` without the path, so `presenceAvailable` was always false: the 附近的人位置分享 toggle hid and no heartbeat was ever sent (audit `ReviewedPlayerWriteLeases.swift:1172`). | Lease now carries `api/roam/presence` and `presence: true`. Unchanged guards: reports start only when the player accepted presence (`presenceAccepted` default false) or the server confirmed the tools-sheet toggle (`setPresenceSharing`, `/api/roam/presence-visibility`), 30 s throttle, GCJ-02 ≤ 80 m fixes, pause stops. Field names match the MP. Contract check `test_live_lease_carries_presence_like_mp_report_presence`. | A · live map |
+| **P1-24** — no MP page (no `location-share` anywhere in the MP; MP shezhi 隐私与定位 has no 位置共享 row) → `App/SettingsView.swift` 位置共享 row, `App/SocialPublicProfileView.swift` 共享我的位置 row | Both rows showed although `installReviewedPersonalLocationShareApprovals` has no caller, so every request was refused (audit `AppSession.swift:1033`, `SettingsView.swift:234`). | New `PersonalLocationShareOfferedLink` (`App/PersonalLocationShareHost.swift`) renders the row only when the host has a read approval and a base URL (`PersonalLocationShareHost.isOffered`); both call sites use it with their old ids and keys. Today: hidden in Release (OWNER RULE: no section the MP lacks; OWNER RULE 2: no dead controls). Contract check `test_personal_location_share_entries_hide_while_off`. No new strings. | C · settings / profile |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. Contract checks `test_roam_audit_p1_location_maps.py` OK (7). No Swift build here.
+
 ## Not done / next
 
-- Function audit (mp-roam, not on a fix worker): P1-18 presence heartbeat (`presence: false` lease), P1-21 rest (AMap / Baidu after Info.plist queries schemes), P1-22 city-game region (owner value), P1-23 unconfigured roam readers, P1-24 location share
-  entries, P1-25 US roam, P2-7 rest (`/api/roam/checkin` from 点亮).
+- Function audit (mp-roam, not on a fix worker): P1-21 rest (AMap / Baidu after Info.plist queries schemes), P1-22 city-game region (owner value), P1-23 unconfigured roam readers, P1-25 US roam, P2-7 rest (`/api/roam/checkin` from 点亮).
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
   `RoamStampExchangeCoordinator` (never instantiated), so the citystamp camera (`showsCaption: true`) keeps its caption + exchange. Needs an

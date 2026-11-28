@@ -11,6 +11,7 @@ import QuestifyCore
     private enum LoadState: Equatable { case loading, ready([OfficialRoute]), empty, failed, offline }
     @State private var state: LoadState = .loading
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
     @ScaledMetric(relativeTo: .body) private var coverSide: CGFloat = 44
     private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
 
@@ -26,8 +27,14 @@ import QuestifyCore
                         .accessibilityIdentifier("officialRoute.row." + route.id)
                 }
             case .empty:
-                ContentUnavailableView("nativeR2.mapHome.routes.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                    .accessibilityIdentifier("officialRoute.list.empty")
+                ContentUnavailableView {
+                    Label("nativeR2.mapHome.routes.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                } actions: {
+                    Button("roamSub.w208.poi.backToMap") { dismiss() }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("officialRoute.list.empty.backToMap")
+                }
+                .accessibilityIdentifier("officialRoute.list.empty")
             case .failed, .offline:
                 ContentUnavailableView {
                     Label(state == .offline ? LocalizedStringKey("nativeR2.mapHome.offline") : LocalizedStringKey("nativeR2.mapHome.routes.failed"),

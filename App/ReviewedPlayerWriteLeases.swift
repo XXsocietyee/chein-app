@@ -1168,8 +1168,9 @@ enum ReviewedPlayerReadRoute {
         guard context.market == .china else { return nil }
         let key = contextKey(context)
         if let existing = roamLiveByContext[key] { return existing }
-        guard let endpoints = makeEndpoint(context, paths: RoamLiveApproval.requiredPaths) else { return nil }
-        let approval = RoamLiveApproval(endpoints: endpoints, foregroundLocation: true, presence: false)
+        // P1-18: MP _reportPresence (30 s POST /api/roam/presence) runs only after the separate presence consent.
+        guard let endpoints = makeEndpoint(context, paths: RoamLiveApproval.requiredPaths.union(["api/roam/presence"])) else { return nil }
+        let approval = RoamLiveApproval(endpoints: endpoints, foregroundLocation: true, presence: true)
         roamLiveByContext[key] = approval
         return approval
     }

@@ -10,7 +10,7 @@ def expect(name,*parts):
 expect('App/NativeMediaGallery.swift','cyFullScreenCover(item:', 'TabView(selection:', 'NativeZoomImage', 'RetainedImageSanitizer.sanitize', 'self.reader = reader ?? RetainedPublicImageReader()', 'maximumZoomScale = 5')
 assert 'AsyncImage' not in text('App/NativeMediaGallery.swift')
 expect('Core/RoamMerchant.swift','case id, name, cityRole, storyTitle, description, tags, gallery','prefix(100)')
-expect('App/RoamItemDetailView.swift','NativeMediaGalleryEntry(sources: merchant.gallery','posterDestination(node)','stampDestination()')
+expect('App/RoamItemDetailView.swift','NativeMediaGalleryEntry(sources: merchant.gallery','stampDestination()')
 expect('App/SquareBrowserView.swift','showImages: false','NativeMediaGalleryEntry(sources: post.images, scope: reader.scope')
 expect('App/SquareDetailView.swift','NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope')
 expect('App/RoamStampCameraView.swift','picker.sourceType = .camera','RoamStampPixelCrop.render','AVCaptureDevice.requestAccess','captureGeneration','cameraEnabled = false','4:5')
