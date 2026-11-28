@@ -644,6 +644,16 @@ ADA #2 "fog / explored area on the Roam tab root": the MP draws the fog only on 
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, **new 0**. No Swift build here.
 
+## Round 3 continue (50) — live 输入地址 remote leg + per-row 导航 (Not done since continue 49)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings conflict: both sides' keys kept). No new coordinator finding for mp-roam (brief sweeps through 13:15 list none for roam). B lane receipt read: nothing on this row. Map panel settled (02:05) — not touched.
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| `components/cy/map-address-search` `_searchRemote` / `_searchNodes` / `onNavigate` / wxml `addrrow__nav` + `addrlist__none` (正在搜索… / 这附近没有搜到 / 联网搜索暂时不可用，先显示附近的地点); `utils/map-address-search.js#cityNodesToPlaces` — Not done since continue (49) | `App/RoamLiveAddressSearch.swift` (`RoamLiveAddressMatch.rows`, `RoamLiveAddressRow`, `RoamLiveRemotePlaceModel`, sheet), `App/RoamLiveSessionView.swift` (`addressSearchCenter`, `pickAddress`), `Core/MapSearchPlayerService.swift` `cityNodePlaces` | The live 输入地址 sheet only filtered the session's own places: no remote search (owner 10-28: 「海星市场」 must be findable), no node-library fallback, no 正在搜索… / remote-error line, and no 导航 on a row. | **Fixed:** keyword ≥ 2 characters → 350 ms debounce, last keystroke wins → `POST api/map/place-search {keyword, longitude, latitude}` around the map centre (live map follows the player: the GCJ-02 fix, else the first located place); empty (Tencent off) → `GET api/city/nodes {lat, lng, radius: 20000, keyword}` (new Core `cityNodePlaces`: `name` else `merchantName`, point required, same-name dropped, `node-<poiId>`); place-search failure → MP line 联网搜索暂时不可用，先显示附近的地点 and the node rows still join. Rows = local matches first, then remote, same-name dropped, five at most (MP `_refresh`). Remote rows use a neutral `mappin` (MP `kind: 'place'` grey pin); picking one moves the camera only, a session place also selects its pin (地点卡) as before. Keyboard 搜索 picks the first row (MP `onConfirm`). Empty while searching = 正在搜索… (`search.r3.loading.results`), otherwise 这附近没有搜到. Each row gets a trailing `.borderless` 导航 (`nativeR2.mapHome.card.navigate`, VoiceOver 导航到<name>) → the P1-21 map-app choice (Apple / 高德 / 百度) via the session `makeExternalMaps`; hidden when maps are not configured (fixtures). Remote leg only with `socialRoamCapabilities` (signed in). Test `PlayerCapabilityRoutesTests.testAddressSearchCityNodeFallbackMatchesMP`. New keys `roam.live.addressSearch.remoteError`, `roam.live.addressSearch.navigateTo %@` (en + zh-Hans, also in `docs/port/strings/mp-r3-roam.json`). | A · live map / no fixture shot |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, **new 0**. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
@@ -655,7 +665,7 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
   `RoamStampExchangeCoordinator` (never instantiated), so the citystamp camera (`showsCaption: true`) keeps its caption + exchange. Needs an
   upload-only camera mode returning the picture URL and session wiring for the coordinator — left for a compiled pass.
 - team-recovery per-command rows on my-teams / nearby: done (B lane, `817059d4c`).
-- Live 输入地址 (continue 49): remote place search fallback (`/api/city/nodes?keyword=`) and per-row 导航 still open.
+- Live 输入地址 (continue 49): remote place search fallback and per-row 导航: done (continue 50).
 - P2-7 Core outcome slice: done (B lane, `f3b61106d`); map POI tap still open.
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen from merchant pins + shop photo pins: done in continue (23).

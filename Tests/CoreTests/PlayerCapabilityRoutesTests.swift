@@ -276,6 +276,26 @@ final class PlayerCapabilityRoutesTests: XCTestCase {
 
     // MARK: Map / search
 
+    /// MP `map-address-search` `_searchNodes` + `cityNodesToPlaces` (V-06): GET api/city/nodes, name or merchantName,
+    /// rows without a point or already listed dropped, `node-<poiId>` ids.
+    func testAddressSearchCityNodeFallbackMatchesMP() async throws {
+        let stub = RouteStub()
+        let service = MapSearchPlayerService(client: client(stub))
+        stub.replies["api/city/nodes"] = (#"{"code":200,"data":[{"poiId":7,"name":"海星市场","merchantAddress":"沿河路 1 号","lat":31.21,"lng":121.46},{"poiId":8,"name":"","merchantName":"海星茶室","lat":31.22,"lng":121.47},{"poiId":9,"name":"本地","lat":31.2,"lng":121.4},{"poiId":10,"name":"无坐标"},{"poiId":11,"name":"海星市场","lat":31.3,"lng":121.5},{"poiId":12,"name":"零点","lat":0,"lng":0}]}"#, 200)
+        let places = try await service.cityNodePlaces(keyword: " 海星 ", latitude: 31.2, longitude: 121.5, localNames: ["本地"])
+        XCTAssertEqual(stub.last.httpMethod, "GET")
+        XCTAssertEqual(path(stub), "api/city/nodes")
+        XCTAssertEqual(stub.query("keyword"), "海星")
+        XCTAssertEqual(stub.query("radius"), "20000")
+        XCTAssertEqual(stub.query("lat"), "31.2")
+        XCTAssertEqual(stub.query("lng"), "121.5")
+        XCTAssertEqual(places.map(\.name), ["海星市场", "海星茶室"])
+        XCTAssertEqual(places.map(\.id), ["node-7", "node-8"])
+        XCTAssertEqual(places.first?.address, "沿河路 1 号")
+        let short = try await service.cityNodePlaces(keyword: "海", latitude: 31.2, longitude: 121.5)
+        XCTAssertTrue(short.isEmpty)
+    }
+
     func testGeocodePlaceSearchWeatherAndUnifiedSearch() async throws {
         let stub = RouteStub()
         let service = MapSearchPlayerService(client: client(stub))
