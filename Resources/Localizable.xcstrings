@@ -132463,13 +132463,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load earlier messages"
+            "value": "Earlier messages didn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "更早的消息加载失败"
+            "value": "更早消息没有加载"
           }
         }
       }
