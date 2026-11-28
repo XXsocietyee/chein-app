@@ -133,16 +133,9 @@ private struct MessagingConversationListView: View {
                 }
             }
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                if let starter = expanded?.starter() {
-                    NavigationLink {
-                        IMStartConversationView(owner: starter, identity: reader.identity) { newConversation = $0 }
-                    } label: { Label("im.full.start", systemImage: "square.and.pencil") }
-                    .accessibilityIdentifier("im.full.startEntry")
-                }
-            }
-        }
+        // Function audit P2-6 (MP-first): MP `subpackageB/pages/im/list` has no new-chat entry; a chat starts from a
+        // profile's 发消息 (`cy/profile` → `/api/im/start`) or a roam row, never by typing a raw member ID. The
+        // `IMStartConversationView` entry is gone from the inbox; `IMConversationStarter` stays for those callers.
         .navigationDestination(item: $newConversation) { id in
             MessagingHistoryView(conversationID: id, reader: reader, sender: senderForConversation?(id), mediaReader: mediaReader, expanded: expanded,
                 onConversationMutationAccepted: conversationInvalidation(for: id))
