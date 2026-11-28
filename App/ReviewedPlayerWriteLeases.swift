@@ -757,7 +757,10 @@ enum ReviewedPlayerReadRoute {
         // E2E-20261113b (coordinator): the paused-run read restoreRun needs before Start can run.
         "api/play/run-session",
         // Popup parity closure: player & organizer event attendance readback.
-        "api/official/events/{}/attendance", "api/official/events/{}/attendance/manage"
+        "api/official/events/{}/attendance", "api/official/events/{}/attendance/manage",
+        // mp-club r3 J-15: the club topic director's session recap export (`PlayDirectorRecap`, GET `activityId`, no body).
+        // A read; the server checks that the caller directs the activity (BE ApiGameSessionController.java:83).
+        "api/game/session/recap/export"
     ]
     nonisolated static let externalGamePaths: Set<String> = [
         "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
