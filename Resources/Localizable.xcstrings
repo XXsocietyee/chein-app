@@ -267180,6 +267180,23 @@
         }
       }
     },
+    "templateOwnShelf.read.create": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make a play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "做一个玩法"
+          }
+        }
+      }
+    },
     "templateOwnShelf.read.empty": {
       "extractionState": "manual",
       "localizations": {
@@ -272380,18 +272397,34 @@
         }
       }
     },
-    "ticketTeam.retry": {
+    "ticketTeam.failedTitle": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry lookup"
+            "value": "This team isn’t available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新查询"
+            "value": "队伍暂时不可用"
+          }
+        }
+      }
+    },
+    "ticketTeam.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载"
           }
         }
       }
