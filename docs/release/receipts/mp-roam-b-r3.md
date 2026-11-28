@@ -1,0 +1,16 @@
+# mp-roam B lane — round 3 (bottom-up on `mp-roam-r3.md` "Not done / next")
+
+Branch `mp/r3-roam-b` from `origin/mp/r3-roam` (c6adcf990). One row per A-receipt row finished; the A receipt is never edited here.
+Rows skipped bottom-up (not this area or not a fix): "For ds-consistency: `CYCelebrationMoment` .stamp", "No Swift build ran here",
+"Live map bottom strip P-32" (done; legacy flag-off cover only), "For a11y-dt: `a11y-roam-ax5`", "Entry peek `.login`" (stays by decision),
+"For other lanes … `CYMapScaffold`", "P21 mini bar" (nav lane, needs a compiled pass).
+
+| A row | MP page → native | Difference | Fix | Level / evidence |
+|---|---|---|---|---|
+| "team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store)" | `subpackageRoam/my-teams` wxml:16 + `nearby` wxml:271 `include utils/team-recovery-panel.wxml` (待确认的队伍操作: one card per team with an unknown result → label · message 原请求结果待确认；输入已保留，请查询或按原请求重试 · 查询结果 / 原请求重试 / 终止未执行请求 · 终止不会撤销已经生效的申请或审批。; storage error 未能读取待确认的队伍操作，请重试；暂不提交新操作 + 重新读取记录; hidden when empty; `roam-team-recovery.js` scans storage keys per account) → `App/NearbyTeamViews.swift` `listContent` (under `notice`, above `mineStats` and the 我的 / 附近 segment) + new `App/NearbyTeamCommandRecoveryPanel.swift` | The store already exists: the team page persists unknown-outcome commands in `TeamDefaultsJournal` (`questify.team.pending.v1.<owner>.<target>`), but the list page had no way to enumerate it, so a player who left the team page never saw the pending command again from 我的队伍. | `TeamDefaultsJournal.pendingTeamIDs(ownerKey:)` (`Core/TeamCoordinator.swift`) scans this account's `team-<id>` keys (activity-create targets excluded; an undecodable record throws → MP storage error). One owner-key formula `TeamSession.ownerKey(region:storageNamespace:accountID:)` (`Core/TeamService.swift`), reused by `NearbyTeamSession.teamOwnerKey` (`Core/NearbyTeamIntegration.swift`). `AppSession.pendingTeamCommandIDs()` in new `App/SessionTeamCommandRecovery.swift` (AppSession line ratchet kept), passed by `SessionNearbyTeamView` as `pendingTeamCommands`. Panel (`GroupBox`, Dynamic Type, `.bordered` buttons): per team 队伍操作 · MP message · 查询结果 → the team page (`NearbyTeamDestination.team` → `SessionTeamDetailView`), whose C-D12 card holds 查询原请求 / 按原输入重试 / 终止 with the original key and fields; footnote 终止不会撤销…; storage error + 重新读取记录. Re-read on every visit (`.task(id: ownedReadVisit)`), so a settled command disappears on return. The record keeps no action name, so the row label is the MP fallback (原操作 → "队伍操作") rather than the per-action label. 7 new keys en + zh-Hans (`nearby.commands.*`, also in `docs/port/strings/mp-r3-roam.json`). Test `Tests/CoreTests/TeamPendingTeamIDsScanTests.swift` (owner scoping incl. account 12 vs 123, activity targets excluded, broken record throws, nearby/team owner key equal). | C · utility (recovery list) / no fixture shot |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
+## Not done / next (B lane, bottom-up)
+- citystamp end-to-end write-step coordinator (upload-only camera mode) — next.
+- P2-7 rest (`/api/roam/checkin` from built-in POI tap) and P1-22 (owner value) — leave to the A lane (top-down) unless still open when reached.
