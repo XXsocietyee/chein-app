@@ -24,7 +24,7 @@ import SwiftUI
             // CLB-G15 (MP event-ops wxml:199): the selected topic cannot take online payment for priced sessions.
             if let notice = topicFact?.paymentNotice, !notice.isEmpty {
                 Label("club.eventOps.paymentNotice", systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("clubOpsEvent.paymentNotice")
             }
             // CLB-r10-nat-event-ops-04: 容量 and 候补 are their own Section (ClubOpsEventCapacitySection).

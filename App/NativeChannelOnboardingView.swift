@@ -180,7 +180,7 @@ import SwiftUI
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if prompt.required {
-                Text("d7.channelOnboarding.required").foregroundStyle(.orange)
+                Text("d7.channelOnboarding.required").foregroundStyle(CYColor.warningText)
             }
         }
     }
