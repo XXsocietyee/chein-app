@@ -12,7 +12,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alerts"
+            "value": "Notifications"
           }
         }
       }
@@ -44,7 +44,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alert settings"
+            "value": "Notification settings"
           }
         }
       }
@@ -60,7 +60,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System alert permission"
+            "value": "System notification permission"
           }
         }
       }
@@ -188,7 +188,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request completed, but current settings couldn't be loaded. Refresh to try again."
+            "value": "The original request completed, but current settings could not be loaded. Refresh to try again."
           }
         }
       }
@@ -444,7 +444,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System alert permission"
+            "value": "System notification permission"
           }
         }
       }
@@ -460,7 +460,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alert permission pending"
+            "value": "System notification permission has not been read"
           }
         }
       }
@@ -524,7 +524,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System alerts are allowed"
+            "value": "System notifications are allowed"
           }
         }
       }
@@ -716,7 +716,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose system alert permission"
+            "value": "Choose system notification permission"
           }
         }
       }
@@ -748,7 +748,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Even with system alerts allowed, whether you get a alert also depends on your channel settings."
+            "value": "Even with system alerts allowed, whether you get a notification also depends on your channel settings."
           }
         }
       }
@@ -1004,7 +1004,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh alert settings unread counts"
+            "value": "Refresh notification settings and unread counts"
           }
         }
       }
@@ -1228,7 +1228,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alerts at level"
+            "value": "Notifications at this level"
           }
         }
       }
@@ -1612,7 +1612,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save alert settings at this level?"
+            "value": "Save notification settings at this level?"
           }
         }
       }
@@ -2358,7 +2358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No alert settings yet"
+            "value": "No notification settings yet"
           }
         },
         "zh-Hans": {
@@ -2486,7 +2486,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System alerts"
+            "value": "System notifications"
           }
         },
         "zh-Hans": {
@@ -2582,7 +2582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Default alerts"
+            "value": "Default notifications"
           }
         },
         "zh-Hans": {
@@ -2902,7 +2902,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alert history"
+            "value": "Notification history"
           }
         },
         "zh-Hans": {

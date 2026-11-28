@@ -30,7 +30,7 @@ class NativeChannelNotificationPresentationSourceContracts(unittest.TestCase):
             values=[row['localizations'][locale]['stringUnit'] for locale in ['en','zh-Hans']]
             self.assertTrue(all(v['state']=='translated' and v['value'] for v in values),key)
             self.assertEqual(values[0]['value'].count('%@'),values[1]['value'].count('%@'),key)
-        self.assertEqual(rows['notification.global.title']['localizations']['en']['stringUnit']['value'],'Alerts')
+        self.assertEqual(rows['notification.global.title']['localizations']['en']['stringUnit']['value'],'Notifications')
     def test_every_literal_resource_reference_exists_in_the_same_table(self):
         keys=self.catalog().keys()
         for path in VIEWS+[PRESENTATION]:
@@ -103,7 +103,7 @@ class NativeChannelNotificationPresentationSourceContracts(unittest.TestCase):
         rows=self.catalog()
         def en(key):return rows['notification.'+key]['localizations']['en']['stringUnit']['value']
         self.assertIn('original request is retained',en('state.outcomeUnknown'))
-        self.assertIn("current settings couldn't be loaded",en('state.refreshFailed'))
+        self.assertIn('current settings could not be loaded',en('state.refreshFailed'))
         self.assertIn('historical result is hidden',en('state.appliedRedacted'))
         self.assertIn('empty list does not mean all channels are enabled',en('global.overrideBoundary'))
         self.assertIn('permission is still valid',en('recovery.confirm'))
