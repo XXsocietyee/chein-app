@@ -364137,6 +364137,23 @@
           }
         }
       }
+    },
+    "playx.finish.puzzleBest %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal best %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人最佳 %lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

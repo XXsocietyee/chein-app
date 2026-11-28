@@ -668,6 +668,14 @@ public struct PlayPuzzleSummary: Equatable {
         self.score = score
         self.count = count
     }
+
+    /// mp-journey-b r3: MP `_puzzlePersonalBest` → finish grid `个人最佳 N` (`finishPuzzleBest > 0`). The latest completion
+    /// receipt's `puzzlePersonalBest` wins (MP `index.js:7472`), else the `/api/play/nodes` value (`index.js:4608`).
+    public static func personalBest(result: PlayNodesResult?, receipt: PlayWireValue?) -> Int? {
+        let fromReceipt = receipt?["puzzlePersonalBest"].tolerantInteger
+        let value = fromReceipt ?? result?.puzzlePersonalBest ?? 0
+        return value > 0 ? value : nil
+    }
 }
 
 /// mp-journey r3: MP 飞分 `+N 探索值` at the completion moment (pages/play/index.js `_onCompleted`): `xp`, else `score`,
