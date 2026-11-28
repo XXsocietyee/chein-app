@@ -67,3 +67,11 @@ Half split (fixed at run start; A receipt open rows in file order): 1 `Character
 For other lanes: mp-activity / mp-journey — once the backend accepts +1 E.164 participants (P2-5c), `AccountPublishGapModels.swift:490` and `JourneyLoopSource.swift:408` still reject `+1…` numbers on the client.
 
 **Half done** (B half: row 3 blocked on backend + legal). Run stops here per the 15:45 split rule.
+
+## Run 6 (11-28, hourly)
+
+Merged `origin/mp/r3-mine` (A continue 48, 75170fb87). The new K50 receipts (`cursor-k50-r01`, `-r03`, `-r08`) have no mp-mine / `lane-layout` rows; the brief has no mp-mine coordinator rows after 13:15 (the 18:30 sweep covers mp-club / mp-journey).
+
+Half split (fixed at run start; A receipt open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin owner) · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` false) | 3 P2-5c participants +1 / US legal copy (backend + legal owner). **B half = row 3**, still blocked with nothing to change app-side in this area. Skipped.
+
+**Half done** (B half: row 3 blocked on backend + legal). Run stops here per the 15:45 split rule.
