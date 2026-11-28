@@ -346,7 +346,18 @@ extension EnvironmentValues {
                 case .edit: editor
                 }
             }
-            if let key = model.coordinator.messageKey { Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("templateAuthor.status") } }
+            if let key = model.coordinator.messageKey {
+                Section {
+                    Text(LocalizedStringKey(key)).accessibilityIdentifier("templateAuthor.status")
+                    // fix-1128-publish: a rejected draft / publish shows the server's reason, as the MP toast does.
+                    if let reason = model.coordinator.rejectionReason {
+                        Text(verbatim: reason)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("templateAuthor.rejectionReason")
+                    }
+                }
+            }
             if let request = model.coordinator.pending?.serverRequest, let session = model.coordinator.session {
                 let identity = model.coordinator.identity
                 Section {

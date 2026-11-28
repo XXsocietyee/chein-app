@@ -258114,6 +258114,22 @@
         }
       }
     },
+    "templateAuthor.draftSaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Template draft saved. Find it in My Projects → Templates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板草稿已保存，可在 我的项目 → 模板 中查看。"
+          }
+        }
+      }
+    },
     "templateAuthor.duplicateName": {
       "localizations": {
         "en": {
