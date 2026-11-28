@@ -111,7 +111,10 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
         let recorder = PlayRecoveryRecordingTransport(); state.normalRecorder = recorder
         let named: (String) -> String = { raw in
             guard designLocalized else { return raw }
+            // mp-journey r3 (sweep 18:30, stop 1 blank map): the design stop carries a place, so the run map shows
+            // its marker and start circle instead of an unmarked city.
             return raw
+                .replacingOccurrences(of: #""nodeId":701,"#, with: #""nodeId":701,"latitude":30.2536,"longitude":120.149,"#)
                 .replacingOccurrences(of: "Synthetic journey", with: mpJourneyFixtureText("West Lake Night Walk", "西湖夜游漫步"))
                 .replacingOccurrences(of: "Synthetic courtyard", with: mpJourneyFixtureText("Lantern Courtyard", "灯笼庭院"))
                 .replacingOccurrences(of: "Enter your own synthetic answer", with: mpJourneyFixtureText("Enter the word carved above the gate", "输入门楣上刻着的字"))
