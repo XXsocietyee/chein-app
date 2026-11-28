@@ -361394,23 +361394,6 @@
         }
       }
     },
-    "registration.result.viewTicket": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "View in ticket wallet"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查看票夹"
-          }
-        }
-      }
-    },
     "club.leadProgress.summary %@": {
       "extractionState": "manual",
       "localizations": {
