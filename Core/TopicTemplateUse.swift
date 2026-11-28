@@ -129,11 +129,11 @@ public enum TopicTemplateUseState: Equatable {
         case .copied(let receipt):
             var parts = [W8Text.t("已复制为你的草稿", "Copied to your drafts")]
             if receipt.blockingCount > 0 {
-                parts.append(W8Text.t("\(receipt.blockingCount) 个地点需重新确认后才能发布", "\(receipt.blockingCount) place(s) must be reconfirmed before publishing"))
+                parts.append(W8Text.t("\(receipt.blockingCount) 个地点需重新确认后才能发布", receipt.blockingCount == 1 ? "1 place must be reconfirmed before publishing" : "\(receipt.blockingCount) places must be reconfirmed before publishing"))
             } else if !receipt.pendingRebindSlotKeys.isEmpty {
-                parts.append(W8Text.t("\(receipt.pendingRebindSlotKeys.count) 个地点待确认", "\(receipt.pendingRebindSlotKeys.count) place(s) to confirm"))
+                parts.append(W8Text.t("\(receipt.pendingRebindSlotKeys.count) 个地点待确认", receipt.pendingRebindSlotKeys.count == 1 ? "1 place to confirm" : "\(receipt.pendingRebindSlotKeys.count) places to confirm"))
             } else if receipt.warningCount > 0 {
-                parts.append(W8Text.t("\(receipt.warningCount) 个地点建议复核", "\(receipt.warningCount) place(s) worth reviewing"))
+                parts.append(W8Text.t("\(receipt.warningCount) 个地点建议复核", receipt.warningCount == 1 ? "1 place worth reviewing" : "\(receipt.warningCount) places worth reviewing"))
             }
             return parts.joined(separator: " · ")
         case .failed(let message): return message

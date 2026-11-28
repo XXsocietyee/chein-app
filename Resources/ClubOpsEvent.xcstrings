@@ -470,7 +470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This occurrence is cancelled"
+            "value": "This occurrence is canceled"
           }
         },
         "zh-Hans": {
@@ -630,7 +630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Date list (including past and cancelled occurrences)"
+            "value": "Date list (including past and canceled occurrences)"
           }
         },
         "zh-Hans": {
@@ -1271,7 +1271,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Date list (including past and cancelled occurrences)"
+            "value": "Date list (including past and canceled occurrences)"
           }
         },
         "zh-Hans": {

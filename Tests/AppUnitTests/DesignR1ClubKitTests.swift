@@ -111,6 +111,6 @@ final class DesignR1ClubRosterCardTests: XCTestCase {
         XCTAssertNil(card.capacity)
         XCTAssertFalse(card.showsMoney)
         // The hosted app may override the language; both catalogs carry the same counts.
-        XCTAssertTrue(["创建者 1 · 管理员 1 · 成员 2", "Owner 1 · Admins 1 · Members 2"].contains(card.dateText ?? ""), card.dateText ?? "nil")
+        XCTAssertTrue(["创建者 1 · 管理员 1 · 成员 2", "Creator: 1 · Admins: 1 · Members: 2"].contains(card.dateText ?? ""), card.dateText ?? "nil")
     }
 }

@@ -193,7 +193,7 @@ enum SquarePostLocalMediaPresentationState: Equatable {
             case .imagePreview:
                 Text(text("仅本地图片预览，尚未上传", "Local image preview; not uploaded"))
                     .font(.caption).foregroundStyle(.secondary)
-            case .cancelled: Text(text("已取消选择或读取", "Selection or loading cancelled")).font(.subheadline).foregroundStyle(.secondary)
+            case .cancelled: Text(text("已取消选择或读取", "Selection or loading canceled")).font(.subheadline).foregroundStyle(.secondary)
             case .failed: Text(text("无法读取或不支持此媒体。请选择 JPEG 或 PNG 图片，或移除此选择。", "This media could not be read or is unsupported. Choose a JPEG or PNG image, or remove this selection.")).font(.subheadline).foregroundStyle(CYColor.dangerText)
             case .expired: Text(text("上次选择已失效，请重新选择", "Previous selection expired. Choose again.")).font(.subheadline).foregroundStyle(CYColor.warningText)
             case .empty, .choosing: EmptyView()

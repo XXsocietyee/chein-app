@@ -64,7 +64,7 @@ public struct IMCoopInviteCard: Equatable, Identifiable {
         case 0?: return chinese ? "待确认" : "Pending"
         case 1?: return chinese ? "已接受" : "Accepted"
         case 2?: return chinese ? "已拒绝" : "Declined"
-        case 3?: return chinese ? "已取消" : "Cancelled"
+        case 3?: return chinese ? "已取消" : "Canceled"
         case 4?: return chinese ? "已顶替" : "Replaced"
         case 5?: return chinese ? "已过期" : "Expired"
         default: return chinese ? "状态未知" : "Unknown"

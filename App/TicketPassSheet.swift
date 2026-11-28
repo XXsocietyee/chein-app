@@ -367,7 +367,7 @@ enum CYPassCardPick {
         case .pending: return c.t("完成支付后，这张票就可以出示了。", "Once paid, this pass is ready to present.")
         case .verified: return c.t("这张票已核验使用。", "This pass has been used.")
         case .expired: return c.t("这张票已过期。", "This pass has expired.")
-        case .cancelled: return c.t("这张票已取消。", "This pass was cancelled.")
+        case .cancelled: return c.t("这张票已取消。", "This pass was canceled.")
         case .unknown: return "—"
         }
     }

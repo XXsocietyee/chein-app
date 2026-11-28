@@ -90,6 +90,7 @@ import SwiftUI
                 moreButton
             }
             .padding(.vertical, 4)
+            .modifier(MemberCardSeparatorEdge())
             // xrefs-1 Adopt 6: the streak gets its own row under the name (native r2: a plain LabeledContent row).
             if showsMetrics, let streakDays {
                 LabeledContent {
@@ -98,13 +99,14 @@ import SwiftUI
                     Label { Text("profile.selfGrowth.streak") } icon: { Image(systemName: "flame") }
                 }
                 .accessibilityIdentifier("member.card.streak")
+                .modifier(MemberCardSeparatorEdge())
             }
             // 我的资产 (design hand-off r1 PL-30, owner Q-B; P 210:8603): 积分 first and large, as a plain number with no tile.
             // 积分 is the only currency. The ¥ 账户余额 column appears only when this account holds real money (the server
             // sent a balance). Unknown 积分 reads "—", never 0.
             // MP cy-profile shows the metrics only when `profileMetricState === 'ready'`: an unknown 积分 hides the
             // block instead of reading "Points —" (18:15 sweep, e4-member).
-            if showsMetrics, points != nil || balanceDisplay != nil { assets }
+            if showsMetrics, points != nil || balanceDisplay != nil { assets.modifier(MemberCardSeparatorEdge()) }
             // The three counters (好友 / 关注 / 粉丝) as one row of plain columns.
             // mp-mine r3 (MP cy-profile wxml:109, 1121 N5): one's own page hides the row while all three are a known 0.
             if showsCounters {
@@ -115,6 +117,7 @@ import SwiftUI
                     Divider()
                     statCell(snapshot?.fansCountText, id: "fans", key: "member.card.fans")
                 }
+                .modifier(MemberCardSeparatorEdge())
             }
             // MP cy-profile `pc-actions`: [开始探索] [票夹] (same size; P22 filled + bordered) [···] under the counters.
             if let onOpenTickets, onStartExplore != nil {
@@ -751,6 +754,14 @@ extension MemberAchievementMetricsSection where Trailing == EmptyView {
 }
 
 /// P22 action pair: the primary action is `.borderedProminent`, the secondary `.bordered`; both `.large`, equal width.
+/// d2-me sweep (build 0446d1c4f): the identity card's hairlines started under the name (≈165 pt) and then under
+/// 好友 (≈80 pt). Every row of the card starts its separator at the row's leading edge, so the card reads as one object.
+struct MemberCardSeparatorEdge: ViewModifier {
+    func body(content: Content) -> some View {
+        content.alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
+    }
+}
+
 struct MemberCardActionStyle: ViewModifier {
     let secondary: Bool
     func body(content: Content) -> some View {

@@ -28,7 +28,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Governance view includes unpublished and cancelled sessions. Status does not establish registration eligibility."
+            "value": "Governance view includes unpublished and canceled sessions. Status does not establish registration eligibility."
           }
         }
       }
@@ -172,7 +172,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         }
       }
