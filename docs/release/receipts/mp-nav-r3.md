@@ -327,3 +327,14 @@ Next edge without a row: sign-in from club pages landed by a share card / link (
 | landed `pages/talent/list/index` → App/MPReviewedPageScreen.swift:87 `ClubHomeView`; owned-club fallback (`ownedClubs`, :909 `ClubOwnedView`) | same `onSignIn: {}` | same `{ signIn() }` | fixed (not compiled here) |
 
 Sections / order unchanged; navigation only.
+
+## OWNER REQUIREMENT 11-28 04:30 — sign-in methods (merged combined-r7 at 06:xx)
+
+| item | native file | before | after | status |
+|---|---|---|---|---|
+| 1. P27 order + US market | App/LoginView.swift `loginForm`, App/AuthChannelView.swift `PhoneSignInForm` | first screen: 手机号登录 (US: "More ways to sign in"), then Apple, then WeChat; US showed `region.usLoginPending` on both the first screen and the phone page (no phone field) | phone first in both markets (`auth.channels.phoneTitle`), then WeChat (CN, SDK-gated), then Sign in with Apple (both markets, gated by `appleConfigurationVerified`). `region.usLoginPending` removed from both views; the phone page is shown for any configured market (`AppSession.supportsPhoneSignInInput`, in LoginView.swift so AppSession does not grow). Country menu already defaults from the market (`PhoneCountryCode.launchDefault`) | fixed (not compiled here) |
+| 4. +1 formatting | App/AuthChannelView.swift `onChange(of: phone)` → `PhoneCountryCode.fieldText` | already groups `(555) 123-4567`; E.164 wire via `AuthChannelInput.phone` | verified, no change | n/a |
+| 2. Alipay adapter | — | not present | next commit | Not done |
+| 3. MP-account sync note | — | not present | after 2 | Not done |
+
+Pins: Tests/ContractChecks/test_pkg19_login_deletion_chain.py:58-59 (phone page follows any configured market, owner 04:30); Tests/AppUITests/RegionalEntryFlowTests.swift US cases now expect the +1 phone field instead of the pending row. Note: a US *build* still has no approved host (`ReviewedMarketLaunch.approvedBaseURLs`), so there the phone page shows the existing `auth.notConfigured` line until a host is approved (coordinator/backend).
