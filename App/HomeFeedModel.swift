@@ -18,6 +18,15 @@ import SwiftUI
     var streamReadiness: HomeFeedSurfaceState {
         HomeFeedSurfaceState.slot(failed: pageFailed, loaded: pageLoaded, loading: loading || loadingPage, isEmpty: pagination.items.isEmpty)
     }
+    /// ADA 1128 gap 4: what the stream shows when it has no rows yet. Empty only after a page
+    /// has loaded with nothing in it. Before that — including the frame before `loadingPage` flips — it is loading.
+    enum StreamPlaceholder: Equatable { case loading, empty, error, ready }
+    var streamPlaceholder: StreamPlaceholder {
+        if pageFailed { return .error }
+        if !pageLoaded { return .loading }
+        if pagination.items.isEmpty { return .empty }
+        return .ready
+    }
     func sectionReadiness(_ section: HomeFeedSection) -> HomeFeedSurfaceState {
         if failedSections.contains(section) { return .error }
         guard let items = sections[section] else { return .loading }

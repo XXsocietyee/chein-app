@@ -264,6 +264,21 @@ import XCTest
         XCTAssertEqual(old.requests.count, 1)
         XCTAssertEqual(model.pagination.items.map(\.id), [.activity(7)])
     }
+    func testStreamPlaceholderStaysLoadingUntilAPageSettles() async {
+        let pending = HomeFeedModel()
+        XCTAssertEqual(pending.streamPlaceholder, .loading)
+        let emptyReader = Reader()
+        emptyReader.emptyPage = true
+        await pending.resume(reader: emptyReader, query: .init())
+        XCTAssertEqual(pending.streamPlaceholder, .empty)
+        let failed = HomeFeedModel(), failing = Reader()
+        failing.failPage = true
+        await failed.resume(reader: failing, query: .init())
+        XCTAssertEqual(failed.streamPlaceholder, .error)
+        let ready = HomeFeedModel()
+        await ready.resume(reader: Reader(), query: .init())
+        XCTAssertEqual(ready.streamPlaceholder, .ready)
+    }
     func testReadinessStartsLoadingThenBecomesEmptyErrorOrReady() async {
         let model = HomeFeedModel()
         XCTAssertEqual(model.streamReadiness, .loading)

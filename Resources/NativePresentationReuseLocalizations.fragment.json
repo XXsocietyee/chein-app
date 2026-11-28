@@ -88,7 +88,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photos can't be loaded right now"
+            "value": "Photos can't loaded right"
           }
         },
         "zh-Hans": {
@@ -449,7 +449,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verification is unavailable"
+            "value": "Check is unavailable"
           }
         },
         "zh-Hans": {

@@ -151,7 +151,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation details"
+            "value": "Invite details"
           }
         },
         "zh-Hans": {
@@ -183,7 +183,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation message"
+            "value": "Invite message"
           }
         },
         "zh-Hans": {
@@ -247,7 +247,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting response"
+            "value": "Awaiting"
           }
         },
         "zh-Hans": {

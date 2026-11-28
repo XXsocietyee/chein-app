@@ -76,8 +76,16 @@ public enum UGCSafetyReportTarget: Hashable, Sendable {
             return "api/club/post/report"
         case .clubPostComment:
             return "api/club/post/comment/report"
-        case .community, .member, .activity:
-            return "api/v1/community/reports"
+        case .community(let type, _):
+            // CONTENT and COMMENT are posts the v1 report route accepts. MEMBER, ACTIVITY, CLUB, MERCHANT and
+            // SAFETY_RATING fall through that route to a post lookup and come back 404 (P1-7). The trust submit
+            // route already accepts those target types (CommunityTrustServiceImpl.REPORT_TARGETS).
+            switch type {
+            case .content, .comment: return "api/v1/community/reports"
+            case .member, .merchant, .club, .activity, .safetyRating: return "api/community-trust/reports/submit"
+            }
+        case .member, .activity:
+            return "api/community-trust/reports/submit"
         case .team:
             return "api/team/report"
         case .mod:
@@ -267,6 +275,11 @@ public struct UGCContentSafetyHTTPService: UGCContentSafetyServing, @unchecked S
         let decoded = decodeEnvelope(data)
         let accepted = (200..<300).contains(status) && (decoded.code == nil || decoded.code == 200)
         guard accepted else {
+            // A 404 (post lookup, or HTTP 404) keeps the server's whole message, not a collapsed unknown.
+            if status == 404 || decoded.code == 404 {
+                let full = decoded.message ?? String(data: data, encoding: .utf8)
+                throw UGCContentSafetyError.serverRejected(full?.isEmpty == false ? full : nil)
+            }
             throw UGCContentSafetyError.serverRejected(decoded.message)
         }
         return decoded.message

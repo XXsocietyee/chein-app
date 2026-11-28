@@ -77,7 +77,7 @@ final class ClubCommunityReadRuntimeTests: XCTestCase {
             }
             if path.hasSuffix("api/club/post/feed") {
                 let items = (1...20).map { self.makePostJSON(id: $0) }.joined(separator: ",")
-                return (Data(#"{"code":200,"data":{"rows":[\#(items)],"total":22,"clubCount":1}}"#.utf8), 200)
+                return (Data(#"{"code":200,"data":{"rows":[\#(items)],"total":22,"clubCount":1,"hasMore":false}}"#.utf8), 200)
             }
             if path.hasSuffix("api/club/post/comment/list") {
                 let pageNum = body["pageNum"] as? Int ?? 1

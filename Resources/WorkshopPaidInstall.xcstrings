@@ -268,7 +268,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review and retry original confirmation"
+            "value": "Review and retry original check"
           }
         }
       }
@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Installation outcome"
+            "value": "Install outcome"
           }
         }
       }
@@ -812,7 +812,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request is not visible yet. This does not prove it was never submitted."
+            "value": "The original request isn't visible yet. This doesn't prove it never submitted."
           }
         }
       }

@@ -1,7 +1,7 @@
 [
   {
     "key": "merchant.discover.title",
-    "en": "Discover merchants",
+    "en": "Discover shops",
     "zh-Hans": "发现商家"
   },
   {
@@ -16,7 +16,7 @@
   },
   {
     "key": "merchant.discover.photos",
-    "en": "Photo-friendly",
+    "en": "Photo ready",
     "zh-Hans": "可拍照"
   },
   {
@@ -66,7 +66,7 @@
   },
   {
     "key": "merchant.cityRedeem.title",
-    "en": "Redeem city-node code",
+    "en": "Redeem city-node",
     "zh-Hans": "据点核销"
   },
   {
@@ -76,7 +76,7 @@
   },
   {
     "key": "merchant.cityRedeem.disabled",
-    "en": "City-node redemption isn't available right now. This code won't be sent.",
+    "en": "City-node redeem isn't available right now. This code won't be sent.",
     "zh-Hans": "据点核销暂不可用，不会发送此码。"
   },
   {
@@ -116,7 +116,7 @@
   },
   {
     "key": "merchant.cityRedeem.confirm",
-    "en": "Redeem code",
+    "en": "Redeem",
     "zh-Hans": "核销"
   },
   {
@@ -156,7 +156,7 @@
   },
   {
     "key": "merchant.cityRedeem.denied",
-    "en": "Your current merchant permission does not allow redemption.",
+    "en": "Current merchant permission doesn't allow redeem.",
     "zh-Hans": "当前商家权限不允许核销。"
   },
   {

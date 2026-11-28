@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo framing outline"
+            "value": "Photo framing"
           }
         },
         "zh-Hans": {
@@ -182,7 +182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The two-tone background is only for checking transparency; it is not part of the frame image."
+            "value": "Two-tone background checks transparency only."
           }
         },
         "zh-Hans": {

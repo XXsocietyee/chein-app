@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free hints could not be loaded"
+            "value": "Free hints couldn't"
           }
         },
         "zh-Hans": {
@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Claimable"
+            "value": "Ready"
           }
         },
         "zh-Hans": {

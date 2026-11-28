@@ -11,7 +11,7 @@
   },
   {
     "key": "club.management.unconfigured",
-    "en": "Club management isn't available right now",
+    "en": "Club management isn't available right",
     "zh-Hans": "俱乐部管理暂不可用"
   },
   {
@@ -141,7 +141,7 @@
   },
   {
     "key": "club.management.fixture",
-    "en": "Offline synthetic club management fixture",
+    "en": "Offline synthetic club management",
     "zh-Hans": "离线模拟俱乐部管理"
   },
   {

@@ -374,7 +374,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Previous chapter"
+            "value": "Previous"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opening chapter content"
+            "value": "Opening chapter"
           }
         },
         "zh-Hans": {
@@ -662,7 +662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Thought declaration"
+            "value": "Thought"
           }
         },
         "zh-Hans": {

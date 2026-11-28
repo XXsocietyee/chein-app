@@ -821,7 +821,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Start merchant onboarding"
+          "value": "Start merchant"
         }
       },
       "zh-Hans": {
@@ -855,7 +855,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Profit share details"
+          "value": "Profit share"
         }
       },
       "zh-Hans": {
@@ -906,7 +906,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Tick every item on the checklist first"
+          "value": "Tick every item on checklist first"
         }
       },
       "zh-Hans": {
@@ -1212,7 +1212,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Play original recording"
+          "value": "Play original"
         }
       },
       "zh-Hans": {
@@ -1348,7 +1348,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Couldn't load the settlement details"
+          "value": "Couldn't load the payout details"
         }
       },
       "zh-Hans": {
@@ -1382,7 +1382,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This settlement record is not visible"
+          "value": "Payout record isn't visible"
         }
       },
       "zh-Hans": {
@@ -1399,7 +1399,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Settlement record information is missing"
+          "value": "Settlement record info is missing"
         }
       },
       "zh-Hans": {
@@ -1433,7 +1433,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Original amount due"
+          "value": "Original amount"
         }
       },
       "zh-Hans": {
@@ -1467,7 +1467,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Settlement details"
+          "value": "Payout details"
         }
       },
       "zh-Hans": {
@@ -1501,7 +1501,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Confirm the redemption station"
+          "value": "Confirm the redeem station"
         }
       },
       "zh-Hans": {
@@ -1535,7 +1535,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redemption station"
+          "value": "Redeem station"
         }
       },
       "zh-Hans": {

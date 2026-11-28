@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 /// P0-5 / P1-1 (audit 11-28). Kept out of `AppSession.swift` (size ratchet).
 extension AppSession {
@@ -35,6 +36,25 @@ extension AppSession {
                                     legalCatalog: reviewed?.legalCatalogApproved == true,
                                     appleAlternative: reviewed?.appleSignInApproved == true,
                                     exchangeWired: reviewed?.weChatSignInApproved == true && regionalConfiguration?.apiConfiguration != nil)
+    }
+}
+
+/// One-shot presentation after WeChat sign-in. Not a credential and not read back as authorization.
+@MainActor
+private enum LinkedMiniProgramAccountNote {
+    static var sessions: [ObjectIdentifier: Bool] = [:]
+}
+
+extension AppSession {
+    var showsLinkedMiniProgramAccountNote: Bool {
+        LinkedMiniProgramAccountNote.sessions[ObjectIdentifier(self)] == true
+    }
+    func noteLinkedMiniProgramAccount() {
+        LinkedMiniProgramAccountNote.sessions[ObjectIdentifier(self)] = true
+    }
+    func clearLinkedMiniProgramAccountNote() {
+        guard LinkedMiniProgramAccountNote.sessions.removeValue(forKey: ObjectIdentifier(self)) != nil else { return }
+        objectWillChange.send()
     }
 }
 

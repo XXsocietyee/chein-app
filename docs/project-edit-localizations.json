@@ -16,7 +16,7 @@
     "zh-Hans": "副标题"
   },
   "projectEdit.description": {
-    "en": "Description",
+    "en": "Details",
     "zh-Hans": "描述"
   },
   "projectEdit.cover": {
@@ -152,7 +152,7 @@
     "zh-Hans": "地址"
   },
   "projectEdit.longitude": {
-    "en": "Longitude",
+    "en": "Lng",
     "zh-Hans": "经度"
   },
   "projectEdit.latitude": {
@@ -240,7 +240,7 @@
     "zh-Hans": "票种模式随路线类型同步。已有售票窗口与集合坐标会保留。"
   },
   "projectEdit.visibility": {
-    "en": "Visibility and ownership",
+    "en": "Visibility ownership",
     "zh-Hans": "展示与归属"
   },
   "projectEdit.publishToCreative": {
@@ -344,7 +344,7 @@
     "zh-Hans": "草稿属于其他账号或服务环境，无法打开。"
   },
   "projectEdit.incompatible": {
-    "en": "This saved draft is incompatible with this editor. It has not been applied.",
+    "en": "This saved draft is incompatible with this editor. It hasn't been applied.",
     "zh-Hans": "此草稿与当前编辑器不兼容，未载入。"
   },
   "projectEdit.revisionConflict": {
@@ -536,7 +536,7 @@
     "zh-Hans": "此配置含不支持或无法读取的规则，保持原样；请在原专业发布页编辑。"
   },
   "projectEdit.completion.mode": {
-    "en": "Completion condition",
+    "en": "Completion rule",
     "zh-Hans": "通关条件"
   },
   "projectEdit.completion.all": {
@@ -544,7 +544,7 @@
     "zh-Hans": "完成全部站点"
   },
   "projectEdit.completion.atLeast": {
-    "en": "Complete at least the specified count",
+    "en": "Complete at least specified count",
     "zh-Hans": "至少完成指定数量"
   },
   "projectEdit.completion.count": {
@@ -580,7 +580,7 @@
     "zh-Hans": "奖励反馈（最多120字）"
   },
   "projectEdit.completion.invalidCount": {
-    "en": "Required completion count must be a positive integer.",
+    "en": "Required completion count must be positive integer.",
     "zh-Hans": "至少完成数量须为正整数。"
   },
   "projectEdit.completion.invalidCells": {
@@ -604,7 +604,7 @@
     "zh-Hans": "原始规则已变更，请重新载入主题。"
   },
   "projectEdit.completion.condition.0": {
-    "en": "Complete your first station",
+    "en": "Complete first station",
     "zh-Hans": "完成第1个点"
   },
   "projectEdit.completion.condition.1": {
@@ -624,7 +624,7 @@
     "zh-Hans": "两天各来一次"
   },
   "projectEdit.completion.condition.5": {
-    "en": "Visit on two consecutive days",
+    "en": "Visit two consecutive",
     "zh-Hans": "连续两天来"
   },
   "projectEdit.completion.condition.6": {
@@ -652,7 +652,7 @@
     "zh-Hans": "售票日期"
   },
   "projectEdit.saleStart": {
-    "en": "Ticket sales start",
+    "en": "Ticket sales",
     "zh-Hans": "售票开始"
   },
   "projectEdit.saleEnd": {

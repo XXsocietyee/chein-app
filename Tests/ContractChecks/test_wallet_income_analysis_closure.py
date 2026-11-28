@@ -55,7 +55,7 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
  def testReadScopeAndWithdrawalLabelsDoNotPromiseCompletenessOrPayout(self):
   catalog=json.loads(self.src('Resources/WalletIncomeAnalysis.xcstrings'))['strings']
   en=lambda k:catalog['wallet.analysis.'+k]['localizations']['en']['stringUnit']['value']
-  self.assertEqual(en('withdrawal'),'Withdrawal request debits')
+  self.assertEqual(en('withdrawal'),'Cash out')
   self.assertEqual(en('source.invitation'),'Merchant referral')
   self.assertIn('not complete account income',en('noPayout'))
   self.assertIn('not an atomic snapshot',en('slice'))

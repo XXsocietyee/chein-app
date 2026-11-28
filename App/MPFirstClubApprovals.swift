@@ -159,6 +159,7 @@ enum MPFirstClubWriteRoute {
         if acceptsOwnerRefund(request, baseURL: baseURL, token: token) { return true }
         if acceptsClubScan(request, baseURL: baseURL, token: token) { return true }
         if acceptsTopicRegistrations(request, baseURL: baseURL, token: token) { return true }
+        if acceptsNameCheck(request, baseURL: baseURL, token: token) { return true }
         guard let token, AuthRequestBuilder.isValidToken(token),
               request.httpMethod == "POST", request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
@@ -218,6 +219,27 @@ enum MPFirstClubWriteRoute {
         let id = String(text.dropFirst(prefix.count).dropLast(suffix.count))
         guard id.count <= 16, id.allSatisfy(\.isASCII), id.allSatisfy(\.isNumber), let value = Int(id) else { return false }
         return value > 0
+    }
+
+    /// P2-4: `POST api/club/name-check` JSON `{name}` (ClubOperationsService.checkName, BE ApiClubController.nameCheck).
+    /// One trimmed name of 1...30 characters, the same cap as `ClubOperationsDraft`. Read only; create stays on its own body.
+    static let nameCheckPath = ClubNameCheck.path
+    static func acceptsNameCheck(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let url = request.url, url.fragment == nil, url.user == nil, url.password == nil, url.query == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false), parts.query == nil,
+              MPFirstMerchantWriteRoute.relativePath(parts.path, base: baseURL.path) == nameCheckPath,
+              let body = request.httpBody, body.count < 1024,
+              let object = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any],
+              Set(object.keys) == ["name"],
+              let name = object["name"] as? String,
+              name == name.trimmingCharacters(in: .whitespacesAndNewlines),
+              !name.isEmpty, name.count <= 30 else { return false }
+        return true
     }
 
     /// 1128 gap #14 (C-19): `POST api/club/topic-registrations` JSON `{clubId, topicId}` (ClubGovernanceRead.registrations,

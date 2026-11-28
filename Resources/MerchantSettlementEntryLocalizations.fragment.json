@@ -36,7 +36,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redemption earnings"
+          "value": "Redeem earnings"
         }
       },
       "zh-Hans": {
@@ -52,7 +52,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Cooperation revenue share"
+          "value": "Collab revenue"
         }
       },
       "zh-Hans": {
@@ -68,7 +68,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Activity revenue share"
+          "value": "Activity revenue"
         }
       },
       "zh-Hans": {

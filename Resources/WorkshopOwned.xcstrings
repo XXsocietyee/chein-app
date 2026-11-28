@@ -150,7 +150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Acquisition record"
+            "value": "Acquisition"
           }
         },
         "zh-Hans": {
@@ -1094,7 +1094,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Adaptation allowed"
+            "value": "Variant allowed"
           }
         },
         "zh-Hans": {

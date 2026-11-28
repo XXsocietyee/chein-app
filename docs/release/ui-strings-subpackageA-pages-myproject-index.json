@@ -15,7 +15,7 @@
       "zh-Hans": "内容没加载出来。网络没连上，请重试。"
     },
     "creatorContent.filter.activity": {
-      "en": "Activities",
+      "en": "Events",
       "zh-Hans": "活动"
     },
     "creatorContent.filter.all": {
@@ -35,7 +35,7 @@
       "zh-Hans": "草稿"
     },
     "creatorContent.filter.member": {
-      "en": "Individual",
+      "en": "Solo",
       "zh-Hans": "个人"
     },
     "creatorContent.filter.merchant": {
@@ -63,7 +63,7 @@
       "zh-Hans": "进行中"
     },
     "creatorContent.filter.template": {
-      "en": "Templates",
+      "en": "Forms",
       "zh-Hans": "模板"
     },
     "creatorContent.filter.topic": {
@@ -95,7 +95,7 @@
       "zh-Hans": "我的项目"
     },
     "creatorContent.retry": {
-      "en": "Try again",
+      "en": "Try",
       "zh-Hans": "重试"
     },
     "creatorContent.signInRequired": {
@@ -123,7 +123,7 @@
       "zh-Hans": "未命名"
     },
     "myProject.cta.activity": {
-      "en": "Publish a single-session activity",
+      "en": "Publish single-session",
       "zh-Hans": "发布单场活动"
     },
     "myProject.cta.topic": {
@@ -183,7 +183,7 @@
       "zh-Hans": "上架"
     },
     "myProject.op.unavailable": {
-      "en": "These actions aren't available in the app right now",
+      "en": "These actions aren't available app",
       "zh-Hans": "这些操作暂不可用"
     },
     "myProject.op.viewApplies": {
@@ -211,11 +211,11 @@
       "zh-Hans": "正在同步最新项目…"
     },
     "myProject.tab.activity": {
-      "en": "Activities",
+      "en": "Events",
       "zh-Hans": "活动"
     },
     "myProject.tab.template": {
-      "en": "Templates",
+      "en": "Forms",
       "zh-Hans": "模板"
     },
     "myProject.tab.topic": {

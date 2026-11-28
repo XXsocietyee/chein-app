@@ -86,7 +86,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This conversation is currently unavailable for this action."
+            "value": "This chat is currently unavailable for this action."
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reviewed conversations"
+            "value": "Reviewed chats"
           }
         },
         "zh-Hans": {

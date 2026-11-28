@@ -9,6 +9,7 @@ import UIKit
         let host = UIHostingController(rootView: ActivityAssociatedPlayRow(play: row).environment(\.dynamicTypeSize, .accessibility3))
         host.loadViewIfNeeded(); host.view.layoutIfNeeded()
         XCTAssertEqual(row.players, "2–6"); XCTAssertEqual(row.durationMinutes, 30.5)
+        XCTAssertNil(row.publicTemplateID)
         XCTAssertNotNil(host.view)
     }
     func testEmptyAndUnknownRowsDoNotCreateFallbackActivitiesOrValues() throws {

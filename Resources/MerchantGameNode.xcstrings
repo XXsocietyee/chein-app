@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Decline invitation"
+            "value": "Decline invite"
           }
         },
         "zh-Hans": {
@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't generate a check-in code right now"
+            "value": "Couldn't generate a check-in code right"
           }
         },
         "zh-Hans": {
@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Accept this station invitation?"
+            "value": "Accept this station invite?"
           }
         },
         "zh-Hans": {
@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not enough on-site resources"
+            "value": "Not enough on-site"
           }
         },
         "zh-Hans": {
@@ -550,7 +550,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This merchant is not responsible for a station in this session."
+            "value": "This merchant isn't responsible station session."
           }
         },
         "zh-Hans": {
@@ -582,7 +582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action parameters are invalid."
+            "value": "Action parameters invalid."
           }
         },
         "zh-Hans": {
@@ -662,7 +662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action result is incomplete."
+            "value": "The action result incomplete."
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action result is invalid."
+            "value": "The action result invalid."
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action record parameters are invalid."
+            "value": "Action record parameters invalid."
           }
         },
         "zh-Hans": {
@@ -726,7 +726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action state is invalid."
+            "value": "The action state invalid."
           }
         },
         "zh-Hans": {
@@ -758,7 +758,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This station can't be viewed right now"
+            "value": "This station can't be viewed right"
           }
         },
         "zh-Hans": {
@@ -918,7 +918,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Decline invitation"
+            "value": "Decline invite"
           }
         },
         "zh-Hans": {
@@ -950,7 +950,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Station invitation"
+            "value": "Station invite"
           }
         },
         "zh-Hans": {
@@ -1270,7 +1270,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To be confirmed"
+            "value": "To confirmed"
           }
         },
         "zh-Hans": {
@@ -1606,7 +1606,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparation checklist"
+            "value": "Prep checklist"
           }
         },
         "zh-Hans": {
@@ -1686,7 +1686,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publicly authorised content"
+            "value": "Publicly authorised"
           }
         },
         "zh-Hans": {
@@ -1942,7 +1942,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Duplicate submission"
+            "value": "Duplicate entry"
           }
         },
         "zh-Hans": {
@@ -2438,7 +2438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Station needs preparation"
+            "value": "Station needs prep"
           }
         },
         "zh-Hans": {
@@ -2470,7 +2470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Switch station"
+            "value": "Switch"
           }
         },
         "zh-Hans": {
@@ -2582,7 +2582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This station can't be paused right now"
+            "value": "This station can't be paused right"
           }
         },
         "zh-Hans": {
@@ -2630,7 +2630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete the checklist and fill in capacity and service hours"
+            "value": "Complete the checklist and fill in capacity service hours"
           }
         },
         "zh-Hans": {
@@ -2726,7 +2726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Action result pending confirmation"
+            "value": "Action result pending check"
           }
         },
         "zh-Hans": {
@@ -2774,7 +2774,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verification number"
+            "value": "Check number"
           }
         },
         "zh-Hans": {
@@ -2790,7 +2790,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The positive number shown on the player's submission page"
+            "value": "Submission ID"
           }
         },
         "zh-Hans": {
@@ -2886,7 +2886,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action didn't go through."
+            "value": "Action didn't go through."
           }
         },
         "zh-Hans": {
@@ -2934,7 +2934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original action didn't go through."
+            "value": "Original action didn't go."
           }
         },
         "zh-Hans": {
@@ -2998,7 +2998,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retrying with the original request number…"
+            "value": "Retrying with original request number…"
           }
         },
         "zh-Hans": {

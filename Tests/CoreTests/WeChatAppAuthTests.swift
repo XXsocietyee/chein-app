@@ -66,6 +66,7 @@ final class WeChatAppAuthTests: XCTestCase {
         let http = WeChatHTTPFixture([(login, 200), (account, 200)])
         let service = try service(http)
         let result = try await service.exchange(code: "synthetic-app-code")
+        XCTAssertFalse(result.linkedMiniProgram)
         _ = try await service.currentAccount(token: result.token)
         XCTAssertEqual(http.requests.map { $0.url!.path }, ["/prefix/api/login/wechat/app", "/prefix/api/userInfo"])
         let request = http.requests[0]
@@ -129,6 +130,27 @@ final class WeChatAppAuthTests: XCTestCase {
         sdk.respond(.code("fixture")); sdk.respond(.code("duplicate"))
         await drain()
         XCTAssertEqual(http.requests.count, 2); XCTAssertEqual(commits, 1); XCTAssertEqual(coordinator.phase, .signedIn)
+    }
+    /// The commit handed to the session carries the server Bool, including false. A non-Bool does not block sign-in.
+    func testCoordinatorForwardsMiniProgramFlagWithoutAuthorizingFromIt() async throws {
+        let cases: [(String, Bool)] = [
+            (#"{"code":200,"token":"fixture-token","data":{"id":7},"linkedMiniProgram":true}"#, true),
+            (#"{"code":200,"token":"fixture-token","data":{"id":7},"linkedMiniProgram":false}"#, false),
+            (#"{"code":200,"token":"fixture-token","data":{"id":7},"linkedMiniProgram":"yes","msg":"private"}"#, false),
+        ]
+        for (json, expected) in cases {
+            let sdk = WeChatSDKFixture(), http = WeChatHTTPFixture([(json, 200), (account, 200)])
+            var seen: Bool?
+            let coordinator = WeChatAppAuthCoordinator(adapter: sdk, service: try service(http), gate: { self.enabled() }, context: { self.context() }, commit: { result, _ in
+                seen = result.linkedMiniProgram
+                XCTAssertEqual(result.token, "fixture-token")
+                XCTAssertEqual(result.account.id, 7)
+                return true
+            })
+            coordinator.start(); sdk.respond(.code("fixture")); await drain()
+            XCTAssertEqual(seen, expected)
+            XCTAssertEqual(coordinator.phase, .signedIn)
+        }
     }
     func testStateMismatchCancelLateCallbackAndFreshNonce() async throws {
         let sdk = WeChatSDKFixture(), http = WeChatHTTPFixture([])

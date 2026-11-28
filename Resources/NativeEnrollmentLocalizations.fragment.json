@@ -20,7 +20,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Device verification"
+          "value": "Device check"
         }
       },
       "zh-Hans": {
@@ -68,7 +68,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Environment"
+          "value": "Setup"
         }
       },
       "zh-Hans": {
@@ -132,7 +132,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Prepare device verification"
+          "value": "Prepare device check"
         }
       },
       "zh-Hans": {
@@ -708,7 +708,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Sign in to the original account to recover this request."
+          "value": "Sign in to the original account to recover request."
         }
       },
       "zh-Hans": {

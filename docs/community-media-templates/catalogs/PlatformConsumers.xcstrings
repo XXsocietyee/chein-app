@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Audio playback isn't available right now"
+            "value": "Audio playback isn't available"
           }
         },
         "zh-Hans": {
@@ -278,7 +278,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opening in Maps isn't available right now"
+            "value": "Opening Maps isn't available right"
           }
         },
         "zh-Hans": {

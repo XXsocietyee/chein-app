@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chongqing"
+            "value": "CQ"
           }
         },
         "zh-Hans": {
@@ -177,7 +177,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guangzhou"
+            "value": "Canton"
           }
         },
         "zh-Hans": {
@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hong Kong"
+            "value": "Hong"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shanyin Road, Hongkou District, Shanghai"
+            "value": "Shanyin Road, Hongkou District"
           }
         },
         "zh-Hans": {
@@ -466,7 +466,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "North side of middle Baizhifang East Street, Xicheng District, Beijing"
+            "value": "North side middle Baizhifang East Street, Xicheng District"
           }
         },
         "zh-Hans": {
@@ -585,7 +585,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Follow the foot of the hill into lanes of white walls and black tiles, and see Hangzhou's everyday life beyond its lakes and hills."
+            "value": "Follow the foot of the hill into lanes of white walls and black tiles, and see Hangzhou's everyday life beyond lakes hills."
           }
         },
         "zh-Hans": {
@@ -755,7 +755,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wangjiang Pavilion Park"
+            "value": "Wangjiang Pavilion"
           }
         },
         "zh-Hans": {
@@ -857,7 +857,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Banpo International Art District"
+            "value": "Banpo International Art"
           }
         },
         "zh-Hans": {
@@ -908,7 +908,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Huancheng West Park"
+            "value": "Huancheng West"
           }
         },
         "zh-Hans": {
@@ -1112,7 +1112,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chen Anjian's Jiaotong Teahouse"
+            "value": "Chen Anjian's Jiaotong"
           }
         },
         "zh-Hans": {
@@ -1622,7 +1622,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tai Nan Street"
+            "value": "Tai Nan"
           }
         },
         "zh-Hans": {
@@ -1673,7 +1673,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cattle Depot Artist Village"
+            "value": "Cattle Depot Artist"
           }
         },
         "zh-Hans": {
@@ -1690,7 +1690,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Behind the Cattle Depot, at San Shan Road and the East Kowloon Corridor, To Kwa Wan, Kowloon, Hong Kong"
+            "value": "Behind the Cattle Depot, at San Shan Road and the East Kowloon Corridor, Kwa Wan, Kowloon, Hong Kong"
           }
         },
         "zh-Hans": {
@@ -2523,7 +2523,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Translation"
+            "value": "Wording"
           }
         },
         "zh-Hans": {
@@ -2540,7 +2540,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Adaptation"
+            "value": "Variant"
           }
         },
         "zh-Hans": {
@@ -2676,7 +2676,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allowed within the frozen scope only"
+            "value": "Allowed within frozen scope only"
           }
         },
         "zh-Hans": {
@@ -2795,7 +2795,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Combination license changed: translation"
+            "value": "Combination license changed: wording"
           }
         },
         "zh-Hans": {
@@ -3283,7 +3283,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original price"
+            "value": "Original"
           }
         },
         "zh-Hans": {
@@ -3385,7 +3385,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting to be claimed"
+            "value": "Waiting"
           }
         },
         "zh-Hans": {
@@ -3684,7 +3684,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your confirmation was sent but we don't know the result yet, so it can't be sent again. Check your request."
+            "value": "Your check was sent but we don't know the result yet, so it can't be sent again. Check request."
           }
         },
         "zh-Hans": {
@@ -3701,7 +3701,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The meet-up is already confirmed. Cancelling won't confirm it again."
+            "value": "The meet-up is already confirmed. Cancelling won't confirm again."
           }
         },
         "zh-Hans": {
@@ -3718,7 +3718,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The confirmation wasn't sent, so it was canceled on this device."
+            "value": "The check wasn't sent, so it was canceled on this device."
           }
         },
         "zh-Hans": {
@@ -4252,7 +4252,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not provided in this settlement"
+            "value": "Not provided in this payout"
           }
         },
         "zh-Hans": {
@@ -4762,7 +4762,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start question set"
+            "value": "Start question"
           }
         },
         "zh-Hans": {
@@ -4796,7 +4796,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Question set"
+            "value": "Question"
           }
         },
         "zh-Hans": {
@@ -5102,7 +5102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The project or its settings changed, so nothing was overwritten."
+            "value": "The project or its settings changed, so nothing overwritten."
           }
         },
         "zh-Hans": {
@@ -5119,7 +5119,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry saving the draft on this device"
+            "value": "Retry saving the draft on device"
           }
         },
         "zh-Hans": {
@@ -5357,7 +5357,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fill in every setting explicitly. Nothing was written back."
+            "value": "Fill every setting explicitly. Nothing written back."
           }
         },
         "zh-Hans": {
@@ -5425,7 +5425,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The project or its settings changed, so nothing was overwritten."
+            "value": "The project or its settings changed, so nothing overwritten."
           }
         },
         "zh-Hans": {
