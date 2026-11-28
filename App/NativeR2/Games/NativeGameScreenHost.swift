@@ -398,9 +398,5 @@ extension PlayKitScreen {
         if kind == .typeIn, let result = projection.typeInResultKey {
             Text(LocalizedStringKey(result)).accessibilityIdentifier("playkit.type.result")
         }
-        if [PlayKitScreenKind.sort, .match, .classify].contains(kind), (raw["attempts"].integer ?? 0) > 0,
-           let resultKey = projection.reasoningResultKey {
-            Text(LocalizedStringKey(resultKey)).accessibilityIdentifier("playkit.reasoning.result")
-        }
     }
 }

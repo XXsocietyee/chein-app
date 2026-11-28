@@ -645,7 +645,7 @@ struct MPParityRegistrationOrder: View {
             return
         } catch {
             state.groupQuote = .failed(nil)
-            state.buy = .unavailable(reason: nil)
+            state.buy = .requote
         }
     }
 
