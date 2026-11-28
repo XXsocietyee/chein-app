@@ -75,6 +75,12 @@ enum CYHapticTransition {
     static func isOn(_ old: Bool, _ new: Bool) -> Bool { new }
     /// Any change that ends false.
     static func turnedOff(_ old: Bool, _ new: Bool) -> Bool { !new }
+    /// Any change that ends with a value.
+    static func isSet<Value>(_ old: Value?, _ new: Value?) -> Bool { new != nil }
+    /// nil → a value.
+    static func becameSet<Value>(_ old: Value?, _ new: Value?) -> Bool { old == nil && new != nil }
+    /// The count went up.
+    static func increased(_ old: Int, _ new: Int) -> Bool { new > old }
 }
 
 // MARK: - Tokens

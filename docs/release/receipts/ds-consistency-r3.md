@@ -843,9 +843,18 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 No compiler in the cloud: every replaced trigger is a Bool expression (checked line by line); next integration build
 confirms.
 
+Batch 2 (same run): `CYHapticTransition` gains generic `isSet` (any change ending non-nil), `becameSet` (nil → value)
+and `increased` (Int up). 11 more sites: `EditorKitLists:203`, `NativeStampCaptureView:58`, `CameraKits:264`,
+`CityOrientationPunchSheet:110`, `NativeGameShell:446`, `ClubGovernanceViews:799`, `ClubLeadPrimaryActionView:115`
+(isSet); `BankWithdrawalView:79`, `QuestifyApp:500` (becameSet); `ExternalGameImportView:121` (increased);
+`CouponCodeView:64` (inline `where:` closure → turnedOn). Per-view typed statics: `ClubContextualViews:139-140`
+(`ClubOpsTimeState` acknowledged / rejected), `CYScan:451` (`CYScanMarkKind.success`). Untyped haptic **34** baselined.
+Gates as above, `contract_ratchet` new 0.
+
 ### Not done (next run)
-- untyped haptic: the remaining 48 (non-Bool / multi-line) → typed `private static func` per view, largest files
-  first (`RoamSubpageParityViews`, `ChanceKits`, `NativeGameKitsC`).
+- untyped haptic: the remaining 34 read view state inside the condition (`presentation`, `visible`, `kind`,
+  `isEnabled`, `nodeID`) or span lines → move each into a small typed `ViewModifier` (pattern
+  `RegistrationSelectionHaptics`), largest files first (`ChanceKits`, `NativeGameSensorKit`, `RoamFogMapView`).
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,

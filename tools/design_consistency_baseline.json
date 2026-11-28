@@ -163,9 +163,6 @@
     "App/AssetPointsAndOrderCancellationSectionView.swift": {
       "status capsule": 2
     },
-    "App/BankWithdrawalView.swift": {
-      "untyped haptic": 1
-    },
     "App/BundlePayResultView.swift": {
       "untyped haptic": 2
     },
@@ -187,19 +184,7 @@
     "App/CloudCIShardStatusSectionView.swift": {
       "status capsule": 1
     },
-    "App/ClubContextualViews.swift": {
-      "untyped haptic": 2
-    },
-    "App/ClubGovernanceViews.swift": {
-      "untyped haptic": 1
-    },
-    "App/ClubLeadPrimaryActionView.swift": {
-      "untyped haptic": 1
-    },
     "App/ClubManagementView.swift": {
-      "untyped haptic": 1
-    },
-    "App/CouponCodeView.swift": {
       "untyped haptic": 1
     },
     "App/DesignSystem/CYGlassCarousel.swift": {
@@ -211,16 +196,7 @@
     "App/DesignSystem/CYPurchaseMotion.swift": {
       "untyped haptic": 1
     },
-    "App/DesignSystem/CYScan.swift": {
-      "untyped haptic": 1
-    },
-    "App/EditorKitLists.swift": {
-      "untyped haptic": 1
-    },
     "App/EditorKitResults.swift": {
-      "untyped haptic": 1
-    },
-    "App/ExternalGameImportView.swift": {
       "untyped haptic": 1
     },
     "App/FinalReleaseSignoffAndZeroGapCertificateView.swift": {
@@ -251,12 +227,6 @@
       "status capsule": 1
     },
     "App/NativeR2/CityOrientation/CityOrientationPunchSheet.swift": {
-      "untyped haptic": 2
-    },
-    "App/NativeR2/FreeExplore/NativeStampCaptureView.swift": {
-      "untyped haptic": 1
-    },
-    "App/NativeR2/Games/CameraKits.swift": {
       "untyped haptic": 1
     },
     "App/NativeR2/Games/ChanceKits.swift": {
@@ -269,7 +239,7 @@
       "untyped haptic": 2
     },
     "App/NativeR2/Games/NativeGameShell.swift": {
-      "untyped haptic": 2
+      "untyped haptic": 1
     },
     "App/NativeR2/Games/NativeGameTimedKit.swift": {
       "untyped haptic": 1
@@ -284,9 +254,6 @@
       "untyped haptic": 1
     },
     "App/PublishingAIDraftSheet.swift": {
-      "untyped haptic": 1
-    },
-    "App/QuestifyApp.swift": {
       "untyped haptic": 1
     },
     "App/ReformWorkPackagesW02ToW20SectionView.swift": {

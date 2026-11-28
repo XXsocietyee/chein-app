@@ -261,7 +261,7 @@ import VisionKit
                     }
                 }
             }
-            .sensoryFeedback(.success, trigger: code) { _, next in next != nil }
+            .sensoryFeedback(.success, trigger: code, condition: CYHapticTransition.isSet)
             .cyFullScreenCover(isPresented: $scanning) {
                 NativeQRScanner { scanned in
                     guard mounted, enabled else { return }

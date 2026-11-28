@@ -497,7 +497,7 @@ struct SessionRootView: View {
                 .cySheet(isPresented: $showsRootSignIn, onDismiss: { finishRootSignIn() }) {
                     LoginView(intent: .player).environmentObject(session)
                 }
-                .sensoryFeedback(.success, trigger: session.account?.id) { old, new in old == nil && new != nil }
+                .sensoryFeedback(.success, trigger: session.account?.id, condition: CYHapticTransition.becameSet)
                 .environment(\.growthSessionProfile, session.account.map { GrowthSessionProfile(name: $0.nickname, avatar: $0.avatar) })
                 .environment(\.publisherIdentityRegistrationSource, session.publishingSession.map { account in
                     PublisherIdentityRegistrationSource(account: account, make: { session.makePublisherIdentityRegistrationService() })

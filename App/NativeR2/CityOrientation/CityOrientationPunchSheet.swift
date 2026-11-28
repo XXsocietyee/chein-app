@@ -107,7 +107,7 @@ import SwiftUI
             if !visible, review != nil { model.cancelReview(); review = nil }
         }
         .sensoryFeedback(.error, trigger: model.arrivalFailure?.nodeID) { _, new in NativeR2Flags.motion && new == nodeID }
-        .sensoryFeedback(.error, trigger: refusal) { _, new in new != nil }
+        .sensoryFeedback(.error, trigger: refusal, condition: CYHapticTransition.isSet)
         .modifier(CityOrientationStartModeDialogs(arrival: arrival, model: model, nodeID: nodeID,
                                                   startModesShown: $startModesShown, deskConfirmShown: $deskConfirmShown))
         .accessibilityIdentifier("nativeR2.city.punch")
