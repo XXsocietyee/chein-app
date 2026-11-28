@@ -500,6 +500,15 @@ struct PlayThemeMusicKey: Equatable {
                     CYSkeleton().accessibilityIdentifier("playx.loading")
                 }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                if native, model.snapshot == nil, model.available, model.issue != nil, model.phase != .loading {
+                    // All states: the city run's first-load failure gets the same 刷新 action as the legacy error card.
+                    Button { Task { await model.load() } } label: {
+                        Label("playx.refresh", systemImage: "arrow.clockwise")
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(model.phase == .submitting)
+                    .accessibilityIdentifier("playx.city.retry")
+                }
                 if PlayContentCompatibility.isUnsupportedRejection(model.issue) {
                     // The server refused to open this run for this build; nothing was skipped or started.
                     Text("playCompat.refused.next", tableName: "PlayFullStory").font(CYTypography.caption)
@@ -839,7 +848,13 @@ struct PlayThemeMusicKey: Equatable {
     }
     @ViewBuilder private var cityRunPanel: some View {
         VStack(spacing: 0) {
-            CityOrientationRunMetricsRow(model: model, walkedMeters: cityLocation.walkedMeters, nextStopMeters: cityNextStopMeters) { cityRunPrimary }
+            CityOrientationRunMetricsRow(model: model, walkedMeters: cityLocation.walkedMeters, nextStopMeters: cityNextStopMeters) {
+                // Next round (motion): start / resume taps land with a medium impact, pause with a light one; a restored
+                // paused record (idle → paused) stays silent.
+                cityRunPrimary
+                    .cyHaptic(.impactMedium, trigger: model.clock.phase) { old, new in old != .running && new == .running }
+                    .cyHaptic(.impactLight, trigger: model.clock.phase) { old, new in old == .running && new == .paused }
+            }
             NavigationStack {
                 List {
                     if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
