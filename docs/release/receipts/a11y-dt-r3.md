@@ -690,8 +690,17 @@ Merged `origin/ui/combined-r7`. Sweep index still build c4e43841a (read in run 4
 | `pages/club/channel` 频道列表 rows + category header (screenshot `en-d4-channels`) | `ClubChannelMessagingView.swift:490` (`channelSidebarRow`), `:479` header | ✓ (category → channel rows with unread / @ badge, muted bell) | VoiceOver read the system `.badge` as a bare "2" and the header mention total "@2" as "at 2": each row now has a spoken value ("2 unread" / "2 条未读", "1 mention" / "N 条@提及", or "Muted" / "免打扰"); the header total reads "N mentions". Selected row keeps `.isSelected`. Level B | Done |
 | `pages/club/enroll` 报名名册 ticket fraction + registrant rows (screenshot `en-d4-enroll`) | `ClubEnrollmentView.swift:449` (`capacity`), `:514` (`checkinChip`) | ✓ (team header → tickets 「n / 上限」 → registrants avatar · name · 核销状态) | 「n / 上限」 was three VoiceOver pieces ("3", "slash", "10") → one element "3 of 10" / "3，共 10" (`a11y.value.ofTotal`, typed `ViewModifier`); 「n 人」 unchanged. 已核销 / 待核销 chip text used system `.green` / `.orange` (~2:1) → `CYColor.successText` / `warningText`. Audit: row already stacks at AX sizes, team header stacks cover/text/chevron, expand state spoken. Level C | Done |
 
+## Run 42 (2026-11-28, half-hourly)
+Rebased on `origin/design/r3-a11y`. Sweep index still build c4e43841a (read in run 40). No K50 `lane-layout` receipts exist yet
+(`cursor-k50-p*.md` not on any branch). No open coordinator finding.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/club/channel` 消息流 message groups (screenshot `en-d4-channel-chat`) | `ClubChannelMessagingView.swift:876` (`ChannelBurstGroupCard`) | ✓ (date divider → avatar · author · role · time → reply quote → body → attachments → send state) | Author / role / time, reply quote + thread count, attachment title + subtitle and the send-state line were HStacks that squeeze at AX sizes → `AnyLayout` stacks at AX sizes. Header is one VoiceOver element with the header trait (rotor jumps author to author). "Reply" is a named VoiceOver action on every message (it was only in the long-press menu). Failed-send glyph `.red` → `CYColor.dangerText`; Retry gets a 44 pt hit area. System-author initial `.orange` → `warningText`. Level B | Done |
+| `pages/club/channel` 成员与身份组 roster sheet | `ClubChannelMessagingView.swift:1068` (`ClubChannelMemberRosterSheet`) | ✓ (role sections → avatar · name · role · 已拉黑 → 有效期; admin ban list) | Name + role tag + Blocked stack at AX sizes; each member row is one VoiceOver element (swipe Block / Report / Remove / Ban stay as custom actions). Ban rows: name/type/reason combine to one element, Unban button moves under the text at AX sizes. Level C | Done |
+
 ## Not done (next run starts here)
-- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club channel transcript message rows (author/time/reply at AX sizes), club channel member roster sheet.
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club channel composer bar (attach / send targets, reply-to chip at AX sizes), club channel thread sheet.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
