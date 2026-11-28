@@ -41,7 +41,7 @@ import FoundationNetworking
         try validate(fix)
         let data = try await post("api/map/nearby", fields: ["latitude": String(fix.coordinate.latitude), "longitude": String(fix.coordinate.longitude), "radius": "800", "limit": "20"])
         // This endpoint's id is the registration-merchant row; nodeId/topicId must never be submitted as sourceId.
-        return try RoamMutationReceiptDecoder.value([RoamRouteNode].self, from: data).filter { $0.id > 0 && $0.coordinate != nil }
+        return try RoamMutationReceiptDecoder.value([RoamRouteNode].self, from: data).filter { $0.id > 0 && $0.coordinate != nil && $0.isLiveMerchantLayerShop }
     }
     public func discover(sessionID: Int, poiID: Int, fix: RoamDeviceFix) async throws -> RoamLiveDiscoveryReceipt {
         try validate(fix)
