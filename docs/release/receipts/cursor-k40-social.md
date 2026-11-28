@@ -1,6 +1,6 @@
 # cursor-k40-social receipt
 
-Lane: square, social, and IM. Branch `cursor/1128-k40-social` from `origin/ui/combined-r7` @ `a7c956335` (tip was still the pin at push; no merge). PR base `ui/combined-r7`. No restyle. Merchant stays off the player-write grant. Money switches were not touched. `App/AppSession.swift` stays at 7977 lines. Play-config init order stays devices, sensors, artworkHosts.
+Lane: square, social, and IM. Branch `cursor/1128-k40-social`. The feature commit `e5f002095` is from `origin/ui/combined-r7` @ `a7c956335`. Before push the tip had moved to `543d9033b`, and that tip was merged in. PR base `ui/combined-r7`. No restyle. Merchant stays off the player-write grant. Money switches were not touched. `App/AppSession.swift` stays at 7977 lines. Play-config init order stays devices, sensors, artworkHosts.
 
 Audits read: `origin/design/handoff-r2:docs/briefs/round3-1127.md`, `origin/audit/1128-plan:docs/audits/1128-plan.md` (social domain M-01…M-17), `origin/audit/1128-functions:docs/audits/1128-functions.md` (IM table and P1-7 / P1-28 / P2-6), `origin/audit/1128-ada:docs/audits/1128-ada.md` (d2-inbox, d2-square).
 
