@@ -26,7 +26,9 @@ class ActivityDesignStructureTests(unittest.TestCase):
         # The description is still a real-source section, now behind the "more info" disclosure.
         self.assertLess(source.index('Section("activity.about")'), source.index("ActivityAssociatedPlaysSection"))
         fold = source.split("private func detailContent", 1)[1].split("private func moreInfoSections", 1)[0]
+        # mp-home r3 continue 36: no map section; the 集合点 fact carries the shared static snippet (level B, P28).
         self.assertNotIn("Map(initialPosition", fold)
+        self.assertIn('HomeTodayMeetingPointMap(point: mapPoint, place: mapPlace)\n                    .accessibilityIdentifier("activity.detail.meetingPointMap")', source)
         self.assertNotIn("E1ActivityInfoCard", fold)
         self.assertIn(".listStyle(.insetGrouped)", source)
         # ds-consistency r3 run 26: the page inherits the one 24 pt section spacing from CYScreenStyle.
