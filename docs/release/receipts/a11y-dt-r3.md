@@ -559,10 +559,17 @@ Same scan; the twin's row kept as pushed. Three icon-only menus it did not list 
 | Club posts / discussion / reviews safety shield (举报 / 屏蔽 / 联系客服) | `UGCSafetyComponents.swift:661` (`compactLabel`) | ✓ | Compact shield menu was 20 × 20 → 44 × 44 + `contentShape`, glyph size unchanged. Level B | Done |
 | `pages/member` friend groups ⋯ (重命名 / 删除) | `NativeFriendMetadataView.swift:138` | ✓ (mp-mine owns order) | Borderless ⋯ glyph in a List row (~22 pt) → 44 × 44 + `contentShape`. Level C | Done |
 
+Next item (VoiceOver grouping on player cards), started:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/square` post card / detail header (`components/cy/post-card`) | `SquareComponents.swift:106-120,128-135` | ✓ (mp-activity owns order) | Author name, verified mark and relative time were three VoiceOver stops, and level / author / notice badges were three more. Each group is now one element (`.combine`); Follow and the avatar menu stay separate buttons. Level B | Done |
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-34).
 - Next pages without a row: VoiceOver grouping on player list cards. Find cards built from 3+ `Text` with no
-  `.accessibilityElement(children: .combine)` that VoiceOver visits piece by piece (feed, club post, activity cards first).
+  `.accessibilityElement(children: .combine)` that VoiceOver visits piece by piece. Square post is done; next are
+  `SquareXcxPostCard.swift`, club post cards (`ClubComponents.swift`) and activity cards.
 - Then: `UGCSafetyMenuButton` default (text 举报 label) inline uses and `Toggle` / `Stepper` rows with caption labels.
 
 ## For other lanes
