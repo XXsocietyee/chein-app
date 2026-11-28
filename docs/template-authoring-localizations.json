@@ -24,7 +24,7 @@
     "zh-Hans": "玩法模板描述一个地点上的一次互动。路线主题模板是另一种完整路线实体。"
   },
   "templateAuthor.introFinish": {
-    "en": "Choose how players",
+    "en": "Choose how players complete it",
     "zh-Hans": "选择完成方式"
   },
   "templateAuthor.introStory": {
@@ -32,7 +32,7 @@
     "zh-Hans": "添加可选剧情时间流"
   },
   "templateAuthor.introReward": {
-    "en": "Configure completion",
+    "en": "Configure completion feedback",
     "zh-Hans": "配置完成反馈"
   },
   "templateAuthor.begin": {
@@ -44,7 +44,7 @@
     "zh-Hans": "给节点玩法起一个名字"
   },
   "templateAuthor.continue": {
-    "en": "Continue editor",
+    "en": "Continue to editor",
     "zh-Hans": "继续编辑"
   },
   "templateAuthor.basics": {
@@ -168,7 +168,7 @@
     "zh-Hans": "示例内容，不会实际发送或发布。"
   },
   "templateAuthor.confirmSimulation": {
-    "en": "Simulate entry",
+    "en": "Simulate submission",
     "zh-Hans": "模拟提交"
   },
   "templateAuthor.previewNotice": {
@@ -208,7 +208,7 @@
     "zh-Hans": "可在此编辑全部 37 类设置。无法识别的设置会保留，但需移除后才能提交；部分预览会说明其限制。"
   },
   "templateAuthor.timer": {
-    "en": "Time",
+    "en": "Time limit",
     "zh-Hans": "限时"
   },
   "templateAuthor.timerUnsupported": {
@@ -232,15 +232,15 @@
     "zh-Hans": "暂无法确认是否提交成功，此草稿暂时无法重试或删除。"
   },
   "templateAuthor.invalid": {
-    "en": "Complete required fields before.",
+    "en": "Complete the required fields before continuing.",
     "zh-Hans": "请先完善必填内容。"
   },
   "templateAuthor.duplicateName": {
-    "en": "Template name already exists. Choose another name before trying again.",
+    "en": "This template name already exists. Choose another name before trying again.",
     "zh-Hans": "模板名称已存在，请修改名称后重试。"
   },
   "templateAuthor.contentRejected": {
-    "en": "The content was rejected. Review and revise before submitting again.",
+    "en": "The content was rejected. Review and revise it before submitting again.",
     "zh-Hans": "内容未通过审核，请修改后再提交。"
   },
   "templateAuthor.rejected": {
@@ -320,7 +320,7 @@
     "zh-Hans": "幸运"
   },
   "templateAuthor.prefab.dreams": {
-    "en": "Wish",
+    "en": "Dreams",
     "zh-Hans": "梦"
   },
   "templateAuthor.prefab.skill.rule": {
@@ -336,7 +336,7 @@
     "zh-Hans": "内心"
   },
   "templateAuthor.prefab.skill.precision": {
-    "en": "Detail",
+    "en": "Precision",
     "zh-Hans": "精确"
   },
   "templateAuthor.prefab.observations": {
@@ -372,7 +372,7 @@
     "zh-Hans": "时长（分钟）"
   },
   "templateAuthor.field.difficulty": {
-    "en": "Level",
+    "en": "Difficulty",
     "zh-Hans": "难度"
   },
   "templateAuthor.field.usageLocation": {
@@ -444,15 +444,15 @@
     "zh-Hans": "第二个提示"
   },
   "templateAuthor.field.answerReveal": {
-    "en": "Answer",
+    "en": "Answer explanation",
     "zh-Hans": "答案解析"
   },
   "templateAuthor.field.photoRequireDesc": {
-    "en": "Photo rules",
+    "en": "Photo requirements",
     "zh-Hans": "照片要求"
   },
   "templateAuthor.field.feedbackText": {
-    "en": "Completion",
+    "en": "Completion feedback",
     "zh-Hans": "完成反馈"
   },
   "templateAuthor.field.couponId": {
@@ -616,7 +616,7 @@
     "zh-Hans": "变色就点"
   },
   "templateAuthor.game.shake": {
-    "en": "Ball",
+    "en": "Ball challenge",
     "zh-Hans": "弹球"
   },
   "templateAuthor.game.quiet": {
@@ -628,7 +628,7 @@
     "zh-Hans": "倒计时"
   },
   "templateAuthor.game.stopwatch": {
-    "en": "Detail stopwatch",
+    "en": "Precision stopwatch",
     "zh-Hans": "精准停表"
   },
   "templateAuthor.diceFace.1": {
@@ -816,7 +816,7 @@
     "zh-Hans": "信息不断输入，我开始做梦。"
   },
   "templateAuthor.prefab.scene.learning": {
-    "en": "Standard answer",
+    "en": "The standard answer",
     "zh-Hans": "标准答案"
   },
   "templateAuthor.prefab.scene.dream2": {

@@ -131,7 +131,7 @@
   },
   {
     "key": "square.xcx.lifecycle.LIMITED",
-    "en": "Limited",
+    "en": "Limited visibility",
     "zh-Hans": "展示受限"
   },
   {
@@ -339,7 +339,7 @@
   },
   {
     "key": "square.xcx.delete.unavailable",
-    "en": "Deleting isn't available in version yet.",
+    "en": "Deleting isn't available in this version yet.",
     "zh-Hans": "当前版本暂未开放删除"
   },
   {
@@ -394,7 +394,7 @@
   },
   {
     "key": "square.video.reject.byteLimit",
-    "en": "The video file too large",
+    "en": "The video file is too large",
     "zh-Hans": "视频文件过大"
   },
   {
@@ -579,7 +579,7 @@
   },
   {
     "key": "topicXcx.stat.mileage",
-    "en": "Total",
+    "en": "Total distance",
     "zh-Hans": "总里程"
   },
   {
@@ -634,7 +634,7 @@
   },
   {
     "key": "topicXcx.section.lineup",
-    "en": "Participating",
+    "en": "Participating brands",
     "zh-Hans": "参与品牌"
   },
   {
@@ -679,12 +679,12 @@
   },
   {
     "key": "topicXcx.cta.ticketWallet",
-    "en": "Purchased · see your ticket ticket wallet",
+    "en": "Purchased · see your ticket in the ticket wallet",
     "zh-Hans": "去票夹 · 查看我的票"
   },
   {
     "key": "topicXcx.cta.confirmPrice",
-    "en": "Confirm final",
+    "en": "Confirm final price",
     "zh-Hans": "确认终价"
   },
   {
@@ -999,7 +999,7 @@
   },
   {
     "key": "topicXcx.section.nodeIntro",
-    "en": "Stop",
+    "en": "Stop introductions",
     "zh-Hans": "节点介绍"
   },
   {

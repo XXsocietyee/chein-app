@@ -40,7 +40,7 @@
     {
       "key": "wallet.login",
       "table": "Localizable",
-      "en": "Sign in to view this info",
+      "en": "Sign in to view this information",
       "zh-Hans": "登录后可查看",
       "accessibilityIdentifier": "wallet.issue"
     },
@@ -61,7 +61,7 @@
     {
       "key": "wallet.retry",
       "table": "Localizable",
-      "en": "Try",
+      "en": "Try again",
       "zh-Hans": "重试",
       "accessibilityIdentifier": "wallet.issue"
     },
@@ -124,7 +124,7 @@
     {
       "key": "wallet.pendingSettlement",
       "table": "Localizable",
-      "en": "Pending",
+      "en": "Pending settlement",
       "zh-Hans": "待结算",
       "accessibilityIdentifier": "wallet.earnings.stages.pending"
     },
@@ -152,7 +152,7 @@
     {
       "key": "social.invites.title",
       "table": "Localizable",
-      "en": "Invite history",
+      "en": "Invitation history",
       "zh-Hans": "邀请记录",
       "accessibilityIdentifier": "wallet.inviteHistory"
     },
@@ -215,7 +215,7 @@
     {
       "key": "wallet.available",
       "table": "Localizable",
-      "en": "Available",
+      "en": "Available to withdraw",
       "zh-Hans": "可提现",
       "accessibilityIdentifier": "wallet.earnings.stages.available"
     },
@@ -272,7 +272,7 @@
     {
       "key": "wallet.withdrawals",
       "table": "Localizable",
-      "en": "Cash-out history",
+      "en": "Withdrawal history",
       "zh-Hans": "提现记录",
       "accessibilityIdentifier": "wallet.withdrawals.open",
       "shown": false

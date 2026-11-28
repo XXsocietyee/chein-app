@@ -24,7 +24,7 @@
     "zh-Hans": "九格全亮奖励"
   },
   "playkit.bingo.inLine": {
-    "en": "Part completed",
+    "en": "Part of a completed line",
     "zh-Hans": "已连成线"
   },
   "playkit.bingo.lineReward": {
@@ -40,7 +40,7 @@
     "zh-Hans": "已到达这段故事的终点"
   },
   "playkit.camera.gated": {
-    "en": "Camera isn't available",
+    "en": "Camera isn't available right now",
     "zh-Hans": "相机暂不可用"
   },
   "playkit.camera.photoPurpose": {
@@ -92,7 +92,7 @@
     "zh-Hans": "目标时间"
   },
   "playkit.characters": {
-    "en": "Cast",
+    "en": "Characters",
     "zh-Hans": "字数"
   },
   "playkit.choose": {
@@ -104,7 +104,7 @@
     "zh-Hans": "为每张卡选择一个分类，提交前都可以修改。"
   },
   "playkit.classify.remaining": {
-    "en": "Items still",
+    "en": "Items still to classify",
     "zh-Hans": "尚待分类"
   },
   "playkit.close": {
@@ -292,7 +292,7 @@
     "zh-Hans": "已公布答案"
   },
   "playkit.predict.lost": {
-    "en": "Missed",
+    "en": "Your prediction was incorrect",
     "zh-Hans": "未猜中"
   },
   "playkit.predict.mine": {
@@ -316,7 +316,7 @@
     "zh-Hans": "等待商家公布并结算答案"
   },
   "playkit.predict.won": {
-    "en": "Correct",
+    "en": "Your prediction was correct",
     "zh-Hans": "猜中了"
   },
   "playkit.profile.answer": {
@@ -452,7 +452,7 @@
     "zh-Hans": "会话剩余秒数"
   },
   "playkit.sort.down": {
-    "en": "Move",
+    "en": "Move down",
     "zh-Hans": "下移"
   },
   "playkit.sort.instructions": {
@@ -540,7 +540,7 @@
     "zh-Hans": "掷骰子"
   },
   "playkit.kind.reaction": {
-    "en": "Reaction quest",
+    "en": "Reaction challenge",
     "zh-Hans": "反应挑战"
   },
   "playkit.kind.ballShake": {
@@ -572,19 +572,19 @@
     "zh-Hans": "估数"
   },
   "playkit.kind.pricePair": {
-    "en": "Choose",
+    "en": "Choose a picture",
     "zh-Hans": "猜图"
   },
   "playkit.kind.hiddenObject": {
-    "en": "Find object",
+    "en": "Find the object",
     "zh-Hans": "找东西"
   },
   "playkit.kind.predict": {
-    "en": "Guess",
+    "en": "Prediction",
     "zh-Hans": "竞猜"
   },
   "playkit.kind.random": {
-    "en": "Draw",
+    "en": "Draw cards",
     "zh-Hans": "抽卡"
   },
   "playkit.kind.scan": {
@@ -600,7 +600,7 @@
     "zh-Hans": "九宫格进度"
   },
   "playkit.kind.profile": {
-    "en": "Sign-up",
+    "en": "Registration",
     "zh-Hans": "建档"
   },
   "playkit.kind.photoCheck": {
@@ -624,15 +624,15 @@
     "zh-Hans": "步数挑战"
   },
   "playkit.kind.sort": {
-    "en": "Put",
+    "en": "Put in order",
     "zh-Hans": "排序"
   },
   "playkit.kind.match": {
-    "en": "Match",
+    "en": "Match pairs",
     "zh-Hans": "配对"
   },
   "playkit.kind.classify": {
-    "en": "Sort",
+    "en": "Sort into categories",
     "zh-Hans": "分类"
   },
   "playkit.kind.compass": {
@@ -976,11 +976,11 @@
     "zh-Hans": "所选人物"
   },
   "playkit.accusation.final": {
-    "en": "Can't change after accusing",
+    "en": "You can't change it after accusing",
     "zh-Hans": "指认后不能更改"
   },
   "playkit.accusation.confirm": {
-    "en": "Confirm",
+    "en": "Confirm accusation",
     "zh-Hans": "确认指认"
   },
   "playkit.accusation.collapse": {
@@ -1036,7 +1036,7 @@
     "zh-Hans": "拍照或选择照片完成相册"
   },
   "playkit.profile.formTitle": {
-    "en": "Sign-up form",
+    "en": "Registration form",
     "zh-Hans": "登记表"
   },
   "playkit.profile.previous": {
@@ -1048,7 +1048,7 @@
     "zh-Hans": "下一题"
   },
   "playkit.profile.finish": {
-    "en": "Finish sign-up",
+    "en": "Finish registration",
     "zh-Hans": "完成建档"
   },
   "playkit.profile.registered": {
@@ -1096,11 +1096,11 @@
     "zh-Hans": "掷到几就做第几件事"
   },
   "playkit.walk.remainingLabel": {
-    "en": "Still go",
+    "en": "Still to go",
     "zh-Hans": "还差"
   },
   "playkit.walk.stepsUnit": {
-    "en": "Step",
+    "en": "steps",
     "zh-Hans": "步"
   },
   "playkit.bingo.footnote": {
@@ -1156,7 +1156,7 @@
     "zh-Hans": "还能错"
   },
   "playkit.note.previousLabel": {
-    "en": "The person before wrote",
+    "en": "The person before you wrote",
     "zh-Hans": "前面的人写过"
   },
   "playkit.photo.retryTitle": {

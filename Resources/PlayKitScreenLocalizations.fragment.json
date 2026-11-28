@@ -263,7 +263,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Part completed"
+            "value": "Part of a completed line"
           }
         },
         "zh-Hans": {
@@ -331,7 +331,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera isn't available"
+            "value": "Camera isn't available right now"
           }
         },
         "zh-Hans": {
@@ -552,7 +552,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cast"
+            "value": "Characters"
           }
         },
         "zh-Hans": {
@@ -603,7 +603,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Items still"
+            "value": "Items still to classify"
           }
         },
         "zh-Hans": {
@@ -1266,7 +1266,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sort"
+            "value": "Sort into categories"
           }
         },
         "zh-Hans": {
@@ -1385,7 +1385,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Find object"
+            "value": "Find the object"
           }
         },
         "zh-Hans": {
@@ -1402,7 +1402,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Match"
+            "value": "Match pairs"
           }
         },
         "zh-Hans": {
@@ -1453,7 +1453,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guess"
+            "value": "Prediction"
           }
         },
         "zh-Hans": {
@@ -1470,7 +1470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose"
+            "value": "Choose a picture"
           }
         },
         "zh-Hans": {
@@ -1487,7 +1487,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign-up"
+            "value": "Registration"
           }
         },
         "zh-Hans": {
@@ -1538,7 +1538,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Draw"
+            "value": "Draw cards"
           }
         },
         "zh-Hans": {
@@ -1555,7 +1555,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reaction quest"
+            "value": "Reaction challenge"
           }
         },
         "zh-Hans": {
@@ -1606,7 +1606,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Put"
+            "value": "Put in order"
           }
         },
         "zh-Hans": {
@@ -2031,7 +2031,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Missed"
+            "value": "Your prediction was incorrect"
           }
         },
         "zh-Hans": {
@@ -2133,7 +2133,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Correct"
+            "value": "Your prediction was correct"
           }
         },
         "zh-Hans": {
@@ -3170,7 +3170,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Move"
+            "value": "Move down"
           }
         },
         "zh-Hans": {
@@ -4156,7 +4156,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Can't change after accusing"
+            "value": "You can't change it after accusing"
           }
         },
         "zh-Hans": {
@@ -4173,7 +4173,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm"
+            "value": "Confirm accusation"
           }
         },
         "zh-Hans": {
@@ -4411,7 +4411,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign-up form"
+            "value": "Registration form"
           }
         },
         "zh-Hans": {
@@ -4462,7 +4462,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finish sign-up"
+            "value": "Finish registration"
           }
         },
         "zh-Hans": {
@@ -4666,7 +4666,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Still go"
+            "value": "Still to go"
           }
         },
         "zh-Hans": {
@@ -4683,7 +4683,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Step"
+            "value": "steps"
           }
         },
         "zh-Hans": {
@@ -4921,7 +4921,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The person before wrote"
+            "value": "The person before you wrote"
           }
         },
         "zh-Hans": {

@@ -6,8 +6,8 @@ import json
 root = Path(__file__).resolve().parents[1]
 values = {
     # subpackageMember/tixianjilu + scene-member-withdraw-history
-    'withdrawal.history.status.processing': ('Cash-out', '提现中'),
-    'withdrawal.history.status.succeeded': ('Cash-out', '提现成功'),
+    'withdrawal.history.status.processing': ('Withdrawal in progress', '提现中'),
+    'withdrawal.history.status.succeeded': ('Withdrawal succeeded', '提现成功'),
     'withdrawal.history.status.failed': ('Withdrawal failed; the full amount was returned', '提现失败，提现金额已全部退回'),
     'withdrawal.history.status.unknown': ('Status unconfirmed', '状态待确认'),
     'withdrawal.history.login.title': ('Sign in to view withdrawal history', '登录后查看提现记录'),
@@ -15,18 +15,18 @@ values = {
     'withdrawal.history.denied.title': ("This account can't view withdrawal history", '当前账号无法查看提现记录'),
     'withdrawal.history.denied.detail': ("Check this account's viewing permission.", '请确认当前账号的查看权限'),
     'withdrawal.history.failed.title': ("Withdrawal history didn't load", '提现记录没加载出来'),
-    'withdrawal.history.failed.detail': ('Reading temporarily.', '读取暂不可用'),
+    'withdrawal.history.failed.detail': ('Reading is temporarily unavailable.', '读取暂不可用'),
     'withdrawal.history.unavailable.detail': ('Cash-out history isn\'t available.', '提现记录暂不可用'),
     # subpackageMember/tixian
-    'withdrawal.apply.title': ('Cash-out request', '提现申请'),
+    'withdrawal.apply.title': ('Withdrawal application', '提现申请'),
     'withdrawal.apply.method': ('Withdrawal method', '提现方式'),
     'withdrawal.apply.method.value': ('Contact platform support; support handles it offline', '联系平台客服，由客服协助线下处理'),
     'withdrawal.apply.note.title': ('Withdrawal notes', '提现说明'),
     'withdrawal.apply.note.detail': ('Withdrawals are now handled offline by support. Add the platform support WeChat to verify.', '提现已改为客服协助线下处理，请添加平台客服微信核对。'),
-    'withdrawal.apply.contact': ('Contact support withdraw', '联系客服提现'),
+    'withdrawal.apply.contact': ('Contact support to withdraw', '联系客服提现'),
     # subpackageMember/coupon-qr
     'couponCode.missing': ('Coupon details missing', '缺少券信息'),
-    'couponCode.missing.detail': ('Go back to your coupon wallet open again.', '请返回票夹重新进入'),
+    'couponCode.missing.detail': ('Go back to your coupon wallet and open it again.', '请返回票夹重新进入'),
     'couponCode.presentToMerchant': ('Show this to the merchant scan redeem', '出示给商家扫码核销'),
     'couponCode.refresh': ('Refresh QR code', '刷新二维码'),
     'couponCode.fetchAgain': ('Get a new code', '重新获取'),

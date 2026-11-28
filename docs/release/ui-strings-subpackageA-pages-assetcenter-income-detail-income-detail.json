@@ -26,7 +26,7 @@
     },
     {
       "key": "wallet.clubFinance",
-      "en": "Host revenue",
+      "en": "Host revenue share",
       "zh-Hans": "主办分润"
     },
     {
@@ -56,12 +56,12 @@
     },
     {
       "key": "wallet.login",
-      "en": "Sign in to view this info",
+      "en": "Sign in to view this information",
       "zh-Hans": "登录后可查看"
     },
     {
       "key": "wallet.retry",
-      "en": "Try",
+      "en": "Try again",
       "zh-Hans": "重试"
     },
     {
@@ -81,17 +81,17 @@
     },
     {
       "key": "wallet.event.topicShare",
-      "en": "Topic revenue",
+      "en": "Topic revenue share",
       "zh-Hans": "主题分润"
     },
     {
       "key": "wallet.event.activityShare",
-      "en": "Activity revenue",
+      "en": "Activity revenue share",
       "zh-Hans": "活动分润"
     },
     {
       "key": "wallet.event.withdrawalRequest",
-      "en": "Cash-out request",
+      "en": "Withdrawal request",
       "zh-Hans": "提现申请"
     },
     {
@@ -166,7 +166,7 @@
     },
     {
       "key": "wallet.income.day.yesterday",
-      "en": "Last day",
+      "en": "Yesterday",
       "zh-Hans": "昨天"
     },
     {

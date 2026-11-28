@@ -51,7 +51,7 @@
   },
   {
     "key": "topic.notConfigured",
-    "en": "Routes aren't available.",
+    "en": "Routes aren't available right now.",
     "zh-Hans": "路线暂不可用"
   },
   {
@@ -116,7 +116,7 @@
   },
   {
     "key": "topic.availability.purchased",
-    "en": "Already have sign-up ticket",
+    "en": "You already have a registration or ticket",
     "zh-Hans": "你已报名或购票"
   },
   {
@@ -146,7 +146,7 @@
   },
   {
     "key": "topic.closedNotice",
-    "en": "Shop temporarily closed; new sign-up is unavailable",
+    "en": "Merchant temporarily closed; new registration is unavailable",
     "zh-Hans": "商家暂停营业，暂不可报名"
   },
   {
@@ -211,7 +211,7 @@
   },
   {
     "key": "topic.noComments",
-    "en": "No reviews",
+    "en": "No reviews supplied",
     "zh-Hans": "暂无评价"
   },
   {

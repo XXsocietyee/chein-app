@@ -345,7 +345,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Coupon isn't available use."
+          "value": "This coupon isn't available for use yet."
         }
       },
       "zh-Hans": {
@@ -430,7 +430,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Coupon code display isn't open right now. Check organizer administrator."
+          "value": "Coupon code display isn't open right now. Check with the organizer or administrator."
         }
       },
       "zh-Hans": {
@@ -532,7 +532,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "After stop no one can claim Coupons already claimed still."
+          "value": "After you stop it, no one can claim it. Coupons already claimed still work."
         }
       },
       "zh-Hans": {
@@ -549,7 +549,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Review stopping"
+          "value": "Review stopping distribution"
         }
       },
       "zh-Hans": {
@@ -736,7 +736,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redeem codes unavailable right"
+          "value": "Redeem codes are unavailable right now"
         }
       },
       "zh-Hans": {

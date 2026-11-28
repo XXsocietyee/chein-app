@@ -30,7 +30,7 @@
     },
     {
       "key": "official.w206.inbox.failed.detail",
-      "en": "Couldn't load invitations.",
+      "en": "Couldn't load invitations. Please try again.",
       "zh-Hans": "邀约加载失败"
     },
     {
@@ -55,7 +55,7 @@
     },
     {
       "key": "official.notConfigured",
-      "en": "Official events aren't available",
+      "en": "Official events aren't available right now",
       "zh-Hans": "官方活动暂不可用"
     },
     {
@@ -75,7 +75,7 @@
     },
     {
       "key": "official.inbox.nationwide",
-      "en": "National",
+      "en": "Nationwide",
       "zh-Hans": "全国"
     },
     {
@@ -140,7 +140,7 @@
     },
     {
       "key": "official.inbox.status.invited",
-      "en": "Awaiting check",
+      "en": "Awaiting your confirmation",
       "zh-Hans": "待你确认"
     },
     {
@@ -170,7 +170,7 @@
     },
     {
       "key": "official.inboxLink",
-      "en": "Invites",
+      "en": "Invitations",
       "zh-Hans": "邀约"
     },
     {
@@ -205,7 +205,7 @@
     },
     {
       "key": "official.privateParity.inbox.withdraw",
-      "en": "Withdraw from event's duty",
+      "en": "Withdraw from this event's duty",
       "zh-Hans": "退出本场职责"
     },
     {
@@ -215,12 +215,12 @@
     },
     {
       "key": "official.privateParity.inbox.confirm.acceptBody",
-      "en": "After accepting, counts toward event's fulfillment.",
+      "en": "After accepting, this counts toward the event's fulfillment coverage.",
       "zh-Hans": "接受后会计入活动履约覆盖。"
     },
     {
       "key": "official.privateParity.inbox.confirm.acceptOrganizerTitle",
-      "en": "Accept organizer invite",
+      "en": "Accept organizer invitation",
       "zh-Hans": "接受主办邀约"
     },
     {
@@ -230,7 +230,7 @@
     },
     {
       "key": "official.privateParity.inbox.confirm.declineTitle",
-      "en": "Decline event's invite",
+      "en": "Decline this event's invitation",
       "zh-Hans": "拒绝本场邀约"
     },
     {
@@ -240,7 +240,7 @@
     },
     {
       "key": "official.privateParity.inbox.confirm.withdrawTitle",
-      "en": "Withdraw from event's duty",
+      "en": "Withdraw from this event's duty",
       "zh-Hans": "退出本场职责"
     },
     {
@@ -250,12 +250,12 @@
     },
     {
       "key": "official.privateParity.inbox.organizerTransferHint",
-      "en": "Organizer must complete handover before withdrawing",
+      "en": "The organizer must complete a handover before withdrawing",
       "zh-Hans": "主办需先完成转交才能退出"
     },
     {
       "key": "official.privateParity.inbox.organizerTransferDetail",
-      "en": "To change the organizer, first invite a successor organizer and have them accept; current organizer performs controlled handover.",
+      "en": "To change the organizer, first invite a successor organizer and have them accept; the current organizer then performs a controlled handover.",
       "zh-Hans": "主办关系变更必须先邀请并接受候任主办，再由当前主办受控转交。"
     },
     {

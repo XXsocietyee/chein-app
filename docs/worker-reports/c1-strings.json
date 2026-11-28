@@ -9,7 +9,7 @@
   {
     "key": "roam.receivedMetadata.anonymous",
     "zh-Hans": "通过交换收到，作者匿名。",
-    "en": "Received through an exchange. The author anonymous.",
+    "en": "Received through an exchange. The author is anonymous.",
     "status": "DESIGNED",
     "note": "zh-Hans not taken from mini-program; written by C1 worker/predecessor"
   },
@@ -114,7 +114,7 @@
   {
     "key": "characterCard.rpgStatus",
     "zh-Hans": "本局状态",
-    "en": "Current session",
+    "en": "Current session status",
     "status": "DESIGNED",
     "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
   },
@@ -345,7 +345,7 @@
   {
     "key": "playx.poi.alreadyDone",
     "zh-Hans": "已完成该地标挑战",
-    "en": "Landmark quest already completed",
+    "en": "Landmark challenge already completed",
     "status": "DESIGNED",
     "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
   },
@@ -408,14 +408,14 @@
   {
     "key": "playx.poi.verifyReceipt",
     "zh-Hans": "刷新确认状态",
-    "en": "Refresh check status",
+    "en": "Refresh confirmation status",
     "status": "DESIGNED",
     "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
   },
   {
     "key": "storyRule.conditionsTitle",
     "zh-Hans": "触发条件",
-    "en": "Trigger rules",
+    "en": "Trigger conditions",
     "status": "DESIGNED",
     "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
   },

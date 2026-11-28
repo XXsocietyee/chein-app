@@ -5,7 +5,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Cash-out"
+          "value": "Withdrawal in progress"
         }
       },
       "zh-Hans": {
@@ -22,7 +22,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Cash-out"
+          "value": "Withdrawal succeeded"
         }
       },
       "zh-Hans": {
@@ -158,7 +158,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reading temporarily."
+          "value": "Reading is temporarily unavailable."
         }
       },
       "zh-Hans": {
@@ -175,7 +175,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Cash-out history isn't available."
+          "value": "Withdrawal history isn't available right now."
         }
       },
       "zh-Hans": {
@@ -192,7 +192,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Cash-out request"
+          "value": "Withdrawal application"
         }
       },
       "zh-Hans": {
@@ -277,7 +277,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Contact support withdraw"
+          "value": "Contact support to withdraw"
         }
       },
       "zh-Hans": {
@@ -396,7 +396,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Coupon code display isn't open right now. Check organizer administrator."
+          "value": "Coupon code display isn't open right now. Check with the organizer or administrator."
         }
       },
       "zh-Hans": {

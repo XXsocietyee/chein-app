@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Community"
+            "value": "Community governance"
           }
         },
         "zh-Hans": {
@@ -71,7 +71,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alert preferences"
+            "value": "Notification preferences"
           }
         },
         "zh-Hans": {
@@ -87,7 +87,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Interactions replies"
+            "value": "Interactions and replies"
           }
         },
         "zh-Hans": {
@@ -167,7 +167,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Community alerts"
+            "value": "Community notifications"
           }
         },
         "zh-Hans": {
@@ -279,7 +279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enforcements appeals"
+            "value": "Enforcements and appeals"
           }
         },
         "zh-Hans": {
@@ -647,7 +647,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Account doesn't have required permission."
+            "value": "This account doesn't have the required permission."
           }
         },
         "zh-Hans": {

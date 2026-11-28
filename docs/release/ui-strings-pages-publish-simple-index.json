@@ -52,7 +52,7 @@
     },
     {
       "key": "contextPublish.ai.unavailable",
-      "en": "AI generation isn't available right now. Can still create manually.",
+      "en": "AI generation isn't available right now. You can still create manually.",
       "zh-Hans": "AI 生成暂不可用，仍可手动创建。",
       "accessibilityIdentifier": "contextPublish.ai.open"
     },
@@ -70,13 +70,13 @@
     },
     {
       "key": "publishModes.description",
-      "en": "Details",
+      "en": "Description",
       "zh-Hans": "说明",
       "accessibilityIdentifier": "publishModes.quick.name"
     },
     {
       "key": "publishModes.details",
-      "en": "Details",
+      "en": "Description",
       "zh-Hans": "基本信息",
       "accessibilityIdentifier": "publishModes.quick.name"
     },
@@ -112,7 +112,7 @@
     },
     {
       "key": "publishModes.continueEditor",
-      "en": "Continue in pro editor",
+      "en": "Continue in professional editor",
       "zh-Hans": "进入专业编辑器",
       "accessibilityIdentifier": "publishModes.quick.continue"
     },

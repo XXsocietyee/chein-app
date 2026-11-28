@@ -55,7 +55,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Player"
+            "value": "Player participations"
           }
         },
         "zh-Hans": {
@@ -87,7 +87,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completion"
+            "value": "Completion rate"
           }
         },
         "zh-Hans": {

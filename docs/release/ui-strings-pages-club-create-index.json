@@ -70,7 +70,7 @@
     },
     {
       "key": "club.ops.directions",
-      "en": "Activity",
+      "en": "Activity direction",
       "zh-Hans": "活动方向",
       "accessibilityIdentifier": "club.ops.directions"
     },
@@ -208,7 +208,7 @@
     },
     {
       "key": "club.ops.retryRead",
-      "en": "Try",
+      "en": "Try again",
       "zh-Hans": "重试",
       "accessibilityIdentifier": "club.ops.retryRead"
     },

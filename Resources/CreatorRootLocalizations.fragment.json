@@ -243,7 +243,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "When this rule matches"
+          "value": "When this condition matches"
         }
       },
       "zh-Hans": {
@@ -328,7 +328,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reduce"
+          "value": "Reduce by"
         }
       },
       "zh-Hans": {
@@ -345,7 +345,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Increase"
+          "value": "Increase by"
         }
       },
       "zh-Hans": {
@@ -1076,7 +1076,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Whole-node time"
+          "value": "Whole-node time limit"
         }
       },
       "zh-Hans": {
@@ -1110,7 +1110,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Timed ball quest"
+          "value": "Timed ball challenge"
         }
       },
       "zh-Hans": {
@@ -1229,7 +1229,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Estimate"
+          "value": "Estimate tolerance"
         }
       },
       "zh-Hans": {
@@ -1263,7 +1263,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Stopwatch"
+          "value": "Stopwatch tolerance"
         }
       },
       "zh-Hans": {

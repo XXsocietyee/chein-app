@@ -208,7 +208,7 @@
     "zh-Hans": "正在进入群聊…"
   },
   "club.chat.unknown": {
-    "en": "The group may already exist. Retry checks the same club’s group; it doesn't request different group.",
+    "en": "The group may already exist. Retry checks the same club’s group; it doesn't request a different group.",
     "zh-Hans": "群聊可能已经创建。重试只会核对同一俱乐部群聊。"
   },
   "club.chat.rejected": {

@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Applying responding requests isn't available right."
+            "value": "Applying and responding to applications isn't available right now."
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lng"
+            "value": "Longitude"
           }
         },
         "zh-Hans": {
@@ -342,7 +342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Distance selected"
+            "value": "Distance from selected point"
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View session’s tickets"
+            "value": "View this session’s tickets"
           }
         },
         "zh-Hans": {
@@ -806,7 +806,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw request"
+            "value": "Withdraw application"
           }
         },
         "zh-Hans": {
@@ -934,7 +934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nearby teams aren't available right."
+            "value": "Nearby teams aren't available right now."
           }
         },
         "zh-Hans": {
@@ -966,7 +966,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Action wasn't completed."
+            "value": "The action wasn't completed."
           }
         },
         "zh-Hans": {
@@ -1238,7 +1238,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This request was processed or expired."
+            "value": "This application was processed or expired."
           }
         },
         "zh-Hans": {

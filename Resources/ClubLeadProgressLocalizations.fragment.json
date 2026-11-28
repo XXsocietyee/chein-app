@@ -87,7 +87,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Four-stage"
+            "value": "Four-stage progress"
           }
         },
         "zh-Hans": {
@@ -231,7 +231,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Club has accepted project operate"
+            "value": "The club has accepted a project to operate"
           }
         },
         "zh-Hans": {
@@ -295,7 +295,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wait merchant responses"
+            "value": "Wait for merchant responses"
           }
         },
         "zh-Hans": {

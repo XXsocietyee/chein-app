@@ -26,7 +26,7 @@
   },
   {
     "key": "settingsNative.sound.raindrop",
-    "en": "Rain",
+    "en": "Raindrops",
     "zh-Hans": "雨滴"
   },
   {
@@ -36,7 +36,7 @@
   },
   {
     "key": "settingsNative.sound.ambient",
-    "en": "Ambient",
+    "en": "Ambient sounds",
     "zh-Hans": "环境音"
   },
   {
@@ -81,7 +81,7 @@
   },
   {
     "key": "settingsNative.legal.cancellation_notice",
-    "en": "Account cancellation",
+    "en": "Account cancellation notice",
     "zh-Hans": "账号注销须知"
   },
   {
@@ -106,17 +106,17 @@
   },
   {
     "key": "settingsNative.legal.loadFailed",
-    "en": "Document couldn't loaded",
+    "en": "This document couldn't be loaded",
     "zh-Hans": "文档读取失败"
   },
   {
     "key": "settingsNative.legal.missingTitle",
-    "en": "Document not yet",
+    "en": "Document not yet provided",
     "zh-Hans": "文档待提供"
   },
   {
     "key": "settingsNative.legal.pendingSourceText",
-    "en": "Document hasn't been published yet.",
+    "en": "This document hasn't been published yet.",
     "zh-Hans": "该文档尚未发布。"
   },
   {
@@ -211,7 +211,7 @@
   },
   {
     "key": "settingsNative.blocked.marketingConsent.title",
-    "en": "Promo preferences",
+    "en": "Marketing preferences",
     "zh-Hans": "营销偏好"
   },
   {
@@ -221,7 +221,7 @@
   },
   {
     "key": "settingsNative.blocked.accountDeletion.title",
-    "en": "Account",
+    "en": "Account cancellation",
     "zh-Hans": "账号注销"
   },
   {

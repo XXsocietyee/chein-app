@@ -2,7 +2,7 @@
   {
     "key": "club.checkin.state.missing",
     "table": "Localizable",
-    "en": "Check-in record doesn't exist.",
+    "en": "This check-in record doesn't exist.",
     "zh-Hans": "核销记录不存在"
   },
   {

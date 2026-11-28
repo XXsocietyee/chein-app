@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Profit share"
+            "value": "Profit share details"
           }
         },
         "zh-Hans": {
@@ -71,7 +71,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact platform support withdraw"
+            "value": "Contact platform support to withdraw"
           }
         },
         "zh-Hans": {
@@ -87,7 +87,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Credited amount awaiting check"
+            "value": "Credited amount awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -119,7 +119,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact platform support to withdraw; credited amount awaiting check"
+            "value": "Contact platform support to withdraw; credited amount awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -231,7 +231,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout status awaiting check"
+            "value": "Settlement status awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -247,7 +247,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending settlement"
           }
         },
         "zh-Hans": {
@@ -263,7 +263,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amount awaiting check"
+            "value": "Amount awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -295,7 +295,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrival status awaiting check"
+            "value": "Arrival status awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -327,7 +327,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting credit"
           }
         },
         "zh-Hans": {
@@ -455,7 +455,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After signing in you can see actual organizer profit share"
+            "value": "After signing in you can see your actual organizer profit share"
           }
         },
         "zh-Hans": {
@@ -583,7 +583,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unreceived amounts temporarily unavailable"
+            "value": "Unreceived amounts are temporarily unavailable"
           }
         },
         "zh-Hans": {
@@ -663,7 +663,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cash-out records"
+            "value": "Withdrawal records"
           }
         },
         "zh-Hans": {
@@ -727,7 +727,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout details"
+            "value": "Settlement details"
           }
         },
         "zh-Hans": {
@@ -791,7 +791,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout record identifier missing"
+            "value": "Settlement record identifier missing"
           }
         },
         "zh-Hans": {
@@ -855,7 +855,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This record may have been withdrawn or may not belong to current account"
+            "value": "This record may have been withdrawn or may not belong to the current account"
           }
         },
         "zh-Hans": {
@@ -951,7 +951,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout progress"
+            "value": "Settlement progress"
           }
         },
         "zh-Hans": {
@@ -967,7 +967,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Organizer profit"
+            "value": "Organizer profit share"
           }
         },
         "zh-Hans": {
@@ -999,7 +999,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting credit"
           }
         },
         "zh-Hans": {
@@ -1047,7 +1047,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Status awaiting check"
+            "value": "Status awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -1063,7 +1063,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending settlement"
           }
         },
         "zh-Hans": {
@@ -1079,7 +1079,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amount awaiting check"
+            "value": "Amount awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -1159,7 +1159,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redeemed people"
+            "value": "Redeemed participants"
           }
         },
         "zh-Hans": {
@@ -1175,7 +1175,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Profit share"
+            "value": "Profit share method"
           }
         },
         "zh-Hans": {
@@ -1351,7 +1351,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout status awaiting check"
+            "value": "Settlement status awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -1367,7 +1367,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout status awaiting check"
+            "value": "Settlement status awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -1399,7 +1399,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Topic awaiting payout"
+            "value": "Topic awaiting settlement"
           }
         },
         "zh-Hans": {
@@ -1431,7 +1431,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "My profit share awaiting"
+            "value": "My profit share awaiting credit"
           }
         },
         "zh-Hans": {
@@ -1447,7 +1447,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nothing to credit period"
+            "value": "Nothing to credit this period"
           }
         },
         "zh-Hans": {
@@ -1543,7 +1543,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revenue"
+            "value": "Revenue share"
           }
         },
         "zh-Hans": {
@@ -1623,7 +1623,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time awaiting check"
+            "value": "Time awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -1639,7 +1639,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrival time awaiting check"
+            "value": "Arrival time awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -1815,7 +1815,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Other"
+            "value": "The other party"
           }
         },
         "zh-Hans": {
@@ -1879,7 +1879,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact details visible after other party accepts"
+            "value": "Contact details are visible after the other party accepts"
           }
         },
         "zh-Hans": {
@@ -1911,7 +1911,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The invite has ended; other party can't contacted"
+            "value": "The invitation has ended; the other party can't be contacted"
           }
         },
         "zh-Hans": {
@@ -1927,7 +1927,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Profit"
+            "value": "Profit share"
           }
         },
         "zh-Hans": {
@@ -2135,7 +2135,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collab actions"
+            "value": "Cooperation actions"
           }
         },
         "zh-Hans": {
@@ -2231,7 +2231,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel collab"
+            "value": "Cancel cooperation"
           }
         },
         "zh-Hans": {
@@ -2263,7 +2263,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Accept collab"
+            "value": "Accept cooperation"
           }
         },
         "zh-Hans": {
@@ -2295,7 +2295,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw invite"
+            "value": "Withdraw invitation"
           }
         },
         "zh-Hans": {
@@ -2311,7 +2311,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reply other party (optional when accepting, required when"
+            "value": "Reply to the other party (optional when accepting, required when declining)"
           }
         },
         "zh-Hans": {
@@ -2407,7 +2407,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collab in progress"
+            "value": "Cooperation in progress"
           }
         },
         "zh-Hans": {
@@ -2551,7 +2551,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collab"
+            "value": "Cooperation"
           }
         },
         "zh-Hans": {
@@ -2583,7 +2583,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite sent back"
+            "value": "Invitation sent back"
           }
         },
         "zh-Hans": {
@@ -2631,7 +2631,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite details are incomplete, so it can't be handled yet"
+            "value": "Invitation details are incomplete, so it can't be handled yet"
           }
         },
         "zh-Hans": {
@@ -2663,7 +2663,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chapter requests"
+            "value": "Chapter applications"
           }
         },
         "zh-Hans": {
@@ -2695,7 +2695,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chapter request records weren't fully updated"
+            "value": "Chapter application records weren't fully updated"
           }
         },
         "zh-Hans": {
@@ -2727,7 +2727,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending review"
           }
         },
         "zh-Hans": {
@@ -2855,7 +2855,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Official"
+            "value": "Official invitations"
           }
         },
         "zh-Hans": {
@@ -2935,7 +2935,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting check"
+            "value": "Awaiting your confirmation"
           }
         },
         "zh-Hans": {
@@ -2967,7 +2967,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not selected round"
+            "value": "Not selected this round"
           }
         },
         "zh-Hans": {
@@ -2983,7 +2983,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting back-office"
+            "value": "Awaiting back-office confirmation"
           }
         },
         "zh-Hans": {
@@ -2999,7 +2999,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Status awaiting check"
+            "value": "Status awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -3095,7 +3095,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reward awaiting official check"
+            "value": "Reward awaiting official confirmation"
           }
         },
         "zh-Hans": {
@@ -3287,7 +3287,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Member count awaiting"
+            "value": "Member count awaiting confirmation"
           }
         },
         "zh-Hans": {
@@ -3351,7 +3351,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No shops were found for your current location; refreshing locates you again searches once more"
+            "value": "No merchants were found for your current location; refreshing locates you again and searches once more"
           }
         },
         "zh-Hans": {

@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chapter replacement invite"
+            "value": "Chapter replacement invitation"
           }
         },
         "zh-Hans": {
@@ -245,7 +245,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send replacement invite"
+            "value": "Send replacement invitation"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Result not yet"
+            "value": "Result not yet verified"
           }
         },
         "zh-Hans": {

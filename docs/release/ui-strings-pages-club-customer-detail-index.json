@@ -95,12 +95,12 @@
     },
     {
       "key": "clubOps.customer.pending",
-      "en": "Awaiting",
+      "en": "Awaiting check-in",
       "zh-Hans": "待核销"
     },
     {
       "key": "clubOps.customer.records",
-      "en": "Participation",
+      "en": "Participation history",
       "zh-Hans": "参与记录"
     },
     {
@@ -145,7 +145,7 @@
     },
     {
       "key": "clubOps.customer.status.PENDING",
-      "en": "Awaiting",
+      "en": "Awaiting check-in",
       "zh-Hans": "待核销"
     },
     {
@@ -313,13 +313,13 @@
     },
     {
       "key": "clubOps.customer.pending",
-      "en": "Awaiting",
+      "en": "Awaiting check-in",
       "zh-Hans": "待核销",
       "table": "ClubOpsCustomer"
     },
     {
       "key": "clubOps.customer.records",
-      "en": "Participation",
+      "en": "Participation history",
       "zh-Hans": "参与记录",
       "table": "ClubOpsCustomer"
     },
@@ -373,7 +373,7 @@
     },
     {
       "key": "clubOps.customer.status.PENDING",
-      "en": "Awaiting",
+      "en": "Awaiting check-in",
       "zh-Hans": "待核销",
       "table": "ClubOpsCustomer"
     },

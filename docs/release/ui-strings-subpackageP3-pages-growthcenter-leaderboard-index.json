@@ -35,7 +35,7 @@
     },
     {
       "key": "growth.period.week",
-      "en": "Week",
+      "en": "This week",
       "zh-Hans": "周榜"
     },
     {
@@ -60,7 +60,7 @@
     },
     {
       "key": "growth.unavailable",
-      "en": "This growth info is temporarily unavailable",
+      "en": "This growth information is temporarily unavailable",
       "zh-Hans": "这部分成长信息暂不可用"
     },
     {
@@ -70,7 +70,7 @@
     },
     {
       "key": "growth.failed",
-      "en": "Growth info couldn't be loaded",
+      "en": "Growth information couldn't be loaded",
       "zh-Hans": "成长信息加载失败"
     },
     {
@@ -170,7 +170,7 @@
     },
     {
       "key": "growthNormalEntry.leaderboard.hold",
-      "en": "Anonymous rankings aren't available right now. Personal growth records shown separately.",
+      "en": "Anonymous rankings aren't available right now. Your personal growth records are shown separately.",
       "zh-Hans": "匿名排行暂不可用，个人成长记录单独展示。"
     }
   ],

@@ -31,7 +31,7 @@
   },
   {
     "key": "roam.experience.distance",
-    "en": "Total",
+    "en": "Total distance",
     "zh-Hans": "总距离"
   },
   {
@@ -41,7 +41,7 @@
   },
   {
     "key": "roam.experience.shops",
-    "en": "Shops",
+    "en": "Shops visited",
     "zh-Hans": "探店"
   },
   {
@@ -231,7 +231,7 @@
   },
   {
     "key": "roam.experience.sessionActive",
-    "en": "This journey progress",
+    "en": "This journey is in progress",
     "zh-Hans": "行程进行中"
   },
   {
@@ -271,7 +271,7 @@
   },
   {
     "key": "roam.experience.newPlaces",
-    "en": "Newly discovered",
+    "en": "Newly discovered places",
     "zh-Hans": "新发现地点"
   },
   {
@@ -296,7 +296,7 @@
   },
   {
     "key": "roam.experience.reviewNotSubmitted",
-    "en": "Not submitted automated",
+    "en": "Not submitted to automated review",
     "zh-Hans": "尚未送交机审"
   },
   {
@@ -396,7 +396,7 @@
   },
   {
     "key": "roam.experience.fixtureSignOut",
-    "en": "Sign out synthetic example",
+    "en": "Sign out of synthetic example",
     "zh-Hans": "退出示例账号"
   }
 ]

@@ -10,14 +10,14 @@
     "key": "经度",
     "table": "Localizable",
     "kind": "new",
-    "en": "Lng",
+    "en": "Longitude",
     "zh-Hans": "经度"
   },
   {
     "key": "坐标系",
     "table": "Localizable",
     "kind": "new",
-    "en": "Coordinate",
+    "en": "Coordinate system",
     "zh-Hans": "坐标系"
   },
   {
@@ -94,14 +94,14 @@
     "key": "本队私有意向：",
     "table": "Localizable",
     "kind": "new",
-    "en": "Your team's private preference",
+    "en": "Your team's private preference: ",
     "zh-Hans": "本队私有意向："
   },
   {
     "key": "本队首选：",
     "table": "Localizable",
     "kind": "new",
-    "en": "Team's first choice",
+    "en": "Your team's first choice: ",
     "zh-Hans": "本队首选："
   },
   {
@@ -521,7 +521,7 @@
     "key": "可用",
     "table": "Localizable",
     "kind": "new",
-    "en": "Ready",
+    "en": "Available",
     "zh-Hans": "可用"
   },
   {
@@ -549,7 +549,7 @@
     "key": "本队",
     "table": "Localizable",
     "kind": "new",
-    "en": "Team",
+    "en": "Your team",
     "zh-Hans": "本队"
   },
   {

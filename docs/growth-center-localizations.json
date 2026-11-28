@@ -16,7 +16,7 @@
     "zh-Hans": "成长功能暂不可用"
   },
   "growth.unavailable": {
-    "en": "This growth info is temporarily unavailable",
+    "en": "This growth information is temporarily unavailable",
     "zh-Hans": "这部分成长信息暂不可用"
   },
   "growth.network": {
@@ -24,7 +24,7 @@
     "zh-Hans": "请检查网络后重试"
   },
   "growth.failed": {
-    "en": "Growth info couldn't be loaded",
+    "en": "Growth information couldn't be loaded",
     "zh-Hans": "成长信息加载失败"
   },
   "growth.loading": {
@@ -72,7 +72,7 @@
     "zh-Hans": "等级"
   },
   "growth.experience": {
-    "en": "Exploration",
+    "en": "Exploration XP",
     "zh-Hans": "探索值"
   },
   "growth.badgeCount": {
@@ -144,7 +144,7 @@
     "zh-Hans": "成长榜"
   },
   "growth.period.week": {
-    "en": "Week",
+    "en": "This week",
     "zh-Hans": "周榜"
   },
   "growth.period.total": {
