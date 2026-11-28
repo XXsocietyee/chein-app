@@ -150,7 +150,7 @@ public struct SquareGovernanceService {
     static func refusalMessage(_ body: SquareGovernanceJSON?) -> String? {
         let raw = (body?["msg"].string ?? body?["message"].string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !raw.isEmpty, raw.count <= 60, raw.rangeOfCharacter(from: .newlines) == nil, !raw.contains("\t") else { return nil }
-        let unsafe = [
+        let unsafePatterns = [
             #"认证失败|无法访问系统资源|timeout|超时"#,
             #"lifecycle|sellingStartedAt|saleEndAt|拒绝售卖|不可再售"#,
             #"Exception|java\.|SQL|database|JSON|HttpMessage|CHENGYIN_|配置缺失|cannot be cast"#,
@@ -161,7 +161,7 @@ public struct SquareGovernanceService {
             #"\b(trace|request|span|correlation)[_-]?id\b"#,
             #"\b1[3-9]\d{9}\b|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}"#,
         ]
-        for pattern in unsafe where raw.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil { return nil }
+        for pattern in unsafePatterns where raw.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil { return nil }
         return raw
     }
     /// MP `post-governance/index.js` submit: HTTP 2xx with a body code other than 200 is a refusal
