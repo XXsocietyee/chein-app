@@ -3741,5 +3741,22 @@
         }
       }
     }
+  },
+  "playkit.pricePair.fallbackName %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Picture %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "图 %lld"
+        }
+      }
+    }
   }
 }
