@@ -68,6 +68,82 @@ import SwiftUI
 
     @ViewBuilder private var screen: some View {
         switch page {
+        case "pages/index/index", "pages/template/index", "pages/templatedetail2/templatedetail2",
+            "pages/templatedetail/topic-preview/index", "pages/templatedetail/topic-detail/index",
+            "pages/talent/list/index", "pages/member/index/index", "pages/roam/index", "pages/privacy/index",
+            "pages/agreement/index", "pages/deregister/index", "pages/team/detail/index", "pages/team/join/index",
+            "pages/play/circle/index", "pages/play/index", "pages/activity/detail/index",
+            "pages/activity/baoming/baoming", "pages/activity/official-organizer/index", "pages/activity/list/index",
+            "pages/activity/official-detail/index", "pages/activity/official-inbox/index",
+            "pages/activity/official-mine/index":
+            screenBand0
+        case "subpackageA/pages/infomation/infomation", "subpackageA/pages/infomationdetail/infomationdetail",
+            "subpackageA/pages/assetcenter/income-detail/income-detail", "subpackageA/pages/assetcenter/earnings/index",
+            "subpackageA/pages/assetcenter/analysis/index", "subpackageP3/pages/growthcenter/index/index",
+            "subpackageP3/pages/growthcenter/leaderboard/index", "subpackageP3/pages/stamp-camera/index/index",
+            "subpackageRoam/citystamp/index", "subpackageRoam/session/index", "subpackageRoam/official-route/index",
+            "pages/play/poi-challenge/index", "subpackageRoam/poi-detail/index", "subpackageRoam/citynode-code/index",
+            "subpackageP3/pages/stamp-album/index/index", "subpackageP3/pages/badge-wall/index/index",
+            "subpackageP3/pages/object-cards/index/index", "subpackageB/pages/im/list/index",
+            "subpackageB/pages/im/chat/index", "pages/topic/merchantinfo/merchantinfo",
+            "pages/topic/merchantapply/index", "pages/topic/pricing/partner/index", "pages/topic/pricing/index",
+            "pages/publish/fabu/index", "pages/publish/topicadd/topicadd", "pages/publish/simple/index",
+            "pages/publish/activity/index":
+            screenBand1
+        case "pages/publish/template-intro/index", "pages/publish/temp/index", "pages/club/detail/index",
+            "pages/club/workbench/index", "pages/club/apply/index", "pages/club/create/index", "pages/club/edit/index",
+            "pages/club/badges/index", "pages/club/customers/index", "pages/club/customer-detail/index",
+            "pages/club/checkin-detail/index", "pages/club/enroll/index", "pages/club/event-ops/index",
+            "pages/club/group-code/index", "pages/club/join-requests/index", "pages/club/notify/index",
+            "pages/club/topic-detail/index", "pages/club/topic-story/index":
+            screenBand2
+        case "pages/club/governance/index", "pages/club/roles/index", "pages/topic/catalog/index",
+            "pages/topic/index/index", "pages/templatedetail/templatedetail", "pages/square/detail/index",
+            "subpackageMember/orderinfo/orderinfo", "pages/merchant/index/index", "pages/merchant/relation/index",
+            "pages/merchant/relation", "pages/search2/index", "pages/search2/result/index", "pages/talent/search/index",
+            "pages/searchmap/index", "pages/merchant/profile/index", "pages/merchant/ledger/index",
+            "pages/merchant/ledger/order-detail/index", "pages/coop/settlement-detail/index",
+            "pages/merchant/ledger/batch-detail/index", "pages/merchant/apply/index":
+            screenBand3
+        case "pages/merchant/verify-records/index", "pages/merchant/aftercare/index",
+            "pages/merchant/aftercare/detail/index", "pages/merchant/reviews/index", "pages/merchant/customer/index",
+            "pages/merchant/crm-campaigns/index", "pages/merchant/marketing/index",
+            "pages/merchant/marketing/ai-insight/index", "pages/merchant/predict/index", "pages/merchant/team/index",
+            "pages/coop/finance/index", "pages/coop/list/index", "pages/coop/invite-detail/index",
+            "pages/coop/invite/index", "pages/merchant/decor/index", "pages/merchant/decor/gallery/index",
+            "pages/merchant/decor/coop-setting/index", "pages/merchant/decor/ai-npc/index",
+            "pages/merchant/decor/perks/index", "pages/merchant/citynode/index", "pages/merchant/citynode/create/index",
+            "pages/merchant/game-node/index":
+            screenBand4
+        case "pages/merchant/coop-center/index", "pages/coop/nearby/index", "pages/square/list/index",
+            "pages/shezhi/shezhi", "pages/shezhi/marketing/index", "pages/gerenziliao/gerenziliao",
+            "pages/mylike/mylike", "pages/addressinfo/addressinfo", "pages/shezhi/about/index", "pages/address/address",
+            "subpackageMember/order/order", "subpackageMember/signup/index", "subpackageMember/signupInfo/signupInfo",
+            "subpackageMember/signupInfo2/signupInfo2", "subpackageMember/mycanyuinfo/mycanyuinfo",
+            "subpackageMember/character/index", "subpackageMember/mycanyu/mycanyu", "subpackageMember/myinvite/myinvite",
+            "subpackageMember/report-mine/index", "subpackageMember/appeal-mine/index", "subpackageMember/invoice/index",
+            "subpackageMember/invoice-detail/index", "subpackageMember/invoice-apply/index",
+            "subpackageMember/invoice-titles/index", "subpackageMember/invoice-title-edit/index":
+            screenBand5
+        case "subpackageMember/points-history/index", "subpackageMember/coupon-wallet/index",
+            "subpackageMember/coupon-qr/index", "subpackageMember/free-explore/index",
+            "subpackageMember/complaint/index", "subpackageMember/orient-score/index",
+            "subpackageMember/report-detail/index", "subpackageMember/coupon/coupon",
+            "subpackageMember/couponInfo/couponInfo", "subpackageMember/tixian/tixian",
+            "subpackageMember/tixianjilu/tixianjilu", "pages/coop/withdraw/records/index", "pages/coop/withdraw/index",
+            "pages/userinfo/userinfo", "subpackageRoam/history/index", "subpackageRoam/nearby/index",
+            "subpackageRoam/my-teams/index", "subpackageRoam/official-routes/index", "subpackageTools/capsule/index",
+            "subpackageTools/exploration-goals/index", "subpackageTools/exploration-export/index",
+            "subpackageTools/anniversary/index", "subpackageTools/monthly-recap/index":
+            screenBand6
+        default:
+            screenBand6
+        }
+    }
+
+    /// Same pages as the `screenBand0` arm of `screen`. Split so this switch type-checks alone.
+    @ViewBuilder private var screenBand0: some View {
+        switch page {
         case "pages/index/index":
             // PC-A-1-8: 首页 is a tab root (MP switchTab). Close the link and select the tab instead of pushing a second
             // home with its own NavigationStack; a host without the tab switch keeps the old screen.
@@ -197,6 +273,14 @@ import SwiftUI
             OfficialInboxView(reader: session.officialEventReader, actions: session.officialActionCoordinator, onLogin: signIn)
         case "pages/activity/official-mine/index":
             OfficialPublishedView(reader: session.officialEventReader, actions: session.officialActionCoordinator, onLogin: signIn)
+        default:
+            unavailable
+        }
+    }
+
+    /// Same pages as the `screenBand1` arm of `screen`. Split so this switch type-checks alone.
+    @ViewBuilder private var screenBand1: some View {
+        switch page {
         case "subpackageA/pages/infomation/infomation":
             // PC-D-2-1: the mode cards keep their 去看看 (MP switchTab to 首页 / 漫游).
             SocialPlayGuideView(reader: session.socialAccountReader,
@@ -326,6 +410,14 @@ import SwiftUI
         case "pages/publish/activity/index":
             // C-A1: the 发布活动 form itself (not the publish menu); `?id=` edits that activity.
             SessionActivityPublishingDestination(editingID: positiveID(query["id"])).environmentObject(session)
+        default:
+            unavailable
+        }
+    }
+
+    /// Same pages as the `screenBand2` arm of `screen`. Split so this switch type-checks alone.
+    @ViewBuilder private var screenBand2: some View {
+        switch page {
         case "pages/publish/template-intro/index":
             // C-I1: the intro → name → editor flow the 发布 tab opens.
             sessionTemplateAuthoringEntry(session, scope: releasedPublishScope(query["scope"]))
@@ -442,6 +534,14 @@ import SwiftUI
                 // CLB-r9-topic-story-01 (MP topic-story js:160-166, 203-206): no topicId is final; the way out is 返回.
                 MemberMissingLinkState(title: "club.story.missingTopic", identifier: "club.story.missingTopic")
             } else { unavailable }
+        default:
+            unavailable
+        }
+    }
+
+    /// Same pages as the `screenBand3` arm of `screen`. Split so this switch type-checks alone.
+    @ViewBuilder private var screenBand3: some View {
+        switch page {
         case "pages/club/governance/index":
             // MP governance onLoad (ClubGovernanceEntryRoute): manage → the governance workspace; report / appeal → 我的平台工单.
             switch ClubGovernanceEntryRoute.resolve(query) {
@@ -569,6 +669,14 @@ import SwiftUI
             }
         case "pages/merchant/apply/index":
             MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
+        default:
+            unavailable
+        }
+    }
+
+    /// Same pages as the `screenBand4` arm of `screen`. Split so this switch type-checks alone.
+    @ViewBuilder private var screenBand4: some View {
+        switch page {
         case "pages/merchant/verify-records/index":
             MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .verificationRecords)
                 .cyPushedChrome(domain: .merchant)
@@ -698,6 +806,14 @@ import SwiftUI
                     .id(session.merchantContentService.scope)
                     .cyPushedChrome(domain: .merchant)
             }
+        default:
+            unavailable
+        }
+    }
+
+    /// Same pages as the `screenBand5` arm of `screen`. Split so this switch type-checks alone.
+    @ViewBuilder private var screenBand5: some View {
+        switch page {
         case "pages/merchant/coop-center/index":
             session.merchantCoopCenterDestination()
         case "pages/coop/nearby/index":
@@ -828,6 +944,14 @@ import SwiftUI
             invoice { InvoiceLaunchTitlesView(model: $0, onSignIn: signIn) }
         case "subpackageMember/invoice-title-edit/index":
             invoice { InvoiceLaunchTitleEditor(model: $0, title: nil, onSignIn: signIn) }
+        default:
+            unavailable
+        }
+    }
+
+    /// Same pages as the `screenBand6` arm of `screen`. Split so this switch type-checks alone.
+    @ViewBuilder private var screenBand6: some View {
+        switch page {
         case "subpackageMember/points-history/index":
             PassMarketPointsBridge.destination(for: session)()
         case "subpackageMember/coupon-wallet/index", "subpackageMember/coupon-qr/index":
@@ -908,6 +1032,7 @@ import SwiftUI
             unavailable
         }
     }
+
 
     @Environment(\.clubBadgeHostFactory) private var badgeHost
 

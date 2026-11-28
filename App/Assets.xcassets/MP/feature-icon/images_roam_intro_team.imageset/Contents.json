@@ -1,13 +1,22 @@
 {
-  "images": [
+  "images" : [
     {
-      "filename": "intro-team.svg",
-      "idiom": "universal",
-      "scale": "1x"
+      "filename" : "intro-team.svg",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "intro-team-zh.svg",
+      "idiom" : "universal",
+      "locale" : "zh-Hans",
+      "scale" : "1x"
     }
   ],
-  "info": {
-    "author": "xcode",
-    "version": 1
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "localizable" : true
   }
 }

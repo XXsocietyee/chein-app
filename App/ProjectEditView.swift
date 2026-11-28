@@ -142,7 +142,7 @@ import SwiftUI
         editorIncarnation == incarnation && submissionEvidence == receipt && submittedHandoff?.id == receipt.id
     }
     struct SubmissionDestination: Identifiable, Hashable {
-        let id = UUID()
+        nonisolated let id = UUID()
         let receipt: PublishingSubmissionHandoff
         let session: ProjectEditSession
         let visit: UUID

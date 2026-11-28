@@ -5,6 +5,8 @@ struct SocialIssueView: View {
     var retry: (() -> Void)? = nil
     /// mp-states r3: the page's MP failure title (guides: 玩法文档加载失败); sign-in and blocks keep their own words.
     var failureTitle: LocalizedStringKey? = nil
+    /// Prefix of the retry identifier, so a page keeps the one its UI tests name (profile posts → `profile.postsRefresh.retry`).
+    var identifierPrefix: String = "social.issue."
     private var message: LocalizedStringKey {
         switch error {
         case APIError.notConfigured: return "social.notConfigured"
@@ -39,7 +41,7 @@ struct SocialIssueView: View {
             if let retry {
                 Button("action.retry", action: retry)
                     .buttonStyle(.bordered)
-                    .accessibilityIdentifier("social.issue.retry")
+                    .accessibilityIdentifier(identifierPrefix + "retry")
             }
         }
     }

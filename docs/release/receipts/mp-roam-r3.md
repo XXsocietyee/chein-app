@@ -611,6 +611,16 @@ Base re-merged with `origin/ui/combined-r7` (clean). Sweep build 0446d1c4f read:
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet **new 0**. No Swift build here.
 
+## Round 3 continue (47) — ADA audit "Inclusivity": forced `.accessibility3` on the 结算 big number
+
+No new coordinator finding for mp-roam since 07:45; latest sweep still build 0446d1c4f (`mp-roam/sheet-zh-Hans.jpg` read in continue 46). No B-lane receipt on origin yet (`origin/mp/r3-roam-b` absent).
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| ADA `1128-ada.md` Inclusivity row ("a forced `.accessibility3` at `RoamFinishReportView.swift:192`") | `pages/roam/index` settle__big 处到达 (wxml:900–901) → `App/RoamFinishReportView.swift` `bigNumber` | The hero count was pinned to AX3 whatever the reader's setting, so at AX4/AX5 it stopped scaling while the caption under it kept growing. | `.dynamicTypeSize(max(dynamicTypeSize, DynamicTypeSize.accessibility3))`: the number keeps its MP hero size at default sizes and now follows the reader at AX4/AX5. MP section, order and copy unchanged. No new strings. | A · finish / `t5-settle`-style roam result |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet **new 0**. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).

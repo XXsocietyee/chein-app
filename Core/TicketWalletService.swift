@@ -152,7 +152,7 @@ public struct WalletSeatInvitation: Equatable, Sendable {
     }
 }
 
-public struct WalletSeatInvitationSource: Sendable {
+public struct WalletSeatInvitationSource {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {

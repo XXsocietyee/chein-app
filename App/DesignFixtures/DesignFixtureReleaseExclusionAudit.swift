@@ -336,6 +336,7 @@ enum DesignFixtureReleaseExclusionAudit {
         "T5PublisherPartnerFixtureHost",
         "T5PublisherPricingFixtureHost",
         "T5PublisherWiring",
+        "TeamDetailDesignFixtureHost",
         "UGCFixtureModel",
         "UGCFixtureModelStore",
         "UGCFixtureSafetyService",

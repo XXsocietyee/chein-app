@@ -46,4 +46,22 @@ final class PlayKitSensorStationSkipTests: XCTestCase {
         }
         XCTAssertFalse(PlayKitScreenProjection(kind: .reaction, segment: try wire(#"{"skipped":true}"#)).complete)
     }
+
+    /// MP `playkit-view.js` `walk:readfail` / `walk:skip` → `{game: steps}` (`SENSOR_GAME_OF.walk = 'steps'`);
+    /// `isDone('steps')` = reached or skipped; the skip never shows once the goal is reached.
+    func testWalkStationReportsAndSkipsAsSteps() throws {
+        XCTAssertTrue(PlayKitActionCatalog.actions["steps"]!.isSuperset(of: ["SUBMIT_STEPS", "REPORT_SENSOR_FAILURE", "SKIP_SENSOR_STATION"]))
+        XCTAssertEqual(try PlayKitActionCatalog.payload(kind: "steps", action: "REPORT_SENSOR_FAILURE", detail: ["denied": .bool(true)]),
+                       ["game": .string("steps"), "denied": .bool(true)])
+        let open = try wire(#"{"goal":5000,"todaySteps":0,"failedReads":1,"canSkip":true}"#)
+        XCTAssertNoThrow(try PlayKitInputContract.validate(kind: "steps", action: "SKIP_SENSOR_STATION",
+                                                           payload: ["game": .string("steps")], segment: open))
+        XCTAssertNoThrow(try PlayKitInputContract.validate(kind: "steps", action: "REPORT_SENSOR_FAILURE",
+                                                           payload: ["game": .string("steps"), "denied": .bool(true)], segment: open))
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "steps", action: "SKIP_SENSOR_STATION",
+                                                               payload: ["game": .string("walk")], segment: open))
+        XCTAssertFalse(PlayKitSensorStation.offersSkip(try wire(#"{"canSkip":true,"reached":true}"#)))
+        XCTAssertTrue(PlayKitScreenProjection(kind: .steps, segment: try wire(#"{"skipped":true}"#)).complete)
+        XCTAssertFalse(PlayKitScreenProjection(kind: .walk, segment: try wire(#"{"skipped":true}"#)).complete)
+    }
 }

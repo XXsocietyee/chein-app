@@ -12,6 +12,8 @@ import SwiftUI
     /// 11-28 05:35 sweep (P30, MP pull-down only): the host's pull to refresh bumps this; there is no refresh row.
     var refreshTrigger: Int = 0
     @State private var ownedModel = ProfileAuthorPostsRefreshController()
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.rootSignIn) private var rootSignIn
     private var model: ProfileAuthorPostsRefreshController { retainedModel ?? ownedModel }
     private var context: ProfileAuthorPostsContext {
         .init(memberID: memberID, accountReader: accountReader, squareReader: squareReader)
@@ -19,7 +21,21 @@ import SwiftUI
     var body: some View {
         Section("social.posts") {
             if !isCurrent() { Text("social.changed") }
-            else if !context.isSignedIn { Text("social.postsSignIn").accessibilityIdentifier("social.profile.postsSignIn") }
+            else if !context.isSignedIn {
+                // mp-states r3 (MP global 登录, cy-empty no-permission): one state with 登录 inside it.
+                ContentUnavailableView {
+                    Label { Text("social.postsSignIn").accessibilityIdentifier("social.profile.postsSignIn") } icon: {
+                        Image(systemName: "person.crop.circle")
+                    }
+                } actions: {
+                    if let signIn = rootSignIn.signedOutAction(fallback: rootTabSwitch) {
+                        Button("mp.common.signIn", action: signIn)
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("profile.posts.signIn")
+                    }
+                }
+                .listRowBackground(Color.clear)
+            }
             else if !context.isConfigured { SocialIssueView(error: APIError.notConfigured) }
             else {
                 if model.context != context || (model.isBusy && !model.pagination.hasLoadedPage) {
@@ -34,12 +50,10 @@ import SwiftUI
                             .accessibilityIdentifier("profile.postsRefresh.retained")
                     }
                     if let error = model.error {
-                        SocialIssueView(error: error)
-                        if model.failedOperation != nil {
-                            Button("action.retry") { Task { await model.retry(memberID: memberID, accountReader: accountReader, squareReader: squareReader, isCurrent: isCurrent) } }
-                                .disabled(model.isBusy)
-                                .accessibilityIdentifier("profile.postsRefresh.retry")
-                        }
+                        // mp-states r3 (MP cy/profile wxml:276 cy-error 帖文加载失败 · 重试): one state, 重试 inside it.
+                        SocialIssueView(error: error, retry: retryAction(), failureTitle: "profile.posts.failed",
+                                        identifierPrefix: "profile.postsRefresh.")
+                        .disabled(model.isBusy)
                     }
                     ForEach(model.visibleRows(for: context, isCurrent: isCurrent())) { post in
                         if let onOpenPost {
@@ -87,6 +101,11 @@ import SwiftUI
             guard !model.isBusy else { return }
             Task { await refresh() }
         }
+    }
+    private func retryAction() -> (() -> Void)? {
+        guard model.failedOperation != nil else { return nil }
+        let model = model, memberID = memberID, accountReader = accountReader, squareReader = squareReader, isCurrent = isCurrent
+        return { Task { await model.retry(memberID: memberID, accountReader: accountReader, squareReader: squareReader, isCurrent: isCurrent) } }
     }
     private func refresh() async {
         await model.refresh(memberID: memberID, accountReader: accountReader, squareReader: squareReader, isCurrent: isCurrent)

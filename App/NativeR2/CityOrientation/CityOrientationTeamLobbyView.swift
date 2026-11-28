@@ -191,7 +191,9 @@ import SwiftUI
         .toolbar {
             if let detail, let code = inviteCode(detail) {
                 ToolbarItem(placement: .bottomBar) {
-                    ShareLink(item: code) {
+                    // MP pages/team/detail onShareAppMessage path `/pages/team/join/index?code=` (same link as TeamInvitePreview).
+                    ShareLink(item: PublicContentShareLink.teamInvite(code: code)?.absoluteString ?? code,
+                              preview: SharePreview(detail.team.title)) {
                         Label("nativeR2.city.lobby.invite", systemImage: "person.badge.plus")
                     }
                     .buttonStyle(.borderedProminent)

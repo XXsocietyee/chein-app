@@ -688,6 +688,70 @@
           }
         }
       }
+    },
+    "projectInitialState.counterRange %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld to %2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld 至 %2$lld"
+          }
+        }
+      }
+    },
+    "projectInitialState.counterStart %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开局%@"
+          }
+        }
+      }
+    },
+    "projectInitialState.counterInvalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The starting value is outside the current range. Change it before you tap Done."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开局值超出当前范围，请修改后完成"
+          }
+        }
+      }
+    },
+    "projectInitialState.counterBound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting values come from the registered definitions. Change them in the theme settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初值由注册定义管理，请到主题配置调整"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
