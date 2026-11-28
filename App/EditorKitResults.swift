@@ -182,7 +182,7 @@ struct EditorInsertSeam: View {
     var body: some View {
         Button(action: action) {
             ZStack {
-                Rectangle().fill(palette.borderSubtle).frame(height: 0.5)
+                Divider()
                 Image(systemName: isExpanded ? "xmark" : "plus")
                     .font(.footnote.weight(.bold))
                     .foregroundStyle(palette.textPrimary)
