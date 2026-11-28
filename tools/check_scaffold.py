@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Offline structural checks, NOT a Swift compiler or runtime test."""
+"""Offline structural checks, NOT a Swift compiler or runtime test.
+
+Also fails closed on two merge breaks that have already shown up on a Mac
+build outside the diff that introduced them: an `import QuestifyCore` in App/
+that is not inside `#if canImport(QuestifyCore)`, and a top-level type name
+declared twice in App/ and Core/ (one Swift module). A duplicate type is the
+usual source of the "wrong argument order" errors that follow a bad merge.
+"""
 import hashlib, json, pathlib, re, shutil, subprocess, sys, tempfile, xml.etree.ElementTree as ET
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 # Independent parser for the generated OpenStep subset (quoted keys/values, integers).
@@ -144,6 +151,312 @@ def validate_bound_participant_issue_tables(source, root, objects, project_obj):
     for start,end in reversed(spans): source=source[:start]+source[end:]
     return source
 
+def _merge_raw_open(line, index):
+    """Return (hash_count, index_after_opening_quote) when `line[index:]` starts a raw string."""
+    if line[index] != '#':
+        return None
+    count = 0
+    while index + count < len(line) and line[index + count] == '#':
+        count += 1
+    if count and index + count < len(line) and line[index + count] == '"':
+        return count, index + count + 1
+    return None
+
+def _merge_raw_end(line, index, hashes):
+    """Index just after the closing `"#…` delimiter, or None when this line does not close it."""
+    while index < len(line):
+        if line[index] == '"':
+            found = 0
+            while index + 1 + found < len(line) and line[index + 1 + found] == '#':
+                found += 1
+            if found >= hashes:
+                return index + 1 + hashes
+        index += 1
+    return None
+
+def _merge_logical_lines(text):
+    """Yield (line_number, code) with comments removed and literal contents dropped.
+
+    Brace and directive scans then ignore strings. A block comment, `\"\"\"` string,
+    or raw string (`#\"…\"#`) that runs past the end of the file stays open.
+    """
+    block = False
+    triple = False
+    raw_hashes = 0
+    normal = False
+    for number, line in enumerate(text.splitlines(), 1):
+        out = []
+        index = 0
+        while index < len(line):
+            if block:
+                end = line.find('*/', index)
+                if end < 0:
+                    break
+                block = False
+                index = end + 2
+                continue
+            if triple:
+                end = line.find('"""', index)
+                if end < 0:
+                    break
+                triple = False
+                index = end + 3
+                continue
+            if raw_hashes:
+                end = _merge_raw_end(line, index, raw_hashes)
+                if end is None:
+                    break
+                raw_hashes = 0
+                index = end
+                continue
+            if normal:
+                if line[index] == '\\' and index + 1 < len(line):
+                    index += 2
+                    continue
+                if line[index] == '"':
+                    normal = False
+                index += 1
+                continue
+            if line.startswith('//', index):
+                break
+            if line.startswith('/*', index):
+                block = True
+                index += 2
+                continue
+            if line.startswith('"""', index):
+                triple = True
+                index += 3
+                continue
+            opened = _merge_raw_open(line, index)
+            if opened is not None:
+                hashes, after = opened
+                end = _merge_raw_end(line, after, hashes)
+                if end is None:
+                    raw_hashes = hashes
+                    break
+                index = end
+                continue
+            if line[index] == '"':
+                normal = True
+                index += 1
+                continue
+            out.append(line[index])
+            index += 1
+        yield number, ''.join(out)
+
+def _merge_directive(code):
+    """Return (kind, expression) for a Swift `#if` / `#elseif` / `#else` / `#endif` line."""
+    stripped = code.strip()
+    for name in ('elseif', 'endif', 'else', 'if'):
+        prefix = '#' + name
+        if not stripped.startswith(prefix):
+            continue
+        if len(stripped) == len(prefix) or (not stripped[len(prefix)].isalnum() and stripped[len(prefix)] != '_'):
+            return name, stripped[len(prefix):]
+    return None, ''
+
+def _merge_condition(expression):
+    """Return (true_requires, false_requires) for `canImport(QuestifyCore)`.
+
+    `true_requires` means the branch being active implies the module can be imported.
+    `false_requires` means the branch being inactive implies that. Other atoms
+    (`os(iOS)`, `compiler(>=5.9)`) imply neither. `&&` / `||` / `!` follow that.
+    A condition that cannot be parsed does not count as a guard.
+    """
+    tokens = re.findall(r'&&|\|\||[!()]|[A-Za-z_][A-Za-z0-9_]*|\d+(?:\.\d+)?|>=|<=|==|!=|[<>*,]', expression)
+    pos = 0
+
+    def peek():
+        return tokens[pos] if pos < len(tokens) else None
+
+    def eat(expected=None):
+        nonlocal pos
+        token = peek()
+        if token is None or (expected is not None and token != expected):
+            return None
+        pos += 1
+        return token
+
+    def skip_call():
+        if eat('(') is None:
+            return
+        depth = 1
+        while depth and peek() is not None:
+            token = eat()
+            if token == '(':
+                depth += 1
+            elif token == ')':
+                depth -= 1
+
+    def parse_or():
+        left = parse_and()
+        while peek() == '||':
+            eat('||')
+            right = parse_and()
+            left = (left[0] and right[0], left[1] or right[1])
+        return left
+
+    def parse_and():
+        left = parse_unary()
+        while peek() == '&&':
+            eat('&&')
+            right = parse_unary()
+            left = (left[0] or right[0], left[1] and right[1])
+        return left
+
+    def parse_unary():
+        if peek() == '!':
+            eat('!')
+            inner = parse_unary()
+            return (inner[1], inner[0])
+        if peek() == '(':
+            eat('(')
+            value = parse_or()
+            eat(')')
+            return value
+        ident = eat()
+        if ident is None:
+            return (False, False)
+        if ident == 'canImport' and peek() == '(':
+            eat('(')
+            arg = eat()
+            depth = 1
+            while depth and peek() is not None:
+                token = eat()
+                if token == '(':
+                    depth += 1
+                elif token == ')':
+                    depth -= 1
+            return (arg == 'QuestifyCore', False)
+        if peek() == '(':
+            skip_call()
+        return (False, False)
+
+    return parse_or()
+
+_MERGE_IMPORT = re.compile(
+    r'^\s*(?:@testable\s+)?import\s+(?:(?:struct|class|enum|protocol|typealias|func|var|let)\s+)?QuestifyCore\b')
+_MERGE_TYPE = re.compile(
+    r'^\s*(?:@[\w.]+(?:\([^)]*\))?\s+)*'
+    r'((?:(?:public|internal|private|fileprivate|open|final|indirect|nonisolated|package)\s+)*)'
+    r'(struct|class|enum|protocol|actor|typealias)\s+'
+    r'([A-Za-z_]\w*)(?!\s*\.)')
+_MERGE_TYPE_KEYWORDS = {'func', 'var', 'let', 'subscript', 'init', 'deinit', 'typealias', 'associatedtype'}
+
+def unguarded_questify_core_imports(text):
+    """Return 1-based lines of `import QuestifyCore` outside `#if canImport(QuestifyCore)`.
+
+    App sources are built in lanes that do not always have the Core package, so a
+    bare import fails that compile. The active `#if` / `#elseif` condition must
+    require `canImport(QuestifyCore)` (`&&` with other conditions still counts;
+    `||` does not). `#else` counts only when every previous branch being false
+    implies the module is present (`#if !canImport(QuestifyCore)` / `#else`).
+    Comments and string literals are not imports.
+    """
+    stack = []
+    hits = []
+    for number, code in _merge_logical_lines(text):
+        kind, expression = _merge_directive(code)
+        if kind == 'if':
+            stack.append({'branches': [_merge_condition(expression)], 'is_else': False})
+        elif kind == 'elseif' and stack:
+            stack[-1]['branches'].append(_merge_condition(expression))
+            stack[-1]['is_else'] = False
+        elif kind == 'else' and stack:
+            stack[-1]['is_else'] = True
+        elif kind == 'endif' and stack:
+            stack.pop()
+        if not _MERGE_IMPORT.match(code):
+            continue
+        guarded = False
+        for frame in stack:
+            if frame['is_else']:
+                if frame['branches'] and all(branch[1] for branch in frame['branches']):
+                    guarded = True
+                    break
+            elif frame['branches'] and frame['branches'][-1][0]:
+                guarded = True
+                break
+        if not guarded:
+            hits.append(number)
+    return hits
+
+def _merge_exclusive(left, right):
+    """True when two `#if` stacks are different branches of the same group."""
+    branches = dict(left)
+    return any(key in branches and branches[key] != branch for key, branch in right)
+
+def _merge_type_declarations(path, text):
+    """Top-level type declarations in one file: name, kind, file-private, line, if-stack."""
+    declarations = []
+    depth = 0
+    stack = []
+    counter = 0
+    for number, code in _merge_logical_lines(text):
+        kind, _expression = _merge_directive(code)
+        if kind == 'if':
+            counter += 1
+            stack.append([f'{path}#{counter}', 0])
+        elif kind in ('elseif', 'else') and stack:
+            stack[-1][1] += 1
+        elif kind == 'endif' and stack:
+            stack.pop()
+        if depth == 0:
+            match = _MERGE_TYPE.match(code)
+            if match:
+                access, type_kind, name = match.group(1), match.group(2), match.group(3)
+                if name not in _MERGE_TYPE_KEYWORDS:
+                    words = set(access.split())
+                    declarations.append({
+                        'name': name,
+                        'kind': type_kind,
+                        'file_private': 'private' in words or 'fileprivate' in words,
+                        'path': path,
+                        'line': number,
+                        'stack': tuple(tuple(frame) for frame in stack),
+                    })
+        depth += code.count('{') - code.count('}')
+    return declarations
+
+def duplicate_top_level_types(files):
+    """Return clash descriptions for top-level type names that cannot share one module.
+
+    `files` is a sequence of `(relative_path, source)` covering App/ and Core/.
+    A `struct` / `class` / `enum` / `protocol` / `actor` / `typealias` at file
+    scope may be declared once. Two `private` or `fileprivate` copies in
+    different files are allowed. A file-private copy still clashes with a
+    module-visible type of the same name: that name is already in scope in the
+    private file (`invalid redeclaration`), which is the merge break behind a
+    later "wrong argument order" diagnostic. Nested types, extensions, comments,
+    and literals are not declarations. Different branches of one file's `#if`
+    group are not a clash. An `#if DEBUG` copy next to an unconditional one is.
+    """
+    by_name = {}
+    for path, text in files:
+        for declaration in _merge_type_declarations(path, text):
+            by_name.setdefault(declaration['name'], []).append(declaration)
+    clashes = []
+    for name, rows in by_name.items():
+        if len(rows) < 2:
+            continue
+        involved = set()
+        for index, left in enumerate(rows):
+            for other, right in enumerate(rows[index + 1:], index + 1):
+                if _merge_exclusive(left['stack'], right['stack']):
+                    continue
+                if left['path'] != right['path'] and left['file_private'] and right['file_private']:
+                    continue
+                involved.add(index)
+                involved.add(other)
+        if not involved:
+            continue
+        places = ', '.join(
+            f"{rows[index]['path']}:{rows[index]['line']} ({rows[index]['kind']})"
+            for index in sorted(involved, key=lambda item: (rows[item]['path'], rows[item]['line'], rows[item]['kind'])))
+        clashes.append(f'{name}: {places}')
+    clashes.sort()
+    return clashes
+
 project_path=ROOT/'Questify.xcodeproj/project.pbxproj'
 project=parse_project(project_path.read_text())
 objects=project['objects']; project_obj=objects[project['rootObject']]
@@ -182,6 +495,22 @@ for target_id in project_obj['targets']:
             by_stem.setdefault(pathlib.Path(ref['path']).stem.casefold(),[]).append(ref['path'])
     duplicates=[paths for paths in by_stem.values() if len(paths)>1]
     assert not duplicates, ('Duplicate Swift basenames in target',target['name'],duplicates)
+# App/ and Core/ are one Swift module. These two checks are the merge breaks that
+# already failed a Mac build outside the lane diff: a bare `import QuestifyCore`
+# (every App import must sit in `#if canImport(QuestifyCore)`), and a second
+# top-level type of the same name (the usual cause of a follow-on argument-order
+# error). No generated file is skipped: App/Theme/Theme+Generated.swift is an
+# extension with nested types, so it has neither an import nor a top-level type.
+_module_sources=[]
+for _folder in ('App','Core'):
+    _base=ROOT/_folder
+    if not _base.is_dir(): continue
+    for _path in sorted(_base.rglob('*.swift')):
+        _module_sources.append((_path.relative_to(ROOT).as_posix(), _path.read_text()))
+_unguarded_imports=[f'{_rel}:{_line}: import QuestifyCore' for _rel,_text in _module_sources if _rel.startswith('App/') for _line in unguarded_questify_core_imports(_text)]
+assert not _unguarded_imports, ('Unguarded import QuestifyCore in App/; wrap it in #if canImport(QuestifyCore)', _unguarded_imports)
+_duplicate_types=duplicate_top_level_types(_module_sources)
+assert not _duplicate_types, ('Duplicate top-level type names across App/ and Core/', _duplicate_types)
 catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())
 validate_bilingual_catalog(catalog,'Localizable')
 ui='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
@@ -286,7 +615,7 @@ if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_a11y.py')]).returnc
     raise SystemExit('Accessibility lint failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_log_redaction.py')]).returncode!=0:
     raise SystemExit('Log redaction check failed')
-for gate,label in (('check_appsession_ratchet.py','AppSession ratchet'),):
+for gate,label in (('check_appsession_ratchet.py','AppSession ratchet'),('check_story_content.py','Story content')):
     if subprocess.run([sys.executable,'-B',str(ROOT/'tools'/gate)]).returncode!=0:
         raise SystemExit(label+' failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/build_page_route_table.py'),'--check']).returncode!=0:

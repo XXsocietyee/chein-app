@@ -67,6 +67,11 @@ import Foundation
         case .deleteOwnComment(let id): return "delete:\(snapshot.comments.first(where: { $0.id == id })?.generation.rawValue ?? "unknown"):\(id)"
         }
     }
+    /// Read-only: this account already dispatched `action` and the journal holds it (the result may be
+    /// unknown). Mini-program post-governance `_withPending` reads the same intent to warn on a row.
+    public func dispatched(_ action: SquareGovernanceAction, snapshot: SquareGovernanceSnapshot) -> Bool {
+        journal.contains(Self.lockKey(action, snapshot: snapshot), identity: snapshot.identity)
+    }
     public func prepare(_ action: SquareGovernanceAction, snapshot: SquareGovernanceSnapshot, access: any SquareGovernanceAccess, now: Date = Date()) throws -> SquareGovernanceReview {
         guard !inFlight else { throw SquareGovernanceFailure.busy }
         try check(snapshot.identity, access: access); try Self.validate(action, snapshot: snapshot)

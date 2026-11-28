@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 /// MP `pages/club/components/club-director-role-sheet` (D6, topic-detail wxml:372-401; director.js:121-160, 311-334,
 /// 1062-1224; index.js:919-933): 角色分配 · 成员 → 选择成员 (same team once one is picked) → 分配角色 → 角色接管

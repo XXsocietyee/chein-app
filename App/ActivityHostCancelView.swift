@@ -327,7 +327,7 @@ import SwiftUI
                 }
                 Spacer(minLength: 8)
                 Text(verbatim: "\(trimmed.count)/\(ActivityHostCancelRules.reasonLimit)")
-                    .monospacedDigit()
+                    .monospacedDigit().accessibilityLabel(Text("a11y.value.characters \(Int(trimmed.count)) \(Int(ActivityHostCancelRules.reasonLimit))"))
                     .foregroundStyle(trimmed.count > ActivityHostCancelRules.reasonLimit ? CYColor.dangerText : Color.secondary)
             }
         }

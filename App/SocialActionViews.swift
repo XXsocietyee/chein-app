@@ -50,7 +50,7 @@ public enum SocialEditorPurpose: String, Identifiable {
                         .accessibilityIdentifier("social.editor.text").focused($textFocused).disabled(state.locksForm)
                     if let limit = commentLengthLimit {
                         LabeledContent {
-                            Text(verbatim: "\(text.utf16.count) / \(limit)").monospacedDigit()
+                            Text(verbatim: "\(text.utf16.count) / \(limit)").monospacedDigit().accessibilityLabel(Text("a11y.value.characters \(Int(text.utf16.count)) \(Int(limit))"))
                         } label: { Text("count", tableName: "SocialCommentLength") }
                             .accessibilityIdentifier("social.editor.commentLength")
                         if commentTooLong {

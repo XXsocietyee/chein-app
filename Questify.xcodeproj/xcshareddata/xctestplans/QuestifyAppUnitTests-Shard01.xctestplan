@@ -157,6 +157,7 @@
         "DesignR1ClubRosterCardTests",
         "DesignSystemTokenMappingTests",
         "DeviceOrientationAndSplitViewAdaptationSectionViewTests",
+        "DynamicTypeAX5SharedComponentsTests",
         "EnvironmentBranchAndRewardLedgerViewTests",
         "ExplorationPrivateToolsAndCapsuleSectionViewTests",
         "FinalThreeDocumentAndSevenDayGoalCompletionViewTests",

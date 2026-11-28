@@ -145,13 +145,13 @@ final class GlobalSearchRetainedResultsTests: XCTestCase {
         for (status, code) in [(401, 200), (200, 401)] {
             let transport = GlobalSearchRetentionTransport(status: status, code: code)
             let value = try await service(transport: transport).search(.init(keyword: "walk"))
-            // Guest club reads are gated before dispatch, independently of the merchant response.
-            XCTAssertEqual(value.gatedKinds, [.club, .merchant]); XCTAssertFalse(value.rows.isEmpty)
+            // Guest club reads are sent like the MP (@Anonymous club/list); only the denied lane is gated.
+            XCTAssertEqual(value.gatedKinds, [.merchant]); XCTAssertFalse(value.rows.isEmpty)
             XCTAssertFalse(value.rows.contains { $0.kind == .merchant }); XCTAssertTrue(value.failedKinds.isEmpty)
-            XCTAssertEqual(Set(value.rows.map(\.kind)), Set([.topic, .activity]))
+            XCTAssertEqual(Set(value.rows.map(\.kind)), Set([.topic, .activity, .club]))
             let requests = await transport.requests
-            XCTAssertEqual(Set(requests.compactMap { $0.url?.path }), Set(["/api/topic/list", "/api/activity/list", "/api/merchant/list"]))
-            XCTAssertEqual(requests.count, 3)
+            XCTAssertEqual(Set(requests.compactMap { $0.url?.path }), Set(["/api/topic/list", "/api/activity/list", "/api/club/list", "/api/merchant/list"]))
+            XCTAssertEqual(requests.count, 4)
             XCTAssertTrue(requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
         }
     }
@@ -166,15 +166,15 @@ final class GlobalSearchRetainedResultsTests: XCTestCase {
         XCTAssertEqual(requests.count, 4)
         XCTAssertTrue(requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "synthetic-retained-search" })
     }
-    func testGuestTransientFailureKeepsClubGatedWithoutDispatchingItsRequest() async throws {
+    func testGuestTransientFailureStillReadsClubsWithoutAToken() async throws {
         let transport = GlobalSearchRetentionTransport(status: 503)
         let value = try await service(transport: transport).search(.init(keyword: "walk"))
         XCTAssertEqual(value.failedKinds, [.merchant])
-        XCTAssertEqual(value.gatedKinds, [.club])
-        XCTAssertEqual(Set(value.rows.map(\.kind)), Set([.topic, .activity]))
+        XCTAssertTrue(value.gatedKinds.isEmpty)
+        XCTAssertEqual(Set(value.rows.map(\.kind)), Set([.topic, .activity, .club]))
         let requests = await transport.requests
-        XCTAssertEqual(Set(requests.compactMap { $0.url?.path }), Set(["/api/topic/list", "/api/activity/list", "/api/merchant/list"]))
-        XCTAssertEqual(requests.count, 3)
+        XCTAssertEqual(Set(requests.compactMap { $0.url?.path }), Set(["/api/topic/list", "/api/activity/list", "/api/club/list", "/api/merchant/list"]))
+        XCTAssertEqual(requests.count, 4)
         XCTAssertTrue(requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
     }
 }

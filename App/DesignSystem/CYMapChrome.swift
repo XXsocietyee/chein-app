@@ -335,12 +335,15 @@ struct CYMapMarker: View {
 struct CYMapCallout: View {
     let text: String
     var selected = false
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
+        let ax = typeSize.isAccessibilitySize
         VStack(spacing: 0) {
             Text(verbatim: text)
                 .cyText(.bodyMedium)
                 .foregroundStyle(.black)
-                .lineLimit(2)
+                .lineLimit(ax ? 4 : 2)
+                .fixedSize(horizontal: false, vertical: ax)
                 .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
                 .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(Color.black.opacity(selected ? 0.9 : 0), lineWidth: 2))

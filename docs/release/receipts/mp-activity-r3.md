@@ -361,6 +361,13 @@ Merged `origin/ui/combined-r7` (e9296b463; pbxproj regenerated). Latest sweep is
 |---|---|---|---|
 | `pages/activity/list/index` empty (wxml:39 cy-empty, js:327-338 per-tab EMPTY_COPY) | new `App/DesignFixtures/ActivityListEmptyFixture.swift`; `DesignFixtureRegistry` `rep3-activity-list-empty`; UI test `Tests/AppUITests/Fixture_rep3_activity_list_emptyTests.swift` (en + zh-Hans screenshot, no raw keys) | **added** state fixture: the same `OfficialEventsBrowserView` on an offline signed-in reader with no rows on any tab, so the sweep shows the MP empty `ContentUnavailableView` (one title line per tab). With `rep3-activity-list` / `-failed` (mp-home) the page's content, failure and empty states are all in the fixture set; separate file so mp-home's fixture is untouched. Coordinator: please add `rep3-activity-list-empty` to the mp-activity / mp-states sweep list | B · Crafted; system `ContentUnavailableView` |
 
+## Round 3 continue (2026-11-28, fortieth session)
+Merged `origin/ui/combined-r7` (clean). Latest sweep is still 0446d1c4f (13:03), no open coordinator finding for this lane. B lane receipt checked (coop invite stations, nearby station terms — nothing new to mark). Not done rows are blocked or documented keeps, so this session continues Next round item 3 (all states per page).
+
+| MP page | Native view | Change | Level / optimization |
+|---|---|---|---|
+| `subpackagePass` pass market (on-sale / 我的订单 / 礼品 tabs; load failure, empty, first load) | `App/PassMarketViews.swift` `PassMarketView` (unchanged); `App/DesignFixtures/DesignFixtureRegistry.swift` `t5-pass-market-error`, new `t5-pass-market-empty`, `t5-pass-market-orders-empty`, `t5-pass-market-loading` | **fixed**: the `t5-pass-market-error` fixture passed the verbatim message "Offline load error", so zh-Hans showed English; it now passes nil and the page shows its localized 加载失败 / Couldn't load + 重试. **added** state fixtures for the same view: nothing on sale (暂无在售通行证 / No passes on sale), no orders on the 我的订单 tab (还没有通行证订单 / No pass orders yet) and the first load (加载中… row). With `t5-pass-market` the page's content, empty, error and loading states are all in the fixture set. Coordinator: please add the three new ids to the mp-activity / mp-states sweep list | B · Crafted; system `ContentUnavailableView`, no fixture text in the rendered page |
+
 ## Not done
 - Planning audit G-07 (product-type filter + date-range sheet on activity lists): not built — the MP has neither (`pages/activity/list/index.js:314-320` filters by tab only) and OWNER RULE says not to add sections the MP lacks; it needs an owner call first.
 - P1-8 needs a device check: backend `api/comment/add` must return the inserted row (`id`, `memberId`, `ownerType`, `ownerId`, `replyId`, `rating`, `contents`) or the writer reports 结果未知.
@@ -380,6 +387,7 @@ Merged `origin/ui/combined-r7` (e9296b463; pbxproj regenerated). Latest sweep is
 - backend: `payment-readiness` should report Stripe readiness for USD quotes (audit 507). mp-club: host tip `payable` has no pay step (audit 529). mp-mine: pass detail buy (audit 525).
 
 ## Gates
+- Fortieth session: `generate_project` ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 46 failing / baseline 46 / **new 0**
 - Thirty-ninth session: `generate_project` ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 46 failing / baseline 46 / **new 0**
 - Fourth session (after merging `ui/combined-r7`, catalog key union): ratchet 52 / baseline 52 / **new 0**; scaffold, a11y, design consistency PASS
 - `python3 tools/generate_project.py` ok · `python3 tools/check_scaffold.py` PASS · `python3 -B tools/check_a11y_lint.py` PASS (0 new)

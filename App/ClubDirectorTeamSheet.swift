@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 /// One 队伍进度 row (MP topic-detail index.js:939-962 `refreshTeamRows`, director.js:78-114 `teamView`).
 struct ClubDirectorTeamRow: Equatable, Identifiable {
