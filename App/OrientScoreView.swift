@@ -354,7 +354,13 @@ import QuestifyCore
                         Text("orientScore.reversed").font(.footnote).foregroundStyle(.secondary)
                     }
                     if row.appealPending {
-                        Text("orientScore.appealPending").font(.footnote).foregroundStyle(.orange)
+                        // Contrast (a11y-dt r3): orange footnote text is about 2:1; the glyph carries the colour.
+                        Label {
+                            Text("orientScore.appealPending").foregroundStyle(.secondary)
+                        } icon: {
+                            Image(systemName: "hourglass").foregroundStyle(.orange)
+                        }
+                        .font(.footnote)
                     }
                 }
                 .accessibilityElement(children: .ignore)
