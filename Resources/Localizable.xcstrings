@@ -250243,9 +250243,21 @@
     "square.xcx.commentsA11y %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld comments"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld comment"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld comments"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -250723,9 +250735,21 @@
     "square.xcx.likesA11y %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld likes"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld like"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld likes"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -250803,9 +250827,21 @@
     "square.xcx.play.completedNodes %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cleared · %lld stops"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Cleared · %lld stop"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Cleared · %lld stops"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {

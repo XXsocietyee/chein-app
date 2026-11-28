@@ -62,6 +62,8 @@ UNPINNED = {
     '%lld 个点位', 'discovery.chapters %lld', 'globalSearch.resultsAnnounced %lld', 'passport.stamps.collected %lld',
     'official.summary.live %lld', 'official.summary.ended %lld', 'official.summary.mine %lld',
     'official.summary.upcoming %lld', 'official.detailParity.duration.days %lld', 'official.detailParity.duration.hours %lld',
+    # Square counts: `docs/parity/w2-07-localizations.json` rows carry `en_one`, and build_w2_07 writes the variations.
+    'square.xcx.commentsA11y %lld', 'square.xcx.likesA11y %lld', 'square.xcx.play.completedNodes %lld',
 }
 # Families a contract check reads by prefix (Tests/ContractChecks/test_activity_registration_parity_w2_06.py).
 PINNED_PREFIXES = ('activityParity.', 'registrationParity.')
