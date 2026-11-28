@@ -189226,6 +189226,40 @@
         }
       }
     },
+    "playx.hints.reveal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reveal the answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "揭晓答案"
+          }
+        }
+      }
+    },
+    "playx.hints.revealDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server shows the answer for this puzzle."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器揭晓这道谜题的答案。"
+          }
+        }
+      }
+    },
     "playx.lead.arrive": {
       "localizations": {
         "en": {
