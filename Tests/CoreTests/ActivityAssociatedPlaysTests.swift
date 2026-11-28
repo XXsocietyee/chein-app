@@ -15,7 +15,9 @@ final class ActivityAssociatedPlaysTests: XCTestCase {
         XCTAssertEqual(value.associatedPlays[0].durationMinutes, 30.5)
         XCTAssertEqual(value.associatedPlays[1].players, "0")
         XCTAssertEqual(value.associatedPlays[1].durationMinutes, 0)
-        XCTAssertEqual(Set(Mirror(reflecting: value.associatedPlays[0]).children.compactMap(\.label)), ["title", "players", "durationMinutes"])
+        XCTAssertEqual(value.associatedPlays.map(\.publicTemplateID), [8, 8])
+        XCTAssertEqual(Set(Mirror(reflecting: value.associatedPlays[0]).children.compactMap(\.label)), ["title", "players", "durationMinutes", "publicTemplateID"])
+        XCTAssertFalse(Mirror(reflecting: value.associatedPlays[0]).children.contains { $0.label == "imgUrl" || $0.label == "answer" })
     }
     func testMissingNullOrEmptyCollectionProducesNoInventedPlays() throws {
         XCTAssertTrue(try detail(nil).associatedPlays.isEmpty)
@@ -28,7 +30,12 @@ final class ActivityAssociatedPlaysTests: XCTestCase {
                                   ["players":2.5,"duration":"NaN"]]).associatedPlays
         for row in unknown {
             XCTAssertNil(row.title); XCTAssertNil(row.players); XCTAssertNil(row.durationMinutes)
+            XCTAssertNil(row.publicTemplateID)
         }
+    }
+    func testPublicTemplateIDKeepsOnlyAPositiveCanonicalID() throws {
+        let rows = try detail([["id": "15"], ["id": " 9 "], ["id": "0"], ["id": "-3"], ["id": "08"], ["id": 8.5], ["id": false]]).associatedPlays
+        XCTAssertEqual(rows.map(\.publicTemplateID), [15, 9, nil, nil, nil, nil, nil])
     }
     func testMalformedListOrNonRecordItemRetainsSourceWholeResponseFailure() {
         XCTAssertThrowsError(try detail(["title":"Not an array"]))

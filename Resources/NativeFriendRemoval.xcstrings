@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finalize original request…"
+            "value": "Finalize original…"
           }
         },
         "zh-Hans": {
@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finalize this original request?"
+            "value": "Finalize original request?"
           }
         },
         "zh-Hans": {
@@ -486,7 +486,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Try"
           }
         },
         "zh-Hans": {
@@ -518,7 +518,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Try"
           }
         },
         "zh-Hans": {

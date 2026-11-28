@@ -63,3 +63,38 @@ struct WeChatAppAuthSection: View {
         }
     }
 }
+
+/// One line after WeChat sign-in when the server matched the mini-program account. Dismiss hides it.
+/// It does not grant access and it is not shown for phone or Apple sign-in.
+struct LinkedMiniProgramAccountNoteModifier: ViewModifier {
+    @ObservedObject var session: AppSession
+    func body(content: Content) -> some View {
+        content.safeAreaInset(edge: .top, spacing: 0) {
+            if session.showsLinkedMiniProgramAccountNote {
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                    Text("auth.wechat.linkedMiniProgram")
+                        .font(.subheadline)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityIdentifier("auth.wechat.linkedMiniProgram")
+                    Button { session.clearLinkedMiniProgramAccountNote() } label: {
+                        Image(systemName: "xmark")
+                            .frame(minWidth: 44, minHeight: 44)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(Text("auth.wechat.linkedMiniProgram.dismiss"))
+                    .accessibilityIdentifier("auth.wechat.linkedMiniProgram.dismiss")
+                }
+                .padding(.horizontal, CYSpacing.md)
+                .background(.bar)
+                .accessibilityElement(children: .contain)
+            }
+        }
+    }
+}
+
+extension View {
+    func linkedMiniProgramAccountNote(session: AppSession) -> some View {
+        modifier(LinkedMiniProgramAccountNoteModifier(session: session))
+    }
+}

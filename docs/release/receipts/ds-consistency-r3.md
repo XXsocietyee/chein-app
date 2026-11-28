@@ -1451,20 +1451,23 @@ Run 42 Not done row worked (no-test candidates):
 | 广场 composer workspace, server drafts (`subpackageSquare` drafts list) → `App/SquareWorkspaceView.swift:172` · C | `squareWorkspace.more` | plain `Button` inside `run {}` → `CYLoadMoreRow("squareWorkspace.more", isLoading: coordinator.busy)`. Busy guard: the row skips its auto-load while any workspace write/read is running (the coordinator would throw `.pending` and raise the issue alert); a failed page raises the alert once, the row stays and only fires again on tap or re-appear. |
 | Creator maintenance feedback + tickets (U08-03 workbench) → `App/CreatorMaintenanceViews.swift:174,207` · C | `creatorStudio.more` | plain `Button` → `CYLoadMoreRow("creatorStudio.more", isLoading: …)`; model gained `feedbackLoadingMore` / `ticketsLoadingMore` guards so the appear-load and a tap never fetch the same cursor twice. |
 
-Checker: manual paging → **31** baselined (`--update`, ratchet down only).
+| Club channel audit log (club admin, `d7` governance) → `App/NativeChannelAuditEntry.swift:63` · C | `d7.channelAudit.loadMore` | plain `Button` → `CYLoadMoreRow`; also hidden while the `.unavailable` retry view shows (the flow clears `hasMore` on failure too, so no re-fire). `canLoadMore` is false while `busy`, so the row leaves during a read and can only fire once per page. |
+| Club channel moderation history → `App/NativeChannelModerationEntry.swift:112` · C | `d7.channelModeration.loadMore` | plain `Button` → `CYLoadMoreRow`; `canReadMore` is false while `busy` and a failed read clears `more` (`NativeChannelModerationFlow.swift:121`), so a failed page never re-fires. |
+
+Checker: manual paging → **29** baselined (`--update`, ratchet down only).
 
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
-PASS (manual paging 31 baselined, 114 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
+PASS (manual paging 29 baselined, 114 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
 
 ### Not done (next run)
-- manual paging debt (31): capsule / goals / anniversary (`RoamPassportPrivateToolsViews`, `RoamPassportToolsViews`)
+- manual paging debt (29): capsule / goals / anniversary (`RoamPassportPrivateToolsViews`, `RoamPassportToolsViews`)
   and Topic / Activity / stamp album need their host/UI tests rewritten with a simulator run (tap → wait for the next
   row); leave for a lane that can run Swift. Also checked and left this run: favorites topics/posts
   (`AccountCollectionFavoritesView:144,356`, tapped by `AccountCollectionFlowTests:53,68`,
   `AccountSavedPostCollectionFlowTests:78`, `FavoritesEndOfListFlowTests:14`); post / square governance
   (`SettingsPostGovernanceView:150`, `SquareGovernanceViews:118,135`) grow `pages` and reload the whole snapshot through
   a loading phase, so an appear-load would reset scroll each page; they need an append-only page read first.
-  Next no-test candidates: `NativeChannel*` member / audit lists (d7.*), `TemplateAuthoringMineView:281`.
+  Next no-test candidates: `NativeChannelMentionEntry:31`, `NativeChannelRoleEntry:83`, `NativeFriendChannel*` invite lists (check each flow clears its more-flag on failure). `TemplateAuthoringMineView:281` is pinned by ~10 contract tests (mp-publish); leave it.
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,

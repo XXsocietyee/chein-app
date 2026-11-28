@@ -1,28 +1,132 @@
 [
-  {"key": "auth.phone.subtitle", "en": "We'll text a 6-digit code to this number. No password needed.", "zh-Hans": "我们会向这个号码发送 6 位验证码，无需密码。"},
-  {"key": "auth.phone.country", "en": "Country or region: China mainland, plus 86", "zh-Hans": "国家或地区：中国大陆，+86"},
-  {"key": "auth.phone.resendIn %lld", "en": "Resend in %llds", "zh-Hans": "%lld 秒后重发"},
-  {"key": "auth.phone.codeHint", "en": "Enter the 6-digit code", "zh-Hans": "输入 6 位验证码"},
-  {"key": "auth.phone.verifying", "en": "Signing in…", "zh-Hans": "登录中…"},
-  {"key": "auth.phone.or", "en": "or", "zh-Hans": "或"},
-  {"key": "auth.login.headline", "en": "Welcome back", "zh-Hans": "欢迎回来"},
-  {"key": "auth.login.subtitle", "en": "Pick up your stamps and trails where you left off.", "zh-Hans": "继续你的印章与路线。"},
-  {"key": "settings.search.prompt", "en": "Search settings", "zh-Hans": "搜索设置"},
-  {"key": "settings.search.results", "en": "Results", "zh-Hans": "搜索结果"},
-  {"key": "settings.account.subtitle %lld", "en": "Lv.%lld · City explorer", "zh-Hans": "Lv.%lld · 城市探索者"},
-  {"key": "settings.privacy.footer", "en": "Choose what we may use. You can change these at any time.", "zh-Hans": "选择我们可以使用的内容，随时可以更改。"},
-  {"key": "settings.danger.footer", "en": "Closing your account is reviewed first. Nothing is deleted until you confirm.", "zh-Hans": "注销账号会先经过审核，你确认之前不会删除任何内容。"},
-  {"key": "settingsNative.about.appSection", "en": "This app", "zh-Hans": "本应用"},
-  {"key": "settingsNative.about.linksSection", "en": "Legal", "zh-Hans": "法律与隐私"},
-  {"key": "settingsNative.about.brandName", "en": "Chein", "zh-Hans": "城瘾"},
-  {"key": "compliance.cancellation.intro", "en": "We review first, and nothing is deleted straight away. Read what will change, verify it's you, then confirm.", "zh-Hans": "我们会先审核，不会立刻删除任何内容。请先了解会发生什么，验证身份后再确认。"},
-  {"key": "compliance.step.1", "en": "Review", "zh-Hans": "了解"},
-  {"key": "compliance.step.2", "en": "Verify", "zh-Hans": "验证"},
-  {"key": "compliance.step.3", "en": "Confirm", "zh-Hans": "确认"},
-  {"key": "compliance.channel.IN_APP.detail", "en": "Announcements and offers shown inside the app.", "zh-Hans": "在应用内展示的公告与优惠。"},
-  {"key": "compliance.channel.COUPON.detail", "en": "Coupons and vouchers this merchant sends you.", "zh-Hans": "该商家发给你的优惠券与代金券。"},
-  {"key": "compliance.typeToConfirm", "en": "Type DELETE to confirm", "zh-Hans": "输入“注销”以确认"},
-  {"key": "compliance.confirmSheet.title", "en": "Close this account?", "zh-Hans": "注销此账号？"},
-  {"key": "compliance.confirmSheet.message", "en": "This submits your application. You can still cancel it while it is pending.", "zh-Hans": "这会提交你的申请。申请处理中时，你仍可以撤销。"},
-  {"key": "compliance.confirmSheet.action", "en": "Yes, submit the application", "zh-Hans": "确认提交申请"}
+  {
+    "key": "auth.phone.subtitle",
+    "en": "We'll text a 6-digit code to this number. No password needed.",
+    "zh-Hans": "我们会向这个号码发送 6 位验证码，无需密码。"
+  },
+  {
+    "key": "auth.phone.country",
+    "en": "Country or region: China mainland, plus 86",
+    "zh-Hans": "国家或地区：中国大陆，+86"
+  },
+  {
+    "key": "auth.phone.resendIn %lld",
+    "en": "Resend in %llds",
+    "zh-Hans": "%lld 秒后重发"
+  },
+  {
+    "key": "auth.phone.codeHint",
+    "en": "Enter the 6-digit code",
+    "zh-Hans": "输入 6 位验证码"
+  },
+  {
+    "key": "auth.phone.verifying",
+    "en": "Signing in…",
+    "zh-Hans": "登录中…"
+  },
+  {
+    "key": "auth.phone.or",
+    "en": "or",
+    "zh-Hans": "或"
+  },
+  {
+    "key": "auth.login.headline",
+    "en": "Welcome back",
+    "zh-Hans": "欢迎回来"
+  },
+  {
+    "key": "auth.login.subtitle",
+    "en": "Pick up your stamps trails where left off.",
+    "zh-Hans": "继续你的印章与路线。"
+  },
+  {
+    "key": "settings.search.prompt",
+    "en": "Search settings",
+    "zh-Hans": "搜索设置"
+  },
+  {
+    "key": "settings.search.results",
+    "en": "Results",
+    "zh-Hans": "搜索结果"
+  },
+  {
+    "key": "settings.account.subtitle %lld",
+    "en": "Lv.%lld · City explorer",
+    "zh-Hans": "Lv.%lld · 城市探索者"
+  },
+  {
+    "key": "settings.privacy.footer",
+    "en": "Choose what we may use. You can change these at any time.",
+    "zh-Hans": "选择我们可以使用的内容，随时可以更改。"
+  },
+  {
+    "key": "settings.danger.footer",
+    "en": "Closing your account is reviewed first. Nothing is deleted until you confirm.",
+    "zh-Hans": "注销账号会先经过审核，你确认之前不会删除任何内容。"
+  },
+  {
+    "key": "settingsNative.about.appSection",
+    "en": "This app",
+    "zh-Hans": "本应用"
+  },
+  {
+    "key": "settingsNative.about.linksSection",
+    "en": "Legal",
+    "zh-Hans": "法律与隐私"
+  },
+  {
+    "key": "settingsNative.about.brandName",
+    "en": "Chein",
+    "zh-Hans": "城瘾"
+  },
+  {
+    "key": "compliance.cancellation.intro",
+    "en": "We review first, and nothing is deleted straight away. Read what will change, verify it's you, then confirm.",
+    "zh-Hans": "我们会先审核，不会立刻删除任何内容。请先了解会发生什么，验证身份后再确认。"
+  },
+  {
+    "key": "compliance.step.1",
+    "en": "Review",
+    "zh-Hans": "了解"
+  },
+  {
+    "key": "compliance.step.2",
+    "en": "Verify",
+    "zh-Hans": "验证"
+  },
+  {
+    "key": "compliance.step.3",
+    "en": "Confirm",
+    "zh-Hans": "确认"
+  },
+  {
+    "key": "compliance.channel.IN_APP.detail",
+    "en": "Announcements and offers shown inside the app.",
+    "zh-Hans": "在应用内展示的公告与优惠。"
+  },
+  {
+    "key": "compliance.channel.COUPON.detail",
+    "en": "Coupons and vouchers this merchant sends you.",
+    "zh-Hans": "该商家发给你的优惠券与代金券。"
+  },
+  {
+    "key": "compliance.typeToConfirm",
+    "en": "Type DELETE to confirm",
+    "zh-Hans": "输入“注销”以确认"
+  },
+  {
+    "key": "compliance.confirmSheet.title",
+    "en": "Close this account?",
+    "zh-Hans": "注销此账号？"
+  },
+  {
+    "key": "compliance.confirmSheet.message",
+    "en": "This submits your application. You can still cancel it while it is pending.",
+    "zh-Hans": "这会提交你的申请。申请处理中时，你仍可以撤销。"
+  },
+  {
+    "key": "compliance.confirmSheet.action",
+    "en": "Yes, submit the request",
+    "zh-Hans": "确认提交申请"
+  }
 ]

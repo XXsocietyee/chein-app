@@ -279,7 +279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Official events aren't available right now"
+            "value": "Official events aren't available"
           }
         },
         "zh-Hans": {
@@ -330,7 +330,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your account does not have official publishing permission"
+            "value": "Account doesn't have official publishing permission"
           }
         },
         "zh-Hans": {
@@ -466,7 +466,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Artwork not provided or unavailable"
+            "value": "Artwork not provided"
           }
         },
         "zh-Hans": {
@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registration open"
+            "value": "Sign-up open"
           }
         },
         "zh-Hans": {
@@ -619,7 +619,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Official event details"
+            "value": "Official event"
           }
         },
         "zh-Hans": {
@@ -687,7 +687,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registered participants"
+            "value": "Registered people"
           }
         },
         "zh-Hans": {
@@ -772,7 +772,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrival verification is required"
+            "value": "Arrival check is required"
           }
         },
         "zh-Hans": {
@@ -925,7 +925,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participation is currently unavailable"
+            "value": "Participation unavailable"
           }
         },
         "zh-Hans": {
@@ -993,7 +993,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eligibility not yet confirmed"
+            "value": "Eligibility not yet"
           }
         },
         "zh-Hans": {
@@ -1129,7 +1129,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collective progress"
+            "value": "Collective"
           }
         },
         "zh-Hans": {
@@ -1214,7 +1214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No valid collective coupon is configured."
+            "value": "No valid collective coupon configured."
           }
         },
         "zh-Hans": {
@@ -1299,7 +1299,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Experience points configured"
+            "value": "Experience points"
           }
         },
         "zh-Hans": {
@@ -1418,7 +1418,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting response"
+            "value": "Awaiting"
           }
         },
         "zh-Hans": {
@@ -1469,7 +1469,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Responding to invitations isn't available right now."
+            "value": "Responding invitations isn't available."
           }
         },
         "zh-Hans": {
@@ -1622,7 +1622,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Broadcast statistics"
+            "value": "Broadcast"
           }
         },
         "zh-Hans": {

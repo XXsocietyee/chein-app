@@ -6,9 +6,9 @@ import QuestifyCore
 
 /// MP `components/cy/map-address-search` (pages/roam/index.wxml:297, `screen=='map'`): the 输入地址 entry on the live map.
 /// MP order: field (路名、门牌号或店名) + 取消 → up to five rows (pin · name · address) → 这附近没有搜到.
-/// Rows come from the session's own nearby places (MP `_searchPlaces` = `this._pois` with a coordinate) and match on
-/// name or address (MP `matchPlaces` ①; pinyin needs backend fields the API does not send). Picking a row moves the
-/// map there without leaving the screen (MP `onSearchPick`).
+/// Local rows are nearby places and registered shops. Match is MP `matchPlaces`: name or address contains,
+/// or (shops) `namePinyin` / `nameInitials` prefix. The client never invents pinyin. A remote place-search,
+/// then city-node keyword, fills the rest. Picking a row moves the map there (MP `onSearchPick`).
 enum RoamLiveAddressMatch {
     /// MP `MAX_RESULTS` (P-33): at most five rows.
     static let maxResults = 5
@@ -22,29 +22,36 @@ enum RoamLiveAddressMatch {
     }
 
     static func results(_ places: [RoamPlace], query: String) -> [RoamPlace] {
-        let needle = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        let located = places.filter { $0.coordinate != nil }
-        let hits: [RoamPlace]
-        if needle.isEmpty {
-            hits = located
-        } else {
-            hits = located.filter { place in
-                if place.name.localizedCaseInsensitiveContains(needle) { return true }
-                guard let sub = subtitle(place) else { return false }
-                return sub.localizedCaseInsensitiveContains(needle)
-            }
+        let hits = places.filter { place in
+            guard place.coordinate != nil else { return false }
+            return MapAddressMatch.matches(name: place.name, address: subtitle(place), pinyin: nil, initials: nil, query: query)
         }
         return Array(hits.prefix(maxResults))
     }
 
-    /// MP `_refresh` order: the local matches first, then the remote rows whose name is not already listed, five at most.
-    static func rows(local: [RoamPlace], remote: [MapSearchPlayerService.Place]) -> [RoamLiveAddressRow] {
+    static func matchingShops(_ shops: [RoamRouteNode], query: String) -> [RoamRouteNode] {
+        shops.filter { shop in
+            guard shop.coordinate != nil else { return false }
+            return MapAddressMatch.matches(name: shop.addressName, address: shop.address, pinyin: shop.namePinyin, initials: shop.nameInitials, query: query)
+        }
+    }
+
+    /// MP `_refresh` order: local places, then registered shops, then remote rows whose name is not already listed, five at most.
+    static func rows(local: [RoamPlace], shops: [RoamRouteNode] = [], remote: [MapSearchPlayerService.Place]) -> [RoamLiveAddressRow] {
         var rows: [RoamLiveAddressRow] = local.compactMap { place in
             guard let point = place.coordinate else { return nil }
             return RoamLiveAddressRow(id: "local-\(place.id)", name: place.name, subtitle: subtitle(place),
                                       latitude: point.latitude, longitude: point.longitude, localPlaceID: place.id, nodeLevel: place.nodeLevel)
         }
         var names = Set(local.map(\.name))
+        for shop in shops {
+            guard let point = shop.coordinate else { continue }
+            if !shop.addressName.isEmpty, names.contains(shop.addressName) { continue }
+            if !shop.addressName.isEmpty { names.insert(shop.addressName) }
+            let address = shop.address?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            rows.append(RoamLiveAddressRow(id: "shop-\(shop.id)", name: shop.addressName, subtitle: address.isEmpty ? nil : address,
+                                           latitude: point.latitude, longitude: point.longitude, localPlaceID: nil, nodeLevel: nil, shopID: shop.id))
+        }
         for place in remote {
             guard let point = place.coordinate, !names.contains(place.name) else { continue }
             names.insert(place.name)
@@ -65,6 +72,8 @@ struct RoamLiveAddressRow: Identifiable, Equatable {
     let longitude: Double
     let localPlaceID: Int?
     let nodeLevel: Int?
+    /// Registered shop pin (`RoamLiveMapPick.shop`). Nil for a session place or a remote row.
+    var shopID: Int? = nil
 }
 
 /// MP `_searchRemote` → `_searchNodes`: 350 ms debounce, last keystroke wins; `api/map/place-search` near the map centre,
@@ -119,6 +128,7 @@ struct RoamLiveAddressRow: Identifiable, Equatable {
 
 struct RoamLiveAddressSearchSheet: View {
     let places: [RoamPlace]
+    var shops: [RoamRouteNode] = []
     /// MP `lat` / `lng` properties: the map centre the remote search runs around; nil skips the remote leg.
     var center: CLLocationCoordinate2D? = nil
     /// P1-21 map-app choice for the per-row 导航 (MP `onNavigate` → `wx.openLocation`); nil hides 导航.
@@ -135,7 +145,9 @@ struct RoamLiveAddressSearchSheet: View {
     private struct SearchKey: Hashable { let query: String; let account: Int? }
 
     private var localRows: [RoamPlace] { RoamLiveAddressMatch.results(places, query: query) }
-    private var rows: [RoamLiveAddressRow] { RoamLiveAddressMatch.rows(local: localRows, remote: remote.places) }
+    private var rows: [RoamLiveAddressRow] {
+        RoamLiveAddressMatch.rows(local: localRows, shops: RoamLiveAddressMatch.matchingShops(shops, query: query), remote: remote.places)
+    }
 
     var body: some View {
         NavigationStack {
@@ -219,12 +231,15 @@ struct RoamLiveAddressSearchSheet: View {
     }
 
     private func row(_ item: RoamLiveAddressRow) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: item.localPlaceID == nil ? "mappin" : RoamLivePlaceLevel.symbol(item.nodeLevel))
-                .foregroundStyle(item.localPlaceID == nil ? Color.secondary : RoamLivePlaceLevel.tint(item.nodeLevel))
+        let symbol = item.shopID != nil ? "storefront.fill" : (item.localPlaceID == nil ? "mappin" : RoamLivePlaceLevel.symbol(item.nodeLevel))
+        let tint: Color = item.shopID != nil ? .gray : (item.localPlaceID == nil ? .secondary : RoamLivePlaceLevel.tint(item.nodeLevel))
+        let blank = item.shopID == nil ? "roam.unnamed" : "nativeR2.mapHome.kind.merchant"
+        return HStack(spacing: 12) {
+            Image(systemName: symbol)
+                .foregroundStyle(tint)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: item.name.isEmpty ? appLocalized("roam.unnamed", locale: locale) : item.name)
+                Text(verbatim: item.name.isEmpty ? appLocalized(blank, locale: locale) : item.name)
                     .font(.body)
                     .foregroundStyle(.primary)
                 if let sub = item.subtitle {

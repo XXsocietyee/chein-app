@@ -189,6 +189,8 @@
         "InvoiceLaunchHistoryRulesTests",
         "InvoiceLaunchHostReadOnlyTests",
         "InvoiceLaunchPresentationActionTests",
+        "K40HomeDiscoveryCompositionTests",
+        "K40NotificationLeaseTests",
         "KeychainAndBiometricSessionSecuritySectionViewTests",
         "LBSGeofenceAndBatteryThermalSectionViewTests",
         "LanguageSwitcherTests",

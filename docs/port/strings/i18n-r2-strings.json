@@ -228,7 +228,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Didn't go through"
+            "value": "Didn't go"
           }
         },
         "zh-Hans": {
@@ -432,7 +432,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your team's pledge (only your team sees it): %@"
+            "value": "Team's pledge (only team sees %@"
           }
         },
         "zh-Hans": {
@@ -483,7 +483,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your team hasn't pledged anything yet."
+            "value": "Team hasn't pledged."
           }
         },
         "zh-Hans": {
@@ -636,7 +636,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your team's first choice: %@"
+            "value": "Team's first choice: %@"
           }
         },
         "zh-Hans": {
@@ -1044,7 +1044,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tied, waiting for a revote"
+            "value": "Tied, waiting"
           }
         },
         "zh-Hans": {
@@ -1129,7 +1129,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wrapping up with the default ending"
+            "value": "Wrapping up default ending"
           }
         },
         "zh-Hans": {
@@ -1163,7 +1163,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Everyone must agree"
+            "value": "Everyone must"
           }
         },
         "zh-Hans": {
@@ -1282,7 +1282,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw your team's proposal"
+            "value": "Withdraw team's proposal"
           }
         },
         "zh-Hans": {
@@ -1333,7 +1333,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start the first-choice vote"
+            "value": "Start first-choice vote"
           }
         },
         "zh-Hans": {
@@ -1401,7 +1401,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign the consensus vote"
+            "value": "Sign consensus vote"
           }
         },
         "zh-Hans": {
@@ -1469,7 +1469,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Carry out the selected plan"
+            "value": "Carry out selected plan"
           }
         },
         "zh-Hans": {
@@ -1707,7 +1707,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result isn't confirmed yet. The app keeps checking this same action and never sends it twice."
+            "value": "The result isn't confirmed yet. The app keeps checking this same action and never sends twice."
           }
         },
         "zh-Hans": {

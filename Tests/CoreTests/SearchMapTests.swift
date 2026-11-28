@@ -198,21 +198,34 @@ final class SearchMapTests: XCTestCase {
         XCTAssertEqual(fields, ["lat":"1.0","lng":"2.0","radius":"20000","keyword":"a & 城","categoryId":"7","tag":"Coffee & books","cityRole":"meet"])
         let activity = try XCTUnwrap(requests.first { $0.url?.path == "/test/api/activity/list" })
         let form = String(decoding: activity.httpBody!, as: UTF8.self)
-        XCTAssertTrue(form.contains("name=\"sort_type\"\r\n\r\n2")); XCTAssertTrue(form.contains("name=\"pageSize\"\r\n\r\n50"))
+        XCTAssertTrue(form.contains("name=\"sort_type\"\r\n\r\n2")); XCTAssertTrue(form.contains("name=\"pageSize\"\r\n\r\n10"))
         XCTAssertFalse(form.contains("minPrice")); XCTAssertFalse(form.contains("categoryId"))
     }
+    // The method name stays so the search-map contract list still finds it. Guests now GET city nodes.
     func testGuestCitySearchKeepsActivitiesAndDoesNotCallPrivateNodes() async throws {
         let t = SearchMapTestTransport(); await seed(t)
+        await t.set("/test/api/city/nodes", "{\"code\":200,\"data\":\(SearchMapSyntheticFixtures.cityNodes)}")
         let query = CityNodeSearchQuery(filter: .init(), area: .init(coordinate: RoamCoordinate(latitude: 1, longitude: 2)!, label: ""))
         let result = try await service(t).citySearch(query)
-        XCTAssertEqual(result.nodeFailure, .unauthorized); XCTAssertEqual(result.activities.count, 2)
-        let requests = await t.requests; XCTAssertEqual(requests.count, 1)
+        XCTAssertNil(result.nodeFailure); XCTAssertEqual(result.activities.count, 2); XCTAssertFalse(result.nodes.isEmpty)
+        let requests = await t.requests
+        XCTAssertEqual(Set(requests.map { $0.url!.path }), ["/test/api/activity/list", "/test/api/city/nodes"])
+        XCTAssertTrue(requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
     }
     func testCityCoordinateGuardsDoNotInventPins() throws {
         for json in [#"{"poiId":1,"name":"missing"}"#, #"{"poiId":1,"lat":0,"lng":0}"#, #"{"poiId":1,"lat":91,"lng":1}"#, #"{"poiId":1,"lat":"NaN","lng":1}"#] {
             XCTAssertNil(try decode(SearchMapCityNode.self, json).coordinate)
         }
         XCTAssertNotNil(try decode(SearchMapCityNode.self, #"{"poiId":1,"lat":0,"lng":1}"#).coordinate)
+    }
+    func testGuestCityNodeDetailDispatchesWithoutCredential() async throws {
+        let t = SearchMapTestTransport()
+        await t.set("/test/api/city/nodes/71", #"{"code":200,"data":{"poiId":71,"name":"Node","lat":1,"lng":2}}"#)
+        let node = try await service(t).cityNode(id: 71, token: nil)
+        XCTAssertEqual(node.poiID, 71)
+        let requests = await t.requests
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertNil(requests[0].value(forHTTPHeaderField: "Authorization"))
     }
     func testCityNodeDetailChecksRequestedIdentityAndDoesNotDecodePhone() async throws {
         let t = SearchMapTestTransport()

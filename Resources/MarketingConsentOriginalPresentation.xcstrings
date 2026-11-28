@@ -23,7 +23,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request result"
+            "value": "Original request"
           }
         },
         "zh-Hans": {
@@ -71,7 +71,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original result awaiting verification"
+            "value": "Original result awaiting check"
           }
         },
         "zh-Hans": {
@@ -167,7 +167,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Channel awaiting verification"
+            "value": "Channel awaiting check"
           }
         },
         "zh-Hans": {
@@ -279,7 +279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Merchant reference"
+            "value": "Shop reference"
           }
         },
         "zh-Hans": {

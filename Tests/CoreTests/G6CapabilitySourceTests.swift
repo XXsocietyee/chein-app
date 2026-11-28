@@ -271,6 +271,25 @@ import FoundationNetworking
         XCTAssertNil(G6AIThemeDraftRecoveryPage(["items": [a, a], "nextCursor": NSNull()], before: nil))
     }
 
+    /// Theme-draft instants are UTC: a `T` separator and a trailing `Z`. Offsets and a space separator do not parse.
+    func testThemeDraftInstantsAreUTCWithTAndTrailingZ() {
+        let utc = Date(timeIntervalSince1970: 1_893_456_000)
+        XCTAssertEqual(G6AIThemeDraft.instant("2030-01-01T00:00:00Z"), utc)
+        XCTAssertEqual(G6AIThemeDraft.instant("2030-01-01T00:00:00.250Z"), utc.addingTimeInterval(0.25))
+        for refused in ["2030-01-01T08:00:00+08:00", "2030-01-01T00:00:00+00:00", "2030-01-01 00:00:00Z",
+                        "2030-01-01T00:00:00z", "2030-01-01T00:00:00-00:00Z", "2030-01-01"] {
+            XCTAssertNil(G6AIThemeDraft.instant(refused), refused)
+        }
+        var offset = ["cursor": "9", "prepareKey": "0f8fad5b-d9cb-469f-a165-70867728950e",
+                      "requestId": "td2_" + String(repeating: "a", count: 32), "state": "FAILED",
+                      "reasonCode": NSNull(), "productType": 1, "createdAt": "2030-01-01T08:00:00+08:00",
+                      "executeBefore": "2030-01-01T09:00:00Z", "resultExpiresAt": NSNull()] as [String: Any]
+        XCTAssertNil(G6AIThemeDraftRecoveryPage(["items": [offset], "nextCursor": NSNull()], before: nil))
+        offset["createdAt"] = "2030-01-01T00:00:00Z"
+        offset["executeBefore"] = "2030-01-01 09:00:00Z"
+        XCTAssertNil(G6AIThemeDraftRecoveryPage(["items": [offset], "nextCursor": NSNull()], before: nil))
+    }
+
     func testJournalRefusesIllegalUpdates() {
         let journal = G6AIThemeDraftJournal(store: JourneyMemoryRequestStore())
         let start = G6AIThemeDraftRecord(memberId: "9", prepareKey: "0f8fad5b-d9cb-469f-a165-70867728950e", requestId: nil,

@@ -89,6 +89,66 @@ import FoundationNetworking
         XCTAssertEqual(fixture.issues, 1); XCTAssertEqual(model.phase, .ready); XCTAssertNotNil(model.displayCode)
         XCTAssertEqual(fixture.orderReads, 1)
     }
+    func testTicketRefreshScheduleMatchesTheMiniProgramLead() {
+        let now = Date(timeIntervalSince1970: 1_000)
+        XCTAssertEqual(TicketEntryCodeRefresh.leadSeconds, 30)
+        XCTAssertEqual(TicketEntryCodeRefresh.retrySeconds, 5)
+        XCTAssertEqual(TicketEntryCodeRefresh.next(expiry: now.addingTimeInterval(300), now: now), now.addingTimeInterval(270))
+        XCTAssertEqual(TicketEntryCodeRefresh.next(expiry: now.addingTimeInterval(10), now: now), now.addingTimeInterval(5))
+    }
+    func testTicketRenewsSilentlyThirtySecondsBeforeExpiry() async throws {
+        let context = try context(), fixture = VerificationCodeTestService(receipt: try receipt(), detail: try detail())
+        var now = Date(timeIntervalSince1970: 1_000)
+        let model = VerificationCodeCoordinator(target: .init(kind: .ticket, id: 31), service: fixture, current: { context }, now: { now })
+        await model.present()
+        let shown = model.displayCode
+        now = Date(timeIntervalSince1970: 1_269); await model.tick()
+        XCTAssertEqual(fixture.issues, 1); XCTAssertEqual(model.displayCode, shown); XCTAssertEqual(model.remainingSeconds, 31)
+        now = Date(timeIntervalSince1970: 1_270)
+        fixture.holdIssue = true
+        fixture.receipt = try receipt(expiry: 1_600_000)
+        let renewing = Task { await model.tick() }
+        for _ in 0..<40 { if fixture.pending != nil { break }; await Task.yield() }
+        let pending = try XCTUnwrap(fixture.pending)
+        XCTAssertEqual(model.phase, .ready); XCTAssertEqual(model.displayCode, shown)
+        pending.resume(returning: fixture.receipt)
+        await renewing.value
+        XCTAssertEqual(fixture.issues, 2); XCTAssertEqual(fixture.orderReads, 2)
+        XCTAssertEqual(model.phase, .ready); XCTAssertNotEqual(model.displayCode, shown)
+        XCTAssertGreaterThan(model.remainingSeconds, 30)
+    }
+    func testTicketRenewKeepsAScannedChapterAndStopsWhenRegistrationEnds() async throws {
+        let context = try context(), fixture = VerificationCodeTestService(receipt: try receipt(), detail: try detail(verified: 1))
+        var now = Date(timeIntervalSince1970: 1_000)
+        let model = VerificationCodeCoordinator(target: .init(kind: .ticket, id: 31), service: fixture, current: { context }, now: { now })
+        await model.present()
+        fixture.receipt = try receipt(expiry: 1_600_000)
+        now = Date(timeIntervalSince1970: 1_270); await model.tick()
+        XCTAssertEqual(fixture.issues, 2); XCTAssertEqual(model.phase, .ready); XCTAssertNotNil(model.displayCode)
+        fixture.detail = try detail(status: 3)
+        now = Date(timeIntervalSince1970: 1_540); await model.tick()
+        XCTAssertEqual(fixture.issues, 2); XCTAssertEqual(model.phase, .unavailable); XCTAssertNil(model.displayCode)
+        await model.tick()
+        XCTAssertEqual(fixture.issues, 2)
+    }
+    func testTicketRenewFailureKeepsTheCodeThenStopsInsideFiveSeconds() async throws {
+        let context = try context(), fixture = VerificationCodeTestService(receipt: try receipt(), detail: try detail())
+        var now = Date(timeIntervalSince1970: 1_000)
+        let model = VerificationCodeCoordinator(target: .init(kind: .ticket, id: 31), service: fixture, current: { context }, now: { now })
+        await model.present()
+        let shown = model.displayCode
+        fixture.failure = VerificationCodeFailure.failed
+        now = Date(timeIntervalSince1970: 1_270); await model.tick()
+        XCTAssertEqual(fixture.issues, 2); XCTAssertEqual(model.phase, .ready); XCTAssertEqual(model.displayCode, shown)
+        now = Date(timeIntervalSince1970: 1_274); await model.tick()
+        XCTAssertEqual(fixture.issues, 2)
+        now = Date(timeIntervalSince1970: 1_275); await model.tick()
+        XCTAssertEqual(fixture.issues, 3); XCTAssertEqual(model.displayCode, shown)
+        now = Date(timeIntervalSince1970: 1_296); await model.tick()
+        XCTAssertEqual(model.phase, .failed); XCTAssertNil(model.displayCode); XCTAssertEqual(fixture.issues, 4)
+        for _ in 0..<5 { now = now.addingTimeInterval(1); await model.tick() }
+        XCTAssertEqual(fixture.issues, 4)
+    }
     func testTicketExpiryClearsAndRequiresManualRetry() async throws {
         let context = try context(), fixture = VerificationCodeTestService(receipt: try receipt(), detail: try detail())
         var now = Date(timeIntervalSince1970: 1000)

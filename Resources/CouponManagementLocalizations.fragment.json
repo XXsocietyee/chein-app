@@ -5,7 +5,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Coupon management isn't available right now"
+          "value": "Coupon management isn't available right"
         }
       },
       "zh-Hans": {
@@ -90,7 +90,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This action is not available for the current account or coupon"
+          "value": "This action isn't available for the current account or coupon"
         }
       },
       "zh-Hans": {
@@ -107,7 +107,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The safety record could not be saved. Nothing was submitted."
+          "value": "The safety record couldn't be saved. Nothing submitted."
         }
       },
       "zh-Hans": {
@@ -141,7 +141,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "There's a message for you"
+          "value": "There's a message for"
         }
       },
       "zh-Hans": {
@@ -226,7 +226,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Distribution stopped"
+          "value": "Distribution"
         }
       },
       "zh-Hans": {
@@ -362,7 +362,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "10% off coupon"
+          "value": "10% off"
         }
       },
       "zh-Hans": {
@@ -379,7 +379,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "20% off coupon"
+          "value": "20% off"
         }
       },
       "zh-Hans": {
@@ -396,7 +396,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Experience pass"
+          "value": "Experience"
         }
       },
       "zh-Hans": {
@@ -498,7 +498,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Publishing and stopping coupon distribution aren't available right now."
+          "value": "Coupon publish isn't ready."
         }
       },
       "zh-Hans": {
@@ -549,7 +549,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No description provided"
+          "value": "No details provided"
         }
       },
       "zh-Hans": {
@@ -651,7 +651,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Distribution details"
+          "value": "Distribution"
         }
       },
       "zh-Hans": {
@@ -906,7 +906,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Description"
+          "value": "Details"
         }
       },
       "zh-Hans": {
@@ -957,7 +957,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Validity dates"
+          "value": "Validity"
         }
       },
       "zh-Hans": {
@@ -1008,7 +1008,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Review publication"
+          "value": "Review"
         }
       },
       "zh-Hans": {
@@ -1127,7 +1127,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Confirm simulation"
+          "value": "Confirm"
         }
       },
       "zh-Hans": {
@@ -1161,7 +1161,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Confirm submission"
+          "value": "Confirm entry"
         }
       },
       "zh-Hans": {

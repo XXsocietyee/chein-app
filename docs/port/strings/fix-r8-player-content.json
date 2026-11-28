@@ -126,7 +126,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending review"
+            "value": "Pending"
           }
         },
         "zh-Hans": {
@@ -245,7 +245,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stop you are applying for"
+            "value": "Stop you're"
           }
         },
         "zh-Hans": {

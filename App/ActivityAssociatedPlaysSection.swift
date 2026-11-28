@@ -1,20 +1,30 @@
 import SwiftUI
 
-/// Read-only metadata, not a template-detail link. The separate myinfo grant is
-/// not inherited from seeing an activity's included template list.
+/// Associated-play rows. A positive public template id plus a destination opens
+/// the public template detail. Without either, the row stays a label.
 struct ActivityAssociatedPlaysSection: View {
     let plays: [ActivityAssociatedPlay]
+    var templateDestination: ((Int) -> AnyView)? = nil
     var body: some View {
         if !plays.isEmpty {
             Section("activityAssociated.title") {
-                // Preserve returned order/repetitions; no ID or inferred schedule
-                // is used to merge different associations into one template.
+                // Preserve returned order/repetitions. The public id never merges rows.
                 ForEach(Array(plays.enumerated()), id: \.offset) { index, play in
-                    ActivityAssociatedPlayRow(play: play)
-                        .questifyCardListRow()
-                        .accessibilityIdentifier("activityAssociated.row.\(index)")
+                    row(index: index, play: play)
                 }
             }.accessibilityIdentifier("activityAssociated.section")
+        }
+    }
+    @ViewBuilder private func row(index: Int, play: ActivityAssociatedPlay) -> some View {
+        if let id = play.publicTemplateID, let templateDestination {
+            NavigationLink { templateDestination(id) } label: {
+                ActivityAssociatedPlayRow(play: play).questifyCardListRow()
+            }
+            .accessibilityIdentifier("activityAssociated.row.\(index)")
+        } else {
+            ActivityAssociatedPlayRow(play: play)
+                .questifyCardListRow()
+                .accessibilityIdentifier("activityAssociated.row.\(index)")
         }
     }
 }

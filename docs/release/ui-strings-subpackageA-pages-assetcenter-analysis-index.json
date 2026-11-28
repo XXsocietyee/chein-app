@@ -12,7 +12,7 @@
     },
     {
       "key": "wallet.analysis.currencyUnknown",
-      "en": "The currency of these records isn't known",
+      "en": "The currency these records isn't known",
       "zh-Hans": "这些记录的币种未知",
       "table": "WalletIncomeAnalysis"
     },
@@ -54,7 +54,7 @@
     },
     {
       "key": "wallet.analysis.login",
-      "en": "Sign in to see your analysis",
+      "en": "Sign in see analysis",
       "zh-Hans": "登录后查看",
       "table": "WalletIncomeAnalysis"
     },
@@ -126,7 +126,7 @@
     },
     {
       "key": "wallet.analysis.source.returned",
-      "en": "Returned withdrawal request",
+      "en": "Returned cash-out request",
       "zh-Hans": "提现驳回退回",
       "table": "WalletIncomeAnalysis"
     },
@@ -168,7 +168,7 @@
     },
     {
       "key": "wallet.analysis.withdrawal",
-      "en": "Withdrawals",
+      "en": "Cash out",
       "zh-Hans": "提现",
       "table": "WalletIncomeAnalysis"
     },
@@ -216,7 +216,7 @@
     },
     {
       "key": "wallet.analysis.read.unverified",
-      "en": "The original response supplied no verifiable total. Further pages were not requested; an empty slice does not prove the account has no records.",
+      "en": "The original response supplied no verifiable total. Further pages weren't requested; an empty slice doesn't prove account has no records.",
       "zh-Hans": "原响应未提供可确认总数，停止追加分页；不据空片段判断账户无记录。",
       "table": "WalletIncomeAnalysisRead"
     }

@@ -35,11 +35,11 @@
       "zh-Hans": "当前账号无法查看成长记录，请确认当前账号的查看权限"
     },
     "growth.experience": {
-      "en": "Exploration XP",
+      "en": "Exploration",
       "zh-Hans": "探索值"
     },
     "growth.failed": {
-      "en": "Growth information could not be loaded",
+      "en": "Growth info couldn't be loaded",
       "zh-Hans": "成长信息加载失败"
     },
     "growth.level.value %lld": {
@@ -91,7 +91,7 @@
       "zh-Hans": "成长中心"
     },
     "growth.unavailable": {
-      "en": "This growth information is temporarily unavailable",
+      "en": "This growth info is temporarily unavailable",
       "zh-Hans": "这部分成长信息暂不可用"
     },
     "growth.unit.point": {
@@ -115,7 +115,7 @@
       "zh-Hans": "去探索"
     },
     "growthNormalEntry.leaderboard.hold": {
-      "en": "Anonymous rankings aren't available right now. Your personal growth records are shown separately.",
+      "en": "Anonymous rankings aren't available right now. Personal growth records shown separately.",
       "zh-Hans": "匿名排行暂不可用，个人成长记录单独展示。",
       "table": "GrowthNormalEntry"
     },

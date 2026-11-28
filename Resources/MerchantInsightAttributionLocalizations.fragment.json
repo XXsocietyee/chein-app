@@ -130,7 +130,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "New visitors"
+          "value": "New"
         }
       }
     }
@@ -147,7 +147,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Returning visitors"
+          "value": "Returning"
         }
       }
     }

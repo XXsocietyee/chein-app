@@ -2,15 +2,35 @@
   "im.chat.more.reportPeerClosed": {
     "extractionState": "manual",
     "localizations": {
-      "en": { "stringUnit": { "state": "translated", "value": "Reporting this person isn't open yet." } },
-      "zh-Hans": { "stringUnit": { "state": "translated", "value": "举报对方暂未开放" } }
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reporting person isn't open yet."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "举报对方暂未开放"
+        }
+      }
     }
   },
   "topicXcx.cta.edit": {
     "extractionState": "manual",
     "localizations": {
-      "en": { "stringUnit": { "state": "translated", "value": "Edit topic" } },
-      "zh-Hans": { "stringUnit": { "state": "translated", "value": "编辑主题" } }
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Edit topic"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "编辑主题"
+        }
+      }
     }
   }
 }

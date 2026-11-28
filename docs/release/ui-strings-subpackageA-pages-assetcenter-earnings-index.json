@@ -2,44 +2,280 @@
   "page": "subpackageA/pages/assetcenter/earnings/index",
   "unknownMoney": "—",
   "strings": [
-    {"key": "wallet.title", "table": "Localizable", "en": "Account earnings", "zh-Hans": "账户收益", "accessibilityIdentifier": "wallet.earnings.overview"},
-    {"key": "wallet.loading", "table": "Localizable", "en": "Loading…", "zh-Hans": "加载中…", "accessibilityIdentifier": "wallet.earnings.loading"},
-    {"key": "withdrawal.support.balance", "table": "Localizable", "en": "Current balance", "zh-Hans": "当前余额", "accessibilityIdentifier": "wallet.earnings.balance"},
-    {"key": "member.wallet.noEarnings", "table": "MemberProfile", "en": "No earnings yet", "zh-Hans": "还没有收益", "accessibilityIdentifier": "wallet.earnings.empty"},
-    {"key": "member.wallet.noEarningsHint", "table": "MemberProfile", "en": "Creator earnings and host revenue share appear here once they arrive.", "zh-Hans": "创作收益与主办分润到账后都会显示在这里", "accessibilityIdentifier": "wallet.earnings.empty"},
-    {"key": "wallet.login", "table": "Localizable", "en": "Sign in to view this information", "zh-Hans": "登录后可查看", "accessibilityIdentifier": "wallet.issue"},
-    {"key": "wallet.failed", "table": "Localizable", "en": "Couldn't load. Nothing was changed.", "zh-Hans": "没加载出来，记录未被更改", "accessibilityIdentifier": "wallet.issue"},
-    {"key": "wallet.unavailable", "table": "Localizable", "en": "Can't be shown right now", "zh-Hans": "暂时无法显示", "accessibilityIdentifier": "wallet.issue"},
-    {"key": "wallet.retry", "table": "Localizable", "en": "Try again", "zh-Hans": "重试", "accessibilityIdentifier": "wallet.issue"},
-    {"key": "wallet.more", "table": "Localizable", "en": "More", "zh-Hans": "更多", "accessibilityIdentifier": "wallet.more.open"},
-    {"key": "wallet.income", "table": "Localizable", "en": "Income details", "zh-Hans": "收益明细", "accessibilityIdentifier": "wallet.income.open"},
-    {"key": "wallet.points", "table": "Localizable", "en": "Points history", "zh-Hans": "积分明细", "accessibilityIdentifier": "wallet.points.open"},
-    {"key": "wallet.monthIncome.title", "table": "Localizable", "en": "Income this month", "zh-Hans": "本月收入明细", "accessibilityIdentifier": "wallet.month.all"},
-    {"key": "wallet.all", "table": "Localizable", "en": "All", "zh-Hans": "全部", "accessibilityIdentifier": "wallet.month.all"},
-    {"key": "wallet.analysis.noSources", "table": "WalletIncomeAnalysis", "en": "No income this month", "zh-Hans": "这个月还没有收入", "accessibilityIdentifier": "wallet.month.empty"},
-    {"key": "wallet.assets.myAssets", "table": "Localizable", "en": "My assets", "zh-Hans": "我的资产", "accessibilityIdentifier": "wallet.earnings.stages.home"},
-    {"key": "wallet.assets.withdrawableLabel", "table": "Localizable", "en": "Withdrawable", "zh-Hans": "可提现", "accessibilityIdentifier": "wallet.assets.open"},
-    {"key": "wallet.pendingSettlement", "table": "Localizable", "en": "Pending settlement", "zh-Hans": "待结算", "accessibilityIdentifier": "wallet.earnings.stages.pending"},
-    {"key": "wallet.assets.disputedLabel", "table": "Localizable", "en": "Disputed", "zh-Hans": "争议中", "accessibilityIdentifier": "wallet.earnings.stages.disputed"},
-    {"key": "wallet.assets", "table": "Localizable", "en": "Assets", "zh-Hans": "我的资产", "accessibilityIdentifier": "wallet.earnings.stages.home"},
-    {"key": "wallet.analysis.title", "table": "WalletIncomeAnalysis", "en": "Analysis", "zh-Hans": "分析", "accessibilityIdentifier": "wallet.analysis.quick"},
-    {"key": "social.invites.title", "table": "Localizable", "en": "Invitation history", "zh-Hans": "邀请记录", "accessibilityIdentifier": "wallet.inviteHistory"},
-    {"key": "wallet.mall", "table": "Localizable", "en": "Points shop", "zh-Hans": "积分商城", "accessibilityIdentifier": "wallet.mall.open"},
-    {"key": "wallet.earnings.stages.loading", "table": "WalletEarningsOverview", "en": "Loading…", "zh-Hans": "正在加载…", "accessibilityIdentifier": "wallet.earnings.stages.loading"},
-    {"key": "wallet.earnings.stages.empty", "table": "WalletEarningsOverview", "en": "No funds waiting to settle", "zh-Hans": "暂无待结算资金", "accessibilityIdentifier": "wallet.earnings.stages.empty"},
-    {"key": "wallet.earnings.stages.failed", "table": "WalletEarningsOverview", "en": "Couldn't load", "zh-Hans": "加载失败", "accessibilityIdentifier": "wallet.earnings.stages.failed"},
-    {"key": "wallet.earnings.stages.retry", "table": "WalletEarningsOverview", "en": "Try again", "zh-Hans": "重试", "accessibilityIdentifier": "wallet.earnings.stages.retry"},
-    {"key": "wallet.earnings.stages.unconfigured", "table": "WalletEarningsOverview", "en": "—", "zh-Hans": "—", "accessibilityIdentifier": "wallet.earnings.stages.unconfigured"},
-    {"key": "wallet.earnings.stages.signedOut", "table": "WalletEarningsOverview", "en": "Sign in to see your earnings", "zh-Hans": "登录后查看收益", "accessibilityIdentifier": "wallet.earnings.stages.signedOut"},
-    {"key": "wallet.earnings.stages.unknown", "table": "WalletEarningsOverview", "en": "—", "zh-Hans": "—", "accessibilityIdentifier": "wallet.earnings.stages.unknown"},
-    {"key": "wallet.available", "table": "Localizable", "en": "Available to withdraw", "zh-Hans": "可提现", "accessibilityIdentifier": "wallet.earnings.stages.available"},
-    {"key": "wallet.complaintPeriod", "table": "Localizable", "en": "Complaint period · available on", "zh-Hans": "客诉期中 · 可提现日期", "accessibilityIdentifier": "wallet.earnings.stages.complaint"},
-    {"key": "wallet.earnings.tab.income", "table": "WalletEarningsOverview", "en": "Income", "zh-Hans": "收入", "accessibilityIdentifier": "wallet.income.filter"},
-    {"key": "wallet.earnings.tab.organizer", "table": "WalletEarningsOverview", "en": "Organizer share", "zh-Hans": "主办分润", "accessibilityIdentifier": "wallet.earnings.tab.organizer"},
-    {"key": "wallet.earnings.finance.separate", "table": "WalletEarningsOverview", "en": "Organizer share is settled separately, in CNY", "zh-Hans": "主办分润单独结算，以人民币计", "accessibilityIdentifier": "wallet.earnings.finance.separate"},
-    {"key": "wallet.earnings.finance.unconfigured", "table": "WalletEarningsOverview", "en": "—", "zh-Hans": "—", "accessibilityIdentifier": "wallet.earnings.finance.unconfigured"},
-    {"key": "wallet.earnings.finance.signedOut", "table": "WalletEarningsOverview", "en": "Sign in to see organizer share", "zh-Hans": "登录后查看主办分润", "accessibilityIdentifier": "wallet.earnings.finance.signedOut"},
-    {"key": "withdrawal.support.title", "table": "Localizable", "en": "Withdraw", "zh-Hans": "提现", "accessibilityIdentifier": "wallet.withdrawalSupport.open", "shown": false},
-    {"key": "wallet.withdrawals", "table": "Localizable", "en": "Withdrawal history", "zh-Hans": "提现记录", "accessibilityIdentifier": "wallet.withdrawals.open", "shown": false}
+    {
+      "key": "wallet.title",
+      "table": "Localizable",
+      "en": "Account earnings",
+      "zh-Hans": "账户收益",
+      "accessibilityIdentifier": "wallet.earnings.overview"
+    },
+    {
+      "key": "wallet.loading",
+      "table": "Localizable",
+      "en": "Loading…",
+      "zh-Hans": "加载中…",
+      "accessibilityIdentifier": "wallet.earnings.loading"
+    },
+    {
+      "key": "withdrawal.support.balance",
+      "table": "Localizable",
+      "en": "Current balance",
+      "zh-Hans": "当前余额",
+      "accessibilityIdentifier": "wallet.earnings.balance"
+    },
+    {
+      "key": "member.wallet.noEarnings",
+      "table": "MemberProfile",
+      "en": "No earnings yet",
+      "zh-Hans": "还没有收益",
+      "accessibilityIdentifier": "wallet.earnings.empty"
+    },
+    {
+      "key": "member.wallet.noEarningsHint",
+      "table": "MemberProfile",
+      "en": "Creator earnings and host revenue share appear here once they arrive.",
+      "zh-Hans": "创作收益与主办分润到账后都会显示在这里",
+      "accessibilityIdentifier": "wallet.earnings.empty"
+    },
+    {
+      "key": "wallet.login",
+      "table": "Localizable",
+      "en": "Sign in to view this info",
+      "zh-Hans": "登录后可查看",
+      "accessibilityIdentifier": "wallet.issue"
+    },
+    {
+      "key": "wallet.failed",
+      "table": "Localizable",
+      "en": "Couldn't load. Nothing was changed.",
+      "zh-Hans": "没加载出来，记录未被更改",
+      "accessibilityIdentifier": "wallet.issue"
+    },
+    {
+      "key": "wallet.unavailable",
+      "table": "Localizable",
+      "en": "Can't be shown right now",
+      "zh-Hans": "暂时无法显示",
+      "accessibilityIdentifier": "wallet.issue"
+    },
+    {
+      "key": "wallet.retry",
+      "table": "Localizable",
+      "en": "Try",
+      "zh-Hans": "重试",
+      "accessibilityIdentifier": "wallet.issue"
+    },
+    {
+      "key": "wallet.more",
+      "table": "Localizable",
+      "en": "More",
+      "zh-Hans": "更多",
+      "accessibilityIdentifier": "wallet.more.open"
+    },
+    {
+      "key": "wallet.income",
+      "table": "Localizable",
+      "en": "Income details",
+      "zh-Hans": "收益明细",
+      "accessibilityIdentifier": "wallet.income.open"
+    },
+    {
+      "key": "wallet.points",
+      "table": "Localizable",
+      "en": "Points history",
+      "zh-Hans": "积分明细",
+      "accessibilityIdentifier": "wallet.points.open"
+    },
+    {
+      "key": "wallet.monthIncome.title",
+      "table": "Localizable",
+      "en": "Income this month",
+      "zh-Hans": "本月收入明细",
+      "accessibilityIdentifier": "wallet.month.all"
+    },
+    {
+      "key": "wallet.all",
+      "table": "Localizable",
+      "en": "All",
+      "zh-Hans": "全部",
+      "accessibilityIdentifier": "wallet.month.all"
+    },
+    {
+      "key": "wallet.analysis.noSources",
+      "table": "WalletIncomeAnalysis",
+      "en": "No income this month",
+      "zh-Hans": "这个月还没有收入",
+      "accessibilityIdentifier": "wallet.month.empty"
+    },
+    {
+      "key": "wallet.assets.myAssets",
+      "table": "Localizable",
+      "en": "My assets",
+      "zh-Hans": "我的资产",
+      "accessibilityIdentifier": "wallet.earnings.stages.home"
+    },
+    {
+      "key": "wallet.assets.withdrawableLabel",
+      "table": "Localizable",
+      "en": "Withdrawable",
+      "zh-Hans": "可提现",
+      "accessibilityIdentifier": "wallet.assets.open"
+    },
+    {
+      "key": "wallet.pendingSettlement",
+      "table": "Localizable",
+      "en": "Pending",
+      "zh-Hans": "待结算",
+      "accessibilityIdentifier": "wallet.earnings.stages.pending"
+    },
+    {
+      "key": "wallet.assets.disputedLabel",
+      "table": "Localizable",
+      "en": "Disputed",
+      "zh-Hans": "争议中",
+      "accessibilityIdentifier": "wallet.earnings.stages.disputed"
+    },
+    {
+      "key": "wallet.assets",
+      "table": "Localizable",
+      "en": "Assets",
+      "zh-Hans": "我的资产",
+      "accessibilityIdentifier": "wallet.earnings.stages.home"
+    },
+    {
+      "key": "wallet.analysis.title",
+      "table": "WalletIncomeAnalysis",
+      "en": "Analysis",
+      "zh-Hans": "分析",
+      "accessibilityIdentifier": "wallet.analysis.quick"
+    },
+    {
+      "key": "social.invites.title",
+      "table": "Localizable",
+      "en": "Invite history",
+      "zh-Hans": "邀请记录",
+      "accessibilityIdentifier": "wallet.inviteHistory"
+    },
+    {
+      "key": "wallet.mall",
+      "table": "Localizable",
+      "en": "Points shop",
+      "zh-Hans": "积分商城",
+      "accessibilityIdentifier": "wallet.mall.open"
+    },
+    {
+      "key": "wallet.earnings.stages.loading",
+      "table": "WalletEarningsOverview",
+      "en": "Loading…",
+      "zh-Hans": "正在加载…",
+      "accessibilityIdentifier": "wallet.earnings.stages.loading"
+    },
+    {
+      "key": "wallet.earnings.stages.empty",
+      "table": "WalletEarningsOverview",
+      "en": "No funds waiting to settle",
+      "zh-Hans": "暂无待结算资金",
+      "accessibilityIdentifier": "wallet.earnings.stages.empty"
+    },
+    {
+      "key": "wallet.earnings.stages.failed",
+      "table": "WalletEarningsOverview",
+      "en": "Couldn't load",
+      "zh-Hans": "加载失败",
+      "accessibilityIdentifier": "wallet.earnings.stages.failed"
+    },
+    {
+      "key": "wallet.earnings.stages.retry",
+      "table": "WalletEarningsOverview",
+      "en": "Try",
+      "zh-Hans": "重试",
+      "accessibilityIdentifier": "wallet.earnings.stages.retry"
+    },
+    {
+      "key": "wallet.earnings.stages.unconfigured",
+      "table": "WalletEarningsOverview",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "wallet.earnings.stages.unconfigured"
+    },
+    {
+      "key": "wallet.earnings.stages.signedOut",
+      "table": "WalletEarningsOverview",
+      "en": "Sign in to see your earnings",
+      "zh-Hans": "登录后查看收益",
+      "accessibilityIdentifier": "wallet.earnings.stages.signedOut"
+    },
+    {
+      "key": "wallet.earnings.stages.unknown",
+      "table": "WalletEarningsOverview",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "wallet.earnings.stages.unknown"
+    },
+    {
+      "key": "wallet.available",
+      "table": "Localizable",
+      "en": "Available",
+      "zh-Hans": "可提现",
+      "accessibilityIdentifier": "wallet.earnings.stages.available"
+    },
+    {
+      "key": "wallet.complaintPeriod",
+      "table": "Localizable",
+      "en": "Complaint period · available on",
+      "zh-Hans": "客诉期中 · 可提现日期",
+      "accessibilityIdentifier": "wallet.earnings.stages.complaint"
+    },
+    {
+      "key": "wallet.earnings.tab.income",
+      "table": "WalletEarningsOverview",
+      "en": "Income",
+      "zh-Hans": "收入",
+      "accessibilityIdentifier": "wallet.income.filter"
+    },
+    {
+      "key": "wallet.earnings.tab.organizer",
+      "table": "WalletEarningsOverview",
+      "en": "Organizer share",
+      "zh-Hans": "主办分润",
+      "accessibilityIdentifier": "wallet.earnings.tab.organizer"
+    },
+    {
+      "key": "wallet.earnings.finance.separate",
+      "table": "WalletEarningsOverview",
+      "en": "Organizer share is settled separately, in CNY",
+      "zh-Hans": "主办分润单独结算，以人民币计",
+      "accessibilityIdentifier": "wallet.earnings.finance.separate"
+    },
+    {
+      "key": "wallet.earnings.finance.unconfigured",
+      "table": "WalletEarningsOverview",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "wallet.earnings.finance.unconfigured"
+    },
+    {
+      "key": "wallet.earnings.finance.signedOut",
+      "table": "WalletEarningsOverview",
+      "en": "Sign in to see organizer share",
+      "zh-Hans": "登录后查看主办分润",
+      "accessibilityIdentifier": "wallet.earnings.finance.signedOut"
+    },
+    {
+      "key": "withdrawal.support.title",
+      "table": "Localizable",
+      "en": "Withdraw",
+      "zh-Hans": "提现",
+      "accessibilityIdentifier": "wallet.withdrawalSupport.open",
+      "shown": false
+    },
+    {
+      "key": "wallet.withdrawals",
+      "table": "Localizable",
+      "en": "Cash-out history",
+      "zh-Hans": "提现记录",
+      "accessibilityIdentifier": "wallet.withdrawals.open",
+      "shown": false
+    }
   ]
 }
