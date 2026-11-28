@@ -64,7 +64,8 @@ public final class AnalyticsDefaultsQueueStore: AnalyticsQueueStoring {
         "roam_exploreday_reco_shown", "roam_exploreday_reco_click", "roam_share_channel", "roam_share_complete",
         "roam_share_fail", "square_share_complete", "square_share_fail", "chapter_blocks_parse_failed",
         "npc_profile_loaded", "npc_bubble_impression", "npc_chat_open", "npc_chat_submit", "npc_chat_complete", "npc_chat_cancel",
-        "finish_offer_shown", "finish_offer_click"
+        "finish_offer_shown", "finish_offer_click",
+        "stage_enter", "hint_open", "stage_skip", "stage_issue_report", "material_view"
     ]
 
     private let accountID: Int
