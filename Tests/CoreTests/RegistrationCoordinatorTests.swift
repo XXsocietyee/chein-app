@@ -86,8 +86,9 @@ final class RegistrationCoordinatorTests: XCTestCase {
         try JSONDecoder().decode(RegistrationStatusSnapshot.self, from: Data(json.utf8))
     }
     private func makeCoordinator(_ service: ControlledRegistrationService,
-                                 makeID: @escaping () -> String = { "fixture-request-id" }) throws -> RegistrationCoordinator {
-        let coordinator = RegistrationCoordinator(service: service, makeRequestID: makeID)
+                                 makeID: @escaping () -> String = { "fixture-request-id" },
+                                 paymentsOpen: Bool = false) throws -> RegistrationCoordinator {
+        let coordinator = RegistrationCoordinator(service: service, makeRequestID: makeID, paymentsOpen: { paymentsOpen })
         try coordinator.setAccount(id: 1, token: "fixture-account-one-token")
         XCTAssertEqual(coordinator.select(try RegistrationQuoteRequest(ownerID: 7, ticketID: 11)), .applied)
         return coordinator
@@ -149,6 +150,45 @@ final class RegistrationCoordinatorTests: XCTestCase {
         XCTAssertTrue(service.creates.isEmpty, "A usable quote is not implicit confirmation")
     }
 
+    /// fix/1128-cn-pay P0-1: payment switch on → a paid quote creates once with `payChannel=APP`.
+    func testPaidQuoteCreatesWithAppChannelWhenPaymentsOpen() async throws {
+        let service = ControlledRegistrationService()
+        let coordinator = try makeCoordinator(service, paymentsOpen: true)
+        XCTAssertTrue(coordinator.acceptsPaidOrders)
+        try await loadQuote(coordinator, service, value: quote(#"{"payAmount":19.99,"quoteSign":"fixture-paid"}"#))
+        XCTAssertTrue(coordinator.canConfirm)
+        let task = Task { await coordinator.confirm(participant) }
+        await service.waitFor(.create, count: 1)
+        let intent = try XCTUnwrap(service.creates.first?.intent)
+        XCTAssertTrue(intent.usesAppPaymentChannel)
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(intent)) as? [String: Any])
+        XCTAssertEqual(body["payChannel"] as? String, "APP")
+        XCTAssertEqual(body["quoteSign"] as? String, "fixture-paid")
+        XCTAssertNil(body["payAmount"], "The server prices from quoteSign; the client never sends an amount")
+        service.completeCreate(0, .success(try result(#"{"registrationId":41,"payableAmount":19.99,"payParams":{"prepayId":"wx-fixture"}}"#)))
+        let action = await task.value
+        XCTAssertEqual(action, .applied)
+        guard case .responseReceived(_, let created) = coordinator.creationState else { return XCTFail("expected a create response") }
+        XCTAssertEqual(created.registrationID, 41)
+        XCTAssertTrue(created.hasPaymentParameters)
+    }
+
+    /// A free quote never carries a pay channel, even with payments open.
+    func testFreeQuoteSendsNoChannelWhenPaymentsOpen() async throws {
+        let service = ControlledRegistrationService()
+        let coordinator = try makeCoordinator(service, paymentsOpen: true)
+        try await loadQuote(coordinator, service)
+        let task = Task { await coordinator.confirm(participant) }
+        await service.waitFor(.create, count: 1)
+        let intent = try XCTUnwrap(service.creates.first?.intent)
+        XCTAssertFalse(intent.usesAppPaymentChannel)
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(intent)) as? [String: Any])
+        XCTAssertNil(body["payChannel"])
+        service.completeCreate(0, .success(try result(#"{"registrationId":42,"payableAmount":0}"#)))
+        _ = await task.value
+    }
+
+    /// Payment switch off: a paid quote stays blocked (`.paymentRequired`) and sends nothing.
     func testPaidQuoteDoesNotCreate() async throws {
         let service = ControlledRegistrationService()
         let coordinator = try makeCoordinator(service)

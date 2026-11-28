@@ -20,11 +20,15 @@ extension EnvironmentValues {
 }
 
 /// Rows under 订单支付 once the order has pay params: opening WeChat → paid / cancelled / checking.
+/// fix/1128-cn-pay P1-2: with empty `parameters` (a pay response without provider params) nothing opens; the one
+/// `api/registration/info` read alone decides paid / checking. No row ever says paid without that read.
 @MainActor struct RegistrationAppPayRows: View {
     @Environment(\.locale) private var locale
     let context: RegistrationAppPayContext?
     let registrationID: Int
     let parameters: [String: String]
+    /// Called once the server read says paid, so the host refreshes its order / registration status.
+    var onSettled: (() -> Void)? = nil
 
     @State private var stage: RegistrationAppPayStage = .launching
     @State private var started = false
@@ -45,11 +49,19 @@ extension EnvironmentValues {
         }
         .task(id: registrationID) { await startOnce() }
         .sensoryFeedback(.success, trigger: stage, condition: Self.becamePaid)
+        .sensoryFeedback(.warning, trigger: stage, condition: Self.becameCancelled)
+        .onChange(of: stage) { old, new in
+            if Self.becamePaid(old, new) { onSettled?() }
+        }
         .cySheet(isPresented: $showsWallet) { walletSheet }
     }
 
     private static func becamePaid(_ old: RegistrationAppPayStage, _ new: RegistrationAppPayStage) -> Bool {
         new == .paid && old != .paid
+    }
+
+    private static func becameCancelled(_ old: RegistrationAppPayStage, _ new: RegistrationAppPayStage) -> Bool {
+        new == .cancelled && old != .cancelled
     }
 
     private var walletSheet: some View {
@@ -69,7 +81,9 @@ extension EnvironmentValues {
         Label {
             Text(c.t("支付成功，票已放入票夹", "Paid. Your ticket is in the wallet."))
         } icon: {
-            Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundStyle(CYColor.successText)
+                .symbolEffect(.bounce, value: stage == .paid)
         }
         .accessibilityIdentifier("registration.pay.paid")
         Button {
@@ -101,12 +115,14 @@ extension EnvironmentValues {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("registration.pay.checkingResult")
-        Button(c.t("刷新", "Refresh")) {
-            Task { await refresh() }
+        if context != nil {
+            Button(c.t("刷新", "Refresh")) {
+                Task { await refresh() }
+            }
+            .buttonStyle(.bordered)
+            .disabled(working)
+            .accessibilityIdentifier("registration.pay.refresh")
         }
-        .buttonStyle(.bordered)
-        .disabled(working)
-        .accessibilityIdentifier("registration.pay.refresh")
     }
 
     private var unavailableRow: some View {
@@ -128,6 +144,12 @@ extension EnvironmentValues {
 
     private func launch() async {
         guard !working else { return }
+        if parameters.isEmpty {
+            // P1-2: no provider step. Read once; paid only when the server says `paymentStatus == 2`.
+            stage = .checking
+            await refresh()
+            return
+        }
         guard let context, context.isAvailable() else {
             stage = .weChatUnavailable
             return
@@ -149,12 +171,13 @@ extension EnvironmentValues {
     }
 }
 
-/// Builds the WeChat hand-off from the session. Nil while money writes are closed, so the pay section keeps its
-/// status chip and never opens WeChat.
+/// Builds the WeChat hand-off from the session. WeChat opens only while the session's provider is configured
+/// (payment switch on, SDK linked, build-setting identity present); otherwise `isAvailable` is false.
 @MainActor enum RegistrationAppPayBridge {
+    /// fix/1128-cn-pay P1-2: always built for a session, so the one status read works even when WeChat is not
+    /// configured; `isAvailable` alone says whether WeChat can open.
     static func context(_ session: AppSession) -> RegistrationAppPayContext? {
-        guard session.registrationPaymentProvider != nil else { return nil }
-        return RegistrationAppPayContext(
+        RegistrationAppPayContext(
             isAvailable: { session.registrationPaymentProvider?.isConfigured == true },
             launch: { registrationID, parameters in
                 guard let provider = session.registrationPaymentProvider else { return .unknown }

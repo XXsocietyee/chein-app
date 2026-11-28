@@ -107,8 +107,9 @@ import Core
                 .contains(where: { $0.path == ProjectEditRequestContract.submitPath }) == true
         }
         TestHostOnlyRouteAdmission.testHostActive = false
-        XCTAssertFalse(submitGranted())
-        XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + ProjectEditRequestContract.submitPath))
+        // P2-6 (11-28): r3 production serves the edit-request routes, so they are granted without the TEST host too.
+        XCTAssertTrue(submitGranted())
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + ProjectEditRequestContract.submitPath))
         TestHostOnlyRouteAdmission.testHostActive = true
         XCTAssertTrue(submitGranted())
         for path in [ProjectEditRequestContract.submitPath, ProjectEditRequestContract.readPath,

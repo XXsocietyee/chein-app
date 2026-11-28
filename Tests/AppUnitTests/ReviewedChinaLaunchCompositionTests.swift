@@ -749,9 +749,9 @@ import XCTest
             catch {}
             XCTAssertEqual(recorder.paths.count, before, closed)
         }
-        // (3) publish-status and the edit-request receipts are not served by production: not granted, so the UI hides them.
-        XCTAssertFalse(granted.contains(TopicPublicationPath.status))
-        XCTAssertFalse(granted.contains(ProjectEditRequestContract.submitPath))
+        // (3) P2-6 (11-28): r3 production serves publish-status and the edit-request receipts, so they are granted.
+        XCTAssertTrue(granted.contains(TopicPublicationPath.status))
+        XCTAssertTrue(granted.contains(ProjectEditRequestContract.submitPath))
         let test = ReviewedProductionGateLeases.projectEditorRoutes(baseURL: try XCTUnwrap(URL(string: "http://127.0.0.1:8120/test-api")))
         XCTAssertTrue(test[.projectPublicationRead]?.contains(where: { $0.path == TopicPublicationPath.status }) == true)
         XCTAssertTrue(test[.projectWrite]?.contains(where: { $0.path == ProjectEditRequestContract.submitPath }) == true)

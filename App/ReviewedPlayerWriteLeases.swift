@@ -68,7 +68,8 @@ extension ReviewedProductionFormMutationRoute {
         }
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
         if relative == "api/registration/create" {
-            return method == "POST" && grant.registration.paths.contains(relative) && freeRegistrationBody(request)
+            return method == "POST" && grant.registration.paths.contains(relative)
+                && registrationCreateBody(request, paymentsOpen: ReleaseMoneyWriteSwitch.paymentEnabled)
         }
         if let channel = NativeChannelTextRoute(request: request, baseURL: baseURL) {
             let approval = channel.operation == .send ? grant.channelTextSend : grant.channelTextReceipt
@@ -429,15 +430,18 @@ extension ReviewedProductionFormMutationRoute {
         return mode == "PERK" || mode == "TRAFFIC"
     }
 
-    /// A create with `payChannel` or a positive amount is a payment step and stays closed.
-    static func freeRegistrationBody(_ request: URLRequest) -> Bool {
+    /// fix/1128-cn-pay P0-1: `POST api/registration/create` (backend `RegistrationRequest`, JSON body).
+    /// A free create carries no channel. A paid create carries `payChannel` = `APP` (WeChat APP prepay, backend
+    /// `RegistrationCheckoutServiceImpl.isAppChannel`) and is admitted only while the payment switch is on.
+    /// Any other channel (MP JSAPI, XPAY) and any client-side amount stay refused: the server prices from `quoteSign`.
+    static func registrationCreateBody(_ request: URLRequest, paymentsOpen: Bool) -> Bool {
         guard let body = request.httpBody,
-              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
-              object["payChannel"] == nil else { return false }
-        for key in ["payAmount", "price", "amount", "payableAmount"] {
-            if let number = object[key] as? NSNumber, number.doubleValue > 0 { return false }
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return false }
+        for key in ["payAmount", "price", "amount", "payableAmount"] where object[key] != nil {
+            guard let number = object[key] as? NSNumber, number.doubleValue <= 0 || paymentsOpen else { return false }
         }
-        return true
+        guard let channel = object["payChannel"] else { return true }
+        return paymentsOpen && (channel as? String) == "APP"
     }
 
     static func stableCommunityRequestID(_ request: URLRequest) -> Bool {
@@ -591,6 +595,7 @@ enum ReviewedPlayerReadRoute {
     private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
     private var merchantOperationsWriteByContext: [String: OperationEndpointApproval] = [:]
     private var nearbyTeamWriteByContext: [String: OperationEndpointApproval] = [:]
+    private var teamMembershipWriteByContext: [String: OperationEndpointApproval] = [:]
     private var cityVoucherIssueByContext: [String: VerificationCodeApproval] = [:]
     private var playerWritesEnabled = false
     private var playerWritersByContext: [String: ReviewedPlayerWriteGrant] = [:]
@@ -957,6 +962,17 @@ enum ReviewedPlayerReadRoute {
                    accountID: context.session.accountID, paths: paths)
     }
 
+    /// Audit P1-8 (MP pages/topic/index/index.js:1246-1268, scene-play-activity-detail/index.js:644):
+    /// 写评价 posts `api/comment/add` for any topic / activity the signed-in player opens; the writer
+    /// re-reads the detail first and only reports success on the inserted row the server returns.
+    static let contextualReviewPaths: Set<String> = ["api/comment/add", "api/topic/info-to-user", "api/activity/info"]
+
+    func contextualReview(_ context: RuntimeDependencyContext) -> ContextualReviewApproval? {
+        guard socialRole(context), context.session.accountID > 0,
+              let endpoints = makeEndpoint(context, paths: Self.contextualReviewPaths) else { return nil }
+        return try? ContextualReviewApproval(market: .china, endpoints: endpoints, targets: [], allowsAnyPositiveTarget: true)
+    }
+
     // MARK: Channels + friends social writes (owner approval: non-money player/club social writes)
 
     private func socialRole(_ context: RuntimeDependencyContext) -> Bool {
@@ -1288,6 +1304,17 @@ enum ReviewedPlayerReadRoute {
         return approval
     }
 
+    /// P0-8: join by code, quit, kick, disband and join-mode (`ReviewedTeamMembershipWriteRoute`). The server checks
+    /// membership and captaincy; `TeamHTTPService` still re-reads `/api/team/info` and journals the operation first.
+    func teamMembershipWrite(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = teamMembershipWriteByContext[key] { return existing }
+        guard let approval = makeEndpoint(context, paths: ReviewedTeamMembershipWriteRoute.approvalPaths) else { return nil }
+        teamMembershipWriteByContext[key] = approval
+        return approval
+    }
+
     func cityVoucherIssue(_ context: RuntimeDependencyContext) -> VerificationCodeApproval? {
         guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
         // E2E R8: with the reviewed player grant, the signed-in owner can also show their own registration/ticket entry code
@@ -1450,7 +1477,10 @@ enum ReviewedPlayerReadRoute {
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, role: context.role,
             sourceRevision: OrderLifecycleSourceContract.revision, approvals: [],
-            externalCheckoutApproved: false, devicePaymentApproved: false,
+            // fix/1128-cn-pay P0-2: the device (WeChat SDK) payment follows the payment switch. Order-detail Pay runs
+            // through RegistrationPaySection (`pay/app` → WeChat SDK → one `registration/info` read); the review-sheet
+            // payment stays closed (externalCheckoutApproved false, no payment approval) and is not shown (P1-4).
+            externalCheckoutApproved: false, devicePaymentApproved: ReleaseMoneyWriteSwitch.paymentEnabled,
             allowsReviewedCancellationAndRefund: true
         )
         var imRoutes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [
@@ -1466,17 +1496,24 @@ enum ReviewedPlayerReadRoute {
             .clubChat: Set([try? BusinessRuntimeRoute.post("api/club/chat")].compactMap { $0 })
         ]
         if socialRole(context) { imRoutes.merge(Self.imMediaRoutes()) { $0.union($1) } }
+        // P1-28 (MP chat/index.js chooseMedia → uploadOSS → im/send msg_type image): the chat image row now works.
+        if socialRole(context) { imRoutes[.imUpload] = Set([try? BusinessRuntimeRoute.post("api/common/uploadOSS")].compactMap { $0 }) }
         if socialRole(context) { imRoutes.merge(Self.projectEditorRoutes(baseURL: context.baseURL)) { $0.union($1) } }
         if socialRole(context) { imRoutes.merge(Self.beGapImRoutes()) { $0.union($1) } }
         let businessConfiguration = try? BusinessRuntimeConfiguration(
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, routes: imRoutes
+            accountID: context.session.accountID, routes: imRoutes,
+            imMediaOrigins: RetainedImageOrigin.configured(apiBase: context.baseURL,
+                extra: Bundle.main.object(forInfoDictionaryKey: "CYStampImageOrigins") as? String),
+            imImageSelection: socialRole(context)
         )
         let rewardPledge = context.market == .china
         return NativeRuntimeDependencies(
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
+            weChatPaymentConfiguration: WeChatPaymentBuildSettings.current,
             couponCodeApproval: couponCodeApproval,
+            contextualReviewApproval: contextualReview(context),
             // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js:143-200): the owner 清退并退款.
             ownerRefundApproval: playerWritesEnabled ? MPFirstClubApprovals.ownerRefund(context) : nil,
             clubGovernanceApproval: playerWritesEnabled ? MPFirstClubApprovals.governance(context) : nil,

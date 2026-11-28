@@ -293,7 +293,7 @@ enum PublishClarityText {
                     let state = TopicVerificationSummary.state(stage, report: report)
                     LabeledContent {
                         Text(LocalizedStringKey("verify.state." + state.rawValue), tableName: PublishClarityText.table)
-                            .foregroundStyle(state == .blocked ? Color.red : state == .passed ? Color.green : Color.secondary)
+                            .foregroundStyle(state == .blocked ? CYColor.dangerText : state == .passed ? CYColor.successText : Color.secondary)
                     } label: { Text(LocalizedStringKey("verify.stage." + stage.rawValue), tableName: PublishClarityText.table) }
                         .accessibilityIdentifier("publishClarity.verify." + stage.rawValue)
                 }
@@ -370,7 +370,7 @@ enum PublishClarityText {
             }
             Label { Text(verbatim: issue.message).fixedSize(horizontal: false, vertical: true) }
                 icon: { Image(systemName: issue.blocks ? "exclamationmark.circle" : "info.circle") }
-                .foregroundStyle(issue.blocks ? Color.red : Color.primary)
+                .foregroundStyle(issue.blocks ? CYColor.dangerText : Color.primary)
             Text(LocalizedStringKey(issue.blocks ? "check.level.error" : "check.level.warn"), tableName: PublishClarityText.table)
                 .font(.footnote).foregroundStyle(.secondary)
         }

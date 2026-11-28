@@ -758,7 +758,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Relax on Low HP"
+            "value": "Go easier at low health"
           }
         },
         "zh-Hans": {
@@ -774,7 +774,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Triggerable Outcomes"
+            "value": "Possible outcomes"
           }
         },
         "zh-Hans": {
@@ -790,7 +790,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Post-Scan Reply"
+            "value": "Reply after scanning"
           }
         },
         "zh-Hans": {

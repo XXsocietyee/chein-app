@@ -111,44 +111,7 @@ extension EnvironmentValues {
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.enroll.loading")
             }
-            if let issue = reader.failure {
-                Section {
-                    if reader.hasLoaded {
-                        Label {
-                            Text("club.enroll.stale")
-                        } icon: {
-                            Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
-                        }
-                        .accessibilityIdentifier("club.enroll.stale")
-                    }
-                    // Core's denied title is a Chinese literal; show the localized equivalent.
-                    if ClubEnrollmentReader.failureTitle(for: issue) != nil {
-                        Text("club.enroll.denied")
-                            .font(.headline)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("club.enroll.deniedTitle")
-                    }
-                    Label {
-                        Text(LocalizedStringKey(issue.localizationKey))
-                    } icon: {
-                        Image(systemName: "exclamationmark.circle").foregroundStyle(.red)
-                    }
-                    if let message = issue.message {
-                        Text(verbatim: message)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    // A Settings-style row action.
-                    Button {
-                        Task { await refreshVisible() }
-                    } label: {
-                        // mp-club r3 (MP enroll wxml:20): over a loaded roster the inline error's action is 重试更新.
-                        Label(reader.hasLoaded ? "club.enroll.retryUpdate" : "club.enroll.retry", systemImage: "arrow.clockwise")
-                    }
-                    .disabled(reader.loading)
-                }
-            }
+            if let issue = reader.failure { failureSection(issue) }
             if host == liveHost, scenePhase == .active, reader.isCurrentAccess, identity == reader.identity, identity == access.identity, reader.hasLoaded {
                 if reader.teams.isEmpty {
                     ContentUnavailableView {
@@ -308,12 +271,85 @@ extension EnvironmentValues {
         .foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
     }
+    /// MP enroll wxml:26 cy-error 报名名册加载失败 · 重新加载 on a first read that failed; a failure over a
+    /// loaded roster keeps the wxml:19 inline 报名名册暂未更新 · 重试更新 form below.
+    @ViewBuilder private func failureSection(_ issue: ClubGovernanceFailure) -> some View {
+        if !reader.hasLoaded, Self.isLoadFailure(issue) {
+            ContentUnavailableView {
+                Label("club.enroll.loadFailed", systemImage: "exclamationmark.triangle")
+            } description: {
+                if let message = issue.message { Text(verbatim: message) } else { Text(LocalizedStringKey(issue.localizationKey)) }
+            } actions: {
+                Button("club.enroll.retry") { Task { await refreshVisible() } }
+                    .buttonStyle(.bordered)
+                    .disabled(reader.loading)
+                    .accessibilityIdentifier("club.enroll.loadRetry")
+            }
+            .accessibilityIdentifier("club.enroll.loadFailed")
+        } else {
+            Section {
+                if reader.hasLoaded {
+                    Label {
+                        Text("club.enroll.stale")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                    }
+                    .accessibilityIdentifier("club.enroll.stale")
+                }
+                // Core's denied title is a Chinese literal; show the localized equivalent.
+                if ClubEnrollmentReader.failureTitle(for: issue) != nil {
+                    Text("club.enroll.denied")
+                        .font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("club.enroll.deniedTitle")
+                }
+                Label {
+                    Text(LocalizedStringKey(issue.localizationKey))
+                } icon: {
+                    Image(systemName: "exclamationmark.circle").foregroundStyle(.red)
+                }
+                if let message = issue.message {
+                    Text(verbatim: message)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                // A Settings-style row action.
+                Button {
+                    Task { await refreshVisible() }
+                } label: {
+                    // mp-club r3 (MP enroll wxml:20): over a loaded roster the inline error's action is 重试更新.
+                    Label(reader.hasLoaded ? "club.enroll.retryUpdate" : "club.enroll.retry", systemImage: "arrow.clockwise")
+                }
+                .disabled(reader.loading)
+            }
+        }
+    }
+    /// Server, decoding and unknown read failures; sign-in, permission and stale-target issues keep their own copy.
+    private static func isLoadFailure(_ issue: ClubGovernanceFailure) -> Bool {
+        switch issue {
+        case .rejected, .unknown, .malformed, .conflict: return true
+        default: return false
+        }
+    }
     @ViewBuilder private func detail(_ team: ClubEnrollmentTeam) -> some View {
         if reader.detailLoading.contains(team.id) {
             ProgressView { Text("club.enroll.detailLoading").fixedSize(horizontal: false, vertical: true) }
                 .frame(maxWidth: .infinity)
         }
-        if let issue = reader.detailFailures[team.id] {
+        if let issue = reader.detailFailures[team.id], reader.rosters[team.id] == nil, Self.isLoadFailure(issue) {
+            // MP enroll wxml:48 cy-error 报名详情加载失败 · 重试 inside the expanded team.
+            ContentUnavailableView {
+                Label("club.enroll.detailFailed", systemImage: "exclamationmark.triangle")
+            } description: {
+                if let message = issue.message { Text(verbatim: message) }
+            } actions: {
+                Button("club.enroll.detailRetry") { Task { if canRead { await reader.loadDetail(topicID: team.id) } } }
+                    .buttonStyle(.bordered)
+                    .disabled(reader.detailLoading.contains(team.id))
+                    .accessibilityIdentifier("club.enroll.retry.\(team.id)")
+            }
+        } else if let issue = reader.detailFailures[team.id] {
             if reader.rosters[team.id] != nil {
                 Text("club.enroll.stale").font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }

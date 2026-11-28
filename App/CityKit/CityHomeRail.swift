@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreLocation
 #if canImport(QuestifyCore)
 import QuestifyCore
 #endif
@@ -112,7 +113,12 @@ private struct CityHomeRailFocus: ViewModifier {
                 store = session.makeCityBoardStore()
             }
             guard let store, store.isAvailable else { return }
-            let center = (try? await session.cityCaptureFix()())?.coordinate ?? session.roamArea?.coordinate
+            // Function audit P2-3: 首页 never asks for location on load. A device fix only when the player already
+            // granted it; otherwise the chosen area, and the permission ask stays behind an explicit tap.
+            let status = CLLocationManager().authorizationStatus
+            let authorized = status == .authorizedWhenInUse || status == .authorizedAlways
+            let fix = authorized ? (try? await session.cityCaptureFix()())?.coordinate : nil
+            let center = fix ?? session.roamArea?.coordinate
             if let center { await store.load(center: center, radiusMeters: 25_000) }
         }
     }

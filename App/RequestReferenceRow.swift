@@ -6,16 +6,24 @@ import UIKit
 struct RequestReferenceRow: View {
     let reference: String
     @State private var copied = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// a11y-dt r3: at accessibility sizes the copy button sits under the reference (same order); the reference wraps
+    /// instead of shrinking.
+    private var rowLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
+            : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
+    }
     init?(pathFragment: String, ledger: RequestReferenceLedger = .shared) {
         guard let value = ledger.latest(pathFragment: pathFragment) else { return nil }
         reference = value
     }
     var body: some View {
-        HStack(spacing: CYSpacing.sm) {
+        rowLayout {
             VStack(alignment: .leading, spacing: 2) {
                 Text("requestReference.label").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: reference).cyText(.meta).monospaced().foregroundStyle(CYColor.textPrimary)
-                    .textSelection(.enabled).lineLimit(1).minimumScaleFactor(0.7)
+                    .textSelection(.enabled).lineLimit(3)
             }
             Spacer(minLength: 0)
             Button {

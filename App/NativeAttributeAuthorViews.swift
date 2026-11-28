@@ -169,7 +169,7 @@ private func nativeAttributeText(_ key: String) -> String {
                             nativeAttributeText(preflight.ready ? "nativeAttribute.moduleNoErrors" : "nativeAttribute.moduleHasErrors"),
                             systemImage: preflight.ready ? "info.circle" : "exclamationmark.circle"
                         )
-                        .foregroundStyle(preflight.ready ? Color.green : Color.red)
+                        .foregroundStyle(preflight.ready ? CYColor.successText : CYColor.dangerText)
                         ForEach(preflight.issues) { NativeAttributeAuthorDiagnosticIssueView(issue: $0) }
                     }
                 } header: { attributeHeader("nativeAttribute.modulePreflight") } footer: {
@@ -303,7 +303,7 @@ private func attributeHeader(_ key: String) -> some View {
                 systemImage: issue.level == "error" ? "exclamationmark.circle" : "exclamationmark.triangle"
             )
             .font(.subheadline)
-            .foregroundStyle(issue.level == "error" ? Color.red : Color.orange)
+            .foregroundStyle(issue.level == "error" ? CYColor.dangerText : CYColor.warningText)
             Text(verbatim: cyShownValue(issue.message))
             LabeledContent(nativeAttributeText("nativeAttribute.issueCode"), value: cyShownValue(issue.code))
             if let field = issue.field { LabeledContent(nativeAttributeText("nativeAttribute.issueField"), value: cyShownValue(field)) }

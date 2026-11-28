@@ -390,7 +390,7 @@ enum StoryAnswerFeedback: Equatable {
                 CYEmptyStateView(
                     systemImage: "book.closed",
                     title: LocalizedStringKey(W8Text.t("还没有剧情章节", "No story chapters yet")),
-                    description: LocalizedStringKey(W8Text.t("主题发布章节后会显示在这里。", "Chapters appear here once the theme publishes them.")))
+                    description: LocalizedStringKey(W8Text.t("主题发布章节后会显示在这里。", "Chapters appear here once they’re published.")))
             }
 
             ForEach(coordinator.chapters) { chapter in
