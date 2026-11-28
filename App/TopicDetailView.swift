@@ -16,6 +16,9 @@ struct TopicDetailView: View {
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     var ticketWalletDestination: ((Int) -> AnyView)? = nil
+    /// mp-nav r3 (MP im/chat index.js:1084-1088, P-36): opened from a signup card, a topic that is no longer
+    /// readable still offers the ticket wallet, because the ticket itself stays valid.
+    var unavailableWallet: AnyView? = nil
     /// R7-PC-B1-5: MP `startPrepPlay` → `/pages/play/index?topicId=` after the safety check (pages/topic/index/index.js:714-722).
     var playDestination: ((Int) -> AnyView)? = nil
     @State private var showingPlay = false
@@ -81,7 +84,7 @@ struct TopicDetailView: View {
             else if phase.isLoading || loadedKey != key { ProgressView("topic.loading").frame(maxWidth: .infinity, maxHeight: .infinity) }
             else {
                 switch phase {
-                case .failed(let issue, _): TopicDetailIssueState(issue: issue) { loads.start { await load() } }
+                case .failed(let issue, _): TopicDetailIssueState(issue: issue, wallet: unavailableWallet) { loads.start { await load() } }
                 case .loaded(let detail): content(detail)
                 case .idle, .loading, .empty: EmptyView()
                 }
@@ -871,6 +874,7 @@ struct TopicChapterView: View {
 /// never a retry loop and never the raw backend text. Ordinary failures keep 重试.
 @MainActor private struct TopicDetailIssueState: View {
     let issue: TopicScreenIssue
+    var wallet: AnyView? = nil
     var retry: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
     var body: some View {
@@ -879,7 +883,15 @@ struct TopicChapterView: View {
             // R10-PC-B-N2: the refused state is a plain ContentUnavailableView; 返回 is its `.bordered` action.
             ContentUnavailableView {
                 Label { Text("mpfresh.topic.refused.title", tableName: "MpFresh") } icon: { Image(systemName: "eye.slash") }
+            } description: {
+                if wallet != nil { Text("mpfresh.topic.refused.ticketValid", tableName: "MpFresh") }
             } actions: {
+                if let wallet {
+                    NavigationLink { wallet } label: { Text("topicXcx.bar.toTickets") }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .accessibilityIdentifier("topic.error.tickets")
+                }
                 Button { dismiss() } label: { Text("mpfresh.topic.back", tableName: "MpFresh") }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
