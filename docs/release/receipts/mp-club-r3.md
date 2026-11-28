@@ -378,6 +378,17 @@ Merged `origin/ui/combined-r7`. Row 61 re-checked: `components/cy/fe-reference-r
 |---|---|---|---|
 | `pages/club/detail` wxml:411 `cy-timeline` in 现在要做 + js:1557-1585 `buildLeadTimeline` | `Core/ClubLeadProgress.swift`, `App/ClubLeadProgressView.swift` | ① no timeline while `ownerStage === 'publish'` (第十轮 f3 第 4 项: 一站都没走,不画时间线) ② collapsed head = summary 「带队进度 · 当前站」 ③ every node: title, time (node 1 only), desc 已发布 N 个项目 / 先发布一个俱乐部项目 · 已发出 N 份邀请 / 选择一个项目，开始对接商家 · N 份等待商家回应 / 邀请发出后在这里等回应 · 商家已接受，可进入项目主办视图 | **Fixed.** ① `nodes` empty at `.publish` (only the 现在要做 card stays) ② `DisclosureGroup` label is `club.leadProgress.summary %@` with the current station (falls back to 带队四站 when no cursor) ③ each node shows the MP desc (subheadline, secondary) above the native done/doing/todo state line (footnote); invitation time row unchanged. 8 new keys (en + zh-Hans). Test: `ClubLeadProgressTests` publish case now asserts no nodes + `currentStationKey` station.0, pending case station.2 |
 
+## Pass 39: ADA audit `origin/audit/1128-ada` d4-channel-chat (no new coordinator finding for mp-club; latest sweep 3348aa51f, `docs/sweeps/latest/mp-club/zh-Hans-d4-channel-chat.jpg`)
+Merged `origin/ui/combined-r7`. Level B (club posts/channels). App-only club workspace (no MP page), so the content is unchanged; only the chrome and formats.
+| Page | Native view | Before (shot) | Fix |
+|---|---|---|---|
+| club channel conversation (`d4-channel-chat`) | `App/ClubChannelMessagingView.swift` `channelTopBar`, `conversationColumn` | **Double header**: a second bar (list · channel name/「公告 · 只读」 · ···) under the navigation bar | **Fixed.** `channelTopBar` is now `@ToolbarContentBuilder`: list button `.topBarLeading` (compact only, id `club.channel.backToList` kept), channel name + subtitle as the `.principal` title (combined, header trait), ··· menu `.topBarTrailing` (ids kept). The conversation column has no extra bar; the channel list screen keeps the host title 「俱乐部 · 频道」 (OWNER RULE 2) |
+| same | `channelTranscriptColumn` | In zh the read-only footer's grey `.bar` was narrower than the screen | **Fixed.** Composer bar `.frame(maxWidth: .infinity, alignment: .leading)` before `.background(.bar)`, so every composer state (rules-locked, read-only, text field) spans the width |
+| same | `ChannelBurstGroupCard`, `Core/ChannelDiscordMessaging.swift` `formatDivider` | The divider and the first sender row both show the time; zh date is raw `11-07 09:00` | **Fixed.** The sender row shows its time only when the group has no divider above it (the divider is that message's time). zh dates read `11月7日 09:00` (same MP fields); en unchanged (`Nov 7, 9:00 AM`). `ChannelDiscordMessagingTests` pin updated |
+| P2-4 rest | `/api/club/name-check` | — | Still **Not done** (backend route unconfirmed) |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 52/52 new 0 (pin `test_channel_names_not_cut_to_one_line` now expects the centred wrap), design consistency PASS.
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.
