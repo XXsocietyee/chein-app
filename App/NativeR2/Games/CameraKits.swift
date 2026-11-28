@@ -404,10 +404,16 @@ import VisionKit
                             }
                             .buttonStyle(.bordered)
                         }
-                        Text(verbatim: card.title).font(.headline).accessibilityIdentifier("playCard.title")
-                        if !card.caption.isEmpty { Text(verbatim: card.caption).foregroundStyle(.secondary) }
-                        // MP `oc__form`: 名称 → 物品信息 · 地点 → 已收进藏品册 (· 3D 生成中…); the card style is not listed.
-                        if !card.place.isEmpty { LabeledContent("objects.place", value: card.place) }
+                        // MP `oc__form`: 名称 · 分类 (when sent) → 物品信息 · 地点 → 已收进藏品册 (· 3D 生成中…); no caption,
+                        // no card style.
+                        LabeledContent("objects.name") { Text(verbatim: card.title).font(.headline) }
+                            .accessibilityIdentifier("playCard.title")
+                        if !card.category.isEmpty { LabeledContent("objects.category", value: card.category) }
+                        if !card.place.isEmpty {
+                            Text("playCard.itemInfo").font(.footnote).foregroundStyle(.secondary)
+                                .accessibilityAddTraits(.isHeader)
+                            LabeledContent("objects.place", value: card.place)
+                        }
                         if card.generationStatus == "FAILED" { Text("playCard.framesUnavailable").foregroundStyle(.secondary) }
                     }
                 } label: {

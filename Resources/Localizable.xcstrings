@@ -352818,6 +352818,23 @@
           }
         }
       }
+    },
+    "playCard.itemInfo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "物品信息"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
