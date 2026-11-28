@@ -100,7 +100,7 @@ import SwiftUI
                 Section {
                     Label(localized(result.outcome == "APPLIED" ? "blacklist.applied" : "blacklist.rejected"),
                           systemImage: result.outcome == "APPLIED" ? "checkmark.circle" : "xmark.circle")
-                        .foregroundStyle(result.outcome == "APPLIED" ? Color.green : Color.red)
+                        .foregroundStyle(result.outcome == "APPLIED" ? CYColor.successText : CYColor.dangerText)
                         .accessibilityIdentifier("blacklist.outcome")
                     text("blacklist.historical")
                         .foregroundStyle(.secondary)

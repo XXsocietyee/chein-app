@@ -257,7 +257,7 @@ struct TeamMemberRow: View {
                                     .fixedSize(horizontal: false, vertical: true)
                             } icon: {
                                 Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
-                                    .foregroundStyle(idx == consequenceKeys.count - 1 ? Color.red : Color.secondary)
+                                    .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : Color.secondary)
                                     .accessibilityHidden(true)
                             }
                         }
@@ -348,7 +348,7 @@ struct TeamMemberRow: View {
                     if let copyMessageKey {
                         Text(LocalizedStringKey(copyMessageKey))
                             .font(.subheadline)
-                            .foregroundStyle(copyMessageKey == "team.invite.copied" ? Color.green : Color.red)
+                            .foregroundStyle(copyMessageKey == "team.invite.copied" ? CYColor.successText : CYColor.dangerText)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("team.invite.copyFeedback")
                     }

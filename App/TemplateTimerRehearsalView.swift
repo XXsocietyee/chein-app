@@ -146,7 +146,7 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
                                 .accessibilityIdentifier("templateTimer.doneText")
                         }
                     } else if state.isMasked {
-                        Text("templateTimer.hidden").font(.title.bold())
+                        Text("templateTimer.hidden").cyText(.pageTitle)
                             .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("templateTimer.masked")
                     } else {
                         TemplateTimerRehearsalReading(value: seconds(state.elapsedMs / 1000), identifier: "templateTimer.stopwatch")

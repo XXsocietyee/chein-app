@@ -109,7 +109,8 @@ class PlayerReleaseGateContracts(unittest.TestCase):
         entry = read("App/MPParityDeepLinkEntry.swift")
         # chein://mp, universal links and push taps all hand their intent to receiveNativeIntent.
         self.assertIn("receiveNativeIntent(.miniProgramPage(link))", entry)
-        self.assertIn("receiveNativeIntent(intent); return", entry)
+        self.assertIn("receiveAppLink(destination)", entry)
+        self.assertIn("case .entry(let intent): receiveNativeIntent(intent)", read("App/AppSession+AppLinks.swift"))
         self.assertIn("session.receiveNativeIntent(intent)", entry)
         self.assertIn("session.receiveNativeIntent(pending)", entry)
         scan = read("Core/ScanPayload.swift")

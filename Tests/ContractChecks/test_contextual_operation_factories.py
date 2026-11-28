@@ -40,5 +40,10 @@ class ContextualOperationFactoryContracts(unittest.TestCase):
             self.assertIn('public private(set) var runtimeContext: RuntimeDependencyContext?', value)
     def test_normal_contextual_callers_remain_mounted(self):
         self.assertIn('opsTimeFactory: { [weak self] in self?.clubOpsTimeHost?.coordinator(activityID: $0)', self.text('App/AppSession.swift'))
+        # Audit P1-8: the player session builds the review approval and the host reads it live.
+        leases = self.text('App/ReviewedPlayerWriteLeases.swift')
+        self.assertIn('contextualReviewApproval: contextualReview(context)', leases)
+        self.assertIn('allowsAnyPositiveTarget: true', leases)
+        self.assertIn('approvalSource: { [weak self] in self?.runtimeDependencies.contextualReviewApproval }', self.text('App/AppSession.swift'))
         self.assertIn('session.contextualReviews?.coordinator(.topic(id))', self.text('App/PlatformConsumerSessionOwner.swift'))
         self.assertIn('contextualReviews?.coordinator(.activity(id))', self.text('App/ActivityDetailView.swift'))

@@ -243,6 +243,12 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
             if stamp == generation { storedIssue = OrderLifecycleCoordinatorIssue(error) }
         }
     }
+    /// fix/1128-cn-pay P1-4: the order-detail buttons. Payment is not a review-sheet action there: the order's Pay
+    /// runs in its own pay step (`api/registration/pay/app` → WeChat SDK → one `api/registration/info` read), so a
+    /// 审核支付 button would only end in `.dispatchDisabled`. The first entry is the pinned primary action.
+    nonisolated public static func detailActions(detail: OrderLifecycleDetail) -> [OrderLifecycleAction] {
+        OrderLifecycleAction.allCases.filter { $0 != .payment && isReviewable($0, detail: detail) }
+    }
     nonisolated public static func isReviewable(_ action: OrderLifecycleAction, detail: OrderLifecycleDetail) -> Bool {
         // Unknown, closed or contradictory status never authorizes cancellation or payment.
         switch action {

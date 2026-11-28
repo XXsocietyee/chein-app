@@ -454,12 +454,24 @@ light panel, i · 走起 · map fit ✓. No open coordinator finding. Not done i
 | MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
 |---|---|---|---|---|
 | Error / validation / warning text on every player page (login error, club governance + ops forms, channel moderation/roles/mention, publish validation + refusal footers, square delete failed, IM voice play failed, pass refund, enrollment issue, team join code, games notices, profile save failed, shared error state …) | 187 lines in 128 player files (Merchant / Fixture / Diagnostics / Debug skipped; `WorkshopModUpgradeSheetView.swift` left: its source is sha256-pinned by `test_workshop_paid_reentry_closure`) | ✓ (layout untouched) | `.foregroundStyle(.red)` / `.foregroundColor(.red)` on text → `CYColor.dangerText` (system red #FF3B30 on white is ~3.6:1, below 4.5:1). Image-only glyph lines and ternaries left (3:1 graphics rule) | Done |
+| Two-state status text (seat facts warning, report / complaint / club ops / host cancel counters, friend removal + blacklist result, channel banners, publish wizard chips, topic publication + location todos, login / auth channel issue, invoice notice, AI quota, team invite copy, game answer marks, sensor loudness, preview pager) | 37 ternaries in 29 player files (`*SectionView` readiness panels = internal diagnostics, skipped; club like heart = glyph, left) | ✓ (layout untouched) | `cond ? Color.red : …` → `CYColor.dangerText`, paired `Color.green` / `Color.orange` → `CYColor.successText` / `warningText` (system green ~2.2:1, red ~3.6:1 on white) | Done |
+
+### Run 29 (2026-11-28)
+Merged `origin/ui/combined-r7`. Sweep index still **7a7d2708a** (05:38Z, read in run 28), so the sheets re-read waits. No open
+coordinator finding. Not done item: `.lineLimit(1)` in HStacks with two texts (scripted scan of player views, 15 hits; share cards,
+medal stack night cells, ring numerals and live HUD numbers left: fixed-size art or a single big number).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageJourney/pages/settle` 结算 facts (分数 / 站点 / 桌面完成 / 开局) | `JourneyReportViews.swift:1089` (`JourneySettleView`) | ✓ (mp-journey owns order) | Up to four data2XL cells in one `HStack(spacing: xxxl)` clipped off both sides at AX5 → `settleFactsLayout` (`AnyLayout`): same row at standard sizes, a centred column in the same order at accessibility sizes. Level A motion untouched | Done |
+| Error / unknown-result states (OWN-OPT-072 request reference, every player page that shows it) | `RequestReferenceRow.swift` | ✓ | Reference shrank to 70 % and cut to one line → wraps up to 3 lines at full size; the Copy button moves under the reference at accessibility sizes (P: stack, never shrink) | Done |
+| `pages/club` post card author meta, post-ref chip | `ClubComponents.swift:437`, `MPGap/Club/ClubGapRemainingViews.swift:24` | ✓ (mp-club owns order) | "Club · time" and the picked post title were one line (truncated at AX sizes) → up to 2 lines | Done |
+| `pages/topic` publisher row | `TopicXcxSections.swift:97` | ✓ (mp-publish owns order) | Publisher name one line beside fixed "posted" → up to 2 lines (outer row already stacks at AX) | Done |
 
 ## Not done (next run starts here)
-- Continue pages without a row (largest player views next; skip Merchant / Fixture / Diagnostics). Next candidates: scan for remaining
-  `.foregroundStyle(.orange)` / `.green` / `.yellow` on text (contrast) in player views, then `.lineLimit(1)` in HStacks with two texts.
-  Run 27 finished `.orange/.green/.yellow`, run 28 `.red` text. Next: `.red` in ternaries on text (`? .red : .secondary`), then `.lineLimit(1)` in HStacks with two texts.
-- Re-read the a11y sheets after the next sweep (newer than 7a7d2708a, to see runs 27-28).
+- Re-read the a11y sheets after the next sweep (newer than 7a7d2708a, to see runs 27-29).
+- Next pages without a row: `.minimumScaleFactor` on body / caption text (not big numerals) in player views → wrap instead of shrink;
+  then `.frame(width:)` on text containers at AX5.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

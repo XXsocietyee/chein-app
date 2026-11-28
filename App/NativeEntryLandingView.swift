@@ -12,8 +12,8 @@ import SwiftUI
     var body: some View {
         Group {
             if let queue = session.doorReferralQueue {
-                DoorInviterSheet(session: session.doorReferralSession, queue: queue, enabled: false)
-            } else { Text("door.disabled") }
+                DoorInviterSheet(session: session.doorReferralSession, queue: queue, enabled: true)
+            } else { ContentUnavailableView("door.disabled", systemImage: "lock") }
         }.id(session.sessionRevision)
     }
 }

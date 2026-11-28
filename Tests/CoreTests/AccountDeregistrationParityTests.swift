@@ -65,6 +65,8 @@ private final class DeregisterHTTPFake: HTTPTransport {
         XCTAssertTrue(try decode(#"{"status":"ELIGIBLE"}"#).verificationAvailableOnThisDevice)
         XCTAssertTrue(try decode(#"{"status":"ELIGIBLE","verificationMethod":"SMS"}"#).verificationAvailableOnThisDevice)
         XCTAssertFalse(try decode(#"{"status":"ELIGIBLE","verificationMethod":"WECHAT"}"#).verificationAvailableOnThisDevice)
+        // P0-6: Sign-in-with-Apple accounts (no phone, no WeChat) verify with a fresh Apple re-authentication.
+        XCTAssertTrue(try decode(#"{"status":"ELIGIBLE","verificationMethod":"APPLE"}"#).verificationAvailableOnThisDevice)
         XCTAssertFalse(try decode(#"{"status":"ELIGIBLE","verificationMethod":"UNAVAILABLE"}"#).verificationAvailableOnThisDevice)
         XCTAssertFalse(try decode(#"{"status":"ELIGIBLE","verificationMethod":7}"#).verificationAvailableOnThisDevice)
         XCTAssertTrue(try decode(#"{"status":"ELIGIBLE","verificationMethod":null}"#).verificationAvailableOnThisDevice)

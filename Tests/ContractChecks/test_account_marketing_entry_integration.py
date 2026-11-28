@@ -7,19 +7,21 @@ class AccountMarketingEntryIntegrationChecks(unittest.TestCase):
     def read(self, path): return (ROOT/path).read_text()
     def test_empty_policy_and_concrete_dormant_platform_hook(self):
         s=self.read('App/AppSession.swift'); root=self.read('App/QuestifyApp.swift')
-        self.assertIn('NativeEntryLinkPolicy(verifiedHTTPSOrigins: [])',s)
+        # P1-1 (audit 11-28): one verified origin from QUESTIFY_APP_LINK_DOMAIN, routed by AppUniversalLinkRouter.
+        self.assertIn('AppUniversalLinkRouter(verifiedHTTPSOrigins: AppSession.verifiedLinkOrigins())',s)
         receiver=s[s.index('func receiveNativeURL('):s.index('func receiveWeChatUserActivity(')]
         self.assertIn('if weChatSDKDriver.handle(url, adapter: weChatSDKAdapter) { return }',receiver)
-        self.assertIn('guard let intent = nativeEntryLinkPolicy.parse(url) else {\n            receiveNativeIntent(.routeError(.unsupported)); return\n        }',receiver)
-        self.assertLess(receiver.index('weChatSDKDriver.handle'),receiver.index('nativeEntryLinkPolicy.parse'))
-        self.assertIn('receiveNativeIntent(intent)',receiver)
+        self.assertIn('guard let destination = appLinkRouter.route(url) else {\n            receiveNativeIntent(.routeError(.unsupported)); return\n        }',receiver)
+        self.assertLess(receiver.index('weChatSDKDriver.handle'),receiver.index('appLinkRouter.route'))
+        self.assertIn('receiveAppLink(destination)',receiver)
         for forbidden in ['openURL(', 'transport.send', 'token']:
             self.assertNotIn(forbidden,receiver)
         self.assertIn('.onOpenURL { session.receiveNativeURL($0) }',root)
         for forbidden in ['CFBundleURLTypes','AssociatedDomains','applinks:']: self.assertNotIn(forbidden,root)
     def test_existing_session_and_explicit_disabled_gates(self):
         s=self.read('App/AppSession.swift')+'\n'+self.read('App/AppSessionDoorEntry.swift')
-        for text in ['readsEnabled: false, writesEnabled: false','legalApproved: { _, _ in false }','authoritativeMerchantID: { nil }','gates: composition.merchantMarketingGates,','scanEnabled: false, bindingEnabled: false','retainedCompliance?.invalidate(); retainedMarketing?.sessionChanged()','didSet { synchronizeAccountMarketingEntry() }']:
+        for text in ['readsEnabled: false, writesEnabled: false','legalApproved: { _, _ in false }','authoritativeMerchantID: { nil }','gates: composition.merchantMarketingGates,','scanEnabled: false, bindingEnabled: true',  # P1-15 (mp-mine 11-28): 填写邀请人 sends setInviter like the MP
+           'retainedCompliance?.invalidate(); retainedMarketing?.sessionChanged()','didSet { synchronizeAccountMarketingEntry() }']:
             self.assertIn(text,s)
         self.assertIn('self.complianceSession == captured',s)
         self.assertIn('self.token == captured.token',s)

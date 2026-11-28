@@ -475,7 +475,7 @@ extension PlayKitScreen {
                               : (question.finished ? LocalizedStringKey("playkit.compare.outOfTries") : LocalizedStringKey("playkit.compare.incorrect")),
                           systemImage: ok ? "checkmark.circle.fill" : "xmark.circle.fill")
                         .font(.headline)
-                        .foregroundStyle(ok ? Color.green : Color.red)
+                        .foregroundStyle(ok ? CYColor.successText : CYColor.dangerText)
                         .accessibilityIdentifier("playkit.compare.receipt")
                 }
                 if let issue {

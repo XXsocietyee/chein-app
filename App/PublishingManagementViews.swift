@@ -84,7 +84,7 @@ import SwiftUI
                             if readOnly { projectHeader(project) }
                             else { Button { openProject(project.resource) } label: { projectHeader(project) }.buttonStyle(.plain) }
                             if project.signupCount > 0 {
-                                Text("\(project.signupCount) " + appLocalized("publishModes.signups", locale: locale)).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                                Text(appLocalized("publishModes.signupCount \(project.signupCount)", locale: locale)).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                             }
                             if !readOnly && (project.canToggle || project.canDelete) {
                                 HStack(spacing: 8) {

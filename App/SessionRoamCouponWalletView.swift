@@ -17,7 +17,7 @@ extension AppSession {
                 self.accountCollectionReader.scope == walletScope
         }
         return { [weak self] in
-            guard let self, isCurrent() else { return AnyView(Text("roamEvent.unavailable")) }
+            guard let self, isCurrent() else { return AnyView(ContentUnavailableView("roamEvent.unavailable", systemImage: "ticket")) }
             return AnyView(SessionRoamCouponWalletView(session: self, isCurrent: isCurrent))
         }
     }
@@ -32,7 +32,8 @@ extension AppSession {
             if isCurrent() {
                 AccountCollectionCouponsView(reader: session.accountCollectionReader)
                     .id(session.accountCollectionReader.scope)
-                    .environment(\.couponCodeFactory, nil)
+                    // Function audit P1-20: the MP coupon page shows the code; same factory as the Me wallet.
+                    .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
             } else {
                 ContentUnavailableView("roamEvent.changed", systemImage: "ticket")
                     .accessibilityIdentifier("roamFeaturedCouponWallet.stale")

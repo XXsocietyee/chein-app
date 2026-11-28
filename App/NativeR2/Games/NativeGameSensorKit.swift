@@ -193,7 +193,7 @@ import SwiftUI
             if running {
                 Text(LocalizedStringKey(loud ? "playkit.shout.keepGoing" : "playkit.shout.louder"))
                     .font(.headline)
-                    .foregroundStyle(loud ? Color.red : Color.primary)
+                    .foregroundStyle(loud ? CYColor.dangerText : Color.primary)
                     .frame(maxWidth: .infinity)
             } else {
                 Text("playkit.shout.goal \(decimal(stage.shout.targetSeconds))")

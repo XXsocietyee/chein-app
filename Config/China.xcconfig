@@ -6,6 +6,16 @@ INFOPLIST_KEY_QuestifyMarket = $(QUESTIFY_MARKET)
 QUESTIFY_API_BASE_URL =
 QUESTIFY_SESSION_REALM =
 
+// fix/1128-cn-pay P0-2: WeChat Open Platform APP pay (owner values, docs/release/owner-values.md).
+// Empty AppID or merchant ID keeps WeChat Pay off (WeChatPaymentBuildSettings returns nil). Not secrets:
+// the AppID, Universal Link and merchant ID are public identifiers; the merchant API key stays on the server.
+QUESTIFY_WECHAT_APP_ID =
+QUESTIFY_WECHAT_UNIVERSAL_LINK = https:/$()/www.chengyinhub.com/app/
+QUESTIFY_WECHAT_PAY_MERCHANT_ID =
+// Set to 1 only after Vendor/WechatOpenSDK/WechatOpenSDK-XCFramework.xcframework is added and the project regenerated.
+QUESTIFY_WECHAT_PAYMENT_SDK_APPROVED = 0
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) QUESTIFY_WECHAT_PAYMENT_SDK_APPROVED=$(QUESTIFY_WECHAT_PAYMENT_SDK_APPROVED)
+
 // Per-market deployment inputs must not inherit another market's endpoint or realm.
 #include? "Local.China.xcconfig"
 // This profile owns its market even if a local file contains a stale market value.

@@ -133,6 +133,8 @@ public enum TeamPagePresentation {
     /// Full-page state when there is no snapshot. `legacyTeamID` is the old `?teamId=` join link.
     public static func blockingState(kind page: TeamPageKind, messageKey: String?, hasDetail: Bool, legacyTeamID: Bool = false, failure: TeamReadFailureKind? = nil) -> TeamPageState? {
         guard !hasDetail, let messageKey else { return nil }
+        // P0-8: a confirmed quit / disband retires the team; the page shows that result and returns, not an error.
+        if TeamAction.confirmedKeys.contains(messageKey) { return nil }
         let join = page == .invitation
         switch messageKey {
         case "team.invalidLink":

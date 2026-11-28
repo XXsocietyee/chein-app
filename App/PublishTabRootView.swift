@@ -30,6 +30,8 @@ import SwiftUI
             isTabRoot: true
         )
         .id(session.templateAuthoringViewIdentity)
+        // P1-26 (MP topic-preview `useTemplate` → `publish/fabu?id=`): 用这个模板 pushes the copied draft into the editor.
+        .environment(\.topicEditorDestination, Self.topicEditorDestination(session: session))
         // Design hand-off r1 PL-11: 消息 is the first trailing action on every tab root (MP `tpl-bell` → IM list).
         .modifier(SessionMessagingToolbarEntry(session: session))
         .toolbar {
@@ -182,6 +184,21 @@ import SwiftUI
         case .interaction:
             sessionTemplateAuthoringEntry(session)
         }
+    }
+
+    /// P1-26: the same `pages/publish/fabu/index?id=&scope=` editor the 首页 template pages open (MPReviewedPageScreen).
+    static func topicEditorDestination(session: AppSession) -> (Int, String?) -> AnyView {
+        { topicID, scope in
+            AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: topicEditorQuery(topicID: topicID, scope: scope))
+                .environmentObject(session))
+        }
+    }
+
+    /// MP `publish/fabu` query for a copied draft: `id`, plus `scope` only when the template was adopted for a scope.
+    nonisolated static func topicEditorQuery(topicID: Int, scope: String?) -> [String: String] {
+        var query = ["id": String(topicID)]
+        if let scope, !scope.isEmpty { query["scope"] = scope }
+        return query
     }
 
     private func professionalEditor(_ product: ProjectEditProduct) -> some View {

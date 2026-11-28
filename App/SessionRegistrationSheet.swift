@@ -26,7 +26,7 @@ import SwiftUI
             .environment(\.marketingConsentService, { session.makePlayerContentRound4Service() })
     }
 
-    /// The integrator button opens this sheet. An unapproved session still cannot pay.
+    /// The integrator button opens this sheet. A paid quote confirms only while the payment switch is on (fix/1128-cn-pay P0-1).
     /// Only the disabled policy becomes the free path; an approved grant is left as issued.
     static func freeWhenUnapproved(_ issued: RegistrationUICreationPolicy) -> RegistrationUICreationPolicy {
         if case .disabled = issued { return .free }

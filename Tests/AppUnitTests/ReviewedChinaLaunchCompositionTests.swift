@@ -155,6 +155,14 @@ import XCTest
         XCTAssertTrue(grant.clubAdmission.allowsWrites)
         XCTAssertTrue(grant.clubCommunity.paths.contains("api/club/post/create"))
         XCTAssertTrue(grant.clubCommunity.paths.contains("api/club/post/repost"))
+        // P1-10: 置顶/取消置顶 (MP pages/club/detail js:2099 `{id, pinned, version, requestId}`) rides the club community grant.
+        XCTAssertTrue(grant.clubCommunity.paths.contains("api/club/post/pin"))
+        // P1-13: the club post image upload (uploadOSS bizType=club_post_image) is issued per club, stable, picker on.
+        let image = try XCTUnwrap(admitted.clubPostImageUploadApproval(player, 3))
+        XCTAssertTrue(image.nativePicker)
+        XCTAssertEqual(image.clubID, 3)
+        XCTAssertEqual(admitted.clubPostImageUploadApproval(player, 3), image)
+        XCTAssertNil(admitted.clubPostImageUploadApproval(player, 0))
         XCTAssertFalse(grant.clubCommunity.paths.contains("api/club/roles/assign"))
         XCTAssertTrue(grant.square.paths.contains("api/v1/community/posts"))
         XCTAssertTrue(grant.square.paths.contains("api/v1/community/guidelines/ack"))

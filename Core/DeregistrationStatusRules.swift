@@ -6,7 +6,7 @@ import Foundation
 public enum DeregistrationStatusRules {
     /// Source `verificationMethod` normalization. Absent keeps the established SMS contract; a present
     /// but unknown value is never treated as usable.
-    public enum Verification: String, Equatable { case sms = "SMS", wechat = "WECHAT", unavailable = "UNAVAILABLE" }
+    public enum Verification: String, Equatable { case sms = "SMS", wechat = "WECHAT", apple = "APPLE", unavailable = "UNAVAILABLE" }
 
     public enum PrecheckVerdict: Equatable {
         case eligible(Verification)
@@ -92,7 +92,8 @@ public enum DeregistrationStatusRules {
     public static func canApply(eligible: Bool, confirmed: Bool, method: Verification, smsCode: String) -> Bool {
         guard eligible, confirmed else { return false }
         switch method {
-        case .wechat: return true
+        // fix/1128-apple-delete: Apple-only accounts confirm with a Sign in with Apple re-auth proof, checked by the coordinator.
+        case .wechat, .apple: return true
         case .sms: return !smsCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         case .unavailable: return false
         }

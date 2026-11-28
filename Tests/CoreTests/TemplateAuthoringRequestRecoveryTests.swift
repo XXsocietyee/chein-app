@@ -372,4 +372,48 @@ import FoundationNetworking
         XCTAssertEqual(http.requests.map { $0.url!.path }, ["/api/template/author-requests/submit", "/api/template/author-requests/read"])
     }
 
+    // fix-1128-publish P0-7: request shape and result states (MP publish/temp sendData → draft / publish).
+    func testDraftSubmitPostsTheEnvelopeAndShowsDraftSaved() async throws {
+        let (http, c, service) = try setup(), store = TemplateAuthoringLocalStore(storage: Storage())
+        http.reply = { try self.response($0, state: "COMMITTED") }
+        let value = coordinator(service, c, store)
+        XCTAssertTrue(value.canSubmit)
+        try await dispatch(value)
+        let request = try XCTUnwrap(http.requests.first)
+        XCTAssertEqual(request.httpMethod, "POST"); XCTAssertEqual(request.url?.path, "/api/template/author-requests/submit")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+        XCTAssertEqual(body["protocolVersion"] as? String, "original-template-author-request-v1")
+        XCTAssertNotNil(body["requestId"] as? String); XCTAssertNotNil(body["payloadSHA256"] as? String)
+        let chunks = try XCTUnwrap(body["payloadBase64Chunks"] as? [String])
+        let command = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(Data(base64Encoded: chunks.joined()))) as? [String: Any])
+        XCTAssertEqual(command["originalPath"] as? String, "api/template/draft")
+        XCTAssertNotNil((command["fields"] as? [String: Any])?["title"])
+        XCTAssertEqual(value.state, .acknowledged); XCTAssertEqual(value.messageKey, "templateAuthor.draftSaved")
+        XCTAssertNil(value.rejectionReason); XCTAssertEqual(value.savedDraft?.memberTemplateID.rawValue, 42)
+    }
+    func testPublishSubmitCarriesThePublishPathAndShowsInReview() async throws {
+        let (http, c, service) = try setup(), store = TemplateAuthoringLocalStore(storage: Storage())
+        http.reply = { try self.response($0, state: "COMMITTED") }
+        let value = coordinator(service, c, store); try await dispatch(value, intent: .publish)
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(http.requests.first?.httpBody)) as? [String: Any])
+        let chunks = try XCTUnwrap(body["payloadBase64Chunks"] as? [String])
+        let command = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(Data(base64Encoded: chunks.joined()))) as? [String: Any])
+        XCTAssertEqual(command["originalPath"] as? String, "api/template/publish")
+        XCTAssertEqual(value.messageKey, "templateAuthor.acknowledged")
+    }
+    func testRejectedReceiptShowsTheServerReasonAndKeepsItOnReopen() async throws {
+        let (http, c, service) = try setup(), store = TemplateAuthoringLocalStore(storage: Storage())
+        http.reply = { try self.response($0, state: "REJECTED", altered: ["originalResult": ["code": 400, "msg": " 模板名称已存在 "]]) }
+        let value = coordinator(service, c, store); try await dispatch(value, intent: .publish)
+        XCTAssertEqual(value.state, .blocked); XCTAssertEqual(value.messageKey, "templateAuthor.rejected")
+        XCTAssertEqual(value.rejectionReason, "模板名称已存在")
+        let reopened = coordinator(service, c, store); reopened.open()
+        XCTAssertEqual(reopened.messageKey, "templateAuthor.rejected"); XCTAssertEqual(reopened.rejectionReason, "模板名称已存在")
+    }
+    func testRejectedReceiptWithoutMessageHasNoReason() async throws {
+        let (http, c, service) = try setup(), store = TemplateAuthoringLocalStore(storage: Storage())
+        http.reply = { try self.response($0, state: "REJECTED") }
+        let value = coordinator(service, c, store); try await dispatch(value)
+        XCTAssertEqual(value.messageKey, "templateAuthor.rejected"); XCTAssertNil(value.rejectionReason)
+    }
 }

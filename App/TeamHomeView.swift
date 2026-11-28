@@ -105,6 +105,7 @@ private struct TeamHomeRow: View {
     @Environment(\.teamReformHooks) private var reformHooks
     @Environment(\.teamChannelManagementHooks) private var channelManagementHooks
     @Environment(\.teamCommandWriter) private var commandWriter
+    @Environment(\.dismiss) private var dismiss
     @State private var reformSheet: TeamReformSheet?
     init(lookup: TeamLookup, coordinator: TeamCoordinator, makeCoordinator: @escaping () -> TeamCoordinator, requiresMembership: Bool = false, readOnly: Bool = false, onLogin: (() -> Void)? = nil, legacyTeamID: Bool = false) {
         self.lookup = lookup; self.makeCoordinator = makeCoordinator; self.requiresMembership = requiresMembership; self.readOnly = readOnly
@@ -150,7 +151,8 @@ private struct TeamHomeRow: View {
             if let banner = TeamPagePresentation.staleBanner(kind: pageKind, messageKey: model.coordinator.messageKey, hasDetail: model.coordinator.detail != nil) {
                 TeamStaleBanner(title: banner.title, detail: banner.detail)
             }
-            if model.coordinator.retiredMembershipTeamID != nil {
+            // A confirmed quit / disband shows its own result in the notice above; this label is for other retirements.
+            if model.coordinator.retiredMembershipTeamID != nil, model.coordinator.writeState != .acknowledged {
                 Label("team.changed", systemImage: "person.crop.circle.badge.xmark")
                     .foregroundStyle(CYColor.warningText)
                     .fixedSize(horizontal: false, vertical: true)
@@ -293,7 +295,24 @@ private struct TeamHomeRow: View {
             .cySheet(isPresented: $invitationPreview) { Group { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }.cySheet() }
             .cySheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in Group { if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }.cySheet(detents: [.large]) }
         .modifier(TeamWriteResultHaptics(state: model.coordinator.writeState))
+        .modifier(TeamConfirmedWriteFollowUp(state: model.coordinator.writeState,
+                                             retired: model.coordinator.retiredMembershipTeamID != nil,
+                                             onConfirmed: followUpConfirmedWrite))
         .themeDomain(.player)
+    }
+    /// P0-8 (MP team/detail `terminal`): a confirmed quit / disband shows its result, then returns to 我的队伍, which
+    /// reads `/api/team/my` again on appear. Any other confirmed command on a team page re-reads `/api/team/info`.
+    private func followUpConfirmedWrite(retired: Bool) {
+        guard !readOnly, invitationCode == nil else { return }
+        if retired {
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 900_000_000)
+                if model.coordinator.retiredMembershipTeamID != nil { dismiss() }
+            }
+            return
+        }
+        let permit = model.captureRun()
+        readOwner.start { await reload(permit: permit) }
     }
     /// C-J5 (MP team/join `.tj-bar`): the invitation's one action sits in the bottom bar, outside the scroll.
     @ViewBuilder private func invitationActions(detail: TeamDetail, invitationCode: String) -> some View {
@@ -440,6 +459,8 @@ private struct TeamHomeRow: View {
     private func reload(permit: TeamScreenModel.RunPermit? = nil) async {
         await model.run(permit: permit) {
             if readOnly, case .id(let teamID) = lookup { await model.coordinator.loadPostJoinDetail(teamID: teamID) }
+            else if invitationCode == nil, model.coordinator.retiredMembershipTeamID == nil,
+                    TeamConfirmedWriteFollowUp.readsBack(model.coordinator.writeState) { _ = await model.coordinator.readBackConfirmedWrite() }
             else { await model.coordinator.loadDetail(lookup, requireMembership: requiresMembership) }
         }
     }
@@ -466,6 +487,21 @@ struct TeamInviteQRSheetButton: View {
                 }
         }
     }
+}
+
+/// P0-8: runs the team page's follow-up once a write is server-confirmed (typed, so the page body type-checks in time).
+private struct TeamConfirmedWriteFollowUp: ViewModifier {
+    let state: TeamCoordinator.WriteState
+    let retired: Bool
+    let onConfirmed: (Bool) -> Void
+    func body(content: Content) -> some View {
+        content.onChange(of: state, changed)
+    }
+    private func changed(_ old: TeamCoordinator.WriteState, _ new: TeamCoordinator.WriteState) {
+        if old != new, Self.readsBack(new) { onConfirmed(retired) }
+    }
+    /// A confirmed result whose page still shows the pre-write detail.
+    static func readsBack(_ state: TeamCoordinator.WriteState) -> Bool { state == .acknowledged }
 }
 
 /// Success / warning haptics on the confirmed team command result, split out of the team page body so it type-checks in time.

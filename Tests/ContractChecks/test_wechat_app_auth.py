@@ -13,9 +13,13 @@ class WeChatAuthSourceChecks(unittest.TestCase):
         for field in ['sdkVerified','providerVerified','legalVerified','appleAlternativeVerified','liveExchangeApproved']:
             self.assertIn(f'var {field} = false', source)
         host = (ROOT/'App/AppSession.swift').read_text()
-        self.assertIn('lazy var weChatAuth = WeChatAppAuthCoordinator(adapter: weChatSDKAdapter, gate:', host)
-        self.assertIn('private let weChatSDKConfiguration: WeChatSDKConfiguration? = nil', host)
-        self.assertIn('private let weChatSDKGate = WeChatAppAuthGate()', host)
+        # P0-5 (audit 11-28): the host reads the owner configuration from the bundle and re-derives the gate on every use.
+        self.assertIn('lazy var weChatAuth = WeChatAppAuthCoordinator(adapter: weChatSDKAdapter, service: weChatExchangeService, gate:', host)
+        self.assertIn('private let weChatSDKConfiguration: WeChatSDKConfiguration? = WeChatAppLaunch.bundleConfiguration()', host)
+        self.assertIn('private var weChatSDKGate: WeChatAppAuthGate { weChatReleaseGate(sdkLinked: weChatSDKDriver.isLinked, configured: weChatSDKConfiguration != nil) }', host)
+        links = (ROOT/'App/AppSession+AppLinks.swift').read_text()
+        self.assertIn("guard composition.reviewed?.weChatSignInApproved == true", links)
+        self.assertIn("appleAlternative: reviewed?.appleSignInApproved == true", links)
         self.assertIn('return try self.commitChannelLogin(result, expected: expected.session)', host)
     def test_callback_claim_precedes_exchange(self):
         source = (ROOT/'Core/WeChatAppAuth.swift').read_text()
