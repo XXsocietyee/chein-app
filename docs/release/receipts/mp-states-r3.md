@@ -150,6 +150,10 @@ The sweep script lives with the coordinator, so this lane lists the fixtures to 
 `r3-roam-routes-empty`, `r3-roam-stamp-album-error`, `d4-badges-error`, `t5-baoming-error`, `d6-play-loading`,
 `g-player-code-empty`. They cover offline, signed-out, failure + 重试, empty and loading on every tab.
 
+Sweep check (build ffeef67c7, `docs/sweeps/latest/mp-states/sheet-zh-Hans.jpg`): `zh-Hans-e4-tickets-error.jpg` is the black
+launch screen while `en-e4-tickets-error.jpg` renders. `TicketWalletFixtureReader` (`.failure`) throws synchronously with no
+delay or locale-dependent path, so this reads as a capture-timing flake in the sweep — please re-capture that tile.
+
 ## Not done
 
 | Screen | MP state | Why not done |
