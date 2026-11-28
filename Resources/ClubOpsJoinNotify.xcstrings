@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You don’t have permission send alerts"
+            "value": "You don’t have permission to send notifications"
           }
         },
         "zh-Hans": {
@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The alert tool temporarily unavailable"
+            "value": "The notification tool is temporarily unavailable"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting"
+            "value": "Waiting to deliver"
           }
         },
         "zh-Hans": {
@@ -582,7 +582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Still delivering"
+            "value": "Still delivering in the background"
           }
         },
         "zh-Hans": {
@@ -614,7 +614,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Some items still"
+            "value": "Some items still failed"
           }
         },
         "zh-Hans": {
@@ -742,7 +742,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Total"
+            "value": "Total recipients"
           }
         },
         "zh-Hans": {

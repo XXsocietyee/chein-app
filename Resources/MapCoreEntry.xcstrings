@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ready"
+            "value": "Available"
           }
         },
         "zh-Hans": {
@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not available yet: waiting for product decision"
+            "value": "Not available yet: waiting for a product decision"
           }
         },
         "zh-Hans": {

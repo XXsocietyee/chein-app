@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Status not"
+            "value": "Status not provided"
           }
         },
         "zh-Hans": {
@@ -330,7 +330,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite only"
+            "value": "Invitation only"
           }
         },
         "zh-Hans": {
@@ -347,7 +347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Public requests"
+            "value": "Public applications"
           }
         },
         "zh-Hans": {
@@ -602,7 +602,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review disbanding team"
+            "value": "Review disbanding this team"
           }
         },
         "zh-Hans": {
@@ -925,7 +925,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action wasn't sent"
+            "value": "The operation wasn't sent"
           }
         },
         "zh-Hans": {
@@ -1044,7 +1044,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preview invite"
+            "value": "Preview invitation"
           }
         },
         "zh-Hans": {
@@ -1061,7 +1061,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite unavailable"
+            "value": "This invitation is unavailable"
           }
         },
         "zh-Hans": {
@@ -1299,7 +1299,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite only"
+            "value": "Invitation only"
           }
         },
         "zh-Hans": {
@@ -1722,7 +1722,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ask the captain to share it again, try later."
+            "value": "Ask the captain to share it again, then try later."
           }
         },
         "zh-Hans": {
@@ -1773,7 +1773,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite link has been upgraded"
+            "value": "Invitation link has been upgraded"
           }
         },
         "zh-Hans": {
@@ -1926,7 +1926,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Teaming up doesn't affect whether activity runs"
+            "value": "Teaming up doesn't affect whether the activity runs"
           }
         },
         "zh-Hans": {
@@ -2079,7 +2079,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "To be confirmed"
           }
         },
         "zh-Hans": {
@@ -2181,7 +2181,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check network connection try again."
+            "value": "Check your network connection and try again."
           }
         },
         "zh-Hans": {
@@ -2249,7 +2249,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Holding valid"
+            "value": "Holding a valid ticket"
           }
         },
         "zh-Hans": {
@@ -2266,7 +2266,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket no longer"
+            "value": "Ticket no longer valid"
           }
         },
         "zh-Hans": {
@@ -2283,7 +2283,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Applications"
+            "value": "Applications awaiting review"
           }
         },
         "zh-Hans": {
@@ -2317,7 +2317,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite valid %@"
+            "value": "Invitation valid until %@"
           }
         },
         "zh-Hans": {
@@ -2351,7 +2351,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're already in team."
+            "value": "You're already in this team."
           }
         },
         "zh-Hans": {
@@ -2385,7 +2385,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This team full."
+            "value": "This team is full."
           }
         },
         "zh-Hans": {
@@ -2402,7 +2402,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Team under review."
+            "value": "This team is under review."
           }
         },
         "zh-Hans": {
@@ -2436,7 +2436,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You need a ticket for session first."
+            "value": "You need a ticket for this session first."
           }
         },
         "zh-Hans": {
@@ -2453,7 +2453,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Team isn't recruiting."
+            "value": "This team isn't recruiting publicly."
           }
         },
         "zh-Hans": {
@@ -2470,7 +2470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request."
+            "value": "Your application is being reviewed."
           }
         },
         "zh-Hans": {
@@ -2487,7 +2487,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite no longer."
+            "value": "This invitation is no longer valid."
           }
         },
         "zh-Hans": {
@@ -2572,7 +2572,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The team is under review isn't taking members."
+            "value": "The team is under review and isn't taking members."
           }
         },
         "zh-Hans": {
@@ -2623,7 +2623,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This team isn't recruiting publicly. Ask the captain for invite."
+            "value": "This team isn't recruiting publicly. Ask the captain for an invitation."
           }
         },
         "zh-Hans": {
@@ -2640,7 +2640,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your request already awaiting review."
+            "value": "Your application is already awaiting review."
           }
         },
         "zh-Hans": {
@@ -2657,7 +2657,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This invite is no longer valid. Ask the captain for new link."
+            "value": "This invitation is no longer valid. Ask the captain for a new link."
           }
         },
         "zh-Hans": {
@@ -2742,7 +2742,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The request changed before went through. Refresh try again."
+            "value": "The application changed before this went through. Refresh and try again."
           }
         },
         "zh-Hans": {
@@ -2759,7 +2759,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This request already handled expired."
+            "value": "This application was already handled or expired."
           }
         },
         "zh-Hans": {
@@ -2827,7 +2827,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your request is awaiting review."
+            "value": "Your application is awaiting review."
           }
         },
         "zh-Hans": {

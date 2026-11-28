@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "?"
+            "value": "Status unrecognized"
           }
         }
       }
@@ -818,7 +818,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to see reports"
+            "value": "Sign in to see your reports"
           }
         }
       }

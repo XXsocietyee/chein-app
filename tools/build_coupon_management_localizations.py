@@ -29,7 +29,7 @@ values = {
 'stopPolicy': ('Stopping distribution cannot be undone. New claims and issuance stop; already claimed coupons remain usable and redeemable.', '停发不可撤销。停发后不能再被领取、发放；已领到的券照常可用、可核销'),
 'reviewStop': ('Review stopping distribution', '确认停发'),
 'claimUnavailable': ('Claiming is unavailable: the source contract does not define a claim operation. Claimed coupons remain in your coupon wallet.', '暂不支持领取：源接口尚未定义领取操作。已领券仍可在券包中查看'),
-'detail': ('Coupon details', '优惠券详情'), 'refresh': ('Refresh', '刷新'), 'details': ('Coupon information', '优惠券信息'), 'name': ('Coupon name', '优惠券名称'), 'description': ('Details', '说明'),
+'detail': ('Coupon details', '优惠券详情'), 'refresh': ('Refresh', '刷新'), 'details': ('Coupon information', '优惠券信息'), 'name': ('Coupon name', '优惠券名称'), 'description': ('Description', '说明'),
 'chooseType': ('Select a type', '请选择'), 'quantity': ('Quantity', '投放数量'), 'dates': ('Validity dates', '有效期'), 'setStart': ('Set start date', '设置开始日期'), 'setEnd': ('Set end date', '设置结束日期'),
 'reviewPublish': ('Review publication', '确认发布'), 'cancel': ('Cancel', '取消'), 'discardTitle': ('Discard this draft?', '放弃编辑？'), 'discard': ('Discard', '放弃'), 'keepEditing': ('Keep editing', '继续编辑'),
 'review': ('Review', '确认信息'), 'reviewNotice': ('Review these exact details. Changes require a new review.', '请核对上述信息，修改后需重新确认'), 'simulate': ('Confirm simulation', '确认模拟'),

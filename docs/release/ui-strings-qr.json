@@ -62,7 +62,7 @@
   {
     "key": "scan.fail.invalid.title",
     "table": "Localizable",
-    "en": "Code not",
+    "en": "Code not recognized",
     "zh-Hans": "无法识别"
   },
   {
@@ -74,7 +74,7 @@
   {
     "key": "scan.fail.used.title",
     "table": "Localizable",
-    "en": "Already",
+    "en": "Already checked in",
     "zh-Hans": "已核验"
   },
   {
@@ -104,7 +104,7 @@
   {
     "key": "scan.fail.expired.bodyNoDate",
     "table": "Localizable",
-    "en": "This ticket no longer valid.",
+    "en": "This ticket is no longer valid.",
     "zh-Hans": "这张票已失效。"
   },
   {

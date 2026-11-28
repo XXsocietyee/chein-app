@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry original person creation"
+            "value": "Retry original participant creation"
           }
         },
         "zh-Hans": {
@@ -230,7 +230,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There's no unresolved action available to inspect in this session."
+            "value": "There's no unresolved operation available to inspect in this session."
           }
         },
         "zh-Hans": {

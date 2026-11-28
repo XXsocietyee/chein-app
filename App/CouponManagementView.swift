@@ -432,7 +432,7 @@ private struct CouponManagementDetailItem: Identifiable {
                 Label {
                     Text("couponManagement.range.completed")
                 } icon: {
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
                 }
                 .font(.footnote)
                 .foregroundStyle(.secondary)

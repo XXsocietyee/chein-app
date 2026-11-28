@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hint"
+            "value": "Foreshadowing"
           }
         },
         "zh-Hans": {
@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Obtain after choice"
+            "value": "Obtain after this choice"
           }
         },
         "zh-Hans": {
@@ -86,7 +86,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fulfil after choice"
+            "value": "Fulfil after this choice"
           }
         },
         "zh-Hans": {
@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No foreshadowing set."
+            "value": "No foreshadowing set up yet."
           }
         },
         "zh-Hans": {

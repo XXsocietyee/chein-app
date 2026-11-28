@@ -19,7 +19,7 @@
     },
     {
       "key": "settingsNative.legal.cancellation_notice",
-      "en": "Account cancellation",
+      "en": "Account cancellation notice",
       "zh-Hans": "账号注销须知"
     },
     {
@@ -54,12 +54,12 @@
     },
     {
       "key": "settingsNative.legal.loadFailed",
-      "en": "Document couldn't loaded",
+      "en": "This document couldn't be loaded",
       "zh-Hans": "文档读取失败"
     },
     {
       "key": "settingsNative.legal.missingTitle",
-      "en": "Document not yet",
+      "en": "Document not yet provided",
       "zh-Hans": "文档待提供"
     },
     {

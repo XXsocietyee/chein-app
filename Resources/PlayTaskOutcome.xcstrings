@@ -58,7 +58,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting current progress"
+            "value": "Waiting for current progress"
           }
         },
         "zh-Hans": {
@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sending response"
+            "value": "Sending your response"
           }
         },
         "zh-Hans": {
@@ -279,7 +279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use the existing check to send or cancel your response."
+            "value": "Use the existing confirmation to send or cancel your response."
           }
         },
         "zh-Hans": {

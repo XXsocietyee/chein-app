@@ -158,7 +158,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Places"
+          "value": "Places reached"
         }
       },
       "zh-Hans": {
@@ -736,7 +736,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Turf"
+          "value": "Territory"
         }
       },
       "zh-Hans": {
@@ -1302,7 +1302,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The result of the original request isn't confirmed yet. Your input kept; check result retry original request."
+          "value": "The result of the original request isn't confirmed yet. Your input is kept; check the result or retry the original request."
         }
       },
       "zh-Hans": {

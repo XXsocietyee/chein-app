@@ -24,7 +24,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gift doesn't exist"
+            "value": "This gift doesn't exist"
           }
         },
         "zh-Hans": {
@@ -58,7 +58,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gift has already"
+            "value": "This gift has already been claimed"
           }
         },
         "zh-Hans": {
@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This gift can't be claimed right"
+            "value": "This gift can't be claimed right now"
           }
         },
         "zh-Hans": {
@@ -313,7 +313,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The last step still being confirmed"
+            "value": "The last step is still being confirmed"
           }
         },
         "zh-Hans": {
@@ -602,7 +602,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original"
+            "value": "Original action"
           }
         },
         "zh-Hans": {
@@ -855,7 +855,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon isn't available use."
+            "value": "This coupon isn't available for use yet."
           }
         },
         "zh-Hans": {
@@ -940,7 +940,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon code display isn't open right now. Check organizer administrator."
+            "value": "Coupon code display isn't open right now. Check with the organizer or administrator."
           }
         },
         "zh-Hans": {
@@ -1025,7 +1025,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After stop no one can claim Coupons already claimed still."
+            "value": "After you stop it, no one can claim it. Coupons already claimed still work."
           }
         },
         "zh-Hans": {
@@ -1042,7 +1042,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review stopping"
+            "value": "Review stopping distribution"
           }
         },
         "zh-Hans": {
@@ -1059,7 +1059,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not load char card."
+            "value": "Could not load the character card. Try again later."
           }
         },
         "zh-Hans": {
@@ -1076,7 +1076,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Don't have access char card"
+            "value": "You do not have access to this character card"
           }
         },
         "zh-Hans": {
@@ -1160,7 +1160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Service temporarily unavailable. Try again later."
+            "value": "The service is temporarily unavailable. Try again later."
           }
         },
         "zh-Hans": {
@@ -1176,7 +1176,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact details"
+            "value": "Contact details (optional)"
           }
         },
         "zh-Hans": {
@@ -1193,7 +1193,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone / WeChat (optional, support can"
+            "value": "Phone / WeChat (optional, so support can reach you)"
           }
         },
         "zh-Hans": {
@@ -1209,7 +1209,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complaint type"
+            "value": "Complaint type (optional)"
           }
         },
         "zh-Hans": {
@@ -1226,7 +1226,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Network error. Try again."
+            "value": "Network problem. We can't tell whether it was received, so it was not resent automatically."
           }
         },
         "zh-Hans": {
@@ -1308,7 +1308,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose an activity current list."
+            "value": "Choose an activity from the current list."
           }
         },
         "zh-Hans": {
@@ -1540,7 +1540,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved, returning original payment method"
+            "value": "Approved, returning to the original payment method"
           }
         },
         "zh-Hans": {
@@ -1574,7 +1574,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refunded original"
+            "value": "Refunded to the original payment method"
           }
         },
         "zh-Hans": {
@@ -1608,7 +1608,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After-sales progress"
+            "value": "After-sales in progress"
           }
         },
         "zh-Hans": {
@@ -1778,7 +1778,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ready"
+            "value": "Available"
           }
         },
         "zh-Hans": {
@@ -1795,7 +1795,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable"
+            "value": "Unavailable for now"
           }
         },
         "zh-Hans": {

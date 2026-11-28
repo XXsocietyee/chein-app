@@ -228,7 +228,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original human"
+            "value": "Original human evidence"
           }
         },
         "zh-Hans": {
@@ -279,7 +279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read original acceptance"
+            "value": "Read original acceptance receipt"
           }
         },
         "zh-Hans": {
@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request"
+            "value": "Original request receipt"
           }
         },
         "zh-Hans": {

@@ -1,6 +1,6 @@
 {
   "walking.title": {
-    "en": "Walking",
+    "en": "Walking navigation",
     "zh-Hans": "步行导航"
   },
   "walking.foregroundOnly": {
@@ -20,7 +20,7 @@
     "zh-Hans": "示例路线，地图未联网"
   },
   "walking.routeDistance": {
-    "en": "Walking route",
+    "en": "Walking route distance",
     "zh-Hans": "步行路程"
   },
   "walking.routeETA": {
@@ -32,7 +32,7 @@
     "zh-Hans": "估计路线进度"
   },
   "walking.remaining": {
-    "en": "Estimated distance left",
+    "en": "Estimated distance remaining",
     "zh-Hans": "估计剩余路程"
   },
   "walking.remainingETA": {
@@ -108,7 +108,7 @@
     "zh-Hans": "导航已取消"
   },
   "walking.error.unavailable": {
-    "en": "Walking navigation isn't available.",
+    "en": "Walking navigation isn't available right now.",
     "zh-Hans": "步行导航暂不可用"
   },
   "walking.error.targetUnavailable": {
@@ -120,7 +120,7 @@
     "zh-Hans": "此坐标基准与地图供应商组合尚未验证"
   },
   "walking.error.permissionRequired": {
-    "en": "Location permission hasn't been granted.",
+    "en": "Location permission hasn't been granted. Enable it through the separate location-permission flow.",
     "zh-Hans": "尚未授权定位，请通过独立定位授权流程开启"
   },
   "walking.error.permissionDenied": {

@@ -6,7 +6,7 @@
   },
   {
     "key": "registration.form.awaitingPayment",
-    "en": "Awaiting",
+    "en": "Awaiting payment",
     "zh-Hans": "待支付"
   },
   {
@@ -36,7 +36,7 @@
   },
   {
     "key": "registration.form.contact",
-    "en": "Sign-up contact",
+    "en": "Registration contact",
     "zh-Hans": "报名信息"
   },
   {
@@ -61,12 +61,12 @@
   },
   {
     "key": "registration.form.creationDisabled",
-    "en": "Sign-up isn't available",
+    "en": "Registration isn't available right now",
     "zh-Hans": "报名暂不可用"
   },
   {
     "key": "registration.form.creationDisabledHint",
-    "en": "Sign-up isn't available right.",
+    "en": "Sign-up isn't available right now.",
     "zh-Hans": "报名暂不可用。"
   },
   {
@@ -111,12 +111,12 @@
   },
   {
     "key": "registration.form.insufficientPoints",
-    "en": "Available points don't cover a deduction order",
+    "en": "Available points don't cover a deduction on this order",
     "zh-Hans": "当前积分不足以抵扣本单"
   },
   {
     "key": "registration.form.inventoryUnknown",
-    "en": "Left availability unknown",
+    "en": "Remaining availability is unknown",
     "zh-Hans": "剩余名额未知"
   },
   {
@@ -136,7 +136,7 @@
   },
   {
     "key": "registration.form.name",
-    "en": "Full",
+    "en": "Full name",
     "zh-Hans": "姓名"
   },
   {
@@ -146,7 +146,7 @@
   },
   {
     "key": "registration.form.noTickets",
-    "en": "No separate ticket options were supplied. The quote is requested for activity.",
+    "en": "No separate ticket options were supplied. The quote is requested for this activity.",
     "zh-Hans": "未提供独立票种，将按此活动获取报价。"
   },
   {
@@ -161,7 +161,7 @@
   },
   {
     "key": "registration.form.outcomeUnknown",
-    "en": "Sign-up outcome unknown",
+    "en": "Registration outcome unknown",
     "zh-Hans": "报名结果未知"
   },
   {
@@ -216,7 +216,7 @@
   },
   {
     "key": "registration.form.quoteFailed",
-    "en": "The quote couldn't loaded",
+    "en": "The quote couldn't be loaded",
     "zh-Hans": "报价加载失败"
   },
   {
@@ -251,7 +251,7 @@
   },
   {
     "key": "registration.form.registrationCode",
-    "en": "Sign-up status code",
+    "en": "Registration status code",
     "zh-Hans": "报名状态码"
   },
   {
@@ -261,12 +261,12 @@
   },
   {
     "key": "registration.form.registrationNumber",
-    "en": "Sign-up number",
+    "en": "Registration number",
     "zh-Hans": "报名单号"
   },
   {
     "key": "registration.form.registrationStatus",
-    "en": "Sign-up state",
+    "en": "Registration state",
     "zh-Hans": "报名状态"
   },
   {
@@ -326,12 +326,12 @@
   },
   {
     "key": "registration.form.ticket",
-    "en": "Ticket",
+    "en": "Ticket option",
     "zh-Hans": "票种"
   },
   {
     "key": "registration.form.ticketPrice",
-    "en": "Listed ticket",
+    "en": "Listed ticket price",
     "zh-Hans": "票种价格"
   },
   {
@@ -361,7 +361,7 @@
   },
   {
     "key": "registration.form.verificationCode",
-    "en": "Check status code",
+    "en": "Verification status code",
     "zh-Hans": "核销状态码"
   }
 ]

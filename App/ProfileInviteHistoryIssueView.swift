@@ -35,7 +35,7 @@ struct ProfileInviteHistoryIssueView: View {
             Label {
                 Text(LocalizedStringKey(kind.titleKey))
             } icon: {
-                Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
+                Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.warningText)
             }
             if let detail = kind.detailKey { Text(LocalizedStringKey(detail)).font(.subheadline).foregroundStyle(.secondary) }
             if kind.canRetry, let retry {

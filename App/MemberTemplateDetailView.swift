@@ -40,7 +40,7 @@ import SwiftUI
                             Text(verbatim: message)
                                 .fixedSize(horizontal: false, vertical: true)
                         } icon: {
-                            Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                            Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText)
                         }
                         .foregroundStyle(.secondary)
                     } else {
@@ -88,7 +88,7 @@ import SwiftUI
                             Label {
                                 Text("memberTemplate.published")
                             } icon: {
-                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                                Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
                             }
                             .foregroundStyle(.secondary)
                         }

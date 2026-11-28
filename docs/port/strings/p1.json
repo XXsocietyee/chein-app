@@ -76,7 +76,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Their view"
+            "value": "How they see you"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cast"
+            "value": "Characters"
           }
         },
         "zh-Hans": {
@@ -506,7 +506,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your teammates reading other parts."
+            "value": "Your teammates are reading the other parts."
           }
         },
         "zh-Hans": {

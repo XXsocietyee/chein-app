@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Install quota"
+            "value": "Installation quota"
           }
         },
         "zh-Hans": {
@@ -194,7 +194,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Purchase doesn't publish content or start a run. Your purchased version license scope remain frozen."
+            "value": "Purchase doesn't publish content or start a run. Your purchased version and license scope remain frozen."
           }
         },
         "zh-Hans": {
@@ -279,7 +279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request"
+            "value": "Request cancellation"
           }
         },
         "zh-Hans": {
@@ -449,7 +449,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request is still unresolved. No new order or payment was submitted, and no license inferred."
+            "value": "The original request is still unresolved. No new order or payment was submitted, and no license was inferred."
           }
         },
         "zh-Hans": {
@@ -857,7 +857,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reshare"
+            "value": "Redistribution"
           }
         },
         "zh-Hans": {
@@ -925,7 +925,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redistribution banned"
+            "value": "Redistribution is prohibited"
           }
         },
         "zh-Hans": {
@@ -1061,7 +1061,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original"
+            "value": "Original order"
           }
         },
         "zh-Hans": {
@@ -1078,7 +1078,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original"
+            "value": "Original request"
           }
         },
         "zh-Hans": {
@@ -1112,7 +1112,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Acquisition"
+            "value": "Acquisition method"
           }
         },
         "zh-Hans": {
@@ -1214,7 +1214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original license"
+            "value": "Original license snapshot"
           }
         },
         "zh-Hans": {
@@ -1265,7 +1265,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Status explanation service"
+            "value": "Status explanation from the service"
           }
         },
         "zh-Hans": {

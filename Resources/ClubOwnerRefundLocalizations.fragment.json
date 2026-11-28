@@ -662,7 +662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The sign-up reference invalid."
+            "value": "The registration reference is invalid."
           }
         },
         "zh-Hans": {
@@ -1030,7 +1030,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Partially"
+            "value": "Partially returned"
           }
         },
         "zh-Hans": {

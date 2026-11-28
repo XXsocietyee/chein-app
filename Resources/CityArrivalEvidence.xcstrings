@@ -124,7 +124,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original"
+            "value": "Original round"
           }
         }
       }
@@ -172,7 +172,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quest validity in seconds"
+            "value": "Challenge validity in seconds"
           }
         }
       }
@@ -188,7 +188,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Evidence validity seconds"
+            "value": "Evidence validity in seconds"
           }
         }
       }
@@ -236,7 +236,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Platform approval"
+            "value": "Platform approval rationale"
           }
         }
       }
@@ -476,7 +476,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original"
+            "value": "Original point"
           }
         }
       }
@@ -556,7 +556,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original authoritative evidence"
+            "value": "Original authoritative evidence record"
           }
         }
       }
@@ -1036,7 +1036,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Independent approval for this capability is disabled default; it's unavailable."
+            "value": "Independent approval for this capability is disabled by default; it's unavailable now."
           }
         }
       }

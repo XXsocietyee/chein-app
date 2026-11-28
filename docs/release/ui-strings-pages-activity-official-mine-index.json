@@ -106,13 +106,13 @@
     },
     {
       "key": "official.privateParity.published.status.pending",
-      "en": "Pending",
+      "en": "Pending release",
       "zh-Hans": "待发布",
       "accessibilityIdentifier": "official.published.eventStatus."
     },
     {
       "key": "official.privateParity.published.status.registration",
-      "en": "Sign-up open",
+      "en": "Registration open",
       "zh-Hans": "报名中",
       "accessibilityIdentifier": "official.published.eventStatus."
     },
@@ -154,7 +154,7 @@
     },
     {
       "key": "official.w206.broadcast.separate",
-      "en": "Sent",
+      "en": "Sent separately",
       "zh-Hans": "分开发",
       "accessibilityIdentifier": "official.broadcast."
     },
@@ -166,7 +166,7 @@
     },
     {
       "key": "official.w206.broadcast.audienceUnknown",
-      "en": "audience to confirmed",
+      "en": "audience to be confirmed",
       "zh-Hans": "对象待确认",
       "accessibilityIdentifier": "official.broadcast."
     },
@@ -202,7 +202,7 @@
     },
     {
       "key": "official.w206.broadcast.status.withdrawn",
-      "en": "Revoked",
+      "en": "Withdrawn",
       "zh-Hans": "已撤",
       "accessibilityIdentifier": "official.broadcast."
     },
@@ -250,13 +250,13 @@
     },
     {
       "key": "official.notConfigured",
-      "en": "Official events aren't available",
+      "en": "Official events aren't available right now",
       "zh-Hans": "官方活动暂不可用",
       "accessibilityIdentifier": "official.published.error"
     },
     {
       "key": "official.noPublisherPermission",
-      "en": "Account doesn't have official publishing permission",
+      "en": "Your account doesn't have official publishing permission",
       "zh-Hans": "你的账号没有官方发布权限",
       "accessibilityIdentifier": "official.published.error"
     },

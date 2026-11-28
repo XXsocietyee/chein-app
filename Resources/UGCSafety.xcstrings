@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unable to complete safety request. Try again."
+            "value": "Unable to complete safety request. Please try again."
           }
         },
         "zh-Hans": {

@@ -124,7 +124,7 @@ struct ClubEditFactsSection: View {
                     Label {
                         Text("club.ops.edit.loadFailed")
                     } icon: {
-                        Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                        Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText)
                     }
                     .accessibilityIdentifier("club.ops.facts.error")
                     Button("club.ops.edit.reload") { Task { await load(readBody) } }

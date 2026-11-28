@@ -54,7 +54,7 @@ import SwiftUI
                 .disabled(input == nil || !model.flow.canGenerate).accessibilityIdentifier("club.context.ai.generate")
             }
             if let failure = model.flow.failure {
-                Label { Text(LocalizedStringKey("context.ai.error." + String(describing: failure))) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }
+                Label { Text(LocalizedStringKey("context.ai.error." + String(describing: failure))) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText) }
             }
             if let result = model.flow.result, let resultGeneration = model.flow.resultGeneration, let source = model.flow.resultInput {
                 Section(showsPreviousResult ? LocalizedStringKey("clubAICandidate.previous") : LocalizedStringKey("context.ai.plan")) {
@@ -86,7 +86,7 @@ import SwiftUI
                         } icon: { Image(systemName: idx < 50 ? "\(idx + 1).circle" : "circle") }
                     }
                     ForEach(Array(result.risks.enumerated()), id: \.offset) { _, risk in
-                        Label { Text(verbatim: risk) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }.font(.footnote)
+                        Label { Text(verbatim: risk) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText) }.font(.footnote)
                     }
                 }
                 Section("context.ai.suggestions") { ForEach(Array(result.merchantSuggestions.enumerated()), id: \.offset) { _, value in Text(verbatim: value) } }

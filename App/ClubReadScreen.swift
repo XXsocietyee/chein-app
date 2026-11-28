@@ -53,9 +53,10 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     var body: some View {
         Group {
             if isInitialLoading {
-                ProgressView { usesClubPageStates ? Text("club.detail.loading") : Text("club.loading") }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityIdentifier(accessibilityPrefix + ".loading")
+                // mp-club r3 pass 50 (P42, MP cy-skeleton): the page's own shape, not a centred spinner.
+                ClubReadSkeleton(style: usesClubPageStates ? .detail : .rows(3),
+                                 label: usesClubPageStates ? "club.detail.loading" : "club.loading",
+                                 identifier: accessibilityPrefix + ".loading")
             } else {
                 readBody
             }

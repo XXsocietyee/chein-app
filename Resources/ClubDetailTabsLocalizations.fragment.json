@@ -119,7 +119,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View contribution"
+            "value": "View contribution board"
           }
         },
         "zh-Hans": {
@@ -151,7 +151,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contribution board can't shown right"
+            "value": "The contribution board can't be shown right now"
           }
         },
         "zh-Hans": {

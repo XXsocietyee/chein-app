@@ -5,7 +5,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Could not load char card."
+          "value": "Could not load the character card. Try again later."
         }
       },
       "zh-Hans": {
@@ -22,7 +22,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Don't have access char card"
+          "value": "You do not have access to this character card"
         }
       },
       "zh-Hans": {
@@ -158,7 +158,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Ending not"
+          "value": "Ending not reached"
         }
       },
       "zh-Hans": {
@@ -175,7 +175,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "View round's board"
+          "value": "View this round's board"
         }
       },
       "zh-Hans": {
@@ -209,7 +209,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reached ending"
+          "value": "Reached the ending"
         }
       },
       "zh-Hans": {
@@ -391,7 +391,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Service temporarily unavailable. Try again later."
+          "value": "The service is temporarily unavailable. Try again later."
         }
       },
       "zh-Hans": {
@@ -408,7 +408,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Contact details"
+          "value": "Contact details (optional)"
         }
       },
       "zh-Hans": {
@@ -425,7 +425,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Phone / WeChat (optional, support can"
+          "value": "Phone / WeChat (optional, so support can reach you)"
         }
       },
       "zh-Hans": {
@@ -442,7 +442,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Complaint type"
+          "value": "Complaint type (optional)"
         }
       },
       "zh-Hans": {
@@ -459,7 +459,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Network error. Try again."
+          "value": "Network problem. We can't tell whether it was received, so it was not resent automatically."
         }
       },
       "zh-Hans": {
@@ -544,7 +544,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Choose an activity current list."
+          "value": "Choose an activity from the current list."
         }
       },
       "zh-Hans": {

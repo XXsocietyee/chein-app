@@ -5,7 +5,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Coupon management isn't available right"
+          "value": "Coupon management isn't available right now"
         }
       },
       "zh-Hans": {
@@ -107,7 +107,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The safety record couldn't be saved. Nothing submitted."
+          "value": "The safety record couldn't be saved. Nothing was submitted."
         }
       },
       "zh-Hans": {
@@ -141,7 +141,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "There's a message for"
+          "value": "There's a message for you"
         }
       },
       "zh-Hans": {
@@ -226,7 +226,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Distribution"
+          "value": "Distribution stopped"
         }
       },
       "zh-Hans": {
@@ -362,7 +362,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "10% off"
+          "value": "10% off coupon"
         }
       },
       "zh-Hans": {
@@ -379,7 +379,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "20% off"
+          "value": "20% off coupon"
         }
       },
       "zh-Hans": {
@@ -396,7 +396,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Experience"
+          "value": "Experience pass"
         }
       },
       "zh-Hans": {
@@ -498,7 +498,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Coupon publish isn't ready."
+          "value": "Publishing and stopping coupon distribution aren't available right now."
         }
       },
       "zh-Hans": {
@@ -549,7 +549,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No details provided"
+          "value": "No description provided"
         }
       },
       "zh-Hans": {
@@ -651,7 +651,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Distribution"
+          "value": "Distribution details"
         }
       },
       "zh-Hans": {
@@ -906,7 +906,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Details"
+          "value": "Description"
         }
       },
       "zh-Hans": {
@@ -957,7 +957,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Validity"
+          "value": "Validity dates"
         }
       },
       "zh-Hans": {
@@ -1008,7 +1008,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Review"
+          "value": "Review publication"
         }
       },
       "zh-Hans": {
@@ -1127,7 +1127,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Confirm"
+          "value": "Confirm simulation"
         }
       },
       "zh-Hans": {
@@ -1161,7 +1161,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Confirm entry"
+          "value": "Confirm submission"
         }
       },
       "zh-Hans": {

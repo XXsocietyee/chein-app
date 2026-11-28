@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publisher identity sign-up"
+            "value": "Publisher identity registration"
           }
         },
         "zh-Hans": {
@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explicitly submit sign-up"
+            "value": "Explicitly submit registration"
           }
         },
         "zh-Hans": {

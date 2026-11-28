@@ -65,7 +65,7 @@
     },
     {
       "key": "badgeWall.state.retry",
-      "en": "Try",
+      "en": "Try again",
       "zh-Hans": "重试",
       "accessibilityIdentifier": "badgeWall.state.retry"
     },
@@ -149,7 +149,7 @@
     },
     {
       "key": "badgeWall.focus.elsewhere",
-      "en": "This badge isn't identity card; it's recorded growth center",
+      "en": "This badge isn't an identity card; it's recorded in the growth center",
       "zh-Hans": "这枚不是身份卡，记在成长中心",
       "accessibilityIdentifier": "objects.badge.focus"
     }

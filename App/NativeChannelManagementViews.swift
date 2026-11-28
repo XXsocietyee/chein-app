@@ -763,7 +763,7 @@ private func ncmLoading() -> some View {
     let issue: NativeChannelManagementError?
     var body: some View {
         if let issue {
-            Label { ncmText(key(issue)) } icon: { Image(systemName: "exclamationmark.circle").foregroundStyle(.orange) }
+            Label { ncmText(key(issue)) } icon: { Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.warningText) }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("ncm.issue")
         }

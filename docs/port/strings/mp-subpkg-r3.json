@@ -126,7 +126,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@"
+            "value": "%@ withdrawals"
           }
         },
         "zh-Hans": {
@@ -194,7 +194,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collection couldn't opened"
+            "value": "Your collection couldn't be opened"
           }
         },
         "zh-Hans": {

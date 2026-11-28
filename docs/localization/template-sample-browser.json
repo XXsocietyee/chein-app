@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multiple-choice"
+            "value": "Multiple-choice question"
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Number"
+            "value": "Number estimate"
           }
         },
         "zh-Hans": {
@@ -230,7 +230,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Draw"
+            "value": "Draw a card"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leave"
+            "value": "Leave a note"
           }
         },
         "zh-Hans": {

@@ -9,7 +9,7 @@
   "strings": [
     {
       "key": "club.gov.customers",
-      "en": "Buyers",
+      "en": "Customers",
       "zh-Hans": "客户",
       "accessibilityIdentifier": "club.gov.route.customer",
       "table": "Localizable"

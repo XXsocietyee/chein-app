@@ -111,7 +111,7 @@
   },
   {
     "key": "roam.filter.activity",
-    "en": "Events",
+    "en": "Activities",
     "zh-Hans": "活动"
   },
   {
@@ -141,7 +141,7 @@
   },
   {
     "key": "roam.distanceFromArea",
-    "en": "Distance search area",
+    "en": "Distance from search area",
     "zh-Hans": "距搜索区域"
   },
   {
@@ -156,7 +156,7 @@
   },
   {
     "key": "roam.signInRequired",
-    "en": "Sign in continue",
+    "en": "Sign in to continue",
     "zh-Hans": "请先登录"
   },
   {
@@ -256,7 +256,7 @@
   },
   {
     "key": "roam.favorited",
-    "en": "Saved",
+    "en": "Saved as a favorite",
     "zh-Hans": "已收藏"
   },
   {
@@ -361,7 +361,7 @@
   },
   {
     "key": "roam.area.longitude",
-    "en": "Lng",
+    "en": "Longitude",
     "zh-Hans": "经度"
   },
   {

@@ -76,7 +76,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting camera permission"
+            "value": "Waiting for camera permission"
           }
         },
         "zh-Hans": {

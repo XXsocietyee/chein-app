@@ -1577,6 +1577,46 @@ PASS (manual paging 18, rating hue 0, 120 allowed), `contract_ratchet --check` 4
 - Next ADA §3 rows in this lane's area: **Accent colours** beyond stars (role/PRO chips are mp-mine's Me header);
   **Section headers** for List pages outside the `header font` kind (icon + title3 headers in Form sections).
 
+## Continue run 47 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane (latest: 17:30 sweep, mp-states / mp-nav); no K50 `lane-layout`
+rows on combined-r7. The coordinator has not yet answered the run 46 Retry question (kept as is).
+
+Run 46 Not done row (**Section headers** in Form sections): re-scanned. `Section(header: X)` argument headers (13) are
+all plain `Text`; `header: { … }` closures with an icon (9 hits) are rows, not headers; the two `.title2/.title3` first
+rows (club create intro, free-explore ending letter) are the MP page's intro text, not section headers. No change.
+
+### Batch 1 — one status hue (ADA audit §3 **Accent colours**, beyond stars)
+
+The same done / warning / failed glyph drew in two hues: raw system `.green` / `.orange` / `.red` on 35 player pages,
+`CYColor.successText` / `warningText` / `dangerText` (≈700 sites) everywhere else. 55 glyph sites in 35 files now use
+the semantic token: `checkmark…` green → `successText`, `exclamationmark…` orange → `warningText`, `exclamationmark…` /
+`xmark…` red → `dangerText`. Pages (level): compliance status / review warning (C), activity cancelled + sold out (B),
+host cancel done (C), bank withdrawal (C), bundle transfer claim (C), club AI design + feedback (B), club enrollment
+(B), club tab parity (B), coupon code list (C), template browser (B), bundle launch (B), IM card / row actions (C),
+invoice (C), member attributes / template detail (B), channel management + pins (C), official event missions (B), pass
+market / membership (B), privacy consent (C), badges (B), follow list (C), invite history (C), participants (C),
+project edit forms (C), square feed / delete / video (B), team orient board / reform (B), template preview pager (B),
+ticket pass (B), workshop licences (C).
+
+Not changed: games, story, maps (effect surfaces keep their HUD colours: `NativeFreeExploreMapView`,
+`PlayExperienceView`, `NativeR2/Games`); the merchant cooperation invite (allowed with reason); toggle `.tint(.green)`
+and destructive `.tint(.red)` buttons (system control colours, a separate row).
+
+New checker kind **status hue**: a `checkmark…` / `exclamationmark…` / `xmark…` symbol with a raw green / orange / red
+foreground on the same line, outside App/DesignSystem and the effect surfaces. Baseline 0; allowed 1 (merchant
+cooperation invite). Before the fix `--list` reported every site above plus `OfficialEventDetailView:447`
+(`Color.green`) and `PrivacyProtectionView:89-90`, fixed in the same commit.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
+PASS (status hue 0, manual paging 18, 121 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
+
+### Not done (next run)
+- manual paging debt (18): tests-first sites only (run 43 list); leave for a lane that can run Swift.
+- **Accent colours, next:** raw `.tint(.green)` on Toggles (roam share / live consent / poster consent / director
+  leaderboard, 7 sites) vs the default tint elsewhere; raw `.foregroundStyle(.red)` footnote error text (≈15 sites:
+  club governance form, team pool hint, account publish mounts) → `CYColor.dangerText`.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

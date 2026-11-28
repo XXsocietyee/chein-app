@@ -194,7 +194,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create didn't finish"
+            "value": "Club creation didn't finish"
           }
         },
         "zh-Hans": {
@@ -296,7 +296,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The alert tool is unavailable right now"
+            "value": "The notification tool is unavailable right now"
           }
         },
         "zh-Hans": {
