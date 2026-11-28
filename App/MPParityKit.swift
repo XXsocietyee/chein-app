@@ -173,7 +173,8 @@ enum MPParityRoute: Hashable, Identifiable {
         func positiveIDString(_ key: String) -> String? { positiveID(key).map(String.init) }
         func safeIdentifier(_ key: String) -> String? {
             guard let v = nonEmpty(key),
-                  v.range(of: "\\A[A-Za-z0-9._-]{1,64}\\z", options: .regularExpression) != nil else { return nil }
+                  v.range(of: "\\A[A-Za-z0-9._-]{1,64}\\z", options: .regularExpression) != nil,
+                  v != ".", v != "..", !v.contains("..") else { return nil }
             return v
         }
         switch page {

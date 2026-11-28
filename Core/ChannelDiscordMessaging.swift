@@ -769,8 +769,7 @@ public enum ChannelMessageBurstGrouper {
     }
 
     private static func isApprovedAttachmentURL(_ raw: String) -> Bool {
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        return trimmed.hasPrefix("https://") || trimmed.hasPrefix("http://127.0.0.1") || trimmed.hasPrefix("http://localhost")
+        ObjectCardMediaPolicy.origin(raw) != nil
     }
 
     private static func extractReplyReference(
