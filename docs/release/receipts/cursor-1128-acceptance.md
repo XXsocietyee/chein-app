@@ -4,7 +4,7 @@ Lane2 simulator `Questify-iPhone17-Lane2` `2337B386-AC5F-4417-B8B8-012A8DB888BD`
 DerivedData `~/Library/Developer/Xcode/DerivedData/cursor-1128-acceptance`.
 Base at the Lane2 run: `origin/ui/combined-r7` `c4e43841afaddd576a72104f8bf8641af2060732` (K11–K16 and the sensors/artworkHosts argument-order fix). After that run the tip moved to `45264c9bffa264968b62bb657f72f21dfc45ce24`. It was merged in (no rebase). The Lane2 counts below are the run on `c4e43841` plus the stale-test edits, not a second pass of the later tip. The poi-detail sample in the merged tree is `poiId` `7`, which is the same rule as the `5` used on the run.
 
-Gates on this tree: `check_scaffold.py` PASS (5403 Swift files, AppSession.swift 7977 lines), `check_a11y_lint.py` 0 new, `contract_ratchet.py --check` 46 failing / baseline 46 / new 0. No new `String(localized:)` literals.
+Gates after the merge: `check_scaffold.py` PASS (5465 Swift files, AppSession.swift 7976 lines, ceiling 7977), `check_a11y_lint.py` 0 new, `contract_ratchet.py --check` 46 failing / baseline 46 / new 0. No new `String(localized:)` literals.
 
 ## Lane2
 
@@ -15,6 +15,8 @@ Gates on this tree: `check_scaffold.py` PASS (5403 Swift files, AppSession.swift
 | QuestifyAppUnitTests-Shard03 | 2110 | 35 | 18 |
 | QuestifyAppUnitTests-Shard04 | 2088 | 48 | 23 |
 
+
+Confirmation after the merge, same Lane2 destination: 3 tests, 1 failure. `testMerchantMoneySecurityAndAccountDeletionStayOff` passed. `testEmptyRegistrationGateMissingPassAndErrorNeverManufactureProgress` passed. `testReleaseCompositionEnumeratesPlayerServicesForChinaAndTheUnitedStates` still fails on City board. The compile also needed the five `QuestifyCore` import drops and the recorder construction above.
 56 unique failing methods. The reviewed merchant and nearby-team wiring tests are in every shard, so the raw failure counts overlap. Shard01 before the accent and poi-detail edits was 1890 tests / 25 failures; the rerun is the number above.
 
 ## Tests fixed
@@ -25,8 +27,9 @@ Stale tests only. The product behavior was already right.
 - `Tests/AppUnitTests/DesignR1FoundationTests.swift` — selected tab, primary pill, and merchant pill compare to `CYDomainPalette.systemAccent` (`Color(uiColor: .systemBlue)`). `Color.accentColor` is a different provider. Passed on the shard01 rerun.
 - `Tests/AppUnitTests/DesignSystemTokenMappingTests.swift` — same accent comparison for `actionPrimaryBg`, `tabSelectedTint`, and selected chips. Suite passed on shard04.
 - `Tests/AppUnitTests/MPParityDeepLinkRouteTests.swift` — `subpackageRoam/poi-detail/index` sample carries `poiId=5`. An empty query is not a link (`Core/MiniProgramPageLink.swift`). Passed on the shard01 rerun.
-- `Tests/AppUnitTests/Fix1128bPlayReleaseCompositionTests.swift` — helper renamed to `Fix1128bPlayReleaseRecorder` so it is not a second `Fix1128bRecorder`. Predicates unchanged. One assertion still fails (below).
-- `Tests/AppUnitTests/ReleasePlayerServiceAuditTests.swift` — `Row` accepts a one-argument closure, and the throwing merchant-center source read is called with `try`. Predicates unchanged. Two census rows still fail (below).
+- `Tests/AppUnitTests/Fix1128bPlayReleaseCompositionTests.swift` — helper renamed to `Fix1128bPlayReleaseRecorder` so it is not a second `Fix1128bRecorder`. The merged advanced-state test constructs that same recorder. Predicates unchanged. One assertion still fails (below).
+- `Tests/AppUnitTests/ReleasePlayerServiceAuditTests.swift` — `Row` accepts a one-argument closure. `try` inside `&&` does not compile, so the source read is bound first (`let releaseSourceOn = try merchantCenterIsOnInReleaseSource()`) and the money assertion stays `PlayerLaunch.merchantCenterEnabled && releaseSourceOn`. That test passed on the confirmation run. City board and public-layers still fail (below).
+- `Tests/AppUnitTests/ClubDirectorRecapMetricTests.swift`, `ClubDirectorTeamSheetTests.swift`, `Fix1128cWeatherReleaseCompositionTests.swift`, `PlayDirectorIncidentSheetTests.swift`, and `PlayDirectorRoleSheetTests.swift` — dropped a bare `@testable import QuestifyCore`. The app is one module, `Questify`. The `canImport(QuestifyCore)` imports in the other tests stay.
 - `Tests/AppUnitTests/PlayReadCompositionTests.swift` — a lead spectator with `registered: false` stays `.active`. `PlayProgression.availability` (`Core/PlayProgression.swift:37`) skips the registration gate only when `leadSpectator != true`. The empty-gate and missing-pass assertions are unchanged. Shard02 recorded the old `.registrationRequired` expectation; this line was updated after that shard.
 
 ## Owner list

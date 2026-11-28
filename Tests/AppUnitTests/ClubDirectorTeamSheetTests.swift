@@ -1,6 +1,5 @@
 import XCTest
 @testable import Questify
-@testable import QuestifyCore
 
 /// MP topic-detail index.js:939-962 (`refreshTeamRows`) and director.js:78-114, 162-188 (team / broadcast views).
 @MainActor final class ClubDirectorTeamSheetTests: XCTestCase {

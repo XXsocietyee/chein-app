@@ -1,6 +1,5 @@
 import XCTest
 @testable import Questify
-@testable import QuestifyCore
 
 /// MP club-director-role-sheet (director.js:121-160, 311-334, 1062-1224; index.js:919-933).
 @MainActor final class PlayDirectorRoleSheetTests: XCTestCase {
