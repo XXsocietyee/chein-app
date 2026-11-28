@@ -284,8 +284,6 @@ import VisionKit
             .onAppear { mounted = true; model.cancel() }
             .onChange(of: identity) { _, _ in capturedIdentity = nil; liveCode = nil; purpose = false; scanning = false; model.cancel() }
             .onDisappear { mounted = false; capturedIdentity = nil; liveCode = nil; model.cancel() }
-        } footer: {
-            Text("playkit.scan.scopeLine")
         }
     }
 }
@@ -531,10 +529,22 @@ extension PlayKitScreen {
     /// Replaces `scanForm` (`SUBMIT_SCAN` with `code`).
     @ViewBuilder var cameraScanForm: some View {
         if projection.complete {
+            // MP `sc__wrap` per kind: 语音 = the merchant's voice, then the reply; 图片 = the picture (or 扫完给的那张图), then
+            // the reply; 文字 = the reply only. A kind's media is never shown under another kind.
+            let scanKind = (raw["kind"].text ?? "TEXT").uppercased()
+            let reply = raw["reply"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             Section {
-                if let reply = raw["reply"].text, !reply.isEmpty { Text(verbatim: reply).font(.headline) }
-                artwork(raw["imageUrl"].text)
-                PlatformAudioHost(rawURL: raw["audioUrl"].text, scope: mediaScope, makeModel: makeAudio)
+                if scanKind == "VOICE" {
+                    PlatformAudioHost(rawURL: raw["audioUrl"].text, scope: mediaScope, makeModel: makeAudio)
+                } else if scanKind == "IMAGE" {
+                    if let image = raw["imageUrl"].text, !image.isEmpty {
+                        artwork(image)
+                    } else {
+                        Label("playkit.scan.imagePending", systemImage: "photo")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                if !reply.isEmpty, scanKind != "OVERLAY" { Text(verbatim: reply).font(.headline) }
             }
             if raw["kind"].text == "OVERLAY" || raw["overlayUrl"].text?.isEmpty == false {
                 Section {
