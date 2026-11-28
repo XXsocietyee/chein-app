@@ -158,8 +158,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - 本局线索 (`gameModule`) is the STORY / club session projection (`gameModule.enabled` is false for ROUTE runs, MP
   `_loadPlayerGameModule`); it belongs to the story-flow theme, out of scope this round. No native row.
 - 旅程手记 `journeyAttributes` rows: **done 11-28** (see the 旅程手记 attributes row). Branch-graph ordering **done 11-28** (see the 旅程手记 branch order row).
-- 队伍位置 tap in the MP opens 队长广播 (text prompt); natively the row pushes the member list and the broadcast stays in
-  the page's lead section (leader `playx.lead.broadcast`, member `LeadMemberActionsSection`).
+- ~~队伍位置 tap in the MP opens 队长广播 (text prompt); natively the row pushes the member list and the broadcast stays in the page's lead section (leader `playx.lead.broadcast`, member `LeadMemberActionsSection`).~~ done 11-28 (B lane).
 - Free-explore tiles: station photo per tile **done 11-28** (see its row); left: the hero's 3D card face and the chapter
   story stream (`fx-story`, story-flow theme).
 - 同行者榜: the orient-scoring board (`/api/orient/scoring/session/{id}/leaderboard`, SCORE / ROUTE rows, elapsed) and
