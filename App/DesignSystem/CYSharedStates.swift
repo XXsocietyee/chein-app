@@ -93,6 +93,8 @@ public struct CYOfflineBanner: View {
         if let onRetry {
             Button(action: onRetry) {
                 Text("cy.state.offline.retry")
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
             .font(.footnote)
@@ -166,6 +168,8 @@ public struct CYInlineError: View {
         if let retryTitle, let onRetry {
             Button(action: onRetry) {
                 Text(retryTitle)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
             .font(.footnote)

@@ -20,6 +20,7 @@ extension EnvironmentValues {
     @Environment(\.objectCardMedia) private var envMedia
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.rootSignIn) private var rootSignIn
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     /// OCARDS-2: card opened from the pile or the grid (offset into the loaded collection, with the scope it was tapped in).
@@ -57,11 +58,12 @@ extension EnvironmentValues {
     }
     var body: some View {
         List {
-            // OCARDS-4 (signed-out part): 去登录 opens 我的, like the MP access gate.
+            // OCARDS-4 (signed-out part): 去登录 like the MP access gate (mp-states r3: the sign-in sheet over this page).
             if !reader.isAuthenticated {
+                let signIn = rootSignIn.signedOutAction(fallback: rootTabSwitch)
                 CYEmptyState(systemImage: "person.crop.circle", "objectCards.signIn",  // MP 登录后查看自己的册子
-                             actionTitle: rootTabSwitch.isAvailable ? "auth.signIn" : nil, actionIdentifier: "objects.signIn",
-                             action: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil)
+                             actionTitle: signIn == nil ? nil : "auth.signIn", actionIdentifier: "objects.signIn",
+                             action: signIn)
             }
             else if !reader.isConfigured { CYEmptyState(systemImage: "rectangle.stack", "objects.disabled") }
             else {

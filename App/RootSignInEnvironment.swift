@@ -10,6 +10,18 @@ struct RootSignIn {
     private init() { isAvailable = false; request = { _ in } }
     static let unavailable = RootSignIn()
     @MainActor func callAsFunction(then resume: (@MainActor () -> Void)? = nil) { request(resume) }
+
+    /// mp-states r3 (MP cy-empty no-permission · 登录): the signed-out 登录 action of a pushed page. It opens the
+    /// sign-in sheet over the page (the player stays where they were); only a host without the root sheet falls back
+    /// to the 我的 tab. Nil when neither exists, so the caller shows no dead button.
+    @MainActor func signedOutAction(fallback tabs: RootTabSwitch) -> (() -> Void)? {
+        if isAvailable {
+            let signIn = self
+            return { signIn() }
+        }
+        if tabs.isAvailable { return { tabs(.mine) } }
+        return nil
+    }
 }
 
 private struct RootSignInKey: EnvironmentKey {

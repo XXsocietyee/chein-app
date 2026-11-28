@@ -17,6 +17,7 @@
     {
       "parallelizable": false,
       "skippedTests": [
+        "AICreationReleaseCompositionTests",
         "AccessibilityHardeningWaveTests",
         "AccessibilityReadinessSectionViewTests",
         "AccountDeletionAndGDPRPIPLSectionViewTests",
@@ -157,6 +158,7 @@
         "Fix1128bMapsCompositionTests",
         "Fix1128bMineCompositionTests",
         "Fix1128bTeamRegCompositionTests",
+        "Fix1128cWeatherReleaseCompositionTests",
         "FogOverlayLayerPixelTests",
         "G1ProductionGatesEndToEndTests",
         "G6CapabilityGrantTests",
@@ -312,6 +314,7 @@
         "NativeEnrollmentAppTests",
         "NativeFriendDirectoryNavigationHostingTests",
         "NativeFriendRequestReviewHostingTests",
+        "NativeGameStopwatchTriesLeftTests",
         "NativeHomeReturnCompositionTests",
         "NativeNotificationPermissionStatusPresentationTests",
         "NativePlatformAppTests",

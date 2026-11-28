@@ -67,7 +67,8 @@ class W204TicketWalletParity(unittest.TestCase):
     def test_ready_rows_still_open_detail_first(self):
         # Direct play would bypass the tested fresh-detail gate; parity records this gap.
         # Upcoming / refunding tickets are locked (MP wLocked) and do not open.
-        self.assertIn('if ticket.action == .detail && !ticket.isWalletLocked {\n                            NavigationLink {\n                                TicketWalletDetailView(', self.view)
+        # mp-mine r3: each ticket now sits in its own Section (pass card), so the pin ignores indentation.
+        self.assertRegex(self.view, r'if ticket\.action == \.detail && !ticket\.isWalletLocked \{\n\s+NavigationLink \{\n\s+TicketWalletDetailView\(')
         self.assertNotIn('ticketWalletPlayProvider', self.view)
 
     def test_list_request_sends_page_size_ten(self):

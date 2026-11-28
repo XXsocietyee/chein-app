@@ -301,6 +301,8 @@ struct TopicXcxActionBar: View {
                 Button(action: openSessions) {
                     Text("topicXcx.cta.sessions")
                         .font(.footnote)
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
                 .modifier(TopicBarHeroSource(sheet: .sessions, namespace: heroNamespace, cornerRadius: CYRadius.sm))
