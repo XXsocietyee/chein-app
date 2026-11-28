@@ -194,6 +194,7 @@
         "InvoiceLaunchHistoryRulesTests",
         "InvoiceLaunchNavigationCancellationTests",
         "InvoiceLaunchPresentationActionTests",
+        "K40HomeDiscoveryCompositionTests",
         "LanguageSwitcherTests",
         "LocalizationCompletenessSectionViewTests",
         "LocationShareAndSideQuestViewTests",
