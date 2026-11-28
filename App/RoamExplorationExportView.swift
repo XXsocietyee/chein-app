@@ -231,7 +231,9 @@ private struct RoamExportFileSaveLink: View {
                     guard RoamExportHandoff.callbackMatches(lease, current: model.deliveryLease) else { return }
                     saveTicket = nil
                     switch result {
-                    case .success: saveResult = "roam.export.saved"
+                    case .success:
+                        // Motion r3: one success tap when the file lands (MP 已保存 toast).
+                        saveResult = "roam.export.saved"; HapticsService.shared.play(.success)
                     case .failure(let error):
                         let cancelled = (error as? CocoaError)?.code == .userCancelled
                         saveResult = cancelled ? "roam.export.cancelled" : "roam.export.saveFailed"
@@ -248,7 +250,7 @@ private struct RoamExportFileSaveLink: View {
                                         guard shareOffer?.id == offer.id else { return }
                                         if owner.active, model.fileForDelivery(foreground: scenePhase == .active) != nil,
                                            RoamExportHandoff.callbackMatches(offer.lease, current: model.deliveryLease) {
-                                            if saved { saveResult = "roam.export.saved" }
+                                            if saved { saveResult = "roam.export.saved"; HapticsService.shared.play(.success) }
                                             else { model.revokeDelivery() }
                                         }
                                         shareOffer = nil
