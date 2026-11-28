@@ -8,13 +8,21 @@ Branch `mp/r3-journey-b` from `origin/mp/r3-journey`. Works the open rows of `do
 | A-receipt row | MP page | Native view | MP sections (✓ / added / fixed) | Level · optimizations |
 |---|---|---|---|---|
 | "联系主办 / 联系商家: MP puts it in 游玩工具 after the lead rows and only dials (number hidden) …" (11-28) | `pages/play/index.wxml:318` (`drow wx:if="{{playContact}}"`, after 整团结算) + `utils/play-hud-overlays.js` `loadPlayContact` / `callPlayContact` | `App/MPGap/PlayRoam/PlayToolsAndLeadSheetView.swift` `contactSection`; read in `App/PlayRuntimeGapViews.swift` `PlayContactReader`, applied in `App/PlayExperienceView.swift` | **moved**: the row left the page list and is now the 游玩工具 row right after the lead rows (label 联系主办 / 联系商家, phone glyph, no number on screen); tap asks 拨打「name」的电话？ (name, else 商家 / 主办) with 拨打 / 取消, then dials. The side effect was split out first: `PlayContactReader` (a page modifier) keeps the one read per current station and the finished-run `run-session/clear` tombstone, same conditions as before (current media snapshot) | C (tools sheet) · system `Form` row with `Label` + SF Symbol, native `.alert` confirm, `openURL(tel:)`; en + zh-Hans `playTools.contact.*` (6 keys) |
+| "集合屏 member avatars (no avatar in `PlayLeadProgress`), `lead.freeEntry` not decoded" (11-28) | `pages/play/index.wxml:1022-1038` P1 集合屏 (`leadgather wx:if="{{lead.exists && lead.status==1 && !lead.freeEntry}}"`, `lg-num` arrived/`lead.total`, `lg-members`) | `Core/PlayExperienceContracts.swift` `PlayLeadProgress.Member.avatar`; `App/PlayExperienceView.swift` lead section gather block + new `PlayLeadGatherAvatars` | **added** the `lg-members` avatar row under 已到集合点 (only members with an avatar, dimmed until arrived); **fixed** the 集合屏 now hides for a free-entry team (`freeEntry` was already decoded, but not applied to the gather block); **fixed** the denominator is `lead.total` (whole team) instead of the capped member list, as the MP shows | B (team gathering) · `SquareAuthorAvatar` (safe-host image, MP default avatar fallback), `@ScaledMetric` size, VoiceOver hidden (count carries it), unit test `testGatherMembersCarryTheMPAvatar` |
 
 ## Skipped (not actionable in this lane)
 
 - "Pages not ported (story-flow theme, out of scope)" — story-flow stays paused.
+- "MP auth empty card (登录已过期 + 重新登录): the app handles login expiry globally" — a decision, nothing to port.
+- "游玩工具 本局用时 / 当前得分 values …" — looked at 11-28 and left for a later run: the values need the orient-scoring
+  read (`/api/orient/scoring/session/{id}` + `/leaderboard`, MP `loadSessionStats` / `scoreScreen`) inside the play page;
+  `PlayExperienceView` has no `OrientSessionService` (the 本局成绩 page reads it through `AppSession.orientScoreRoundsLoader`)
+  and the play-runtime client only admits literal read paths, so it needs a Release-composition test first.
 
 ## Gates
 
 - 11-28 (联系主办 row): `generate_project` ok · `check_scaffold` PASS · `check_a11y_lint` PASS 0 new · `contract_ratchet --check` 52 failing, baseline 52, **new 0** · `check_design_consistency` PASS · `check_missing_string_keys` missing 0.
+
+- 11-28 (集合屏 row): `generate_project` ok · `check_scaffold` PASS · `check_a11y_lint` PASS 0 new · `contract_ratchet --check` 52 / 52, **new 0** · `check_design_consistency` PASS · `check_missing_string_keys` missing 0.
 
 New strings (en + zh-Hans, also in `docs/port/strings/mp-journey-r3.json`): `playTools.contact.host|merchant|call|hostName|merchantName`, `playTools.contact.prompt %@`.
