@@ -709,6 +709,12 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - New Cursor receipts `cursor-k50-r04/r09/r10`: roam entries are K50-R crash-proofing (force-unwrap removals in `RoamLiveSessionController`, `RoamLiveService`, `RoamService`; justified `!` sites), no `lane-layout` rows. Still no `cursor-k50-p*` receipts.
 - A-half open rows unchanged (P2-7 POI tap, citystamp coordinator, P21 mini bar: compiled pass; P1-22: owner value). **A half done** — stopped per the 15:45 collision rule.
 
+## Round 3 continue (58) — merge `ui/combined-r7` (021045941); A half still done
+
+- Fast-forwarded onto `origin/ui/combined-r7`. Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, new 0. Brief unchanged since the 18:30 sweep (club / journey); sweep still b954de71c, so no new roam frames. Still no `cursor-k50-p*` receipts on any branch: no `lane-layout` rows for roam.
+- B receipt: B half still done (`00287603d`), nothing new to mark "(B lane)".
+- A-half open rows unchanged (P2-7 POI tap, citystamp coordinator, P21 mini bar: compiled pass; P1-22: owner value). **A half done** — stopped per the 15:45 collision rule.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
