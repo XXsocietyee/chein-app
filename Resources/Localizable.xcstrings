@@ -50338,13 +50338,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redemption status hasn't updated yet"
+            "value": "Redemption status hasn’t synced yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核销状态暂未更新"
+            "value": "核销状态暂未同步"
           }
         }
       }
@@ -200933,13 +200933,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The crop didn't work. Adjust and try again, or cancel to keep your current background."
+            "value": "Couldn’t finish the crop. Adjust it and try again, or use the original."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "裁剪未完成。可以调整后重试，或取消以保留当前背景图。"
+            "value": "裁剪没有完成。可以调整后重试，或使用原图。"
           }
         }
       }
@@ -363841,6 +363841,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "这附近没有搜到"
+          }
+        }
+      }
+    },
+    "pages.crop.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open the image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片没能打开"
+          }
+        }
+      }
+    },
+    "pages.crop.openFailed.reason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose another image and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "换一张图片再试。"
           }
         }
       }
