@@ -399,3 +399,11 @@ Merged `origin/ui/combined-r7` (xcstrings: theirs; our 14 orphan `auth.alipay.*`
 | subpackageA/pages/infomationdetail share (infomationdetail.js:161) → App/SocialGuideViews.swift `informationShare` → `PublicContentShareLink.information` | same defect: always nil, shared the path text | same `reviewedPage` fix | fixed (not compiled here) |
 
 Tests: Tests/CoreTests/PublicContentShareLinkTests.swift `testTopicTemplateSharesTheParsedUniversalLink` (replaces the old "not parsed, copy only" pin) and `testInformationSharesTheParsedUniversalLink`. Level C/B unchanged (navigation only; no section/order change).
+
+## Re-scan 11-28 10:3x — remaining mp-nav audit rows (twin run took the share rows above)
+
+| audit row | MP → native | finding | status |
+|---|---|---|---|
+| 1128-functions row 288 (IM inbox → 举报结果, "Not traced") | MP has no inbox-level report row: report progress lives only in the 城瘾小助手 system chat ("系统消息只放在城瘾小助手 … 不再在消息列表单列", im/chat index.js:192) → 我的举报 (`/subpackageMember/report-mine/index`) | MP entry is present: `MessagingHistoryView.swift:188` renders `IMReportProgressEntry` for the system notice with the unread count (`CloudB3Production.swift:230`, `GET api/v1/community/notifications`) → `SquareReportProgressView` (`SessionMessagingEntry.swift:40`). The inbox ⋯ 举报结果 row (`SessionMessagingEntry.swift:50`) is a different, app-only screen: the local journal of channel reports whose outcome was unknown, read back with `GET api/channel-platform/governance/reports/requests/{uuid}` (`Core/NativeChannelReportFlow.swift:166`), granted `.liveInProduction` (`Core/ChinaReviewedRouteCapability.swift:932`); unavailable / read-failed / empty states present. Closed loop; kept because removing it would strand pending reports | verified, no change |
+| row 293 (IM 发送图片 Release-off) | — | audit P1-28, owned by `fix/1128-publish` / mp-publish | n/a (other lane) |
+| rows 130, 131, 397 (chein:// URL types, universal links, WeChat SDK callback) | — | P1-1 / P0-5, owned by `fix/1128-wechat-login` | n/a (fix worker) |
