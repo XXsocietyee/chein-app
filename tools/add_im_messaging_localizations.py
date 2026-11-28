@@ -25,7 +25,10 @@ def main():
     for row in rows:
         assert row['en'].strip() and row['zh-Hans'].strip(), row['key']
         entry = strings.setdefault(row['key'], {})
-        entry['localizations'] = {'en': unit(row['en']), 'zh-Hans': unit(row['zh-Hans'])}
+        en = unit(row['en'])
+        if row.get('en_one'):  # en-layout r3: English count strings vary by plural; `en` is the `other` form.
+            en = {'variations': {'plural': {'one': unit(row['en_one']), 'other': unit(row['en'])}}}
+        entry['localizations'] = {'en': en, 'zh-Hans': unit(row['zh-Hans'])}
     CATALOG.write_text(json.dumps(catalog, ensure_ascii=False, indent=2, separators=(',', ': ')) + '\n')
     print(f'merged {len(rows)} IM messaging keys')
 

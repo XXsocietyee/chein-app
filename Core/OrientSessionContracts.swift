@@ -174,6 +174,10 @@ public struct OrientSessionScore: Decodable, Equatable {
     public let pendingReviewCount: Int?
     /// Server `recoveries`. Absent or null is an empty list. A present row that is not a review record fails the score.
     public let recoveries: [OrientScoreRecoveryRecord]
+    /// Server `startedAt` / `endedAt` (MP `play-hud-overlays.js` `scoreScreen` `stamp`): epoch or date text. Nil when
+    /// absent, blank or unreadable; only used for the MP 本局用时 fallback when the board has no `me.elapsedMs`.
+    public let startedAt: Date?
+    public let endedAt: Date?
     /// MP `orient-score-view.js:97`: `!data.settlement && data.status !== 3`.
     public var canSync: Bool { settlement == nil && status != 3 }
     /// MP `orient-score-view.js:97`: ended, not settled, and no task still in review.
@@ -186,7 +190,7 @@ public struct OrientSessionScore: Decodable, Equatable {
     }
     private enum CodingKeys: String, CodingKey {
         case sessionId, topicId, activityId, status, totalCenti, byDimension, timeline, settlement, appeals, disputes
-        case disputeWindowDeadline, pendingReviewCount, recoveries
+        case disputeWindowDeadline, pendingReviewCount, recoveries, startedAt, endedAt
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -209,6 +213,8 @@ public struct OrientSessionScore: Decodable, Equatable {
         appealRecords = try c.decode([OrientSessionScoreReviewRecord].self, forKey: .appeals)
         disputeRecords = try c.decode([OrientSessionScoreReviewRecord].self, forKey: .disputes)
         disputeWindowDeadline = Self.deadlineText(c)
+        startedAt = Self.stamp(c, .startedAt)
+        endedAt = Self.stamp(c, .endedAt)
         guard sessionID > 0, (0...3).contains(status), settlement == nil || settlement?.sessionID == sessionID,
               ["TASK", "PUZZLE", "BONUS", "PENALTY", "ADJUSTMENT"].allSatisfy({ byDimension[$0] != nil }),
               appealRecords.allSatisfy({ $0.sessionID == sessionID }), disputeRecords.allSatisfy({ $0.sessionID == sessionID }),
@@ -224,6 +230,19 @@ public struct OrientSessionScore: Decodable, Equatable {
         let key = CodingKeys.recoveries
         guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return [] }
         return try c.decode([OrientScoreRecoveryRecord].self, forKey: key)
+    }
+
+    /// MP `stamp`: a number is an epoch (milliseconds when it is at least 10^10), a string goes through the MP
+    /// `toTimestamp` formats (ISO 8601 or China-time `yyyy-MM-dd HH:mm:ss`). Anything else is nil, never an error.
+    private static func stamp(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Date? {
+        guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return nil }
+        if let text = try? c.decode(String.self, forKey: key) { return PlayToolsSessionStats.parseDeadline(text) }
+        let raw: Double
+        if let value = try? c.decode(Int64.self, forKey: key) { raw = Double(value) }
+        else if let value = try? c.decode(Double.self, forKey: key), value.isFinite { raw = value }
+        else { return nil }
+        guard raw > 0 else { return nil }
+        return Date(timeIntervalSince1970: raw >= 10_000_000_000 ? raw / 1000 : raw)
     }
 
     /// A number is an epoch (milliseconds when it is at least 10^10). Any other present string is shown as given.

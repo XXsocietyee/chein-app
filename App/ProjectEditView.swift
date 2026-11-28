@@ -27,6 +27,8 @@ import SwiftUI
         }
     }
     @Published private(set) var editorIncarnation = UUID()
+    /// MP `manageAttributeDefinitions` (初始状态 → 调整定义): bumped to ask the root view for the 主题详情 sheet.
+    @Published var topicDetailAsk = 0
     /// In-memory ABA fence for a node draft chooser; not saved or sent to the server.
     private(set) var draftMutationRevision = 0
     private(set) var issueNodeIdentityRevision = 0
@@ -421,7 +423,8 @@ import SwiftUI
                 } header: { OpsR3Text.text("editor.settings") }
                 // r8 C-F5 (MP fabu wxml:172): 角色 card, city themes only, never in the whitelist scope.
                 if model.draft.product == .city, model.coordinator.snapshot?.scope != .whitelist {
-                    ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly, chapters: model.draft.chapters)
+                    ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly, chapters: model.draft.chapters,
+                                        avatarUpload: ProjectEditCastAvatarUpload.make(model))
                 }
                 // U02-03 place to-dos (MP fabu wxml:187: page 1, right above 章节) for an adopted template copy. Hidden while gated or without a place contract.
                 if let topicID = model.coordinator.snapshot?.topicID, TopicTemplateAdoptionFactory.bindingIsLive {
@@ -700,6 +703,7 @@ import SwiftUI
         .modifier(ProjectRuntimeEndingsHost(model: model, isPresented: $runtimeEndingsOpen,
                                             rootRequestID: issueNavigation.rootRequest?.id,
                                             rootAnchor: issueNavigation.rootRequest?.capture.location.anchor))
+        .onChange(of: model.topicDetailAsk) { _, _ in topicDetailRequest = ProjectEditTopicDetailRequest(anchor: nil) }
         .onChange(of: model.revision) { _, _ in
             if model.coordinator.state == .acknowledged, let next = model.submittedHandoff, next.id != handledSubmission {
                 handledSubmission = next.id; submission = next

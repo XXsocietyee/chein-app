@@ -145,7 +145,7 @@ import SwiftUI
 }
 
 
-/// Public topic is the only content kind a classified link may present. Other kinds stay on the unsupported route.
+/// Topic keeps the home-feed topic screen. Every other classified kind opens the mini-program page for that id.
 @MainActor private struct AuditedContentEntry: View {
     let target: NativeContentTarget
     @ObservedObject var session: AppSession
@@ -153,6 +153,10 @@ import SwiftUI
     var body: some View {
         if target.kind == .topic {
             SessionTopicDetailView(id: target.id, session: session)
+        } else if let route = MPParityRoute(miniProgramPath: target.inboundPage, query: target.inboundQuery) {
+            MPParityDestination(route: route)
+                .environmentObject(session)
+                .modifier(MPParityPassEnvironment(session: session))
         } else {
             NativeRouteErrorView(failure: .unsupported, goHome: { session.dismissNativeEntry(); goHome() })
         }

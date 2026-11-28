@@ -99,7 +99,9 @@ class ClubStoryNavigationContractTests(unittest.TestCase):
             self.assertIn(key, fragment)
         for key, item in fragment.items():
             for language in ['en', 'zh-Hans']:
-                self.assertTrue(item['localizations'][language]['stringUnit']['value'], key)
+                # en-layout r3: count strings vary by plural (club.story.stopCount); read the `other` form.
+                unit = item['localizations'][language].get('stringUnit') or item['localizations'][language]['variations']['plural']['other']['stringUnit']
+                self.assertTrue(unit['value'], key)
     def test_fixtures_do_not_construct_real_session_or_grants(self):
         fixture = self.text('App/ClubStoryFixtureHost.swift')
         self.assertTrue(fixture.startswith('#if DEBUG'))

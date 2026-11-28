@@ -41,7 +41,7 @@ import SwiftUI
     var body:some View {
         navigationRoot
         .id(session.homeFeedReader.scope)
-        .task(id:session.playerJourneyReader.scope) { await reloadContinuationCards() }
+        // Plan audit H-02a: no 继续探索 read on 首页 — the MP wxml renders no continuation card (#29) and HomeFeedView draws none.
         .task(id:session.ticketWalletReader.scope) { await reloadTodayTicket() }
         .task(id:session.homeFeedReader.scope) { await cityConsent.refresh(session) }
         .task(id:session.sessionRevision) { await cityConsent.refresh(session) }
@@ -249,8 +249,6 @@ import SwiftUI
                 }
         }
         .onChange(of: presentation?.homeLanding, initial: true) { _, _ in openHomeLanding() }
-        .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
-        .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
         .cySheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).cySheet(detents: [.large]) }
     }
     @ViewBuilder private func continuationDestination(_ scope: PlaySessionScope) -> some View {

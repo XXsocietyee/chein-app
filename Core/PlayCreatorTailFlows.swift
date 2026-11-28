@@ -90,6 +90,7 @@ public final class PlayCreatorTailDefaultsStore {
             canAppeal = timeline.canAppeal && !draft.confirmed
             if !draft.confirmed { appealState = timeline.appealState }
         case .refused(_, let message), .ok(_, let message): load = .failed(message); canAppeal = false
+        case .retryable(let message): load = .failed(message); canAppeal = false
         case .unauthorized, .unknown: load = .failed(nil); canAppeal = false
         }
     }
@@ -161,6 +162,8 @@ public final class PlayCreatorTailDefaultsStore {
             // First-response validation is definite; any other code keeps the frozen input.
             if code == 400 { _ = save(pending: false, reason: reason) }
             else if code == 409 { await recover() }
+        case .retryable(let message):
+            note = .server(message)
         case .unauthorized, .unknown: note = .networkPending
         }
     }

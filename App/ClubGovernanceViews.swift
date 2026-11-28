@@ -2010,15 +2010,9 @@ struct ClubGovernanceReadView: View {
                             }
                             .accessibilityElement(children: .combine)
                         }
-                        // Mini-program club/group-code: pick the session, then issue. One tap here; the reviewed
-                        // command still checks check-in permission and the provider gate before any request.
-                        if let issued { edit(.issueGroupCode, scope: target).accessibilityValue(Text(verbatim: issued.headcount.displayText)) }
-                        SharedRunControlEntry(activityID: id)
-                        if let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
-                            NavigationLink("context.ops.title") {
-                                ClubOpsTimeView(activityID: id, original: startDate, owner: opsTimeFactory?(id)) { Task { await load() } }
-                            }.accessibilityIdentifier("club.context.editOps.\(id)")
-                        }
+                        // mp-club r3 (MP topic-detail wxml:142-152): 接下来 rows carry only when / who / eta. 团码 is the round
+                        // action (wxml:63-80), 集合时间 is one row in the director block (wxml:190-200), and the shared-run
+                        // control lives on the director page (ROUTE), so no per-session rows here.
                     }
                 }
             } header: { Text("club.topic.upcoming") } footer: {
@@ -2034,9 +2028,33 @@ struct ClubGovernanceReadView: View {
                 }, presentation: terminalPresentation)
             // CLB-G13 (MP topic-detail wxml:160-500): with an activityId the topic detail carries the director block
             // (K8 banner, 准备总览, director tools, 排行榜), only where topic-manage-stats grants canDirect.
-            if let activityID = scope.activityID, canDirect { ClubTopicDirectorEmbeddedMount(activityID: activityID, topicID: scope.topicID) }
+            if let activityID = scope.activityID, canDirect {
+                topicOpsTimeRow(activityID: activityID, sessions: value["activityList"].array ?? [], ended: topicDisplay.state == .ended)
+                ClubTopicDirectorEmbeddedMount(activityID: activityID, topicID: scope.topicID)
+            }
             // CLB-topic-detail-02: the phase primary is the pinned footer (`topicPrimaryFooter`), not the last row.
         
+    }
+
+    /// MP topic-detail wxml:190-200 (HO-26): one 集合时间 row for the director's session, only when its start parses and
+    /// the topic has not ended; 修改 opens the edit-ops form (the server keeps the sold-session lock, CR-63).
+    @ViewBuilder private func topicOpsTimeRow(activityID: Int, sessions: [ClubGovernanceValue], ended: Bool) -> some View {
+        if !ended, let row = sessions.first(where: { $0["id"].int == activityID }),
+           let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
+            Section {
+                NavigationLink {
+                    ClubOpsTimeView(activityID: activityID, original: startDate, owner: opsTimeFactory?(activityID)) { Task { await load() } }
+                } label: {
+                    LabeledContent {
+                        Text(verbatim: ClubGroupCodePort.formatStart(date: startDate, time: row["startTime"].string)).monospacedDigit()
+                    } label: {
+                        Text("club.topic.opsTime")
+                    }
+                }
+                .accessibilityHint(Text("context.ops.title"))
+                .accessibilityIdentifier("club.context.editOps.\(activityID)")
+            }
+        }
     }
 
     @ViewBuilder private func contentAudienceCounts(_ snapshot: ClubGovernanceSnapshot) -> some View {

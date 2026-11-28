@@ -14,6 +14,12 @@ struct TemplateAuthoringCoverHeader: View {
     /// `gameTemplateCover`): with no uploaded cover, a built-in interaction game shows its MP default art.
     var defaultCover: Image? = nil
     @FocusState private var editingTitle: Bool
+    /// MP `cg-title-input` `maxlength="20"`.
+    static let titleLimit = 20
+
+    private var limitedTitle: Binding<String> {
+        Binding(get: { title }, set: { title = EditorCounter.clamp($0, limit: Self.titleLimit) })
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -43,7 +49,8 @@ struct TemplateAuthoringCoverHeader: View {
                 .clipShape(.rect(cornerRadius: EditorKitMetric.cardRadius, style: .continuous))
             // verify-r1 2.9: the title is the name field itself (no separate 名称 row); a plain system text field
             // below the cover instead of white text on a scrim.
-            TextField(text: $title, prompt: EditorKitText.text("editorKit.cover.untitled"), axis: .vertical) {
+            // MP temp/index.wxml:1253-1254: placeholder 给这个玩法起个名字, maxlength 20.
+            TextField(text: limitedTitle, prompt: Text("templateAuthor.prompt.title"), axis: .vertical) {
                 Text("templateAuthor.field.title")
             }
             .lineLimit(1...3)

@@ -298,6 +298,7 @@ struct ClubTopicMoreRoute: Hashable {
     private var actions: Set<String> { projection.availableActions }
     private var canUnlockChapter: Bool { actions.contains("UNLOCK_CHAPTER") && !projection.chapterOptions.isEmpty }
     private var hasTeams: Bool { !projection.teams.isEmpty }
+    @State private var showingTeams = false
     private var canAssignRoles: Bool { actions.contains("ASSIGN_ROLES") && !projection.roleOptions.isEmpty && !projection.roles.isEmpty }
     private var hasIncidents: Bool {
         projection.stations.contains { ($0["status"].text ?? "").uppercased() == "PAUSED" } || !projection.submissions.isEmpty
@@ -338,13 +339,21 @@ struct ClubTopicMoreRoute: Hashable {
         if canUnlockChapter || hasTeams || canAssignRoles || hasIncidents {
             Section {
                 if canUnlockChapter { tool("club.director.tool.chapterRelease", "lock.open", id: "chapterRelease") }
-                if hasTeams { tool("club.director.tool.teamProgress", "flag.2.crossed", id: "teamProgress") }
+                if hasTeams {
+                    // MP D5 (topic-detail wxml:277, 366-370): 队伍进度 opens its own read-only half sheet.
+                    Button { showingTeams = true } label: { Label("club.director.tool.teamProgress", systemImage: "flag.2.crossed") }
+                        .accessibilityIdentifier("club.topic.director.tool.teamProgress")
+                }
                 if canAssignRoles { tool("club.director.tool.roleAssignment", "person.2.badge.gearshape", id: "roleAssignment") }
                 if hasIncidents { tool("club.director.tool.liveEvents", "bolt.badge.clock", id: "liveEvents") }
             } header: {
                 Text("club.director.tools")
             } footer: {
                 if canUnlockChapter { Text("club.director.unlockNote") }
+            }
+            .sheet(isPresented: $showingTeams) {
+                ClubDirectorTeamSheet(teams: ClubDirectorTeamSheetRows.teams(projection),
+                                      broadcasts: ClubDirectorTeamSheetRows.broadcasts(projection))
             }
         }
         if let visible = projection.leaderboardVisible, !finished {
