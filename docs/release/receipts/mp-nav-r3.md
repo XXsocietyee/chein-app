@@ -211,6 +211,7 @@ Merged `origin/ui/combined-r7` (793c3190b). Sweep sheets (en / zh-Hans): `d2-inb
 | MP edge → native view | before | after | status |
 |---|---|---|---|
 | pages/talent/list 帖文 (and club detail 帖子) 引用卡 → pages/topic/index/index (`onPostReference`, index.js:241-246 navigateTo) → App/ClubPostReferenceView.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` + 关闭 (popup for a page edge, OWNER RULE 2) | `NavigationLink` push of `ClubPostReferenceDestination` (no own stack, no 关闭, `.cyPushedChrome()`, system back); the destination still re-checks the route and pops when the post / identity / scope changed. Row content and MP order unchanged | fixed |
+| pages/talent/list 帖文 引用卡 现在去玩 → pages/play/index?topicId= (`onPostReferencePlay`, index.js:248-252 navigateTo) → App/ClubPostPlayPreview.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` + 关闭 around `SessionPlayRuntimeView` | `NavigationLink` push of `ClubPostPlayDestination` (no own stack, no 关闭, `.cyPushedChrome()`), same as topic 开始 (`showingPlay` push); route / identity / revision re-checks still pop it; signed-out 登录 stays a sheet (MP popup) | fixed |
 | talent/list 帖文 post tap / author / club chip → square detail, club detail (postId), pages/userinfo (onPostTap / onPostUser / onPostClub) | — | `navigationDestination(item:)` pushes in ClubCommunityFeedView (ClubCommunityViews.swift:471-493) | OK |
 
 ## Route coverage
