@@ -65,7 +65,7 @@ struct SquareDeletionConfirmView: View {
             Form {
                 Section {
                     ForEach(Array(consequences.enumerated()), id: \.offset) { _, item in
-                        Label { Text(verbatim: item.text) } icon: { Image(systemName: item.systemImage).foregroundStyle(.red) }
+                        Label { Text(verbatim: item.text) } icon: { Image(systemName: item.systemImage).foregroundStyle(CYColor.dangerText) }
                     }
                 } header: {
                     Text(verbatim: titleText)

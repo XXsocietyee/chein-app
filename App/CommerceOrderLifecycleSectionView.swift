@@ -47,7 +47,7 @@ import SwiftUI
             if orderSnapshot.requiresServerRefundQuery {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "lock.trianglebadge.exclamationmark.fill")
-                        .accessibilityHidden(true).foregroundStyle(.red)
+                        .accessibilityHidden(true).foregroundStyle(CYColor.dangerText)
                     Text(verbatim: "存在 UNKNOWN 状态退款单：已锁定客户端重试，仅允许服务端回查")
                         .cyText(.bodyCompact)
                 }

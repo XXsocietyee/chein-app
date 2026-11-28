@@ -28,7 +28,7 @@ public struct WorkshopModUpgradeSheetView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: manifestNotice.titleText)
                             .font(.headline)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                         Text(verbatim: manifestNotice.bodyText)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -136,7 +136,7 @@ public struct WorkshopModUpgradeSheetView: View {
                 if let errorNotice {
                     Label(LocalizedStringKey(errorNotice), systemImage: "exclamationmark.triangle")
                         .font(.footnote)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("workshop.upgrade.errorNotice")
                 }
             }

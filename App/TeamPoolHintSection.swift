@@ -116,7 +116,7 @@ import SwiftUI
             TimelineView(.periodic(from: .now, by: 1)) { context in
                 if pool.isTimerExpired(at: context.date) {
                     Text("teamPool.timerExpired")
-                        .font(.subheadline).foregroundStyle(.red)
+                        .font(.subheadline).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("teamPool.timerExpired")
                         .accessibilityLabel(Text("teamPool.timerExpired"))
                 } else if let remaining = pool.remainingTimerSeconds(at: context.date) {
@@ -175,7 +175,7 @@ import SwiftUI
                 case .failed: Text("teamPool.failed")
                 }
             }
-            .font(.subheadline).foregroundStyle(.red)
+            .font(.subheadline).foregroundStyle(CYColor.dangerText)
             .accessibilityIdentifier("teamPool.notice")
             if notice == .unknown || notice == .failed,
                let row = RequestReferenceRow(pathFragment: "/api/team/pool") { row }
