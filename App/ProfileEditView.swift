@@ -747,7 +747,7 @@ struct ProfileEditView: View {
                 if let remote = model.coordinator.remoteMessage { Text(verbatim: remote) }
                 if saveFailed, !savingProfile {
                     Label { Text("profile.edit.saveFailed") } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("profile.edit.saveFailed")
                     Button { Task { await saveProfile() } } label: {
                         Text("profile.edit.retrySave").frame(maxWidth: .infinity)

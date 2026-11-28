@@ -69,7 +69,7 @@ struct ProjectEditTopicCard: View {
                         Label { Text("mpPublish.topicDetail.missing \(missing)") }
                             icon: { Image(systemName: "exclamationmark.circle.fill") }
                             .font(.subheadline)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                     } else {
                         Text("mpPublish.topicDetail.complete").font(.subheadline).foregroundStyle(.secondary)
                     }

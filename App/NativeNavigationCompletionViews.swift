@@ -85,11 +85,11 @@ import SwiftUI
             } footer: {
                 if invalid {
                     Label("mpr3.team.joinCodeInvalid", systemImage: "exclamationmark.circle")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("nativeNav.team.codeError")
                 } else if let lookupReason {
                     Label(lookupReason, systemImage: "exclamationmark.circle")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("nativeNav.team.codeLookupError")
                 }
             }

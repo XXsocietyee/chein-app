@@ -64,7 +64,7 @@ import SwiftUI
                 .accessibilityIdentifier("templateRules.add")
             }
             if let key = model.ruleStepIssue {
-                Text(LocalizedStringKey(key)).font(.footnote).foregroundStyle(.red)
+                Text(LocalizedStringKey(key)).font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("templateRules.issue")
             }
         }

@@ -2504,7 +2504,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Youngest child (age)"
+          "value": "Minimum child age"
         }
       },
       "zh-Hans": {
@@ -2521,7 +2521,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Oldest child (age)"
+          "value": "Maximum child age"
         }
       },
       "zh-Hans": {

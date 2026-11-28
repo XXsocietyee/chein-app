@@ -51,7 +51,8 @@ class ProfileParticipantValidationTests(unittest.TestCase):
         self.assertIn('.accessibilityIdentifier("participant.form.save")', self.app)
     def test_keyboard_and_button_focus_first_error(self):
         self.assertIn('@FocusState private var focusedField: ProfileParticipantValidationField?', self.app)
-        self.assertEqual(self.app.count('focusedField = model.reviewForSave()'), 2)
+        # keyboard submit, toolbar 保存 and the MP 重试保存 (addressinfo.wxml:45) all focus the first error
+        self.assertEqual(self.app.count('focusedField = model.reviewForSave()'), 3)
     def test_feedback_accessible_and_localized(self):
         self.assertIn('Text(LocalizedStringKey(field.messageKey))', self.app)
         self.assertIn('"profile.participantValidation.issue." + field.rawValue', self.app)

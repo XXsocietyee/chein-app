@@ -1225,7 +1225,7 @@ private struct PassOrderRefusedWrites: View {
                         VStack(alignment: .leading, spacing: 4) {
                             if reasonMissing {
                                 Label { Text("mp.passOrder.refundApply.placeholder") } icon: { Image(systemName: "exclamationmark.circle") }
-                                    .foregroundStyle(.red)
+                                    .foregroundStyle(CYColor.dangerText)
                                     .accessibilityIdentifier("passOrder.refund.reasonMissing")
                             }
                             Text(verbatim: "\(reason.count)/200").monospacedDigit()

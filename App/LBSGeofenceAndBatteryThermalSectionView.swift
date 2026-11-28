@@ -152,7 +152,7 @@ public struct LBSGeofenceAndBatteryThermalSectionView: View {
             if !snapshot.isBatteryAndThermalSafe {
                 Text(verbatim: "告警：当前定位或温控策略未满足低功耗门禁，可能导致后台电量异常消耗或机身过热。")
                     .cyText(.label)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("lbsBatteryThermal.warningBanner")
             }
         } header: {

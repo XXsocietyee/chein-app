@@ -40,7 +40,7 @@ struct RoamAreaPicker: View {
                         Text("roam.area.latitudeHint").cyText(.meta).foregroundStyle(.secondary)
                         if latitudeIsInvalid {
                             Label("roam.area.invalidLatitude", systemImage: "exclamationmark.circle")
-                                .cyText(.meta).foregroundStyle(.red)
+                                .cyText(.meta).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("roam.area.latitude.error")
                         }
                     }
@@ -52,7 +52,7 @@ struct RoamAreaPicker: View {
                         Text("roam.area.longitudeHint").cyText(.meta).foregroundStyle(.secondary)
                         if longitudeIsInvalid {
                             Label("roam.area.invalidLongitude", systemImage: "exclamationmark.circle")
-                                .cyText(.meta).foregroundStyle(.red)
+                                .cyText(.meta).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("roam.area.longitude.error")
                         }
                     }

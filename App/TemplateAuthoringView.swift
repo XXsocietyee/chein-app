@@ -619,7 +619,7 @@ extension EnvironmentValues {
                     Text("templateAuthor.basics")
                 } footer: {
                     if model.draft.publishIssues.contains("templateAuthor.validation.descriptionLength") {
-                        Text("templateAuthor.validation.descriptionLength").foregroundStyle(.red)
+                        Text("templateAuthor.validation.descriptionLength").foregroundStyle(CYColor.dangerText)
                     }
                 }
             }
@@ -636,7 +636,7 @@ extension EnvironmentValues {
                 Section("templateAuthor.validationTitle") {
                     ForEach(Array(Set(model.draft.publishIssues)).sorted(), id: \.self) {
                         Label(LocalizedStringKey($0), systemImage: "exclamationmark.circle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                     }
                 }
             }

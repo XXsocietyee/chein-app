@@ -159804,7 +159804,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check the current server refund policy and deadline."
+            "value": "Check the latest refund policy and deadline."
           }
         },
         "zh-Hans": {
@@ -204853,13 +204853,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View all projects"
+            "value": "Manage all projects"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看全部项目"
+            "value": "管理全部项目"
           }
         }
       }
@@ -206793,7 +206793,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recruitment deadline"
+            "value": "Merchant sign-up deadline"
           }
         },
         "zh-Hans": {
@@ -209591,7 +209591,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sale end"
+            "value": "Ticket sales end"
           }
         },
         "zh-Hans": {
@@ -209639,7 +209639,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sale start"
+            "value": "Ticket sales start"
           }
         },
         "zh-Hans": {
@@ -210279,7 +210279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free exploration needs a recruitment deadline."
+            "value": "Free exploration needs a merchant sign-up deadline."
           }
         },
         "zh-Hans": {
@@ -239912,6 +239912,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "商家信息"
+          }
+        }
+      }
+    },
+    "searchMap.merchantDiscovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find shops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家发现"
           }
         }
       }
@@ -295190,7 +295207,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Parent-child ticket"
+            "value": "Family ticket"
           }
         },
         "zh-Hans": {
@@ -297624,7 +297641,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资料没有保存成功"
+            "value": "资料没有保存"
           }
         }
       }
@@ -350440,7 +350457,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Youngest child (age)"
+            "value": "Minimum child age"
           }
         },
         "zh-Hans": {
@@ -350457,7 +350474,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Oldest child (age)"
+            "value": "Maximum child age"
           }
         },
         "zh-Hans": {
@@ -354996,7 +355013,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld of 9 set"
+            "value": "%lld of 9 cells set"
           }
         },
         "zh-Hans": {
@@ -356601,6 +356618,142 @@
         }
       }
     },
+    "playerGap.playerCode.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading your invite code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载邀请二维码"
+          }
+        }
+      }
+    },
+    "playerGap.playerCode.loadingHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Friends can scan it once it loads"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载完成后即可扫码邀请好友"
+          }
+        }
+      }
+    },
+    "playerGap.playerCode.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your personal code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人码加载失败"
+          }
+        }
+      }
+    },
+    "playerGap.playerCode.failedHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your connection, then generate it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请检查网络后重新生成。"
+          }
+        }
+      }
+    },
+    "playerGap.playerCode.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新生成"
+          }
+        }
+      }
+    },
+    "playerGap.playerCode.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The code isn't available right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二维码暂时不可用"
+          }
+        }
+      }
+    },
+    "participant.form.saveRejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participant info wasn't saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与人信息没有保存"
+          }
+        }
+      }
+    },
+    "participant.form.retrySave": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try saving again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试保存"
+          }
+        }
+      }
+    },
     "mpPublish.look.preview.stardust.kick": {
       "extractionState": "manual",
       "localizations": {
@@ -356869,125 +357022,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "SOS，有人在求救"
-          }
-        }
-      }
-    },
-    "playerGap.playerCode.failed": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn't load your personal code"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "个人码加载失败"
-          }
-        }
-      }
-    },
-    "playerGap.playerCode.failedHint": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check your connection, then generate it again."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请检查网络后重新生成。"
-          }
-        }
-      }
-    },
-    "playerGap.playerCode.loading": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loading your invite code"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在加载邀请二维码"
-          }
-        }
-      }
-    },
-    "playerGap.playerCode.loadingHint": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Friends can scan it once it loads"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "加载完成后即可扫码邀请好友"
-          }
-        }
-      }
-    },
-    "playerGap.playerCode.retry": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Generate again"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新生成"
-          }
-        }
-      }
-    },
-    "playerGap.playerCode.unavailable": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The code isn't available right now"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "二维码暂时不可用"
-          }
-        }
-      }
-    },
-    "searchMap.merchantDiscovery": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Find shops"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "商家发现"
           }
         }
       }

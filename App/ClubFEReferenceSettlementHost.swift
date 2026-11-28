@@ -102,7 +102,7 @@ enum ClubFEReferenceMoneyWriteGate {
                     if !items.isEmpty || range.isActive {
                         ClubGapFEReferenceRangeBar(range: $range, isExporting: exporting) { Task { await export() } }
                         if exportFailed {
-                            Section { Text("feReference.exportFailed", tableName: "PayoutReceiver").font(.subheadline).foregroundStyle(.red) }
+                            Section { Text("feReference.exportFailed", tableName: "PayoutReceiver").font(.subheadline).foregroundStyle(CYColor.dangerText) }
                         }
                         ClubGapFEReferenceSettlementSection(role: .payer, items: items,
                             allowsMoneyWrite: ClubFEReferenceMoneyWriteGate.allowsSettle,

@@ -365,6 +365,15 @@ No open coordinator item for mp-home: sweep 05:15 (build a4142df0d) predates con
 | same | — | MP is map-first (full-screen map, 定位 button, location-error bar over the map); native is a scrolling column (filters → layers → 搜索此区域 → map → capsule → rows). | **Not done** — a full-screen map restructure of a 714-line view with read-ownership/pagination guards is not safe blind (no compiler/simulator); needs a simulator run. Section order inside the column follows the MP. |
 | same | — | 全部结果 sheet draws a separate 在地图中打开 row under each card; MP makes the card's address row the tap target. | **Kept** — SwiftUI cannot nest the address button inside the card button; the visible row is the 44 pt target (R7-PC-A5-5). |
 
+## Round 3 continue (27) — sweep 05:38 (build 7a7d2708a), mp-home sheets zh-Hans + en; "Next round" item 3
+
+Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (52/52) · design consistency PASS. No open coordinator item for mp-home; d2-home / d2-home-offline / d2-search / d2-search-results / rep3-activity-detail read correctly in both languages.
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| 首页 Today card (native-only) → `App/DesignFixtures/WaveFixtures.swift` | `zh-Hans-wave-today-club.jpg` / `en-wave-today-club.jpg`: the 16:9 cover is a huge black camera glyph — `clubCityCamera` is the MP template **icon** (`images/interaction-templates/club-city-camera.svg`), not a photo. | **Fixed** — fixture cover is the MP photo `pages/templatedetail/art/covers/game/city-camera.jpg` (`MPAsset.BannerCover.cityCamera`, a street-market photo matching 老城摄影漫步). Production unchanged. |
+| `pages/activity/list/index` (banner 和朋友报名活动 target) → `App/OfficialEventsBrowserView.swift` | Page never appeared in the sweep: only `e1-official-empty` existed, and the shared `OfficialEventSyntheticFixtures` rows are English "Synthetic …" names (pinned by contract tests, so not edited). MP states: content list, cy-error 活动列表没能打开 + 重试, cy-empty. | **Added** `HomeActivityListFixtureReader` (`App/DesignFixtures/HomeActivityListFixtures.swift`, offline, `tt(en, zh)` names/cities/subtitles, live / upcoming / ended statuses, real participant counts and start times) and fixtures `rep3-activity-list` (content, pushed in a stack like the banner) + `rep3-activity-list-failed` (503 → the MP error state with retry), UI tests `Fixture_rep3_activity_list{,_failed}Tests.swift` (en + zh-Hans, no raw keys). Coordinator: please add both ids to the mp-home sweep row. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -400,3 +409,4 @@ No open coordinator item for mp-home: sweep 05:15 (build a4142df0d) predates con
 - Needs a simulator pass (continue 26): searchmap selected-marker sheet with 查看活动详情 + 查看关联主题 in en + zh-Hans, AX5.
 - searchmap full-screen map-first layout (MP `pages/searchmap`): needs a simulator run before restructuring `SearchMapExplorerView`.
 - Needs a simulator pass (continue 26): searchmap 筛选 sheet order (Find shops → Date → Price → Sort) in en + zh-Hans.
+- Needs a simulator pass (continue 27): `wave-today-club` with the city-camera photo cover; `rep3-activity-list` / `rep3-activity-list-failed` in en + zh-Hans (cards with the cover fallback, status badges, 邀约 link; error + 重试).

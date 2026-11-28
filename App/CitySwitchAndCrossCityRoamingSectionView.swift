@@ -193,7 +193,7 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
             if !snapshot.isCrossCityIsolationSafe {
                 Text(verbatim: bilingualCopy("告警：检测到切换城市后未取消旧城市在途请求或未重置地图增量流游标，存在跨城数据串读风险。", "Warning: after the city switch the old city's in-flight requests were not cancelled or the map delta cursor was not reset, so cross-city data may bleed.", locale: snapshot.locale))
                     .cyText(.label)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("citySwitchIsolation.warningBanner")
             }
         } header: {

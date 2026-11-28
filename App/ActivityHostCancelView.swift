@@ -321,7 +321,7 @@ import SwiftUI
             HStack(alignment: .firstTextBaseline) {
                 if trimmed.count > ActivityHostCancelRules.reasonLimit {
                     Text(verbatim: c.t("取消原因不超过 100 字", "Cancellation reason cannot exceed 100 characters"))
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                 } else if trimmed.isEmpty {
                     Text(verbatim: c.t("请填写取消原因", "Please enter a cancellation reason"))
                 }

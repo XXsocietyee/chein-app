@@ -31,9 +31,27 @@ struct CYBurst: View {
         style == .confetti ? [CYNight.lantern, CYNight.lanternHot, CYNight.verify, CYNight.foilC, CYNight.foilA] : colors
     }
 
-    /// Native r2: no particles (no bursts or confetti). Draws nothing; the surrounding system feedback carries the beat.
     var body: some View {
-        EmptyView()
+        Group {
+            if !reduceMotion && CYLightBudget.particlesAllowed {
+                TimelineView(.animation(paused: started == nil)) { timeline in
+                    Canvas { context, size in draw(&context, size, at: timeline.date) }
+                }
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .onAppear {
+            guard particles.isEmpty else { return }
+            let n = min(max(count, 0), Self.maxCount)
+            particles = (0..<n).map { _ in
+                let roll = Double.random(in: 0..<1)
+                return Particle(angle: .random(in: 0..<2 * .pi), speed: .random(in: 0.35...1), size: .random(in: 4...9),
+                                hue: .random(in: 0..<1), spin: .random(in: -3...3),
+                                glyph: roll < 0.45 ? .dot : (roll < 0.80 ? .sparkle : .streak))
+            }
+            started = .now
+        }
     }
 
     private func draw(_ context: inout GraphicsContext, _ size: CGSize, at date: Date) {

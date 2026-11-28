@@ -719,7 +719,7 @@ enum ProjectEditLook {
             switch phase {
             case .saving: ProgressView().controlSize(.small)
             case .saved: Text("fixr8.team.saveImage.saved").font(.footnote).foregroundStyle(CYColor.successText)
-            case .failed: Text("fixr8.team.saveImage.failed").font(.footnote).foregroundStyle(.red)
+            case .failed: Text("fixr8.team.saveImage.failed").font(.footnote).foregroundStyle(CYColor.dangerText)
             case .idle: EmptyView()
             }
         }
