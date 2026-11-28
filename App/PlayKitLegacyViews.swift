@@ -79,7 +79,7 @@ extension PlayKitScreen {
             .textFieldStyle(.roundedBorder)
             .disabled(!enabled)
             .accessibilityIdentifier("playkit.diyName.field")
-        LabeledContent("playkit.characters") { Text(verbatim: "\(text.utf16.count) / \(maxLength)").monospacedDigit() }
+        LabeledContent("playkit.characters") { Text(verbatim: "\(text.utf16.count) / \(maxLength)").monospacedDigit().accessibilityLabel(Text("a11y.value.characters \(Int(text.utf16.count)) \(Int(maxLength))")) }
         let suggestions = (raw["suggestions"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
         if !suggestions.isEmpty {
             Text("playkitLegacy.name.suggestions").cyText(.meta).foregroundStyle(.secondary)

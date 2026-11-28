@@ -1054,7 +1054,7 @@ struct ClubCommunityComposer: View {
                         Text(verbatim: locale.pick("有什么新鲜好玩的分享吗？", "Share something new?"))
                     } else {
                         Text(verbatim: "\(content.count)/300")
-                            .monospacedDigit()
+                            .monospacedDigit().accessibilityLabel(Text("a11y.value.characters \(Int(content.count)) \(Int(300))"))
                             .foregroundStyle(content.count > 300 ? AnyShapeStyle(Color.red) : AnyShapeStyle(HierarchicalShapeStyle.secondary))
                     }
                 }

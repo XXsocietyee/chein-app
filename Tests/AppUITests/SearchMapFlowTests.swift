@@ -44,11 +44,12 @@ final class SearchMapFlowTests: XCTestCase {
         XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertFalse(app.buttons["searchMap.recommended.0"].exists)
     }
-    func testGuestKeepsPublicResultsAndShowsExplicitGate() {
+    func testGuestSeesClubResultsLikeTheMPWithoutAGate() {
         launch("guest"); search()
-        XCTAssertTrue(app.descendants(matching: .any)["searchMap.guestGate"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["searchMap.result.topic-71"].exists)
-        XCTAssertFalse(app.buttons["searchMap.result.club-71"].exists)
+        XCTAssertTrue(app.buttons["searchMap.result.topic-71"].waitForExistence(timeout: 5))
+        let club = app.buttons["searchMap.result.club-71"]; reveal(club)
+        XCTAssertTrue(club.exists)
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.guestGate"].exists)
     }
     func testPartialFailureDoesNotBecomeEmptyWholePage() {
         launch("partial"); search()
@@ -146,7 +147,8 @@ final class SearchMapFlowTests: XCTestCase {
         launch(); search(); XCTAssertTrue(app.buttons["searchMap.result.topic-71"].waitForExistence(timeout: 5))
         app.buttons["searchMap.fixture.guest"].tap()
         XCTAssertFalse(app.buttons["searchMap.result.topic-71"].exists)
-        search(); XCTAssertTrue(app.descendants(matching: .any)["searchMap.guestGate"].waitForExistence(timeout: 5))
+        search(); XCTAssertTrue(app.buttons["searchMap.result.topic-71"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["searchMap.guestGate"].exists)
     }
     func testRetryRecovers() {
         launch("retry"); search()

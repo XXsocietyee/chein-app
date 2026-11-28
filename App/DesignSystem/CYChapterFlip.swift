@@ -100,6 +100,7 @@ struct CYChapterEndCard: View {
     let onContinue: () -> Void
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var shown = false
 
     var body: some View {
@@ -120,18 +121,11 @@ struct CYChapterEndCard: View {
                 }
             }
             if !stats.isEmpty {
-                HStack(spacing: CYSpacing.sm) {
-                    ForEach(stats.prefix(3)) { stat in
-                        VStack(spacing: CYSpacing.xxs) {
-                            Text(verbatim: stat.value ?? "—").cyText(.dataXL).monospacedDigit()
-                                .foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.6)
-                            Text(LocalizedStringKey(stat.key)).cyText(.micro).foregroundStyle(.white.opacity(0.6))
-                                .lineLimit(2).multilineTextAlignment(.center)
-                        }
-                        .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.md)
-                        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                        .accessibilityElement(children: .combine)
-                    }
+                // Three columns at the default size. At an accessibility size they stack so a label is not cut to two glyphs.
+                if typeSize.isAccessibilitySize {
+                    statStrip(axis: .vertical, labelLines: 3)
+                } else {
+                    statStrip(axis: .horizontal, labelLines: 2)
                 }
             }
             Group {
@@ -153,5 +147,33 @@ struct CYChapterEndCard: View {
         .accessibilityIdentifier("chapterFlip.end")
         .onAppear { withAnimation(reduceMotion ? CYMotion.reduced : CYMotion.entrance.delay(0.1)) { shown = true } }
         .cyHaptic(.success, trigger: shown)
+    }
+
+    private enum StatAxis { case horizontal, vertical }
+
+    private func statCell(_ stat: CYStoryStat, axis: StatAxis, labelLines: Int) -> some View {
+        VStack(spacing: CYSpacing.xxs) {
+            Text(verbatim: stat.value ?? "—").cyText(.dataXL).monospacedDigit()
+                .foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.6)
+            Text(LocalizedStringKey(stat.key)).cyText(.micro).foregroundStyle(.white.opacity(0.6))
+                .lineLimit(labelLines).multilineTextAlignment(axis == .horizontal ? .center : .leading)
+        }
+        .frame(maxWidth: .infinity, alignment: axis == .horizontal ? .center : .leading)
+        .padding(.vertical, CYSpacing.md)
+        .background(CYNight.glassFill, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder private func statStrip(axis: StatAxis, labelLines: Int) -> some View {
+        let shown = Array(stats.prefix(3))
+        if axis == .horizontal {
+            HStack(spacing: CYSpacing.sm) {
+                ForEach(shown) { stat in statCell(stat, axis: axis, labelLines: labelLines) }
+            }
+        } else {
+            VStack(spacing: CYSpacing.sm) {
+                ForEach(shown) { stat in statCell(stat, axis: axis, labelLines: labelLines) }
+            }
+        }
     }
 }

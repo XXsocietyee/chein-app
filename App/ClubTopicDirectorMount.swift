@@ -380,10 +380,12 @@ struct ClubTopicMoreRoute: Hashable {
     /// with 显示/隐藏榜单 and 复制复盘数据 where the projection offers them; without a recap it reads 复盘尚未生成.
     @ViewBuilder private var recapSections: some View {
         if let recap {
-            let metrics = recap["metrics"].array ?? []
+            let metrics = Self.recapMetrics(recap)
             let stations = recap["stations"].array ?? []
             Section {
-                ForEach(Array(metrics.prefix(3).enumerated()), id: \.offset) { _, metric in metricRow(metric) }
+                if !metrics.isEmpty {
+                    ClubDirectorRecapTiles(metrics: Array(metrics.prefix(3)))
+                }
                 if projection.leaderboardVisible != nil, actions.contains("SET_LEADERBOARD_VISIBILITY") {
                     let visible = projection.leaderboardVisible == true
                     Button(action: onToggleLeaderboard) {
@@ -408,8 +410,10 @@ struct ClubTopicMoreRoute: Hashable {
                     Text("club.director.recap.completion")
                 }
             }
-            if !leaderboardRows.isEmpty {
-                Section {
+            Section {
+                if leaderboardRows.isEmpty {
+                    Text("club.director.leaderboardEmpty").foregroundStyle(.secondary)
+                } else {
                     ForEach(Array(leaderboardRows.enumerated()), id: \.offset) { index, row in
                         LabeledContent {
                             if let value = Self.firstText(row, ["value", "scoreText", "score"]) { Text(verbatim: value).monospacedDigit() }
@@ -417,9 +421,9 @@ struct ClubTopicMoreRoute: Hashable {
                             Text(verbatim: "\(index + 1). " + (Self.firstText(row, ["title", "teamName", "nickname", "name"]) ?? "—"))
                         }
                     }
-                } header: {
-                    Text("club.director.recap.leaderboard")
                 }
+            } header: {
+                Text("club.director.recap.leaderboard")
             }
             if !stations.isEmpty {
                 Section {
@@ -444,13 +448,28 @@ struct ClubTopicMoreRoute: Hashable {
         }
     }
 
-    private func metricRow(_ metric: PlayWireValue) -> some View {
-        let unit = metric["unit"].text ?? ""
-        let value = metric["value"].integer.map { String($0) } ?? "—"
-        return LabeledContent {
-            Text(verbatim: unit.isEmpty ? value : value + " " + unit).monospacedDigit()
+    /// MP director.js:280-286 `recapMetricView`: label from label / name / key, the value as text; an item without
+    /// a label or a value is dropped (never shown as 「—」).
+    static func recapMetrics(_ recap: PlayWireValue) -> [ClubDirectorRecapMetric] {
+        let items = recap["metrics"].array ?? []
+        var result: [ClubDirectorRecapMetric] = []
+        for item in items {
+            let label = firstText(item, ["label", "name", "key"]) ?? ""
+            let raw = item["value"]
+            var value: String? = raw.text
+            if value == nil, let whole = raw.integer { value = String(whole) }
+            if value == nil, let fraction = raw.double { value = String(fraction) }
+            guard !label.isEmpty, let value else { continue }
+            result.append(ClubDirectorRecapMetric(label: label, value: value, unit: item["unit"].text ?? ""))
+        }
+        return result
+    }
+
+    private func metricRow(_ metric: ClubDirectorRecapMetric) -> some View {
+        LabeledContent {
+            Text(verbatim: metric.unit.isEmpty ? metric.value : metric.value + " " + metric.unit).monospacedDigit()
         } label: {
-            Text(verbatim: metric["label"].text ?? "")
+            Text(verbatim: metric.label)
         }
     }
 
@@ -475,5 +494,49 @@ struct ClubTopicMoreRoute: Hashable {
             if let number = value[key].integer { return String(number) }
         }
         return nil
+    }
+}
+
+/// One 活动复盘 number (MP `recapMetricView`).
+struct ClubDirectorRecapMetric: Equatable {
+    let label: String
+    let value: String
+    let unit: String
+}
+
+/// MP topic-detail D9 (Figma 289:523, `cdrecap__metrics`): the first three recap numbers as big tiles, value with a
+/// small unit over the label. Side by side when they fit; stacked at large Dynamic Type.
+struct ClubDirectorRecapTiles: View {
+    let metrics: [ClubDirectorRecapMetric]
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: CYSpacing.md) { tiles }
+            VStack(alignment: .leading, spacing: CYSpacing.sm) { tiles }
+        }
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityIdentifier("club.topic.director.recap.tiles")
+    }
+
+    @ViewBuilder private var tiles: some View {
+        ForEach(Array(metrics.enumerated()), id: \.offset) { _, metric in
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text(verbatim: metric.value)
+                        .cyText(.numericTitle, weight: .semibold, monospacedDigit: true)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                    if !metric.unit.isEmpty {
+                        Text(verbatim: metric.unit).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+                Text(verbatim: metric.label)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+        }
     }
 }

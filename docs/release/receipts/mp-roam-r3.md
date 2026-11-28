@@ -621,6 +621,29 @@ No new coordinator finding for mp-roam since 07:45; latest sweep still build 044
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet **new 0**. No Swift build here.
 
+## Round 3 continue (48) — pages without a row: roam components; official-route share on the shipping route card
+
+Base re-merged with `origin/ui/combined-r7` (clean). Latest sweep still build 0446d1c4f (no new mp-roam finding). B lane (`mp/r3-roam-b`) finished "team-recovery per-command rows on my-teams / nearby" (marked below).
+Pages in the area with no row until now, read this run: `components/roam-photo` (decorative event photo / 3D icon, `aria-hidden`; native rows use SF Symbols — no content), `components/roam-place-note` (tag → 推荐理由 + 资料来源 lookup; already rendered on the place card, row `pages/roam/index` 地标 · 地点卡), `components/cy/share-card` (roam page never sets `shareCard.show`, dead in the MP roam page), `components/cy/scene-qr-citynode` (covered by the `citynode-code` rows), `components/cy/route-thumb` / `scene-roam-history` (covered by `history` rows), `components/cy/slide-confirm` (used by `pages/play`, mp-journey), `components/roam-atmos-entry` (weather/atmosphere: `fix/1128c-ai-weather`), `utils/team-recovery-panel` (B lane).
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| MP `subpackageRoam/official-route/index.js` `SHARE_PATH` + `onShareAppMessage` / `onShareTimeline` (title = route name, else 城瘾官方线路; path `?id=`) | `subpackageRoam/official-route` → shipping `App/NativeR2/MapHome/RoamMapHomeRoutes.swift` `RoamMapHomeRouteCard` | The legacy `OfficialRouteDetailView` had a share card, but the route card players reach from the map home had no share at all, and no https link existed for the route page. | `Core/PublicContentShareLink.officialRoute(id:)` (MP path, kept only when `UniversalLinkParser` reads it back as the same `MiniProgramPageLink`); the route card's toolbar gets a system `ShareLink` (subject + preview = route name, fallback `officialRoute.share.fallbackTitle` 城瘾官方线路 / Chein official route) once the route is loaded. Test `PublicContentShareLinkTests.testOfficialRouteShareIsTheMiniProgramRoutePageThatParsesBack`. | B · `r3-roam-routes` → route card |
+| A row "team-recovery per-command rows on my-teams / nearby" | `subpackageRoam/my-teams`, `nearby` | — | Done (B lane, `817059d4c`). | — |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, **new 0**. No Swift build here.
+
+## Round 3 continue (49) — live map 输入地址 (MP `cy-map-address-search`, no row yet); B-lane P2-7 slice noted
+
+Base: `origin/mp/r3-roam` (contains `origin/ui/combined-r7`). No new coordinator finding for mp-roam (latest sweep still build 0446d1c4f). B lane landed the P2-7 Core outcome slice (`f3b61106d`, `nothingToRecord`); the MapKit POI tap stays open (compiled pass).
+ADA #2 "fog / explored area on the Roam tab root": the MP draws the fog only on `screen=='opening'|'map'|'arrive'` (wxml:229–250), never on `entry-map`; the live walk fog is on (`3a60af988`, gap #24). Map home stays without fog (OWNER RULE: MP decides content).
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| `pages/roam/index.wxml:297` `cy-map-address-search` (`screen=='map'`, `places = _searchPlaces()` = `_pois` with lat/lng; `components/cy/map-address-search`: 输入地址 bar → field 路名、门牌号或店名 + 取消 → ≤ 5 rows pin · name · address → 这附近没有搜到; `onSearchPick` moves the map, no page change) | `App/RoamLiveSessionView.swift` (toolbar + `Map(position:)`) + new `App/RoamLiveAddressSearch.swift` | The live map had no address search at all. | **Fixed:** a `magnifyingglass` toolbar item 输入地址 (id `roam.live.addressSearch`) opens a system sheet (medium / large) with `.searchable` (prompt 路名、门牌号或店名), 取消 as the cancellation action, and up to five of the session's located places matching name or address (MP `matchPlaces` ①), row = node-level glyph · name · address/description; empty = `ContentUnavailableView` 这附近没有搜到. Pick = camera to a 600 m region on the place (animated; Reduce Motion → no animation) and the pin selected, which opens its 地点卡 facts in 附近 and lifts the sheet (existing `mapPick` path). The live map now holds a `MapCameraPosition` (starts at `.userLocation(fallback: .automatic)` as before). New keys `roam.live.addressSearch.title/.prompt/.none` (en + zh-Hans, also in `docs/port/strings/mp-r3-roam.json`). **Not done:** MP remote fallback (Tencent place search, then `/api/city/nodes?keyword=`, 联网搜索暂时不可用…) and the per-row 导航 — next run. | A · live map / no fixture shot |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, **new 0**. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
@@ -631,7 +654,9 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
   `RoamStampExchangeCoordinator` (never instantiated), so the citystamp camera (`showsCaption: true`) keeps its caption + exchange. Needs an
   upload-only camera mode returning the picture URL and session wiring for the coordinator — left for a compiled pass.
-- team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
+- team-recovery per-command rows on my-teams / nearby: done (B lane, `817059d4c`).
+- Live 输入地址 (continue 49): remote place search fallback (`/api/city/nodes?keyword=`) and per-row 导航 still open.
+- P2-7 Core outcome slice: done (B lane, `f3b61106d`); map POI tap still open.
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen from merchant pins + shop photo pins: done in continue (23).
 - For other lanes (ds-consistency, mp-journey, mp-activity): the default panel is now ds-consistency's elevated surface (follows the appearance); roam additionally opts into `.environment(\.cyMapPanelFollowsAppearance, true)` (continue 24). The other `CYMapScaffold` users (`PlayExperienceView`, `PlaySessionView`, `NearbyTeamViews`) and `CYRoamNearbySheet` (fixture only) still use the black `cyMapPanelColor`; opt in once their panel content is checked for semantic colours.
