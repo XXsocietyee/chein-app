@@ -362,7 +362,7 @@ struct CYRoamNearbySheet<Peek: View, Content: View>: View {
             let height = min(max(detent.height(in: total, peekHeight: peekLine) - drag, lowest * 0.9), total * 0.96)
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
-                    Capsule().fill(Color.white.opacity(0.3)).frame(width: 40, height: 5).padding(.top, CYSpacing.sm)
+                    Capsule().fill(Color(uiColor: .tertiaryLabel)).frame(width: 40, height: 5).padding(.top, CYSpacing.sm)
                     peek.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.sm).frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(minHeight: 44)

@@ -158,6 +158,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 21. Pass 11: 报名名册 escrow line removed, hideEmpty tickets, team row colours.
 22. Pass 12: merge combined-r7 (xcstrings: combined is a superset, plural variants); club fixtures follow the UI language; 创建俱乐部 intro without the checklist and 封面/Logo under the step-3 header; join-requests and apply done re-checked.
 23. Pass 17: merge combined-r7; 改为转让主理人 moved into the 解散 confirm as the MP alternative (with its hint).
+26. Pass 21: merge combined-r7; apply note moved into an MP-style 申请加入 sheet, capsule always enabled (d4-detail).
 25. Pass 19: merge combined-r7; declined club detail follows the MP (no red tag, reason line only, 重新申请 capsule in d4-detail).
 24. Pass 18: merge combined-r7 (xcstrings: combined + our `club.ops.dissolve.transferHint`); club/edit full re-check, extra header row and admin note removed, locked card gets 仅主理人可设置.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
@@ -245,6 +246,12 @@ Merged `origin/ui/combined-r7` (xcstrings: combined + our `club.ops.locked.sub`)
 | Item | Native | Fix |
 |---|---|---|
 | `/api/im/poll/create-receipt` (drop) | `App/ReviewedPlayerWriteLeases.swift` `beGapImRoutes`, `App/BeGapImDesk.swift` | Production grant and the desk caller removed; see the Pass 14 row. Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 52/52 new 0, design consistency PASS |
+
+## Pass 21: coordinator sweep 00:20 UTC (build 283dd3b52, `docs/sweeps/latest/mp-club/zh-Hans-d4-detail.jpg`, `en-d4-detail.jpg`)
+Merged `origin/ui/combined-r7`. Rest of the sheet re-checked in both languages: d4-directory, d4-tab-posts, d4-members, d4-badges, d4-stamps, d4-enroll, d4-channels, d4-channel-chat all render in the UI language, with no debug text and native titles.
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/detail` join / apply (js:2530-2550 `onJoin`: approval clubs open `modal.show({ title: 申请加入, content: 给主理人说一句吧，比如你是谁、想跟哪种局（必填，60 字内）。, editable, placeholderText: 朋友推荐来的，想跟一次夜行, confirmText: 提交申请 })`; wxml:1028-1036 capsule) | `App/ClubActionPanel.swift` floating placement (`floatingBar`, new `applyForm`) | Shot: the 重新申请 capsule is greyed out (it stays disabled until the required note is filled), and the note field + help sit in a see-through `.regularMaterial` card over 成员 · 3 / 本团贡献榜, so the list text shows through the field. In the MP the capsule is always tappable and the note is asked in the modal. | **Fixed.** On 概览 the capsule (申请加入 / 重新申请, same id `club.action.apply`) is enabled and opens a `.sheet` (`.medium`/`.large` detents): inline title 申请加入 / 重新申请, the club name as the section header, the MP prompt line, the note `TextField` with the MP placeholder, 取消 (cancellation) and 提交申请 (confirmation, `admission.submit`, disabled while the note is empty or over 60 characters, with the too-long line in the footer). 提交申请 is the one confirmation, as in the MP: it prepares and sends directly, with no second dialog. The material card now shows only status, progress and errors. Join (open clubs), leave and the header/page-end placements keep the system confirmation dialog. New keys `club.application.prompt`, `club.application.placeholder` (en + zh-Hans). `ClubActionFlowTests` apply cases now go through the sheet (`openApplication` / `submitApplication`, ids `club.application.submit` / `club.application.cancel`). Re-check on the next sweep |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.

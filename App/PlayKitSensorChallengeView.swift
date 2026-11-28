@@ -136,7 +136,7 @@ import UIKit
         case .ballShake:
             VStack(spacing: 12) {
                 HStack {
-                    LabeledContent("playkit.ball.hits") { Text(verbatim: "\(stage.ball.hits) / \(stage.ball.goal)").monospacedDigit() }
+                    LabeledContent("playkit.ball.hits") { Text(verbatim: "\(stage.ball.hits) / \(stage.ball.goal)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotal \(stage.ball.hits) \(stage.ball.goal)")) }
                     if stage.ball.limitSeconds > 0 {
                         LabeledContent("playkit.sensor.secondsLeft") { Text(verbatim: decimal(max(0, stage.ball.limitSeconds - stage.ball.elapsedSeconds))).monospacedDigit() }
                     }

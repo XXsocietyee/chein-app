@@ -48,7 +48,7 @@
     "预览节点"
   ],
   "discovery.templateDetail.scenes": [
-    "Categories and settings",
+    "Categories and use cases",
     "分类与适用场景"
   ],
   "discovery.templateDetail.materials": [
@@ -68,7 +68,7 @@
     "来自真实到店玩家"
   ],
   "discovery.templateDetail.notice.title": [
-    "This is a play template; it can’t start a group directly",
+    "This is a play template — you can’t host a session from it directly",
     "这是玩法模板，不能直接开团"
   ],
   "discovery.templateDetail.notice.body": [

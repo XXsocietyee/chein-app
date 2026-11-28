@@ -388,11 +388,13 @@ extension View {
 let cyRoamSheetSnap = Animation.spring(response: 0.42, dampingFraction: 0.82)
 
 /// Fill of the map panel; content inside the panel stays clear so header and list share one surface.
-let cyMapPanelColor = Color.black
+/// ds-consistency r3 (sweep 283dd3b52 `d2-roam`): the elevated system surface, so the panel follows the system
+/// appearance like every other sheet (it was fixed black, a dark slab under a light map in light mode).
+let cyMapPanelColor = CYColor.bgElevated
 
 /// mp-roam r3 (sweep 00:50): a screen whose panel content uses system text colours opts in so the panel is the
-/// system sheet material (follows light / dark like the map) instead of the black fill. Default off: other map
-/// screens keep their current look until their lane checks the content.
+/// system sheet material (follows light / dark like the map). Default off: other map screens use the elevated
+/// system surface (`cyMapPanelColor`, ds-consistency), which also follows the appearance.
 struct CYMapPanelFollowsAppearanceKey: EnvironmentKey {
     static let defaultValue = false
 }
@@ -404,7 +406,7 @@ extension EnvironmentValues {
     }
 }
 
-/// Panel fill for the map scaffold: system regular material when the screen follows the appearance, else black.
+/// Panel fill for the map scaffold: system regular material when the screen opts in, else the elevated surface.
 func cyMapPanelFill(followsAppearance: Bool) -> AnyShapeStyle {
     followsAppearance ? AnyShapeStyle(Material.regularMaterial) : AnyShapeStyle(cyMapPanelColor)
 }
@@ -516,7 +518,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
     }
 
     private func grabber(total: CGFloat) -> some View {
-        Capsule().fill(panelFollowsAppearance ? AnyShapeStyle(HierarchicalShapeStyle.tertiary) : AnyShapeStyle(Color.white.opacity(0.5))).frame(width: 40, height: 5)
+        Capsule().fill(Color(uiColor: .tertiaryLabel)).frame(width: 40, height: 5)
             .frame(maxWidth: .infinity, minHeight: grabberHeight)
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 4)
