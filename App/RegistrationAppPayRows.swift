@@ -78,14 +78,8 @@ extension EnvironmentValues {
     }
 
     @ViewBuilder private var paidRows: some View {
-        Label {
-            Text(c.t("支付成功，票已放入票夹", "Paid. Your ticket is in the wallet."))
-        } icon: {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(CYColor.successText)
-                .symbolEffect(.bounce, value: stage == .paid)
-        }
-        .accessibilityIdentifier("registration.pay.paid")
+        RegistrationPaidTicketMoment(message: Text(c.t("支付成功，票已放入票夹", "Paid. Your ticket is in the wallet.")))
+            .accessibilityIdentifier("registration.pay.paid")
         Button {
             showsWallet = true
         } label: {
@@ -95,8 +89,7 @@ extension EnvironmentValues {
     }
 
     @ViewBuilder private var cancelledRows: some View {
-        Text(c.t("支付已取消", "Payment cancelled"))
-            .foregroundStyle(CYColor.textSecondary)
+        RegistrationPayCancelledLine(message: Text(c.t("支付已取消", "Payment cancelled")))
             .accessibilityIdentifier("registration.pay.cancelled")
         Button(c.t("重新支付", "Pay again")) {
             Task { await launch() }

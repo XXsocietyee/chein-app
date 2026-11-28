@@ -89,11 +89,16 @@ extension EnvironmentValues {
         }
         .onChange(of: scenePhase) { _, phase in appPhaseChanged(phase) }
         .sensoryFeedback(.success, trigger: stage, condition: Self.becamePaid)
+        .sensoryFeedback(.warning, trigger: stage, condition: Self.becameCancelled)
         .cySheet(isPresented: $showsWallet) { walletSheet }
     }
 
     private static func becamePaid(_ old: RegistrationAlipayStage, _ new: RegistrationAlipayStage) -> Bool {
         new == .paid && old != .paid
+    }
+
+    private static func becameCancelled(_ old: RegistrationAlipayStage, _ new: RegistrationAlipayStage) -> Bool {
+        new == .cancelled && old != .cancelled
     }
 
     private var walletSheet: some View {
@@ -126,12 +131,8 @@ extension EnvironmentValues {
     }
 
     @ViewBuilder private var paidRows: some View {
-        Label {
-            Text("alipay.pay.paid")
-        } icon: {
-            Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
-        }
-        .accessibilityIdentifier("registration.pay.alipay.paid")
+        RegistrationPaidTicketMoment(message: Text("alipay.pay.paid"))
+            .accessibilityIdentifier("registration.pay.alipay.paid")
         Button {
             showsWallet = true
         } label: {
@@ -141,8 +142,7 @@ extension EnvironmentValues {
     }
 
     @ViewBuilder private var cancelledRows: some View {
-        Text("alipay.pay.cancelled")
-            .foregroundStyle(CYColor.textSecondary)
+        RegistrationPayCancelledLine(message: Text("alipay.pay.cancelled"))
             .accessibilityIdentifier("registration.pay.alipay.cancelled")
         Button {
             Task { await pay() }
