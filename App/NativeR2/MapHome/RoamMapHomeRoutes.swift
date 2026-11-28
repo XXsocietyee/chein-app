@@ -26,8 +26,18 @@ import QuestifyCore
                         .accessibilityIdentifier("officialRoute.row." + route.id)
                 }
             case .empty:
-                ContentUnavailableView("nativeR2.mapHome.routes.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                    .accessibilityIdentifier("officialRoute.list.empty")
+                // mp-states r3 (sweep 07:05): the empty list offers the next step — back to the map to explore nearby.
+                ContentUnavailableView {
+                    Label("nativeR2.mapHome.routes.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                } actions: {
+                    Button("nativeR2.mapHome.routes.exploreMap") {
+                        model.path = []
+                        model.detent = RoamMapHomeModel.peek
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("officialRoute.list.empty.exploreMap")
+                }
+                .accessibilityIdentifier("officialRoute.list.empty")
             case .failed, .offline:
                 ContentUnavailableView {
                     Label(state == .offline ? LocalizedStringKey("nativeR2.mapHome.offline") : LocalizedStringKey("nativeR2.mapHome.routes.failed"),

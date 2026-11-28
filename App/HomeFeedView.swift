@@ -246,6 +246,15 @@ import UIKit
                     }
                 } description: {
                     if !submittedKeyword.isEmpty { Text("homeFeed.emptyHint") }
+                } actions: {
+                    // mp-states r3 (sweep 07:05): the empty feed tab offers the other MP feed tab as the next step.
+                    Button {
+                        kind = kind == .topics ? .activities : .topics
+                    } label: {
+                        kind == .topics ? Text("homeFeed.empty.showActivities") : Text("homeFeed.empty.showTopics")
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("homeFeed.empty.switchKind")
                 }
             }
             if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
