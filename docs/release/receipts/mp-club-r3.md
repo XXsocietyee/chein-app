@@ -363,6 +363,15 @@ Merged `origin/ui/combined-r7` (8952067e9, second-wave fixes).
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 52/52 new 0, design consistency PASS.
 
+## Pass 37: planning audit J-18 / function audit P2-4 club-lead tools (no new coordinator finding for mp-club; latest sweep 3348aa51f covers nav/activity only)
+Merged `origin/ui/combined-r7`. Level A surface (play), no visual change: the existing lead bar and lead section now reach the server.
+| Plan ID | MP source | Native fix (file) | Test |
+|---|---|---|---|
+| **J-18 / P2-4** club-lead bar shows 网络状态暂未刷新 for every lead; start / chapter release / release-station / 改时间 / 全团结算 never sent | `pages/play/index.js:5604` GET `team-progress {activityId}`, `:5741` start, `:5845` release-station, `:5881-5882` unlock-chapter + receipt, `:5935` broadcast, `:5966` settle; `pages/club/topic-detail/index.js:530` edit-ops | `App/ReviewedPlayerWriteLeases.swift`: `team-progress` and `unlock-chapter-receipt` join `playRuntimeReadPaths` (GET, no body); new `clubLeadWritePaths` (start, unlock-chapter, release-station, edit-ops, settle) join `playPaths`; `.leader` joins `playCapabilities`. 全团结算 has its own lease branch: POST with a body, only where `ReviewedAreaSwitch.moneyPayments` opens (it redeems tickets into settlement). The server still admits only the activity's lead; `PlayExperienceCoordinator.performLead` keeps `lead.allows(action)` | `Fix1128bPlayReleaseCompositionTests.testReleaseLeaseAdmitsClubLeadBarAndToolsOnTheirShapes` (Release composition: `.leader` on, endpoints name each path, reads GET-only, writes need a body, settle GET refused); `ReviewedChinaLaunchCompositionTests` pins updated (the old "leader tools are host-only" pin and `release-station` in the closed-money list were the pre-J-18 decision) |
+| P2-4 rest | `/api/club/name-check` | Still **Not done** (backend route unconfirmed), as in pass 33 | n/a |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 52/52 new 0, design consistency PASS.
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.

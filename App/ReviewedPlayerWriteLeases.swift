@@ -117,6 +117,13 @@ extension ReviewedProductionFormMutationRoute {
                   Set(object.keys) == ["clubId"], let id = object["clubId"] as? Int, id > 0 else { return false }
             return true
         }
+        if relative == ReviewedProductionGateLeases.clubLeadSettlePath {
+            // mp-club r3 J-18: 全团结算 redeems the team's bought tickets into settlement. Open only where money payments
+            // open; the form body carries the activity id alone (MP pages/play/index.js:5966).
+            guard method == "POST", ReviewedAreaSwitch.moneyPayments(apiHost: context.baseURL.host),
+                  request.httpBody?.isEmpty == false else { return false }
+            return covers(relative, grant.play)
+        }
         if relative == "api/club/chat" {
             // E2E R3: enter a club's group chat. ClubChatService sends JSON exactly {"id": <club id>}.
             guard method == "POST", covers(relative, grant.clubCommunity), request.value(forHTTPHeaderField: "Content-Type") == "application/json",
@@ -774,7 +781,7 @@ enum ReviewedPlayerReadRoute {
         // C-F6 MP-first: the author's 到访方式 read/save (fabu/theme-fe-visit.js:40, :87). Not money.
         "api/topic/free-explore/visit-config"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths).union(publisherLifecyclePaths)
-        .union(playFinishAndProfilePaths)
+        .union(playFinishAndProfilePaths).union(clubLeadWritePaths)
     /// MP-first (owner 2026-11-25, R7-PC-B4-1 / R7-PC-B1-2): pages/topic/pricing preview + confirm (a final-price save that moves
     /// the topic to PRICING for sale review, not a payment) and the publisher reads it needs. Cancel-with-refund stays off.
     static let publisherLifecyclePaths: Set<String> = [
@@ -812,8 +819,18 @@ enum ReviewedPlayerReadRoute {
         "api/official/events/{}/attendance", "api/official/events/{}/attendance/manage",
         // mp-club r3 J-15: the club topic director's session recap export (`PlayDirectorRecap`, GET `activityId`, no body).
         // A read; the server checks that the caller directs the activity (BE ApiGameSessionController.java:83).
-        "api/game/session/recap/export"
+        "api/game/session/recap/export",
+        // mp-club r3 J-18 / P2-4: the club-lead bar's team read and the chapter-release receipt re-read (MP pages/play/index.js:5604,5881).
+        "api/club/lead/team-progress", "api/club/lead/unlock-chapter-receipt"
     ]
+    /// mp-club r3 J-18 / P2-4: the club-lead tools the MP play page sends (pages/play/index.js:5741,5845,5882,5966; topic-detail
+    /// index.js:530). The server admits only the activity's lead (BE ApiClubLeadController). `settle` (全团结算, ticket
+    /// redemption into settlement) is admitted only where `moneyPayments` opens; see `clubLeadSettlePath`.
+    static let clubLeadWritePaths: Set<String> = [
+        "api/club/lead/start", "api/club/lead/unlock-chapter", "api/club/lead/release-station", "api/club/lead/edit-ops",
+        "api/club/lead/settle"
+    ]
+    static let clubLeadSettlePath = "api/club/lead/settle"
     nonisolated static let externalGamePaths: Set<String> = [
         "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
         "api/external-game/submissions/{}/cancel", "api/external-game/submissions/{}/resubmit",
@@ -876,10 +893,10 @@ enum ReviewedPlayerReadRoute {
         "api/coupon/usability"
     ]
     /// fix-1128b: `.mediaUpload` (#5, play photo upload), `.preference` and `.tags` (#19, preference groups and tag
-    /// confirm/correct/revoke) join the release play grant. `.leader` and `.circle` stay with their own lanes.
+    /// confirm/correct/revoke) join the release play grant. mp-club r3 J-18: `.leader` joins for the club-lead tools; `.circle` stays with its lane.
     static let playCapabilities: Set<PlayExperienceCapability> = [
         .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding,
-        .mediaUpload, .preference, .tags
+        .mediaUpload, .preference, .tags, .leader
     ]
     /// fix-1128b #19: `api/play/tag/{id}/confirm` and `/revoke`, the two bodiless tag writes.
     static func isBodilessPlayTagWrite(_ relative: String) -> Bool {
