@@ -7,7 +7,12 @@ final class ProfileOrderHistoryFilterTests: XCTestCase {
         try JSONDecoder().decode(ProfileOrder.self, from: Data(("{\"id\":1" + (fields.isEmpty ? "" : "," + fields) + "}").utf8))
     }
     func testNineMiniFiltersInSourceOrder() { XCTAssertEqual(ProfileOrderHistoryFilter.allCases.map(\.rawValue), ["all","pendingPayment","notStarted","inProgress","completed","refunding","refunded","nonRefundable","manualRefund"]) }
-    func testManualRefundHasHighestPriority() throws { XCTAssertEqual(try order(#""manualRefundCaseStatus":"REVIEW","refundApplication":{"payoutStatus":1},"registrationStatus":1"#).historyState(now: now), .manualRefund) }
+    /// Gap #28 (1128 plan): MP order-status.js — money already returned (payout 1 / 4) is terminal and beats 人工售后;
+    /// 人工售后 beats every other state.
+    func testManualRefundHasHighestPriority() throws {
+        XCTAssertEqual(try order(#""manualRefundCaseStatus":"REVIEW","refundApplication":{"payoutStatus":1},"registrationStatus":1"#).historyState(now: now), .refunded)
+        XCTAssertEqual(try order(#""manualRefundCaseStatus":"REVIEW","refundApplication":{"payoutStatus":0},"registrationStatus":1"#).historyState(now: now), .manualRefund)
+    }
     func testPayoutOneAndFourOnlyAreRefunded() throws {
         for code in [1,4] { XCTAssertEqual(try order("\"refundApplication\":{\"payoutStatus\":\(code),\"refundAmount\":0},\"registrationStatus\":3").historyState(now: now), .refunded) }
         for code in [2,3] { XCTAssertEqual(try order("\"refundApplication\":{\"payoutStatus\":\(code)},\"registrationStatus\":3").historyState(now: now), .refunding) }
@@ -92,8 +97,9 @@ final class ProfileOrderHistoryFilterTests: XCTestCase {
         XCTAssertEqual(pass.historyTagKey(now: now), "orderLifecycle.state.passReady")
         XCTAssertEqual(pass.stateNotice(now: now)?.tagKey, "orderLifecycle.state.passReady")
         XCTAssertEqual(pass.stateNotice(now: now)?.titleKey, "orderLifecycle.state.passReady")
+        // Gap #28 (order-status.js k7 N6): a pass's first scan only starts the run; it is in progress, not completed.
         let scanned = try order(window + #","purchaseKind":2,"firstSuccessfulScanAt":"2026-10-10 12:00:00""#)
-        XCTAssertEqual(scanned.historyState(now: now), .completed)
+        XCTAssertEqual(scanned.historyState(now: now), .inProgress)
         XCTAssertFalse(scanned.showsUnusedPass(now: now))
         let future = try order(#""registrationStatus":2,"purchaseKind":2,"cmsTopic":{"startDate":"2026-10-20","endDate":"2026-10-21"}"#)
         XCTAssertEqual(future.historyState(now: now), .notStarted)
@@ -110,5 +116,52 @@ final class ProfileOrderHistoryFilterTests: XCTestCase {
         let other = try order(window + #","purchaseKind":1"#)
         XCTAssertFalse(other.isSelfPlayPass)
         XCTAssertEqual(other.historyState(now: now), .inProgress)
+    }
+
+    /// Gap #28: `summarizeOrderState` (MP utils/order-status.js) rule by rule. now = 2026-10-11 12:00 (+08:00).
+    func testOrderStatusJSRuleTable() throws {
+        let paid = #""registrationStatus":2,"paymentStatus":2"#
+        let cases: [(String, String, OrderLifecycleState)] = [
+            ("payout 1 beats manual case", #""manualRefundCaseStatus":"OPEN","refundApplication":{"payoutStatus":4}"#, .refunded),
+            ("manual case beats refunding", #""manualRefundCaseStatus":"OPEN","refundApplication":{"status":0,"refundAmount":5}"#, .manualRefund),
+            ("refund under review", #""refundApplication":{"status":0,"refundAmount":5},"# + paid, .refunding),
+            ("zero refund falls back", #""refundApplication":{"status":0,"refundAmount":0},"registrationStatus":1"#, .pendingPayment),
+            ("rejected refund falls back", #""refundApplication":{"status":2,"refundAmount":5},"registrationStatus":3"#, .cancelled),
+            ("host cancelled activity", paid + #","cmsActivity":{"cancelTime":"2026-10-09 10:00:00","startDate":"2026-10-20"}"#, .cancelled),
+            ("host cancelled (epoch ms)", paid + #","cmsActivity":{"cancelTime":1791511200000}"#, .cancelled),
+            ("cancel time on topic is not an activity cancel", paid + #","cmsTopic":{"cancelTime":"2026-10-09 10:00:00","startDate":"2026-10-20"}"#, .notStarted),
+            ("pending payment", #""registrationStatus":1"#, .pendingPayment),
+            ("closed", #""registrationStatus":3"#, .cancelled),
+            ("expired", #""registrationStatus":4"#, .expired),
+            ("unknown status", #""registrationStatus":9"#, .unknown),
+            ("explore active before start", paid + #","exploreProgress":{"redeemed":1,"required":3,"active":true},"cmsTopic":{"startDate":"2026-10-12"}"#, .notStarted),
+            ("explore active beats verified", paid + #","verificationStatus":1,"exploreProgress":{"redeemed":1,"required":3,"active":true}"#, .inProgress),
+            ("explore with required 0 is ignored", paid + #","verificationStatus":1,"exploreProgress":{"redeemed":0,"required":0,"active":true}"#, .completed),
+            ("verified", paid + #","verificationStatus":1"#, .completed),
+            ("topic completed", paid + #","topicCompleted":true,"cmsTopic":{"startDate":"2026-10-20"}"#, .completed),
+            ("ticket first scan", paid + #","firstSuccessfulScanAt":"2026-10-10 09:00:00""#, .completed),
+            ("pass first scan is in progress", paid + #","purchaseKind":2,"firstSuccessfulScanAt":"2026-10-10 09:00:00""#, .inProgress),
+            ("non refundable paid ticket", paid + #","refundInfo":{"refundable":false}"#, .nonRefundable),
+            ("non refundable never on a pass", paid + #","purchaseKind":2,"refundInfo":{"refundable":false}"#, .notStarted),
+            ("date-only end covers the whole day", paid + #","cmsTopic":{"startDate":"2026-10-11","endDate":"2026-10-11"}"#, .inProgress),
+            ("ended yesterday", paid + #","cmsTopic":{"startDate":"2026-10-10","endDate":"2026-10-10"}"#, .completed),
+            ("pass ends by expiresAt, not the topic end", paid + #","purchaseKind":2,"expiresAt":"2026-10-11 11:00:00","firstSuccessfulScanAt":"2026-10-10 09:00:00","cmsTopic":{"endDate":"2026-12-01"}"#, .completed),
+            ("pass ignores the topic end", paid + #","purchaseKind":2,"expiresAt":"2026-12-01 00:00:00","firstSuccessfulScanAt":"2026-10-10 09:00:00","cmsTopic":{"endDate":"2026-10-01"}"#, .inProgress),
+            ("not started", paid + #","cmsActivity":{"startDate":"2026-10-11 13:00:00"}"#, .notStarted),
+            ("unused pass is usable", paid + #","purchaseKind":2"#, .notStarted),
+            ("in progress", paid, .inProgress),
+        ]
+        for (name, fields, expected) in cases {
+            XCTAssertEqual(try order(fields).historyState(now: now), expected, name)
+        }
+    }
+
+    /// U-033: the read's `serverNow` decides the time-based tag, not the device clock.
+    func testServerNowWinsOverTheDeviceClock() throws {
+        let row = try order(#""registrationStatus":2,"cmsActivity":{"startDate":"2026-10-11 13:00:00","endDate":"2026-10-11 14:00:00"},"serverNow":1791696600000"#)
+        XCTAssertEqual(row.historyFacts.serverNow, Date(timeIntervalSince1970: 1_791_696_600))
+        XCTAssertEqual(row.historyState(now: now), .inProgress, "server says 13:30 although the phone says 12:00")
+        XCTAssertEqual(ProfileOrderHistoryClock.end("2026-10-11"), OrderLifecycleTime.date("2026-10-11")?.addingTimeInterval(86_399.999))
+        XCTAssertEqual(ProfileOrderHistoryClock.end("2026-10-11 10:00:00"), OrderLifecycleTime.date("2026-10-11 10:00:00"))
     }
 }
