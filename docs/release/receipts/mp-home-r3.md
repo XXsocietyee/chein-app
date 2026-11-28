@@ -252,6 +252,14 @@ Re-scan of `pages/topic/index/index.wxml` 详情 / 故事 / 路线 against `App/
 | `topic/index.wxml:437` station card 到店礼 · gift | Present (`shopGift`, `TopicXcxSections.swift:640-644`). | No change. |
 | `topic/index.wxml:302-316` 评价: when there are no reviews the 还没有评价 card **is** the only write entry; with reviews 写评价 sits trailing in the rating row, above the list. Native always draws a separate bordered 写评价 button above the section content, so the empty state has two write entries. | **Not done** — `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` pins both `topic.reviews.empty` and the `topic.openReview` button in the empty state, and `tools/check_contextual_flows.py` pins the identifier; changing the accessibility tree of the empty card blind (no simulator) could break that UI test. Next run with a simulator: hide the bordered button when `hasConfirmedNoReviews && preview.isEmpty`, move `topic.openReview` onto the empty card, update the UI test. |
 
+## Round 3 continue (14) — 23:07 sweep (build b3b03703a), mp-home sheets zh-Hans + en
+
+Rebased on `origin/mp/r3-home`. No coordinator item for mp-home at 23:20. Sweep build includes continue 11/12: 编辑精选 card shows Beta 试玩 above the title ✓, zh search rows 灯笼夜行 / 灯笼集市探索 / 老城漫步者 / 灯笼茶馆 ✓, home / offline / activity detail / wave-today-club read clean in both languages.
+
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `pages/index/index.wxml:103-121` 编辑精选 card → `d2-home` (`App/HomeFeedFixtureSupport.swift` `HomeFixtureLanguage`) | `zh-Hans-d2-home.jpg` / `en-d2-home.jpg`: card title 「示例街区路线」 / "Sample neighborhood route" reads as a placeholder. | **Fixed** — under `--design-fixture` only: topic 老城灯笼夜行 / Old Town Lantern Walk (area 老城 / Old Town), activity 滨江灯笼漫步 / Riverside Lantern Walk (西岸码头 / West Bund Pier). UI-test runs keep the synthetic names. |
+
 ## Not done / follow-ups
 - 主题详情 评价: double write entry in the empty state (continue 13 row) — needs the UI test updated with a simulator.
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -270,3 +278,4 @@ Re-scan of `pages/topic/index/index.wxml` 详情 / 故事 / 路线 against `App/
 - Needs a simulator pass (continue 10): `d2-search-results` text rows without image frames; `rep3-activity-detail` hero with the fe-night cover.
 - Needs a simulator pass (continue 11): 编辑精选 card with club / Beta 试玩 row above the title.
 - Needs a simulator pass (continue 12): zh `d2-search-results` row names.
+- Needs a simulator pass (continue 14): `d2-home` 编辑精选 card name.

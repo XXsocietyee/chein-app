@@ -477,7 +477,7 @@ struct RoamPOIMissingView: View {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("roamSub.w208.stamp.noteHeader").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
-                    Text(verbatim: "\(note.count)/\(RoamStampSlip.captionLimit)").cyText(.meta, monospacedDigit: true)
+                    Text(verbatim: "\(note.count)/\(RoamStampSlip.captionLimit)").accessibilityLabel(Text("a11y.value.characters \(Int(note.count)) \(Int(RoamStampSlip.captionLimit))")).cyText(.meta, monospacedDigit: true)
                         .accessibilityIdentifier("roamSub.w208.stamp.counter")
                 }
                 Spacer(minLength: 0)
