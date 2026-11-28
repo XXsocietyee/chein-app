@@ -3403,11 +3403,11 @@ final class AppSession: ObservableObject {
             })
         retainedPlayDevices[key] = model; return model
     }
-    // Native App WeChat host: the adapter is mounted but all provider configuration,
-    // SDK opt-in, service transport and live/legal grants remain unconfigured.
+    // P0-5: native WeChat sign-in. AppID + Universal Link come from the bundle (owner build settings); the gate is
+    // re-read on every use: SDK linked, configuration valid, reviewed China legal + Apple grants, exchange wired.
     private let weChatSDKDriver = WeChatNativeSDKDriver()
-    private let weChatSDKConfiguration: WeChatSDKConfiguration? = nil
-    private let weChatSDKGate = WeChatAppAuthGate()
+    private let weChatSDKConfiguration: WeChatSDKConfiguration? = WeChatAppLaunch.bundleConfiguration()
+    private var weChatSDKGate: WeChatAppAuthGate { weChatReleaseGate(sdkLinked: weChatSDKDriver.isLinked, configured: weChatSDKConfiguration != nil) }
     private lazy var weChatSDKAdapter = WeChatSDKAuthAdapter(driver: weChatSDKDriver,
         configuration: weChatSDKConfiguration, gate: { [weak self] in self?.weChatSDKGate ?? .init() },
         context: { [weak self] in
@@ -3418,7 +3418,7 @@ final class AppSession: ObservableObject {
             accountID: account?.id, isBusy: isWorking || authChannels.state.isWorking),
             market: operationalMarket, namespace: storageScope?.service)
     }
-    lazy var weChatAuth = WeChatAppAuthCoordinator(adapter: weChatSDKAdapter, gate: { [weak self] in self?.weChatSDKGate ?? .init() }, context: { [weak self] in
+    lazy var weChatAuth = WeChatAppAuthCoordinator(adapter: weChatSDKAdapter, service: weChatExchangeService, gate: { [weak self] in self?.weChatSDKGate ?? .init() }, context: { [weak self] in
         self?.weChatContext ?? WeChatAppAuthContext(session: .init(epoch: 0, accountID: nil, isBusy: true), market: nil, namespace: nil)
     }, commit: { [weak self] result, expected in
         guard let self, self.weChatContext == expected, expected.permitsLogin else { return false }
@@ -7088,7 +7088,7 @@ final class AppSession: ObservableObject {
     @Published private(set) var restorationFinished = false
     @Published private(set) var nativeEntry: NativeEntryPresentation?
     @Published var pendingDeepLink: CheinDeepLink? // W3-6, see AppSession+DeepLink.swift
-    let nativeEntryLinkPolicy = NativeEntryLinkPolicy(verifiedHTTPSOrigins: [])
+    let appLinkRouter = AppUniversalLinkRouter(verifiedHTTPSOrigins: AppSession.verifiedLinkOrigins()) // P1-1, AppSession+AppLinks.swift
     var doorReferralSession: DoorReferralSession {
         DoorReferralSession(accountID: account?.id, epoch: doorEpoch, token: token, restored: restorationFinished)
     }
@@ -7192,14 +7192,14 @@ final class AppSession: ObservableObject {
     func receiveNativeURL(_ url: URL) {
         if consumeDeepLinkSafetyAudit(url) || receiveCheinURL(url) || nativeWeChatPaymentDriver.handle(url, adapter: nativeWeChatPaymentAdapter) || handleAlipayReturn(url) { return }
         if weChatSDKDriver.handle(url, adapter: weChatSDKAdapter) { return }
-        guard let intent = nativeEntryLinkPolicy.parse(url) else {
+        guard let destination = appLinkRouter.route(url) else {
             receiveNativeIntent(.routeError(.unsupported)); return
         }
-        receiveNativeIntent(intent)
+        receiveAppLink(destination)
     }
-    func receiveWeChatUserActivity(_ activity: NSUserActivity) {
-        if nativeWeChatPaymentDriver.handle(activity, adapter: nativeWeChatPaymentAdapter) { return }
-        _ = weChatSDKDriver.handle(activity, adapter: weChatSDKAdapter)
+    @discardableResult func receiveWeChatUserActivity(_ activity: NSUserActivity) -> Bool {
+        if nativeWeChatPaymentDriver.handle(activity, adapter: nativeWeChatPaymentAdapter) { return true }
+        return weChatSDKDriver.handle(activity, adapter: weChatSDKAdapter)
     }
     func receiveNativeIntent(_ intent: NativeEntryIntent) {
         if case .door(let door) = intent {
