@@ -497,6 +497,14 @@ Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: kept every
 | P21 mini bar (app-only pattern; the MP has no cross-tab run bar) → `App/ActiveSessionMiniBar.swift` `ActiveSessionPlayHUD`, `App/QuestLiveActivityCenter.swift`, `App/QuestifyApp.swift` | Plan audit H-02b: expanding a **play** run from the bar opened a summary HUD (clock, 下一站, pause/resume) with no way back into the game screen; only roam expanded into its live screen. | **Fixed** — while the run's coordinator is alive (`QuestLiveActivityCenter.playScope(forKey:)`, the `play:<scope>` key the Live Activity already uses), the HUD's primary is a `.borderedProminent` 回到游戏 / Back to the game `NavigationLink` (`gamecontroller.fill`, id `activeSession.hud.openGame`, hint key) that pushes the same `SessionPlayRuntimeView(.journey(scope))` the topic / activity entries push, inside the expanded cover; pause / resume drops to a full-width `.bordered` secondary (one primary, P3). The game host marker then hides the bar as before. No coordinator → HUD unchanged (pause / resume stays the primary). Strings en + zh-Hans in the catalog and `docs/port/strings/mp-home-r3.json`. |
 | 首页 更多玩法 menu → 动态 (`App/SessionHomeFeedView.swift` `homeMoreMenuContent`; the MP `pages/index/index.wxml` has no square entry, `pages/square` is a subpackage reached from posts) | Plan audit H-17: the 动态 item pushed `SessionSquareBrowserView` even when the owner-bound community gate is closed, where it can only show 社区暂未开放 — a dead entry. | **Fixed** — the item shows only after `session.squareReader.communityFeatures().read == true` for the current reader scope (`.task(id: squareReader.scope)`, the same gate the square page reads); closed, unread or failed → no item (P27: render nothing while gated). Identifier `homeFeed.openSquare` kept once (`tools/tests/test_home_composition.py`). Removing the app-only entry outright stays a coordinator call (mp-activity owns `pages/square`). |
 
+## Round 3 continue (41) — planning audit H-02a (unused 继续探索 reads on 首页)
+
+Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (46/46) · design consistency PASS. Sweep still build 0446d1c4f (covered in continue 36); no open coordinator item for mp-home; the Not done rows above all need a simulator/device or the P2-3d decision. Level B (Crafted).
+
+| MP page → native | Difference | Result |
+|---|---|---|
+| `pages/index/index.wxml` (no 继续探索 card, #29 "wxml 未渲染") → `App/SessionHomeFeedView.swift` | Plan audit H-02a: 首页 still ran the signed-in `registration/my-joined` + paused-run reads on every load, on every journey-reader scope change and on every pop back to the root, although `HomeFeedView` draws no continuation card — two reads per home load for nothing. | **Fixed** — the `.task(id: playerJourneyReader.scope)` and the two `.onChange` reloads are removed; no MP section changes. The today-ticket wallet read stays: it feeds the widget (`QuestWidgetBoardPublisher.nextTicket`). The unreachable continuation plumbing is left in place for a later Swift-compiler cleanup. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -550,6 +558,8 @@ Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: kept every
 - Needs a simulator pass (continue 40): start a city run, switch tab, tap the mini bar → 回到游戏 pushes the game (bar hidden), back returns to the HUD, 收起 closes; the run is not restarted (same coordinator); en + zh-Hans, AX5.
 - Needs a simulator pass (continue 40): 首页 更多玩法 menu without 动态 while the community gate is closed, with it when open.
 - Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
+
+- Needs a simulator pass (continue 41): signed-in 首页 load and pop-to-root send no `registration/my-joined` read; the home widget still shows the next ticket.
 
 ## For other lanes
 - mp-states: the 07:05 `d2-home-empty` next-step item is done on `mp/r3-home` (continue 30); `r3-roam-routes-empty` stays yours / mp-roam.
