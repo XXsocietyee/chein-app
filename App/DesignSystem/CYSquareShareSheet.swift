@@ -34,6 +34,7 @@ struct CYSquareShareSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var copied = false
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
@@ -99,7 +100,9 @@ struct CYSquareShareSheet: View {
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: payload.excerpt ?? Self.brand).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                Text(verbatim: payload.excerpt ?? Self.brand).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    .lineLimit(typeSize.isAccessibilitySize ? 3 : 2)
+                    .fixedSize(horizontal: false, vertical: typeSize.isAccessibilitySize)
                 Text(verbatim: Self.brand).cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }
             Spacer(minLength: 0)
