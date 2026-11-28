@@ -27,6 +27,7 @@ import QuestifyCore
                 }
             case .empty:
                 ContentUnavailableView("nativeR2.mapHome.routes.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                    .accessibilityIdentifier("officialRoute.list.empty")
             case .failed, .offline:
                 ContentUnavailableView {
                     Label(state == .offline ? LocalizedStringKey("nativeR2.mapHome.offline") : LocalizedStringKey("nativeR2.mapHome.routes.failed"),
@@ -34,6 +35,7 @@ import QuestifyCore
                 } actions: {
                     Button("action.retry") { Task { await load() } }.buttonStyle(.bordered)
                 }
+                .accessibilityIdentifier("officialRoute.list.error")
             }
         }
         .listStyle(.insetGrouped)
@@ -121,6 +123,7 @@ import QuestifyCore
                 Section {
                     if detail.nodes.isEmpty {
                         ContentUnavailableView("nativeR2.mapHome.route.noStops", systemImage: "mappin.slash")
+                            .accessibilityIdentifier("officialRoute.detail.noStops")
                     } else {
                         ForEach(RoamMapHomePin.make(officialRoute: detail)) { pin in
                             NavigationLink(value: RoamMapHomeRoute.pin(pin.id)) { stopRow(pin) }
@@ -131,12 +134,14 @@ import QuestifyCore
                 }
             case .notFound:
                 ContentUnavailableView("nativeR2.mapHome.route.notFound", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                    .accessibilityIdentifier("officialRoute.detail.notFound")
             case .failed:
                 ContentUnavailableView {
                     Label("nativeR2.mapHome.routes.failed", systemImage: "exclamationmark.triangle")
                 } actions: {
                     Button("action.retry") { Task { await load() } }.buttonStyle(.bordered)
                 }
+                .accessibilityIdentifier("officialRoute.detail.error")
             }
         }
         .listStyle(.insetGrouped)
