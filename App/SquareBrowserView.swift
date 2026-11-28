@@ -110,9 +110,12 @@ import SwiftUI
                     if pagination.continuationInvalid { Text("square.invalidCursor").accessibilityIdentifier("square.invalidCursor") }
                     if loading { loadingRow }
                     else if pagination.hasMore && issue == nil {
+                        // ADA 11-28 #12: the next page loads when the end of the feed scrolls into view (MP onReachBottom);
+                        // the button stays for VoiceOver and Switch Control.
                         Button { Task { await load(reset: false) } } label: { Text("square.loadMore").frame(maxWidth: .infinity) }
                             .buttonStyle(.borderless)
                             .accessibilityIdentifier("square.loadMore")
+                            .onAppear { Task { await load(reset: false) } }
                     }
                 }
             }
