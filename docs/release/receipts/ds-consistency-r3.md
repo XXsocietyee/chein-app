@@ -1336,6 +1336,14 @@ Pin: `Tests/AppUnitTests/DesignR1ClubKitTests.swift:114` zh expectation follows 
 shape (`Lv.N` on Me header `MemberHomeHeader:239` and public profile `SocialPublicProfileView:146`); no "Level 3 ·"
 string remains in the catalogs (checked), so nothing to change there.
 
+Gates (both batches): `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new),
+`check_design_consistency` PASS (0 debt, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- ADA §3 **Background**: grouped grey on most pushes but white on the stamp album and channel chat. Check the stamp
+  album root (`systemGroupedBackground` for a list/grid page) and keep `systemBackground` only for chat bodies;
+  consider a checker kind if more than one page differs.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
