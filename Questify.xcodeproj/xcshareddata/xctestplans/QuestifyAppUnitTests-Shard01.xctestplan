@@ -193,6 +193,7 @@
         "MPFirstCMAGrantTests",
         "MPFirstClubWriteRouteR10Tests",
         "MPFirstCoopWritesTests",
+        "MPFirstPublishApprovalsTests",
         "MPParityPassBindingTests",
         "ManualMapCompositionTests",
         "MapPublicLayerAppIntegrationTests",
