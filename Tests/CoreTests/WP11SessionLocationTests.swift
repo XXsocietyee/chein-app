@@ -1,6 +1,15 @@
 import XCTest
 @testable import QuestifyCore
 
+/// Owns the ledger the way `SessionBackgroundLocationTracker` does. A strong driver inside the ledger
+/// would keep this object alive after the test drops it.
+@MainActor private final class LedgerOwningDriver: SessionLocationDriving {
+    private(set) lazy var ledger = SessionLocationHoldLedger(driver: self)
+    var starts: [Bool] = []
+    func startUpdates(background: Bool) { starts.append(background) }
+    func stopUpdates() {}
+}
+
 /// A fake `CLLocationManager` driver: records every start/stop and the background flag it was given.
 @MainActor private final class FakeLocationDriver: SessionLocationDriving {
     var starts: [Bool] = []
@@ -92,6 +101,20 @@ import XCTest
         ledger.acquire("roam", foregroundOnly: false)
         XCTAssertEqual(ledger.activePurposes, [.roam, .play])
         XCTAssertEqual(SessionLocationHoldLedger.Purpose.of(key: "unknown"), nil)
+    }
+
+    func testSessionLocationDriverThatOwnsItsLedgerDeallocates() {
+        weak var released: LedgerOwningDriver?
+        do {
+            let driver = LedgerOwningDriver()
+            released = driver
+            XCTAssertTrue(driver.ledger.acquire("roam", foregroundOnly: false))
+            XCTAssertTrue(driver.ledger.isRunning)
+            XCTAssertEqual(driver.starts, [true])
+            driver.ledger.release("roam")
+            XCTAssertFalse(driver.ledger.isRunning)
+        }
+        XCTAssertNil(released)
     }
 
     // MARK: OWN-10.3 — content contract v1 (C2)
