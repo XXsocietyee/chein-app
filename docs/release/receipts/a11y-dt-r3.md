@@ -612,9 +612,18 @@ switch, cast sheet). Six captions sat as a sibling `Text` right under the switch
 | `pages/publishkit` initial attributes 启用 | `ProjectInitialAttributesEditor.swift:128` | ✓ (mp-publish owns order) | Same. The per-row "flag / integer" caption explains the whole row's fields, not the 可见 switch, so it stays a stop. Level C | Done |
 
 
+Not done item: `Picker` / `Stepper` rows with a sibling caption (same scan, 6 hits):
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/publishkit` profile question 题型 | `TemplateProfileQuestionFields.swift:85` | ✓ (mp-publish owns order) | Caption explains the kind picker → its `accessibilityHint`, caption hidden as its own stop. Level C | Done |
+| `pages/coop` topic filter (仅筛选已加载…) | `CooperationBrowserView.swift:179` | ✓ (mp-activity owns order) | Same: hint on the menu picker, caption hidden. Level C | Done |
+| square report legacy hint, club topic customers count scope, follow list "not friends" note, team config defaults | `SocialActionViews.swift:82`, `ClubGovernanceViews.swift:761`, `ProfileFollowListView.swift:39`, `ProjectTeamConfigurationEditor.swift:105` | ✓ | Audit: each caption explains the whole section or list, not the picker above it, so it stays its own stop. No change | Done |
+
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-36).
-- `Picker` / `Stepper` rows with a sibling caption (same pattern as the run-37 Toggle fix).
+- `TextField` / `SecureField` rows with a sibling caption under the field (format hints): hint on the field, caption hidden.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

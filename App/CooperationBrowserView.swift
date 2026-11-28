@@ -179,8 +179,10 @@ import SwiftUI
                 }.pickerStyle(.menu).accessibilityIdentifier("cooperation.topicFilter.choose")
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHint(Text("cooperation.topicFilter.loadedOnly"))
                 Text("cooperation.topicFilter.loadedOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHidden(true)
                 if selected != nil {
                     Button("cooperation.topicFilter.clear") {
                         guard ObjectIdentifier(reader) == owner, reader.scope == scope else { return }
