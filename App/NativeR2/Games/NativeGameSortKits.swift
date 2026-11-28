@@ -262,7 +262,7 @@ extension PlayKitScreen {
             if let qr = raw["qrUrl"].text, !qr.isEmpty {
                 artwork(qr).frame(maxWidth: 220).frame(maxWidth: .infinity)
             } else {
-                ContentUnavailableView("playkitLegacy.silent.noWitnessCode", systemImage: "qrcode")
+                ContentUnavailableView("playkit.silent.generating", systemImage: "qrcode")
             }
         } footer: {
             Text("playkitLegacy.silent.qrCaption")
@@ -407,7 +407,7 @@ extension PlayKitScreen {
                     Text(verbatim: String(format: "%02d:%02d", seconds / 60, seconds % 60))
                         .cyText(.dataXL)
                         .contentTransition(.numericText())
-                    Text("nativeGames.silent.elapsed").font(.subheadline).foregroundStyle(.secondary)
+                    Text("playkit.silent.performing").font(.subheadline).foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .ignore)
@@ -415,21 +415,14 @@ extension PlayKitScreen {
             }
             if gaveUp {
                 Label("playkitLegacy.silent.stopped", systemImage: "stop.circle")
-            } else if startedAt == nil {
-                Button { startedAt = ProcessInfo.processInfo.systemUptime; onDirty() } label: {
-                    Text("playkitLegacy.silent.start").frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(!active)
-                .accessibilityIdentifier("playkit.silentOrder.start")
             } else {
+                // MP `so__giveup` 认输说话: the clock runs from the moment the page shows (no start step).
                 Button(role: .destructive) { confirmGiveUp = true } label: {
-                    Text("playkitLegacy.silent.giveUp").frame(maxWidth: .infinity)
+                    Label("playkitLegacy.silent.giveUp", systemImage: "arrow.right").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
-                .disabled(!active)
+                .disabled(!active || startedAt == nil)
                 .accessibilityIdentifier("playkit.silentOrder.giveUp")
             }
         }
@@ -437,9 +430,9 @@ extension PlayKitScreen {
             Button("playkitLegacy.silent.giveUp", role: .destructive) { giveUp() }
             Button("playkit.cancel", role: .cancel) {}
         }
-        .onAppear { elapsed = max(0, segment["elapsedSeconds"].integer ?? 0) }
-        .onChange(of: active) { _, value in if !value { stop() } }
-        .onChange(of: scenePhase) { _, value in if value != .active { stop() } }
+        .onAppear { elapsed = max(0, segment["elapsedSeconds"].integer ?? 0); resume() }
+        .onChange(of: active) { _, value in if value { resume() } else { stop() } }
+        .onChange(of: scenePhase) { _, value in if value == .active { resume() } else { stop() } }
         .onDisappear { stop() }
     }
 
@@ -449,6 +442,11 @@ extension PlayKitScreen {
         stop()
         gaveUp = transition.gaveUp
         onDirty()
+    }
+
+    private func resume() {
+        guard active, !gaveUp, startedAt == nil, scenePhase == .active else { return }
+        startedAt = ProcessInfo.processInfo.systemUptime
     }
 
     private func stop() {

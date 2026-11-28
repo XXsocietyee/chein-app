@@ -81,15 +81,16 @@ import SwiftUI
             kicker
         } footer: {
             if kind == .quietHold || kind == .shout { Text("playkit.sensor.audioPrivacy") }
-            else if kind == .compass { Text("playkit.compass.caution") }
         }
     }
 
     /// MP `g-kicker` + sub lines (ballshake / quiethold / shout / compass): the server `kicker` leads when present,
-    /// then the kit's own line, the server `sub` (quiet hold) or `hint` (compass), and 这一站已跳过 when skipped.
+    /// then the kit's own line and 这一站已跳过 when skipped. The quiet-hold `sub` and the compass `hint` sit on the
+    /// board under the figure (MP `qt__s`, `cp__hint`).
     @ViewBuilder private var kicker: some View {
         Group {
-            if let line = serverText("kicker") {
+            // The shell title falls back to the kicker (`PlayKitProjection.title`); never print it twice.
+            if let line = serverText("kicker"), line != (segment["title"].text ?? segment["question"].text ?? segment["kicker"].text ?? "") {
                 Text(verbatim: line).font(.headline).foregroundStyle(.primary)
             }
             switch kind {
@@ -98,12 +99,10 @@ import SwiftUI
                 if stage.ball.limitSeconds > 0 { Text("playkit.ball.limitLine \(decimal(stage.ball.limitSeconds))") }
             case .quietHold:
                 if serverText("kicker") == nil { Text("playkit.quiet.kicker") }
-                if let sub = serverText("sub") { Text(verbatim: sub) }
             case .shout:
                 if serverText("kicker") == nil { Text("playkit.shout.kicker") }
             case .compass:
                 if serverText("kicker") == nil { Text("playkit.compass.kicker") }
-                if let hint = serverText("hint") { Text(verbatim: hint) }
             default: EmptyView()
             }
             if segment["skipped"].bool == true { Text("playkit.sensor.skipped") }
@@ -172,66 +171,104 @@ import SwiftUI
                 // Motion r2 R4: each hit from the kit's CoreMotion reader stirs the snow globe; it settles after.
                 MotionR2SnowGlobe(shakes: stage.ball.hits)
             }
-        case .quietHold, .shout:
-            let level = kind == .quietHold ? stage.quiet.level : stage.shout.level
-            let warning = kind == .quietHold ? stage.quiet.warningThreshold : stage.shout.warningThreshold
-            let threshold = kind == .quietHold ? stage.quiet.stopThreshold : stage.shout.loudThreshold
-            let held = kind == .quietHold ? stage.quiet.heldSeconds : stage.shout.heldSeconds
-            let total = kind == .quietHold ? stage.quiet.targetSeconds : stage.shout.targetSeconds
-            let color: Color = level > threshold ? .red : level > warning ? .orange : .green
-            bigValue(decimal(max(0, total - held)), label: "playkit.sensor.secondsLeft")
-            Gauge(value: min(max(level, 0), 1), in: 0...1) {
-                Text("playkit.audio.livePeak")
-            }
-            .gaugeStyle(.linearCapacity)
-            .tint(color)
-            Label(LocalizedStringKey(level > threshold ? "playkit.audio.hot" : level > warning ? "playkit.audio.warning" : "playkit.audio.quiet"),
-                  systemImage: level > threshold ? "waveform" : "waveform.path")
-                .foregroundStyle(color)
-            ProgressView(value: min(held, total), total: max(0.1, total)) { Text("playkit.sensor.holdProgress") }
-            if kind == .quietHold { Text("playkit.quiet.relative").font(.footnote).foregroundStyle(.secondary) }
-            if kind == .quietHold, stage.quiet.exceeded { Label("playkit.quiet.limitReached", systemImage: "speaker.wave.3").foregroundStyle(.red) }
-            if kind == .shout { Text("playkit.shout.continuous").font(.footnote).foregroundStyle(.secondary) }
-        case .compass:
-            VStack(spacing: 8) {
-                Image(systemName: "location.north.fill")
-                    .font(.largeTitle)
-                    .foregroundStyle(stage.compass.aligned ? Color.green : Color.accentColor)
-                    .rotationEffect(.degrees(stage.compass.needleDegrees))
-                    .opacity(stage.compass.heading == nil ? 0.25 : 1)
-                    .animation(reduceMotion ? nil : .linear(duration: 0.15), value: stage.compass.needleDegrees)
-                    .accessibilityHidden(true)
-                Text(verbatim: stage.compass.heading.map { "\(Int($0.rounded()) % 360)°" } ?? "—")
-                    .cyText(.dataXL)
-                    .contentTransition(.numericText())
-                    .accessibilityLabel(Text("playkit.compass.heading"))
-            }
-            .frame(maxWidth: .infinity)
-            LabeledContent { Text(verbatim: "\(Int(stage.compass.target))°").monospacedDigit() } label: { Text("playkit.compass.target") }
-            if stage.compass.heading != nil {
-                if stage.compass.lowAccuracy { Label("playkit.compass.lowAccuracy", systemImage: "exclamationmark.triangle").foregroundStyle(.orange) }
-                else if stage.compass.aligned { Label("playkit.compass.hold", systemImage: "scope") }
-                else {
-                    Label {
-                        Text(LocalizedStringKey(stage.compass.signedDelta > 0 ? "playkit.compass.turnRight" : "playkit.compass.turnLeft"))
-                            + Text(verbatim: " \(Int(abs(stage.compass.signedDelta).rounded()))°")
-                    } icon: {
-                        Image(systemName: stage.compass.signedDelta > 0 ? "arrow.turn.up.right" : "arrow.turn.up.left")
-                    }
-                }
+        case .quietHold:
+            // MP `playkit-quiethold`: no level bar — the green / orange / red band lives on the figure itself.
+            let level = stage.quiet.level
+            let color: Color = level > stage.quiet.stopThreshold ? .red : level > stage.quiet.warningThreshold ? .orange : .green
+            audioFigure(decimal(max(0, stage.quiet.targetSeconds - stage.quiet.heldSeconds)),
+                        color: stage.phase == .running ? color : .primary)
+            if let sub = serverText("sub") { Text(verbatim: sub).foregroundStyle(.secondary) }
+            if stage.quiet.exceeded { Label("playkit.quiet.limitReached", systemImage: "speaker.wave.3").foregroundStyle(.red) }
+        case .shout:
+            // MP `playkit-shout`: figure (seconds left) → one plain line → safety line before the run; no level bar.
+            let running = stage.phase == .running
+            let loud = running && stage.shout.loud
+            audioFigure(decimal(max(0, stage.shout.targetSeconds - stage.shout.heldSeconds)), color: loud ? .red : .primary)
+            if running {
+                Text(LocalizedStringKey(loud ? "playkit.shout.keepGoing" : "playkit.shout.louder"))
+                    .font(.headline)
+                    .foregroundStyle(loud ? Color.red : Color.primary)
+                    .frame(maxWidth: .infinity)
             } else {
-                Text("playkit.compass.waitingHeading").foregroundStyle(.secondary)
+                Text("playkit.shout.goal \(decimal(stage.shout.targetSeconds))")
+                    .frame(maxWidth: .infinity)
+                Text("playkit.shout.safe").font(.footnote).foregroundStyle(.secondary)
             }
-            Gauge(value: min(stage.compass.heldSeconds, stage.compass.holdSeconds), in: 0...max(0.1, stage.compass.holdSeconds)) {
-                Text("playkit.sensor.holdProgress")
-            } currentValueLabel: {
-                Text(verbatim: decimal(max(0, stage.compass.holdSeconds - stage.compass.heldSeconds))).monospacedDigit()
+        case .compass:
+            // MP `playkit-compass` order: dial → heading figure (running) → hold / done / how-to + 提示 → drift line → safety line.
+            NativeCompassDial(compass: stage.compass, running: stage.phase == .running, reduceMotion: reduceMotion)
+            if stage.phase == .running, let heading = stage.compass.heading {
+                Text(verbatim: "\(Int(heading.rounded()) % 360)°")
+                    .cyText(.dataXL)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .foregroundStyle(stage.compass.aligned ? Color.green : Color.primary)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityLabel(Text("playkit.compass.heading"))
+                    .accessibilityValue(Text(verbatim: "\(Int(heading.rounded()) % 360)°"))
             }
-            .gaugeStyle(.accessoryCircularCapacity)
-            .frame(maxWidth: .infinity)
+            compassStatus
+            if stage.phase == .running, stage.compass.heading != nil, stage.compass.lowAccuracy {
+                Label("playkit.compass.lowAccuracy", systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+            }
+            if (stage.phase == .idle || stage.phase == .interrupted), segment["done"].bool != true {
+                Text("playkit.compass.safe").font(.footnote).foregroundStyle(.secondary)
+            }
         default:
             EmptyView()
         }
+    }
+
+    /// MP `cp__hold` / `cp__s` / `cp__how` + `cp__hint`: one line under the figure, then the 已对准 mark when done.
+    @ViewBuilder private var compassStatus: some View {
+        let done = segment["done"].bool == true && segment["skipped"].bool != true
+        if stage.phase == .running, stage.compass.aligned {
+            Label {
+                Text("playkit.compass.holdLeft \(decimal(max(0, stage.compass.holdSeconds - stage.compass.heldSeconds)))")
+                    .monospacedDigit()
+            } icon: {
+                Image(systemName: "scope")
+            }
+            .foregroundStyle(.green)
+        } else if stage.phase == .running, stage.compass.heading == nil {
+            Text("playkit.compass.waitingHeading").foregroundStyle(.secondary)
+        } else if done {
+            Text("playkit.compass.doneLine").foregroundStyle(.secondary)
+            Label("playkit.compass.doneMark", systemImage: "checkmark.circle.fill")
+                .font(.headline)
+                .foregroundStyle(.green)
+        } else {
+            if stage.phase == .running {
+                Label {
+                    Text(LocalizedStringKey(stage.compass.signedDelta > 0 ? "playkit.compass.turnRight" : "playkit.compass.turnLeft"))
+                        + Text(verbatim: " \(Int(abs(stage.compass.signedDelta).rounded()))°")
+                } icon: {
+                    Image(systemName: stage.compass.signedDelta > 0 ? "arrow.turn.up.right" : "arrow.turn.up.left")
+                }
+            } else {
+                Text("playkit.compass.how")
+            }
+            if let hint = serverText("hint") {
+                (Text("playkit.compass.hintLabel").bold() + Text(verbatim: " ") + Text(verbatim: hint))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    /// MP `g-figure` for the audio kits: seconds left, coloured by the live band, labelled for VoiceOver.
+    private func audioFigure(_ value: String, color: Color) -> some View {
+        VStack(spacing: 2) {
+            Text(verbatim: value)
+                .cyText(.dataXL)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+                .foregroundStyle(color)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: color)
+            Text("playkit.sensor.secondsLeft").font(.subheadline).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
     }
 
     private func bigValue(_ value: String, label: LocalizedStringKey) -> some View {
@@ -304,4 +341,102 @@ import SwiftUI
     }
 
     private func decimal(_ number: Double) -> String { String(format: "%.1f", number) }
+}
+
+/// MP `cp__dial`: the dial is the phone's facing (top = where you face). The rose turns with the heading, the white
+/// lubber line marks the top, the green arc is the tolerance zone, the arrow points at the target and turns green
+/// inside the zone; the hold ring fills while aligned. Drawn with system shapes and SF Symbols, no images.
+@MainActor struct NativeCompassDial: View {
+    let compass: PlayKitCompassRun
+    let running: Bool
+    let reduceMotion: Bool
+    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 240
+
+    private var hasHeading: Bool { compass.heading != nil }
+    private var tone: Color { compass.aligned ? .green : .red }
+
+    var body: some View {
+        ZStack {
+            Circle().strokeBorder(.quaternary, lineWidth: 2)
+            if running, compass.aligned {
+                Circle()
+                    .trim(from: 0, to: min(1, compass.heldSeconds / max(0.1, compass.holdSeconds)))
+                    .stroke(Color.green, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .padding(2)
+            }
+            Circle()
+                .trim(from: 0, to: min(1, compass.tolerance / 180))
+                .stroke(Color.green.opacity(0.6), style: StrokeStyle(lineWidth: 6, lineCap: .butt))
+                .rotationEffect(.degrees(-90 - compass.tolerance))
+                .padding(10)
+            rose
+                .rotationEffect(.degrees(compass.roseDegrees))
+                .animation(reduceMotion ? nil : .linear(duration: 0.16), value: compass.roseDegrees)
+            VStack {
+                Capsule().fill(.primary).frame(width: 3, height: 18)
+                Spacer()
+            }
+            arrow
+                .rotationEffect(.degrees(hasHeading ? compass.needleDegrees : 0))
+                .animation(reduceMotion ? nil : .linear(duration: 0.16), value: compass.needleDegrees)
+                .opacity(hasHeading ? 1 : 0.35)
+            Circle().fill(.primary).frame(width: 12, height: 12)
+        }
+        .frame(width: min(size, 300), height: min(size, 300))
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("playkit.compass.dial"))
+    }
+
+    private var rose: some View {
+        ZStack {
+            ForEach(0..<72, id: \.self) { index in
+                VStack {
+                    Capsule()
+                        .fill(index % 6 == 0 ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tertiary))
+                        .frame(width: index % 6 == 0 ? 2 : 1, height: index % 6 == 0 ? 12 : 6)
+                    Spacer()
+                }
+                .padding(.top, 16)
+                .rotationEffect(.degrees(Double(index) * 5))
+            }
+            if hasHeading {
+                ForEach(0..<12, id: \.self) { index in
+                    VStack {
+                        label(index * 30)
+                        Spacer()
+                    }
+                    .padding(.top, 32)
+                    .rotationEffect(.degrees(Double(index) * 30))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func label(_ degrees: Int) -> some View {
+        switch degrees {
+        case 0: Text("playkit.compass.north").font(.headline).foregroundStyle(.red)
+        case 90: Text("playkit.compass.east").font(.subheadline.weight(.semibold))
+        case 180: Text("playkit.compass.south").font(.subheadline.weight(.semibold))
+        case 270: Text("playkit.compass.west").font(.subheadline.weight(.semibold))
+        default: Text(verbatim: "\(degrees)").font(.caption).foregroundStyle(.secondary).monospacedDigit()
+        }
+    }
+
+    private var arrow: some View {
+        VStack(spacing: 0) {
+            VStack(spacing: 0) {
+                Image(systemName: "arrowtriangle.up.fill")
+                    .font(.title)
+                    .foregroundStyle(tone)
+                Capsule().fill(tone.opacity(0.5)).frame(width: 3)
+            }
+            .padding(.top, 58)
+            .frame(maxHeight: .infinity)
+            Color.clear.frame(maxHeight: .infinity)
+        }
+        .accessibilityHidden(true)
+    }
 }

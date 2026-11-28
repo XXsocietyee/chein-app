@@ -505,6 +505,65 @@ match the one pattern; no new design-system kind to add this run.
 ### Not done (next run)
 None from this run.
 
+## Continue run 16 (2026-11-27, after merging combined-r7 into 0e008c085)
+
+Merge clean (54 files). Sweep in `docs/sweeps/latest` is still build 8fa84e4d3 (22:11, already checked in run 14); no
+coordinator row for this lane since 16:37 (answered in run 4). Run 15 Not done: none; status capsule 29 is internal
+`*SectionView` / ledger screens (out of player scope).
+
+Scan: one separator and one text case (OWNER RULE 2 "one list/card pattern", "fonts, letter spacing … consistent").
+Shadows (9 sites: map pins, map controls, reward motion, drag lift, persistent map sheet) and `.roundedBorder` fields
+(15, all in card `VStack`s, none inside a `List` row) are already one pattern — no change.
+
+| MP page / area | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| 章节故事 divider block | `App/ChapterStoryView.swift:386` | unchanged | non-story-flow branch drew a 1 pt `Rectangle` in `borderSubtle`; the story-flow branch already used `Divider()` → one `case .divider: Divider()` |
+| 发布 editor kit insert seam (+ / × circle on the line) | `App/EditorKitResults.swift:185` | unchanged | 0.5 pt `Rectangle` → `Divider()` behind the circle |
+| 漫游 monthly recap share face (month eyebrow) | `App/RoamPassportToolsViews.swift:891` | unchanged | `.textCase(.uppercase)` removed: the only all-caps text on a player surface ("NOVEMBER 2026"); sentence case like every eyebrow (zh unaffected) |
+
+New checker kind **hand divider**: `Rectangle()` (optionally `.fill(colour)`, not `.clear`) with `.frame(height: 0.5 / 1)`
+outside App/DesignSystem and App/Theme. Vertical timeline connectors (`width: 2`) and clear spacers do not match.
+Baseline 0. Self-test: the pre-fix tree fails in exactly the two files above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(hand divider 0, status capsule 29 baselined debt, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+None from this run.
+
+## Continue run 17 (2026-11-27, after merging combined-r7 into 028eee08a)
+
+Merge clean (46 files). Run 16 Not done: none. New sweep `docs/sweeps/latest` = build b3b03703a (23:07); sheets read:
+`mp-journey/sheet-en.jpg`, `mp-home/sheet-zh-Hans.jpg`, `mp-nav/sheet-en.jpg`, `mp-activity/sheet-en.jpg`.
+
+Scan: one text case (OWNER RULE 2 "fonts, letter spacing … consistent"). Run 16 made eyebrows sentence case outside the
+design system, but `mp-nav/sheet-en.jpg` (`onboarding-1`) still shows an all-caps **WELCOME** above "The city is
+waiting": the shared components in App/DesignSystem forced `.textCase(.uppercase)`. Every en string is already in
+sentence case ("New badge", "This walk", …), so the capitals were styling only; zh is unaffected.
+
+| MP page / area | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| 引导页 eyebrow (`onboarding-1`) | `App/DesignSystem/CYOnboarding.swift:326` | unchanged | WELCOME → Welcome |
+| 新徽章 / 这一趟 celebration titles | `App/DesignSystem/CYCelebrationViews.swift:552`, `:616` | unchanged | NEW BADGE / THIS WALK → sentence case |
+| 已获得 n 枚 medal deck caption | `App/DesignSystem/CYMedalStack.swift:170` | unchanged | sentence case |
+| 章节 n / 共 m, 序章, 第 n 章完成 | `App/DesignSystem/CYChapterFlip.swift:33`, `:115` | unchanged | sentence case |
+| 收集册 NEW pulse badge | `App/DesignSystem/CYAlbum.swift:251` | unchanged | sentence case |
+| 票夹 pass ribbon (已使用 / 已过期 …) | `App/DesignSystem/CYTicketPass.swift:126` | unchanged | sentence case |
+| — | `App/DesignSystem/CYExploreKit.swift` `cyEyebrow(isChinese:)` | — | deleted: 0 call sites, and it documented the all-caps eyebrow as the pattern |
+
+Not changed on purpose: italic bold numerals on the roam finish record, play-kit index numbers and the GO wordmark —
+the MP marks them `ds-ok` owner P-34 (NRC 粗斜体, `pages/roam/index.wxss:657`, playkit wxss), an owner-approved style.
+`.textCase(nil)` on `Section` headers (36 sites) keeps long header sentences as written; no change.
+
+New checker kind **all caps**: `.textCase(.uppercase)` anywhere in player `App/` (design system included). Baseline 0.
+Self-test: the pre-fix tree fails in exactly the seven files above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(all caps 0, status capsule 29 baselined, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+None from this run.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

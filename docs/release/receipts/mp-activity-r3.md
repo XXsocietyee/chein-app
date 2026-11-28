@@ -152,6 +152,23 @@ Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs' `play
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration contract suites 58 OK.
 
+## Round 3 continue (2026-11-27, fifteenth session — sweep 22:11 build 8fa84e4d3, no newer sweep)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON + duplicate-key check ok). Re-read sheets `en-t5-pass-market`, `zh-Hans-d2-square`: no new issues for this lane. Area re-scan: no `.font(.system(size:))`, `.tracking`, `Color(red:)` or custom fonts in Square/Team/Coop/Registration/Official/Pass files (the one `LinearGradient` is the MP reveal gold step).
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/coop/list/index` topic scope (js:163-168 `只看「name」的协作`, `#id` only when the name is missing) | `App/CooperationBrowserView.swift` `topicFilterSection` | the topic picker read 「name #123」 for every topic (raw id as data). Now the name alone; `#id` stays only as the MP fallback for unnamed topics | no internal ids in the UI |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · coop topic-filter / x01 / project-navigation suites OK.
+
+## Round 3 continue (2026-11-27, sixteenth session — sweep 23:07 build b3b03703a)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON + duplicate-key check ok). Sheets `en/zh-Hans-t5-baoming`, `-d2-square`, `-t5-pass-market` re-read; build includes the fourteenth/fifteenth-session fixes (English baoming fixture text and the lone price dash are gone).
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `components/cy/post-card` body (js:77 `textLong = length > 120 \|\| lines > 6`, wxss:169 `-webkit-line-clamp: 6`; used by `pages/square/*`) | `App/SquareXcxPostCard.swift`, `Core/SquareXcxPresentation.swift` `bodyExpandable` | screenshot `en-d2-square`: both two-line English posts showed a 「More」 link although nothing was cut (native clamped at 2 lines and counted > 40 characters — an old MP threshold). Now the MP rule: clamp 6 lines, 展开 / More only past 120 characters or 6 lines. `SquareXcxParityTests` thresholds updated (reason: MP round-3 post-card) | no expand affordance on text that is fully shown, in either language |
+| `pages/activity/baoming/baoming` bottom bar (wxml:325-330: sharing-consent checkbox directly above the cy-btn, whose label is 请先勾选信息共享同意 while unticked) | `App/RegistrationSheetView.swift` `checkoutBar` / `confirmationSection` | screenshot `en-t5-baoming`: the consent switch sat in a list section far above, the disabled button said 「Tick the sharing consent first」 and a footnote repeated 「Tick the confirmation above to continue」. **Reordered**: the consent `Toggle` (same id `registration.form.consent`, same unticked default, only when creation is permitted) now sits in the bottom bar above the button as in the MP; the footnote is dropped when the disabled button already names the step (consent / participant / closed), other reasons (price, sold out, payment) still show | native `Toggle` in the pinned `CYFooterBar`; one message per state |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration + square contract suites OK (`test_square_workspace` fails identically on the base: missing `flutter_source` module).
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

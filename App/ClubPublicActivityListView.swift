@@ -239,25 +239,31 @@ import SwiftUI
             } icon: { Image(systemName: "lock.slash") }
         }
     }
+    /// MP `pages/club/detail/index.wxml:216` cy-error 活动列表加载失败 · 重新加载: one state, the action inside it.
+    private func issueTitleKey(_ issue: ClubLoadIssue) -> String {
+        issue.titleKey == "club.loadFailed" ? "club.detail.events.loadFailed" : issue.titleKey
+    }
     @ViewBuilder private func issueSection(_ issue: ClubLoadIssue) -> some View {
         Section {
-            Label {
-                Text(verbatim: String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: issue.titleKey), locale: locale)))
-            } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("club.publicTopics.error")
-            if let message = issue.message {
-                Text(verbatim: message)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                Text(LocalizedStringKey(issue.hintKey)).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+            ContentUnavailableView {
+                Label {
+                    Text(verbatim: String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: issueTitleKey(issue)), locale: locale)))
+                        .accessibilityIdentifier("club.publicTopics.error")
+                } icon: { Image(systemName: "exclamationmark.triangle") }
+            } description: {
+                if let message = issue.message {
+                    Text(verbatim: message)
+                }
+            } actions: {
+                if issue.needsSignIn, let onSignIn {
+                    Button(action: onSignIn) { Text("club.signIn") }
+                        .buttonStyle(.borderedProminent)
+                } else {
+                    Button { Task { await refresh() } } label: { Text("action.reload") }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("club.publicTopics.retry")
+                }
             }
-            if issue.needsSignIn, let onSignIn {
-                Button(action: onSignIn) { Label("club.signIn", systemImage: "person.crop.circle") }
-            }
-            Button { Task { await refresh() } } label: { Label("action.retry", systemImage: "arrow.clockwise") }
-                .accessibilityIdentifier("club.publicTopics.retry")
         }
     }
 }

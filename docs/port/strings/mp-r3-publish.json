@@ -2565,5 +2565,175 @@
         }
       }
     }
+  },
+  "mpPublish.rules.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Game rules"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩法规则"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.replay": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Allow playing again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "允许再玩一次"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.teamTrail": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shared routes in a session"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "同场路线"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.replay.teamRefused": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Team play doesn't support replaying alone. Turn off Allow playing again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍玩法不支持个人重玩，请关闭再玩一次"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.unreadable": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This topic's game settings couldn't be read. Save the topic and try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "主题玩法配置读取失败，请保存主题后重试"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.allowTrade": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Teams can trade items"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍之间可以交换物资"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.votePolicy": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Voting"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "表决方式"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.vote.majority": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Majority"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "过半数"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.vote.unanimous": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Everyone agrees"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全体同意"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.vote.majorityAcceptance": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Majority accepts (a tie can be voted again)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "过半接受（平票可复议）"
+        }
+      }
+    }
   }
 }

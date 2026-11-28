@@ -137,7 +137,7 @@ import SwiftUI
                         } label: { text("chapter") }
                         .pickerStyle(.menu)
                         .accessibilityIdentifier("projectDraftStoryPreview.chapter")
-                        .accessibilityValue(Text(verbatim: "\(controller.selectedChapter + 1) / \(projection.chapters.count)"))
+                        .accessibilityValue(Text("carousel.position \(controller.selectedChapter + 1) \(projection.chapters.count)"))
                         Spacer()
                         Button { _ = controller.select(controller.selectedChapter + 1, in: original) } label: {
                             Label { text("next") } icon: { Image(systemName: "chevron.forward") }
