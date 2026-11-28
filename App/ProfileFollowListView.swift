@@ -74,12 +74,9 @@ import SwiftUI
                         .accessibilityIdentifier("profile.followList.empty")
                     }
                     if flow.hasMore && !flow.loading && flow.error == nil {
-                        Button { flow.more() } label: {
-                            Text("square.loadMore").frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
-                        .accessibilityIdentifier("profile.followList.more")
+                        // ADA 11-28 §3: the shared paging row (loads when it scrolls in, MP onReachBottom).
+                        CYLoadMoreRow("square.loadMore") { flow.more() }
+                            .accessibilityIdentifier("profile.followList.more")
                     }
                 }
             }

@@ -208,6 +208,7 @@ extension EnvironmentValues {
                     }
                     Spacer()
                     Text(verbatim: "\(row.completedCount) / \(row.totalTasks)")
+                        .accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: row.completedCount)) \(String(describing: row.totalTasks))"))
                         .cyText(.numericBody)
                         .monospacedDigit()
                         .foregroundStyle(.secondary)

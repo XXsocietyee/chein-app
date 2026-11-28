@@ -39,9 +39,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld places"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld spot"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld spots"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -32282,13 +32294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Owner"
+            "value": "Creator"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "主理人"
+            "value": "创建者"
           }
         }
       }
@@ -50326,13 +50338,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redeem status hasn't updated yet"
+            "value": "Redemption status hasn’t synced yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核销状态暂未更新"
+            "value": "核销状态暂未同步"
           }
         }
       }
@@ -73422,9 +73434,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld chapters"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chapter"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chapters"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -142753,6 +142777,23 @@
         }
       }
     },
+    "mpd.postGov.confirming": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submission result not confirmed. Checking…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交结果未确认，正在确认…"
+          }
+        }
+      }
+    },
     "mpd.postGov.decision %@": {
       "extractionState": "manual",
       "localizations": {
@@ -142919,6 +142960,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "申诉复核后维持原处置"
+          }
+        }
+      }
+    },
+    "mpd.postGov.pendingRow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your last appeal hasn't been confirmed yet. Pull down to check again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次申诉的提交结果未确认，下拉刷新再次核对"
           }
         }
       }
@@ -143446,6 +143504,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "警告"
+          }
+        }
+      }
+    },
+    "mpd.postGov.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submission result not confirmed yet. Refresh later to check."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交结果暂未确认，请稍后刷新确认"
           }
         }
       }
@@ -150468,6 +150543,23 @@
         }
       }
     },
+    "npcData.failure.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export didn't finish"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出没有完成"
+          }
+        }
+      }
+    },
     "npcData.failure.unavailable": {
       "extractionState": "manual",
       "localizations": {
@@ -153058,9 +153150,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld days"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -153075,9 +153179,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld hours"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld hour"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld hours"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -156730,9 +156846,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ended · %lld events"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ended · %lld event"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ended · %lld events"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -156747,9 +156875,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Live · %lld events"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Live · %lld event"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Live · %lld events"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -156764,9 +156904,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mine · %lld events"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Mine · %lld event"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Mine · %lld events"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -156798,9 +156950,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coming soon · %lld events"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Coming soon · %lld event"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Coming soon · %lld events"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -200786,13 +200950,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The crop didn't work. Adjust and try again, or cancel to keep your current background."
+            "value": "Couldn’t finish the crop. Adjust it and try again, or use the original."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "裁剪未完成。可以调整后重试，或取消以保留当前背景图。"
+            "value": "裁剪没有完成。可以调整后重试，或使用原图。"
           }
         }
       }
@@ -273868,7 +274032,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Event"
+            "value": "Session"
           }
         },
         "zh-Hans": {
@@ -288965,7 +289129,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No points in the current area"
+            "value": "No spots in this area"
           }
         },
         "zh-Hans": {
@@ -290767,7 +290931,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Points"
+            "value": "Spots"
           }
         },
         "zh-Hans": {
@@ -290784,7 +290948,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Point details"
+            "value": "Spot details"
           }
         },
         "zh-Hans": {
@@ -320290,7 +320454,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Points"
+            "value": "Stops"
           }
         },
         "zh-Hans": {
@@ -320477,7 +320641,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This point is no longer on the route"
+            "value": "This stop is no longer on the route"
           }
         },
         "zh-Hans": {
@@ -326723,9 +326887,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld results"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld result"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld results"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -326825,9 +327001,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stamps collected"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stamp collected"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stamps collected"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -361500,21 +361688,9 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld topic published"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld topics published"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld topics published"
           }
         },
         "zh-Hans": {
@@ -361546,21 +361722,9 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld invitation sent"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld invitations sent"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld invitations sent"
           }
         },
         "zh-Hans": {
@@ -362679,6 +362843,1055 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在读取城市故事…"
+          }
+        }
+      }
+    },
+    "playx.director.chapter.manualTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock a chapter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手动解锁章节"
+          }
+        }
+      }
+    },
+    "playx.director.chapter.untitled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名"
+          }
+        }
+      }
+    },
+    "playx.director.chapter.release %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release “%@”"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放行「%@」"
+          }
+        }
+      }
+    },
+    "playx.director.chapter.releaseWaiting %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release “%1$@” · %2$lld waiting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放行「%1$@」 · %2$lld 队在等"
+          }
+        }
+      }
+    },
+    "playx.director.chapter.waiting %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld team finished this chapter and is waiting"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld teams finished this chapter and are waiting"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 队已完成本章，在等放行"
+          }
+        }
+      }
+    },
+    "playx.director.chapter.noneWaiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No team has finished this chapter yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有队伍完成本章"
+          }
+        }
+      }
+    },
+    "playx.director.chapter.reasonTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On-site reason (optional)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场原因（选填）"
+          }
+        }
+      }
+    },
+    "playx.director.chapter.reasonPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Why are you releasing it?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写明放行原因"
+          }
+        }
+      }
+    },
+    "playx.director.chapter.caption": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Players can enter this chapter's stops right away. This can't be undone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解锁后玩家立即可进入该章节的节点，不可撤回。"
+          }
+        }
+      }
+    },
+    "playx.director.chapter.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放行"
+          }
+        }
+      }
+    },
+    "playx.director.incident.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On-site events"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场事件"
+          }
+        }
+      }
+    },
+    "playx.director.incident.modeTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How to handle it"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理方式"
+          }
+        }
+      }
+    },
+    "playx.director.incident.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handle event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认处理"
+          }
+        }
+      }
+    },
+    "playx.director.incident.caption": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausing affects only this stop. Rewards already given and finished submissions stay as they are."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停只影响本站，不改变已发放的权益与已完成的提交。"
+          }
+        }
+      }
+    },
+    "playx.director.incident.noPlanCaption": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stop has no approved backup plan: players will see the stop paused with its expected resume time and won't be sent elsewhere."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一站没有已批准的备用方案：玩家会看到本站暂停和预计恢复时间，不会被引导到其他节点。"
+          }
+        }
+      }
+    },
+    "playx.director.incident.manyPlans": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Several backup plans. Choose one in admin."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有多个备用方案，请到后台指定"
+          }
+        }
+      }
+    },
+    "playx.director.incident.rejectNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The player will see your reason and submit again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家会看到驳回原因并重新提交。"
+          }
+        }
+      }
+    },
+    "playx.director.incident.kind.paused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused by venue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家暂停"
+          }
+        }
+      }
+    },
+    "playx.director.incident.kind.backlog": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verification backlog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待核验积压"
+          }
+        }
+      }
+    },
+    "playx.director.incident.kind.pendingSubmit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待核验提交"
+          }
+        }
+      }
+    },
+    "playx.director.incident.kind.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task rejected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任务驳回"
+          }
+        }
+      }
+    },
+    "playx.director.incident.untitledNode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名节点"
+          }
+        }
+      }
+    },
+    "playx.director.incident.noReason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reason given"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未填原因"
+          }
+        }
+      }
+    },
+    "playx.director.incident.paused %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "playx.director.incident.pausedEta %@ %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@, back around %3$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@，预计 %3$@ 恢复"
+          }
+        }
+      }
+    },
+    "playx.director.incident.backlog %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$lld awaiting venue check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$lld 条待商家核验"
+          }
+        }
+      }
+    },
+    "playx.director.incident.teamPending %lld %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team %1$lld · %2$@ submitted, awaiting check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队 %1$lld · %2$@ 提交待核验"
+          }
+        }
+      }
+    },
+    "playx.director.incident.teamRejected %lld %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team %1$lld · %2$@ rejected, awaiting resubmission"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队 %1$lld · %2$@ 已驳回待重交"
+          }
+        }
+      }
+    },
+    "playx.director.incident.pendingText %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ submitted, awaiting check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 提交待核验"
+          }
+        }
+      }
+    },
+    "playx.director.incident.rejectedText %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ rejected, send again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 已驳回待重交"
+          }
+        }
+      }
+    },
+    "playx.director.incident.planBound %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup plan %@ attached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已绑备用方案 %@"
+          }
+        }
+      }
+    },
+    "playx.director.incident.noPlan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No backup plan attached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未绑备用方案"
+          }
+        }
+      }
+    },
+    "playx.director.incident.mode.resume": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复本站"
+          }
+        }
+      }
+    },
+    "playx.director.incident.mode.pause": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停本站"
+          }
+        }
+      }
+    },
+    "playx.director.incident.mode.reject": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reject and resend"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "驳回重交"
+          }
+        }
+      }
+    },
+    "playx.director.incident.pauseReason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause reason (at least 2 characters; shared with the venue and players)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停原因（至少 2 个字，会同步给商家与玩家）"
+          }
+        }
+      }
+    },
+    "playx.director.incident.rejectReason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejection reason (at least 2 characters; players will see it)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "驳回原因（至少 2 个字，玩家会看到）"
+          }
+        }
+      }
+    },
+    "playx.director.incident.confirmPause": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认暂停"
+          }
+        }
+      }
+    },
+    "playx.director.incident.confirmReject": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reject"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认驳回"
+          }
+        }
+      }
+    },
+    "activeSession.play.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to the game"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回到游戏"
+          }
+        }
+      }
+    },
+    "activeSession.play.open.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens the game screen of this run"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开这局游戏的页面"
+          }
+        }
+      }
+    },
+    "playTools.team.broadcastTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team broadcast"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长广播"
+          }
+        }
+      }
+    },
+    "playTools.team.broadcastPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Say something to the team…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对全队说一句…"
+          }
+        }
+      }
+    },
+    "playTools.team.broadcastSend": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送"
+          }
+        }
+      }
+    },
+    "mpd.postGov.pendingUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result of your last appeal is not confirmed yet. Pull down to refresh later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次申诉的提交结果未确认，请稍后下拉刷新确认"
+          }
+        }
+      }
+    },
+    "mpPublish.themeAudio.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theme music"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题配乐"
+          }
+        }
+      }
+    },
+    "mpPublish.themeAudio.upload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传"
+          }
+        }
+      }
+    },
+    "mpPublish.themeAudio.replace": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更换"
+          }
+        }
+      }
+    },
+    "mpPublish.themeAudio.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除"
+          }
+        }
+      }
+    },
+    "mpPublish.themeAudio.removeLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove theme music"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除主题配乐"
+          }
+        }
+      }
+    },
+    "mpPublish.themeAudio.uploadLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload theme music"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传主题配乐"
+          }
+        }
+      }
+    },
+    "mpPublish.themeAudio.unsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic's theme music was saved in a format this version can't change."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这段主题配乐的保存格式当前版本无法修改。"
+          }
+        }
+      }
+    },
+    "mpPublish.themeAudio.scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One mp3, m4a or aac file up to 10 MB. It loops while players are in this topic. Nothing is uploaded until you tap Upload."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择一个 mp3、m4a 或 aac 文件，不超过 10 MB，玩家在主题内时循环播放。点上传前不会上传。"
+          }
+        }
+      }
+    },
+    "mpPublish.themeAudio.tooLong": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The returned file address is too long to save as theme music."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回的文件地址过长，无法保存为主题配乐。"
+          }
+        }
+      }
+    },
+    "mpPublish.themeAudio.apply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use as theme music"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为主题配乐"
+          }
+        }
+      }
+    },
+    "officialRoute.share.fallbackTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chein official route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾官方线路"
+          }
+        }
+      }
+    },
+    "roam.live.addressSearch.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入地址"
+          }
+        }
+      }
+    },
+    "roam.live.addressSearch.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Street, number or shop name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路名、门牌号或店名"
+          }
+        }
+      }
+    },
+    "roam.live.addressSearch.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing found nearby"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这附近没有搜到"
+          }
+        }
+      }
+    },
+    "pages.crop.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open the image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片没能打开"
+          }
+        }
+      }
+    },
+    "pages.crop.openFailed.reason": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose another image and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "换一张图片再试。"
           }
         }
       }

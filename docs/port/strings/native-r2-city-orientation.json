@@ -772,7 +772,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Points"
+            "value": "Stops"
           }
         },
         "zh-Hans": {
@@ -959,7 +959,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This point is no longer on the route"
+            "value": "This stop is no longer on the route"
           }
         },
         "zh-Hans": {

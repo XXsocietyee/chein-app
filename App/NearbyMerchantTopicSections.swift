@@ -9,25 +9,34 @@ import SwiftUI
 ///   `chapter-application/invite {chapterId, merchantMemberId, replacementOfOfferId}` only through its own reviewed,
 ///   default-closed write gate, so nothing is sent from this page.
 struct NearbyMerchantInvitableRow: Identifiable, Equatable {
+    /// One station this merchant can take: chapter name plus its terms tier (MP `chapterName + stationTermsText`).
+    struct Chapter: Equatable {
+        let name: String
+        let terms: CoopNearbyStationTerms?
+        func label(chinese: Bool) -> String { CoopNearbyStationTerms.label(chapter: name, terms: terms, chinese: chinese) }
+    }
     let memberID: Int
     let name: String
     let address: String?
-    /// One label per chapter this merchant can take (MP `chapterNames`, de-duplicated, server order).
-    let chapters: [String]
+    /// One entry per chapter + terms this merchant can take (MP `chapterNames`, de-duplicated by label, server order).
+    let chapters: [Chapter]
     /// At least one row carries a replacement candidate (MP `replacementInvites` non-empty).
     let hasReplacement: Bool
     var id: Int { memberID }
-    var chapterText: String? { chapters.isEmpty ? nil : chapters.joined(separator: "、") }
+    func chapterText(chinese: Bool) -> String? {
+        chapters.isEmpty ? nil : chapters.map { $0.label(chinese: chinese) }.joined(separator: chinese ? "、" : ", ")
+    }
 
     /// MP `validInvitableRow` + `merge`: rows without memberId, name or chapterName are dropped; one row per member.
     static func merged(_ values: [MerchantContentValue]) -> [NearbyMerchantInvitableRow] {
         var order: [Int] = []
-        var byMember: [Int: (name: String, address: String?, chapters: [String], replacement: Bool)] = [:]
+        var byMember: [Int: (name: String, address: String?, chapters: [Chapter], replacement: Bool)] = [:]
         for value in values {
             guard let member = value["memberId"].integer, member > 0,
                   let name = value["name"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty,
-                  let chapter = value["chapterName"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !chapter.isEmpty
+                  let chapterName = value["chapterName"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !chapterName.isEmpty
             else { continue }
+            let chapter = Chapter(name: chapterName, terms: CoopNearbyStationTerms(row: value))
             let replacement = (value["replacementOfOfferId"].integer ?? 0) > 0 && (value["chapterId"].integer ?? 0) > 0
             if var existing = byMember[member] {
                 if !existing.chapters.contains(chapter) { existing.chapters.append(chapter) }
@@ -124,6 +133,7 @@ struct NearbyMerchantInvitableOnlyRows: View {
     let scope: NearbyMerchantTopicScope
     let rows: [NearbyMerchantInvitableRow]
     let publicMerchant: PublicMerchantHomeContext
+    @Environment(\.locale) private var locale
     var body: some View {
         ForEach(rows) { row in
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -141,7 +151,7 @@ struct NearbyMerchantInvitableOnlyRows: View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: row.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             if let address = row.address, !address.isEmpty { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-            if let text = row.chapterText { NearbyMerchantChapterLine(text: text) }
+            if let text = row.chapterText(chinese: LocaleDisplay.isChinese(locale)) { NearbyMerchantChapterLine(text: text) }
         }
     }
 }

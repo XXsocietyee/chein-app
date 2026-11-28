@@ -85,7 +85,8 @@ import Combine
             Picker("creator.field.kind", selection: editor.kindBinding()) {
                 Text("creator.choice.text").tag("text"); Text("creator.choice.pick").tag("pick")
             }.accessibilityIdentifier("creator.profile.kind")
-            Text("templateProfile.kindHint").cyText(.meta).foregroundStyle(.secondary)
+                .accessibilityHint(Text("templateProfile.kindHint"))
+            Text("templateProfile.kindHint").cyText(.meta).foregroundStyle(.secondary).accessibilityHidden(true)
         }.disabled(!editor.canEdit)
             .onAppear { editor.reload() }.onDisappear { editor.retire() }
             .onChange(of: model.mediaReviewGeneration) { _, _ in editor.reload() }
