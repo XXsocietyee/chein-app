@@ -3087,7 +3087,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The host cancelled this activity"
+            "value": "The host canceled this activity"
           }
         },
         "zh-Hans": {
@@ -3138,7 +3138,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity cancelled"
+            "value": "Activity canceled"
           }
         },
         "zh-Hans": {
@@ -5189,7 +5189,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Application cancelled."
+            "value": "Application canceled."
           }
         },
         "zh-Hans": {
@@ -8011,7 +8011,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat sign-in was cancelled"
+            "value": "WeChat sign-in was canceled"
           }
         },
         "zh-Hans": {
@@ -18599,7 +18599,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -25782,7 +25782,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -27719,7 +27719,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -27911,7 +27911,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All returned dates, including past and cancelled occurrences. Parsed times use China time (UTC+8)."
+            "value": "All returned dates, including past and canceled occurrences. Parsed times use China time (UTC+8)."
           }
         },
         "zh-Hans": {
@@ -31142,7 +31142,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -32103,7 +32103,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Other tickets in the same order may also be cancelled."
+            "value": "Other tickets in the same order may also be canceled."
           }
         },
         "zh-Hans": {
@@ -35208,7 +35208,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -36175,7 +36175,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -37006,7 +37006,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The cooling-off period has ended. The account will be cancelled in the next early-morning batch. You can still withdraw before that finishes."
+            "value": "The cooling-off period has ended. The account will be canceled in the next early-morning batch. You can still withdraw before that finishes."
           }
         },
         "zh-Hans": {
@@ -39342,7 +39342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result lists cancelled periods, blocked bills, pending reviews and non-refundable items, and reports whether payouts have completed."
+            "value": "The result lists canceled periods, blocked bills, pending reviews and non-refundable items, and reports whether payouts have completed."
           }
         },
         "zh-Hans": {
@@ -43327,7 +43327,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -60005,7 +60005,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Excluded: cancelled or expired"
+            "value": "Excluded: canceled or expired"
           }
         },
         "zh-Hans": {
@@ -70505,7 +70505,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -72681,7 +72681,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -81983,7 +81983,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled by you"
+            "value": "Canceled by you"
           }
         },
         "zh-Hans": {
@@ -82119,7 +82119,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This tip can no longer be cancelled"
+            "value": "This tip can no longer be canceled"
           }
         },
         "zh-Hans": {
@@ -83517,7 +83517,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This review was cancelled."
+            "value": "This review was canceled."
           }
         },
         "zh-Hans": {
@@ -137069,7 +137069,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -141331,7 +141331,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This status cannot be cancelled"
+            "value": "This status cannot be canceled"
           }
         },
         "zh-Hans": {
@@ -141535,7 +141535,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -146623,7 +146623,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service window changed. The old reminder was cancelled; review the new time."
+            "value": "The service window changed. The old reminder was canceled; review the new time."
           }
         },
         "zh-Hans": {
@@ -160329,7 +160329,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This registration is cancelled."
+            "value": "This registration is canceled."
           }
         },
         "zh-Hans": {
@@ -161021,7 +161021,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -161293,7 +161293,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Order cancelled"
+            "value": "Order canceled"
           }
         },
         "zh-Hans": {
@@ -165861,7 +165861,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -166541,7 +166541,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Existing sign-ups won't be cancelled. Past sign-up records stay valid."
+            "value": "Existing sign-ups won't be canceled. Past sign-up records stay valid."
           }
         },
         "zh-Hans": {
@@ -174421,7 +174421,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signup cancelled"
+            "value": "Signup canceled"
           }
         },
         "zh-Hans": {
@@ -175489,7 +175489,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity cancelled"
+            "value": "Activity canceled"
           }
         },
         "zh-Hans": {
@@ -180652,7 +180652,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This round was cancelled. No reward this time."
+            "value": "This round was canceled. No reward this time."
           }
         },
         "zh-Hans": {
@@ -201841,7 +201841,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Order cancelled"
+            "value": "Order canceled"
           }
         },
         "zh-Hans": {
@@ -202517,7 +202517,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -218581,7 +218581,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check cancelled."
+            "value": "Check canceled."
           }
         },
         "zh-Hans": {
@@ -218632,7 +218632,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The check was cancelled."
+            "value": "The check was canceled."
           }
         },
         "zh-Hans": {
@@ -219091,7 +219091,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check cancelled"
+            "value": "Check canceled"
           }
         },
         "zh-Hans": {
@@ -220041,7 +220041,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -222187,7 +222187,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waitlist entry cancelled"
+            "value": "Waitlist entry canceled"
           }
         },
         "zh-Hans": {
@@ -227301,7 +227301,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled; the file was not saved"
+            "value": "Canceled; the file was not saved"
           }
         },
         "zh-Hans": {
@@ -228610,7 +228610,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -241883,7 +241883,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -244509,7 +244509,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopping only ends local waiting. The server may have received the request. A confirmed retry uses the same request ID; it does not prove that the earlier request was cancelled."
+            "value": "Stopping only ends local waiting. The server may have received the request. A confirmed retry uses the same request ID; it does not prove that the earlier request was canceled."
           }
         },
         "zh-Hans": {
@@ -257340,7 +257340,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Either side can cancel. A cancelled meeting cannot be confirmed later."
+            "value": "Either side can cancel. A canceled meeting cannot be confirmed later."
           }
         },
         "zh-Hans": {
@@ -257357,7 +257357,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The cancel result is unknown. The meeting stays cancelled on this device."
+            "value": "The cancel result is unknown. The meeting stays canceled on this device."
           }
         },
         "zh-Hans": {
@@ -257374,7 +257374,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meeting cancelled. It cannot be resumed."
+            "value": "Meeting canceled. It cannot be resumed."
           }
         },
         "zh-Hans": {
@@ -272434,7 +272434,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This ticket has been cancelled"
+            "value": "This ticket has been canceled"
           }
         },
         "zh-Hans": {
@@ -272931,7 +272931,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This ticket was cancelled"
+            "value": "This ticket was canceled"
           }
         },
         "zh-Hans": {
@@ -273313,7 +273313,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This ticket has been cancelled"
+            "value": "This ticket has been canceled"
           }
         },
         "zh-Hans": {
@@ -273483,7 +273483,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -275986,7 +275986,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review cancelled"
+            "value": "Review canceled"
           }
         },
         "zh-Hans": {
@@ -281451,7 +281451,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Navigation cancelled"
+            "value": "Navigation canceled"
           }
         },
         "zh-Hans": {
@@ -281500,7 +281500,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Navigation cancelled"
+            "value": "Navigation canceled"
           }
         },
         "zh-Hans": {
@@ -288303,7 +288303,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled, not published"
+            "value": "Canceled, not published"
           }
         },
         "zh-Hans": {
@@ -305562,7 +305562,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -305579,7 +305579,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled (waived)"
+            "value": "Canceled (waived)"
           }
         },
         "zh-Hans": {
@@ -305800,7 +305800,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -315157,7 +315157,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -318596,7 +318596,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -340920,7 +340920,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The confirmation wasn't sent, so it was cancelled on this device."
+            "value": "The confirmation wasn't sent, so it was canceled on this device."
           }
         },
         "zh-Hans": {
@@ -351091,7 +351091,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This round was cancelled"
+            "value": "This round was canceled"
           }
         },
         "zh-Hans": {
@@ -357501,7 +357501,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payment cancelled"
+            "value": "Payment canceled"
           }
         },
         "zh-Hans": {

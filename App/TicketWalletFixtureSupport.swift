@@ -53,7 +53,7 @@ import SwiftUI
         if scenario == .unavailable { throw TicketWalletReadFailure.unavailable }
         detailReads += 1
         if scenario == .refreshed, detailReads > 1 {
-            return try JSONDecoder().decode(TicketWalletTicket.self, from: Data("{\"id\":\(id),\"registrationStatus\":3,\"verificationStatus\":0,\"cmsTopic\":{\"name\":\"Sample cancelled after refresh\"}}".utf8))
+            return try JSONDecoder().decode(TicketWalletTicket.self, from: Data("{\"id\":\(id),\"registrationStatus\":3,\"verificationStatus\":0,\"cmsTopic\":{\"name\":\"Sample canceled after refresh\"}}".utf8))
         }
         let json = Self.localized(TicketWalletSyntheticFixtures.detailJSON).replacingOccurrences(of: "\"id\":901", with: "\"id\":\(id)")
         return try JSONDecoder().decode(TicketWalletTicket.self, from: Data(json.utf8))

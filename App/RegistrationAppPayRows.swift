@@ -89,7 +89,7 @@ extension EnvironmentValues {
     }
 
     @ViewBuilder private var cancelledRows: some View {
-        RegistrationPayCancelledLine(message: Text(c.t("支付已取消", "Payment cancelled")))
+        RegistrationPayCancelledLine(message: Text(c.t("支付已取消", "Payment canceled")))
             .accessibilityIdentifier("registration.pay.cancelled")
         Button(c.t("重新支付", "Pay again")) {
             Task { await launch() }

@@ -741,7 +741,7 @@ extension QuickPublishingView {
         case "APPROVE": return "Approved"
         case "REJECT": return "Rejected"
         case "REVERT": return "Original decision reverted"
-        case "CANCEL": return "Cancelled"
+        case "CANCEL": return "Canceled"
         case "ESCALATE": return "Escalated for review"
         default: return "Status is uncertain; nothing was resent"
         }
