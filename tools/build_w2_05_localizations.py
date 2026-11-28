@@ -29,7 +29,7 @@ values = {
     'couponCode.missing.detail': ('Go back to your coupon wallet and open it again.', '请返回票夹重新进入'),
     'couponCode.presentToMerchant': ('Show this to the merchant to scan and redeem', '出示给商家扫码核销'),
     'couponCode.refresh': ('Refresh QR code', '刷新二维码'),
-    'couponCode.fetchAgain': ('Fetch again', '重新获取'),
+    'couponCode.fetchAgain': ('Get a new code', '重新获取'),
     'couponCode.serviceDisabled': ('Coupon codes are unavailable', '优惠券出示码暂不可用'),
     'couponCode.serviceDisabled.detail': ('Coupon code display is currently unavailable. Contact the administrator.', '优惠券出示码暂不可用，请联系管理员'),
 }

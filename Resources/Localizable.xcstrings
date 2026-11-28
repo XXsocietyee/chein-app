@@ -50104,7 +50104,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon codes aren't available right now. No request was sent."
+            "value": "Coupon codes aren't available right now."
           }
         },
         "zh-Hans": {
@@ -50172,7 +50172,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fetch again"
+            "value": "Get a new code"
           }
         },
         "zh-Hans": {
