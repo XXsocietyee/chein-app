@@ -66,6 +66,17 @@ extension View {
     }
 }
 
+/// Typed Bool transitions for `cyHaptic(_:trigger:where:)` and `sensoryFeedback(_:trigger:condition:)` (coordinator
+/// 04:20 compile rule: no untyped `{ old, new in }` closures in view bodies).
+enum CYHapticTransition {
+    /// false → true.
+    static func turnedOn(_ old: Bool, _ new: Bool) -> Bool { !old && new }
+    /// Any change that ends true.
+    static func isOn(_ old: Bool, _ new: Bool) -> Bool { new }
+    /// Any change that ends false.
+    static func turnedOff(_ old: Bool, _ new: Bool) -> Bool { !new }
+}
+
 // MARK: - Tokens
 
 /// THE motion token set (xrefs-1 B.0, Figma Library › Motion `402:647` "Motion tokens · one set"). Eight springs, the

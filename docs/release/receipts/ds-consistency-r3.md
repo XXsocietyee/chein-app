@@ -814,6 +814,39 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 None from this run.
 
+## Continue run 27 (2026-11-28, after merging combined-r7)
+
+Merge: one conflict in `tools/check_design_consistency.py` (this lane's `section spacing` kind next to the
+coordinator's new `untyped haptic` kind, 04:20); kept both. Run 26 Not done: none. No new coordinator row for this
+lane (latest sweep build 733bfb368 has no ds-consistency fixtures; 04:00 sweep: no new findings).
+
+Scan: one haptic pattern (coordinator 04:20 compile rule; OWNER RULE 2 "consistent logic and patterns"). The new
+`untyped haptic` kind landed with 103 baselined hits. Shared typed transitions added to the motion tokens
+(`App/DesignSystem/CYMotion.swift` `CYHapticTransition.turnedOn / isOn / turnedOff`, Bool) and 55 single-line Bool
+closures across 38 files now pass a named function (`where:` for `cyHaptic`, `condition:` for `sensoryFeedback`);
+`{ old, new in !old && new }` → `turnedOn`, `{ _, new in new }` → `isOn`, `{ _, now in !now }` → `turnedOff`. Same
+transitions, same haptics; no view content touched, MP sections unchanged. `CYInPlaceResult.swift` (shared result
+button, toast, streak row, moment seal) gets typed `private static func` conditions for its non-Bool triggers
+(`CYResultPhase`, `CYResultToastState.Phase`, `Int`).
+
+| Area | Files | Change |
+|---|---|---|
+| App/DesignSystem (result, ticket pass, signature, pass card, onboarding, collectible) | 7 files | closures → `CYHapticTransition` / `Self.becameDone` etc. |
+| App/NativeR2 games, motion, city orientation, free explore | 17 files | closures → `CYHapticTransition` |
+| other player views (roam subpages, login, editor results, bundles, club, publishing …) | 14 files | closures → `CYHapticTransition` |
+
+Checker: untyped haptic **48** baselined (was 103), ratcheted with `--update`. The 48 left are multi-line or
+non-Bool conditions (`new > old`, enum compares) that need a per-view typed func; next run.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(untyped haptic 48, status capsule 29 baselined), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+No compiler in the cloud: every replaced trigger is a Bool expression (checked line by line); next integration build
+confirms.
+
+### Not done (next run)
+- untyped haptic: the remaining 48 (non-Bool / multi-line) → typed `private static func` per view, largest files
+  first (`RoamSubpageParityViews`, `ChanceKits`, `NativeGameKitsC`).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

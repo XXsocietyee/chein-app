@@ -40,7 +40,7 @@ import SwiftUI
         .listStyle(.insetGrouped)
         .cyGroupedSurface()
         .accessibilityIdentifier("city.participation.recovery")
-        .cyHaptic(.impactMedium, trigger: model.busy) { old, new in !old && new }
+        .cyHaptic(.impactMedium, trigger: model.busy, where: CYHapticTransition.turnedOn)
         .task { if scenePhase == .active { model.open() } }
         .onChange(of: identityVersion) { _, _ in model.identityChanged() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { model.open() } else { model.close() } }

@@ -236,7 +236,7 @@ import SwiftUI
             .accessibilityElement(children: .ignore)
             .accessibilityValue(clockAccessibilityValue)
             .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))
-            .sensoryFeedback(.impact(weight: .medium), trigger: timing.phase == .running) { _, now in now }
+            .sensoryFeedback(.impact(weight: .medium), trigger: timing.phase == .running, condition: CYHapticTransition.isOn)
             .sensoryFeedback(trigger: timing.phase == .measured) { _, now in now ? (stopwatchOutcome == false ? .warning : .success) : nil }
             if !validConfiguration {
                 ContentUnavailableView("playkit.configurationInvalid", systemImage: "exclamationmark.triangle")
@@ -262,7 +262,7 @@ import SwiftUI
                 .buttonStyle(.borderedProminent)
                 .controlSize(.extraLarge)
                 .tint(go ? .green : .gray)
-                .sensoryFeedback(.impact(weight: .heavy), trigger: go) { _, now in now }
+                .sensoryFeedback(.impact(weight: .heavy), trigger: go, condition: CYHapticTransition.isOn)
                 .disabled(!enabled)
                 .accessibilityIdentifier("playkit.reaction.target")
                 .listRowInsets(EdgeInsets())
@@ -308,7 +308,7 @@ import SwiftUI
             resultSection(outcome: goal.map { best <= $0 }, value: PlayTimedDisplayLocalization.milliseconds(best, locale: locale),
                           target: goal.map { PlayTimedDisplayLocalization.milliseconds($0, locale: locale) }, delta: nil,
                           caption: appLocalized("playkit.reaction.bestOf \(reaction.roundsMilliseconds.count)", locale: locale))
-                .sensoryFeedback(.success, trigger: reaction.phase == .measured) { _, now in now }
+                .sensoryFeedback(.success, trigger: reaction.phase == .measured, condition: CYHapticTransition.isOn)
         }
     }
 

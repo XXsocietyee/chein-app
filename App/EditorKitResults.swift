@@ -343,6 +343,6 @@ struct EditorGameplayPickerGrid: View {
         .accessibilityHint(Text(verbatim: EditorUnknown.display(choice.summary)))
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
         .accessibilityIdentifier("editorKit.gameplay.tile." + choice.id)
-        .sensoryFeedback(.selection, trigger: isSelected) { _, new in new }
+        .sensoryFeedback(.selection, trigger: isSelected, condition: CYHapticTransition.isOn)
     }
 }
