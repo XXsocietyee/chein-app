@@ -668,6 +668,12 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 
 **A half done** for this run: every remaining A-half row needs a compiled pass or an owner value.
 
+## Round 3 continue (52) — merge `ui/combined-r7`; A half still done
+
+- Merged `origin/ui/combined-r7`. No `cursor-k50-p*` receipts exist yet (K50 posted 16:34), so no `lane-layout` rows for roam to take; the next run reads them.
+- Sweep unchanged (build c4e43841a, handled in continue 51). Every `pages/roam` / `subpackageRoam` page and component has a row (see the "no row until now" line).
+- A-half open rows (P2-7 MapKit POI tap, citystamp write-step coordinator, P21 mini bar) still need a compiled pass; P1-22 waits on the owner's region list. **A half done** — stopped per the 15:45 collision rule.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
