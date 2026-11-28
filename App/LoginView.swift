@@ -135,8 +135,13 @@ struct LoginView: View {
             appleSignInSection(model)
         } else {
             appleSignInSection(model)
-            phoneEntrySection(prominent: !(consentGranted && model.coordinator.appleConfigurationVerified))
+            phoneEntrySection(prominent: !appleShown(model))
         }
+    }
+
+    /// Sign in with Apple is on screen: approved and a sign-in service behind it (same test as `appleSignInSection`).
+    private func appleShown(_ model: AuthChannelModel) -> Bool {
+        consentGranted && model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured
     }
 
     /// The WeChat button is on screen (it is then the first method and the primary action).
