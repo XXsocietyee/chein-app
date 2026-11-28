@@ -328,6 +328,7 @@ Merged `origin/ui/combined-r7` (xcstrings conflict resolved key by key against t
 |---|---|---|---|---|
 | 112 | `pages/baoming` pay section (MP order unchanged) → `App/RegistrationAlipayPayRows.swift`, `App/RegistrationPaySection.swift:416,431`, `Core/RegistrationAlipayChoice.swift` | "Session expired, sign in again" (comma splice); "Rebuild it to pay" / "Rebuild order" (jargon); "under Pay with." (control name not quoted); card button "Pay ¥12 with card" beside "Pay ¥12 by card" | en → "Your session expired. Sign in again." (same as the other sign-out lines); "This order has expired. Place a new order to pay." / "Place a new order" (matches the card-pay expired line); "under “Pay with”"; both card buttons "Pay %@ by card" (catalog + `tools/add_fix_1128_us_pay_localizations.py`); zh unchanged | Done |
 | 113 | `wx.requestPayment` not-ready note → `registration.pay.weChatNotReady`; template draft toast → `templateAuthor.draftSaved` | Path names didn't match the real labels ("Me › Orders" vs row "My orders"; "My Projects" vs title "My projects") | en → "…pay from Me › My orders.", "Find it in My projects → Templates."; zh unchanged | Done |
+| 114 | `pages/roam/*` official roaming activities list (MP order unchanged) → `roam.tasks.*` | Title "Official roaming activities" and stale note say "activities", but the load-failed / stale / retry lines said "event list" | en → "Couldn’t open the activity list", "Couldn’t update the activity list", "Reload the activity list"; zh unchanged | Done |
 
 ## Not done
 

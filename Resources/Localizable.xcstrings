@@ -347820,7 +347820,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t open the event list"
+            "value": "Couldn’t open the activity list"
           }
         },
         "zh-Hans": {
@@ -357185,7 +357185,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t update the event list. Try again later."
+            "value": "Couldn’t update the activity list. Try again later."
           }
         },
         "zh-Hans": {
@@ -357202,7 +357202,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t update the event list"
+            "value": "Couldn’t update the activity list"
           }
         },
         "zh-Hans": {
@@ -357219,7 +357219,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reload the event list"
+            "value": "Reload the activity list"
           }
         },
         "zh-Hans": {
