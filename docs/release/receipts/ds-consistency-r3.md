@@ -1132,6 +1132,33 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_typography_lint` P
 - Badge detail name weight (run 30 row; needs the `test_object_badge_wall_layout…byte_identical` re-pin).
 - `.title2` counts (`BundleDetailView:58`, `OfficialEventDetailView:118` percent) — decide numericTitle vs dataXL.
 
+## Continue run 34 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane (latest: 07:05 sweep, mp-states / mp-activity). Run 33 Not done:
+badge detail weight still waits for the `test_object_badge_wall_layout…byte_identical` re-pin (mp-mine / debt-r3);
+**`.title2` / `.title` counts: decided.** A stat or price inside a list row or metric tile is `numericTitle`; the one
+section hero figure is `dataXL`. Folded (copy, MP sections, order, a11y labels and identifiers unchanged):
+
+| Page (MP → native) · level | Line | Change |
+|---|---|---|
+| bundle detail price (`subpackagePass` bundle) · B | `App/BundleDetailView.swift:58` | `.title2` semibold digits → `.cyText(.numericTitle)` |
+| official event collective "lit %" · B | `App/OfficialEventDetailView.swift:118` | `.title.bold()` digits → `.cyText(.dataXL)` (section hero) |
+| channel progress "done/required" · B | `App/NativeChannelProgressBoardView.swift:328` | `.title2` semibold digits → `numericTitle` |
+| club stats metric tiles (club admin) · C | `App/ClubStatsOverviewView.swift:218` | same |
+| member score appeal total · C | `App/MemberScoreAppealDetailView.swift:35` | `.title2.bold()` digits → `numericTitle` |
+| game shell record stats (shared `CYRecordStatGrid`) · A | `App/NativeR2/Components/CYRecordStatGrid.swift:40` | `.title2.bold()` digits → `numericTitle` |
+
+Gate `raw count` now covers `.font(.title…)` and `.font(.title2…)` too (largeTitle / title / title2 / title3 with
+`.monospacedDigit()` on the chain), outside `App/DesignSystem` and the effect surfaces. Self-test: with the font
+widened it failed on `CYRecordStatGrid:40` before that fold. Kept: `TicketPassSheet:348` (`.monospaced()` pass code,
+not a count), `PlayKitTimedChallengeView:100` (type-in prompt), CityOrientation / Games HUD numerals (level A).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt, raw count 0, 115 allowed), `contract_ratchet --check` RATCHET_RESULT.
+
+### Not done (next run)
+- Badge detail name weight (needs the `test_object_badge_wall_layout…byte_identical` re-pin).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

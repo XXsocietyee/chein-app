@@ -246,8 +246,9 @@ HEADER_FONT_PATTERN = re.compile(
 RAW_COUNT = 'raw count'
 # One count style (ADA audit cross-screen): a big number is `.cyText(.dataXL)` (largeTitle, bold, rounded, monospaced
 # digits), a card stat / price is `.cyText(.numericTitle)` (title3, semibold, monospaced digits). A raw
-# `.font(.largeTitle…|.title3…)` + `.monospacedDigit()` on the same chain draws it in a second face and weight.
-RAW_COUNT_FONT = re.compile(r'\.font\(\s*\.(?:largeTitle|title3)\b')
+# `.font(.largeTitle…|.title…|.title2…|.title3…)` + `.monospacedDigit()` on the same chain draws it in a second face
+# and weight.
+RAW_COUNT_FONT = re.compile(r'\.font\(\s*\.(?:largeTitle|title|title2|title3)\b')
 RAW_COUNT_DIGITS = re.compile(r'\.monospacedDigit\(\)')
 EFFECT_ON_CLEAN = 'effect on clean page'
 # OWNER RULE 3 (11-28): the 11-26 no-op effects are restored, but only for games, story flow, payment, maps and
