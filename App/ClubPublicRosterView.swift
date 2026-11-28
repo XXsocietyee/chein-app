@@ -26,7 +26,7 @@ import SwiftUI
         let revision: UInt64
         let approval: ClubPublicRosterApproval?
     }
-    private struct ProfileTarget: Identifiable {
+    private struct ProfileTarget: Identifiable, Hashable {
         let id = UUID()
         let memberID: Int
         let generation: UInt64
@@ -72,15 +72,16 @@ import SwiftUI
             if phase == .active { active = true; Task { await load() } }
         }
         .onAppear { active = true }
-        .onDisappear { active = false; invalidate() }
-        .cySheet(item: $profileTarget) { target in Group {
+        // A pushed member profile keeps the roster (like the former sheet); leaving the roster itself still resets it.
+        .onDisappear { if profileTarget == nil { active = false; invalidate() } }
+        // mp-nav r3: MP club/detail index.js:2506 goMemberProfile = navigateTo pages/userinfo/userinfo, so the
+        // public profile is a push (system back), not a sheet.
+        .navigationDestination(item: $profileTarget) { target in Group {
             if let profile, current(target) {
-                NavigationStack {
-                    SocialPublicProfileView(memberID: target.memberID, reader: profile.reader, squareReader: profile.squareReader,
-                                            actions: nil, showsStartChat: false, isCurrent: { current(target) })
-                }
+                SocialPublicProfileView(memberID: target.memberID, reader: profile.reader, squareReader: profile.squareReader,
+                                        actions: nil, showsStartChat: false, isCurrent: { current(target) })
             } else { Color.clear.onAppear { profileTarget = nil } }
-        }.cySheet(detents: [.large])
+        }.cyPushedChrome()
         }
         .cyDomainScreen(.player)
     }

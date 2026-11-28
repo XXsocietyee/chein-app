@@ -415,7 +415,7 @@ enum AccountMineTab: String, CaseIterable, Hashable {
         switch self {
         case .mine: return "account.mine.tab.projects"
         case .posts: return "social.posts"
-        case .achievements: return "social.achievements"
+        case .achievements: return "account.mine.tab.achievements"
         case .about: return "social.about"
         }
     }

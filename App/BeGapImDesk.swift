@@ -70,7 +70,6 @@ private struct BeGapImReads: View {
             read("beGapIm.channels", "beGapIm.channels") { await BeGapImCall.channels(session: session, clubID: clubID) }
             read("beGapIm.chain", "beGapIm.chain") { await BeGapImCall.chain(session: session, channel: channel) }
             read("beGapIm.checkin", "beGapIm.checkin") { await BeGapImCall.checkin(session: session, channel: channel) }
-            read("beGapIm.poll", "beGapIm.poll") { await BeGapImCall.poll(session: session, channel: channel, key: record) }
             read("beGapIm.moderation", "beGapIm.moderation") { await BeGapImCall.moderation(session: session, clubID: clubID) }
             read("beGapIm.roles", "beGapIm.roles") { await BeGapImCall.roles(session: session, clubID: clubID) }
             read("beGapIm.media", "beGapIm.media") { await BeGapImCall.media(session: session, message: message) }
@@ -173,14 +172,6 @@ enum BeGapImCall {
         guard let channelID = positive(channel) else { return missing() }
         return await load(session: session, method: "GET", path: "api/im/channel/checkin-status", query: [
             URLQueryItem(name: "channel_id", value: channelID)
-        ])
-    }
-
-    static func poll(session: AppSession, channel: String, key: String) async -> String {
-        guard let conversation = positive(channel), !key.isEmpty else { return missing() }
-        return await load(session: session, method: "GET", path: "api/im/poll/create-receipt", query: [
-            URLQueryItem(name: "conversation_id", value: conversation),
-            URLQueryItem(name: "client_poll_key", value: key)
         ])
     }
 

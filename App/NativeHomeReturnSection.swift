@@ -25,7 +25,7 @@ struct NativeHomeReturnSection: View {
                 .accessibilityIdentifier("homeReturn.selectedRun")
         }
         if let account = model.account {
-            LabeledContent { Text(verbatim: "\(account.current) / \(account.maximum)") } label: { scopeText(model.scope) }
+            LabeledContent { Text(verbatim: "\(account.current) / \(account.maximum)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(account.current)) \(Int(account.maximum))")) } label: { scopeText(model.scope) }
                 .accessibilityIdentifier("homeReturn.account")
         } else if model.phase == .unavailable {
             Text("homeReturn.unavailable", tableName: "NativeHomeReturn").cyText(.bodyCompact)

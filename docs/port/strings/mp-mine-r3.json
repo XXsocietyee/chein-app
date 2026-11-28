@@ -1,6 +1,22 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "account.mine.tab.achievements": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成就"
+          }
+        }
+      }
+    },
     "account.mine.tab.projects": {
       "localizations": {
         "en": {
