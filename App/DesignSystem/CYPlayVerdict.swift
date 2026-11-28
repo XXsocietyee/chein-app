@@ -24,6 +24,7 @@ struct CYPlayVerdictOverlay: View {
     @QuestifyReduceMotion private var reduceMotion
     @State private var risen = false
     @State private var landed = false
+    @State private var flash = false
 
     private var tint: Color {
         switch verdict.kind {
@@ -48,6 +49,8 @@ struct CYPlayVerdictOverlay: View {
                 .opacity(risen ? 1 : 0)
                 .ignoresSafeArea()
                 .accessibilityHidden(true)
+            // MP `pv__flash`: a fail flashes light red once (no full red screen, nothing shakes).
+            CYNight.ember.opacity(flash ? 0.35 : 0).ignoresSafeArea().accessibilityHidden(true)
 
             VStack(spacing: CYSpacing.lg) {
                 Spacer(minLength: 0)
@@ -93,6 +96,10 @@ struct CYPlayVerdictOverlay: View {
             } else {
                 withAnimation(.easeOut(duration: CYMotion.Duration.slow)) { risen = true }
                 withAnimation(CYMotion.entrance.delay(CYMotion.Duration.quick)) { landed = true }
+                if verdict.kind == .fail {
+                    flash = true
+                    withAnimation(.easeOut(duration: CYMotion.Duration.slow).delay(0.06)) { flash = false }
+                }
             }
         }
     }
@@ -100,14 +107,16 @@ struct CYPlayVerdictOverlay: View {
     @ViewBuilder private var mark: some View {
         switch verdict.kind {
         case .win:
-            ZStack {
-                Circle().fill(CYNight.glow(radius: 64)).frame(width: 220, height: 220)
-                Image(systemName: "checkmark.seal.fill")
-                    .resizable().scaledToFit().fontWeight(.semibold).frame(width: 88, height: 88)
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(CYNight.lanternHot, CYNight.verify)
-                    .scaleEffect(landed || reduceMotion ? 1 : 0.6)
-            }.accessibilityHidden(true)
+            // MP `pv__stamp` (owner 11-23): one 通过 stamp set once in the route accent, not a cartoon tick.
+            Text("playVerdict.passed")
+                .cyText(.display)
+                .foregroundStyle(CYNight.lanternHot)
+                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(CYNight.lanternHot, lineWidth: 4))
+                .rotationEffect(.degrees(-8))
+                .scaleEffect(landed || reduceMotion ? 1 : 1.4)
+                .accessibilityHidden(true)
+                .accessibilityIdentifier("playVerdict.stamp")
         case .neutral:
             // MP: a neutral verdict (a branch choice, no right answer) draws no mark — a seal would read as "correct".
             EmptyView()
