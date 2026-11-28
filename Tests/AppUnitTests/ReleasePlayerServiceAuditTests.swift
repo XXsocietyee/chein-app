@@ -17,6 +17,16 @@ import XCTest
         let service: String
         let kind: Kind
         let isOn: (AppCompositionRoot, RuntimeDependencyContext) -> Bool
+
+        init(service: String, kind: Kind, isOn: @escaping (AppCompositionRoot, RuntimeDependencyContext) -> Bool) {
+            self.service = service
+            self.kind = kind
+            self.isOn = isOn
+        }
+
+        init(service: String, kind: Kind, isOn: @escaping (AppCompositionRoot) -> Bool) {
+            self.init(service: service, kind: kind, isOn: { root, _ in isOn(root) })
+        }
     }
 
     private func pinnedBuild() -> RegionalLaunchConfiguration.BuildMetadata {
@@ -258,7 +268,7 @@ import XCTest
         XCTAssertNil(root.workshopPaidInstallApproval(context))
         XCTAssertNil(root.bundleApprovals.read(context))
         XCTAssertNil(root.makeSession().personalLocationShareScope)
-        XCTAssertFalse(PlayerLaunch.merchantCenterEnabled && merchantCenterIsOnInReleaseSource())
+        XCTAssertFalse(PlayerLaunch.merchantCenterEnabled && (try merchantCenterIsOnInReleaseSource()))
     }
 
     func testMerchantCenterStaysFalseOutsideDebug() throws {
