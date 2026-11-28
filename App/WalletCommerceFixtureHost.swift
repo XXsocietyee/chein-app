@@ -4,11 +4,13 @@ import SwiftUI
 @MainActor private final class WalletFixtureState: ObservableObject {
     @Published var scope: WalletCommerceScope? = .init(namespace: "offline-fixture", accountID: 9001, epoch: UUID())
     private let failed: Bool
-    init(failed: Bool) { self.failed = failed }
+    /// mp-mine r3 (Next round 3): state design fixtures add the ledger state flags here instead of on the launch line.
+    private let extraArguments: [String]
+    init(failed: Bool, extraArguments: [String] = []) { self.failed = failed; self.extraArguments = extraArguments }
     lazy var reader: WalletCommerceReader = {
         let configuration = try! APIConfiguration(baseURL: URL(string: "https://example.com")!)
         let service = WalletCommerceService(configuration: configuration,
-            transport: WalletAssetFixtureTransport(failed: failed, arguments: ProcessInfo.processInfo.arguments))
+            transport: WalletAssetFixtureTransport(failed: failed, arguments: ProcessInfo.processInfo.arguments + extraArguments))
         return WalletCommerceReader(service: service) { [weak self] in
             guard let scope = self?.scope else { return nil }
             return (scope, "synthetic-token")
@@ -107,7 +109,7 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
     /// e4 design shots: mount one real wallet page (income, points, assets, analysis, bank, withdrawals, tasks, cart, products).
     var designPage: String? = nil
     @State private var showParity = false
-    init(designHome: Bool = false, designPage: String? = nil) { self.designHome = designHome; self.designPage = designPage; _state = StateObject(wrappedValue: WalletFixtureState(failed: ProcessInfo.processInfo.arguments.contains("--wallet-failure"))) }
+    init(designHome: Bool = false, designPage: String? = nil, stateArguments: [String] = []) { self.designHome = designHome; self.designPage = designPage; _state = StateObject(wrappedValue: WalletFixtureState(failed: ProcessInfo.processInfo.arguments.contains("--wallet-failure"), extraArguments: stateArguments)) }
     var body: some View {
         if let page = designPage {
             NavigationStack {

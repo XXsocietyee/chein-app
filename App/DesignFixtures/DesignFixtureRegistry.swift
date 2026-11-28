@@ -259,6 +259,9 @@ enum E4Fixtures {
         case "e4-wallet-income": return wrap(WalletCommerceFixtureHost(designPage: "income"))
         case "e4-wallet-points": return wrap(WalletCommerceFixtureHost(designPage: "points"))
         case "e4-wallet-balance": return wrap(WalletCommerceFixtureHost(designPage: "balance"))
+        // mp-mine r3 (Next round 3): ledger empty and error (first read fails, 重试 recovers) for the sweep.
+        case "e4-wallet-balance-empty": return wrap(WalletCommerceFixtureHost(designPage: "balance", stateArguments: ["--wallet-ledger-empty"]))
+        case "e4-wallet-balance-error": return wrap(WalletCommerceFixtureHost(designPage: "balance", stateArguments: ["--wallet-ledger-recover"]))
         case "e4-wallet-assets": return wrap(WalletCommerceFixtureHost(designPage: "assets"))
         case "e4-wallet-analysis": return wrap(WalletCommerceFixtureHost(designPage: "analysis"))
         case "e4-wallet-bank": return wrap(WalletCommerceFixtureHost(designPage: "bank"))
