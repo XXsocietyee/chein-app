@@ -125,6 +125,14 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 报名 · 候补 read failure (`RegistrationSheetView` waitlist section, from 活动详情 报名 on a sold-out ticket) — code read (no sweep fixture for this state) | `pages/activity/baoming/baoming.wxml:270-272` cy-inline-error load-failure 候补状态读取失败 · sub · 重试 | plain line 候补状态暂时无法核验。 plus the always-on 刷新候补状态 pill as the only way back | one `CYEmptyState` (failure kind) 候补状态读取失败 (Couldn’t read the waitlist status) with 重试 inside (`registration.waitlist.retry`); the refresh pill shows only when there is no failure; outcome-unknown keeps its own warning + refresh |
 | 报名 · 表单 参与人信息 read failure (`RegistrationSheetView.participantSection`, from 活动详情 报名) — code read (no sweep fixture for this state) | `pages/activity/baoming/baoming.wxml:38-40` cy-inline-error load-failure 参与人信息加载失败 · sub · 重试 (under the 参与人信息 row) | a grey 参与人信息暂时无法读取 line + a separate secondary pill 重新读取参与人信息 | one `CYEmptyState` (failure kind) 参与人信息加载失败 (Couldn't load participant info; same key as the participant sheet) with 重试 inside; id `registration.form.reloadParticipants` kept on the action. Loading / not-configured unchanged |
 
+## Not done
+
+| Screen | MP state | Why not done |
+|---|---|---|
+| AI 对话记录 loader (`NPCChatDataView`, 设置 · AI 对话记录) | `subpackageMember/components/cy/npc-chat/index.wxml:24` visible 正在读取你账号下的全部 AI 对话… | native `CYSkeleton` with the words for VoiceOver only; the file bytes are sha256-pinned by `test_category_roam_registration` (`feature_batch_support_sha256`), so the labelled `ProgressView` swap needs that pin refreshed first (debt lane) |
+| 参与人信息 save rejected (`ParticipantOperationSections`, add/edit form) | `pages/addressinfo/addressinfo.wxml:44` cy-inline-error 参与人信息没有保存 · sub · 重试保存 | the section title 修改未被接受 is shared with the delete / detail flows, so it cannot take the save-only MP title without a save/delete split in the coordinator state |
+| 参与人信息 form signed out (`ParticipantFormView`) | MP global 登录 | the form is always presented in a sheet; opening root sign-in from inside it needs the sheet to dismiss first — left without a button |
+
 ## Contract cleanup (brief 20:40 UTC, rows owned by mp-states)
 
 | Path | Caller | Done |
@@ -137,6 +145,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 
 - mp-settings: 营销同意 (`AccountComplianceViews.marketing`) has no visible loading words (MP 正在加载…) and its failure is a 当前状态未确认 line instead of the MP cy-inline-error 营销同意状态加载失败 · 重试.
 - debt: `tools/check_contextual_flows.py` already fails on the branch base (asserts `payload: .route(topicID: row.id)` in the IM UI, no longer present) — not one of the brief's gates.
+- mp-roam / mp-journey: MP `pages/play/components/scene-roam-discover` (搜店名 search, hot tags, 附近商家无法打开 · 重试, 没有找到匹配的商家 · 换个关键词试试) has no native screen — a missing page, not a state.
 - mp-activity: `TeamOrientBoardView` progress card title reads 任务进度; MP `pages/team/detail/index.wxml:115` says 队伍进度.
 
 ## Gates
