@@ -170,7 +170,8 @@ import UIKit
         await model.load(); XCTAssertEqual(model.visibleSnapshot?.availability, .empty)
         _ = PlaySessionView(reader: reader).body
         wire.nodes = #"{"code":200,"data":{"topicId":71,"nodes":[{"nodeId":1}],"registered":false,"leadSpectator":true,"playable":true}}"#
-        await model.load(); XCTAssertEqual(model.visibleSnapshot?.availability, .registrationRequired)
+        // MP loadData: a lead spectator is never stopped by the 未报名 state (PlayProgression.availability).
+        await model.load(); XCTAssertEqual(model.visibleSnapshot?.availability, .active)
         XCTAssertEqual(model.visibleSnapshot?.result.leadSpectator, true)
         XCTAssertEqual(model.visibleSnapshot?.result.registered, false)
         wire.nodes = #"{"code":402,"msg":"synthetic missing pass"}"#
