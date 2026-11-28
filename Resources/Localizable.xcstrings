@@ -3555,6 +3555,23 @@
         }
       }
     },
+    "activity.people.hostRole": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creator · Host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发起人 · 主理人"
+          }
+        }
+      }
+    },
     "activity.people.organizerShop": {
       "extractionState": "manual",
       "localizations": {

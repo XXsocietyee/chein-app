@@ -28,7 +28,7 @@ import SwiftUI
             }
         } else if let host = people.host, host.name != nil {
             Section("activity.people.host") {
-                personRow(host, identifier: "activity.people.host")
+                personRow(host, identifier: "activity.people.host", role: "activity.people.hostRole")
             }
         }
         // MP scene-play-activity-detail wxml:55-62: shown only with registrants, titled 「N 人已报名」;
@@ -49,21 +49,25 @@ import SwiftUI
         return Text("activity.people.participants")
     }
 
-    @ViewBuilder private func personRow(_ person: ActivityPerson, identifier: String) -> some View {
+    @ViewBuilder private func personRow(_ person: ActivityPerson, identifier: String, role: LocalizedStringKey? = nil) -> some View {
         if let memberID = person.memberID, let onOpenProfile {
-            Button { onOpenProfile(memberID) } label: { label(person) }
+            Button { onOpenProfile(memberID) } label: { label(person, role: role) }
                 .buttonStyle(.plain)
                 .accessibilityHint(Text("social.profile"))
                 .accessibilityIdentifier(identifier)
         } else {
-            label(person).accessibilityIdentifier(identifier + ".readOnly")
+            label(person, role: role).accessibilityIdentifier(identifier + ".readOnly")
         }
     }
-    private func label(_ person: ActivityPerson) -> some View {
+    private func label(_ person: ActivityPerson, role: LocalizedStringKey? = nil) -> some View {
         HStack(spacing: 12) {
             PeopleMark(url: MemberIdentityCardSection.remoteAvatarURL(person.avatarURL), systemImage: "person.crop.circle.fill")
-            if let name = person.name { Text(verbatim: name) }
-            else { Text("activity.people.unnamed") }
+            VStack(alignment: .leading, spacing: 2) {
+                if let name = person.name { Text(verbatim: name) }
+                else { Text("activity.people.unnamed") }
+                // MP activity-host__role 「发起人 · 主理人」 (wxml:51).
+                if let role { Text(role).font(.footnote).foregroundStyle(.secondary) }
+            }
             Spacer(minLength: 8)
             if person.memberID != nil, onOpenProfile != nil {
                 Image(systemName: "chevron.forward").font(.caption).foregroundStyle(.secondary).accessibilityHidden(true)
