@@ -12,9 +12,10 @@ import Foundation
 /// Nothing here is fetched or invented: the guide states only the facts it is given (AI base doc §6), and with no
 /// facts the showcase falls back to its own reviewed catalog line.
 public struct AIShowcaseWeather: Equatable, Sendable {
-    /// The backend `TopicEnvironmentService.WEATHER_VALUES` and `/api/map/weather` kinds.
+    /// The backend `TopicEnvironmentService.WEATHER_VALUES` and `/api/map/weather` kinds, plus the weather branch's
+    /// `WeatherSceneKind.sand` (story climate / WeatherKit haze).
     public enum Condition: String, CaseIterable, Sendable {
-        case clear, cloudy, rain, snow, fog, wind, storm
+        case clear, cloudy, rain, snow, fog, wind, storm, sand
     }
     /// The backend daypart (Asia/Shanghai server clock) or the weather branch's solar daypart.
     public enum Daypart: String, CaseIterable, Sendable {
@@ -103,6 +104,7 @@ public enum AIShowcaseCatalog {
         case .fog: return "cloud.fog.fill"
         case .wind: return "wind"
         case .storm: return "cloud.bolt.rain.fill"
+        case .sand: return "sun.dust.fill"
         }
     }
 

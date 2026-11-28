@@ -153,7 +153,8 @@ import SwiftUI
                 cityLocationConsent: cityConsent.asks ? (agree: { agreeAndLocateHomeCity() }, decline: { cityConsent.decline() }) : nil,
                 // R7-PC-A5-1 (r1 PC-A-5-1): the hero map button opens the city map, the field opens the list search.
                 onOpenUnifiedSearch: { mode in if mode == .map { showsSearchMap = true } else { search.isPresented = true } },
-                cityRail: AnyView(CitySessionHomeRail(onOpenMap: { onStartRoam?() }))
+                cityRail: AnyView(CitySessionHomeRail(onOpenMap: { onStartRoam?() })),
+                aiShowcase: AnyView(SessionHomeAIShowcase())
             ) { router.pushHome($0) }
                 .cyHeroNamespace(hero)
                 // P-021: results cover the feed while the field is active; VoiceOver reads only the visible layer.
