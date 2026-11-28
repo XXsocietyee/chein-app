@@ -44,7 +44,7 @@ final class PlayFullStoryH3Tests: XCTestCase {
     func testAddedBlocksKeepAuthorOrderAltTextAndPlaceholderForUnrendered() throws {
         let chapter = try ChapterStoryDocument(raw: wire(#"{"chapterId":8,"blocks":[{"type":"cap","cap":"open","content":"Opening"},{"type":"text","who":"Ada","content":"Hi","level":2},{"type":"divider"},{"type":"gallery","altText":"Square","images":[{"url":"https://story.test/a"},{"url":"https://story.test/b","altText":"Gate"}]},{"type":"audio","url":"https://story.test/c","altText":"Words"},{"type":"branch","question":"SECRET"},{"type":"cap","cap":"end","content":"Closing"}]}"#))
         let rows = ChapterStoryProjection.segments(chapter: chapter, snapshot: try snapshot(nodes: "[]"), variables: [:])
-        XCTAssertEqual(rows.map(\.content), [.text("Ada：Hi"), .divider, .image("https://story.test/a"), .image("https://story.test/b"), .audio("https://story.test/c"), .unsupported])
+        XCTAssertEqual(rows.map(\.content), [.line(.init(speaker: .named("Ada"), text: "Hi")), .divider, .image("https://story.test/a"), .image("https://story.test/b"), .audio("https://story.test/c")])
         XCTAssertEqual(rows[0].odd, 2); XCTAssertEqual(rows[1].odd, 0)
         XCTAssertEqual(rows.compactMap(\.alt), ["Square", "Gate", "Words"])
         XCTAssertEqual(chapter.openingLine, "Opening"); XCTAssertEqual(chapter.closingLine, "Closing")

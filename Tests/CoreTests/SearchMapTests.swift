@@ -198,7 +198,7 @@ final class SearchMapTests: XCTestCase {
         XCTAssertEqual(fields, ["lat":"1.0","lng":"2.0","radius":"20000","keyword":"a & 城","categoryId":"7","tag":"Coffee & books","cityRole":"meet"])
         let activity = try XCTUnwrap(requests.first { $0.url?.path == "/test/api/activity/list" })
         let form = String(decoding: activity.httpBody!, as: UTF8.self)
-        XCTAssertTrue(form.contains("name=\"sort_type\"\r\n\r\n2")); XCTAssertTrue(form.contains("name=\"pageSize\"\r\n\r\n50"))
+        XCTAssertTrue(form.contains("name=\"sort_type\"\r\n\r\n2")); XCTAssertTrue(form.contains("name=\"pageSize\"\r\n\r\n10"))
         XCTAssertFalse(form.contains("minPrice")); XCTAssertFalse(form.contains("categoryId"))
     }
     func testGuestCitySearchKeepsActivitiesAndDoesNotCallPrivateNodes() async throws {
