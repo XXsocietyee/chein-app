@@ -386,6 +386,20 @@ Gates: generate_project OK · check_scaffold PASS (21152 keys) · a11y lint 0 ne
 
 No new strings. Fixtures: e2-stamp-album (tab), shipping citystamp flow (fixture receipt path `fixtureReceipt` also fires `.success`).
 
+## Round 3 continue (28) — 漫游记录 states as design fixtures (01:40 "next round" item 3) + sweep 02:10 (build 41374363f)
+
+No open coordinator finding for mp-roam (sweep index still build 41374363f, sheets as in continue 27; map panel settled — not touched).
+Every MP roam page already has a row, so this run adds the missing state fixtures for `subpackageRoam/history`.
+
+| MP page → native | Difference | Fix | Fixture |
+|---|---|---|---|
+| `subpackageRoam/history` (`scene-roam-history` `cy-error load-failure title="漫游记录加载失败" retry="重试"`) → `App/RoamHistoryViews.swift` `RoamHistoryView` | Error state used the generic 加载失败，请重试。 title. | `RoamExperienceIssue(failureTitle: "roam.history.loadFailed")` — new key en "Couldn't load your roam history" / zh 漫游记录加载失败; retry stays 重试. Contract pin `test_roam_history_live_entry` updated (MP title). | `r3-roam-history-error` |
+| same page, content + empty states | No `--design-fixture` mounted the history page (only the `--roam-subpage-fixture` host), so the sweep never showed it; the fixture rows read "Sample district" / "Sample record…" in both languages and the 示例内容 note sat above the list. | New fixtures `r3-roam-history` (records + 那年今日 / 月度回顾 tools), `r3-roam-history-empty` (MP 还没有漫游记录 + 出发第一次漫游). Under `--design-fixture` the history rows carry place names in the UI language (外滩 / The Bund, 老街夜走 / Old street evening walk, 外滩源庭院) and `RoamExperienceNotice` hides (same rule as the stamp album, continue 25); UI tests without the flag keep their pins. UI test `Fixture_r3_roamHistoryTests` checks all three resolve (record / empty / error ids). | `r3-roam-history`, `r3-roam-history-empty` |
+
+**For the coordinator:** please add `r3-roam-history`, `r3-roam-history-empty`, `r3-roam-history-error` to the mp-roam sweep row.
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

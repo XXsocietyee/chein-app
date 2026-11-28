@@ -124,6 +124,10 @@ enum DesignFixtureRegistry {
         case "d6-play": return AnyView(D6MapFixture(kind: .play))
         case "d6-play-loading": return AnyView(D6MapFixture(kind: .playLoading))
         case "d6-roam": return AnyView(D6MapFixture(kind: .roam))
+        // mp-roam r3: 漫游记录 (subpackageRoam/history) content / empty / error states for the sweep.
+        case "r3-roam-history": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .content), toolsReader: RoamPassportToolsFixtureReader(scenario: .content)) })
+        case "r3-roam-history-empty": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
+        case "r3-roam-history-error": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
