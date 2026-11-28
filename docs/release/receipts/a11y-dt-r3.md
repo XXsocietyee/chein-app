@@ -219,9 +219,44 @@ share preview, progress bars and art tiles):
 | `pages/play` story route cast rail | `NativeR2/Story/NR2StoryRouteSections.swift` | ✓ (mp-journey owns order) | Column fixed 64 pt → scaled `NR2CastColumn` (`relativeTo: .caption`) | Done |
 | `pages/play` city-run finish leaderboard | `NativeR2/CityOrientation/CityOrientationFinishSummaryView.swift` | ✓ (mp-journey owns order) | Rank fixed 32 pt → `minWidth: 32` (same as run 11 leaderboards) | Done |
 
+## Run 13 (2026-11-27, hourly)
+Merged `origin/ui/combined-r7` (8fa84e4d3). Not done item 1: re-read the a11y sheets of sweep 8fa84e4d3 (22:11Z,
+`docs/sweeps/latest/a11y-dt/sheet-en.jpg`, `sheet-zh-Hans.jpg`). `a11y-passport-ax5` now mounts the passport ✓ (20:55 note
+closed); badge wall stacks one column ✓; roam chrome readable ✓. Fixed what the shots still showed:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` badge wall (`zh-Hans-a11y-badges-ax5.jpg`) | `DesignFixtures/E5bFixtures.swift` (`E5bBadgeWallFixture`) | ✓ (mp-mine owns order) | Heading beside the ring broke as "已收集 3 / 6" over two lines at AX5 → ring above heading at AX sizes (`AnyLayout`), count one token "3/6", heading trait | Done |
+| `pages/member` passport actions (`en-a11y-passport-ax5.jpg`) | `PassportView.swift` (`PassportOverviewContent.action`) | ✓ (票夹 / 账户收益 / 消息, MP order) | Stacked AX capsules kept symbol-over-label (two tall lines each) → symbol leads the label on one line at AX sizes; default sizes unchanged | Done |
+| `pages/roam` map chrome (`en-a11y-roam-ax5.jpg`) | `DesignFixtures/E5bFixtures.swift` (`A11yRoamAX5Fixture`) | ✓ (mp-roam owns order) | Peek showed a bare "—" as data → count "2" (P29) with a VoiceOver label; forced `.dark` removed (18:15 rule), title `textPrimary` so it reads on the light and dark map | Done |
+
+Not done item 2 (fixed-width rails at AX5):
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/template/index` 精选 banner rail | `DiscoveryHomeView.swift` (`DiscoveryHomeBannerCard`) | ✓ (mp-publish owns order) | 260 pt tile + `lineLimit(2)` cut captions to 2–3 words at AX sizes → 300 pt and 4 lines at AX sizes; VoiceOver label = the highlight's own caption (was always "Open highlight n") | Done |
+| (scan) other horizontal rails with fixed widths ≥ 120 pt | `DiscoveryTemplateDetailView` mosaic, `JourneyLandingViews` share render, `CYAlbum`, `CYShareCard`, `ClubChannelMessagingView` iPad sidebar | — | Image-only tiles, off-screen share renders or iPad sidebar: no text to clip; no change | Done (no fix needed) |
+| `pages/templatedetail` 节点 rail | `DiscoveryTemplateDetailView.swift` (`DiscoveryTopicTemplatePreview`) | ✓ (mp-publish owns order) | 150 pt column broke node names letter by letter at AX sizes → 260 pt column at AX sizes (rail scrolls), cover follows the column | Done |
+| `pages/templatedetail` image mosaic + node images | `DiscoveryTemplateDetailView.swift` | ✓ (mp-publish owns order) | VoiceOver heard "Open photo" for every tile → `accessibilityValue` "2 of 5" / "第 2 个，共 5 个" (existing `carousel.position` key) | Done |
+| every MP image strip (shared gallery) | `NativeMediaGallery.swift` | ✓ | Value "1 / 5" was read as "one slash five" → `carousel.position` ("1 of 5" / "第 1 个，共 5 个") | Done |
+
+## Run 14 (2026-11-27, half-hourly)
+Merged `origin/ui/combined-r7` (a2baf94fa). Sweep index is still build 8fa84e4d3, so Not done item 1 (re-read sheets) waits.
+Not done item 2: VoiceOver "n / N" values read as "slash" on player screens.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| review photo strip (retained images) | `RetainedPublicReviewImages.swift` | ✓ | "1 / 9" → `carousel.position` ("1 of 9" / "第 1 个，共 9 个") | Done |
+| project draft story preview chapter picker | `ProjectDraftStoryPreviewView.swift` | ✓ (mp-publish owns order) | chapter "2 / 5" → `carousel.position` | Done |
+| object card rotation frames | `ObjectCardViews.swift` | ✓ | frame "3 / 8" → `carousel.position` | Done |
+| `playkit` question tries left (还能错) | `PlayKitQuestionForms.swift` | ✓ (mp-journey owns order) | "2 / 3" → new `a11y.value.ofTotal` ("2 of 3" / "2，共 3") | Done |
+| character sheet attribute row | `CharacterSheetDetailView.swift` | ✓ | "7 / 10, level" → `a11y.value.ofTotal` + level | Done |
+| group poll result bar | `GroupPollViews.swift` | ✓ (mp-club owns order) | votes "4 / 12" → `a11y.value.ofTotal` | Done |
+| bundle review compose character counter | `BundleReviewComposeView.swift` | ✓ | "12/500" read as "twelve slash five hundred" → "12 of 500 characters" / "已输入 12 字，最多 500 字" | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` = passport at AX5) once a sweep build is newer than 405948d58; combined-r7 46ebaf0b6 carries runs 7–11.
-- Dynamic Type: horizontal rails whose cards keep a fixed width and `lineLimit(2)` (`DiscoveryHomeView` banner 260 pt, `DiscoveryTemplateDetailView` nodes 150 pt): check at AX5 whether a scaled width reads better.
+- Re-read the a11y sheets after the next sweep (newer than 8fa84e4d3) to confirm run 13 (badge heading, passport AX rows, roam light map).
+- VoiceOver: scan remaining slash values built as `String` (e.g. `"\(a)/\(b)"` without spaces, `accessibilityLabel` with " / ") on player screens.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch

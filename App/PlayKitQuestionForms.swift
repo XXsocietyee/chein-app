@@ -190,7 +190,7 @@ extension PlayKitScreen {
             .frame(maxWidth: .infinity, alignment: .trailing)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("playkit.triesLeft"))
-            .accessibilityValue(Text(verbatim: "\(left) / \(cap)"))
+            .accessibilityValue(Text("a11y.value.ofTotal \(left) \(cap)"))
             .accessibilityIdentifier("playkit.triesLeft")
         } else if let used { LabeledContent("playkit.attempts") { Text(verbatim: String(used)) } }
     }

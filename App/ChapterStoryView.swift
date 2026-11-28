@@ -383,9 +383,8 @@ import UIKit
                     .accessibilityIdentifier("chapterStory.transcript." + segment.id)
                 }
             }
-        case .divider where NativeR2Flags.storyFlow: Divider().padding(.vertical, 4)
         case .divider:
-            Rectangle().fill(CYColor.borderSubtle).frame(height: 1).frame(maxWidth: .infinity).padding(.vertical, 4)
+            Divider().padding(.vertical, 4)
                 .accessibilityHidden(true)
         case .unsupported:
             Label { Text("chapterStory.unsupportedBlock", tableName: "PlayFullStory") } icon: { Image(systemName: "square.dashed") }
