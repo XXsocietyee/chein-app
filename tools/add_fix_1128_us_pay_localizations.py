@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / 'Resources' / 'Localizable.xcstrings'
 
 STRINGS = {
-    'registration.stripe.payWithCard %@': ('Pay %@ with card', '使用银行卡支付 %@'),
+    'registration.stripe.payWithCard %@': ('Pay %@ by card', '使用银行卡支付 %@'),
     'registration.stripe.declined': ('The card was declined. Try another card.', '银行卡被拒绝，请换一张卡再试。'),
     'registration.stripe.expired': ('This order can no longer be paid. Place a new order.', '该订单已无法支付，请重新下单。'),
     'registration.stripe.notCompleted': ('Payment not completed. You can pay again.', '支付未完成，可以重新支付。'),

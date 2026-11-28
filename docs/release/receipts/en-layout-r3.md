@@ -321,6 +321,14 @@ Merged `origin/ui/combined-r7` (xcstrings conflict resolved key by key: both sid
 | 110 | `pages/roam/*` 更多工具 sheet (MP order unchanged) → `MPGap/PlayRoam/RoamSessionToolsSheetView.swift` (`roamTools.*`), 怎么玩 `roam.howto.title` | Same sheet mixed Title Case ("More Tools", "Map & Display", "Map Style", "Nearby Walkers", "Say Hi", "Share Location Nearby", "Location Settings", "Clear Local Cache", "How to Play", "Location Access", "Background Location", "Arrival Alerts", "Not Now") with sentence case ("Clear local cache?", "Agree and turn on"); clear-cache error "storage refused the change" (jargon) | en → sentence case ("More tools", "Map and display", "People walking nearby", "Say hi" …); error → "Couldn’t clear the cache. Try again." (catalog + `mp-r3-roam.json` + `gap-g1-player.json`). "Reduce Motion" kept (Apple setting name); zh unchanged | Done |
 | 111 | QR scanner (MP `wx.scanCode`, used by roam / play / tickets) → `scanner.*` | Title Case titles ("Scan QR Code", "Camera Access Is Off", "Scanning Isn't Supported" …) beside sentence-case bodies | en → sentence case ("Scan QR code", "Camera access is off", "Scanning isn’t supported" …); zh unchanged. `pages/publish/components/choice-sheet` checked: generic radio sheet, no copy of its own | Done |
 
+### Run 29 (11-28)
+Merged `origin/ui/combined-r7` (xcstrings conflict resolved key by key against the last merge `4aff084a6`: 66 new keys taken, no key edited on both sides). Sweep index still build ffeef67c7: no open coordinator finding for en-layout; Not done rows unchanged (owner / coordinator decisions). Scanned the English of every key new in this merge (Alipay / card pay rows, Apple re-auth, team done toasts, club enroll, roam task list).
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 112 | `pages/baoming` pay section (MP order unchanged) → `App/RegistrationAlipayPayRows.swift`, `App/RegistrationPaySection.swift:416,431`, `Core/RegistrationAlipayChoice.swift` | "Session expired, sign in again" (comma splice); "Rebuild it to pay" / "Rebuild order" (jargon); "under Pay with." (control name not quoted); card button "Pay ¥12 with card" beside "Pay ¥12 by card" | en → "Your session expired. Sign in again." (same as the other sign-out lines); "This order has expired. Place a new order to pay." / "Place a new order" (matches the card-pay expired line); "under “Pay with”"; both card buttons "Pay %@ by card" (catalog + `tools/add_fix_1128_us_pay_localizations.py`); zh unchanged | Done |
+| 113 | `wx.requestPayment` not-ready note → `registration.pay.weChatNotReady`; template draft toast → `templateAuthor.draftSaved` | Path names didn't match the real labels ("Me › Orders" vs row "My orders"; "My Projects" vs title "My projects") | en → "…pay from Me › My orders.", "Find it in My projects → Templates."; zh unchanged | Done |
+
 ## Not done
 
 | Item | Why |

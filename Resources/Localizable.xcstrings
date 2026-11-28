@@ -258120,7 +258120,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Template draft saved. Find it in My Projects → Templates."
+            "value": "Template draft saved. Find it in My projects → Templates."
           }
         },
         "zh-Hans": {
@@ -357389,7 +357389,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can switch to WeChat Pay under Pay with."
+            "value": "You can switch to WeChat Pay under “Pay with”."
           }
         },
         "zh-Hans": {
@@ -357406,7 +357406,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This order has expired. Rebuild it to pay."
+            "value": "This order has expired. Place a new order to pay."
           }
         },
         "zh-Hans": {
@@ -357423,7 +357423,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rebuild order"
+            "value": "Place a new order"
           }
         },
         "zh-Hans": {
@@ -357457,7 +357457,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session expired, sign in again"
+            "value": "Your session expired. Sign in again."
           }
         },
         "zh-Hans": {
@@ -357576,7 +357576,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat Pay can't open on this device yet. Install or update WeChat, then pay from Me › Orders."
+            "value": "WeChat Pay can't open on this device yet. Install or update WeChat, then pay from Me › My orders."
           }
         },
         "zh-Hans": {
@@ -357695,7 +357695,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pay %@ with card"
+            "value": "Pay %@ by card"
           }
         },
         "zh-Hans": {
