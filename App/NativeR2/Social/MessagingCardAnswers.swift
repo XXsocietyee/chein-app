@@ -6,6 +6,8 @@ import MapKit
 enum MessagingCardRoute: Hashable {
     /// MP `onCardBtn` → `/topic/<id>`: the card's typed topic destination.
     case topic(Int)
+    /// mp-nav r3 (MP im/chat index.js:1084-1088): a signup card's topic; if it is gone the page offers 票夹.
+    case signupTopic(Int)
     /// mp-nav r3, MP `system-card-target.js`: activity notices / cards open `pages/activity/detail/index`,
     /// community cards `pages/square/detail/index` (navigateTo, pushed above the chat).
     case activity(Int)
@@ -24,6 +26,9 @@ enum MessagingCardTap {
         guard let card = message.card, card.kind == .route || card.kind == .signup,
               let id = card.topicID, id > 0 else { return nil }
         return id
+    }
+    static func isSignup(_ message: MessagingMessage) -> Bool {
+        message.card?.kind == .signup
     }
     static func mapItem(_ message: MessagingMessage) -> MKMapItem? {
         guard let card = message.card, card.kind == .location,

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "revision": "2026-11-28.1",
+  "note": "Owner-editable script. Every text carries en + zh-Hans. Schema: docs/release/story-content.md",
+  "strings": {
+    "npc.aiBadge": { "en": "AI guide", "zh-Hans": "AI 向导" },
+    "npc.fallbackGreeting": { "en": "Hi! Tap a question below or type your own.", "zh-Hans": "你好，想了解什么？点下面的问题或直接输入。" },
+    "guide.roam.identity": { "en": "Roam notes", "zh-Hans": "漫游提示" },
+    "guide.play.identity": { "en": "Play notes", "zh-Hans": "游玩提示" },
+    "guide.quiet": { "en": "Keep walking. New notes appear here as places confirm.", "zh-Hans": "继续走走，确认到达的地点会在这里留下提示。" },
+    "guide.footprint": { "en": "The edge of your last walk is still here, and nearby areas are not lit yet.", "zh-Hans": "上次的足迹边缘仍留在这里；附近还有尚未点亮的区域。" }
+  },
+  "guidePrompts": [
+    { "id": "roam.start", "surface": "roam", "weather": "any", "text": { "en": "Walk at your own pace; the map lights up wherever you go.", "zh-Hans": "按自己的节奏走，走到哪里，地图就亮到哪里。" } },
+    { "id": "roam.rain", "surface": "roam", "weather": "rain", "text": { "en": "It is raining. Arcades and covered lanes still count as walked.", "zh-Hans": "下雨了，骑楼和有顶的小巷也算走过。" } },
+    { "id": "roam.snow", "surface": "roam", "weather": "snow", "text": { "en": "Snow on the ground. Watch your step near stairs and bridges.", "zh-Hans": "地上有雪，走台阶和桥面时留意脚下。" } },
+    { "id": "roam.hot", "surface": "roam", "weather": "hot", "text": { "en": "It is hot out. Shade and water first; the map will wait.", "zh-Hans": "天气很热，先找阴凉、补水，地图不会跑。" } },
+    { "id": "roam.night", "surface": "roam", "weather": "night", "text": { "en": "Night walk. Stay on lit streets.", "zh-Hans": "夜间漫游，尽量走有灯的街道。" } },
+    { "id": "play.start", "surface": "play", "weather": "any", "text": { "en": "Each stop opens when you arrive. Read the task card before you start.", "zh-Hans": "每一站到达后开启，开始前先读一遍任务卡。" } },
+    { "id": "play.hint", "surface": "play", "weather": "any", "text": { "en": "Stuck? The hint ladder on the task opens one step at a time.", "zh-Hans": "卡住了？任务上的提示会一层一层打开。" } },
+    { "id": "play.shop", "surface": "play", "weather": "any", "node": "shop", "text": { "en": "This stop has a shop guide. Ask it about the place.", "zh-Hans": "这一站有店铺向导，可以问问它这家店的事。" } },
+    { "id": "play.rain", "surface": "play", "weather": "rain", "text": { "en": "Rain on the route. Indoor stops first is fine.", "zh-Hans": "路上有雨，可以先去室内的站点。" } }
+  ]
+}

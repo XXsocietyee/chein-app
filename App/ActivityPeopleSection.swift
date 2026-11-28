@@ -33,15 +33,45 @@ import SwiftUI
         }
         // MP scene-play-activity-detail wxml:55-62: shown only with registrants, titled 「N 人已报名」;
         // the count itself already sits in the 已报名 fact row, so no separate total row.
+        // MP .activity-people: a wrapping row of avatars only (no names), each opening that player's
+        // profile (goUserInfo); the name is the VoiceOver label (MP aria-label 查看…主页).
         if !people.participants.isEmpty {
             Section {
-                ForEach(Array(people.participants.enumerated()), id: \.offset) { index, person in
-                    personRow(person, identifier: "activity.people.participant.\(index)")
+                LazyVGrid(columns: Self.avatarColumns, alignment: .leading, spacing: 4) {
+                    ForEach(Array(people.participants.enumerated()), id: \.offset) { index, person in
+                        participantAvatar(person, identifier: "activity.people.participant.\(index)")
+                    }
                 }
+                .padding(.vertical, 4)
             } header: {
                 participantsTitle.accessibilityIdentifier("activity.people.total")
             }
         }
+    }
+
+    private static let avatarColumns: [GridItem] = [GridItem(.adaptive(minimum: 44, maximum: 56), spacing: 4)]
+
+    @ViewBuilder private func participantAvatar(_ person: ActivityPerson, identifier: String) -> some View {
+        let mark = PeopleMark(url: MemberIdentityCardSection.remoteAvatarURL(person.avatarURL), systemImage: "person.crop.circle.fill")
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+        if let memberID = person.memberID, let onOpenProfile {
+            Button { onOpenProfile(memberID) } label: { mark }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(personName(person))
+                .accessibilityHint(Text("social.profile"))
+                .accessibilityIdentifier(identifier)
+        } else {
+            mark
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(personName(person))
+                .accessibilityIdentifier(identifier + ".readOnly")
+        }
+    }
+
+    private func personName(_ person: ActivityPerson) -> Text {
+        if let name = person.name { return Text(verbatim: name) }
+        return Text("activity.people.unnamed")
     }
 
     private var participantsTitle: Text {

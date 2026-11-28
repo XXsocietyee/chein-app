@@ -57,6 +57,9 @@ struct PlayThemeMusicKey: Equatable {
     @State private var settledChapters: Set<Int>?
     @State private var showRouteMap = false
     @State private var confirmEnd = false
+    /// fix/1128c: the play guide (游玩提示) sheet and its journal for this visit.
+    @State private var guideShown = false
+    @State private var guideJournal = AIGuideJournal()
     @State private var presentedMode: PlayGameplayMode?
     @State private var presentationMount = PlayExperiencePresentationMount()
     /// Run-complete medal screen (mini-program medal-screen); shown once per session when the run completes.
@@ -185,9 +188,22 @@ struct PlayThemeMusicKey: Equatable {
                 .cyPushedChrome(domain: screenDomain)
         }
     }
+    private func openGuide() { guideShown = true }
+    /// The stop the play guide talks about: the current task stop of the live snapshot.
+    private var guideStop: PlayNode? {
+        guard let snapshot = model.snapshot, let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID else { return nil }
+        return snapshot.visibleNodes.first(where: { $0.id == id })
+    }
+    private var guideContext: AIGuideContext {
+        AIGuideContext(surface: .play, place: nil, stop: guideStop?.name, nodeKind: guideStop?.npc == nil ? nil : "shop",
+                       weather: AIGuideWeatherMapping.weather(nil))
+    }
     private var presentationLayer: some View {
         navigationLayer
         .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                AIGuideToolbarButton(surface: .play, journal: guideJournal, open: openGuide)
+            }
             if castModel?.config != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     CastRosterButton { showingCastRoster = true }
@@ -230,6 +246,8 @@ struct PlayThemeMusicKey: Equatable {
             finished: model.snapshot?.availability == .completed,
             contact: $playContact
         ))
+        .sheet(isPresented: $guideShown) { AIGuideSheet(context: guideContext, journal: guideJournal) }
+        .modifier(PlayGuideJournalFeed(journal: guideJournal, stop: guideStop?.name, greeting: guideStop?.npc?.greeting))
         .cySheet(isPresented: $showChapterPicker) {
             if let snapshot = model.snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
