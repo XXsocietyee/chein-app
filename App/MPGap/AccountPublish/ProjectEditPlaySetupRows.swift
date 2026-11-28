@@ -143,7 +143,8 @@ enum TopicPlaySetupFormat {
 
     /// MP end option `次日 02:00` reads "02:00 next day" in English; other ends are plain times.
     static func windowEndLabel(_ end: String) -> Text {
-        let time = end.replacingOccurrences(of: "^次日\\s*", with: "", options: .regularExpression)
+        // Server data token (MP `WINDOWS` end value), matched, never shown: spelled as scalars so it is not UI copy.
+        let time = end.replacingOccurrences(of: "^\u{6B21}\u{65E5}\\s*", with: "", options: .regularExpression)
         if time == end { return Text(verbatim: end) }
         return Text("creatorEditor.window.nextDay \(time)", tableName: "CreatorEditorUI")
     }

@@ -128,6 +128,9 @@ enum DesignFixtureRegistry {
         case "r3-roam-history": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .content), toolsReader: RoamPassportToolsFixtureReader(scenario: .content)) })
         case "r3-roam-history-empty": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
         case "r3-roam-history-error": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
+        // mp-roam r3: 集邮册 (scene-roam-stamp-album) empty / error states for the sweep (content = e2-stamp-album).
+        case "r3-roam-stamp-album-empty": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
+        case "r3-roam-stamp-album-error": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
@@ -225,6 +228,10 @@ enum E4Fixtures {
         case "e4-deregister-blocked": return wrap(E4ComplianceFixture(kind: .deregisterBlocked))
         case "e4-marketing": return wrap(E4ComplianceFixture(kind: .marketing))
         case "e4-tickets": return wrap(TicketWalletFixtureHostView())
+        // mp-mine r3 (Next round 3): MP signup empty / error / no-permission shells, one action each.
+        case "e4-tickets-empty": return wrap(TicketWalletFixtureHostView(scenario: .empty))
+        case "e4-tickets-error": return wrap(TicketWalletFixtureHostView(scenario: .failure))
+        case "e4-tickets-guest": return wrap(TicketWalletFixtureHostView(scenario: .guest))
         case "e4-profile-edit": return wrap(ProfileEditFixtureHost(scenario: "success"))
         case "e4-profile-edit-error": return wrap(ProfileEditFixtureHost(scenario: "rejected"))
         case "e4-settings-support": return wrap(SettingsFixtureHostView())
@@ -245,6 +252,9 @@ enum E4Fixtures {
         case "e4-wallet-income": return wrap(WalletCommerceFixtureHost(designPage: "income"))
         case "e4-wallet-points": return wrap(WalletCommerceFixtureHost(designPage: "points"))
         case "e4-wallet-balance": return wrap(WalletCommerceFixtureHost(designPage: "balance"))
+        // mp-mine r3 (Next round 3): ledger empty and error (first read fails, 重试 recovers) for the sweep.
+        case "e4-wallet-balance-empty": return wrap(WalletCommerceFixtureHost(designPage: "balance", stateArguments: ["--wallet-ledger-empty"]))
+        case "e4-wallet-balance-error": return wrap(WalletCommerceFixtureHost(designPage: "balance", stateArguments: ["--wallet-ledger-recover"]))
         case "e4-wallet-assets": return wrap(WalletCommerceFixtureHost(designPage: "assets"))
         case "e4-wallet-analysis": return wrap(WalletCommerceFixtureHost(designPage: "analysis"))
         case "e4-wallet-bank": return wrap(WalletCommerceFixtureHost(designPage: "bank"))

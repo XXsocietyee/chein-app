@@ -222,6 +222,24 @@ final class IMExpandedTests: XCTestCase {
         let message = try JSONDecoder().decode(MessagingMessage.self, from: Data(notice.utf8))
         XCTAssertEqual(IMCardAction.displayed(for: message).map(\.destination), [.activity(44)])
     }
+    func testReviewResultCardOpensCurrentOriginal() throws {
+        func review(sender: Int, extra: String) throws -> MessagingMessage {
+            let escaped = extra.replacingOccurrences(of: "\"", with: "\\\"")
+            let raw = #"{"id":3,"conversationId":9,"senderId":"# + String(sender) + #","status":0,"msgType":3,"content":"r","extraJson":""# + escaped + #""}"#
+            return try JSONDecoder().decode(MessagingMessage.self, from: Data(raw.utf8))
+        }
+        let post = try review(sender: 0, extra: #"{"cardType":"generic","title":"t","result":{"taskId":11,"bizId":6,"bizType":"COMMUNITY_POST","outcome":"approved"}}"#)
+        XCTAssertEqual(IMCardAction.actions(for: post).map(\.label), ["im.full.reviewResult", "im.full.currentOriginal"])
+        XCTAssertEqual(IMCardAction.actions(for: post).last?.destination, .squarePost(6))
+        let topic = try review(sender: 0, extra: #"{"title":"t","action":"/pages/topic/index/index?id=7","result":{"bizId":"7","bizType":"TOPIC","outcome":"approved"}}"#)
+        XCTAssertEqual(IMCardAction.actions(for: topic).last?.destination, .topic(7))
+        let mismatched = try review(sender: 0, extra: #"{"title":"t","action":"/pages/topic/index/index?id=8","result":{"bizId":7,"bizType":"TOPIC","outcome":"approved"}}"#)
+        XCTAssertEqual(IMCardAction.actions(for: mismatched).count, 1)
+        let otherType = try review(sender: 0, extra: #"{"title":"t","result":{"bizId":7,"bizType":"SQUARE","outcome":"approved"}}"#)
+        XCTAssertEqual(IMCardAction.actions(for: otherType).count, 1)
+        let notSystem = try review(sender: 5, extra: #"{"title":"t","result":{"bizId":6,"bizType":"COMMUNITY_POST","outcome":"approved"}}"#)
+        XCTAssertFalse(IMCardAction.actions(for: notSystem).contains { $0.label == "im.full.currentOriginal" })
+    }
     func testUntrustedResultNeverBecomesReviewAction() throws {
         let raw = #"{"id":1,"conversationId":9,"senderId":7,"status":0,"msgType":3,"content":"hi","extraJson":"{\"result\":{\"outcome\":\"approved\"},\"buttons\":[{\"text\":\"Open\",\"action\":\"https://evil.example\"}]}"}"#
         let message = try JSONDecoder().decode(MessagingMessage.self, from: Data(raw.utf8))

@@ -197,7 +197,7 @@ public struct ClubChannelMessagingView: View {
             } else {
                 channelTopBar
                 Divider()
-                if !moderationCoordinator.hasAcceptedRules {
+                if !moderationCoordinator.hasAcceptedRules && !isReadOnlyForViewer {
                     channelRulesGateRow
                     Divider()
                 }
@@ -298,6 +298,12 @@ public struct ClubChannelMessagingView: View {
     }
 
     private var selectedChannelName: String { selectedChannel?.name ?? "" }
+
+    /// mp-club r3 pass 27 (sweep ad55acd94, d4-channel-chat): in a read-only announcement channel a member cannot post,
+    /// so the rules gate (which only unlocks posting) is not asked twice; the composer says who can post instead.
+    private var isReadOnlyForViewer: Bool {
+        selectedChannel?.isReadOnlyAnnouncement == true && !safetyPolicy.canModerateMessages
+    }
 
     private var composerPlaceholder: String {
         guard let name = selectedChannel?.name else { return copy("发送消息…", "Message…") }
@@ -658,7 +664,7 @@ public struct ClubChannelMessagingView: View {
                 .padding(.top, 6)
             }
 
-            if !moderationCoordinator.hasAcceptedRules {
+            if !moderationCoordinator.hasAcceptedRules && !isReadOnlyForViewer {
                 HStack(spacing: 6) {
                     Image(systemName: "lock.shield")
                         .accessibilityHidden(true).foregroundStyle(.orange)
@@ -669,7 +675,7 @@ public struct ClubChannelMessagingView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
                 .accessibilityIdentifier("club.channel.composer.rulesLocked")
-            } else if selectedChannel?.isReadOnlyAnnouncement == true && !safetyPolicy.canModerateMessages {
+            } else if isReadOnlyForViewer {
                 HStack(spacing: 6) {
                     Image(systemName: "megaphone")
                         .accessibilityHidden(true).foregroundStyle(.secondary)

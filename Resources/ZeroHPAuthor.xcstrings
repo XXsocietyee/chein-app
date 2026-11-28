@@ -2192,6 +2192,230 @@
           }
         }
       }
+    },
+    "zeroHP.mp.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@归零后"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After %@ hits zero"
+          }
+        }
+      }
+    },
+    "zeroHP.mp.node": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用哪个节点的玩法"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which node's gameplay"
+          }
+        }
+      }
+    },
+    "zeroHP.mp.noNodes": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存主题和节点，才能选择挑战节点。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the topic and its nodes first to choose a challenge node."
+          }
+        }
+      }
+    },
+    "zeroHP.mp.alternatives": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备选节点（最多 3 个）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternative nodes (up to 3)"
+          }
+        }
+      }
+    },
+    "zeroHP.mp.completions": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需完成几次"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completions needed"
+          }
+        }
+      }
+    },
+    "zeroHP.mp.within": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "限时（秒）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time limit (seconds)"
+          }
+        }
+      }
+    },
+    "zeroHP.mp.wait": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待（分钟）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait (minutes)"
+          }
+        }
+      }
+    },
+    "zeroHP.mp.restoreTo": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复到"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore to"
+          }
+        }
+      }
+    },
+    "zeroHP.mp.limit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多恢复几次"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recoveries allowed"
+          }
+        }
+      }
+    },
+    "zeroHP.mp.reply": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归零时对玩家说"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tell the player at zero"
+          }
+        }
+      }
+    },
+    "zeroHP.mp.replyExample": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 你冻得发抖，先暖和过来再走"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. You're shivering. Warm up before you move on."
+          }
+        }
+      }
+    },
+    "zeroHP.mp.failNote": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次游玩结束，按主题「结果卡」显示失败结果。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The run ends and shows the fail result from the topic's result cards."
+          }
+        }
+      }
+    },
+    "zeroHP.mp.legacy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旧版归零设置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy zero settings"
+          }
+        }
+      }
+    },
+    "zeroHP.mp.legacyNote": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读，保存时原样保留"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only. Kept as is when you save."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
