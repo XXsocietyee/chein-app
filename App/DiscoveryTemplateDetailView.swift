@@ -358,11 +358,11 @@ struct DiscoveryTopicTemplatePreview: View {
     /// R7-PC-A8-2 (MP topic-detail js:281 `previewNode`): a node image opens the full-screen gallery over all node images.
     @State private var nodeGallery: NodeGallerySelection?
     private struct NodeGallerySelection: Identifiable { let id = UUID(); let snapshot: MediaGallerySnapshot }
-    /// Caller override. Nil asks the existing parsers; an unparsed topic path copies its mini-program path and has no public URL.
+    /// Caller override. Nil asks the existing parsers: the MP topic-detail path parses back, so the share is its https link.
     var shareURL: URL? = nil
     var scope: String? = nil
     init(coordinator: PublicTopicTemplateCoordinator) { _detail = State(initialValue: coordinator) }
-    /// A parsed topic path would be a universal link. This path is not parsed, so the share key copies the mini-program path.
+    /// The parsed topic-detail path is a universal link (MP index.js:317); the copy text is only the fallback for a bad id.
     private func topicShareOffer(_ id: Int) -> (url: URL?, copyText: String?) {
         if let shareURL { return (shareURL, nil) }
         if let url = PublicContentShareLink.topicTemplate(id: id) { return (url, nil) }

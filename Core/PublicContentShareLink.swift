@@ -126,9 +126,11 @@ public enum PublicContentShareLink {
     }
 
     /// Mini-program `subpackageA/pages/infomationdetail/infomationdetail?id=` (source spelling).
-    /// Nil while that path is not already parsed. Callers then copy `informationCopyText`.
+    /// MP infomationdetail.js:161 share path; parsed back as that MP page. Nil for a non-canonical id;
+    /// callers then copy `informationCopyText`.
     public static func information(id: Int) -> URL? {
-        universalLink(path: "/subpackageA/pages/infomationdetail/infomationdetail", id: id)
+        guard canonicalID(String(id)) != nil else { return nil }
+        return reviewedPage("subpackageA/pages/infomationdetail/infomationdetail", items: [URLQueryItem(name: "id", value: String(id))])
     }
 
     /// Path text when the information page is not a universal link. Not a URL.
