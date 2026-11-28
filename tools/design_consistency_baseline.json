@@ -127,6 +127,9 @@
     "App/QuestifyPalette.swift": {
       "raw colour": "brand tint token definition (light/dark), the palette itself"
     },
+    "App/RegistrationPaySection.swift": {
+      "locale money": "amountText is RegistrationUIMoney.display(_:locale:currencyCode:) — already the locale money rule (CN¥ in en, ¥ in zh) from the order currency"
+    },
     "App/RoamBrowserView.swift": {
       "custom search": "漫游 browser map mode: Maps-style search field pinned inside the persistent results sheet over the live map; list mode uses system .searchable (RoamBrowserView searchable modifier)",
       "list style": "map mode only: results list in the panel over the full-screen map (map chrome); list mode stays the standard list"
@@ -151,15 +154,6 @@
     "App/CloudCIShardStatusSectionView.swift": {
       "status capsule": 1
     },
-    "App/ClubSettlementDetail.swift": {
-      "locale money": 2
-    },
-    "App/CoopSettlementDetailView.swift": {
-      "locale money": 1
-    },
-    "App/DesignSystem/CYBusinessComponents.swift": {
-      "locale money": 2
-    },
     "App/FinalReleaseSignoffAndZeroGapCertificateView.swift": {
       "status capsule": 1
     },
@@ -178,20 +172,11 @@
     "App/LocalizationCompletenessSectionView.swift": {
       "status capsule": 1
     },
-    "App/MPGap/Club/ClubGapManageExtensions.swift": {
-      "locale money": 1
-    },
-    "App/MPGap/Club/ClubGapReferenceSettlementView.swift": {
-      "locale money": 1
-    },
     "App/PhotoLibraryAndCameraPermissionSectionView.swift": {
       "status capsule": 2
     },
     "App/ReformWorkPackagesW02ToW20SectionView.swift": {
       "status capsule": 2
-    },
-    "App/RegistrationPaySection.swift": {
-      "locale money": 2
     },
     "App/ReleaseArchiveChecklistSectionView.swift": {
       "status capsule": 2
