@@ -732,3 +732,18 @@ Merged `origin/ui/combined-r7` (clean). Still no `docs/release/receipts/cursor-k
 Checked, no change: zh balance-ledger times `2026-11-06 18:20` follow the owner-approved zh `yyyy-MM-dd HH:mm` (`Core/LocaleDisplay.swift:8`); ticket-wallet grey bands are from a build before continue 44 (`511b2f751` is not in 2fc0feb24); 成为商家 belongs to K12.
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. **Half done**; A half rows 1–2 still blocked.
+
+## Continue 47 (11-28, hourly run): en 票夹 reads "Tickets"; public-profile head separator
+
+Merged `origin/ui/combined-r7` (clean). Still no `docs/release/receipts/cursor-k50-p*.md` on any branch, and the brief has no new mp-mine coordinator rows after 13:15 (the 17:30 sweep covers mp-states / mp-nav). Half split at run start: 1 `CharacterCardReadbackView` byte pin · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` false) | 3 P2-5c. A half (1–2) still blocked. Screens checked: `docs/sweeps/latest/mp-mine/en-d2-me.jpg`, `zh-Hans-e4-member.jpg`, `en-e4-self-medals.jpg` (build 2fc0feb24).
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `cy/profile` `pc-actions` 票夹 + `subpackageMember/signup` title (`en-d2-me`: the button reads "Ticket") | `Resources/MemberProfile.xcstrings` `member.card.tickets`; `Resources/Localizable.xcstrings` `ticketWallet.title`, `contextSelfPlay.tickets`, `ticketWallet.number` | ✓ (unchanged) | B | **Fixed.** The K27 en-length pass (`90663aed1`) cut "Ticket wallet" to the singular "Ticket" (a wallet of one ticket) and 票号 to "Ticket" too, so the wallet detail had two rows that could both read "Ticket". Now 票夹 = "Tickets" (7 ≤ 8.8 budget) on the Me button, the wallet title and the self-play link, and 票号 = "Ticket #". `AcceptTicketsFlowTests` expected the pre-K27 "Ticket wallet" title (already failing after K27); now "Tickets". |
+| `cy/profile` identity head, public profile (`en-e4-self-medals`) | `App/SocialPublicProfileView.swift` head row | ✓ (unchanged) | B | **Fixed.** The list separator under the avatar + name began at the name text, over empty space, above the 分享身份卡 row; `.alignmentGuide(.listRowSeparatorLeading) { _ in 0 }` puts it at the card edge like the other card separators. |
+
+Also synced `Resources/ContextPublishingLocalizations.fragment.json` (`contextSelfPlay.tickets`), which `test_contextual_publishing_groupb` compares with the catalog.
+
+Checked, no change: en balance "CN¥0.00" is the en-US system format for CNY (zh shows ¥).
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**, check_en_strings 11 problems (unchanged). **Half done**; A half rows 1–2 still blocked.
