@@ -484,6 +484,295 @@
         }
       }
     },
+    "creator.mp.estimate.answer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确答案"
+          }
+        }
+      }
+    },
+    "creator.mp.estimate.max": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Range maximum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "量程上限"
+          }
+        }
+      }
+    },
+    "creator.mp.estimate.min": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Range minimum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "量程下限"
+          }
+        }
+      }
+    },
+    "creator.mp.estimate.reveal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reveal text"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "揭晓文字"
+          }
+        }
+      }
+    },
+    "creator.mp.estimate.reveal.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. 480 in all. The owner counted twice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 一共 480 颗，老板数了两遍"
+          }
+        }
+      }
+    },
+    "creator.mp.estimate.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题干"
+          }
+        }
+      }
+    },
+    "creator.mp.estimate.title.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. How many coffee beans are in this jar?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 这罐咖啡豆有多少颗"
+          }
+        }
+      }
+    },
+    "creator.mp.estimate.unit.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "beans / cups / books"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "颗 / 杯 / 本"
+          }
+        }
+      }
+    },
+    "creator.mp.random.content.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shown when this card is drawn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "抽中后展示的内容"
+          }
+        }
+      }
+    },
+    "creator.mp.random.deckName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deck name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这副卡叫什么"
+          }
+        }
+      }
+    },
+    "creator.mp.random.deckName.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Today's clue cards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如 今日线索卡"
+          }
+        }
+      }
+    },
+    "creator.mp.random.drawCount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cards drawn per round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每局抽取数量"
+          }
+        }
+      }
+    },
+    "creator.mp.random.id.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unique ID, e.g. clue_1"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "唯一 ID，如 clue_1"
+          }
+        }
+      }
+    },
+    "creator.mp.random.label.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name players see"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家看到的名称"
+          }
+        }
+      }
+    },
+    "creator.mp.random.weight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weight"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权重"
+          }
+        }
+      }
+    },
+    "creator.mp.steps.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subtitle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小标题"
+          }
+        }
+      }
+    },
+    "creator.mp.steps.eyebrow.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Low-carbon action · Today's steps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 低碳行动 · 今日步数"
+          }
+        }
+      }
+    },
     "Current mode": {
       "extractionState": "manual",
       "localizations": {
@@ -1635,6 +1924,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "仅为你原生文本/选项的原始快照，不是当前编辑中的草稿，也不代表可以保存、导出、发布或游玩。qmod、组合主题和 H5 保持原有入口。"
+          }
+        }
+      }
+    },
+    "a11y.label.pixelSize %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld by %2$lld pixels"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld × %2$lld 像素"
           }
         }
       }
@@ -80769,13 +81075,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your precise location is sent to Chein once to set your home city, then located automatically. It is not used to rank nearby results."
+            "value": "Uses your current location once to set your home city. You can locate again from the city menu. It is not used to rank nearby results."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "精确位置会发送给城瘾以确定首页城市，之后自动定位，不用于附近排序。"
+            "value": "用一次当前位置确定首页城市，之后可在城市菜单里重新定位，不用于附近排序。"
           }
         }
       }
@@ -183669,13 +183975,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Player presentation"
+            "value": "Presentation"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩家呈现方式"
+            "value": "呈现方式"
           }
         }
       }
@@ -183703,13 +184009,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dedicated game screen"
+            "value": "Full screen"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "独立玩法页面"
+            "value": "整屏"
           }
         }
       }
@@ -183720,13 +184026,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This game requires a dedicated screen. An inline selection must be changed before saving."
+            "value": "This game needs full screen. Set Presentation to Full screen before saving."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此玩法需要独立页面，保存前请将内嵌选择改为独立页面。"
+            "value": "此玩法只能整屏，保存前请把呈现方式改为整屏。"
           }
         }
       }
@@ -183737,13 +184043,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Within the story"
+            "value": "Inline in the story flow"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "嵌入故事"
+            "value": "内嵌故事流"
           }
         }
       }
@@ -199232,7 +199538,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complaints &"
+            "value": "Feedback"
           }
         },
         "zh-Hans": {
@@ -239911,7 +240217,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Groups"
+            "value": "Categories"
           }
         },
         "zh-Hans": {
@@ -260038,13 +260344,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completion method"
+            "value": "Gameplay"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "完成方式"
+            "value": "玩法"
           }
         }
       }
@@ -294645,7 +294951,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complaints &"
+            "value": "Feedback"
           }
         },
         "zh-Hans": {
@@ -318315,13 +318621,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Roam"
+            "value": "Start roaming"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "漫游"
+            "value": "开始漫游"
           }
         }
       }
@@ -324009,7 +324315,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable for"
+            "value": "Unavailable"
           }
         },
         "zh-Hans": {
@@ -366051,6 +366357,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "例如 欢迎来到老城茶馆"
+          }
+        }
+      }
+    },
+    "homeCityConsent.privacy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your location is matched to a city on this iPhone and is never uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置只在本机匹配城市，不会上传。"
           }
         }
       }

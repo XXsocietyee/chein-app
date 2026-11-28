@@ -296,6 +296,13 @@ RAW_COUNT = 'raw count'
 # and weight.
 RAW_COUNT_FONT = re.compile(r'\.font\(\s*\.(?:largeTitle|title|title2|title3)\b')
 RAW_COUNT_DIGITS = re.compile(r'\.monospacedDigit\(\)')
+RATING_HUE = 'rating hue'
+# One rating / starred hue (ADA audit §3 accent colours): review stars, place rating and the starred-friend mark were
+# orange on some pages and yellow on others. A `star.fill` drawn in a raw `.yellow` / `.orange` within 6 lines uses
+# `CYColor.ratingStar` (a first-place / medal star uses `CYColor.medalGold`). Celebration art keeps its own colour
+# through an allowed entry with a reason.
+RATING_STAR = re.compile(r'systemName:\s*(?:[^)]*\?\s*)?"star\.fill"')
+RATING_RAW_HUE = re.compile(r'\.(?:foregroundStyle|foregroundColor|tint)\(\s*(?:Color)?\.(?:yellow|orange)\b')
 EFFECT_ON_CLEAN = 'effect on clean page'
 # OWNER RULE 3 (11-28): the 11-26 no-op effects are restored, but only for games, story flow, payment, maps and
 # celebration moments. Every other page stays clean (system components, no glow / foil / particles / glass).
@@ -327,7 +334,7 @@ KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, C
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
          ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, SECTION_SPACING, DUPLICATE_TYPE,
          UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT, EFFECT_ON_CLEAN, RAW_COUNT,
-         MANUAL_PAGING)
+         MANUAL_PAGING, RATING_HUE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -703,6 +710,13 @@ def scan_file(rel, text):
                     (RAW_COUNT_DIGITS.search(code) or (index + 1 < len(lines)
                                                        and lines[index + 1][1].lstrip().startswith('.monospacedDigit()'))):
                 hits.append((number, RAW_COUNT, code.strip()))
+    if not design_system:
+        for index, (number, code) in enumerate(lines):
+            if RATING_STAR.search(code):
+                for near_number, near in lines[index:index + 7]:
+                    if RATING_RAW_HUE.search(near):
+                        hits.append((near_number, RATING_HUE, near.strip()))
+                        break
     if is_root:
         has_large = any(ROOT_HEADER_PATTERN.search(c) or LARGE_PATTERN.search(c) for _, c in lines)
         if not has_large:

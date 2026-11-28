@@ -542,8 +542,8 @@ private struct SettingsSearchResults: View {
         let label = Label(LocalizedStringKey(e.key), systemImage: e.symbol).environment(\.settingsTileTint, e.tint)
         switch e.id {
         case "sound": NavigationLink { SettingsSoundPreferencesView(store: SettingsLocalSoundStore()) } label: { label }
-        case "agreement": NavigationLink { SettingsLegalDocumentView(type: .userAgreement, market: session.operationalMarket, reader: session.legalReader) } label: { label }
-        case "privacy": NavigationLink { SettingsLegalDocumentView(type: .privacyPolicy, market: session.operationalMarket, reader: session.legalReader) } label: { label }
+        case "agreement": NavigationLink { SettingsLegalDocumentView(type: .userAgreement, market: UserMarketMemory.legalDocumentMarket(deployment: session.operationalMarket), reader: session.legalReader) } label: { label }
+        case "privacy": NavigationLink { SettingsLegalDocumentView(type: .privacyPolicy, market: UserMarketMemory.legalDocumentMarket(deployment: session.operationalMarket), reader: session.legalReader) } label: { label }
         case "about": NavigationLink { SettingsAboutView(market: session.operationalMarket, appInformation: .current(), legalReader: session.legalReader) } label: { label }
         case "marketing":
             if let c = session.accountComplianceCoordinator {
