@@ -3,8 +3,9 @@ import MapKit
 
 /// S12/S14 finish summary (Fitness workout summary) with the run ranking.
 /// Same reads as the medal screen it replaces: the run snapshot, the reward medals, the server
-/// result word (U08-01, passed in as `titleKey`) and the existing ending/leaderboard read, which
-/// is only sent when the player taps "结局与同行者榜", as before.
+/// result word (U08-01, passed in as `titleKey`) and the existing ending/leaderboard read.
+/// fix-1128b #16 (P30): the ranking is a preview read once when the screen opens, with the player's row pinned; a
+/// failed read is a quiet retry row (MP board `error`), never an error page.
 @MainActor struct CityOrientationFinishSummaryView: View {
     @Bindable var model: PlayExperienceCoordinator
     let titleKey: String
@@ -186,6 +187,15 @@ import MapKit
         // where the reveal is instant).
         .cyHaptic(.success, trigger: revealed, where: CYHapticTransition.turnedOn)
         .task { await reveal() }
+        .task { await loadBoardOnce() }
+    }
+
+    /// fix-1128b #16: one automatic ranking read per open; the retry row covers a failure.
+    private func loadBoardOnce() async {
+        guard model.leaderboard == nil, !loadingBoard else { return }
+        loadingBoard = true
+        await model.loadEndingAndLeaderboard()
+        loadingBoard = false
     }
 
     private func medalRow(_ medal: CYMedalItem) -> some View {
@@ -293,6 +303,12 @@ import MapKit
             .accessibilityIdentifier("nativeR2.city.finish.board")
         } else {
             Section {
+                if model.leaderboardUnavailable, !loadingBoard {
+                    Text("playx.leaderboard.unavailable")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("playx.leaderboard.unavailable")
+                }
                 Button {
                     loadingBoard = true
                     Task { await model.loadEndingAndLeaderboard(); loadingBoard = false }
