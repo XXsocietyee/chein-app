@@ -75,3 +75,13 @@ Merged `origin/mp/r3-mine` (A continue 48, 75170fb87). The new K50 receipts (`cu
 Half split (fixed at run start; A receipt open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin owner) · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` false) | 3 P2-5c participants +1 / US legal copy (backend + legal owner). **B half = row 3**, still blocked with nothing to change app-side in this area. Skipped.
 
 **Half done** (B half: row 3 blocked on backend + legal). Run stops here per the 15:45 split rule.
+
+## Run 7 (11-28, hourly)
+
+Merged `origin/mp/r3-mine` (A continue 50, 1601fab1f). Every remote branch checked: still no `docs/release/receipts/cursor-k50-p*.md`, so no K50 `lane-layout` rows for mp-mine. Latest sweep is still build b954de71c (18:30 note covers mp-club / mp-journey); the brief has no mp-mine coordinator rows after 13:15.
+
+Half split (fixed at run start; A receipt open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin owner) · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` false) | 3 P2-5c participants +1 / US legal copy (backend + legal owner). **B half = row 3**, still blocked with nothing app-side to change (client +1 checks wait on the backend regex, see run 5).
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
+
+**Half done** (B half: row 3 blocked on backend + legal). Run stops here per the 15:45 split rule.
