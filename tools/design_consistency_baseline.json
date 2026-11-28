@@ -232,9 +232,6 @@
     "App/MessagingHistoryView.swift": {
       "manual paging": 1
     },
-    "App/MessagingHomeView.swift": {
-      "manual paging": 1
-    },
     "App/NativeChannelAuditEntry.swift": {
       "manual paging": 1
     },
@@ -287,9 +284,6 @@
       "manual paging": 1
     },
     "App/RoamStampViews.swift": {
-      "manual paging": 1
-    },
-    "App/SearchMapExplorerView.swift": {
       "manual paging": 1
     },
     "App/SettingsPostGovernanceView.swift": {
