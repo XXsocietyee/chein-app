@@ -47,6 +47,12 @@ public struct PlayToolsAndLeadSheetView: View {
     /// mp-journey r3: MP 游玩工具 本局用时 · 当前得分 (`sessStats`, mode 1 with an orient `routeState.sessionId`; both open
     /// 本局成绩), pushed right before 同行者榜. Nil hides the row.
     public var scoreDestination: (() -> AnyView)? = nil
+    /// MP `sessStats` (`loadSessionStats`): nil before the read (one 本局用时 · 当前得分 link), `.loading` (static row with
+    /// …), `.failed` (暂时没有读到 · 重试), `.ready` (本局用时 when there is an elapsed time, 当前得分, 同行者榜 第 N 名).
+    public var sessionStats: PlayToolsSessionStats? = nil
+    /// MP: scoring is off for this round (`ORIENT_SCORING_DISABLED` / `NOT_APPLICABLE`), so the score rows stay hidden.
+    public var sessionStatsOff: Bool = false
+    public var onRetrySessionStats: () -> Void = {}
     /// mp-journey r3: MP 游玩工具 入场码 (`wx:if="{{regId && !isPreview && !isMock}}"`, `openTicketFromTools` →
     /// `scene-qr-ticket`). The run's ticket registration id; nil or 0 hides the row.
     public var entryCodeRegistrationID: Int? = nil
@@ -86,6 +92,9 @@ public struct PlayToolsAndLeadSheetView: View {
         journalAttributes: [PlayRouteAttribute] = [],
         boardDestination: (() -> AnyView)? = nil,
         scoreDestination: (() -> AnyView)? = nil,
+        sessionStats: PlayToolsSessionStats? = nil,
+        sessionStatsOff: Bool = false,
+        onRetrySessionStats: @escaping () -> Void = {},
         rights: PlayToolsRights? = nil,
         onRights: @escaping () -> Void = {},
         freeTrackPerkOnly: Bool? = nil,
@@ -102,6 +111,9 @@ public struct PlayToolsAndLeadSheetView: View {
         self.journalAttributes = journalAttributes
         self.boardDestination = boardDestination
         self.scoreDestination = scoreDestination
+        self.sessionStats = sessionStats
+        self.sessionStatsOff = sessionStatsOff
+        self.onRetrySessionStats = onRetrySessionStats
         self.locationOn = locationOn
         self.onLocationRow = onLocationRow
         self.lead = lead
@@ -157,19 +169,18 @@ public struct PlayToolsAndLeadSheetView: View {
                 }
                 if scoreDestination != nil || boardDestination != nil {
                     Section {
-                        if let scoreDestination {
-                            NavigationLink {
-                                scoreDestination()
-                            } label: {
-                                Label("playTools.sessionScore", systemImage: "clock")
-                            }
-                            .accessibilityIdentifier("playTools.sessionScore")
+                        if let scoreDestination, !sessionStatsOff {
+                            sessionStatsRows(scoreDestination)
                         }
                         if let boardDestination {
                             NavigationLink {
                                 boardDestination()
                             } label: {
-                                Label("playx.leaderboard", systemImage: "person.3")
+                                LabeledContent {
+                                    if let rank = boardRank { Text("playTools.boardRank \(rank)").monospacedDigit() }
+                                } label: {
+                                    Label("playx.leaderboard", systemImage: "person.3")
+                                }
                             }
                             .accessibilityIdentifier("playTools.board")
                         }
@@ -266,6 +277,58 @@ public struct PlayToolsAndLeadSheetView: View {
     }
 
     /// MP 队伍位置: the arrived count on the right; the pushed page lists who has arrived (positions stay private).
+    /// MP 同行者榜 `dv`: 第 N 名 once the score read has a rank.
+    private var boardRank: Int? {
+        if case .ready(_, _, let rank, _)? = sessionStats { return rank }
+        return nil
+    }
+
+    /// MP `pages/play/index.wxml:349-356`: 本局用时 / 当前得分 both open 本局成绩.
+    @ViewBuilder private func sessionStatsRows(_ destination: @escaping () -> AnyView) -> some View {
+        switch sessionStats {
+        case .ready(let elapsed, let score, _, _)?:
+            if let elapsed {
+                NavigationLink { destination() } label: {
+                    LabeledContent {
+                        Text(verbatim: elapsed).monospacedDigit()
+                    } label: {
+                        Label("playTools.sessionElapsed", systemImage: "clock")
+                    }
+                }
+                .accessibilityIdentifier("playTools.sessionElapsed")
+            }
+            NavigationLink { destination() } label: {
+                LabeledContent {
+                    Text(verbatim: score).monospacedDigit()
+                } label: {
+                    Label("playTools.currentScore", systemImage: "star.circle")
+                }
+            }
+            .accessibilityIdentifier("playTools.currentScore")
+        case .loading?:
+            LabeledContent {
+                ProgressView()
+            } label: {
+                Label("playTools.sessionScore", systemImage: "clock")
+            }
+            .accessibilityIdentifier("playTools.sessionScore.loading")
+        case .failed?:
+            Button(action: onRetrySessionStats) {
+                LabeledContent {
+                    Text("playTools.sessionStatsRetry")
+                } label: {
+                    Label("playTools.sessionStatsFailed", systemImage: "arrow.clockwise")
+                }
+            }
+            .accessibilityIdentifier("playTools.sessionScore.retry")
+        case nil:
+            NavigationLink { destination() } label: {
+                Label("playTools.sessionScore", systemImage: "clock")
+            }
+            .accessibilityIdentifier("playTools.sessionScore")
+        }
+    }
+
     @ViewBuilder private var teamPositionSection: some View {
         if let teamLead, teamLead.exists {
             Section {

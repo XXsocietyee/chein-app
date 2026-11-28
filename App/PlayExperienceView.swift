@@ -77,6 +77,10 @@ struct PlayThemeMusicKey: Equatable {
     @State private var showPlayTools = false
     /// MP `playContact` (联系主办 / 联系商家) for the 游玩工具 row; nil hides it.
     @State private var playContact: PlayContact?
+    /// mp-journey r3: MP 游玩工具 `sessStats` (本局用时 · 当前得分 · 同行者榜 第 N 名), read when the sheet opens.
+    @State private var sessionStats: PlayToolsSessionStats?
+    @State private var sessionStatsOff = false
+    @Environment(\.playToolsSessionStatsLoader) private var sessionStatsLoader
     @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
     @StateObject private var musicLifetime = PlayBackgroundMusicLifetime()
     @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
@@ -790,7 +794,25 @@ struct PlayThemeMusicKey: Equatable {
                               openPreferences: openPlayTools)
             }
     }
-    private func openPlayTools() { showPlayTools = true }
+    private func openPlayTools() {
+        showPlayTools = true
+        Task { await loadSessionStats() }
+    }
+    /// MP `loadSessionStats`: city orientation (mode 1) with an orient session only; keeps shown values while re-reading.
+    private func loadSessionStats() async {
+        guard let loader = sessionStatsLoader, let result = model.snapshot?.result, result.mode == 1,
+              let sessionID = result.routeState?.sessionID, sessionID > 0,
+              let topicID = result.topicID, topicID > 0 else { sessionStats = nil; return }
+        var activityID = 0
+        if case .activity(let id) = model.scope { activityID = id }
+        guard let scope = try? OrientSessionScope(topicID: topicID, activityID: activityID, productType: 1) else { sessionStats = nil; return }
+        var showsValues = false
+        if case .some(.ready) = sessionStats { showsValues = true }
+        if !showsValues { sessionStats = .loading }
+        let read = await loader(sessionID, scope)
+        sessionStatsOff = read == nil
+        sessionStats = read
+    }
     /// PLAY-6a: lead actions already sit in `PlayLeadSection` on the page, so the sheet carries stats + preferences.
     private var playToolsSheet: some View {
         PlayToolsAndLeadSheetView(
@@ -809,6 +831,9 @@ struct PlayThemeMusicKey: Equatable {
             journalAttributes: model.snapshot.map(PlayJournal.attributes(in:)) ?? [],
             boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
             scoreDestination: orientScoreDestination,
+            sessionStats: sessionStats,
+            sessionStatsOff: sessionStatsOff,
+            onRetrySessionStats: { Task { await loadSessionStats() } },
             entryCodeRegistrationID: entryCode?.registrationID,
             contact: playContact
         )
