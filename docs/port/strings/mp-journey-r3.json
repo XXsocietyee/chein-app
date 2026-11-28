@@ -3197,5 +3197,107 @@
         }
       }
     }
+  },
+  "playkit.bingo.fullBanner %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All nine lit · %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "九格全亮 · %@"
+        }
+      }
+    }
+  },
+  "playkit.bingo.howDefault": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Lights up when you get there"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "走到即亮"
+        }
+      }
+    }
+  },
+  "playkit.bingo.panel.scan": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Scan the code in the store and this square lights up."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "到店扫一下店里的码，这一格就亮了。"
+        }
+      }
+    }
+  },
+  "playkit.bingo.panel.play %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This square holds “%@”. It lights up once you finish it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这一格装的是「%@」。玩完它才会亮。"
+        }
+      }
+    }
+  },
+  "playkit.bingo.panel.ok": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Got it"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "知道了"
+        }
+      }
+    }
+  },
+  "playkit.bingo.panel.playDefault": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This square lights up when you get there."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这一格装的是「走到即亮」。玩完它才会亮。"
+        }
+      }
+    }
   }
 }

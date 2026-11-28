@@ -194,11 +194,24 @@ extension PlayKitScreen {
 
     // MARK: bingo (read only: cells light up from play elsewhere)
 
+    /// MP `playkit-bingo` under the shell title: ribbon only once earned (九格全亮 · full reward, else 连成一条线 · line
+    /// reward) → 3 × 3 board (name · how, scan / play / done glyph, completed lines tinted) → 已完成 n / 9 → tap an unlit
+    /// cell for how it lights (知道了). The MP shows no how-to line under the title ("删除提示语").
     @ViewBuilder var nativeBingo: some View {
         let board = PlayKitBingoBoard(raw)
-        if let line = raw["lineReward"].text, !line.isEmpty {
+        let full = board.filled.count >= 9
+        let fullReward = raw["fullReward"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let lineReward = raw["lineReward"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if full, !fullReward.isEmpty {
             Section {
-                Label { Text("playkit.bingo.lineBanner \(line)") } icon: { Image(systemName: "gift") }
+                Label { Text("playkit.bingo.fullBanner \(fullReward)") } icon: { Image(systemName: "gift.fill") }
+                    .foregroundStyle(.tint)
+                    .accessibilityIdentifier("playkit.bingo.fullBanner")
+            }
+        } else if !full, !board.completedLines.isEmpty, !lineReward.isEmpty {
+            Section {
+                Label { Text("playkit.bingo.lineBanner \(lineReward)") } icon: { Image(systemName: "gift.fill") }
+                    .foregroundStyle(.tint)
                     .accessibilityIdentifier("playkit.bingo.lineBanner")
             }
         }
@@ -206,50 +219,67 @@ extension PlayKitScreen {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
                 ForEach(0..<9, id: \.self) { index in nativeBingoCell(board, index: index) }
             }
-        } footer: {
-            Text("playkit.bingo.footnote")
-        }
-        Section {
-            LabeledContent { Text(verbatim: String(board.filled.count) + " / 9").monospacedDigit() } label: { Text("nativeGames.bingo.filled") }
+            Text("playkit.bingo.filledCount \(board.filled.count)")
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
                 .accessibilityIdentifier("playkit.bingo.filledCount")
-            LabeledContent { Text(verbatim: String(board.completedLines.count)).monospacedDigit() } label: { Text("playkit.bingo.lines") }
-            if let full = raw["fullReward"].text, !full.isEmpty {
-                LabeledContent { Text(verbatim: full) } label: { Text("playkit.bingo.fullReward") }
-            }
         }
+        .sensoryFeedback(.impact(weight: .medium), trigger: board.completedLines.count + (full ? 1 : 0)) { old, new in new > old }
     }
 
-    /// A cell explains itself in place: tap shows how to light it (popover; a sheet on iPhone).
-    func nativeBingoCell(_ board: PlayKitBingoBoard, index: Int) -> some View {
+    /// MP cell: how it lights (default 走到即亮); a scan cell (how mentions 扫码) shows the QR glyph, others the play glyph.
+    func nativeBingoHow(_ board: PlayKitBingoBoard, index: Int) -> String? {
+        let how = board.instruction(at: index).trimmingCharacters(in: .whitespacesAndNewlines)
+        return how.isEmpty ? nil : how
+    }
+
+    func nativeBingoIsScan(_ board: PlayKitBingoBoard, index: Int) -> Bool {
+        let how = board.instruction(at: index)
+        return how.contains("扫码") || how.localizedCaseInsensitiveContains("scan")
+    }
+
+    /// An unlit cell explains itself in place (sheet with 知道了); a lit cell is done and opens nothing (MP `onCell`).
+    @ViewBuilder func nativeBingoCell(_ board: PlayKitBingoBoard, index: Int) -> some View {
         let filled = board.filled.contains(index)
-        return Button { nativeIndex = index } label: {
+        let inLine = board.linePositions.contains(index)
+        let scan = nativeBingoIsScan(board, index: index)
+        let how = nativeBingoHow(board, index: index)
+        let button = Button { if !filled { nativeIndex = index } } label: {
             VStack(spacing: 4) {
-                Image(systemName: filled ? "checkmark.seal.fill" : "seal").imageScale(.large)
-                Text(verbatim: board.title(at: index)).font(.footnote).lineLimit(3).multilineTextAlignment(.center)
+                Image(systemName: filled ? "checkmark" : (scan ? "qrcode.viewfinder" : "play.fill")).imageScale(.large)
+                Text(verbatim: board.title(at: index)).font(.footnote.weight(.semibold)).lineLimit(3).multilineTextAlignment(.center)
+                Group {
+                    if let how { Text(verbatim: how) } else { Text("playkit.bingo.howDefault") }
+                }
+                .font(.caption).lineLimit(2).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.bordered)
-        .accessibilityValue(Text(filled ? "playkit.bingo.filled" : "playkit.bingo.empty"))
+        .tint(inLine ? Color.pink : nil)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: board.title(at: index)))
+        .accessibilityValue(filled ? Text("nativeGames.bingo.filled") : (how.map { Text(verbatim: $0) } ?? Text("playkit.bingo.howDefault")))
+        .accessibilityAddTraits(filled ? [.isButton, .isSelected] : .isButton)
         .accessibilityIdentifier("playkit.bingo.cell.\(index)")
-        .popover(isPresented: Binding(get: { nativeIndex == index }, set: { if !$0 { nativeIndex = nil } })) {
+        .sheet(isPresented: Binding(get: { nativeIndex == index }, set: { if !$0 { nativeIndex = nil } })) {
             NavigationStack {
                 List {
                     Section {
-                        Label(filled ? "playkit.bingo.filled" : "playkit.bingo.empty",
-                              systemImage: filled ? "checkmark.seal.fill" : "seal")
-                        Text(verbatim: board.instruction(at: index)).fixedSize(horizontal: false, vertical: true)
-                        if board.linePositions.contains(index) { Text("playkit.bingo.inLine").foregroundStyle(.secondary) }
+                        if scan { Text("playkit.bingo.panel.scan") }
+                        else if let how { Text("playkit.bingo.panel.play \(how)") }
+                        else { Text("playkit.bingo.panel.playDefault") }
                     }
                 }
                 .navigationTitle(Text(verbatim: board.title(at: index)))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .confirmationAction) { Button("nativeGames.done") { nativeIndex = nil } }
+                    ToolbarItem(placement: .confirmationAction) { Button("playkit.bingo.panel.ok") { nativeIndex = nil } }
                 }
             }
             .presentationDetents([.medium])
         }
+        if filled { button.buttonStyle(.borderedProminent) } else { button.buttonStyle(.bordered) }
     }
 
     // MARK: silentorder (a staff-witnessed dare; the clock is a companion, not evidence)
