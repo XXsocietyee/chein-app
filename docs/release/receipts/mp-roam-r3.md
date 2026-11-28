@@ -457,6 +457,14 @@ settled (02:05) — not touched. No contract-cleanup row for mp-roam.
 **For the coordinator:** please add `r3-roam-poi`, `r3-roam-poi-error`, `r3-roam-poi-unavailable`, `r3-roam-poi-missing` to the mp-roam
 sweep row (with the history / stamp-album / route / session state fixtures from 28–31). No new strings. No Swift build here.
 
+## Round 3 continue (33) — 附近 states as design fixtures (01:40 "next round" item 3)
+
+| MP page → native | Difference | Fix | Fixture |
+|---|---|---|---|
+| `subpackageRoam/nearby` (`cy-error load-failure 附近信息获取失败 / 当前内容无法查看 + 重试` wxml:62 → `cy-empty 附近暂无节点` wxml:71 → team rows) → `App/NearbyTeamViews.swift` `NearbyTeamsView` tab 0 | Content, order and MP copy already match (continue 1, mp-states r3 `NearbyLoadIssueCard`). The only fixtures (`nearby-empty`, `--nearby-team-fixture`) are English-only demo rows ("Your demo team", "Demo meeting point") in San Francisco and never show the list error; the list empty state had no id. | New `App/DesignFixtures/RoamR3NearbyFixture.swift`: the real `NearbyTeamsView` on `NearbyTeamFakeTransport` around the Bund with two teams in the UI language (周六外滩探索小队 · 阿川 · 外滩源庭院 650 m; 老街夜走搭子 · 小军 · 方浜中路路口 1.8 km); empty = `[]`; error = no `/api/team/nearby` response (transport failure → `nearby.loadFailed` → MP 附近信息获取失败 + 重试). Empty state gains id `nearby.list.empty` (`messageIdentifier`, no visual change). UI test `Fixture_r3_roamNearbyTests`. | `r3-roam-nearby`, `r3-roam-nearby-empty`, `r3-roam-nearby-error` |
+
+**For the coordinator:** please add `r3-roam-nearby`, `r3-roam-nearby-empty`, `r3-roam-nearby-error` to the mp-roam sweep row. No new strings. No Swift build here.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
