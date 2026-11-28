@@ -847,6 +847,7 @@ public struct CYProgressBar: View {
     private var progressCounter: some View {
         Text(verbatim: counterText)
             .monospacedDigit()
+            .accessibilityLabel(CYFractionSpeech.label(counterText))
             .foregroundStyle(loadFailed ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
     }
 

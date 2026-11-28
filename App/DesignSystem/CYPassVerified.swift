@@ -67,38 +67,17 @@ struct CYPassVerifiedFace: View {
     let notchY: CGFloat
     let shape: CYTicketPassShape
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     @QuestifyReduceMotion private var reduceMotion
     @State private var landed = false
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: CYSpacing.sm) {
-                ZStack {
-                    CYStampSeal(index: 0, earned: true, scale: 1.6)
-                        .frame(width: 84, height: 84)
-                        .shadow(color: CYNight.lantern.opacity(landed ? 0.55 : 0), radius: 16)
-                        .scaleEffect(reduceMotion || landed ? 1 : 0.6)
-                    let mark = Image(systemName: "checkmark.circle.fill")
-                        .font(.title.weight(.semibold))
-                        .foregroundStyle(CYNight.ink0)
-                        .offset(x: 30, y: 28)
-                    if #available(iOS 18.0, *) {
-                        mark.symbolEffect(.bounce, options: .nonRepeating, isActive: landed && !reduceMotion)
-                    } else {
-                        mark
-                    }
-                }
-                .accessibilityHidden(true)
-                Text(verbatim: c.t("已入场", "You're in"))
-                    .font(.system(.largeTitle, design: c.isChinese ? .default : .rounded).weight(c.isChinese ? .semibold : .heavy))
-                    .foregroundStyle(CYNight.ink0)
-                Text(verbatim: c.t("玩得开心", "Have fun."))
-                    .cyText(.cardTitle).foregroundStyle(CYNight.ink0)
-                Text(verbatim: title.isEmpty ? "—" : title)
-                    .cyText(.meta).foregroundStyle(CYNight.ink0)
-                    .lineLimit(2).multilineTextAlignment(.center).minimumScaleFactor(0.85)
-                    .padding(.horizontal, CYSpacing.xl)
+            ViewThatFits(in: .vertical) {
+                verifiedCopy(seal: 84, compactHeading: false, titleLines: typeSize.isAccessibilitySize ? 3 : 2, titleScale: typeSize.isAccessibilitySize ? 1 : 0.85)
+                    .fixedSize(horizontal: false, vertical: true)
+                verifiedCopy(seal: 56, compactHeading: true, titleLines: 4, titleScale: 1)
             }
             .frame(maxWidth: .infinity)
             .frame(height: notchY)
@@ -134,6 +113,50 @@ struct CYPassVerifiedFace: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: c.t("已入场，玩得开心", "You're in. Have fun.")))
         .accessibilityIdentifier("ticketPass.verified")
+    }
+
+    /// The tear band is a fixed height. The roomy copy is used when it fits; AX-XXXL drops to a smaller seal and a wrapping title.
+    private func verifiedCopy(seal: CGFloat, compactHeading: Bool, titleLines: Int, titleScale: CGFloat) -> some View {
+        let heading = Font.system(compactHeading ? .title2 : .largeTitle, design: c.isChinese ? .default : .rounded)
+            .weight(c.isChinese ? .semibold : .heavy)
+        return VStack(spacing: compactHeading ? CYSpacing.xs : CYSpacing.sm) {
+            ZStack {
+                CYStampSeal(index: 0, earned: true, scale: 1.6)
+                    .frame(width: seal, height: seal)
+                    .shadow(color: CYNight.lantern.opacity(landed ? 0.55 : 0), radius: 16)
+                    .scaleEffect(reduceMotion || landed ? 1 : 0.6)
+                verifiedMark
+            }
+            .accessibilityHidden(true)
+            Text(verbatim: c.t("已入场", "You're in"))
+                .font(heading)
+                .foregroundStyle(CYNight.ink0)
+                .lineLimit(compactHeading ? 2 : 1)
+                .minimumScaleFactor(compactHeading ? 1 : 0.85)
+                .multilineTextAlignment(.center)
+            Text(verbatim: c.t("玩得开心", "Have fun."))
+                .cyText(.cardTitle).foregroundStyle(CYNight.ink0)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+            Text(verbatim: title.isEmpty ? "—" : title)
+                .cyText(.meta).foregroundStyle(CYNight.ink0)
+                .lineLimit(titleLines).multilineTextAlignment(.center).minimumScaleFactor(titleScale)
+                .fixedSize(horizontal: false, vertical: titleLines > 2)
+                .padding(.horizontal, CYSpacing.xl)
+        }
+    }
+
+    @ViewBuilder private var verifiedMark: some View {
+        let mark = Image(systemName: "checkmark.circle.fill")
+            .font(.title.weight(.semibold))
+            .foregroundStyle(CYNight.ink0)
+            .offset(x: 30, y: 28)
+            .accessibilityHidden(true)
+        if #available(iOS 18.0, *) {
+            mark.symbolEffect(.bounce, options: .nonRepeating, isActive: landed && !reduceMotion)
+        } else {
+            mark
+        }
     }
 }
 

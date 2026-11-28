@@ -153,19 +153,23 @@ private struct CYRootHeaderModifier: ViewModifier {
     }
 }
 
-/// Root subtitle line under the large title (首页: "小城，今天去哪"). 13 pt, secondary ink, one line.
+/// Root subtitle line under the large title (首页: "小城，今天去哪"). 13 pt, secondary ink.
+/// Two lines at the default size; three at accessibility sizes so a long English line is not cut off.
 struct CYRootSubtitle: View {
     private let text: Text
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     init(_ key: LocalizedStringKey, tableName: String? = nil) { text = Text(key, tableName: tableName) }
     init(verbatim: String) { text = Text(verbatim: verbatim) }
 
     var body: some View {
+        let ax = typeSize.isAccessibilitySize
         text
             .cyText(.bodyCompact)
             .foregroundStyle(palette.textSecondary)
-            .lineLimit(2)
+            .lineLimit(ax ? 3 : 2)
+            .fixedSize(horizontal: false, vertical: ax)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

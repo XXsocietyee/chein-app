@@ -89,6 +89,10 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
   refresh no pull a toolbar refresh button (`"arrow.clockwise"` inside a `.toolbar` / `ToolbarItem`) in a file with a
                   `List` / `Form` / `ScrollView` and no `.refreshable`: 24 sibling pages pair the button with
                   pull-to-refresh (the MP `onPullDownRefresh`); add `.refreshable { await load() }` on the scroll
+  manual paging   a `Button` whose title is a "Load more" / "Load earlier" / "Show more" key (en value in
+                  Resources/Localizable.xcstrings) with no `.onAppear` / `.task` beside it (ADA 11-28 §3 Refresh /
+                  paging): the MP pages on `onReachBottom`; use `CYLoadMoreRow(key) { … }` (loads when it scrolls in,
+                  the button stays for VoiceOver), or add the `.onAppear` auto-load like Square / Home feed
   section spacing a numeric `.listSectionSpacing(…)` outside App/DesignSystem and App/Theme: `CYScreenStyle` gives every
                   player list 24 pt between sections (`CYSpacing.xxl`); three pages re-set 16 / 20 / 20 by hand. Drop
                   it to inherit the one spacing; `.compact` (tab strips / dense detail lists) stays the system value
@@ -228,6 +232,48 @@ REFRESH_NO_PULL = 'refresh no pull'
 REFRESH_GLYPH = re.compile(r'"arrow\.clockwise"')
 REFRESH_TOOLBAR = re.compile(r'\bToolbarItem\b|\.toolbar\s*\{')
 REFRESH_SCROLL = re.compile(r'\b(?:List|Form)\s*[({]|\bScrollView\b')
+MANUAL_PAGING = 'manual paging'
+# One paging pattern (ADA 11-28 §3 Refresh / paging): the MP loads the next page on `onReachBottom`. A "Load more"
+# button with no `.onAppear` / `.task` beside it makes the player find and tap it; `CYLoadMoreRow` does both.
+PAGING_EN = re.compile(r'^(?:Load more|Load earlier|Show more)\b')
+PAGING_AUTO = re.compile(r'\.onAppear\b|\.task\s*[({]|CYLoadMoreRow\b')
+_PAGING_KEYS = None
+
+
+def paging_keys():
+    """Catalog keys whose English value is a short "Load more" / "Load earlier" / "Show more" title."""
+    global _PAGING_KEYS
+    if _PAGING_KEYS is None:
+        keys = set()
+        catalog = ROOT / 'Resources' / 'Localizable.xcstrings'
+        if catalog.exists():
+            for key, entry in json.loads(catalog.read_text(encoding='utf-8')).get('strings', {}).items():
+                value = entry.get('localizations', {}).get('en', {}).get('stringUnit', {}).get('value', '')
+                if PAGING_EN.match(value) and len(value) < 40:
+                    keys.add(key)
+        _PAGING_KEYS = keys
+    return _PAGING_KEYS
+
+
+def manual_paging_hits(lines):
+    keys = paging_keys()
+    hits = []
+    last = -10
+    for index, (number, code) in enumerate(lines):
+        named = [m.group(1) for m in re.finditer(r'"([A-Za-z0-9_.]+)"', code)]
+        if not any(k in keys for k in named):
+            continue
+        if not any('Button' in c for _, c in lines[max(0, index - 3):index + 1]):
+            continue
+        if any(PAGING_AUTO.search(c) for _, c in lines[max(0, index - 6):index + 9]):
+            continue
+        if hits and index - last <= 3:
+            continue  # the same button's label / accessibility lines
+        hits.append((number, MANUAL_PAGING, code.strip()))
+        last = index
+    return hits
+
+
 SECTION_SPACING = 'section spacing'
 # One list rhythm: CYScreenStyle sets `.listSectionSpacing(CYSpacing.xxl)` once; a page re-setting a number drifts.
 SECTION_SPACING_PATTERN = re.compile(r'\.listSectionSpacing\(\s*(?!\.compact\b|\.default\b)')
@@ -280,7 +326,8 @@ KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, C
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
          ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, SECTION_SPACING, DUPLICATE_TYPE,
-         UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT, EFFECT_ON_CLEAN, RAW_COUNT)
+         UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT, EFFECT_ON_CLEAN, RAW_COUNT,
+         MANUAL_PAGING)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -648,6 +695,7 @@ def scan_file(rel, text):
     if not design_system:
         hits.extend(header_font_hits(lines))
         hits.extend(header_wrapper_font_hits(lines))
+        hits.extend(manual_paging_hits(lines))
     if not design_system and not effect_surface(rel):
         # Games / story / play keep their own HUD numerals (OWNER RULE 3 level A).
         for index, (number, code) in enumerate(lines):

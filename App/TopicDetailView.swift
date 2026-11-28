@@ -127,7 +127,7 @@ struct TopicDetailView: View {
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false; showingPlay = false }
+        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false; showingPlay = false; showsEditor = false }
         .navigationDestination(isPresented: $showingPlay) {
             if let playDestination { playDestination(id) }
         }
@@ -626,11 +626,12 @@ struct TopicDetailView: View {
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .cySheet(isPresented: $showsEditor) {
+        // mp-nav-b r3: MP 编辑 is navigateTo pages/publish/fabu/index (a page): push with system back, the same
+        // editor the template detail 用这个模板 already pushes; the editor autosaves, so popping keeps the draft.
+        .navigationDestination(isPresented: $showsEditor) {
             if let editorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {
-                NavigationStack { editorDestination(value.id, scope) }
-                    .cyPlayerSheetGlass()
-                    .cyDomainSheet(detents: [.full])
+                editorDestination(value.id, scope)
+                    .cyPushedChrome()
             }
         }
         // mp-nav r3: MP 定价 is navigateTo pages/topic/pricing/index (a page): push; its confirm pops back (MP index.js:451).

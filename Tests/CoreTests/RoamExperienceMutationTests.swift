@@ -104,6 +104,10 @@ private final class RoamDormantSpyTransport: HTTPTransport {
         XCTAssertEqual(try receipt(#"{"code":200,"data":{"tooFar":true,"xp":99}}"#), .tooFar)
         XCTAssertEqual(try receipt(#"{"code":200,"data":{"participating":true,"poiId":9}}"#), .needsScan(poiID: 9))
         XCTAssertEqual(try receipt(#"{"code":200,"data":{"participating":false,"firstVisit":false,"xp":99}}"#), .lit(firstVisit: false, awardedXP: 0))
+        XCTAssertEqual(try receipt(#"{"code":200,"data":{"participating":false,"firstVisit":true,"xp":5}}"#), .lit(firstVisit: true, awardedXP: 5))
+        // MP onPoiTap: a code-200 body without `participating` is 这个地点暂时没有可记录的信息, not 已点亮过.
+        XCTAssertEqual(try receipt(#"{"code":200,"data":{}}"#), .nothingToRecord)
+        XCTAssertEqual(try receipt(#"{"code":200,"data":{"firstVisit":true,"xp":5}}"#), .nothingToRecord)
     }
     func testCreateThenExchangeOrderAndDurableCompletionNoReplay() async throws {
         let executor = RoamStampTestExecutor(), storage = RoamStampTestStorage(), identity = try identity(), draft = try draft()

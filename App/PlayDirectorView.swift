@@ -6,6 +6,7 @@ import UIKit
     @Environment(\.locale) private var locale
     @Environment(\.popupCloseActions) private var popupCloseActions
     @State private var editor: PlayDirectorAction?
+    @State private var showingIncidents = false
     @State private var showingPlanFallbackSheet = false
     @State private var planFallbackReason = ""
     @State private var planFallbackStatus: PlayPlanFallbackStatus?
@@ -35,6 +36,7 @@ import UIKit
                         .cyDomainSheet(detents: [.half, .full])
                 }
             }
+            .cySheet(isPresented: $showingIncidents) { incidentSheet }
             .cySheet(isPresented: $showingPlanFallbackSheet) {
                 if let projection = model.projection {
                     PlayCloseSheetHost(
@@ -104,6 +106,19 @@ import UIKit
         .cyDomainScreen(.game)
     }
 
+    /// MP topic-detail wxml:414-422: 现场事件 is one sheet for station pause / resume and submission reject.
+    @ViewBuilder private var incidentSheet: some View {
+        if let projection = model.projection {
+            NavigationStack {
+                PlayDirectorIncidentEditor(projection: projection) { command in
+                    showingIncidents = false
+                    Task { await model.submit(command) }
+                }
+            }
+            .cyDomainSheet(detents: [.half, .full])
+        }
+    }
+
     @ViewBuilder
     private func projectionSections(_ projection: PlayDirectorProjection) -> some View {
         Section("playx.director.readiness") {
@@ -126,13 +141,21 @@ import UIKit
 
     @ViewBuilder
     private func directorActionsSection(_ projection: PlayDirectorProjection) -> some View {
-        let actions: [PlayDirectorAction] = PlayDirectorAction.allCases.filter { projection.availableActions.contains($0.rawValue) }
+        let incidentActions: [PlayDirectorAction] = [.pause, .resume, .reject]
+        let actions: [PlayDirectorAction] = PlayDirectorAction.allCases.filter { projection.availableActions.contains($0.rawValue) && !incidentActions.contains($0) }
+        let hasIncidents = !PlayDirectorIncidents.rows(projection).isEmpty && incidentActions.contains { projection.availableActions.contains($0.rawValue) }
         Section("playx.director.actions") {
             ForEach(actions) { action in
                 CYPillButton(LocalizedStringKey("playx.director.action." + action.rawValue), style: .secondary) { editor = action }
                     .listRowBackground(Color.clear)
                     .disabled(model.phase != "ready" || (action == .start && !projection.canStart))
                     .accessibilityIdentifier("playx.director.action.\(action.rawValue)")
+            }
+            if hasIncidents {
+                CYPillButton("playx.director.incident.title", style: .secondary) { showingIncidents = true }
+                    .listRowBackground(Color.clear)
+                    .disabled(model.phase != "ready")
+                    .accessibilityIdentifier("playx.director.action.incidents")
             }
             Button {
                 showingPlanFallbackSheet = true
@@ -246,10 +269,12 @@ import UIKit
         Form {
             if action == .broadcast {
                 broadcastBody
+            } else if action == .unlock {
+                chapterBody
             } else {
                 commandBody
             }
-        }.cyGroupedSurface().cyPageTitle(action == .broadcast ? "club.topic.broadcast" : "playx.director.title")
+        }.cyGroupedSurface().cyPageTitle(verbatim: editorTitle)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playx.cancel") { dismiss() }.accessibilityIdentifier("playx.director.cancelEditor") } }
             .cyModalOverlay(isPresented: confirm) {
                 CYModal(
@@ -279,6 +304,29 @@ import UIKit
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
             .accessibilityIdentifier("playx.director.review")
+        }
+    }
+    /// MP club-director-chapter-sheet: chapter rows → 现场原因（选填） → 放行 (one primary).
+    @ViewBuilder private var chapterBody: some View {
+        PlayDirectorChapterSections(projection: projection, chapterID: $chapterID, reason: $reason)
+        Section {
+            if invalid { Text("playx.director.invalid").foregroundStyle(CYColor.dangerText) }
+            Button { prepare() } label: {
+                Text("playx.director.chapter.confirm").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(chapterID <= 0)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+            .accessibilityIdentifier("playx.director.review")
+        }
+    }
+    private var editorTitle: String {
+        switch action {
+        case .broadcast: return directorLocalized("club.topic.broadcast")
+        case .unlock: return PlayDirectorChapterRelease.title(projection, locale: locale)
+        default: return directorLocalized("playx.director.title")
         }
     }
     private var broadcastRecipients: Int? {
@@ -343,6 +391,7 @@ import UIKit
         switch action {
         case .finish: return "playx.director.finishNotice"
         case .broadcast: return "playx.director.broadcastNotice"
+        case .unlock: return "playx.director.chapter.caption"
         default: return "playx.director.commandNotice"
         }
     }
@@ -367,7 +416,7 @@ import UIKit
             payload = ["targetType": .string(targetType), "content": .string(content.trimmingCharacters(in: .whitespacesAndNewlines))]
             if targetType == "TEAM" { payload["targetId"] = .int(teamID) }
             if targetType == "ROLE" { payload["roleCode"] = .string(roleCode) }
-        case .unlock: payload = ["chapterId": .int(chapterID), "reason": .string(reason)]
+        case .unlock: payload = PlayDirectorChapterRelease.payload(chapterID: chapterID, reason: reason)
         case .visibility: payload = ["visible": .bool(visible)]
         case .pause:
             payload = ["reasonCode": .string("ONSITE"), "reason": .string(reason), "resumeEta": .string(resumeETA)]
