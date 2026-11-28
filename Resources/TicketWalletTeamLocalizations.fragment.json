@@ -52,13 +52,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Retry lookup"
+          "value": "Reload"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "重新查询"
+          "value": "重新加载"
         }
       }
     }
@@ -235,6 +235,22 @@
         "stringUnit": {
           "state": "translated",
           "value": "进入队伍"
+        }
+      }
+    }
+  },
+  "ticketTeam.failedTitle": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This team isn’t available right now"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍暂时不可用"
         }
       }
     }

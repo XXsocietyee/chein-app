@@ -7,6 +7,8 @@ import SwiftUI
     @Published private(set) var context: WeatherContext?
     @Published private(set) var environment: PlayEnvironmentService.Snapshot?
     @Published private(set) var attribution: WeatherKitReader.Attribution?
+    /// The raw `/api/map/weather` reading for the cell (fix/1128c: the AI guide reads it; no second request).
+    @Published private(set) var mapReading: MapSearchPlayerService.Weather?
 
     private var mapCache: [String: (at: Date, weather: MapSearchPlayerService.Weather?)] = [:]
     private var environmentCache: [Int: (at: Date, snapshot: PlayEnvironmentService.Snapshot?)] = [:]
@@ -45,6 +47,7 @@ import SwiftUI
         }
         guard !Task.isCancelled else { return }
         environment = snapshot
+        if mapReading != map { mapReading = map }
         attribution = device == nil ? nil : WeatherKitReader.shared.attribution
         let composed = WeatherContext.compose(environmentWeather: snapshot?.weather, environmentDaypart: snapshot?.daypart,
                                               map: map.map { (kind: $0.kind, intensity: $0.intensity) }, device: device,

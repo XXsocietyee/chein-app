@@ -178,15 +178,18 @@ struct TicketWalletTeamContext: Hashable {
             if !model.ownerIsCurrent { ContentUnavailableView("ticketTeam.changed", systemImage: "lock") }
             else {
                 if let issue = model.issue {
-                    Section {
-                        Label {
-                            Text(LocalizedStringKey(issueKey(issue)))
-                        } icon: {
-                            Image(systemName: "exclamationmark.triangle").foregroundStyle(.red)
-                        }
+                    // MP pages/team/detail cy-state-shell: title 队伍暂时不可用 · sub reason · 重新加载 (one system state).
+                    ContentUnavailableView {
+                        Label("ticketTeam.failedTitle", systemImage: "exclamationmark.triangle")
+                    } description: {
+                        Text(LocalizedStringKey(issueKey(issue)))
+                    } actions: {
                         Button("ticketTeam.retry") { model.scheduleList(offeredPresentation) }
+                            .buttonStyle(.bordered)
                             .disabled(offeredPresentation == nil)
+                            .accessibilityIdentifier("ticketTeam.retry")
                     }
+                    .accessibilityIdentifier("ticketTeam.issue")
                 }
                 if model.loading {
                     ProgressView { Text("ticketTeam.loading") }.frame(maxWidth: .infinity)

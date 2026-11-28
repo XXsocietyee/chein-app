@@ -53,7 +53,8 @@ enum DesignFixtureRegistry {
         case "wave-today-ticket": return AnyView(WaveTodayFixture(kind: .ticket))
         case "wave-today-club": return AnyView(WaveTodayFixture(kind: .club))
         case "e5b-unlock": return AnyView(E5bMomentFixture(kind: .unlock))
-        case "e5b-stamp": return AnyView(E5bMomentFixture(kind: .stamp))
+        // mp-roam r3 (ADA 11-28 e5b-stamp): the real citystamp slip, collected (MP 换票), not the generic moment.
+        case "e5b-stamp": return AnyView(RoamStampCollectedFixture())
         case "e5b-checkin": return AnyView(E5bMomentFixture(kind: .checkIn))
         case "e5b-badge-wall": return AnyView(E5bBadgeWallFixture())
         case "a11y-roam-ax5": return AnyView(A11yRoamAX5Fixture())
