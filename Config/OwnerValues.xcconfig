@@ -11,3 +11,6 @@ QUESTIFY_WECHAT_APP_ID = chein-wechat-unset
 QUESTIFY_WECHAT_UNIVERSAL_LINK = https:/$()/www.chengyinhub.com/app/
 // P1-1: the one verified https origin for Universal Links (AppUniversalLinkRouter). Host name only.
 QUESTIFY_APP_LINK_DOMAIN = www.chengyinhub.com
+// 1128 gap #11 (O-08, R10): the platform support WeChat id the 提现 popup shows and copies. Public business contact,
+// the same constant the MP ships (chengyinhub-xcx/utils/withdraw-cs.js:8 WITHDRAW_CS_WECHAT_ID). Owner may change it.
+QUESTIFY_WITHDRAW_SUPPORT_WECHAT_ID = 18018571626

@@ -26,6 +26,7 @@ import FoundationNetworking
     private let onUnauthorized: (RuntimeDependencyContext) -> Void
     private let current: () -> RuntimeDependencyContext?
     private let approvals: (RuntimeDependencyContext) -> [SocialMemberActionApproval]
+    private let issue: SocialMemberActionIssuer?
     private let now: () -> Date
     private var retained: Retained?
 
@@ -34,11 +35,12 @@ import FoundationNetworking
                 current: @escaping () -> RuntimeDependencyContext?,
                 currentIdentity: @escaping () -> SocialAccountIdentity,
                 approvals: @escaping (RuntimeDependencyContext) -> [SocialMemberActionApproval],
+                issue: SocialMemberActionIssuer? = nil,
                 onUnauthorized: @escaping (RuntimeDependencyContext) -> Void = { _ in },
                 now: @escaping () -> Date = Date.init) {
         self.configuration = configuration; self.transport = transport; self.journal = journal
         self.current = current; self.currentIdentity = currentIdentity; self.onUnauthorized = onUnauthorized
-        self.approvals = approvals; self.now = now
+        self.approvals = approvals; self.issue = issue; self.now = now
     }
     private var scope: Scope { .init(context: current(), identity: currentIdentity()) }
 
@@ -85,7 +87,7 @@ import FoundationNetworking
         }, onUnauthorized: { _ in unauthorized() })
         let access = SocialMemberActionFactory.make(configuration: configuration,
             approvals: captured.context.map(approvals) ?? [], transport: scoped, journal: journal,
-            reader: reader, accountReader: accountReader, current: current, now: now, isCurrent: isCurrent)
+            reader: reader, accountReader: accountReader, current: current, now: now, isCurrent: isCurrent, issue: issue)
         let value = Retained(scope: captured, lease: lease, access: access,
                              coordinator: SocialActionCoordinator(access: access))
         retained = value

@@ -36,7 +36,8 @@ class ProfileSelfEditSourceChecks(unittest.TestCase):
   self.assertIn('Button("profile.selfEdit.open") { selfEditNavigation.open(selfEditContext) }',body.split('if selfEditContext != nil',1)[1].split('Section(',1)[0])
   self.assertEqual(self.view.count('selfEditNavigation.open(selfEditContext)'),1)
  def test_return_rekeys_existing_public_read(self):
-  self.assertIn('"profile-\\(memberID)-\\(selfEditNavigation.refreshID)-\\(reader.presentationRevision)"',self.view)
+  # 1128 gap #10 (M-17c): the key also carries relationRevision so a confirmed 关注 re-reads the relation counts.
+  self.assertIn('"profile-\\(memberID)-\\(selfEditNavigation.refreshID)-\\(reader.presentationRevision)-\\(relationRevision)"',self.view)
   self.assertIn('loaded = try await reader.publicProfile(memberID: memberID)',self.view)
  def test_public_projection_still_has_parent_read_fence(self):
   self.assertEqual(self.view.count('guard isCurrent() else { throw CancellationError() }'),2)
