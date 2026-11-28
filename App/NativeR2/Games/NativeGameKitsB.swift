@@ -39,8 +39,8 @@ extension PlayKitScreen {
 
     // MARK: Bottom bar (NativeGameScreenHost.nativeKitSubmit falls through to this)
 
-    /// The one prominent action. Camera, branch, hidden and music keep their actions in the
-    /// kit (multi-step capture, a confirmation dialog, a tap on the scene, playback only).
+    /// The one prominent action. Camera, branch and hidden keep their actions in the kit (multi-step
+    /// capture, a confirmation dialog, a tap on the scene); music plays in the kit and 继续 sits here.
     var nativeKitSubmitB: NativeGameSubmit? {
         switch kind {
         case .coinFlip:
@@ -60,6 +60,11 @@ extension PlayKitScreen {
             return nativeSubmit("CLAIM_DAILY_SIGN", ["text": .string(text), "photoUrl": .string(avatarURL)],
                                 valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                                 title: Text("nativeR2.gamesB.daily.accept"))
+        case .musicCorner:
+            // MP 继续: the music corner is never judged, so it can always be left (walk-through A25).
+            guard presentation != .inline else { return nil }
+            return NativeGameSubmit(title: Text("playkit.music.continue"), enabled: true,
+                                    identifier: "playkit.musicCorner.continue", action: { dismiss() })
         case .blindTaste:
             guard raw["solved"].bool != true, !projection.complete else { return nil }
             return nativeSubmit("SUBMIT_BLIND_TASTE", ["key": .string(selected.first ?? "")], valid: !selected.isEmpty)
