@@ -554,7 +554,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileFavoritesReadAccess = profileFavoritesReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavorites($0) } : { _ in nil })
         self.profileFavoriteTopicReadAccess = profileFavoriteTopicReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavoriteTopic($0) } : { _ in nil })
         self.profileFavoriteDetailAccess = profileFavoriteDetailAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavoriteDetail($0) } : { _ in nil })
-        self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
+        self.profileInviteHistoryReadAccess = { [gates] context in profileInviteHistoryReadAccess(context) ?? (productionGatesEnabled ? gates.profileInviteHistory(context) : nil) } // 1128 gap #29 (O-14b)
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.growthNormalReadApproval = { [gates] context in growthNormalReadApproval(context) ?? (productionGatesEnabled ? gates.growthNormalRead(context) : nil) }
         self.cityPlayerReadApproval = { [gates] context in cityPlayerReadApproval(context) ?? gates.cityGame(context)?.readApproval }
