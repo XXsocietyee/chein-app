@@ -133,7 +133,7 @@ extension EnvironmentValues {
                             .accessibilityIdentifier("coopflow.settlement.finance.\(id)")
                     } else { row(topic).accessibilityIdentifier("cooperation.finance.topic.unavailable.\(index)") }
                 }
-            } header: { CYSectionHeader("cooperation.finance.topics") } footer: { Text("cooperation.finance.explainer") }
+            } header: { Text("cooperation.finance.topics").accessibilityAddTraits(.isHeader) } footer: { Text("cooperation.finance.explainer") }
     }
 
     private func row(_ topic: CoopFinanceProfit.Topic) -> some View {

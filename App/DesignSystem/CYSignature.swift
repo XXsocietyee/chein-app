@@ -189,13 +189,37 @@ struct CYConfettiBurst: View {
         return x - floor(x)
     }
 
-    /// Native r2: no confetti. Draws nothing; callers pair it with a system success haptic.
     var body: some View {
-        EmptyView()
+        TimelineView(.animation(paused: start == nil)) { timeline in
+            Canvas { context, size in
+                guard let start else { return }
+                let t = timeline.date.timeIntervalSince(start)
+                guard t >= 0, t < duration else { return }
+                let origin = CGPoint(x: size.width / 2, y: size.height * 0.38)
+                let fade = max(0, 1 - max(0, t - duration * 0.55) / (duration * 0.45))
+                for i in 0..<pieces {
+                    let angle = -Double.pi / 2 + (Self.unit(i, 1) - 0.5) * Double.pi * 1.35
+                    let speed = 180 + Self.unit(i, 2) * 330
+                    let x = origin.x + cos(angle) * speed * t
+                    let y = origin.y + sin(angle) * speed * t + 520 * t * t
+                    var piece = context
+                    piece.opacity = fade
+                    piece.translateBy(x: x, y: y)
+                    piece.rotate(by: .radians(Self.unit(i, 3) * 6 + t * (3 + Self.unit(i, 4) * 6)))
+                    let w = 6 + Self.unit(i, 5) * 6
+                    let rect = CGRect(x: -w / 2, y: -w / 3, width: w, height: w * 0.6)
+                    piece.fill(Path(roundedRect: rect, cornerRadius: 1.5), with: .color(Self.palette[i % Self.palette.count]))
+                }
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .onAppear { if fireOnAppear { fire() } }
+        .onChange(of: trigger) { _, _ in fire() }
     }
 
     private func fire() {
-        guard !reduceMotion else { return }
+        guard !reduceMotion, CYLightBudget.particlesAllowed else { return }
         start = Date()
     }
 }
