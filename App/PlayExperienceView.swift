@@ -1019,7 +1019,7 @@ struct PlayThemeMusicKey: Equatable {
         CityOrientationFinishSummaryView(
             model: model, titleKey: key, subtitle: [topic, earned].compactMap { $0 }.joined(separator: " · "),
             medals: medals, shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
-            walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
+            shareURL: Self.finishShareURL(snapshot), walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
             scoreDestination: (snapshot?.result.allDone ?? false) ? nil : orientScoreDestination?(),
             collectionDestination: cityCollectionDestination,
             onClose: { finishScreen = false })
@@ -1208,8 +1208,15 @@ struct PlayThemeMusicKey: Equatable {
         ].filter { $0.value != nil }
         CYMedalScreen(items: medals, title: title, subtitle: subtitle, stats: stats,
                       shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
+                      shareURL: Self.finishShareURL(snapshot),
                       secondaryTitle: "medalScreen.records",
                       onClose: { finishScreen = false })
+    }
+    /// mp-nav r3: MP settle `onShareAppMessage` (subpackageJourney/pages/settle/index.js:264-271) shares the topic page
+    /// `/pages/topic/index/index?id=` when no referral token is issued; native issues none, so it shares that path.
+    static func finishShareURL(_ snapshot: PlaySnapshot?) -> URL? {
+        guard let id = snapshot?.result.topicID, id > 0 else { return nil }
+        return PublicContentShareLink.topic(id: id)
     }
     /// `finish-result.js`: cleared only from the report's legitimate completion or the server route's own COMPLETED status;
     /// every stop done while the report is pending or unreadable has no result word.
