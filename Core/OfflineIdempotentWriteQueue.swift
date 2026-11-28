@@ -234,13 +234,23 @@ public struct OfflineWriteQueueFlushReport: Equatable, Sendable {
 /// Captures pre-send unreachable `URLRequest`s from opted-in write actions without altering service return values or adding retries.
 public struct OfflinePreSendCaptureBox: Sendable {
     private let recordHandler: @Sendable (URLRequest, Error) -> Void
+    private let confirmHandler: @Sendable (URLRequest) -> Void
 
-    public init(onPreSendOffline: @escaping @Sendable (URLRequest, Error) -> Void) {
+    public init(
+        onPreSendOffline: @escaping @Sendable (URLRequest, Error) -> Void,
+        onLiveSuccess: @escaping @Sendable (URLRequest) -> Void = { _ in }
+    ) {
         self.recordHandler = onPreSendOffline
+        self.confirmHandler = onLiveSuccess
     }
 
     public func recordIfPreSendOffline(request: URLRequest, error: Error) {
         recordHandler(request, error)
+    }
+
+    /// A later live send of the same idempotency key succeeded. The queued copy must not be replayed.
+    public func recordIfLiveSuccess(request: URLRequest) {
+        confirmHandler(request)
     }
 }
 
@@ -259,7 +269,11 @@ public struct OfflineWriteCaptureTransport: HTTPTransport {
 
     public func send(_ request: URLRequest) async throws -> (Data, Int) {
         do {
-            return try await underlying.send(request)
+            let result = try await underlying.send(request)
+            if OfflineIdempotentWriteQueue.isConfirmedLiveWrite(result.0, status: result.1) {
+                OfflineWriteCaptureContext.current?.recordIfLiveSuccess(request: request)
+            }
+            return result
         } catch {
             if OfflineIdempotentWriteQueue.isPreSendUnreachable(error) {
                 OfflineWriteCaptureContext.current?.recordIfPreSendOffline(request: request, error: error)
@@ -478,6 +492,57 @@ public final class OfflineIdempotentWriteQueue {
         try persist()
     }
 
+    /// Drops every queued copy of a non-money write whose live send already returned `code == 200`.
+    /// Money routes are left untouched. A missing item is a no-op.
+    @discardableResult
+    public func dropConfirmedWrite(scope: OfflineWriteQueueScope, path: String, idempotencyKey: String) throws -> Bool {
+        let normalized = ChinaReviewedRouteCapability.normalized(path)
+        if BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveWrite(normalized) { return false }
+        let before = items.count
+        items.removeAll { $0.scopeKey == scope.storageKey && $0.path == normalized && $0.idempotencyKey == idempotencyKey }
+        guard items.count != before else { return false }
+        try persist()
+        return true
+    }
+
+    /// The idempotency key already present on a non-money write. Nil for money, unknown routes, and requests that have not been keyed. Never mints a key.
+    nonisolated public static func presentedIdempotencyKey(on request: URLRequest) -> (path: String, key: String)? {
+        guard let url = request.url else { return nil }
+        let path = ChinaReviewedRouteCapability.normalized(url.path)
+        let method = (request.httpMethod ?? "POST").trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveRequest(request) { return nil }
+        guard let spec = BackendIdempotentWriteRouteCatalog.idempotencySupport(for: method, path: path) else { return nil }
+        let raw: String?
+        switch spec.mechanism {
+        case .requestHeader(let name):
+            raw = request.value(forHTTPHeaderField: name)
+        case .jsonBodyKey(let field):
+            raw = jsonStringField(request.httpBody, field)
+        case .formFieldKey(let field):
+            raw = formStringField(request.httpBody, field)
+        }
+        guard let raw, HTTPRequestRetrySupport.isValidRequestID(raw) else { return nil }
+        return (path, raw)
+    }
+
+    /// HTTP 2xx whose JSON `code` is 200. Empty bodies and `{success:true}` are not a confirmed write.
+    nonisolated public static func isConfirmedLiveWrite(_ data: Data, status: Int) -> Bool {
+        (200..<300).contains(status) && isEnvelopeSuccess(data)
+    }
+
+    nonisolated private static func jsonStringField(_ body: Data?, _ field: String) -> String? {
+        guard let body, !body.isEmpty,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return nil }
+        return object[field] as? String
+    }
+
+    nonisolated private static func formStringField(_ body: Data?, _ field: String) -> String? {
+        let text = String(data: body ?? Data(), encoding: .utf8) ?? ""
+        var components = URLComponents()
+        components.percentEncodedQuery = text
+        return components.queryItems?.first { $0.name == field }?.value
+    }
+
     // MARK: - Helpers
 
     private func resolveOrInjectIdempotencyKey(
@@ -581,7 +646,7 @@ public final class OfflineIdempotentWriteQueue {
         }
     }
 
-    private static func isEnvelopeSuccess(_ data: Data) -> Bool {
+    nonisolated private static func isEnvelopeSuccess(_ data: Data) -> Bool {
         guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return false }
         if let code = object["code"] as? Int { return code == 200 }
         if let code = object["code"] as? String { return code == "200" }

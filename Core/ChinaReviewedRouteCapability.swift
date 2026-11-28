@@ -2803,7 +2803,11 @@ public struct ChinaReviewedProductionTransport: HTTPTransport {
         let outgoing = ChinaReviewedRouteAdaptation.adapt(request) ?? request
         try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(outgoing)
         do {
-            return try await underlying.send(outgoing)
+            let result = try await underlying.send(outgoing)
+            if OfflineIdempotentWriteQueue.isConfirmedLiveWrite(result.0, status: result.1) {
+                OfflineWriteCaptureContext.current?.recordIfLiveSuccess(request: outgoing)
+            }
+            return result
         } catch {
             if OfflineIdempotentWriteQueue.isPreSendUnreachable(error) {
                 OfflineWriteCaptureContext.current?.recordIfPreSendOffline(request: outgoing, error: error)

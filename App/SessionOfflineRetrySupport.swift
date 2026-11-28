@@ -8,6 +8,7 @@ import QuestifyCore
 final class OfflinePreSendCaptureBuffer: @unchecked Sendable {
     private let lock = NSLock()
     private var requests: [URLRequest] = []
+    private var confirmed: Set<String> = []
 
     func append(_ request: URLRequest) {
         lock.lock()
@@ -21,6 +22,18 @@ final class OfflinePreSendCaptureBuffer: @unchecked Sendable {
         requests.removeAll()
         lock.unlock()
         return copy
+    }
+
+    func noteConfirmed(path: String, key: String) {
+        lock.lock()
+        confirmed.insert(path + "\n" + key)
+        lock.unlock()
+    }
+
+    func isConfirmed(path: String, key: String) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return confirmed.contains(path + "\n" + key)
     }
 }
 
@@ -161,21 +174,35 @@ final class SessionOfflineSyncModel {
             rejectedMoneyPaths.remove(route)
         }
         let buffer = OfflinePreSendCaptureBuffer()
-        let box = OfflinePreSendCaptureBox { [weak self, weak targetSession] request, _ in
-            guard let url = request.url else { return }
-            let path = ChinaReviewedRouteCapability.normalized(url.path)
-            guard normalizedRoutes.contains(path) || BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveRequest(request) else {
-                return
-            }
-            buffer.append(request)
-            Task { @MainActor [weak self, weak targetSession] in
-                guard let self, let targetSession else { return }
-                let pending = buffer.drain()
-                for req in pending {
-                    _ = self.enqueueNonMoneyIdempotentWrite(req, session: targetSession, explicitKey: explicitKey)
+        let box = OfflinePreSendCaptureBox(
+            onPreSendOffline: { [weak self, weak targetSession] request, _ in
+                guard let url = request.url else { return }
+                let path = ChinaReviewedRouteCapability.normalized(url.path)
+                guard normalizedRoutes.contains(path) || BackendIdempotentWriteRouteCatalog.isMoneyOrCashSensitiveRequest(request) else {
+                    return
+                }
+                buffer.append(request)
+                Task { @MainActor [weak self, weak targetSession] in
+                    guard let self, let targetSession else { return }
+                    let pending = buffer.drain()
+                    for req in pending {
+                        self.enqueueCaptured(req, buffer: buffer, session: targetSession, explicitKey: explicitKey)
+                    }
+                }
+            },
+            onLiveSuccess: { [weak self, weak targetSession] request in
+                guard let presented = OfflineIdempotentWriteQueue.presentedIdempotencyKey(on: request) else { return }
+                buffer.noteConfirmed(path: presented.path, key: presented.key)
+                Task { @MainActor [weak self, weak targetSession] in
+                    guard let self, let targetSession else { return }
+                    self.bind(session: targetSession)
+                    guard let queue = self.queue, let scope = self.boundScope else { return }
+                    if (try? queue.dropConfirmedWrite(scope: scope, path: presented.path, idempotencyKey: presented.key)) == true {
+                        self.refreshCounts()
+                    }
                 }
             }
-        }
+        )
         do {
             let value = try await OfflineWriteCaptureContext.$current.withValue(box) {
                 try await operation()
@@ -188,10 +215,23 @@ final class SessionOfflineSyncModel {
         }
     }
 
+    private func enqueueCaptured(
+        _ request: URLRequest,
+        buffer: OfflinePreSendCaptureBuffer,
+        session: AppSession,
+        explicitKey: String?
+    ) {
+        if let presented = OfflineIdempotentWriteQueue.presentedIdempotencyKey(on: request),
+           buffer.isConfirmed(path: presented.path, key: presented.key) {
+            return
+        }
+        _ = enqueueNonMoneyIdempotentWrite(request, session: session, explicitKey: explicitKey)
+    }
+
     private func drainCaptured(_ buffer: OfflinePreSendCaptureBuffer, session: AppSession?, explicitKey: String?) {
         guard let session else { return }
         for request in buffer.drain() {
-            _ = enqueueNonMoneyIdempotentWrite(request, session: session, explicitKey: explicitKey)
+            enqueueCaptured(request, buffer: buffer, session: session, explicitKey: explicitKey)
         }
     }
 
