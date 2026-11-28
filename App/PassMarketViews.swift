@@ -483,6 +483,14 @@ struct PassProductCardView: View {
         }
     }
 
+    private var stackedFoot: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            coverText
+            PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(.headline)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
@@ -494,21 +502,22 @@ struct PassProductCardView: View {
             Text(verbatim: product.name).font(.headline).foregroundStyle(.primary)
                 .multilineTextAlignment(.leading)
             if let validity = product.validity { validity.text.font(.subheadline).foregroundStyle(.secondary) }
-            // MP passes/index.wxml:34-36 mk-card__foot: cover line and price share one row on every card;
-            // the cover wraps instead of pushing the price onto its own line. Stacks only at accessibility sizes.
+            // MP passes/index.wxml:34-36 mk-card__foot: cover line and price share one row when both fit on
+            // one line; otherwise (long English, large text) the price stacks under the cover line instead of
+            // breaking "Covers 3 plays · 2 people" mid-phrase.
             Group {
                 if dynamicTypeSize.isAccessibilitySize {
-                    VStack(alignment: .leading, spacing: 4) {
-                        coverText
-                        PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(.headline)
-                    }
+                    stackedFoot
                 } else {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        coverText
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(.headline)
-                            .fixedSize()
-                            .layoutPriority(1)
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            coverText
+                                .fixedSize(horizontal: true, vertical: false)
+                            Spacer(minLength: 8)
+                            PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(.headline)
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
+                        stackedFoot
                     }
                 }
             }
