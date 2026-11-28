@@ -35,12 +35,12 @@ final class NativeSettingsReuseFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["settings.becomeClubHost"].exists)
         XCTAssertFalse(app.buttons["settings.becomeMerchant"].exists)
         XCTAssertFalse(app.buttons["settings.signOut"].exists)
-        tap("Done"); app.terminate()
+        app.navigationBars.buttons.firstMatch.tap(); app.terminate()
         app.launchArguments = ["--uitesting-market", "US", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch(); tap("welcome.settings")
         XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.staticTexts["region.market.value"].label, "US")
-        tap("完成"); tap("welcome.settings")
+        app.navigationBars.buttons.firstMatch.tap(); tap("welcome.settings")
         XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 10))
     }
     func testMaximumTextLegalMissingStateBackAndReopenInBothLanguages() {
