@@ -1324,6 +1324,7 @@ private struct RegistrationOperationSections: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("registration.result")
                 if awaitingPayment { RegistrationAmountRow(key: "registration.form.total", amount: result.payableAmount) }
+                if !awaitingPayment { RegistrationFreeTicketLink(registrationID: result.registrationID) }
                 if let orderReader {
                     NavigationLink {
                         ProfileOrderDetailView(id: result.registrationID, reader: orderReader)

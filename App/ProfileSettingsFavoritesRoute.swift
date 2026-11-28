@@ -126,7 +126,7 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
     let owner: ProfileSettingsFavoritesOwner
     var body: some View {
         if ProfileSettingsFavoritesAccess.current(session) != nil {
-            Section {
+            SettingsEntrySection {
                 Button { owner.open(.current(session)) } label: {
                     Label { Text("accountCollection.favorites.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconHeart) }
                 }

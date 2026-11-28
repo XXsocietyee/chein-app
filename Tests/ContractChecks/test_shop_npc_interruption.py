@@ -23,7 +23,9 @@ class ShopNPCInterruptionContracts(unittest.TestCase):
         host = read('App/ShopNPCSessionHost.swift')
         session = read('App/AppSession.swift')
         self.assertIn('ShopNPCNodeEntrance(name: shopNPC.name', play)
-        self.assertIn('ShopNPCView(coordinator: coordinator, name: name, greeting: greeting, scriptedGuide: scriptedGuide)', host)
+        # fix/1128c-ai-npc-guide (deliberate): the destination now injects the Release voice capture (inventory row 7).
+        self.assertIn('ShopNPCView(coordinator: coordinator, name: name, greeting: greeting, capture: capture, scriptedGuide: scriptedGuide)', host)
+        self.assertIn('capture = ShopNPCVoiceCaptureFactory.make(for: value.grants)', host)
         self.assertIn('ShopNPCAuthenticatedHTTPTransport(configuration: configuration', session)
         for token in ['snapshot.availability == .active', '!snapshot.isLocked(node)', 'node.npc == npc', 'shopNPCSessionOwner.register(coordinator)']:
             self.assertIn(token, session)

@@ -283,7 +283,8 @@ extension AppSession {
             memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0)) },
             ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0)) },
             creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0)) },
-            embeddedHeader: header)
+            embeddedHeader: header,
+            createTemplate: { sessionTemplateAuthoringEntry(self, scope: $0) })
             .id(templateShelfViewIdentity))
     }
 }
