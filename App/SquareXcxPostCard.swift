@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Mini-program `cy-post-card` layout for Square list rows: author head, meta line (club · relative time),
 /// review lifecycle, clamped body, play card, image strip and read-only counters.
-/// Images stay behind the existing gated `NativeMediaGalleryEntry`; avatars use a local placeholder.
+/// Images stay behind the existing gated `NativeMediaGalleryEntry`; avatars are the author photo or the MP default face.
 struct SquareXcxPostCard: View {
     let post: SquarePost
     var mediaScope: UUID = UUID()
@@ -11,6 +11,8 @@ struct SquareXcxPostCard: View {
     var showsMedia = true
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .headline) private var verifiedSize: CGFloat = 12
+    /// MP post-card: 44 pt head avatar on text/image posts, 40 pt on compact (roam/template) posts.
+    @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 44
     private var facts: SquarePostCardFacts { SquarePostCardFacts(post) }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -39,7 +41,8 @@ struct SquareXcxPostCard: View {
     /// The remaining badges stay in the accessibility label and in the post detail.
     private var head: some View {
         HStack(alignment: .center, spacing: 10) {
-            Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary).accessibilityHidden(true)
+            // MP post-card wxml:13 `img.first(post.memberAvatar) || '/images/d_profile.png'` (ADA d2-square: no grey glyph).
+            SquareAuthorAvatar(source: post.avatar, size: headAvatarSide)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     if let name = post.nickname?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name).font(.headline) }
@@ -62,6 +65,10 @@ struct SquareXcxPostCard: View {
                 }
             }
         }
+    }
+    private var headAvatarSide: CGFloat {
+        let base: CGFloat = facts.isCompletionShare || facts.hasPlayCover ? avatarSide * 40 / 44 : avatarSide
+        return min(base, 64)
     }
     /// a11y-dt: club · badge stay one line at normal sizes; at accessibility sizes they stack and may wrap to 2 lines.
     private var metaLayout: AnyLayout {
@@ -139,6 +146,7 @@ struct SquareXcxRelativeTime: View {
     @State private var loadedScope: UUID?
     /// i18n r1: the card grows with Dynamic Type so English kicker/countdown copy wraps instead of clipping.
     @ScaledMetric(relativeTo: .headline) private var cardWidth: CGFloat = 240
+    @ScaledMetric(relativeTo: .caption) private var faceSide: CGFloat = 20
     var body: some View {
         Group {
             if loadedScope == reader.scope, !items.isEmpty {
@@ -179,7 +187,12 @@ struct SquareXcxRelativeTime: View {
             Text(verbatim: item.title).font(.headline).foregroundStyle(.primary)
             if let subtitle = item.subtitle { Text(verbatim: subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
             HStack(spacing: 4) {
-                ForEach(Array(item.avatars.enumerated()), id: \.offset) { _, _ in Image(systemName: "person.circle.fill").accessibilityHidden(true) }
+                HStack(spacing: -6) {
+                    ForEach(Array(item.avatars.enumerated()), id: \.offset) { _, source in
+                        SquareAuthorAvatar(source: source, size: faceSide)
+                            .overlay(Circle().strokeBorder(CYColor.bgSurface, lineWidth: 1.5))
+                    }
+                }
                 if item.overflow > 0 { Text("square.xcx.upcoming.overflow \(item.overflow)") }
                 Text("square.xcx.upcoming.participants").foregroundStyle(.secondary)
             }

@@ -30,6 +30,8 @@ public enum ProjectEditSubmissionIntent: String, Codable, Equatable {
         if draft.endDate.isEmpty && (baseline?.draft.endDate.isEmpty ?? true) { absent.insert("end") }
         if draft.recruitDeadline.isEmpty && (baseline?.draft.recruitDeadline.isEmpty ?? true) { absent.insert("deadline") }
         if draft.chapters.isEmpty { absent.insert("chapters") }
+        // MP draftView: a draft drops clues whose unlock chapter is gone instead of stopping the save.
+        absent.insert("castClueChapter")
         for (index, chapter) in draft.chapters.enumerated() {
             if !chapter.hasRealStory { absent.insert("story\(index)") }
             if chapter.nodes.isEmpty { absent.insert("nodes\(index)") }
