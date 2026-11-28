@@ -259,23 +259,54 @@ public struct PublicTemplateViewerContext: Equatable {
 }
 
 /// Scope is independent of template ID. No disk cache or cross-account reuse.
+/// Idle coordinators past `maximumCoordinators` are dropped, oldest first. A coordinator that is
+/// still loading stays, so an on-screen load is not restarted to make room.
 @MainActor public final class PublicTemplateDetailOwner {
+    public static let maximumCoordinators = 32
     public private(set) var epoch = UUID()
     private var context: PublicTemplateViewerContext?
     private var entries: [Int: PublicTopicTemplateCoordinator] = [:]
+    /// Oldest first. A repeat visit moves that id to the end.
+    private var recent: [Int] = []
     public init() {}
     public func synchronize(_ next: PublicTemplateViewerContext) {
         guard context != next else { return }
         invalidate(); context = next
     }
     public func invalidate() {
-        epoch = UUID(); entries.values.forEach { $0.invalidate() }; entries.removeAll(); context = nil
+        epoch = UUID(); entries.values.forEach { $0.invalidate() }; entries.removeAll(); recent.removeAll(); context = nil
     }
     public func coordinator(id: Int, onUnauthorized: @escaping @MainActor () -> Void = {},
                             read: @escaping @MainActor (Int) async throws -> PublicTopicTemplateDetail) -> PublicTopicTemplateCoordinator {
-        if let existing = entries[id] { return existing }
+        if let existing = entries[id] {
+            note(id)
+            evictIdle(protecting: id)
+            return existing
+        }
         let next = PublicTopicTemplateCoordinator(id: id, onUnauthorized: onUnauthorized, read: read)
         entries[id] = next
+        note(id)
+        evictIdle(protecting: id)
         return next
+    }
+    private func note(_ id: Int) {
+        recent.removeAll { $0 == id }
+        recent.append(id)
+    }
+    /// Drops the oldest idle coordinator until the map fits. Loading owners and `protected` stay.
+    private func evictIdle(protecting protected: Int) {
+        var deferred: [Int] = []
+        while entries.count > Self.maximumCoordinators, let oldest = recent.first {
+            if oldest == protected { break }
+            recent.removeFirst()
+            guard let coordinator = entries[oldest] else { continue }
+            if coordinator.isLoading {
+                deferred.append(oldest)
+                continue
+            }
+            entries[oldest] = nil
+            coordinator.invalidate()
+        }
+        if !deferred.isEmpty { recent.insert(contentsOf: deferred, at: 0) }
     }
 }
