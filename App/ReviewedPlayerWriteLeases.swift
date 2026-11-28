@@ -1756,10 +1756,10 @@ enum ReviewedPlayerReadRoute {
         // fix-1128b #5 (J-06d/J-12b/J-11c): photo, scan, location and shake device kinds are on, so photo nodes, the filter
         // camera and the in-store photo step can capture → uploadOSS → `api/play/photo`. #22 (J-07 #2/#6/#7): kit artwork
         // loads from the same upload-result origins the avatar approval uses (API origin + `CYStampImageOrigins`).
-        // K13: sensors join on their own argument so the devices/artwork contract line stays intact.
+        // K13: sensors sit between devices and artworkHosts (initializer order).
         let configuration = RuntimeDependencyConfiguration(market: .china, endpoints: endpoints, play: Self.playCapabilities,
-            publisherReads: true, devices: Self.playDevices, artworkHosts: Self.playArtworkHosts(apiBase: context.baseURL),
-            sensors: Self.playSensors, shopNPCWrites: true, playReadApprovalID: UUID())
+            publisherReads: true, devices: Self.playDevices, sensors: Self.playSensors,
+            artworkHosts: Self.playArtworkHosts(apiBase: context.baseURL), shopNPCWrites: true, playReadApprovalID: UUID())
         playConfigurationByContext[key] = configuration
         return configuration
     }
