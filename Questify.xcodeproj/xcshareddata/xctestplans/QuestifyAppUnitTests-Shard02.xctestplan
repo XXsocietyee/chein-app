@@ -206,6 +206,7 @@
         "InvoiceLaunchHostReadOnlyTests",
         "InvoiceLaunchNavigationCancellationTests",
         "InvoiceLaunchPresentationActionTests",
+        "K40NotificationLeaseTests",
         "KeychainAndBiometricSessionSecuritySectionViewTests",
         "LBSGeofenceAndBatteryThermalSectionViewTests",
         "LocalizationPluralAndFormatterConsistencySectionViewTests",
