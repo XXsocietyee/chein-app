@@ -133,7 +133,7 @@ import Combine
                 ForEach(Array(editor.targets.enumerated()), id: \.element.id) { index, target in
                     VStack(alignment: .leading, spacing: 8) {
                         Text("templateHotspots.targetNumber \(index + 1)").font(.headline).monospacedDigit()
-                        TextField("creator.field.label", text: editor.label(target.id), axis: .vertical)
+                        TextField("creator.field.label", text: editor.label(target.id), prompt: Text("creator.mp.hiddenObject.label.prompt"), axis: .vertical)
                             .accessibilityIdentifier("creator.hotspots.label." + target.id)
                         HStack {
                             Button(action: editor.armAction(target.id)) {

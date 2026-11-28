@@ -67,6 +67,12 @@ public enum TemplateCreatorSchema {
     static func id(_ key: String = "id") -> Field { t(key, 64, true, pattern: keyPattern) }
     static func xp(_ max: Double = 1000) -> Field { n("xp", 0, max, 0) }
     static func media(_ key: String, _ max: Int = 512, required: Bool = false) -> Field { t(key, max, required) }
+    /// MP `QA_PLACEHOLDERS` (`publish/temp/editor-layout.js:60-64`): 问答 题干 / 前置说明 placeholders follow the 作答方式; other fields keep their own prompt.
+    public static func prompt(_ field: Field, family: TemplateCreatorFamily, mode: String?) -> String? {
+        guard let key = field.promptKey else { return nil }
+        guard family == .qa, key.hasSuffix(".TYPE"), let mode = mode, ["PICK", "SHOT"].contains(mode) else { return key }
+        return String(key.dropLast(4)) + mode
+    }
     public static func defaults(_ fields: [Field]) -> [String: TemplateAuthoringJSON] { Dictionary(uniqueKeysWithValues: fields.filter { $0.initial != .null }.map { ($0.id, $0.initial) }) }
     public static var effects: [Field] { [c("op", ["SET", "INC", "ADD_TAG"], "INC"), t("var", 64), .init("value", .stateValue, .number(1))] }
     public static var condition: [Field] { [c("op", ["EQ", "NE", "GT", "GTE", "LT", "LTE", "HAS_TAG", "NODE_COMPLETED"], "GTE"), t("var", 64), .init("value", .stateValue, .number(1)), n("nodeId", 1, 9007199254740991, 1)] }
@@ -108,10 +114,15 @@ public enum TemplateCreatorSchema {
             n("max", -Double.greatestFiniteMagnitude, Double.greatestFiniteMagnitude, 1000, integer: false).mp(label: "creator.mp.estimate.max"),
             n("answer", -Double.greatestFiniteMagnitude, Double.greatestFiniteMagnitude, 500, integer: false).mp(label: "creator.mp.estimate.answer"),
             n("tolerance", 0, 500000, 50, integer: false), t("reveal", 200).mp(label: "creator.mp.estimate.reveal", prompt: "creator.mp.estimate.reveal.prompt"), xp()]
-        case .pricePair: return [t("title", 64, true), xp(200), n("maxTries", 0, 10, 0), a("items", [id(), t("name", 32, true), media("imageUrl"), b("correct")], 3, 8, identity: "id", count: 3)]
-        case .hiddenObject: return [t("title", 64, true), t("hint", 60), media("imageUrl", required: true), xp(), n("maxTries", 0, 10, 0), a("hotspots", [id(), t("label", 24, true), n("x", 0, 1, 0.5, integer: false), n("y", 0, 1, 0.5, integer: false), n("r", 0.03, 0.15, 0.08, integer: false)], 3, 5, identity: "id", count: 3)]
+        case .pricePair: return [t("title", 64, true).mp(label: "creator.mp.pricePair.title", prompt: "creator.mp.pricePair.title.prompt"), xp(200), n("maxTries", 0, 10, 0),
+            a("items", [id(), t("name", 32, true).mp(prompt: "creator.mp.pricePair.name.prompt"), media("imageUrl").mp(prompt: "creator.mp.pricePair.imageUrl.prompt"), b("correct")], 3, 8, identity: "id", count: 3)]
+        case .hiddenObject: return [t("title", 64, true).mp(prompt: "creator.mp.hiddenObject.title.prompt"), t("hint", 60).mp(prompt: "creator.mp.hiddenObject.hint.prompt"),
+            media("imageUrl", required: true).mp(label: "creator.mp.hiddenObject.imageUrl", prompt: "creator.mp.hiddenObject.imageUrl.prompt"), xp(), n("maxTries", 0, 10, 0),
+            a("hotspots", [id(), t("label", 24, true).mp(prompt: "creator.mp.hiddenObject.label.prompt"), n("x", 0, 1, 0.5, integer: false), n("y", 0, 1, 0.5, integer: false), n("r", 0.03, 0.15, 0.08, integer: false)], 3, 5, identity: "id", count: 3)]
         case .predict: return [t("question", 120, true), t("hint", 60), a("options", [id("key"), t("label", 32, true)], 2, 4, identity: "key", count: 2), n("closeAtHour", 0, 23, 20), n("revealDays", 0, 30, 1), n("revealHour", 0, 23, 20), xp()]
-        case .qa: return [c("mode", ["TYPE", "PICK", "SHOT"], "TYPE"), t("title", 120, true), t("lead", 60), media("imageUrl"), media("audioUrl"), t("answerText", 200), b("reveal"), t("shotNote", 56), n("maxTries", 0, 10, 0), xp(200), b("multi"), a("options", [id(), t("label", 32, true), media("img"), t("alt", 120), t("fb", 120), b("correct"), effectList("effects")], 2, 4, identity: "id", count: 2)]
+        case .qa: return [c("mode", ["TYPE", "PICK", "SHOT"], "TYPE"), t("title", 120, true).mp(label: "creator.mp.qa.title", prompt: "creator.mp.qa.title.prompt.TYPE"), t("lead", 60).mp(prompt: "creator.mp.qa.lead.prompt.TYPE"), media("imageUrl"), media("audioUrl"),
+            t("answerText", 200).mp(label: "creator.mp.qa.answerText", prompt: "creator.mp.qa.answerText.prompt"), b("reveal"), t("shotNote", 56).mp(label: "creator.mp.qa.shotNote", prompt: "creator.mp.qa.shotNote.prompt"), n("maxTries", 0, 10, 0), xp(200), b("multi"),
+            a("options", [id(), t("label", 32, true).mp(prompt: "creator.mp.qa.option.prompt"), media("img"), t("alt", 120), t("fb", 120).mp(label: "creator.mp.qa.fb", prompt: "creator.mp.qa.fb.prompt"), b("correct"), effectList("effects")], 2, 4, identity: "id", count: 2)]
         case .scan: return [c("kind", ["TEXT", "VOICE", "IMAGE", "OVERLAY"], "TEXT"), t("reply", 200), media("audioUrl"), media("imageUrl"), media("overlayUrl"), n("overlayScale", 20, 100, 60), c("arMode", ["NONE", "PLANE", "MARKER"], "NONE"), media("markerUrl"), media("modelUrl"), xp(200)]
         case .album: return [a("images", [media("url", 1024, required: true), t("line", 40)], 1, 6)]
         case .profile:

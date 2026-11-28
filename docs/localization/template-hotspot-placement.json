@@ -55,13 +55,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Return to the form and enter a supported HTTPS scene address."
+            "value": "Go back and add a full https:// scene image link."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请返回表单填写可用的 HTTPS 场景图地址。"
+            "value": "请返回填写完整的 https:// 场景图链接。"
           }
         }
       }
@@ -119,7 +119,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Needs"
+            "value": "Not marked yet"
           }
         },
         "zh-Hans": {
@@ -135,13 +135,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Position set"
+            "value": "Marked"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已有位置"
+            "value": "已标好"
           }
         }
       }
