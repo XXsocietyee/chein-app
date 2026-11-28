@@ -301,6 +301,8 @@ struct CYOfflineStrip: View {
         if let onRetry {
             Button(action: onRetry) {
                 Text(verbatim: appLocalized("cy.kit.offline.retry", locale: t.resourceLocale))
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
             .font(.footnote)

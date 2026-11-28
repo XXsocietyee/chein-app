@@ -23,6 +23,8 @@ import UIKit
     @Published private(set) var presentation: Presentation?
     @Published private(set) var problem = false
     @Published private(set) var storageMessage = ""
+    /// fix/1128c-ai-showcase: the draft as it was before the last adopted AI draft, for 撤销 AI 草稿.
+    @Published private(set) var draftBeforeAI: QuickPublishDraft?
     @Published private var revision: UInt64 = 0
     private var account: PublishingSession?
     private var context = UUID()
@@ -40,7 +42,7 @@ import UIKit
     func bind(account: PublishingSession?) {
         guard !wasBound || self.account != account else { return }
         wasBound = true; self.account = account; context = UUID(); revision &+= 1
-        presentation = nil; draft = .init(); draftID = UUID(); problem = false; storageMessage = ""
+        presentation = nil; draft = .init(); draftID = UUID(); problem = false; storageMessage = ""; draftBeforeAI = nil
     }
     func appear(active: Bool) { visible = true; covered = false; self.active = active; if !active { retireCallbacks() } }
     func parentAppeared() { visible = true; covered = false }
@@ -105,7 +107,16 @@ import UIKit
               !value.nodes.isEmpty, value.nodes.count <= 3,
               Set(value.nodes.map(\.id)).count == value.nodes.count,
               value.nodes.allSatisfy({ $0.confirmedPlace == nil && !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { return false }
-        replace(QuickPublishFieldLimits.clamped(value)); return true
+        let previous = draft
+        replace(QuickPublishFieldLimits.clamped(value)); draftBeforeAI = previous; return true
+    }
+    /// Undo the adopted AI draft: the page returns to the draft it held before (one step, like the MP 撤销).
+    func undoAIAction() -> () -> Void {
+        let original = source()
+        return { [weak self] in
+            guard let self, self.canEdit, self.current(original), let previous = self.draftBeforeAI else { return }
+            self.replace(previous); self.draftBeforeAI = nil
+        }
     }
     @discardableResult func confirm(_ place: PublishingPlace, from original: Presentation) -> Bool {
         guard case .place(let id) = original.kind, isCurrent(original),

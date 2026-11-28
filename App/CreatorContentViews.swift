@@ -102,6 +102,7 @@ private struct CreatorContentIssueView: View {
     @Environment(\.locale) private var locale
     @Environment(\.myProjectTemplateShelf) private var templateShelf
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.rootSignIn) private var rootSignIn
     private var key: CreatorContentLoadKey { .init(reader, query: query, entryScope: entryScope) }
     private var loadedAccess: MyProjectMerchantScopeAccess {
         MyProjectMerchantScopeExclusiveAdapter.access(entryScope: entryScope, canManageProjects: canManageProjects)
@@ -202,7 +203,7 @@ private struct CreatorContentIssueView: View {
     }
     private func issue(_ value: CreatorContentIssue) -> some View {
         CreatorContentIssueView(issue: value, loginTitleKey: "myProject.signInRequired",
-                                onLogin: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil,
+                                onLogin: rootSignIn.signedOutAction(fallback: rootTabSwitch),
                                 deniedTitleKey: "myProject.accessDenied", failureTitleKey: "myProject.loadFailed") { Task { await refresh() } }
     }
     /// Mini-program myproject row: cover tile, title (state top-right), hairline, then the stats footer.

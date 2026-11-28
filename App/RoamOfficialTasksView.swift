@@ -238,7 +238,11 @@ private struct RoamTasksStaleLine: View {
         }
     }
     private var retryButton: some View {
-        Button("official.retry", action: retry)
+        Button(action: retry) {
+            Text("official.retry")
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
+        }
             .buttonStyle(.borderless).font(.footnote.weight(.semibold))
             .accessibilityLabel(Text("roam.tasks.staleRetryLabel"))
             .accessibilityIdentifier("roam.tasks.staleRetry")

@@ -22,6 +22,13 @@ import SwiftUI
         for (en, zh) in zhTicketNames { out = out.replacingOccurrences(of: "\"name\":\"\(en)\"", with: "\"name\":\"\(zh)\"") }
         return out
     }
+    /// mp-mine r3: the session ticket carries a start time and place, so the sweep shows the MP P-27 card line
+    /// (「5月1日 19:30 · 西湖文化广场」) instead of a bare 场次.
+    private static func withSession(_ json: String) -> String {
+        let zh = Locale.preferredLanguages.first?.hasPrefix("zh") == true
+        let place = zh ? "西湖文化广场" : "West Lake Culture Square"
+        return json.replacingOccurrences(of: "\"productType\":1}", with: "\"productType\":1,\"startDate\":\"2030-05-01 19:30:00\",\"addressName\":\"\(place)\"}")
+    }
     private func check() throws {
         guard isAuthenticated else { throw APIError.unauthorized }
         switch scenario {
@@ -38,7 +45,7 @@ import SwiftUI
         struct Envelope: Decodable { let data: [TicketWalletTicket] }
         let routes = try JSONDecoder().decode(Envelope.self, from: Data(Self.localized(TicketWalletSyntheticFixtures.routeListJSON).utf8)).data
         if scenario == .partial { return TicketWalletSnapshot(tickets: routes, partialFailure: .init(lane: .activity, issue: .failure)) }
-        let activities = try JSONDecoder().decode(Envelope.self, from: Data(Self.localized(TicketWalletSyntheticFixtures.activityListJSON).utf8)).data
+        let activities = try JSONDecoder().decode(Envelope.self, from: Data(Self.withSession(Self.localized(TicketWalletSyntheticFixtures.activityListJSON)).utf8)).data
         return TicketWalletSnapshot(tickets: routes + activities)
     }
     func ticketDetail(id: Int) async throws -> TicketWalletTicket {

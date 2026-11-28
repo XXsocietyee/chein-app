@@ -18,3 +18,7 @@ QUESTIFY_WITHDRAW_SUPPORT_WECHAT_ID = 18018571626
 // e.g. the OSS bucket or CDN host. The API origin is always included. Empty keeps only the API origin. Write each URL
 // as https:/$()/host so the xcconfig does not read it as a comment. Read as Info.plist `CYStampImageOrigins`.
 QUESTIFY_IMAGE_ORIGINS =
+// fix/1128c-ai-weather: Apple WeatherKit for the temperature chip, day / night and weather outside the backend's
+// Tencent provider (US market). NO until the owner enables the WeatherKit capability on the App ID and adds the
+// `com.apple.developer.weatherkit` entitlement (docs/release/owner-values.md). Off or failing: the backend weather only.
+CY_WEATHERKIT_ENABLED = NO
