@@ -107,7 +107,10 @@ fixtures included; there is no Swift compiler in the lanes' cloud sessions):
 
 Baseline: tools/design_consistency_baseline.json
   "allowed":  {file: {kind: reason}}  intentional chrome (game HUDs, full-screen maps, procedural art), never fails;
-                                      an allowed kind with no hit left in its file is reported as stale and fails
+                                      an allowed kind with no hit left in its file is reported as stale and fails;
+                                      a reason starting "unmounted internal screen" fails as soon as the file's
+                                      `struct …: View` is called anywhere in App/ outside DesignFixtures / *Fixture*
+                                      (mounting it for players means converting its chrome first)
   "baseline": {file: {kind: count}}   debt on this tree; a count above it fails, so new violations fail
 
   python3 tools/check_design_consistency.py            # check (exit 1 on a new violation)
@@ -711,6 +714,36 @@ def counts(hits):
     return out
 
 
+UNMOUNTED_REASON = 'unmounted internal screen'
+VIEW_DECL_PATTERN = re.compile(r'^(?:public\s+|internal\s+|private\s+|fileprivate\s+)?struct\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\s*View\b', re.M)
+
+
+def mounted_unmounted(allowed):
+    """Allowed entries justified as unmounted whose view is now called from a non-fixture App file."""
+    marked = sorted(rel for rel, kinds in allowed.items()
+                    if any(str(r).startswith(UNMOUNTED_REASON) for r in kinds.values()))
+    if not marked:
+        return []
+    names = {}
+    for rel in marked:
+        path = ROOT / rel
+        if path.exists():
+            for name in VIEW_DECL_PATTERN.findall(path.read_text(encoding='utf-8')):
+                names[name] = rel
+    if not names:
+        return []
+    call = re.compile(r'\b(' + '|'.join(sorted(names)) + r')\s*\(')
+    out = []
+    for path in sorted((ROOT / 'App').rglob('*.swift')):
+        rel = path.relative_to(ROOT).as_posix()
+        if 'Fixture' in rel:
+            continue
+        for match in call.finditer(path.read_text(encoding='utf-8')):
+            if names[match.group(1)] != rel:
+                out.append(f'{names[match.group(1)]}: {match.group(1)} is now called from {rel}')
+    return sorted(set(out))
+
+
 def load_baseline():
     if not BASELINE.exists():
         return {'allowed': {}, 'baseline': {}}
@@ -763,6 +796,8 @@ def main():
             if kind not in present:
                 stale.append(f'{rel}: {kind}')
 
+    mounted = mounted_unmounted(allowed)
+
     below = 0
     for rel, kinds in baseline.items():
         for kind, limit in kinds.items():
@@ -795,6 +830,12 @@ def main():
 
     summary = ', '.join(f'{k} {totals[k]}' for k in KINDS)
     allowed_summary = sum(allowed_totals.values())
+    if mounted:
+        print('FAIL design consistency: an "unmounted internal screen" is now mounted; convert its chrome to the')
+        print('design system (status words -> CYStatusChip) and remove its "allowed" entry:')
+        for row in mounted:
+            print(f'  {row}')
+        return 1
     if stale and not failures:
         print('FAIL design consistency: stale "allowed" entries (no hit left; remove them from the baseline):')
         for row in stale:
