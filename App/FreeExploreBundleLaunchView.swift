@@ -193,11 +193,19 @@ import SwiftUI
                         if let terms = item.termsMode { Text(verbatim: terms).font(.subheadline).foregroundStyle(.secondary) }
                     }
                     ForEach(item.stores, id: \.offerId) { store in
+                        // mp-journey r3: MP `{merchantName} · 可用 / 暂不可用` (free-explore/index.wxml:22); the valid-until date
+                        // stays as the second line (the store's own fact, shown once the server sends it).
                         LabeledContent {
-                            if let end = store.validEnd { Text(verbatim: LocaleDisplay.civil(end, locale: locale)).monospacedDigit() }
+                            Text(store.available ? "freeBundle.catalog.storeAvailable" : "freeBundle.catalog.storeUnavailable")
+                                .foregroundStyle(store.available ? Color.green : Color.secondary)
                         } label: {
-                            Label { Text(verbatim: store.merchantName ?? store.offerId.text) } icon: { Image(systemName: "storefront") }
+                            Label {
+                                Text(verbatim: store.merchantName ?? store.offerId.text)
+                                if let end = store.validEnd { Text(verbatim: LocaleDisplay.civil(end, locale: locale)).monospacedDigit() }
+                            } icon: { Image(systemName: "storefront") }
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("freeBundle.catalog.store.\(store.offerId.text)")
                     }
                 }
             } header: {
@@ -210,7 +218,13 @@ import SwiftUI
             if Self.orderSectionHasRows(order, paidAmountKnown: facts.paidAmountText != "—") {
             Section {
                 if let number = order.registrationNo {
-                    Text(verbatim: number).font(.footnote).monospacedDigit().foregroundStyle(.secondary).textSelection(.enabled)
+                    // mp-journey r3: MP `订单号 {registrationNo}` — the number carries its label instead of standing alone.
+                    LabeledContent {
+                        Text(verbatim: number).monospacedDigit().textSelection(.enabled)
+                    } label: {
+                        Text("mp.passOrder.number")
+                    }
+                    .accessibilityIdentifier("freeBundle.order.number")
                 }
                 // mp-journey r3 (sweep 19:15): the MP page has no 实付金额 line; show it only once the amount is known.
                 if facts.paidAmountText != "—" {

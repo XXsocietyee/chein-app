@@ -326,3 +326,95 @@ extension ProjectEditThemeRules {
         return (1...492).contains(rest.count) && !rest.contains(where: { $0.isWhitespace })
     }
 }
+
+// MARK: Runtime-values card rows 行动次数 · 没有实际效果时也消耗
+// (`theme-runtime.js` `onRuntimeActionToggle` / `onRuntimeActionLimit` / `onRuntimeName` / `_validateRuntimeConfig`,
+// `theme-ownership.js` `onThemeConsumeOnNoEffect`; `topic-detail-sheet.wxml:126-140`)
+
+extension ProjectEditThemeRules {
+    /// MP default when 行动次数 is switched on.
+    public static let defaultActionLimit = 20
+    /// MP `_validateRuntimeConfig`: 1 to 99999.
+    public static let actionLimitRange = 1...99_999
+    /// MP `onRuntimeName`: names are cut to 20 characters.
+    public static let statNameLimit = 20
+
+    /// MP `runtimeActionEnabled` / `runtimeActionLimit`: `actionLimit` present = on.
+    public static func actionLimit(in draft: ProjectEditDraft) -> Int? {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return nil }
+        return theme["actionLimit"]?.integer
+    }
+
+    /// MP `runtimeActionName`: the theme's own name for 行动次数 (empty = default label).
+    public static func actionName(in draft: ProjectEditDraft) -> String {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return "" }
+        return theme["actionName"]?.text ?? ""
+    }
+
+    /// MP `onRuntimeActionToggle`: on writes 20, off removes `actionLimit`.
+    public static func setActionEnabled(_ enabled: Bool, in draft: ProjectEditDraft) throws -> ProjectEditDraft {
+        var theme = try readable(draft)
+        if enabled == hasActionLimit(theme) { return draft }
+        if theme.isEmpty { theme = defaults }
+        theme["actionLimit"] = enabled ? .number(Decimal(defaultActionLimit)) : nil
+        return try write(theme, into: draft)
+    }
+
+    /// MP `onRuntimeActionLimit` + the `_validateRuntimeConfig` range: refused outside 1–99999.
+    public static func setActionLimit(_ limit: Int, in draft: ProjectEditDraft) throws -> ProjectEditDraft {
+        guard actionLimitRange.contains(limit) else { throw ProjectEditRuntimeActsError.refused("mpPublish.values.action.limitInvalid") }
+        var theme = try readable(draft)
+        guard hasActionLimit(theme) else { return draft }
+        if theme["actionLimit"]?.integer == limit { return draft }
+        theme["actionLimit"] = .number(Decimal(limit))
+        return try write(theme, into: draft)
+    }
+
+    /// MP `onRuntimeName` for `actionName`: cut to 20 characters; written as typed (empty keeps the default label).
+    public static func setActionName(_ name: String, in draft: ProjectEditDraft) throws -> ProjectEditDraft {
+        var theme = try readable(draft)
+        let value = String(name.prefix(statNameLimit))
+        if (theme["actionName"]?.text ?? "") == value { return draft }
+        if theme.isEmpty { theme = defaults }
+        theme["actionName"] = .string(value)
+        return try write(theme, into: draft)
+    }
+
+    /// MP `c.actionLimit != null`.
+    private static func hasActionLimit(_ theme: [String: ProjectEditJSON]) -> Bool {
+        guard let value = theme["actionLimit"] else { return false }
+        return value != .null
+    }
+
+    /// MP `runtimeConsumeOnNoEffect`: only an explicit `true` counts.
+    public static func consumeOnNoEffect(in draft: ProjectEditDraft) -> Bool {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return false }
+        return theme["gameplayRuntime"]?.object?["survival"]?.object?["consumeOnNoEffect"] == .bool(true)
+    }
+
+    /// MP `runtimeConsumeOnNoEffectDisabledReason`: the switch needs a 进行方式 first.
+    public static func consumeOnNoEffectAvailable(in draft: ProjectEditDraft) -> Bool {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return false }
+        return scope(theme)?.isEmpty == false
+    }
+
+    /// MP `onThemeConsumeOnNoEffect`: refused without a runtime scope; on writes `survival.consumeOnNoEffect = true`,
+    /// off writes `false` only when the key exists.
+    public static func setConsumeOnNoEffect(_ enabled: Bool, in draft: ProjectEditDraft) throws -> ProjectEditDraft {
+        var theme = try readable(draft)
+        guard var game = theme["gameplayRuntime"]?.object, game["runtimeScope"]?.text?.isEmpty == false else {
+            throw ProjectEditRuntimeActsError.refused("mpPublish.values.consume.needsMode")
+        }
+        var survival = game["survival"]?.object ?? [:]
+        if enabled {
+            survival["consumeOnNoEffect"] = .bool(true)
+        } else if survival["consumeOnNoEffect"] != nil {
+            survival["consumeOnNoEffect"] = .bool(false)
+        } else {
+            return draft
+        }
+        game["survival"] = .object(survival)
+        theme["gameplayRuntime"] = .object(game)
+        return try write(theme, into: draft)
+    }
+}

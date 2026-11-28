@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 24, after merging combined-r7 a32387e9b), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 28, after merging combined-r7 733bfb368), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -294,6 +294,12 @@ Merged `origin/ui/combined-r7` (already up to date). Not done rows re-checked: �
 |---|---|---|---|
 | club channels list (app-only club workspace; no MP page) | `App/DesignFixtures/D4Fixtures.swift` `D4ChannelsHost` | Shot `en-d4-channels.jpg` / zh: the channel list has no navigation title at all (just 公告 / 社区 sections under an empty bar). Production `ClubChannelMessagingHostView` sets the inline title 「俱乐部名 · 频道」; the fixture mounted the inner view without it. | **Fixed (fixture).** Same inline title as production (`tt(en, zh)`), so d4-channels / d4-channel-chat show what players see |
 | club channel conversation, announcement channel (`d4-channel-chat`) | `App/ClubChannelMessagingView.swift` | Shot: a member in the read-only 俱乐部动态 channel is asked twice to accept the channel rules (top 发言前请先阅读频道公约 + 查看公约 row and the bottom 请先在上方阅读并同意…后再发言) although they cannot post there at all. | **Fixed.** New `isReadOnlyForViewer` (announcement channel and no moderate permission): the rules gate row and the locked composer line are skipped there and the composer shows the existing 当前为公告频道，仅主理人与管理员可发布通知 line. Rules stay mandatory before posting in every channel the viewer can post in (`sendOptimisticChannelMessage` guard unchanged). Re-check on the next sweep |
+
+## Pass 28: brief 01:40 "Next round" item 1 (P31 composer); no open coordinator finding for mp-club (sweep 04:00 build 733bfb368 predates pass 27, so the channel title / read-only channel fixes are re-checked on the next sweep)
+Merged `origin/ui/combined-r7` (733bfb368). Checked `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`, `sheet-en.jpg`: nothing new.
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| club/detail 帖文 composer (`pages/square/components/cy/post-compose`, club mode; `index.js:87-98` `draftIdentity(memberId, clubId)`, `persist` on close, restore on show) | `App/ClubCommunityViews.swift` `ClubCommunityComposer`, new `App/ClubPostDraftStore.swift` | MP field order kept: text → images → 带上一次游玩记录 → 作为公告发布. MP keeps one local draft per member + club and restores it; native lost the words on Cancel / swipe-down. | **P31 applied.** The text field is focused on open (new post); 确认内容 / Review is `.borderedProminent` and stays disabled until there is content; Cancel with content asks 要保存为草稿吗？ → 保存草稿 / 不保存 (destructive) / 继续编辑 (`ClubPostDraftExitDialog`, a `ViewModifier` per the 03:50 compile rule); swipe-down saves like the MP `persist`; the draft (text + uploaded image refs) is keyed by account id + club id (guests keep nothing) and is cleared when the post goes to review. Edit mode (`ClubPostEditExitControl`) unchanged. New keys `club.community.draftTitle/.draftMessage/.draftSave/.draftDelete/.draftKeep` (en + zh-Hans). UI tests unchanged (cancel on an empty composer still closes at once). The new store is listed in `docs/ops-safety/client-data-catalog.json` (`tools/audit_client_ops_surfaces.py --check` PASS) |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.

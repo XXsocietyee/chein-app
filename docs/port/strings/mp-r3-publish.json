@@ -5025,5 +5025,192 @@
         }
       }
     }
+  },
+  "mpPublish.values.action": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Actions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "行动次数"
+        }
+      }
+    }
+  },
+  "mpPublish.values.enabled %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "On · Visible to players · 0 to %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已启用 · 玩家可见 · 0 至 %lld"
+        }
+      }
+    }
+  },
+  "mpPublish.values.disabled": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Off"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未启用"
+        }
+      }
+    }
+  },
+  "mpPublish.values.edit %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Edit %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "编辑%@"
+        }
+      }
+    }
+  },
+  "mpPublish.values.name": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Display name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "显示名称"
+        }
+      }
+    }
+  },
+  "mpPublish.values.limit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Maximum"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上限"
+        }
+      }
+    }
+  },
+  "mpPublish.values.action.limitInvalid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The action maximum must be a whole number from 1 to 99,999."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "行动次数上限须为 1 至 99999 的整数"
+        }
+      }
+    }
+  },
+  "mpPublish.values.consume": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use up even with no effect"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "没有实际效果时也消耗"
+        }
+      }
+    }
+  },
+  "mpPublish.values.consume.on": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "When a value is already full, a recovery still costs and counts once."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "数值已满时使用恢复，仍扣费用并计一次"
+        }
+      }
+    }
+  },
+  "mpPublish.values.consume.off": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "When a value is already full, a recovery costs nothing and does not count."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "数值已满时使用恢复，不扣费用、不计次数"
+        }
+      }
+    }
+  },
+  "mpPublish.values.consume.needsMode": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose how teams play first."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先选择进行方式"
+        }
+      }
+    }
   }
 }

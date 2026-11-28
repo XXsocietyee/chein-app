@@ -257,6 +257,8 @@ struct CYStampSlamView: View {
     let onDismiss: () -> Void
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.locale) private var locale
+    /// Passport book tile: the `.title2` glyph outgrew a fixed 48 pt tile at AX sizes (a11y-dt r3); scales, capped at 88.
+    @ScaledMetric(relativeTo: .title2) private var bookTile: CGFloat = 48
     @State private var start = Date()
     @State private var finished = false
     @State private var countShown = false
@@ -396,7 +398,7 @@ struct CYStampSlamView: View {
                     Image(systemName: "book.closed.fill")
                         .font(.system(.title2, weight: .semibold))
                         .foregroundStyle(CYNight.lanternHot)
-                        .frame(width: 48, height: 48)
+                        .frame(width: min(bookTile, 88), height: min(bookTile, 88))
                         .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                         .rotation3DEffect(.degrees(360 * flip), axis: (x: 0, y: 1, z: 0))
                 }

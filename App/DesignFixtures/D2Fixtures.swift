@@ -5,7 +5,7 @@ import SwiftUI
 /// through the existing module fixture hosts and apply the player (dark) role theme the way the real tabs do.
 /// `--design-fixture d2-home | d2-search | d2-square | d2-roam`.
 struct D2Fixture: View {
-    enum Screen { case home, homeOffline, search, searchResults, searchOffline, square, squareEmpty, roam, play, city, npc, inbox, inboxEmpty, inboxError, inboxSignedOut, inboxLoading, me }
+    enum Screen { case home, homeOffline, search, searchResults, searchEmpty, searchFailed, searchOffline, square, squareEmpty, roam, play, city, npc, inbox, inboxEmpty, inboxError, inboxSignedOut, inboxLoading, me }
     let screen: Screen
 
     var body: some View {
@@ -23,6 +23,17 @@ struct D2Fixture: View {
         case .searchResults:
             NavigationStack {
                 GlobalSearchView(reader: SearchMapFixtureReader(scenario: .content), recommendedKeywords: GlobalSearchRecommendedKeywords.fixtureKeywords,
+                                 initialQuery: GlobalSearchQuery(keyword: SearchMapFixtureLanguage.resultsKeyword)) { _ in Color.clear }
+            }
+        // mp-home r3 (Next round item 3, MP search2/result wxml:23 cy-error / cy-empty): the two result states as fixtures.
+        case .searchEmpty:
+            NavigationStack {
+                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .empty), recommendedKeywords: GlobalSearchRecommendedKeywords.fixtureKeywords,
+                                 initialQuery: GlobalSearchQuery(keyword: SearchMapFixtureLanguage.resultsKeyword)) { _ in Color.clear }
+            }
+        case .searchFailed:
+            NavigationStack {
+                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .failure), recommendedKeywords: GlobalSearchRecommendedKeywords.fixtureKeywords,
                                  initialQuery: GlobalSearchQuery(keyword: SearchMapFixtureLanguage.resultsKeyword)) { _ in Color.clear }
             }
         case .searchOffline:
