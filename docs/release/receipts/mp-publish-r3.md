@@ -76,6 +76,18 @@ Scope: `pages/template/index`, the tabBar publish sheet, `pages/publish/*`, `pag
 The sweep list lives on `design/handoff-r2`, outside this lane, so it is proposed here. All ids resolve through `PublishDesignFixtures.make` (`App/DesignFixtures/PublishDesignFixtures.swift`):
 `template-topics`, `template-topics-offline`, `template-games`, `template-detail`, `topic-preview`, `publish-sheet`, `publish-sheet-quota`, `publish-menu`, `publish-projects-rows`, `publish-projects-empty`, `t11-fabu`, `t11-fabu-blocked`, `t11-template-author`, `t11-template-intro`.
 
+## Function audit 11-28 (`origin/audit/1128-functions`) — lane items
+P0-7, P1-26, P1-27 and P1-29 belong to the `fix/1128-publish` worker (brief 06:25 UTC) and are not touched here.
+
+| Item | Fix | Evidence |
+|---|---|---|
+| **P1-28** IM image send off (row shown, no `.imUpload` route, `imImageSelection` false) | **Fixed.** MP chat sends a picture as chooseMedia → `POST api/common/uploadOSS` (multipart `file`) → `api/im/send` image. The China session lease now issues `.imUpload` = `POST api/common/uploadOSS` for social roles, sets `imImageSelection` for them, and approves the upload-result origins (`RetainedImageOrigin.configured`: API origin + `CYStampImageOrigins`, the same list the avatar/stamp uploads use) as `imMediaOrigins`, so `IMExpandedService.upload` accepts the returned URL. `IMImageUploadCoordinator`'s `selectionApproval` (`factory.permits(.imUpload) && imImageSelection`) is now true. | `App/ReviewedPlayerWriteLeases.swift` `sessionDependencies` (imRoutes + `BusinessRuntimeConfiguration`); `Core/IMExpandedService.swift:255-270`; `App/AppSession.swift:6458-6463` |
+| **P2-6a** `api/topic/publish-status` + `edit-requests/{read,submit,resume-post-processing}` filtered on production | **Fixed.** r3 serves them, so they join `creatorEditorAndOrderCenterOwnerGrant`; `projectEditorRoutes` now grants them on the production host, and the publish-status / retry / readback UI shows in Release. `TestHostOnlyRouteAdmission` stays (harmless; still admits them on TEST). Tests re-pinned: `AcceptanceR2TestHostRouteTests`, `AcceptanceR2GateTests.testTopicPublishRoutesOpenOnlyForTheE2ETestHost`, `ReviewedChinaLaunchCompositionTests` (3). | `Core/ChinaReviewedRouteCapability.swift:291-310` |
+| P2-6b signed-out "+" dead end | Not done (next run) | `PublishTabRootView.publishMenu` |
+| P2-6c content-draft browser always "not configured" | Not done (MP does not use content-draft; candidate: hide the entry) | `App/OwnerDraftComposition.swift`, `App/AccountView.swift:464` |
+| P2-6d 互动 skips MP template-intro | Not done (next run) | `sessionTemplateAuthoringEntry` |
+| P2-6e IM 发起会话 raw member ID | Not done (audit row 285 names mp-nav; P2-6 names this lane) | `App/IMExpandedViews.swift:531-560` |
+
 ## Not done
 - **`publish/fabu/look-sheet` 画面风格:** live preview ported in continue pass 28 (colours, type, sample copy); its canvas particles and per-character text effects are not drawn.
 - **`publish/fabu/cast-sheet` 编辑角色:** built in pass 5 except avatar upload and 用自己的声音录 (needs a cast upload path), and the delete warning about story lines / ending chapters (story flow on hold).
@@ -122,6 +134,7 @@ The sweep list lives on `design/handoff-r2`, outside this lane, so it is propose
 - `Tests/CoreTests/EditorKitModelTests.swift`: `EditorOutlineSection.allCases` now expects the MP page order.
 
 ## Gates (last run on the branch head)
+- **Function audit P1-28 + P2-6a:** generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**. No Swift compiler here.
 - **Continue pass 28 (画面风格 preview):** generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 - **Continue pass 27 (票务设置 section headers):** merged `ui/combined-r7` (clean); generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0** (first run caught the header's accessibility ids, passed as a parameter, as uncatalogued `projectEdit.*` keys for `test_catalog_bilingual_and_all_static_user_keys`; renamed to `mpPublish.ticketSettings.*.missing`).
 - **Continue pass 25 (自定义整数值 + value editor):** merged `ui/combined-r7` (clean); generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS (untyped haptic 0 new: `.sensoryFeedback(.success, trigger:)` has no closure), `test_cb50_error_catalog` OK (typed `String.LocalizationValue` constants, no bare `String(localized: "…")`), contract ratchet 52 failing / baseline 52 / **new 0**. No Swift compiler here.
