@@ -590,6 +590,11 @@ enum ReviewedPlayerReadRoute {
     private var roamPassportHistoryByContext: [String: RoamPassportHistoryReadAccess] = [:]
     private var roamEntryNearbyByContext: [String: RoamEntryNearbyReadAccess] = [:]
     private var roamNearbyPlayersByContext: [String: RoamNearbyPlayersReadAccess] = [:]
+    private var roamNearbyEventsByContext: [String: RoamNearbyEventsReadAccess] = [:]
+    private var roamReceivedStampByContext: [String: RoamReceivedStampReadAccess] = [:]
+    private var roamAlbumMetadataByContext: [String: RoamAlbumMetadataReadAccess] = [:]
+    private var roamTileMemoryByContext: [String: RoamTileMemoryReadAccess] = [:]
+    private var roamSessionFactByContext: [String: RoamSessionFactReadAccess] = [:]
     private var teamReadByContext: [String: TeamReadApproval] = [:]
     private var growthNormalReadByContext: [String: GrowthNormalReadApproval] = [:]
     private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
@@ -1200,8 +1205,9 @@ enum ReviewedPlayerReadRoute {
         guard context.market == .china else { return nil }
         let key = contextKey(context)
         if let existing = roamLiveByContext[key] { return existing }
-        guard let endpoints = makeEndpoint(context, paths: RoamLiveApproval.requiredPaths) else { return nil }
-        let approval = RoamLiveApproval(endpoints: endpoints, foregroundLocation: true, presence: false)
+        // P1-18: MP _reportPresence (30 s POST /api/roam/presence) runs only after the separate presence consent.
+        guard let endpoints = makeEndpoint(context, paths: RoamLiveApproval.requiredPaths.union(["api/roam/presence"])) else { return nil }
+        let approval = RoamLiveApproval(endpoints: endpoints, foregroundLocation: true, presence: true)
         roamLiveByContext[key] = approval
         return approval
     }
@@ -1260,6 +1266,72 @@ enum ReviewedPlayerReadRoute {
         guard let endpoints = makeEndpoint(context, paths: [RoamNearbyPlayersReadRoute.path]),
               let issued = try? RoamNearbyPlayersReadAccess(context: context, approval: endpoints) else { return nil }
         roamNearbyPlayersByContext[key] = issued
+        return issued
+    }
+
+    /// Function audit P1-23 (mp-roam): the roam reads below had a reader but no lease, so they stayed "not configured" in
+    /// Release. Same shape as `roamNearbyPlayers`: signed-in China player/club/merchant, one exact path, re-issued per context.
+    private func roamRoleAllowed(_ context: RuntimeDependencyContext) -> Bool {
+        context.market == .china && ["player", "club", "merchant"].contains(context.role)
+    }
+
+    /// MP subpackageRoam/nearby `GET /api/roam/hangout/nearby` (地点玩法 layer of the roam browser).
+    func roamNearbyEvents(_ context: RuntimeDependencyContext) -> RoamNearbyEventsReadAccess? {
+        guard roamRoleAllowed(context) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamNearbyEventsByContext[key], existing.matches(context) { return existing }
+        roamNearbyEventsByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: [RoamNearbyEventsReadRoute.path]),
+              let issued = try? RoamNearbyEventsReadAccess(context: context, approval: endpoints) else { return nil }
+        roamNearbyEventsByContext[key] = issued
+        return issued
+    }
+
+    /// MP scene-roam-stamp-album tab 收到的 `/api/roam/stamp/received`.
+    func roamReceivedStamp(_ context: RuntimeDependencyContext) -> RoamReceivedStampReadAccess? {
+        guard roamRoleAllowed(context) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamReceivedStampByContext[key], existing.matches(context) { return existing }
+        roamReceivedStampByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: [RoamReceivedStampReadRoute.path]),
+              let issued = try? RoamReceivedStampReadAccess(context: context, approval: endpoints) else { return nil }
+        roamReceivedStampByContext[key] = issued
+        return issued
+    }
+
+    /// MP scene-roam-stamp-album tab 我的 `/api/roam/stamp/list`.
+    func roamAlbumMetadata(_ context: RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess? {
+        guard roamRoleAllowed(context) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamAlbumMetadataByContext[key], existing.matches(context) { return existing }
+        roamAlbumMetadataByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: [RoamAlbumMetadataReadRoute.path]),
+              let issued = try? RoamAlbumMetadataReadAccess(context: context, approval: endpoints) else { return nil }
+        roamAlbumMetadataByContext[key] = issued
+        return issued
+    }
+
+    /// MP pages/roam/index history fog `/api/roam/tiles/page`.
+    func roamTileMemory(_ context: RuntimeDependencyContext) -> RoamTileMemoryReadAccess? {
+        guard roamRoleAllowed(context) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamTileMemoryByContext[key], existing.matches(context) { return existing }
+        roamTileMemoryByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: [RoamTileMemoryReadRoute.path]),
+              let issued = try? RoamTileMemoryReadAccess(context: context, approval: endpoints) else { return nil }
+        roamTileMemoryByContext[key] = issued
+        return issued
+    }
+
+    /// MP subpackageRoam/session `GET /api/roam/session` (one walk's facts).
+    func roamSessionFact(_ context: RuntimeDependencyContext) -> RoamSessionFactReadAccess? {
+        guard roamRoleAllowed(context) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamSessionFactByContext[key], existing.matches(context) { return existing }
+        roamSessionFactByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: [RoamSessionFactReadRoute.path]),
+              let issued = try? RoamSessionFactReadAccess(context: context, approval: endpoints) else { return nil }
+        roamSessionFactByContext[key] = issued
         return issued
     }
 

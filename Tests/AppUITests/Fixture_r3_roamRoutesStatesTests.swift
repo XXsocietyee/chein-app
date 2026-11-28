@@ -22,6 +22,7 @@ final class Fixture_r3_roamRoutesStatesTests: XCTestCase {
     func testRoutesEmptyShowsMPEmptyState() {
         let app = launch("r3-roam-routes-empty", language: "zh-Hans")
         XCTAssertTrue(app.descendants(matching: .any)["officialRoute.list.empty"].firstMatch.waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["返回地图"].firstMatch.waitForExistence(timeout: 5))
     }
 
     func testRoutesErrorShowsRetry() {

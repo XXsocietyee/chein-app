@@ -534,11 +534,11 @@ extension KeychainTokenStore: AppTokenStorage {}
             messagingHistoryReadApproval(context) ?? (productionGatesEnabled ? gates.messagingHistory(context) : nil)
         }
         self.walletHistoryReadApproval = walletHistoryReadApproval ?? (productionGatesEnabled ? { [gates] in gates.walletHistory($0) } : { _ in nil })
-        self.roamSessionFactReadAccess = roamSessionFactReadAccess
-        self.roamNearbyEventsReadAccess = roamNearbyEventsReadAccess
+        self.roamSessionFactReadAccess = { [gates] context in roamSessionFactReadAccess(context) ?? (productionGatesEnabled ? gates.roamSessionFact(context) : nil) }
+        self.roamNearbyEventsReadAccess = { [gates] context in roamNearbyEventsReadAccess(context) ?? (productionGatesEnabled ? gates.roamNearbyEvents(context) : nil) }
         self.roamNearbyPlayersReadAccess = { [gates] context in roamNearbyPlayersReadAccess(context) ?? (productionGatesEnabled ? gates.roamNearbyPlayers(context) : nil) }
         self.roamEntryNearbyReadAccess = { [gates] context in roamEntryNearbyReadAccess(context) ?? (productionGatesEnabled ? gates.roamEntryNearby(context) : nil) }
-        self.roamReceivedStampReadAccess = roamReceivedStampReadAccess
+        self.roamReceivedStampReadAccess = { [gates] context in roamReceivedStampReadAccess(context) ?? (productionGatesEnabled ? gates.roamReceivedStamp(context) : nil) }
         self.roamPassportHistoryReadAccess = { [gates] context in
             roamPassportHistoryReadAccess(context) ?? (productionGatesEnabled ? gates.roamPassportHistory(context) : nil)
         }
@@ -547,8 +547,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
         self.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
         self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileOwnedCoupon($0) } : { _ in nil })
-        self.roamAlbumMetadataReadAccess = roamAlbumMetadataReadAccess
-        self.roamTileMemoryReadAccess = roamTileMemoryReadAccess
+        self.roamAlbumMetadataReadAccess = { [gates] context in roamAlbumMetadataReadAccess(context) ?? (productionGatesEnabled ? gates.roamAlbumMetadata(context) : nil) }
+        self.roamTileMemoryReadAccess = { [gates] context in roamTileMemoryReadAccess(context) ?? (productionGatesEnabled ? gates.roamTileMemory(context) : nil) }
         self.profilePublicInfoReadAccess = profilePublicInfoReadAccess
         self.profileGuideReadAccess = profileGuideReadAccess
         self.profileFavoritesReadAccess = profileFavoritesReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavorites($0) } : { _ in nil })

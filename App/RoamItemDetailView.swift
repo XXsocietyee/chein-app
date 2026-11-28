@@ -260,8 +260,9 @@ struct RoamItemDetailView: View {
             RoamPlaceExtrasMount(poiID: node.poiId)
         }
     }
-    /// P15 header. The challenge is the one prominent capsule (P3) while it is open; stamp camera, poster scan and
-    /// share follow as bordered capsules. Same destinations and identifiers as the rows they replace.
+    /// P15 header. The challenge is the one prominent capsule (P3) while it is open; stamp camera and share follow
+    /// as bordered capsules. Function audit P1-19: no 扫海报码 — the MP poi-detail actions are 收藏 / 导航 / 投一张 only,
+    /// and the poster scan had no working camera (`cameraEnabled: false`). Same destinations and identifiers as the rows they replace.
     private func placeHeader(place: RoamPlace, node: RoamNodeDetail) -> some View {
         let isCompleted = poiActionModel.completedOverride ?? node.completed
         let name = node.name.isEmpty ? place.name : node.name
@@ -280,11 +281,6 @@ struct RoamItemDetailView: View {
             }
             .buttonStyle(.bordered).buttonBorderShape(.capsule)
             .accessibilityIdentifier("media.stamp.open")
-            NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: {
-                Label("design.roam.place.action.poster", systemImage: "qrcode.viewfinder")
-            }
-            .buttonStyle(.bordered).buttonBorderShape(.capsule)
-            .accessibilityIdentifier("media.poster.open")
             poiShareButton.buttonStyle(.bordered).buttonBorderShape(.capsule)
         }
     }

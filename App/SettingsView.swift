@@ -231,10 +231,7 @@ struct SettingsView: View {
                 SettingsPrivacyLocationEntry(session: session).environment(\.settingsTileTint, SettingsTint.green)
                 // mp-mine r3: personal location sharing sits with 隐私与定位 (moved here from 我的).
                 Section {
-                    NavigationLink { PersonalLocationShareEntry(recipientId: nil) } label: {
-                        Label { Text("personalLocationShare.title.management", tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
-                    }
-                    .accessibilityIdentifier("settings.personalLocationShare")
+                    PersonalLocationShareOfferedLink(recipientId: nil, titleKey: "personalLocationShare.title.management", identifier: "settings.personalLocationShare")
                 }
                 .environment(\.settingsTileTint, SettingsTint.green)
                 NPCChatDataReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)

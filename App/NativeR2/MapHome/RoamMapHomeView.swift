@@ -4,6 +4,8 @@ import MapKit
 import QuestifyCore
 #endif
 
+typealias RoamMapHomeSignInGate = (@escaping @MainActor () -> Void) -> Void
+
 /// Everything the map home needs from the session. Hosts pass the same readers and destinations the
 /// City root (`SessionCityRoamRoot`) and the roam browser (`RoamBrowserView`) already use.
 struct RoamMapHomeDependencies {
@@ -34,6 +36,9 @@ struct RoamMapHomeDependencies {
     /// nil (fixtures, previews) keeps the manual area picker only.
     var locateArea: (@MainActor () async throws -> RoamSearchArea)? = nil
     var onOpenAccount: (() -> Void)? = nil
+    /// MP `goStart` guest branch (`app.requireLogin({ reason: 'roam' })`, then the start resumes): non-nil only while
+    /// signed out. It shows sign-in and runs the passed start after a successful sign-in.
+    var signInToStart: RoamMapHomeSignInGate? = nil
     /// MP pages/roam/index `unfinishedRoam` / `recoveryError`: the local journal read that turns 开始漫游 into
     /// 继续漫游 and shows 上次漫游需要确认. nil hides both, as before.
     var experienceReader: (any RoamExperienceReading)? = nil
