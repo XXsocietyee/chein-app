@@ -117,7 +117,7 @@ public struct ObjectCardRenameSheetView: View {
                                 .foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("objects.rename.error")
                         }
-                        Text(verbatim: "\(name.count)/\(ObjectCardRenameValidator.maxLength)")
+                        Text(verbatim: "\(name.count)/\(ObjectCardRenameValidator.maxLength)").accessibilityLabel(Text("a11y.value.characters \(Int(name.count)) \(Int(ObjectCardRenameValidator.maxLength))"))
                             .cyText(.meta, monospacedDigit: true)
                             .foregroundStyle(CYColor.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .trailing)

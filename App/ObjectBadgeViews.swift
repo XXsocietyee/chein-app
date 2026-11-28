@@ -43,6 +43,9 @@ private enum ObjectBadgeWallColumns {
     @Namespace private var hero
     @CYAlbumSeen private var seen
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    /// Opened grid cell (slot identifier). Cells are plain buttons, not `NavigationLink`s: inside a List row the system
+    /// draws a disclosure chevron next to every link, which put stray chevrons between the grid's badges.
+    @State private var openSlot: String?
     /// BWALL-3: two columns at the default text size, one column when Dynamic Type is an accessibility size.
     private var badgeWallColumns: [GridItem] {
         let count = dynamicTypeSize.isAccessibilitySize ? 1 : 2
@@ -86,6 +89,11 @@ private enum ObjectBadgeWallColumns {
                     .listRowBackground(palette.bgElevated)
                 }
             }
+            .navigationDestination(item: $openSlot) { id in
+                if let slot = (groups.lit + groups.locked).first(where: { $0.identifier == id }) {
+                    destination(slot.badge, albumID: slot.identifier, wall: wall)
+                }
+            }
         }.scrollContentBackground(.hidden).cyDomainPageBackground().cyAlbumChildTitle("profile.badges.title")
             .cyHideTabBar()
             // The typed internal badge-path entry is not a player feature and is not offered here.
@@ -98,18 +106,21 @@ private enum ObjectBadgeWallColumns {
         }.padding(.vertical, 4)
     }
     private func link(_ badge: ProfileBadgeSelection, identifier: String, albumID: String, wall: ProfileBadgeWall) -> some View {
-        let capturedIdentity = reader.identity
-        let media = self.media ?? envMedia
         let isNew = ObjectBadgeAlbumItem.isNew(badge) && !seen.contains(ObjectBadgeAlbumItem.seenKey(badge))
-        return NavigationLink {
-            ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,
-                                  collection: wall.isPartial ? nil : ObjectBadgeWallSummary(wall: wall))
-                .modifier(ObjectBadgeThreeDEntry(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media))
-                .cyHeroDestination(albumID, in: hero)
+        return Button {
+            openSlot = albumID
         } label: {
             ObjectBadgeWallBadgeLabel(badge: badge, isNew: isNew)
                 .cyHeroSource(albumID, in: hero)
         }.accessibilityIdentifier(identifier)
+    }
+    private func destination(_ badge: ProfileBadgeSelection, albumID: String, wall: ProfileBadgeWall) -> some View {
+        let capturedIdentity = reader.identity
+        let media = self.media ?? envMedia
+        return ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,
+                                     collection: wall.isPartial ? nil : ObjectBadgeWallSummary(wall: wall))
+            .modifier(ObjectBadgeThreeDEntry(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media))
+            .cyHeroDestination(albumID, in: hero)
     }
 }
 

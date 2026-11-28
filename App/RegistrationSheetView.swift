@@ -28,6 +28,8 @@ struct RegistrationSheetView: View {
     @Environment(\.registrationMySignupsDestination) private var mySignupsDestination
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    /// Design fixtures only (offline bundled MP cover); production never sets it.
+    @Environment(\.e1ActivityHeroFixtureCover) private var fixtureCover
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.offlineWriteSession) private var offlineWriteSession
     @Environment(\.registrationHidesFixtureNotice) private var hidesFixtureNotice
@@ -399,8 +401,14 @@ struct RegistrationSheetView: View {
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     Color.clear.frame(width: 72, height: 72)
-                        .overlay { E1CoverArt(seed: name, symbol: "ticket", imageURL: summary.imageURL, debugLabel: false,
-                                              fallbackImage: MPAsset.BannerCover.coverRoute, fallbackFills: false) } // MP baoming.wxml:85
+                        .overlay {
+                            if QuestifyCardArtwork.safeURL(summary.imageURL) == nil, let fixtureCover {
+                                fixtureCover.resizable().scaledToFill().accessibilityHidden(true)
+                            } else {
+                                E1CoverArt(seed: name, symbol: "ticket", imageURL: summary.imageURL, debugLabel: false,
+                                           fallbackImage: MPAsset.BannerCover.coverRoute, fallbackFills: false) // MP baoming.wxml:85
+                            }
+                        }
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         if name.isEmpty { Text("registrationParity.activityNamePending").cyText(.cardTitle) }
@@ -608,6 +616,13 @@ struct RegistrationSheetView: View {
         if ticket.price == 0 { return copy.t("确认报名", "Confirm sign-up") }
         return PlayAreaPopupCopy.paymentsOpen ? copy.t("确认价格并付款", "Confirm price and pay") : nil
     }
+    private func footnoteReason(_ copy: CoreLoopCopy) -> String? {
+        if flow.checkoutFooterNotice(paymentReadiness: paymentReadiness) != nil { return blockReason(copy) }
+        switch flow.confirmationBlock {
+        case .missingConsent?, .invalidForm?, .signupClosed?: return nil
+        default: return blockReason(copy)
+        }
+    }
     private func footerNoticeText(_ notice: RegistrationCheckoutFooterNotice, _ copy: CoreLoopCopy) -> String {
         switch notice {
         case .checkingPrice: return copy.t("正在核对价格…", "Checking the price…")
@@ -623,6 +638,13 @@ struct RegistrationSheetView: View {
         let copy = CoreLoopCopy(locale: locale)
         return CYFooterBar {
             VStack(spacing: CYSpacing.sm) {
+                // MP baoming.wxml:325-328 bmbottom_box: the separate, unticked sharing consent (PIPL Art. 23) sits
+                // in the bottom bar directly above the button, so "tick it first" points at something in view.
+                if flow.creationPolicy.permitsCreation {
+                    Toggle(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.fixtureConsent" : "registration.r3.hostShareConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
+                        .font(.footnote)
+                        .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.consent")
+                }
                 CurA11yActions {
                     TimelineView(.periodic(from: .now, by: 1)) { _ in
                         let blocked = flow.confirmationBlock != nil
@@ -661,7 +683,8 @@ struct RegistrationSheetView: View {
                     }
                 }
                 TimelineView(.periodic(from: .now, by: 1)) { _ in
-                    if let reason = blockReason(copy) {
+                    // The blocked button already names the step (MP cy-btn label); the footnote only adds other reasons.
+                    if let reason = footnoteReason(copy) {
                         Label { Text(verbatim: reason) } icon: { Image(systemName: "info.circle") }
                             .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1053,9 +1076,6 @@ struct RegistrationSheetView: View {
                         NavigationLink { complianceSignupDestination() } label: { Text("compliance.title") }
                     }
                 }
-                // MP bottom bar: a separate, unticked consent whose label is the sharing sentence itself (PIPL Art. 23).
-                Toggle(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.fixtureConsent" : "registration.r3.hostShareConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
-                    .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.consent")
                 if flow.creationPolicy.recordsServerConsent {
                     CYPillButton("registration.waitlist.recordConsent", style: .secondary) { Task { await flow.recordSignupConsent() } }
                         .disabled(!flow.canEdit || !flow.consented)

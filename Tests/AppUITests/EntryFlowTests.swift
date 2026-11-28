@@ -100,8 +100,7 @@ final class EntryFlowTests: XCTestCase {
     func testChinesePreferenceSurvivesRelaunchAndSwitchesBack() {
         openSettings(title:"Settings")
         XCTAssertTrue(selectLanguage(in:app,option:"简体中文"),app.debugDescription)
-        let done=app.buttons["完成"]
-        XCTAssertTrue(done.waitForExistence(timeout:5));done.tap()
+        app.navigationBars.buttons.firstMatch.tap()
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("创建账号"))
         app.terminate()
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"]
@@ -111,7 +110,7 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("创建账号"))
         openSettings(title:"设置")
         XCTAssertTrue(selectLanguage(in:app,option:"English"),app.debugDescription)
-        XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout:5));app.buttons["Done"].tap()
+        app.navigationBars.buttons.firstMatch.tap()
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("Create account"))
     }
 
@@ -162,7 +161,7 @@ final class EntryFlowTests: XCTestCase {
             app.terminate();app.launch()
             skipOnboardingIfPresent(in: app)
             openSettings(title:"Settings")
-            app.buttons["Done"].tap()
+            app.navigationBars.buttons.firstMatch.tap()
             XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
         }
     }

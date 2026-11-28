@@ -30,7 +30,7 @@ struct CYChapterGate: View {
                     if number == 0 { Text("chapterFlip.prologue") }
                     else { Text("chapterFlip.meta \(number) \(max(total, 1))") }
                 }
-                .cyText(.caption).textCase(.uppercase)
+                .cyText(.caption)
                 .foregroundStyle(.white.opacity(0.6))
                 if let title, !title.isEmpty {
                     Text(verbatim: title).cyText(.pageTitle).foregroundStyle(.white)
@@ -112,7 +112,7 @@ struct CYChapterEndCard: View {
             .scaleEffect(shown || reduceMotion ? 1 : 0.6)
             .accessibilityHidden(true)
             VStack(spacing: CYSpacing.xs) {
-                Text("chapterFlip.complete \(number)").cyText(.caption).textCase(.uppercase)
+                Text("chapterFlip.complete \(number)").cyText(.caption)
                     .foregroundStyle(.white.opacity(0.66))
                 if let title, !title.isEmpty {
                     Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(.white)

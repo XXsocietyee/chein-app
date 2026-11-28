@@ -531,6 +531,64 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 None from this run.
 
+## Continue run 17 (2026-11-27, after merging combined-r7 into 028eee08a)
+
+Merge clean (46 files). Run 16 Not done: none. New sweep `docs/sweeps/latest` = build b3b03703a (23:07); sheets read:
+`mp-journey/sheet-en.jpg`, `mp-home/sheet-zh-Hans.jpg`, `mp-nav/sheet-en.jpg`, `mp-activity/sheet-en.jpg`.
+
+Scan: one text case (OWNER RULE 2 "fonts, letter spacing … consistent"). Run 16 made eyebrows sentence case outside the
+design system, but `mp-nav/sheet-en.jpg` (`onboarding-1`) still shows an all-caps **WELCOME** above "The city is
+waiting": the shared components in App/DesignSystem forced `.textCase(.uppercase)`. Every en string is already in
+sentence case ("New badge", "This walk", …), so the capitals were styling only; zh is unaffected.
+
+| MP page / area | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| 引导页 eyebrow (`onboarding-1`) | `App/DesignSystem/CYOnboarding.swift:326` | unchanged | WELCOME → Welcome |
+| 新徽章 / 这一趟 celebration titles | `App/DesignSystem/CYCelebrationViews.swift:552`, `:616` | unchanged | NEW BADGE / THIS WALK → sentence case |
+| 已获得 n 枚 medal deck caption | `App/DesignSystem/CYMedalStack.swift:170` | unchanged | sentence case |
+| 章节 n / 共 m, 序章, 第 n 章完成 | `App/DesignSystem/CYChapterFlip.swift:33`, `:115` | unchanged | sentence case |
+| 收集册 NEW pulse badge | `App/DesignSystem/CYAlbum.swift:251` | unchanged | sentence case |
+| 票夹 pass ribbon (已使用 / 已过期 …) | `App/DesignSystem/CYTicketPass.swift:126` | unchanged | sentence case |
+| — | `App/DesignSystem/CYExploreKit.swift` `cyEyebrow(isChinese:)` | — | deleted: 0 call sites, and it documented the all-caps eyebrow as the pattern |
+
+Not changed on purpose: italic bold numerals on the roam finish record, play-kit index numbers and the GO wordmark —
+the MP marks them `ds-ok` owner P-34 (NRC 粗斜体, `pages/roam/index.wxss:657`, playkit wxss), an owner-approved style.
+`.textCase(nil)` on `Section` headers (36 sites) keeps long header sentences as written; no change.
+
+New checker kind **all caps**: `.textCase(.uppercase)` anywhere in player `App/` (design system included). Baseline 0.
+Self-test: the pre-fix tree fails in exactly the seven files above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(all caps 0, status capsule 29 baselined, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+None from this run.
+
+## Continue run 18 (2026-11-28, after merging combined-r7 into 230b6f219)
+
+Merge clean (45 files). Run 17 Not done: none. No new coordinator row for this lane (latest sweep still build
+793c3190b). Sheets read: `mp-mine/sheet-en.jpg`, `mp-club/sheet-zh-Hans.jpg`.
+
+Scan: one grid pattern. `mp-club/sheet-zh-Hans.jpg` (`zh-Hans-d4-badges`, 我的徽章) shows a **stray `>` chevron beside
+every badge tile** (示例城市勋章 › 示例成就 ›): each grid cell was a `NavigationLink` inside a `List` row, and List draws
+its disclosure indicator next to every link in the row. The same wall in a `ScrollView` (stamps, 集邮册) has none.
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| `subpackageP3/badge-wall` (已点亮 → 未解锁 grid) | `App/ObjectBadgeViews.swift` `link(...)` / `destination(...)` | unchanged (header, partial, empty + 去探索, 已点亮, 未解锁; identifiers `profile.badge.*` kept, still buttons for UI tests) | cell `NavigationLink` → plain `Button` setting `openSlot`; one `.navigationDestination(item: $openSlot)` on the List opens the same `ObjectBadgeDetailView` (3D entry + hero zoom kept). No chevrons in the grid. |
+| `subpackageP3/object-cards` (VoiceOver / Reduce Motion grid) | `App/ObjectCardViews.swift` collection grid | unchanged (pile, grid, empty title; `objects.card.<id>` kept) | same fix, reusing the existing `pileSelection` destination (`fromGrid: true` keeps the hero zoom). |
+
+New checker kind **grid link**: a `NavigationLink` in a `LazyVGrid` / `LazyHGrid` / `Grid` cell (directly, or through a
+same-file helper the cell calls) whose nearest container is a `List`. Grids in a `ScrollView` are fine. Baseline 0.
+Self-test: the pre-fix tree fails in exactly the two files above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(grid link 0, status capsule 29 baselined, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**
+(`test_object_badge_wall_layout` passes unchanged). Simulator check of d4-badges still needed (next sweep).
+
+### Not done (next run)
+None from this run.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

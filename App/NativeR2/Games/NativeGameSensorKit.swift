@@ -89,7 +89,8 @@ import SwiftUI
     /// board under the figure (MP `qt__s`, `cp__hint`).
     @ViewBuilder private var kicker: some View {
         Group {
-            if let line = serverText("kicker") {
+            // The shell title falls back to the kicker (`PlayKitProjection.title`); never print it twice.
+            if let line = serverText("kicker"), line != (segment["title"].text ?? segment["question"].text ?? segment["kicker"].text ?? "") {
                 Text(verbatim: line).font(.headline).foregroundStyle(.primary)
             }
             switch kind {
@@ -110,6 +111,9 @@ import SwiftUI
         .foregroundStyle(.secondary)
         .accessibilityIdentifier("playkit.sensor.kicker")
     }
+
+    /// MP `rewardNote(rewardCeiling)`: only the server's XP_BADGE_ONLY ceiling earns a line; anything else says nothing.
+    private var xpBadgeOnly: Bool { segment["rewardCeiling"].text == "XP_BADGE_ONLY" }
 
     private func serverText(_ key: String) -> String? {
         let text = segment[key].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -177,6 +181,7 @@ import SwiftUI
             audioFigure(decimal(max(0, stage.quiet.targetSeconds - stage.quiet.heldSeconds)),
                         color: stage.phase == .running ? color : .primary)
             if let sub = serverText("sub") { Text(verbatim: sub).foregroundStyle(.secondary) }
+            if xpBadgeOnly { Text("playkit.rewardNote.xpBadgeOnly").font(.footnote).foregroundStyle(.secondary) }
             if stage.quiet.exceeded { Label("playkit.quiet.limitReached", systemImage: "speaker.wave.3").foregroundStyle(.red) }
         case .shout:
             // MP `playkit-shout`: figure (seconds left) → one plain line → safety line before the run; no level bar.
@@ -191,6 +196,9 @@ import SwiftUI
             } else {
                 Text("playkit.shout.goal \(decimal(stage.shout.targetSeconds))")
                     .frame(maxWidth: .infinity)
+            }
+            if xpBadgeOnly { Text("playkit.rewardNote.xpBadgeOnly").font(.footnote).foregroundStyle(.secondary) }
+            if !running {
                 Text("playkit.shout.safe").font(.footnote).foregroundStyle(.secondary)
             }
         case .compass:
@@ -213,6 +221,7 @@ import SwiftUI
             if (stage.phase == .idle || stage.phase == .interrupted), segment["done"].bool != true {
                 Text("playkit.compass.safe").font(.footnote).foregroundStyle(.secondary)
             }
+            if xpBadgeOnly { Text("playkit.rewardNote.xpBadgeOnly").font(.footnote).foregroundStyle(.secondary) }
         default:
             EmptyView()
         }

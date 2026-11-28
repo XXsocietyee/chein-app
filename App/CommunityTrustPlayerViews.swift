@@ -144,7 +144,7 @@ struct MerchantCorrectionSheet: View {
                                     )
                                     .lineLimit(3...6)
                                     .textFieldStyle(.roundedBorder)
-                                    Text(verbatim: "\(text.trimmingCharacters(in: .whitespacesAndNewlines).count)/\(CommunityTrustPlayerService.descriptionMax)")
+                                    Text(verbatim: "\(text.trimmingCharacters(in: .whitespacesAndNewlines).count)/\(CommunityTrustPlayerService.descriptionMax)").accessibilityLabel(Text("a11y.value.characters \(Int(text.trimmingCharacters(in: .whitespacesAndNewlines).count)) \(Int(CommunityTrustPlayerService.descriptionMax))"))
                                         .cyText(.meta)
                                         .foregroundStyle(CYColor.textSecondary)
                                 }

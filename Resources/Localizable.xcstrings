@@ -1615,6 +1615,23 @@
         }
       }
     },
+    "a11y.value.characters %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已输入 %1$lld 字，最多 %2$lld 字"
+          }
+        }
+      }
+    },
     "a11y.value.ofTotal %lld %lld": {
       "extractionState": "manual",
       "localizations": {
@@ -3551,6 +3568,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "主理人"
+          }
+        }
+      }
+    },
+    "activity.people.hostRole": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creator · Host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发起人 · 主理人"
           }
         }
       }
@@ -80769,7 +80803,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Editor's picks · entry conditions are on each detail page"
+            "value": "Picked by our editors · see each page for entry requirements"
           }
         },
         "zh-Hans": {
@@ -132610,6 +132644,23 @@
         }
       }
     },
+    "messaging.list.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载失败"
+          }
+        }
+      }
+    },
     "messaging.loadFailed": {
       "extractionState": "manual",
       "localizations": {
@@ -141401,7 +141452,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Team play doesn't support replaying alone. Turn off Allow playing again."
+            "value": "Team play can’t be replayed alone. Turn off “Allow playing again.”"
           }
         },
         "zh-Hans": {
@@ -141418,7 +141469,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shared routes in a session"
+            "value": "Shared routes"
           }
         },
         "zh-Hans": {
@@ -141459,6 +141510,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "主题玩法配置读取失败，请保存主题后重试"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.allowTrade": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teams can trade items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍之间可以交换物资"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.votePolicy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表决方式"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.vote.majority": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Majority"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "过半数"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.vote.unanimous": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyone agrees"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全体同意"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.vote.majorityAcceptance": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Majority accepts (a tie can be voted again)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "过半接受（平票可复议）"
           }
         }
       }
@@ -176619,7 +176755,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete a line · %@"
+            "value": "Line complete · %@"
           }
         },
         "zh-Hans": {
@@ -179651,13 +179787,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leave a message"
+            "value": "Write it below"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "写下留言"
+            "value": "写在下面"
           }
         }
       }
@@ -183669,13 +183805,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Name this creation"
+            "value": "Give it a name"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "给作品起个名字"
+            "value": "给它起个名字"
           }
         }
       }
@@ -183788,13 +183924,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stop and speak"
+            "value": "Give up and speak"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "停止计时并说话"
+            "value": "认输说话"
           }
         }
       }
@@ -206294,7 +206430,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit the nine cells in S order. Labels don't change how a cell lights up."
+            "value": "Edit the nine cells along an S-shaped path. Cell labels don’t change when a cell lights up."
           }
         },
         "zh-Hans": {
@@ -215167,7 +215303,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The draft allowance didn't load. The network isn't connected. Try again."
+            "value": "Couldn’t load your draft allowance. Check your connection and try again."
           }
         },
         "zh-Hans": {
@@ -215233,7 +215369,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The list didn't load. The network isn't connected. Try again."
+            "value": "Couldn’t load the list. Check your connection and try again."
           }
         },
         "zh-Hans": {
@@ -216968,7 +217104,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Whatever the final price exceeds the cost floor by is the organizer's gross margin; the settlement guarantee only activates for merchants actually redeemed in this session."
+            "value": "Anything the final price adds above the cost floor is the organizer’s gross margin. The settlement guarantee only counts merchants actually redeemed in this session."
           }
         },
         "zh-Hans": {
@@ -351091,7 +351227,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aligned. Hold for %@ s more"
+            "value": "Aligned. Hold steady for %@ more sec"
           }
         },
         "zh-Hans": {
@@ -351312,7 +351448,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keep it loud for %@ s in a row"
+            "value": "Stay loud for %@ sec straight"
           }
         },
         "zh-Hans": {
@@ -351346,7 +351482,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Healing music corner"
+            "value": "Relaxing music corner"
           }
         },
         "zh-Hans": {
@@ -351387,6 +351523,669 @@
           "stringUnit": {
             "state": "translated",
             "value": "继续"
+          }
+        }
+      }
+    },
+    "playkit.silent.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silent ordering · staff-witnessed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沉默点单 · 店员见证制"
+          }
+        }
+      }
+    },
+    "playkit.silent.performing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Performed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已表演"
+          }
+        }
+      }
+    },
+    "playkit.silent.generating": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generating the witness code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "见证码生成中"
+          }
+        }
+      }
+    },
+    "playkit.diy.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your creation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的作品"
+          }
+        }
+      }
+    },
+    "playkit.note.kicker": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave a line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留一句"
+          }
+        }
+      }
+    },
+    "playkit.note.fieldLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write your message"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写下你的留言"
+          }
+        }
+      }
+    },
+    "playkit.note.count %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已写 %1$lld 字，最多 %2$lld 字"
+          }
+        }
+      }
+    },
+    "playkit.note.usePreset %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this line: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用这句：%@"
+          }
+        }
+      }
+    },
+    "playkit.note.doneLine": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your line is left here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这句已经留在这儿了"
+          }
+        }
+      }
+    },
+    "playkit.note.submit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave this line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留下这句"
+          }
+        }
+      }
+    },
+    "roam.live.cards.teamPeople %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld/%2$lld people"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld/%2$lld 人"
+          }
+        }
+      }
+    },
+    "playkit.bingo.fullBanner %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All nine lit · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "九格全亮 · %@"
+          }
+        }
+      }
+    },
+    "playkit.bingo.howDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lights up when you get there"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走到即亮"
+          }
+        }
+      }
+    },
+    "playkit.bingo.panel.scan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan the code in the store and this square lights up."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到店扫一下店里的码，这一格就亮了。"
+          }
+        }
+      }
+    },
+    "playkit.bingo.panel.play %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This square holds “%@”. It lights up once you finish it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一格装的是「%@」。玩完它才会亮。"
+          }
+        }
+      }
+    },
+    "playkit.bingo.panel.ok": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got it"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知道了"
+          }
+        }
+      }
+    },
+    "playkit.bingo.panel.playDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This square lights up when you get there."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一格装的是「走到即亮」。玩完它才会亮。"
+          }
+        }
+      }
+    },
+    "playkit.photo.kicker": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take a photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍一张"
+          }
+        }
+      }
+    },
+    "playkit.photo.lastShot": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last photo you submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一张提交的照片"
+          }
+        }
+      }
+    },
+    "playkit.photo.verdict.degradedPass": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This one couldn't be reviewed. Carry on."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次没能审，先往下走"
+          }
+        }
+      }
+    },
+    "playkit.photo.verdict.degradedRetry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This one couldn't be reviewed. Take another."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次没能审，再拍一张"
+          }
+        }
+      }
+    },
+    "playkit.photo.verdict.recorded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录"
+          }
+        }
+      }
+    },
+    "playkit.photo.verdict.fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out of tries. This one counts for now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "机会用完了，这张先算过"
+          }
+        }
+      }
+    },
+    "playkit.photo.verdict.passed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This one passed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这张过了"
+          }
+        }
+      }
+    },
+    "playkit.photo.verified": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo verified"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片已核验"
+          }
+        }
+      }
+    },
+    "playkit.rewardNote.xpBadgeOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device score: counts toward exploration points and badges only, no coupons or points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机成绩：只记探索值与徽章，不发券或积分"
+          }
+        }
+      }
+    },
+    "playkit.photo.triesLeft %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retakes left: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还能重拍 %lld 次"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play format"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进行方式"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.question": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How do teams play together?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍怎样一起玩？"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.player": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each player on their own"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人独立进行"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.team": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each team on its own"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍独立进行"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.shared": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teams share one world"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍共用现场"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未选择"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.reason.hostUnlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn off staff-opened chapters first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先关闭章节的工作人员开幕"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.reason.shared": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trading, voting and shared facilities between teams need a shared world"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跨队交易、表决和共享设施需要队伍共用现场"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.reason.node": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A node's gameplay doesn't support this format"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有节点玩法不支持这种进行方式"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading supported gameplay…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取玩法支持范围"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.matrixFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't read supported gameplay. You can still save; the save result decides what is supported."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法支持范围未读取。仍可保存，支持情况以保存结果为准"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.mode.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }

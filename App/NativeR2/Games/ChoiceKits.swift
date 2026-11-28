@@ -100,12 +100,14 @@ import UIKit
         let value = raw[key].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return value.isEmpty ? nil : value
     }
-    /// MP `playkit-musiccorner` body: eyebrow + 到点 → title → player (track · time, play / pause, progress) → hint → 继续
-    /// (the bottom bar, `nativeKitSubmitB`). The MP default track name is 店主的歌单.
+    /// MP `playkit-musiccorner` body: eyebrow (shell header, MP default 治愈音乐角) · 到点 · title (shell header) → player
+    /// (track · time, play / pause, progress) → hint → 继续 (the bottom bar, `nativeKitSubmitB`). Default track 店主的歌单.
     var body: some View {
         Section {
-            if let title = text("title") {
-                Text(verbatim: title).font(.title3.weight(.semibold)).accessibilityAddTraits(.isHeader)
+            if raw["arrived"].bool == true {
+                Label("playkitLegacy.music.arrived", systemImage: "mappin")
+                    .foregroundStyle(.green)
+                    .accessibilityIdentifier("playkit.musicCorner.arrived")
             }
             LabeledContent {
                 if let seconds = raw["durationSeconds"].integer, seconds > 0 {
@@ -120,16 +122,6 @@ import UIKit
             }
             // Existing playback code (play / pause, progress, load failure + retry).
             PlatformAudioHost(rawURL: raw["audioUrl"].text, scope: mediaScope, makeModel: makeAudio)
-        } header: {
-            HStack {
-                if let eyebrow = text("eyebrow") { Text(verbatim: eyebrow) } else { Text("playkit.music.eyebrow") }
-                Spacer()
-                if raw["arrived"].bool == true {
-                    Label("playkitLegacy.music.arrived", systemImage: "mappin")
-                        .foregroundStyle(.green)
-                        .accessibilityIdentifier("playkit.musicCorner.arrived")
-                }
-            }
         } footer: {
             if let hint = text("hint") { Text(verbatim: hint) }
         }

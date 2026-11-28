@@ -39,7 +39,7 @@ final class ClubOpsEventPresentationTests: XCTestCase {
         XCTAssertEqual(ClubOpsEventClock.occurrenceText(.string("2026-09-27T16:30:00Z"), locale: zh), "9月28日 周一 00:30")
         XCTAssertNil(ClubOpsEventClock.occurrenceText(.string("unknown"), locale: zh))
         let english = ClubOpsEventClock.occurrenceText(.string("2026-09-28 09:00"), locale: en) ?? ""
-        XCTAssertTrue(english.contains("28") && english.contains("09:00"), english)
+        XCTAssertTrue(english.contains("28") && english.contains("9:00") && !english.contains("09:00"), english) // en-layout r3: locale hour cycle ("9:00 AM")
     }
     func testCorrectionWindowRangeAndSingleBound() {
         XCTAssertEqual(ClubOpsEventClock.correctionRange(start: "2026-10-08 09:00:00", end: "2026-10-10 18:00:00", locale: zh), "10月8日 09:00 – 10月10日 18:00")

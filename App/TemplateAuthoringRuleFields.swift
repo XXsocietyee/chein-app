@@ -55,7 +55,7 @@ import SwiftUI
                     HStack {
                         Label("templateRules.add", systemImage: "plus.circle.fill")
                         Spacer()
-                        Text(verbatim: "\(count)/\(TemplateAuthoringRuleSteps.maximumRows)")
+                        Text(verbatim: "\(count)/\(TemplateAuthoringRuleSteps.maximumRows)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(count)) \(Int(TemplateAuthoringRuleSteps.maximumRows))"))
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
                     }

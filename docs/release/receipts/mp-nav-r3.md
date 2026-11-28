@@ -196,6 +196,25 @@ Merged `origin/ui/combined-r7` (a2baf94fa). Sweep unchanged since 22:3x, so this
 | pages/member/index → 设置 (MP profile index.wxml:17 icon_set, navigateTo pages/shezhi/shezhi) → App/AccountView.swift | `.large` sheet with its own stack + 完成 (popup for a page edge, OWNER RULE 2) | `navigationDestination(isPresented: $showsSettings)` push of `SettingsView(…, isPushed: true)` + `.cyPushedChrome()`: no own stack, no 完成, system back; the 城瘾玩法 guide hand-off (`SettingsGuideHandoff`) now finishes on the pop (`onChange(of: showsSettings)` false) instead of the sheet's onDismiss, same begin/request/finish order; Settings no longer marks the 我的 root "sheet open" for replayed links (a push does not cover the tabs). MP shezhi list order unchanged | fixed |
 | signed-out 我的 root ⋯ → 设置 (App/WelcomeView.swift:66) | still a sheet (shared `cySheet(item:)` with 登录 / legal) | not changed this run: the welcome page is also the launch screen without a host stack; flagged | open |
 
+## Re-scan 11-27 23:3x (sweep build b3b03703a; mp-nav sheets clean)
+
+Sweep sheets (en / zh-Hans): `d2-inbox` inline 消息 ✓, `ia-tabs` large 首页 ✓, `login-player` one mark + phone sign-in only ✓, `onboarding-1` reads Chein in en ✓, `welcome` ✓. No coordinator row for mp-nav after 20:55; this run takes the carried Open row.
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| signed-out 我的 root / launch welcome ⋯ → 设置 (MP navigateTo pages/shezhi/shezhi) → App/WelcomeView.swift | `.cySheet(item:)` case `.settings` with its own stack + 完成 | both welcome modes already own a `NavigationStack` (the 23:xx note was wrong): `navigationDestination(isPresented: $showsSettings)` push of `SettingsView(isPushed: true)` + `.cyPushedChrome()`, system back, like 我的 → 设置; consent re-read on the pop. 登录 / legal stay sheets (MP popups). UI tests EntryFlowTests / NativeSettingsReuseFlowTests leave Settings with the nav-bar back button instead of 完成/Done | fixed |
+
+## Re-scan 11-28 00:xx (sweep build 793c3190b; mp-nav sheets clean)
+
+Merged `origin/ui/combined-r7` (793c3190b). Sweep sheets (en / zh-Hans): `d2-inbox` inline 消息 ✓, `ia-tabs` large 首页 / Home ✓, `login-player` one mark + phone sign-in only ✓, `onboarding-1` Chein in en ✓, `welcome` ✓. No new coordinator row for mp-nav. Next pages without a row: 发布 shelf (pages/templatedetail/shelf openTopic / openGame → topic-preview / templatedetail: `navigationDestination` / `NavigationLink` pushes, OK) and 俱乐部 帖文 feed edges (MP talent/list index.js:229-281).
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| pages/talent/list 帖文 (and club detail 帖子) 引用卡 → pages/topic/index/index (`onPostReference`, index.js:241-246 navigateTo) → App/ClubPostReferenceView.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` + 关闭 (popup for a page edge, OWNER RULE 2) | `NavigationLink` push of `ClubPostReferenceDestination` (no own stack, no 关闭, `.cyPushedChrome()`, system back); the destination still re-checks the route and pops when the post / identity / scope changed. Row content and MP order unchanged | fixed |
+| pages/talent/list 帖文 引用卡 现在去玩 → pages/play/index?topicId= (`onPostReferencePlay`, index.js:248-252 navigateTo) → App/ClubPostPlayPreview.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` + 关闭 around `SessionPlayRuntimeView` | `NavigationLink` push of `ClubPostPlayDestination` (no own stack, no 关闭, `.cyPushedChrome()`), same as topic 开始 (`showingPlay` push); route / identity / revision re-checks still pop it; signed-out 登录 stays a sheet (MP popup) | fixed |
+| pages/club/detail 成员 / 贡献榜 row → pages/userinfo/userinfo (`goMemberProfile`, detail index.js:2506 navigateTo) → App/ClubPublicRosterView.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` | `navigationDestination(item:)` push of `SocialPublicProfileView` + `.cyPushedChrome()`; the roster's onDisappear reset is skipped while the profile is pushed (as with the sheet), scene-phase / identity checks still close it | fixed |
+| talent/list 帖文 post tap / author / club chip → square detail, club detail (postId), pages/userinfo (onPostTap / onPostUser / onPostClub) | — | `navigationDestination(item:)` pushes in ClubCommunityFeedView (ClubCommunityViews.swift:471-493) | OK |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
@@ -215,7 +234,7 @@ All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScre
 
 ## Open (carried)
 
-- 我的 → 设置 is a push since 23:xx (AccountView); the signed-out Welcome ⋯ 设置 (WelcomeView.swift:66) is still a sheet.
+- 我的 → 设置 and signed-out Welcome ⋯ 设置 are both pushes now (23:xx / 23:3x).
 - 漫游护照与工具 hub sheet (owner Q9) and topic 编辑 editor sheet — kept, see the edge table.
 
 ## For other lanes

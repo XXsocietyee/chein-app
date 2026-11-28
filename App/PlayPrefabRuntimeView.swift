@@ -47,7 +47,7 @@ import SwiftUI
                 if let check = scene.check {
                     Section("playx.prefab.check") {
                         LabeledContent("playx.prefab.dice") { Text(verbatim: check.dice.map(String.init).joined(separator: " + ")) }
-                        LabeledContent("playx.prefab.score") { Text(verbatim: "\(check.score) / \(check.dc)") }
+                        LabeledContent("playx.prefab.score") { Text(verbatim: "\(check.score) / \(check.dc)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(check.score)) \(Int(check.dc))")) }
                         Text(LocalizedStringKey(check.ok ? "playx.prefab.check.success" : "playx.prefab.check.failure"))
                         CYPillButton("playx.prefab.continue") { scene.closeCheck(); save() }.listRowBackground(Color.clear)
                     }
