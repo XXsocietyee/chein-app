@@ -141435,7 +141435,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Team play doesn't support replaying alone. Turn off Allow playing again."
+            "value": "Team play can’t be replayed alone. Turn off “Allow playing again.”"
           }
         },
         "zh-Hans": {
@@ -141452,7 +141452,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shared routes in a session"
+            "value": "Shared routes"
           }
         },
         "zh-Hans": {
@@ -206413,7 +206413,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit the nine cells in S order. Labels don't change how a cell lights up."
+            "value": "Edit the nine cells along an S-shaped path. Cell labels don’t change when a cell lights up."
           }
         },
         "zh-Hans": {
@@ -215286,7 +215286,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The draft allowance didn't load. The network isn't connected. Try again."
+            "value": "Couldn’t load your draft allowance. Check your connection and try again."
           }
         },
         "zh-Hans": {
@@ -215352,7 +215352,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The list didn't load. The network isn't connected. Try again."
+            "value": "Couldn’t load the list. Check your connection and try again."
           }
         },
         "zh-Hans": {
@@ -217087,7 +217087,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Whatever the final price exceeds the cost floor by is the organizer's gross margin; the settlement guarantee only activates for merchants actually redeemed in this session."
+            "value": "Anything the final price adds above the cost floor is the organizer’s gross margin. The settlement guarantee only counts merchants actually redeemed in this session."
           }
         },
         "zh-Hans": {
@@ -351193,7 +351193,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aligned. Hold for %@ s more"
+            "value": "Aligned. Hold steady for %@ more sec"
           }
         },
         "zh-Hans": {
@@ -351414,7 +351414,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keep it loud for %@ s in a row"
+            "value": "Stay loud for %@ sec straight"
           }
         },
         "zh-Hans": {
@@ -351448,7 +351448,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Healing music corner"
+            "value": "Relaxing music corner"
           }
         },
         "zh-Hans": {

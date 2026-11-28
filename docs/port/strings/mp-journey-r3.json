@@ -2711,7 +2711,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Aligned. Hold for %@ s more"
+          "value": "Aligned. Hold steady for %@ more sec"
         }
       },
       "zh-Hans": {
@@ -2949,7 +2949,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Keep it loud for %@ s in a row"
+          "value": "Stay loud for %@ sec straight"
         }
       },
       "zh-Hans": {
@@ -2983,7 +2983,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Healing music corner"
+          "value": "Relaxing music corner"
         }
       },
       "zh-Hans": {
