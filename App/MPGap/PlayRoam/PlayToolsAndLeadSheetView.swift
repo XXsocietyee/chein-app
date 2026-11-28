@@ -261,7 +261,7 @@ public struct PlayToolsAndLeadSheetView: View {
                     .navigationBarTitleDisplayMode(.inline)
                 } label: {
                     LabeledContent("playTools.team") {
-                        Text(verbatim: "\(teamLead.arrived ?? 0)/\(teamLead.members.count)").monospacedDigit()
+                        Text(verbatim: "\(teamLead.arrived ?? 0)/\(teamLead.members.count)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotal \(Int(teamLead.arrived ?? 0)) \(Int(teamLead.members.count))"))
                     }
                 }
                 .accessibilityIdentifier("playTools.team")

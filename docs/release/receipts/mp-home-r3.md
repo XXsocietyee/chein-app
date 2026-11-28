@@ -260,8 +260,18 @@ Rebased on `origin/mp/r3-home`. No coordinator item for mp-home at 23:20. Sweep 
 |---|---|---|
 | `pages/index/index.wxml:103-121` 编辑精选 card → `d2-home` (`App/HomeFeedFixtureSupport.swift` `HomeFixtureLanguage`) | `zh-Hans-d2-home.jpg` / `en-d2-home.jpg`: card title 「示例街区路线」 / "Sample neighborhood route" reads as a placeholder. | **Fixed** — under `--design-fixture` only: topic 老城灯笼夜行 / Old Town Lantern Walk (area 老城 / Old Town), activity 滨江灯笼漫步 / Riverside Lantern Walk (西岸码头 / West Bund Pier). UI-test runs keep the synthetic names. |
 
+## Round 3 continue (15) — 23:37 sweep (build 793c3190b), mp-home sheets zh-Hans + en
+
+Merged `origin/ui/combined-r7` (clean). Coordinator 23:50: the mp-home 19:15 / 19:50 / 21:20 findings are fixed. Build 793c3190b predates `933ae767e` (continue 14 编辑精选 names), so the card still reads 示例街区路线 there; recheck next sweep.
+
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `scene-play-activity-detail/index.wxml:55-62` `{{registrationCountText}} 人已报名` + avatars → `App/ActivityPeopleSection.swift` | `zh-Hans-rep3-activity-detail.jpg` / `en-…`: section 报名玩家预览 / "Participant preview" with a 报名总人数 24 row — the count repeats the 已报名 fact row right above, and the MP title is the count itself. MP also hides the section when there are no registrants. | **Fixed** — section only when `participants` is non-empty, header 「N 人已报名」 / "N going" (`activity.pinned.going %lld`; unknown count → 报名玩家预览), no total row; header keeps id `activity.people.total`. UI test `ActivityFlowTests` label → "12 going"; pin in `test_activity_topic_accessible_summaries.py` updated with a one-line reason. |
+| `pages/topic/index/index.wxml:302-316` 评价 empty → `App/TopicDetailView.swift` `Section("topic.comments")` | Continue-13 Not-done row: with no reviews the bordered 写评价 button sat above the 还没有评价 card, which is itself the write entry (two entries). | **Fixed** — the bordered button (`topic.openReview`) shows only when the empty card does not; the empty card button is unchanged (keeps `topic.reviews.empty`). `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` now asserts no `topic.openReview` in the empty state; `check_contextual_flows.py` still finds the id (its pre-existing failure at line 21, `ContextualTopicPicker`, is unrelated and fails on the base too). With reviews, 写评价 stays above the list (MP: trailing in the rating row) — kept. |
+| `scene-play-activity-detail/index.wxml:47-53` `activity-host` (avatar · name · 「发起人 · 主理人」) → `App/ActivityPeopleSection.swift` host row | Native showed avatar + name only. | **Fixed** — `.footnote` `.secondary` role line under the name, new key `activity.people.hostRole` 发起人 · 主理人 / Creator · Host (en + zh-Hans, `docs/port/strings/mp-home-r3.json` + catalog). Shop-hosted activities keep the 主办方 section (MP 商家 role) unchanged. |
+
 ## Not done / follow-ups
-- 主题详情 评价: double write entry in the empty state (continue 13 row) — needs the UI test updated with a simulator.
+- ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
 - ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
 - Needs a simulator pass: P21 bar height over each tab's last row, zoom source/destination match on iOS 18 and 26, Reduce Motion crossfade, the roam HUD's persistent sheet inside the cover.
@@ -279,3 +289,5 @@ Rebased on `origin/mp/r3-home`. No coordinator item for mp-home at 23:20. Sweep 
 - Needs a simulator pass (continue 11): 编辑精选 card with club / Beta 试玩 row above the title.
 - Needs a simulator pass (continue 12): zh `d2-search-results` row names.
 - Needs a simulator pass (continue 14): `d2-home` 编辑精选 card name.
+- Needs a simulator pass (continue 15): activity detail 「N 人已报名」 section header (and the `ActivityFlowTests` label "12 going").
+- Needs a simulator pass (continue 15): `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` with one write entry.
