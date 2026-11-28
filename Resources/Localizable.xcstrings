@@ -357921,6 +357921,74 @@
           }
         }
       }
+    },
+    "nativeR2.mapHome.routes.exploreMap": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explore the map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去地图看看"
+          }
+        }
+      }
+    },
+    "homeFeed.empty.showActivities": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看活动"
+          }
+        }
+      }
+    },
+    "homeFeed.empty.showTopics": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See themes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看主题"
+          }
+        }
+      }
+    },
+    "ticketWallet.focus.resolvingLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finding the original registration ticket"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在定位原报名凭证"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
