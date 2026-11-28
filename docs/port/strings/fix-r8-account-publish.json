@@ -498,7 +498,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Hei"
+          "value": "Sans serif"
         }
       },
       "zh-Hans": {
@@ -515,7 +515,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Kai"
+          "value": "Calligraphic"
         }
       },
       "zh-Hans": {
@@ -532,7 +532,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Song"
+          "value": "Serif"
         }
       },
       "zh-Hans": {
@@ -549,7 +549,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Theme colours"
+          "value": "Theme colors"
         }
       },
       "zh-Hans": {
@@ -583,7 +583,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Use each chapter's colours"
+          "value": "Use each chapter’s colors"
         }
       },
       "zh-Hans": {

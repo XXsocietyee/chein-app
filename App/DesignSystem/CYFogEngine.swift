@@ -40,8 +40,7 @@ struct CYFogCoverageBadge: View {
             }
         }
         .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
-        .background(.ultraThinMaterial, in: Capsule(style: .continuous))
-        .background(Color.black.opacity(0.5), in: Capsule(style: .continuous))
+        .background(.regularMaterial, in: Capsule(style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("roam.fog.coverage.explored"))
         .accessibilityValue(Text(verbatim: reading.percentText))
