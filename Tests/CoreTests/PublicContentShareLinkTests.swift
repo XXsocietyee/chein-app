@@ -132,6 +132,15 @@ final class PublicContentShareLinkTests: XCTestCase {
         XCTAssertNil(PublicContentShareLink.clubTicket(TopicClubShareLink(topicID: 8, sourceClubId: 0, clubCode: nil)))
     }
 
+    /// T-02 (MP team/detail js:546): 分享邀请码 shares `/pages/team/join/index?code=`, which opens the invitation preview.
+    func testTeamInviteShareIsTheMiniProgramJoinLinkThatParsesBack() throws {
+        let url = try XCTUnwrap(PublicContentShareLink.teamInvite(code: "AB12CD"))
+        XCTAssertEqual(url.absoluteString, "https://www.chengyinhub.com/pages/team/join/index?code=AB12CD")
+        XCTAssertEqual(UniversalLinkParser(verifiedHTTPSOrigins: [PublicContentShareLink.httpsOrigin]).parse(url),
+                       .teamInvitation(try TeamInvitationRoute(code: "AB12CD")))
+        XCTAssertNil(PublicContentShareLink.teamInvite(code: ""))
+    }
+
     /// MP infomationdetail.js:161 share path: the guide article shares its https link once the parser reads it back.
     func testInformationSharesTheParsedUniversalLink() throws {
         let url = try XCTUnwrap(PublicContentShareLink.information(id: 21))

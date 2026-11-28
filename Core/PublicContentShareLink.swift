@@ -102,6 +102,19 @@ public enum PublicContentShareLink {
         return reviewedPage(TopicClubShareLink.page, items: items)
     }
 
+    /// T-02 (MP pages/team/detail/index.js:546 `onShareAppMessage` path `/pages/team/join/index?code=`): the team
+    /// invite as an https universal link carrying only the code. Nil when it would not parse back to the same invitation.
+    public static func teamInvite(code: String) -> URL? {
+        guard let origin else { return nil }
+        var components = URLComponents(string: origin)
+        components?.path = "/pages/team/join/index"
+        components?.queryItems = [URLQueryItem(name: "code", value: code)]
+        guard let url = components?.url,
+              let intent = UniversalLinkParser(verifiedHTTPSOrigins: [origin]).parse(url),
+              case .teamInvitation(let route) = intent, route.code == code, route.fromTeamID == nil else { return nil }
+        return url
+    }
+
     /// Builds `origin/<page>?<items>` and keeps it only when the existing universal-link parser reads back the same page.
     private static func reviewedPage(_ page: String, items: [URLQueryItem]) -> URL? {
         guard let origin, let link = MiniProgramPageLink(path: page, items: items) else { return nil }
