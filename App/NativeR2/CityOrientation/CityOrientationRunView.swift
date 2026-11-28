@@ -631,8 +631,7 @@ struct CityOrientationTeamStack: View {
             }
             Text("design.roam.teamsOnRoute \(teams.count)")
                 .font(.footnote.weight(.semibold))
-                .lineLimit(2)
-                .minimumScaleFactor(0.85)
+                .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, CYSpacing.sm)

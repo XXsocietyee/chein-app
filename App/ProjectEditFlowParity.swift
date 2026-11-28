@@ -45,7 +45,7 @@ struct ProjectEditScheduleSpan: View {
             Text(title).font(.caption).foregroundStyle(.secondary)
             Text(verbatim: date.map(format) ?? "—").font(.body).monospacedDigit()
                 .foregroundStyle(date == nil ? Color.secondary : Color.primary)
-                .lineLimit(1).minimumScaleFactor(0.7)
+                .lineLimit(2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

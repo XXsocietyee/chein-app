@@ -53,8 +53,7 @@ struct CityOrientationETAText: View {
                 Text("nativeR2.city.eta \(CityOrientationETA.durationText(minutes: minutes, locale: locale)) \(CityOrientationETA.clockText(minutes: minutes, from: context.date, locale: locale))")
                     .monospacedDigit()
                     .contentTransition(.numericText())
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                    .lineLimit(2)
             }
             .accessibilityIdentifier("nativeR2.city.eta")
         }
