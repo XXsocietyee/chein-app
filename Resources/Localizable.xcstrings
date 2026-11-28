@@ -61393,7 +61393,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not read progress. Node status is unconfirmed."
+            "value": "Couldn’t load your progress. The current stop’s status isn’t confirmed yet."
           }
         },
         "zh-Hans": {
@@ -88324,7 +88324,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes"
+            "value": "Stops"
           }
         },
         "zh-Hans": {
@@ -138136,7 +138136,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completed nodes"
+            "value": "Completed stops"
           }
         },
         "zh-Hans": {
@@ -138835,7 +138835,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Node"
+            "value": "Stop"
           }
         },
         "zh-Hans": {
@@ -138903,7 +138903,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes"
+            "value": "Stops"
           }
         },
         "zh-Hans": {
@@ -138971,7 +138971,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completed nodes %lld"
+            "value": "Completed stops %lld"
           }
         },
         "zh-Hans": {
@@ -139141,7 +139141,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes done"
+            "value": "Stops done"
           }
         },
         "zh-Hans": {
@@ -140109,7 +140109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes"
+            "value": "Stops"
           }
         },
         "zh-Hans": {
@@ -140347,7 +140347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes %@"
+            "value": "Stops %@"
           }
         },
         "zh-Hans": {
@@ -151020,7 +151020,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photograph an item at a node you have played; once it passes review it is collected here"
+            "value": "Photograph an item at a stop you’ve played. Once it passes review, it’s collected here"
           }
         },
         "zh-Hans": {
@@ -167391,7 +167391,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open a route node to view its task and requirements."
+            "value": "Open a route stop to see its task and requirements."
           }
         },
         "zh-Hans": {
@@ -167850,7 +167850,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There are no route nodes yet. Return to the activity or route details and check again later."
+            "value": "This route has no stops yet. Go back to the activity or route details and check again later."
           }
         },
         "zh-Hans": {
@@ -168139,7 +168139,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The node is no longer visible in the current session. Return to the route to refresh."
+            "value": "This stop is no longer in your current session. Go back to the route to refresh."
           }
         },
         "zh-Hans": {
@@ -168156,7 +168156,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unnamed node"
+            "value": "Unnamed stop"
           }
         },
         "zh-Hans": {
@@ -168190,7 +168190,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No nodes are available in the current route state."
+            "value": "No stops to show on this route right now."
           }
         },
         "zh-Hans": {
@@ -175795,7 +175795,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Counts distinct normally completed nodes. Fallback completions are excluded."
+            "value": "Counts each stop you complete normally. Fallback completions are excluded."
           }
         },
         "zh-Hans": {
@@ -202655,7 +202655,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete on-site node interactions along the route"
+            "value": "Complete on-site tasks at each stop along the route"
           }
         },
         "zh-Hans": {
