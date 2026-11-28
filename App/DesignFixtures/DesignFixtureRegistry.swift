@@ -151,6 +151,10 @@ enum DesignFixtureRegistry {
         case "r3-roam-poi-error": return RoamR3PoiFixture.make(.failure)
         case "r3-roam-poi-unavailable": return RoamR3PoiFixture.make(.unavailable)
         case "r3-roam-poi-missing": return RoamR3PoiFixture.make(.missing)
+        // mp-roam r3: 附近 (subpackageRoam/nearby) team list / 附近暂无节点 / 附近信息获取失败 on the shipping NearbyTeamsView.
+        case "r3-roam-nearby": return RoamR3NearbyFixture.make(.content)
+        case "r3-roam-nearby-empty": return RoamR3NearbyFixture.make(.empty)
+        case "r3-roam-nearby-error": return RoamR3NearbyFixture.make(.failure)
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
