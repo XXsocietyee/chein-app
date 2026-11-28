@@ -440,6 +440,13 @@ Merged `origin/ui/combined-r7` (45264c9bf, clean). Sweep build 2fc0feb24: looked
 | 144 | Per-feature player catalogs (`Resources/<Feature>.xcstrings`; for example PlayRecovery, PersonalLocationShare, PlayStoreDay, CityPlayerRules, ZeroHPAuthor, NativeChannel*) | The same K27 cuts as row 143: "Sub" (Sub codes), "Blind" (Blind tasting), "Original request needs", "A note organizer", "Stamina for run only", "Review the quote give explicit consent" | Same restore as row 143 for 531 values in 114 catalogs, with sources synced the same way. Skipped: merchant catalogs; 12 catalogs not in standard JSON layout (ClubOpsCustomer, IMRecipientPreview, MapPublicLayers, MemberProfile, MpFresh, NativeBlacklist, NativeFriendDirectory, NativeFriendMetadata, PlayCreatorTail, PlayGapMisc, PublishClarity, WP07Commerce); and 7 catalogs that a generator or contract test pins to the K27 text (BackendErrorCatalog, DesignR1, DesignR1Club, CreatorAIPrompts, WalletIncomeAnalysis, NativeChannelAppealDetails, NativeChannelNotification) | Done; skipped catalogs are under Next pages |
 | 145 | The 12 catalogs with non-standard JSON layout from row 144 (ClubOpsCustomer, IMRecipientPreview, MapPublicLayers, MemberProfile, MpFresh, NativeBlacklist, NativeFriendDirectory, NativeFriendMetadata, PlayCreatorTail, PlayGapMisc, PublishClarity, WP07Commerce) | K27 cuts: "Withdrawable balance not yet", "Pending check", "Only club owner can request cash-out" | Restored 59 values with in-place text edits, so each file keeps its layout. No source pins them | Done |
 
+### Run 41 (11-28)
+Merged `origin/ui/combined-r7` (5375df502; xcstrings and `fix-r9-member.json` resolved key by key: 3 keys edited on both sides took the other lane's newer value — `profile.complaint.title` / `投诉建议` "Feedback", `freeBundle.catalog.storeUnavailable` "Unavailable" from mp-journey's 17:10 sweep fix). Sweep index build b954de71c: no coordinator finding for en-layout; no `cursor-k50-p*` receipt with `lane-layout` rows exists yet; Not done rows unchanged (owner / coordinator decisions). Scanned the English of the 29 keys new or changed in this merge (home-city consent, PlayKit presentation, creator estimate / random-deck fields, pixel-size label): reads well. Catalog-wide scans on player keys: no Chinese in an English value; no K27-style dangling endings left (237 values end in a preposition, all are labels followed by a value, e.g. "Starts in", "Valid from"); no double spaces / full-width punctuation.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 146 | `pages/club/*` host sign-in gate → `App/ClubOperationsViews.swift:232`, `App/ClubGovernanceViews.swift:705`; timed game result → `App/NativeR2/Games/NativeGameTimedKit.swift:389` (MP order unchanged) | Button read "Sign In" while every other sign-in button reads "Sign in"; result label "Off By" in Title Case among sentence-case labels | en → "Sign in", "Off by"; catalog + `docs/port/strings/fix-r3-club-a.json`, `native-r2-games-a.json`; zh unchanged | Done |
+
 ## Not done
 
 | Item | Why |
@@ -463,6 +470,7 @@ Re-check rows 23, 37–41, 46, 56–57 in the next sweep. `pages/templatedetail/
 - mp-journey: 19:15 items still visible in `en-*` journey shots (灯笼石门, 西湖夜游漫步, 老城茶街章节, free-explore "—" rows).
 - mp-journey / mp-nav: City root entry reads "CITY ownership and original receipts" (`cityAcquire.entry`, all-caps CITY also in zh) — confirm CITY is the intended product name.
 - mp-mine: `tools/merge_localization_fragments.py --check-member` fails on the merged base: `docs/port/strings/fix-r3-member-b.json` `profile.inviteRewards.heroPending` zh-Hans differs from the catalog (not an en-layout key).
+- mp-journey: `journey.reroll.cost` en reads "Rerolling uses one luck point.." (double period); pinned verbatim by `Tests/AppUITests/JourneyContentFlowTests.swift:27` and `docs/square-journey-chat/packets/native-journey-checks-new/docs/localizations.json`, so it needs the owning lane to change all three together.
 - `Tests/ContractChecks/check_wallet_earnings_overview.py` fails (2) on `ui/combined-r7` before any en-layout change (debt-r3).
 
 - mp-publish: MP `pages/publish/fabu/runtime-editor.wxml` 通关勋章 / 添加奖励 / 彩蛋 / 物品容量 (每件占格, 允许丢弃, 发放时机) sheets have no native strings or views; check against the MP editor order.
