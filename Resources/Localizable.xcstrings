@@ -4849,7 +4849,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check collaborators. Select valid members without duplicates."
+            "value": "Check your collaborators. Choose each member only once."
           }
         },
         "zh-Hans": {
@@ -215195,7 +215195,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nothing was sent. Access, configuration or the reviewed data changed."
+            "value": "Nothing was sent. Your access or the content changed — refresh and check it again."
           }
         },
         "zh-Hans": {
@@ -253132,7 +253132,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rename"
+            "value": "Change"
           }
         },
         "zh-Hans": {
@@ -356716,6 +356716,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "二维码暂时不可用"
+          }
+        }
+      }
+    },
+    "publishModes.signupCount %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld sign-up"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld sign-ups"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 人报名"
           }
         }
       }
