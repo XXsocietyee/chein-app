@@ -64,8 +64,18 @@ import SwiftUI
             persist()
             if lock.phase != .sending && lock.phase != .unknown { releaseReview() }
         }
+        .cyHaptic(.success, trigger: lock.phase, where: Self.becameReceipt)
+        .cyHaptic(.warning, trigger: lock.phase, where: Self.becameRejected)
         .accessibilityIdentifier("square.cloud.composer")
         .cyDomainScreen(.player)
+    }
+
+    /// Haptics follow the server-confirmed send result only (sending / unknown → receipt or rejected), never a restore.
+    private static func becameReceipt(_ old: SquareComposeLock.Phase, _ new: SquareComposeLock.Phase) -> Bool {
+        new == .receipt && (old == .sending || old == .unknown)
+    }
+    private static func becameRejected(_ old: SquareComposeLock.Phase, _ new: SquareComposeLock.Phase) -> Bool {
+        new == .rejected && (old == .sending || old == .unknown)
     }
 
     private var showsEditor: Bool {

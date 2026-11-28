@@ -33,6 +33,9 @@ struct OfficialSignupCommandSection: View {
     /// PC-C-4-1: false while a 安全须知 is shown and not yet checked (MP toast 请先勾选安全须知).
     var consented = true
     @State private var flow: OfficialSignupCommandFlow?
+    /// Counts server-settled outcomes so the haptic follows the confirmed result, never the tap.
+    @State private var appliedCount = 0
+    @State private var rejectedCount = 0
 
     var body: some View {
         Group {
@@ -40,6 +43,8 @@ struct OfficialSignupCommandSection: View {
                 content(flow)
             }
         }
+        .cyHaptic(.success, trigger: appliedCount)
+        .cyHaptic(.warning, trigger: rejectedCount)
         .task(id: eventID) {
             guard let service = service, let account = service.accountID else { flow = nil; return }
             flow = OfficialSignupCommandFlow(service: service, store: OfficialSignupCommandDefaultsStore(), accountID: account, eventID: eventID)
@@ -89,6 +94,8 @@ struct OfficialSignupCommandSection: View {
     private func run(_ work: @escaping @MainActor () async -> OfficialSignupReceipt.State?) {
         Task {
             guard let state = await work() else { return }
+            if case .applied = state { appliedCount += 1 }
+            if case .rejected = state { rejectedCount += 1 }
             // R7-PC-C4-4: MP official-detail/index.js:604-610 asks to be reminded of the activity start right after
             // a successful signup. iOS asks for notification permission once, only while it is still undetermined.
             if case .applied = state { try? await NativeNotificationPermissionAdapter().requestFromUserAction() }

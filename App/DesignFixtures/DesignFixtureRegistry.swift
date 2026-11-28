@@ -28,6 +28,8 @@ enum DesignFixtureRegistry {
         case "d2-home-offline": return AnyView(D2Fixture(screen: .homeOffline))
         case "d2-search": return AnyView(D2Fixture(screen: .search))
         case "d2-search-results": return AnyView(D2Fixture(screen: .searchResults))
+        case "d2-search-empty": return AnyView(D2Fixture(screen: .searchEmpty))
+        case "d2-search-failed": return AnyView(D2Fixture(screen: .searchFailed))
         case "d2-search-offline": return AnyView(D2Fixture(screen: .searchOffline))
         case "d2-square": return AnyView(D2Fixture(screen: .square))
         case "d2-square-empty": return AnyView(D2Fixture(screen: .squareEmpty))
@@ -131,6 +133,13 @@ enum DesignFixtureRegistry {
         // mp-roam r3: 集邮册 (scene-roam-stamp-album) empty / error states for the sweep (content = e2-stamp-album).
         case "r3-roam-stamp-album-empty": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
         case "r3-roam-stamp-album-error": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
+        // mp-roam r3: 官方线路 (subpackageRoam/official-routes) list / empty / error on the shipping map-home list.
+        case "r3-roam-routes": return RoamR3RoutesFixture.make(.content)
+        case "r3-roam-routes-empty": return RoamR3RoutesFixture.make(.empty)
+        case "r3-roam-routes-error": return RoamR3RoutesFixture.make(.failure)
+        case "r3-roam-route": return RoamR3RoutesFixture.makeDetail(.content)
+        case "r3-roam-route-error": return RoamR3RoutesFixture.makeDetail(.failure)
+        case "r3-roam-route-notfound": return RoamR3RoutesFixture.makeDetail(.notFound)
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).

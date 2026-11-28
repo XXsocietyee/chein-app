@@ -115,8 +115,10 @@ struct RoamFinishReport: Equatable {
     /// P30 bottom bar: Share (bordered capsule, MP 分享 CTA) beside the one primary Done (MP ✕), then the MP minor
     /// exits. Identifiers kept.
     private var bottomBar: some View {
-        VStack(spacing: CYSpacing.xs) {
-            HStack(spacing: CYSpacing.sm) {
+        // a11y-dt r3: at accessibility sizes the half-width capsules cut "Share" / "完成" (lineLimit 1); they stack full-width.
+        let pair = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
+        return VStack(spacing: CYSpacing.xs) {
+            pair {
                 shareButton
                 doneButton
             }
