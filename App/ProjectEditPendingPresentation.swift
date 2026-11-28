@@ -19,8 +19,13 @@ import SwiftUI
                         Text(verbatim: material.node.description)
                         Text(verbatim: material.node.address)
                         if !material.node.imgUrl.isEmpty { Text(verbatim: material.node.imgUrl).font(.caption) }
-                        HStack {
-                            Button("projectPending.edit") { controller.open(target) }.buttonStyle(.borderless)
+                        // a11y-dt r3: three borderless text actions in one List row; each label is 44 pt tall and the
+                        // row stacks at accessibility sizes so Remove never runs off the edge.
+                        CYAdaptiveButtonRow(spacing: CYSpacing.sm) {
+                            Button { controller.open(target) } label: {
+                                Text("projectPending.edit").frame(minHeight: CYSpacing.minTouchTarget)
+                            }
+                            .buttonStyle(.borderless)
                                 .accessibilityIdentifier("projectPending.edit." + material.id)
                             if !model.draft.chapters.isEmpty {
                                 Menu {
@@ -28,17 +33,26 @@ import SwiftUI
                                         Button { controller.chooseChapter(chapter.id, target: target) } label: { ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter") }
                                             .accessibilityIdentifier("projectPending.chapter." + chapter.id)
                                     }
-                                } label: { Text(LocalizedStringKey(model.draft.product == .city ? "projectPending.arrangeStory" : "projectPending.chooseChapter")) }
+                                } label: {
+                                    Text(LocalizedStringKey(model.draft.product == .city ? "projectPending.arrangeStory" : "projectPending.chooseChapter"))
+                                        .frame(minHeight: CYSpacing.minTouchTarget)
+                                }
                                 .accessibilityIdentifier("projectPending.arrange." + material.id)
                             }
-                            Button("projectPending.remove", role: .destructive) { controller.open(target, kind: .remove) }.buttonStyle(.borderless)
+                            Button(role: .destructive) { controller.open(target, kind: .remove) } label: {
+                                Text("projectPending.remove").frame(minHeight: CYSpacing.minTouchTarget)
+                            }
+                            .buttonStyle(.borderless)
                                 .accessibilityIdentifier("projectPending.remove." + material.id)
                         }
                         Button {
                             let ordinal = model.draft.chapters.filter { $0.preserved["opening"] != .bool(true) }.count + 1
                             let name = String(localized: LocalizedStringResource("projectStarter.defaultChapter", defaultValue: "Chapter \(ordinal)", locale: locale))
                             controller.createChapter(newChapter, name: name)
-                        } label: { Text(LocalizedStringKey(model.draft.product == .city ? "projectPending.newStoryChapter" : "projectPending.newFreeChapter")) }
+                        } label: {
+                            Text(LocalizedStringKey(model.draft.product == .city ? "projectPending.newStoryChapter" : "projectPending.newFreeChapter"))
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                        }
                         .buttonStyle(.borderless).disabled(newChapter == nil)
                         .accessibilityIdentifier("projectPending.newChapter." + material.id)
                     }.disabled(target == nil)

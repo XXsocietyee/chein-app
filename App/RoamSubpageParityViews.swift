@@ -580,6 +580,10 @@ struct RoamPOIMissingView: View {
     let slip: RoamStampSlip
     let place: Text
     let openedAt: Date
+    /// Design fixture only (`e5b-stamp`): open on the collected slip (torn + revealed), so the sweep shows the stamp moment.
+    var revealedAtStart: Bool = false
+    /// Design fixture only: bundled MP art in place of the remote stamp photo (same art as the album tile).
+    var sampleArt: Image? = nil
     @Environment(\.dismiss) private var dismiss
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
@@ -632,6 +636,12 @@ struct RoamPOIMissingView: View {
         .cyAnimation(CYMotion.standard, value: revealed)
         .cyHaptic(.impactMedium, trigger: torn, where: CYHapticTransition.turnedOn)
         .cyHaptic(.success, trigger: revealed, where: CYHapticTransition.turnedOn)
+        .onAppear(perform: openRevealedIfAsked)
+    }
+    private func openRevealedIfAsked() {
+        guard revealedAtStart, slip.got, !revealed else { return }
+        torn = true
+        revealed = true
     }
     private var paper: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -659,7 +669,7 @@ struct RoamPOIMissingView: View {
             }
             Divider()
             if RoamStampSlipPhotoPort.shouldShowPhotoBlock(got: slip.got) {
-                RoamStampSlipPhotoView(pictureURL: slip.pictureURL)
+                RoamStampSlipPhotoView(pictureURL: slip.pictureURL, sampleArt: sampleArt)
                 RoamStampSlipSaveRow(torn: torn, pictureURL: slip.pictureURL)
                 Divider()
             }
@@ -716,9 +726,12 @@ struct RoamStampPrinterView: View {
 
 struct RoamStampSlipPhotoView: View {
     let pictureURL: String?
+    var sampleArt: Image? = nil
     var body: some View {
         Group {
-            if let url = RoamStampSlipPhotoPort.displayURL(pictureURL) {
+            if let sampleArt {
+                sampleArt.resizable().scaledToFill()
+            } else if let url = RoamStampSlipPhotoPort.displayURL(pictureURL) {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() }
                     else if phase.error != nil { Label("roam.experience.imageUnavailable", systemImage: "photo.badge.exclamationmark") }

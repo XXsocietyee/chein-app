@@ -98,6 +98,9 @@ import QuestifyCore
     @State private var goCommitted = false
     /// P-040: the session list is a persistent system sheet over the map (Apple Maps / Fitness pattern).
     @State private var sessionSheetShown = false
+    /// fix/1128c: the roam guide (漫游提示) sheet and its journal of reviewed lines for this session.
+    @State private var guideShown = false
+    @State private var guideJournal = AIGuideJournal()
     @State private var sessionDetent: PresentationDetent = .fraction(0.3)
     /// ROAM-r11-3: the place marker the player tapped.
     @State private var selectedPlaceID: Int?
@@ -131,7 +134,11 @@ import QuestifyCore
     private var sessionContent: some View {
         liveMapGround
         .modifier(RoamLiveMapWeather(latitude: weatherPoint?.latitude, longitude: weatherPoint?.longitude))
+        .environment(\.aiGuideJournal, guideJournal)
         .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                AIGuideToolbarButton(surface: .roam, journal: guideJournal, open: openGuide)
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 InGameChannelToolbarButton(
                     scope: .roam(district: fogMap?.area.label ?? "nearby"),
@@ -170,6 +177,7 @@ import QuestifyCore
         .sheet(item: firstDiscoveryBinding) { place in
             if let discoverDestinations { RoamFirstDiscoverySheet(place: place, destinations: discoverDestinations) }
         }
+        .sheet(isPresented: $guideShown) { AIGuideSheet(context: guideContext, journal: guideJournal) }
         .sheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled, ownExplorePercent: owner.explorationPercent,
                                       fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding,
@@ -599,6 +607,10 @@ import QuestifyCore
                 properties: ["shops": .integer(Int64(result?.sessionShops ?? 0)), "pois": .integer(Int64(result?.newPois ?? 0))])
         }
     }
+    private func openGuide() { guideShown = true }
+    private var guideContext: AIGuideContext {
+        AIGuideContext(surface: .roam, place: owner.placeMemory?.placeName ?? fogMap?.area.label, stop: nil, nodeKind: nil, weather: nil)
+    }
     var body: some View {
         sessionObservers
         // Design hand-off r1 PL-20: no tab bar during a session; the map and the session controls own the screen.
@@ -606,7 +618,9 @@ import QuestifyCore
         // PL-20: a medium impact on pause and on resume.
         .cyHaptic(.impactMedium, trigger: owner.phase == .paused)
         .task(id: owner.phase) { await pulseWhileActive() }
-        .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count, sessionID: owner.record?.sessionID ?? 0))
+        .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count, sessionID: owner.record?.sessionID ?? 0, journal: guideJournal))
+        .modifier(RoamGuideJournalFeed(journal: guideJournal, placeName: owner.placeMemory?.placeName, placeText: owner.placeMemory?.text,
+                                       routeStory: owner.settlement?.result?.routeStory))
         // P-040: the settle moment is a system success haptic (the summary itself is the finish report).
         .sensoryFeedback(.success, trigger: RoamSummaryCelebration.settledSessionID(owner)) { old, new in new != nil && new != old }
         .onChange(of: RoamSummaryCelebration.settledSessionID(owner), initial: true) { _, id in settledSessionChanged(id) }
