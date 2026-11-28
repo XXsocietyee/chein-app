@@ -106,5 +106,5 @@ class NativeChannelNotificationPresentationSourceContracts(unittest.TestCase):
         self.assertIn("current settings couldn't be loaded",en('state.refreshFailed'))
         self.assertIn('historical result is hidden',en('state.appliedRedacted'))
         self.assertIn('empty list does not mean all channels are enabled',en('global.overrideBoundary'))
-        self.assertIn('permission still valid',en('recovery.confirm'))
+        self.assertIn('permission is still valid',en('recovery.confirm'))
 if __name__=='__main__':unittest.main()

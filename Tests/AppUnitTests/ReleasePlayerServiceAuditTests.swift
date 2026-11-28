@@ -88,8 +88,8 @@ import XCTest
             case .wasOffByMistake: fixed += 1
             }
         }
-        XCTAssertEqual(on, 54)
-        XCTAssertEqual(designed, 26)
+        XCTAssertEqual(on, 55)
+        XCTAssertEqual(designed, 25)
         XCTAssertEqual(fixed, 10)
     }
 
@@ -420,7 +420,10 @@ import XCTest
                 let runtime = root.sessionDependencies(context)
                 return runtime.ownerRefundApproval != nil && !ReleaseMoneyWriteSwitch.isEnabled(.refund)
             },
-            Row(service: "City board", kind: off) { $0.cityPlayerReadApproval($1) != nil },
+            Row(service: "City board", kind: on) { root, context in
+                root.cityPlayerReadApproval(context) != nil
+                    && ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/city-game/points")
+            },
             Row(service: "Own media status writes", kind: off) { $0.ownMediaReadApproval($1)?.allowsStatus == true },
             Row(service: "Owner draft save and delete", kind: off) { root, context in
                 let routes = root.ownerDraftReadApproval(context)?.grant.routes ?? []

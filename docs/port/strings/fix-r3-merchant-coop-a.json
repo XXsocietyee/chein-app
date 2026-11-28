@@ -1214,7 +1214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Please sign first"
+            "value": "Please sign in first"
           }
         },
         "zh-Hans": {
@@ -1775,7 +1775,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Co-op Revenue"
+            "value": "Co-op Revenue Share"
           }
         },
         "zh-Hans": {

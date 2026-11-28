@@ -838,7 +838,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm store address"
+            "value": "Please confirm the store address"
           }
         },
         "zh-Hans": {
@@ -854,7 +854,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check that the store address accurate first"
+            "value": "Check that the store address is accurate first"
           }
         },
         "zh-Hans": {
@@ -1510,7 +1510,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not take node"
+            "value": "Could not take the node offline"
           }
         },
         "zh-Hans": {
@@ -1526,7 +1526,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Taking offline"
+            "value": "Taking offline failed"
           }
         },
         "zh-Hans": {
@@ -1558,7 +1558,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not put node online"
+            "value": "Could not put the node online"
           }
         },
         "zh-Hans": {
@@ -1574,7 +1574,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Putting online"
+            "value": "Putting online failed"
           }
         },
         "zh-Hans": {
@@ -1590,7 +1590,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Put"
+            "value": "Put online"
           }
         },
         "zh-Hans": {
@@ -1606,7 +1606,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Take"
+            "value": "Take offline"
           }
         },
         "zh-Hans": {
@@ -1830,7 +1830,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save it and post it in store. Stays valid."
+            "value": "Save it and post it in store. It stays valid."
           }
         },
         "zh-Hans": {

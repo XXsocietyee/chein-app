@@ -16,7 +16,7 @@ Gates after the merge: `check_scaffold.py` PASS (5465 Swift files, AppSession.sw
 | QuestifyAppUnitTests-Shard04 | 2088 | 48 | 23 |
 
 
-Confirmation after the merge, same Lane2 destination: 3 tests, 1 failure. `testMerchantMoneySecurityAndAccountDeletionStayOff` passed. `testEmptyRegistrationGateMissingPassAndErrorNeverManufactureProgress` passed. `testReleaseCompositionEnumeratesPlayerServicesForChinaAndTheUnitedStates` still fails on City board. The compile also needed the five `QuestifyCore` import drops and the recorder construction above.
+Confirmation after the merge, same Lane2 destination: 3 tests, 1 failure. `testMerchantMoneySecurityAndAccountDeletionStayOff` passed. `testEmptyRegistrationGateMissingPassAndErrorNeverManufactureProgress` passed. `testReleaseCompositionEnumeratesPlayerServicesForChinaAndTheUnitedStates` failed because City board was on and the catalog kind was off. The catalog now marks it on, route `/api/city-game/points`. The compile also needed the five `QuestifyCore` import drops and the recorder construction above.
 56 unique failing methods. The reviewed merchant and nearby-team wiring tests are in every shard, so the raw failure counts overlap. Shard01 before the accent and poi-detail edits was 1890 tests / 25 failures; the rerun is the number above.
 
 ## Tests fixed
@@ -28,8 +28,9 @@ Stale tests only. The product behavior was already right.
 - `Tests/AppUnitTests/DesignSystemTokenMappingTests.swift` — same accent comparison for `actionPrimaryBg`, `tabSelectedTint`, and selected chips. Suite passed on shard04.
 - `Tests/AppUnitTests/MPParityDeepLinkRouteTests.swift` — `subpackageRoam/poi-detail/index` sample carries `poiId=5`. An empty query is not a link (`Core/MiniProgramPageLink.swift`). Passed on the shard01 rerun.
 - `Tests/AppUnitTests/Fix1128bPlayReleaseCompositionTests.swift` — helper renamed to `Fix1128bPlayReleaseRecorder` so it is not a second `Fix1128bRecorder`. The merged advanced-state test constructs that same recorder. Predicates unchanged. One assertion still fails (below).
-- `Tests/AppUnitTests/ReleasePlayerServiceAuditTests.swift` — `Row` accepts a one-argument closure. `try` inside `&&` does not compile, so the source read is bound first (`let releaseSourceOn = try merchantCenterIsOnInReleaseSource()`) and the money assertion stays `PlayerLaunch.merchantCenterEnabled && releaseSourceOn`. That test passed on the confirmation run. City board and public-layers still fail (below).
+- `Tests/AppUnitTests/ReleasePlayerServiceAuditTests.swift` — `Row` accepts a one-argument closure. `try` inside `&&` does not compile, so the source read is bound first (`let releaseSourceOn = try merchantCenterIsOnInReleaseSource()`) and the money assertion stays `PlayerLaunch.merchantCenterEnabled && releaseSourceOn`. That test passed on the confirmation run. The City board catalog now matches the composition (on, `/api/city-game/points`). Public-layers still fails (below).
 - `Tests/AppUnitTests/ClubDirectorRecapMetricTests.swift`, `ClubDirectorTeamSheetTests.swift`, `Fix1128cWeatherReleaseCompositionTests.swift`, `PlayDirectorIncidentSheetTests.swift`, and `PlayDirectorRoleSheetTests.swift` — dropped a bare `@testable import QuestifyCore`. The app is one module, `Questify`. The `canImport(QuestifyCore)` imports in the other tests stay.
+- `Tests/AppUnitTests/ReleasePlayerServiceAuditTests.swift` — City board catalog kind is on. The composition already issues `cityPlayerReadApproval`, and `/api/city-game/points` is the points-only City Monopoly read. Counts are 55 on / 25 off by design / 10 fixed.
 - `Tests/AppUnitTests/PlayReadCompositionTests.swift` — a lead spectator with `registered: false` stays `.active`. `PlayProgression.availability` (`Core/PlayProgression.swift:37`) skips the registration gate only when `leadSpectator != true`. The empty-gate and missing-pass assertions are unchanged. Shard02 recorded the old `.registrationRequired` expectation; this line was updated after that shard.
 
 ## Owner list
@@ -65,7 +66,6 @@ Other:
 - `Tests/AppUnitTests/MerchantWorkbenchRemindersTests.swift:572` — account lands on `consumerTabs`, expected `merchantTabs`.
 - `Tests/AppUnitTests/ProfileFavoriteTopicReadTests.swift:147` and `:152` — chapter cover return does not reuse the same reader.
 - `Tests/AppUnitTests/ProfileFavoriteDetailTests.swift:184` and `:188` — author child navigation does not return to the same detail reader.
-- `Tests/AppUnitTests/ReleasePlayerServiceAuditTests.swift:84` — City board is on, catalog kind is off.
 - `Tests/AppUnitTests/ReleasePlayerServiceAuditTests.swift:146` — `/api/map/public-layers` is not admitted.
 - `Tests/AppUnitTests/NativeAttributeAuthorProjectHostTests.swift:320` — caught `staleSource`.
 - `Tests/AppUnitTests/PlayBranchHistoryFixtureHandshakeTests.swift:240` — consumed-action count 8, expected 7.

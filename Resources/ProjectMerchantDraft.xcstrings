@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store drafts aren't available right now. Current template stays selected."
+            "value": "Store drafts aren't available right now. Your current template stays selected."
           }
         },
         "zh-Hans": {
@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This draft has changed or is no longer available. It can't selected."
+            "value": "This draft has changed or is no longer available. It can't be selected."
           }
         },
         "zh-Hans": {
