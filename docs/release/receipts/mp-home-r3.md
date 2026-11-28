@@ -436,6 +436,15 @@ Merged `origin/ui/combined-r7` (clean; incl. fix/1128b-social, fix/1128b-team-re
 |---|---|---|
 | `subpackageMember/components/cy/scene-play-activity-detail` `activity-hero__date` (活动时间 · start – end) → `App/E1ActivityDetailParts.swift` `E1ActivityHero`, new `App/ActivityAddToCalendar.swift` | P28: the time row has no calendar action (continue-20 Not done). MP keeps the time in the hero, so the action goes there, not into activity-meta (no MP section added or moved). | **Fixed** — a small `.bordered` 添加到日历 / Add to Calendar (`calendar.badge.plus`, id `activity.detail.addToCalendar`, hint key `activity.calendar.add.hint`, en + zh-Hans) under the hero date line, **upcoming activities only** (ended / live / undated show nothing — no dead control). Tap opens the system `EKEventEditViewController` in a sheet prefilled with name, start, end (start + 1 h when the end is missing or not after the start) and 地点 (addressName, else address). iOS 17+ runs the editor out of process, so no calendar permission and no Info.plist key; nothing is saved unless the player taps Add. Test `ActivityCalendarDraftTests` (range + place, 1 h default, ended / undated → nil). |
 
+## Round 3 continue (35) — ADA `rep3-activity-detail` people + date line
+
+Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: kept every key of both sides, ours only adds keys). Sweep still build 3348aa51f; no open coordinator item for mp-home. Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `subpackageMember/components/cy/scene-play-activity-detail/index.wxml:55-62` `.activity-people` (wrapping row of 64 rpx `cy-avatar`s, no names, each `goUserInfo`, aria-label 查看…主页) → `App/ActivityPeopleSection.swift` | ADA `rep3-activity-detail`: "Registered 24 people" has no visible people; native drew one list row per registrant (avatar + name + chevron) — a long list where the MP shows a compact avatar wrap. | **Fixed** — the 「N 人已报名」 section is one row of a `LazyVGrid(.adaptive(44…56))` of scaled 32 pt avatars (44 pt targets, `.borderless` buttons → the same profile), name as the VoiceOver label + hint 查看主页; read-only registrants stay non-buttons with id `….readOnly`. Identifiers `activity.people.participant.N` unchanged, so `ActivityFlowTests.testPeopleOpenExactProfiles…` and the contract pins still hold. Host row unchanged (MP `activity-host` keeps name + role). |
+| `scene-play-activity-detail` `activity-hero__date` 活动时间 · start – end → `App/E1ActivityDetailParts.swift` (`activity.hero.when %@`) | ADA: zh hero reads 活动时间 · date, en showed the bare date. | **Fixed** — en "When · %@" (catalog + `docs/port/strings/mp-home-r3.json`), same line shape in both languages. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -481,6 +490,7 @@ Merged `origin/ui/combined-r7` (clean; incl. fix/1128b-social, fix/1128b-team-re
 - Needs a simulator pass (continue 30): `d2-home-empty` with the 看看活动 / See activities button in en + zh-Hans, AX5.
 - Needs a simulator pass (continue 33): `d2-home` greeting 今天去哪？ / role label in secondary, short 编辑精选 subtitle; activity / topic detail "···" menu, en + zh-Hans.
 - Needs a simulator pass (continue 34): `rep3-activity-detail` with an upcoming fixture date shows Add to Calendar under the hero date (en + zh-Hans, AX5); device pass: the system editor opens prefilled and Cancel/Add both close the sheet.
+- Needs a simulator pass (continue 35): `rep3-activity-detail` 「N 人已报名」 avatar wrap (en + zh-Hans, AX5: avatars grow, still wrap) and the en "When · …" hero line; UI test `testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack`.
 - Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
 
 ## For other lanes
