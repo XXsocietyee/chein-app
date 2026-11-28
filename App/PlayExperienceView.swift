@@ -1297,6 +1297,7 @@ struct PlayThemeMusicKey: Equatable {
     @State private var review: PlayCompletionReview?
     @State private var showReview = false
     @State private var showHint = false
+    @State private var showReveal = false
     @State private var hintContext: PlayInteractionContext?
     @State private var hintLevel: Int?
     /// F-05: why the last submit tap was refused. Shown beside the button and as a toast, never silently dropped.
@@ -1492,6 +1493,21 @@ struct PlayThemeMusicKey: Equatable {
                     let context = hintContext, level = hintLevel
                     hintContext = nil
                     Task { await model.requestHint(nodeID: nodeID, level: level, context: context) }
+                }
+            ))
+            .modifier(PlaySystemConfirm(
+                isPresented: showReveal,
+                title: appLocalized("playx.hints.reveal", locale: .current),
+                message: appLocalized("playx.hints.revealDetail", locale: .current),
+                cancelTitle: appLocalized("playx.cancel", locale: .current),
+                confirmTitle: appLocalized("playx.hints.reveal", locale: .current),
+                confirmIdentifier: "playx.hints.reveal.confirm",
+                onCancel: { showReveal = false },
+                onConfirm: {
+                    showReveal = false
+                    let context = hintContext
+                    hintContext = nil
+                    Task { await model.requestReveal(nodeID: nodeID, context: context) }
                 }
             ))
     }
@@ -1867,6 +1883,18 @@ struct PlayThemeMusicKey: Equatable {
             }
             .disabled(!model.canWrite || (extra.puzzleScoring != true && extra.hintCost == nil))
             .accessibilityIdentifier("playx.hints.request")
+            // K40 J-09b: the legacy ladder's 揭晓答案. The server help ladder (ANSWER → help/use) replaces this
+            // section when it is on. Same confirm pattern as the hint request; the server scores the reveal.
+            if extra.puzzleScoring == true {
+                Button {
+                    hintContext = context
+                    showReveal = true
+                } label: {
+                    Text("playx.hints.reveal")
+                }
+                .disabled(!model.canWrite)
+                .accessibilityIdentifier("playx.hints.reveal")
+            }
         }
     }
 
