@@ -579,8 +579,20 @@ enum ProjectEditLook {
     let readOnly: Bool
     let chapterNames: [String]
 
+    /// MP look-sheet.wxml:12 `cy-look-preview` (look-pin): the sample screen follows style, palette and neon.
+    private var previewLook: CYThemeLook {
+        let neon = ProjectEditLook.styleDefinition(preserved).params.first { $0.key == "neon" }
+        return CYThemeLook(style: ProjectEditLook.style(preserved), palette: ProjectEditLook.palette(preserved),
+                           neon: neon.map { ProjectEditLook.param(preserved, $0) }) ?? CYThemeLook(style: .stardust)
+    }
+
     var body: some View {
         Form {
+            Section {
+                ProjectEditLookPreview(look: previewLook)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+            }
             Section {
                 Picker(selection: Binding(get: { ProjectEditLook.style(preserved) },
                                           set: { ProjectEditLook.update(&preserved, style: $0) })) {

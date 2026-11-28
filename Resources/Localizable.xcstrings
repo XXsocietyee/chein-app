@@ -356600,6 +356600,278 @@
           }
         }
       }
+    },
+    "mpPublish.look.preview.stardust.kick": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter one"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第一章"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.stardust.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Ark at Tilanqiao"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提篮桥的方舟"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.stardust.story": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One morning in November 1938, a liner docked on the Huangpu."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1938年11月的一个清晨，一艘邮轮停靠在黄浦江边。"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.stardust.option": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk to Huoshan Road"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走去霍山路"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.paper.kick": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File · page seven"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "档案 · 第七页"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.paper.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The old relief station"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "救济点旧址"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.paper.story": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The ink on the list has faded. The last line reads: six tomorrow morning, Huoshan Road."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名单上的字迹已经褪色，最后一行写着：明早六点，霍山路。"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.paper.option": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn the page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻到下一页"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.survival.kick": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Field point · 01"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外勤点 · 01"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.survival.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before the eye"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "风眼之前"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.survival.story": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The weather station says the eye passes over the city at three and stays twenty minutes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "气象台说，风眼会在下午三点经过城区，停二十分钟。"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.survival.option": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Head out while the wind drops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "趁风小出门"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.cyber.kick": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "// Stop two"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "// 第二站"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.cyber.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eleven seconds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "十一秒"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.cyber.story": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The third neon sign went dark again. You counted: exactly eleven seconds."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第三块灯牌又暗了。你数了数，正好十一秒。"
+          }
+        }
+      }
+    },
+    "mpPublish.look.preview.cyber.option": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SOS, someone is calling for help"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SOS，有人在求救"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
