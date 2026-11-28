@@ -1512,10 +1512,16 @@ Checker: manual paging 25 → **23** baselined (`--update`, ratchet down only).
 
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (manual paging 23 baselined, 114 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
 
+Further candidates checked (no code change; each stays a manual button on purpose):
+- `App/NativeChannelMessageContextView.swift:44` 更早/更晚: re-anchors the context on a new message (no append), so an auto-load would jump the reader.
+- `App/MapPublicLayerSectionView.swift:270` 下一页: rows do append, but the section is a non-lazy `VStack` inside `SearchMapExplorerView`, so `.onAppear` fires at once and would chain every page. Needs a lazy container first (search lane's page).
+- `App/MessagingHistoryView.swift:330` 更早消息: three UI tests tap `messaging.history.earlier` (`ReferenceChatTaskFlowTests:105`, `ModuleFlowTests:291`, `IntegratedNativeAcceptanceFlowTests:378`); tests-first, like run 43's list.
+- `App/CooperationContextualViews.swift` 215/386: merchant cooperation pages — out of scope.
+
 ### Not done (next run)
-- manual paging debt (23): `NativeChannelMessageContextView` checked: 更早/更晚 re-anchor the context (new anchor, no append) → keep manual. Next:
-  `MessagingHistoryView`, `CooperationContextualViews` (merchant coop: out of scope unless player), `MapPublicLayerSectionView`
-  (`nextPage` — check append vs replace like the delivery log). Others stay as listed in run 43.
+- manual paging debt (23): every remaining site is now either intentional (replace/re-anchor paging, non-lazy
+  container, merchant) or has UI tests on the tap. Next run: move the intentional ones to `allowed` with reasons in the
+  baseline, then pick the next design-system scan for player screens.
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
