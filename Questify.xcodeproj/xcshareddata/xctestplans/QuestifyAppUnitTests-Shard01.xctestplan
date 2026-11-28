@@ -175,6 +175,7 @@
         "GrowthAndLeaderboardParitySectionViewTests",
         "GrowthAuditAvatarDefaultsTests",
         "GrowthBadgeExploreViewTests",
+        "GuestMapCityNodeAdmissionTests",
         "HapticFeedbackAndMotionReduceSectionViewTests",
         "HomeFeedReturnModelTests",
         "HomeReturnAndCityDeltaSectionViewTests",

@@ -394,8 +394,17 @@ import XCTest
     func testGuestPublicCityLayerAndLiteralPlusFilterPreserveFallbackAndExactWire() async throws {
         let wire = Wire(), approvals = Approvals(), (session, _) = try makeSession(wire, approvals: approvals, grants: [.homeAndSearch, .manualMap])
         let guest = try await session.searchMapReader.citySearch(.init(filter: .init(), area: area))
-        XCTAssertNil(guest.activityFailure); XCTAssertEqual(guest.nodeFailure, .unauthorized)
-        XCTAssertEqual(wire.requests.map { $0.url!.path }, ["/native/api/activity/list"])
+        XCTAssertNil(guest.activityFailure); XCTAssertNil(guest.nodeFailure)
+        XCTAssertEqual(guest.nodes.map(\.poiID), [42])
+        XCTAssertEqual(Set(wire.requests.map { $0.url!.path }), ["/native/api/activity/list", "/native/api/city/nodes"])
+        XCTAssertTrue(wire.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
+        let beforePlaces = wire.requests.count
+        do { _ = try await session.roamReader.roamPlaces(radiusM: 3000); XCTFail() } catch {}
+        XCTAssertEqual(wire.requests.count, beforePlaces)
+        let detail = try await session.searchMapReader.cityNode(id: 42)
+        XCTAssertEqual(detail.poiID, 42)
+        let detailRequest = try XCTUnwrap(wire.requests.first { $0.url?.path == "/native/api/city/nodes/42" })
+        XCTAssertNil(detailRequest.value(forHTTPHeaderField: "Authorization"))
         XCTAssertNil(session.account); XCTAssertNil(session.errorKey)
         await signIn(session); wire.requests = []
         _ = try await session.searchMapReader.citySearch(.init(filter: .init(keyword: "A+B"), area: area))
@@ -404,6 +413,31 @@ import XCTest
         let fields = URLComponents(url: cityRequest.url!, resolvingAgainstBaseURL: false)?.queryItems
         XCTAssertEqual(fields?.first { $0.name == "keyword" }?.value, "A+B")
         XCTAssertEqual(wire.deviceOrProviderCalls, 0)
+    }
+    func testGuestCityNodeReadsDispatchWithoutCredentialAndOtherMapReadsStayClosed() async throws {
+        let wire = Wire(), approvals = Approvals()
+        let (root, transport, selection) = try directTransport(wire, approvals: approvals)
+        root.current = { .init(epoch: 1, accountID: nil, role: nil, token: nil) }
+        var nodes = query("api/city/nodes", ["lat":"31.2", "lng":"121.5", "radius":"3000"])
+        nodes.setValue(nil, forHTTPHeaderField: "Authorization")
+        _ = try await transport.send(nodes)
+        XCTAssertEqual(wire.requests.count, 1)
+        XCTAssertNil(wire.requests[0].value(forHTTPHeaderField: "Authorization"))
+        var detail = query("api/city/nodes/42", [:])
+        detail.setValue(nil, forHTTPHeaderField: "Authorization")
+        _ = try await transport.send(detail)
+        XCTAssertEqual(wire.requests.count, 2)
+        XCTAssertNil(wire.requests[1].value(forHTTPHeaderField: "Authorization"))
+        await blocked(query("api/roam/pois", ["lat":"31.2", "lng":"121.5", "radius":"3000"]), transport: transport, wire: wire)
+        var bearer = nodes
+        bearer.setValue("synthetic-7", forHTTPHeaderField: "Authorization")
+        await blocked(bearer, transport: transport, wire: wire)
+        root.current = { .init(epoch: 1, accountID: nil, role: "player", token: nil) }
+        await blocked(nodes, transport: transport, wire: wire)
+        root.current = { .init(epoch: 1, accountID: nil, role: nil, token: nil) }
+        selection.select(otherArea)
+        await blocked(nodes, transport: transport, wire: wire)
+        withExtendedLifetime(root) {}
     }
     func testReplacingTransportPreservesManualAreaApprovalAndCurrentIdentityCallbacks() async throws {
         let firstWire = Wire(), replacementWire = Wire(), approvals = Approvals()

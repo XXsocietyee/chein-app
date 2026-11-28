@@ -187,7 +187,7 @@ import QuestifyCore
         }
         .sheet(isPresented: $guideShown) { AIGuideSheet(context: guideContext, journal: guideJournal) }
         .sheet(isPresented: $addressSearchShown) {
-            RoamLiveAddressSearchSheet(places: owner.places, center: addressSearchCenter,
+            RoamLiveAddressSearchSheet(places: owner.places, shops: owner.registeredShops, center: addressSearchCenter,
                                        makeExternalMaps: discoverDestinations?.makeExternalMaps, onPick: pickAddress)
         }
         .sheet(isPresented: $showTools) {
@@ -307,6 +307,7 @@ import QuestifyCore
             withAnimation(.easeInOut(duration: 0.35)) { mapCamera = .region(region) }
         }
         if let placeID = row.localPlaceID { mapPick = .place(placeID) }
+        else if let shopID = row.shopID { mapPick = .shop(shopID) }
     }
     /// Gap #24: this walk's revealed cells (Core `RoamLiveFogProjection`); nil while none, or when 迷雾 is switched off.
     private var liveFog: FogPresentation? {

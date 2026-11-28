@@ -3414,19 +3414,17 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let token = captured.token, AuthRequestBuilder.isValidToken(token),
                   PrivateHomeRequestBoundary.accepts(request, baseURL: api.baseURL) else { throw APIError.notConfigured }
         } else if manualRead != nil || publicLayers {
-            guard deployment.reads.contains(.manualMap), let selectedArea,
-                  let account = captured.accountID, account > 0,
-                  let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                  let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
-            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
-                role: role, session: session)
-            guard let approval = manualMapReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
-            readApprovalStillValid = { [manualMapReadApproval, manualMapSelection] in
-                guard let currentApproval = manualMapReadApproval(context) else { return false }
-                return manualMapSelection?.snapshot == selectedArea && currentApproval.revision == approval.revision && currentApproval.matches(context)
-            }
+            if GuestMapCityNodeAdmission.allows(manualRead, identity: captured, market: deployment.regional.market, grantsManualMap: deployment.reads.contains(.manualMap)) {
+                readApprovalStillValid = { [manualMapSelection] in manualMapSelection?.snapshot == selectedArea }
+            } else if deployment.reads.contains(.manualMap), let selectedArea,
+                      let account = captured.accountID, account > 0,
+                      let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                      let token = captured.token,
+                      let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role),
+                      let context = Optional(RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)),
+                      let approval = manualMapReadApproval(context), approval.matches(context) {
+                readApprovalStillValid = { [manualMapReadApproval, manualMapSelection] in guard let currentApproval = manualMapReadApproval(context) else { return false }; return manualMapSelection?.snapshot == selectedArea && currentApproval.revision == approval.revision && currentApproval.matches(context) }
+            } else { throw APIError.notConfigured }
         } else if publicMapLayer != nil {
             guard !deployment.reads.isDisjoint(with: [.manualMap, .publicMapLayers]),
                   captured.isSignedInContentViewer,

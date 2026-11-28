@@ -186,6 +186,7 @@
         "GrowthLeaderboardExploreViewTests",
         "GrowthNormalContractSelectionTests",
         "GrowthNormalReadTransportTests",
+        "GuestMapCityNodeAdmissionTests",
         "HapticFeedbackAndMotionReduceSectionViewTests",
         "HomeCityCentreNearestTests",
         "HomeReturnAndCityDeltaSectionViewTests",
