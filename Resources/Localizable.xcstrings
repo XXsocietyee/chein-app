@@ -1649,6 +1649,23 @@
         }
       }
     },
+    "a11y.value.ofTotalText %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ of %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@，共 %2$@"
+          }
+        }
+      }
+    },
     "account.details": {
       "extractionState": "manual",
       "localizations": {
