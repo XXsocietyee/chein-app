@@ -220,6 +220,7 @@ struct CityGamePanel: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(verbatim: value ?? "—").cyText(.sectionTitle, weight: .bold, monospacedDigit: true)
                 .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.7).lineLimit(1)
+                .accessibilityLabel(CYFractionSpeech.label(value ?? "—"))
             Text(label, tableName: "CityGame").cyText(.caption).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

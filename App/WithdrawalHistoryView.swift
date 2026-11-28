@@ -41,8 +41,8 @@ import SwiftUI
                 // FIN-19-1: tixianjilu shows 加载更多 while another page exists.
                 // loadMore is the existing read; a failure keeps the rows already on screen.
                 if model.hasMore && !model.loadMoreFailed {
-                    Button("wallet.loadMore") { Task { await model.loadMore() } }
-                        .frame(minHeight: 44)
+                    // ADA 11-28 §3: the shared paging row (loads when it scrolls in, MP onReachBottom).
+                    CYLoadMoreRow("wallet.loadMore") { Task { await model.loadMore() } }
                         .accessibilityIdentifier("withdrawal.history.loadMore")
                 }
                 // FIN-19-1: MP scene-member-withdraw-history index.wxml:16 `cy-error` 更多提现记录加载失败 · 重试 (onPageRetry).

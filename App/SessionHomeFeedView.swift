@@ -23,6 +23,9 @@ import SwiftUI
     @State private var showsTemplates=false
     @State private var showsCreate=false
     @State private var showsSquare=false
+    /// Plan audit H-17: the 动态 entry shows only while the owner-bound community read gate is open
+    /// (`communityFeatures().read`, the same gate `SquareBrowserView` reads); closed / unread → no dead entry (P27).
+    @State private var squareCommunityOpen=false
     @State private var showsOfficialEvents=false
     @State private var showsProjectEditor=false
     @State private var showsClubApplication=false
@@ -91,11 +94,18 @@ import SwiftUI
             .cyPlayerSheetGlass()
         }
     }
+    /// Plan audit H-17: one gate read per reader scope; any failure keeps the entry hidden.
+    private func loadSquareCommunityGate() async {
+        let features: SquareCommunityFeatures? = try? await session.squareReader.communityFeatures()
+        squareCommunityOpen = features?.read == true
+    }
     /// verify-r1 2.5: the former header ⋯ items, shown in the 更多玩法 menu under the greeting.
     private var homeMoreMenuContent: AnyView {
         AnyView(Group {
-            Button("square.title",systemImage:"square.grid.2x2") { showsSquare=true }
-                .accessibilityIdentifier("homeFeed.openSquare")
+            if squareCommunityOpen {
+                Button("square.title",systemImage:"square.grid.2x2") { showsSquare=true }
+                    .accessibilityIdentifier("homeFeed.openSquare")
+            }
             Button("official.title",systemImage:"sparkles") { showsOfficialEvents=true }
                 .accessibilityIdentifier("homeFeed.openOfficialEvents")
             // Templates stay reachable for guests: browse-only, so the capability is the discovery read (`isConfigured`).
@@ -179,6 +189,7 @@ import SwiftUI
                     }
                 }
                 .environment(\.homeMoreMenuContent, homeMoreMenuContent)
+                .task(id: session.squareReader.scope) { await loadSquareCommunityGate() }
                 .navigationDestination(for:AppRoute.self) { route in
                     Group {
                         switch route.homeFeedDestination {

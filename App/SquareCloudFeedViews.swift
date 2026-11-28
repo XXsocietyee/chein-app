@@ -374,8 +374,6 @@ struct SquareCloudJoinedActivityList: View {
         case .rows(let rows) where rows.isEmpty:
             ContentUnavailableView {
                 Label { Text(verbatim: copy("还没有可关联的活动", "No activity to attach")).accessibilityIdentifier("square.cloud.activity.empty") } icon: { Image(systemName: "flag") }
-            } description: {
-                Text(verbatim: copy("只显示你参加过或主办的活动", "Only activities you joined or hosted"))
             }
         case .rows(let rows):
             Section {
@@ -394,19 +392,20 @@ struct SquareCloudJoinedActivityList: View {
                 Label { Text(verbatim: copy("还没有可关联的活动", "No activity to attach")).accessibilityIdentifier("square.cloud.activity.empty") } icon: { Image(systemName: "flag") }
             }
         case .failed:
-            notice("活动列表加载失败", "The activity list did not load", symbol: "exclamationmark.triangle", identifier: "square.cloud.activity.error")
+            notice("活动列表加载失败", "Couldn’t load the event list", symbol: "exclamationmark.triangle", identifier: "square.cloud.activity.error")
         case .offline:
-            notice("你离线了", "You're offline", symbol: "wifi.slash", identifier: "square.cloud.activity.offline")
+            notice("网络好像断开了", "Looks like you’re offline", symbol: "wifi.slash", identifier: "square.cloud.activity.offline", hint: ("检查网络后再试一次", "Check your connection and try again"))
         case .permission:
             notice("没有活动列表的读取权限", "No permission to read activities", symbol: "lock", identifier: "square.cloud.activity.permission")
         }
     }
 
-    private func notice(_ zh: String, _ en: String, symbol: String, identifier: String) -> some View {
+    /// MP `post-compose` wxml:133 cy-error 活动列表加载失败 · sub 只显示你参加过或主办的活动 · 重试.
+    private func notice(_ zh: String, _ en: String, symbol: String, identifier: String, hint: (String, String) = ("只显示你参加过或主办的活动", "Only events you joined or hosted are shown")) -> some View {
         ContentUnavailableView {
             Label { Text(verbatim: copy(zh, en)).accessibilityIdentifier(identifier) } icon: { Image(systemName: symbol) }
         } description: {
-            Text(verbatim: copy("不会编一份活动列表", "No stand-in list is shown"))
+            Text(verbatim: copy(hint.0, hint.1))
         } actions: {
             Button { Task { await reload() } } label: { Text(verbatim: copy("重试", "Retry")) }
                 .buttonStyle(.bordered)
@@ -491,9 +490,9 @@ struct SquareCloudCompletedActivityPicker: View {
         case .empty:
             emptyState
         case .failed:
-            status("活动列表没能打开", "The activity list did not open", symbol: "exclamationmark.triangle", identifier: "square.cloud.completed.error")
+            status("活动列表没能打开", "Couldn’t open the event list", symbol: "exclamationmark.triangle", identifier: "square.cloud.completed.error")
         case .offline:
-            status("你离线了", "You're offline", symbol: "wifi.slash", identifier: "square.cloud.completed.offline")
+            status("网络好像断开了", "Looks like you’re offline", symbol: "wifi.slash", identifier: "square.cloud.completed.offline", hint: ("检查网络后再试一次", "Check your connection and try again"))
         case .permission:
             status("没有已完成活动的读取权限", "No permission to read cleared activities", symbol: "lock", identifier: "square.cloud.completed.permission")
         }
@@ -526,11 +525,12 @@ struct SquareCloudCompletedActivityPicker: View {
         }
     }
 
-    private func status(_ zh: String, _ en: String, symbol: String, identifier: String) -> some View {
+    /// MP `activity-picker` wxml:9 cy-error 活动列表没能打开 · sub errorMsg (index.js:52 活动列表加载失败，请重试) · 重试.
+    private func status(_ zh: String, _ en: String, symbol: String, identifier: String, hint: (String, String) = ("活动列表加载失败，请重试", "The event list didn’t load. Try again.")) -> some View {
         ContentUnavailableView {
             Label { Text(verbatim: copy(zh, en)).accessibilityIdentifier(identifier) } icon: { Image(systemName: symbol) }
         } description: {
-            Text(verbatim: copy("活动列表加载失败，请重试", "The activity list did not load. Try again."))
+            Text(verbatim: copy(hint.0, hint.1))
         } actions: {
             Button { Task { phase = await load() } } label: { Text(verbatim: copy("重试", "Retry")) }
                 .buttonStyle(.bordered)

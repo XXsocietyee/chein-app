@@ -88,7 +88,7 @@ public struct PlayDirectorCommand: Equatable {
             let target = payload["targetType"]?.text
             valid = ["ALL", "TEAM", "ROLE"].contains(target ?? "") && text("content", 200) &&
                 (target == "ALL" ? keys == ["targetType", "content"] : target == "TEAM" ? keys == ["targetType", "targetId", "content"] && positive("targetId") : keys == ["targetType", "roleCode", "content"] && text("roleCode", 64))
-        case .unlock: valid = keys == ["chapterId", "reason"] && positive("chapterId") && text("reason", 200)
+        case .unlock: valid = (keys == ["chapterId"] || (keys == ["chapterId", "reason"] && text("reason", 200))) && positive("chapterId")
         case .visibility: valid = keys == ["visible"] && payload["visible"]?.bool != nil
         case .pause:
             let base: Set<String> = ["reasonCode", "reason", "resumeEta"]

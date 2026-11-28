@@ -12,6 +12,9 @@ import MapKit
     let subtitle: String
     let medals: [CYMedalItem]
     let shareText: String
+    /// mp-nav r3: MP settle `onShareAppMessage` fallback path `/pages/topic/index/index?id=` (no referral issued here).
+    /// Nil shares the text alone.
+    var shareURL: URL? = nil
     let walkedMeters: Double
     var reportDestination: AnyView? = nil
     /// mp-journey r3: MP finsheet 本局成绩 (`finish-journal-entry`, chapter finish of a mode 1 run with an orient session),
@@ -175,7 +178,7 @@ import MapKit
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    ShareLink(item: shareText) { Label("nativeR2.city.finish.share", systemImage: "square.and.arrow.up") }
+                    shareButton(text: shareText) { Label("nativeR2.city.finish.share", systemImage: "square.and.arrow.up") }
                         .accessibilityIdentifier("medalScreen.share")
                 }
                 ToolbarItem(placement: .confirmationAction) {
@@ -202,6 +205,15 @@ import MapKit
         loadingBoard = false
     }
 
+    /// The topic link with the text as the message when it exists, else the text alone.
+    @ViewBuilder private func shareButton<Content: View>(text: String, @ViewBuilder label: () -> Content) -> some View {
+        if let shareURL {
+            ShareLink(item: shareURL, message: Text(verbatim: text), label: label)
+        } else {
+            ShareLink(item: text, label: label)
+        }
+    }
+
     private func medalRow(_ medal: CYMedalItem) -> some View {
         HStack(spacing: CYSpacing.md) {
             Group {
@@ -224,7 +236,7 @@ import MapKit
                 }
             }
             Spacer(minLength: CYSpacing.sm)
-            ShareLink(item: medal.name + " · " + shareText) {
+            shareButton(text: medal.name + " · " + shareText) {
                 Label("nativeR2.city.finish.share", systemImage: "square.and.arrow.up")
             }
             .labelStyle(.iconOnly)

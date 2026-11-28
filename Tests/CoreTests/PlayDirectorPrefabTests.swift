@@ -23,6 +23,14 @@ import FoundationNetworking
         let command = try PlayDirectorCommand(activityID: 41, nodeID: nil, expectedRevision: 2, action: .takeover, payload: ["teamId": .int(61), "sourceMemberId": .int(1), "targetMemberId": .int(2), "reason": .string("Synthetic absence")])
         XCTAssertFalse(projection.allows(command))
     }
+    /// MP director.js:1408 (C-04): 放行原因 is optional, so UNLOCK_CHAPTER carries `reason` only when filled.
+    func testDirectorUnlockChapterReasonIsOptional() throws {
+        let bare = try PlayDirectorCommand(activityID: 41, nodeID: nil, expectedRevision: 2, action: .unlock, payload: ["chapterId": .int(81)])
+        XCTAssertEqual(bare.payload.keys.sorted(), ["chapterId"])
+        XCTAssertNoThrow(try PlayDirectorCommand(activityID: 41, nodeID: nil, expectedRevision: 2, action: .unlock, payload: ["chapterId": .int(81), "reason": .string("Synthetic queue")]))
+        XCTAssertThrowsError(try PlayDirectorCommand(activityID: 41, nodeID: nil, expectedRevision: 2, action: .unlock, payload: ["chapterId": .int(81), "reason": .string("  ")]))
+        XCTAssertThrowsError(try PlayDirectorCommand(activityID: 41, nodeID: nil, expectedRevision: 2, action: .unlock, payload: ["chapterId": .int(0)]))
+    }
     func testDirectorReceiptRejectsOtherActionAndForeignActivity() throws {
         let command = try PlayDirectorCommand(activityID: 41, nodeID: nil, expectedRevision: 0, requestID: "synthetic-prepare", action: .prepare, payload: [:])
         XCTAssertThrowsError(try PlayDirectorReceipt(wire(#"{"activityId":42,"requestId":"synthetic-prepare","action":"PREPARE","outcome":"APPLIED","receiptId":1,"revision":1}"#), command: command))

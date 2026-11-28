@@ -252,6 +252,25 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
     }
 }
 
+/// mp-journey r3: one visible route attribute (MP `play-route-state.js` keeps rows with a text `label` and a finite
+/// number `value`; 旅程手记 lists them first as `.jkv` rows).
+public struct PlayRouteAttribute: Equatable {
+    public let label: String
+    public let value: Double
+    public init(label: String, value: Double) { self.label = label; self.value = value }
+    /// MP prints the raw number: integers without a fraction.
+    public var valueText: String {
+        if value.rounded() == value, abs(value) < 1_000_000_000_000 { return String(Int64(value)) }
+        return String(value)
+    }
+    static func filtered(_ raw: [PlayWireValue]?) -> [PlayRouteAttribute] {
+        (raw ?? []).compactMap { item in
+            guard item.object != nil, let label = item["label"].text, let value = item["value"].double, value.isFinite else { return nil }
+            return PlayRouteAttribute(label: label, value: value)
+        }
+    }
+}
+
 public struct PlayRouteState: Decodable, Equatable {
     public let mode: String?
     public let sessionID: Int?
@@ -266,14 +285,17 @@ public struct PlayRouteState: Decodable, Equatable {
     public let decisionLog: PlayBranchHistoryLog?
     /// Journey opening chapter state; nil when absent or malformed (mini-program `isRecord` check).
     public let opening: PlayJourneyOpening?
+    /// Visible route attributes; empty when absent or malformed (MP `attributes` filter).
+    public let attributes: [PlayRouteAttribute]
     public var isBranch: Bool { mode == "BRANCH_GRAPH" }
     private enum CodingKeys: String, CodingKey {
-        case routeMode, sessionId, status, version, currentNodeId, recommendedNodeId, nodeStates, lockReasons, thoughts, decisionLog, opening
+        case routeMode, sessionId, status, version, currentNodeId, recommendedNodeId, nodeStates, lockReasons, thoughts, decisionLog, opening, attributes
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         decisionLog = try? c.decode(PlayBranchHistoryLog.self, forKey: .decisionLog)
         opening = try? c.decode(PlayJourneyOpening.self, forKey: .opening)
+        attributes = PlayRouteAttribute.filtered(try? c.decode([PlayWireValue].self, forKey: .attributes))
         mode = try c.decodeIfPresent(String.self, forKey: .routeMode)
         sessionID = try c.playInt(.sessionId); status = try c.decodeIfPresent(String.self, forKey: .status)
         version = try c.playInt(.version); currentNodeID = try c.playInt(.currentNodeId)

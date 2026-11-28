@@ -64,7 +64,7 @@ import SwiftUI
                 Form {
                     Text("square.gov.appealFacts")
                     TextField("square.gov.reason", text: $reason, axis: .vertical).lineLimit(3...6).accessibilityIdentifier("square.gov.reason")
-                    Text(verbatim: "\(reason.count)/1000").font(.footnote).foregroundStyle(.secondary).monospacedDigit()
+                    Text(verbatim: "\(reason.count)/1000").font(.footnote).foregroundStyle(.secondary).monospacedDigit().accessibilityLabel(Text("a11y.value.characters \(Int(reason.count)) \(Int(1000))"))
                     Button("square.gov.review") {
                         pendingAppeal = .appeal(enforcementID: record.id, reason: reason)
                         appeal = nil
