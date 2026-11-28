@@ -53,7 +53,7 @@ enum MPFirstMerchantWriteRoute {
         .subtracting(["api/compliance/consents", "api/game/session/command", "api/game/session/receipt"])
     static let customerSuffixes: Set<String> = ["notes", "notes/hide", "tags", "tags/remove", "contact"]
 
-    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+    static func accepts(_ request: URLRequest, baseURL: URL, token: String?, merchantCenterEnabled: Bool = PlayerLaunch.merchantCenterEnabled) -> Bool {
         guard MPFirstMerchantApprovals.enabled, let token, AuthRequestBuilder.isValidToken(token),
               request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
@@ -76,6 +76,7 @@ enum MPFirstMerchantWriteRoute {
         if relative == "api/game/session/command" { return admitsStationCommand(request) }
         if relative == "api/common/uploadOSS" { return admitsEvidenceUpload(request) }
         if isExportStatus(relative) { return admitsEmptyJSON(request) }
+        if relative == "api/merchant/predict/settle", !merchantCenterEnabled { return false }
         if exactPaths.contains(relative) { return true }
         return isCustomerWrite(relative)
     }
