@@ -162,6 +162,7 @@
   {
     "key": "square.xcx.play.completedNodes %lld",
     "en": "Cleared · %lld stops",
+    "en_one": "Cleared · %lld stop",
     "zh-Hans": "已通关 · 共 %lld 个节点"
   },
   {
@@ -187,11 +188,13 @@
   {
     "key": "square.xcx.likesA11y %lld",
     "en": "%lld likes",
+    "en_one": "%lld like",
     "zh-Hans": "%lld 个赞"
   },
   {
     "key": "square.xcx.commentsA11y %lld",
     "en": "%lld comments",
+    "en_one": "%lld comment",
     "zh-Hans": "%lld 条评论"
   },
   {

@@ -543,3 +543,11 @@ Merged `origin/ui/combined-r7` 543d9033b (clean). Brief re-read: no coordinator 
 Merged `origin/ui/combined-r7` 2b6ff8700 (clean). Brief re-read: no coordinator finding for mp-nav after 07:45; sweep index still build c4e43841a (mp-nav sheets clean). No `cursor-k50-p*` lane-layout receipts on any branch yet. B receipt read: no new rows. Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, kept by owner Q9, coordinator); (2) "3. MP-account sync note" (B half, blocked on the backend field).
 
 **Half done** (A half unchanged). Run stopped.
+
+## Run 11-28 ~17:3x UTC (half-hourly) — coordinator sweep 17:30 (build 2fc0feb24), merged combined-r7
+
+| finding → file | before | after | status |
+|---|---|---|---|
+| 17:30 P2 mp-nav en Home: "Home" with a lone house glyph (`en-ia-tabs.jpg`; same in `zh-Hans-ia-tabs.jpg`) → App/DesignFixtures/IAFixtures.swift `IATabsFixture` | each tab root's body was its tab SF Symbol alone, centred under the large title: reads as a broken page | the frame is the tab-root loading state: three redacted placeholder cards (cover block + `CYSkeletonBlock` headline/footnote lines on `.background.secondary`), one VoiceOver element "加载中… / Loading…"; large top-left title, tab bar and night overlay unchanged | fixed (fixture only; real Home loading is mp-home / mp-states) |
+
+Other 17:30 rows (sign-in Apple button in zh, launch-logo state fixtures, search logo overlay) are mp-states. Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, owner Q9, coordinator); (2) "3. MP-account sync note" (B half, blocked on the backend field). Not compiled here.
