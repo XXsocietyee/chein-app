@@ -105,7 +105,7 @@ private enum ContextualOperationBoundary {
     public var session: ClubOpsTimeSession? { current().flatMap { try? .init(context: $0) } }
     public var isConfigured: Bool {
         guard let captured = current(), captured.baseURL == configuration.baseURL, let approval else { return false }
-        return approval.permitsSome(context: captured)
+        return approval.targets.contains { approval.permits($0, context: captured) }
     }
     private func capture(_ session: ClubOpsTimeSession, activityID: Int) throws -> (RuntimeDependencyContext, ClubOpsTimeTarget, RuntimeDependencyTransport) {
         guard let captured = current(), captured == session.runtimeContext, self.session == session,
