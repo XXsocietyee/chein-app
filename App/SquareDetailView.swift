@@ -19,6 +19,7 @@ import SwiftUI
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.ugcSafetyContext) private var ugcSafety
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private struct ShareRoute: Identifiable { let id = UUID(); let payload: CYSquareSharePayload; let url: URL }
     @State private var showsAuthorProfile = false
     @State private var relatedTopic: SquareRelatedTopicSelection?
@@ -322,9 +323,15 @@ import SwiftUI
             reportTarget = .init(target: target)
         }
     }
+    /// Like · comment · bookmark · share: four body-size labels with counts pass 375 pt at AX5, so they stack (same order).
+    private var postActionLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(spacing: 28))
+    }
     /// Mini-program `actions`: like, comment and favourite with their counts. Favourite only where it can work.
     private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
-        HStack(spacing: 28) {
+        postActionLayout {
             Button { likeTapped(post, actions: actions) } label: {
                 Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)).contentTransition(reduceMotion ? .opacity : .numericText()) } icon: {
                     let heart = Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart")
@@ -488,6 +495,12 @@ import SwiftUI
             .accessibilityIdentifier("square.comment.follow.\(comment.id)")
         }
     }
+    /// Like · reply · report · delete · ⋯ in one row; at AX text sizes they stack so no action is pushed off screen.
+    private var commentActionLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 0))
+            : AnyLayout(HStackLayout(spacing: 20))
+    }
     /// Mini-program comment row: avatar, name and time; the text; then like count, reply and the overflow actions.
     private func liveCommentRow(_ comment: SquareComment) -> some View {
         HStack(alignment: .top, spacing: 10) {
@@ -509,7 +522,7 @@ import SwiftUI
                 }
                 if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }
                 NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
-                HStack(spacing: 20) {
+                commentActionLayout {
                     let likeLabel = Label { Text(verbatim: SquareCountDisplay.text(comment.likeCount)) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
                         .font(.caption).foregroundStyle(comment.isLiked == 0 ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
                     if let actions, actions.identity.accountID != nil {
