@@ -170,7 +170,7 @@ import SwiftUI
                         ForEach(preview.lineup) { row in
                             NavigationLink {
                                 // R7-PC-B4-7: a chapter-supply row (`chapterId`) opens the merchant 承接 page, like MP.
-                                if TopicPricingXcx.opensChapterProject(row), let chapterProject = pricingChapterProjectDestination {
+                                if PlayerLaunch.merchantCenterEnabled, TopicPricingXcx.opensChapterProject(row), let chapterProject = pricingChapterProjectDestination {
                                     chapterProject(topicID)
                                 } else {
                                     PublisherPartnerView(topicID: topicID, row: row, client: client)
