@@ -32,6 +32,7 @@ public struct ClubChannelMessagingView: View {
     @Environment(\.locale) private var locale
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var composerTypeSize
     @Environment(\.ugcSafetyContext) private var ugcSafety
 
     private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
@@ -322,6 +323,7 @@ public struct ClubChannelMessagingView: View {
         .padding(.horizontal)
         .padding(.vertical, CYSpacing.sm)
         .background(.bar)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("club.channel.rulesGate")
     }
 
@@ -342,7 +344,7 @@ public struct ClubChannelMessagingView: View {
                 .frame(maxWidth: horizontal ? nil : .infinity)
         }
         .buttonStyle(.borderedProminent)
-        .controlSize(horizontal ? .small : .regular)
+        .controlSize(.regular)
         .accessibilityIdentifier("club.channel.rulesGate.review")
         if horizontal {
             HStack(spacing: CYSpacing.sm) { label; Spacer(minLength: CYSpacing.sm); button }
@@ -681,9 +683,9 @@ public struct ClubChannelMessagingView: View {
                     Text(replyLine(replyTarget))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                        .lineLimit(composerTypeSize.isAccessibilitySize ? 4 : 2)
                         .fixedSize(horizontal: false, vertical: true)
-                    Spacer()
+                    Spacer(minLength: 0)
                     Button {
                         activeReplyTarget = nil
                     } label: {
@@ -695,6 +697,7 @@ public struct ClubChannelMessagingView: View {
                     .contentShape(Rectangle())
                     .accessibilityLabel(copy("取消回复", "Cancel reply"))
                 }
+                .accessibilityElement(children: .contain)
                 .padding(.horizontal, 12)
                 .padding(.top, 6)
             }
@@ -709,6 +712,7 @@ public struct ClubChannelMessagingView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
+                .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.channel.composer.rulesLocked")
             } else if isReadOnlyForViewer {
                 HStack(spacing: 6) {
@@ -720,9 +724,11 @@ public struct ClubChannelMessagingView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
+                .accessibilityElement(children: .combine)
             } else {
-                HStack(spacing: 8) {
-                    TextField(composerPlaceholder, text: $composerText)
+                HStack(alignment: .bottom, spacing: 8) {
+                    TextField(composerPlaceholder, text: $composerText, axis: .vertical)
+                        .lineLimit(composerTypeSize.isAccessibilitySize ? 1...3 : 1...5)
                         .textFieldStyle(.roundedBorder)
 
                     Button {
@@ -730,7 +736,7 @@ public struct ClubChannelMessagingView: View {
                     } label: {
                         Image(systemName: "arrow.up.circle.fill")
                             .font(.title)
-                            .frame(width: 44, height: 44)
+                            .frame(minWidth: 44, minHeight: 44)
                     }
                     .buttonStyle(.borderless)
                     .frame(minWidth: 44, minHeight: 44)

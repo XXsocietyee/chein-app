@@ -201,6 +201,10 @@ public enum CYColor {
     public static let rareFg = resolved { $0.rareFg }
     public static let rareSoft = resolved { $0.rareSoft }
 
+    /// Rating stars and the "starred" mark (reviews, place rating, starred friend): one hue on every page (ADA audit
+    /// §3 accent colours). System orange keeps contrast on light grouped backgrounds, where yellow does not.
+    public static let ratingStar = Color.orange
+
     /// Medal podium tiers (`--cy-color-medal-*`).
     public static let medalGold = resolved { $0.medalGold }
     public static let medalSilver = resolved { $0.medalSilver }
