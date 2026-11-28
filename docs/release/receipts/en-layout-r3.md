@@ -452,6 +452,13 @@ Merged `origin/ui/combined-r7` (5375df502; xcstrings and `fix-r9-member.json` re
 ### Run 42 (11-28)
 Merged `origin/ui/combined-r7` (xcstrings and `fix-r9-member.json` resolved key by key against `5375df502`; 3 keys edited on both sides took the other lane's newer value: `contextSelfPlay.tickets` "Tickets", `ticketWallet.number` "Ticket #", `ticketWallet.parity.error.title` with a curly apostrophe). Sweep index still build b954de71c: no coordinator finding for en-layout; no `cursor-k50-p*` receipt with `lane-layout` rows yet; Not done rows unchanged. The K27 generator-pinned catalogs this run started were finished by parallel runs 41b / 40 (rows 147–148); this run's duplicate was dropped in favour of theirs.
 
+### Run 42b (11-28)
+Merged `origin/ui/combined-r7` again (021045941; run 42 had merged 51f0d6476): xcstrings and `fix-r9-member.json` resolved key by key against 51f0d6476, no key edited on both sides. Scanned the English of the keys new in this merge (club next activity, hotspots, creator PlayKit qa / hidden-object / price-pair prompts). Catalog-wide: no Chinese punctuation left in an English player value except curly quotes.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 149 | `pages/publish/temp/index.wxml:261` qa 正确答案 (placeholder 可填多个，用、分隔; MP order unchanged) → `Core/TemplateCreatorSchema.swift:124` `creator.mp.qa.answerText.prompt` | English hint "Several answers allowed, separated by 、" asks US players to type a Chinese enumeration comma | en → "Several answers allowed, separated by commas". MP `pages/publish/utils/answer-text.js` `SEPARATOR_CHARS = '、,，;；'` accepts the ASCII comma, so the hint matches the judge. Catalog + `docs/port/strings/mp-r3-publish-b.json`; zh unchanged | Done |
+
 ## Not done
 
 | Item | Why |

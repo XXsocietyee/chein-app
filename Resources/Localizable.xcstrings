@@ -260047,7 +260047,8 @@
             "value": "玩法"
           }
         }
-      }
+      },
+      "extractionState": "manual"
     },
     "templateAuthor.fixture.reopen": {
       "localizations": {
@@ -265717,13 +265718,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Position set"
+            "value": "Marked"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已有位置"
+            "value": "已标好"
           }
         }
       }
@@ -265781,7 +265782,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Needs a position"
+            "value": "Not marked yet"
           }
         },
         "zh-Hans": {
@@ -268676,7 +268677,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片 %lld"
+            "value": "图 %lld"
           }
         }
       }
@@ -270391,7 +270392,8 @@
             "value": "优惠券"
           }
         }
-      }
+      },
+      "extractionState": "manual"
     },
     "templateRewardKinds.empty": {
       "localizations": {
@@ -270439,7 +270441,8 @@
             "value": "勋章"
           }
         }
-      }
+      },
+      "extractionState": "manual"
     },
     "templateRules.add": {
       "extractionState": "manual",
@@ -273686,7 +273689,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t open your ticket wallet"
+            "value": "Couldn't open your ticket wallet"
           }
         },
         "zh-Hans": {
@@ -366408,6 +366411,397 @@
           "stringUnit": {
             "state": "translated",
             "value": "下一场活动"
+          }
+        }
+      }
+    },
+    "creator.mp.pricePair.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题目"
+          }
+        }
+      }
+    },
+    "creator.mp.pricePair.title.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Which one is this shop's signature?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 哪一张是这家店的招牌"
+          }
+        }
+      }
+    },
+    "creator.mp.pricePair.name.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is this picture called? e.g. Iced Americano"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这张图叫什么，如 冰美式"
+          }
+        }
+      }
+    },
+    "creator.mp.pricePair.imageUrl.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image address (https or in-app path)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片地址（https 或站内路径）"
+          }
+        }
+      }
+    },
+    "creator.mp.hiddenObject.title.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Find the three cats hidden in the shop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 找出藏在店里的三只猫"
+          }
+        }
+      }
+    },
+    "creator.mp.hiddenObject.hint.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Windowsill, bookshelf, behind the counter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 窗台、书架、收银台后面"
+          }
+        }
+      }
+    },
+    "creator.mp.hiddenObject.imageUrl": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scene image address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场景图地址"
+          }
+        }
+      }
+    },
+    "creator.mp.hiddenObject.imageUrl.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "https link or in-app path"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "https 链接或站内路径"
+          }
+        }
+      }
+    },
+    "creator.mp.hiddenObject.label.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target name, e.g. the ginger cat on the windowsill"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标名，如 窗台上的橘猫"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题干"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.title.prompt.TYPE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. What year was this bridge built?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 这座桥建于哪一年？"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.title.prompt.PICK": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Which lantern hangs at the shop door?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 店门口挂的是哪种灯笼？"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.title.prompt.SHOT": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Take a photo with the stone lion at the door"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 和店门口的石狮子合个影"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.lead.prompt.TYPE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. The answer is carved on the stone tablet by the bridge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 桥头石碑上刻着答案"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.lead.prompt.PICK": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Look at the sign by the door first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 先看看门口的招牌"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.lead.prompt.SHOT": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Walk up to the front of the old tree"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 走到古树正前方"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.answerText": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确答案"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.answerText.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Several answers allowed, separated by commas"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可填多个，用、分隔"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.shotNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More instructions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "补充说明"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.shotNote.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Stand to the left of the tree and fit the whole tree in the frame"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 站在树的左边，把整棵树都框进去"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.option.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text players see"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家看到的文案"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.fb": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feedback when chosen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选中后的反馈"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.fb.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text players see after choosing it"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选了它之后玩家看到的文字"
           }
         }
       }
