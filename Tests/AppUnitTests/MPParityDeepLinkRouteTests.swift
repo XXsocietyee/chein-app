@@ -15,6 +15,8 @@ import XCTest
             // 537bfd65a group-code takes activityId or topicId; c9cbcd24b the public merchant home takes id or poiId.
             "pages/club/group-code/index": ["activityId": "7"],
             "pages/merchant/profile/index": ["id": "7"],
+            // mp-nav r3: poi-detail accepts exactly one of poiId or id, so an empty query is not a link.
+            "subpackageRoam/poi-detail/index": ["poiId": "5"],
         ]
         // Every other required key gets a value too (parity r1: clubId, memberId, orderNo, topicId, reportId…).
         for (page, rule) in MiniProgramPageLink.reviewedPages where samples[page] == nil && !rule.required.isEmpty {

@@ -8,7 +8,7 @@ import XCTest
     private let bundle = "invalid.example.questify.ios"
     private let realm = "cn-prod"
 
-    private func composition(_ recorder: Fix1128bRecorder) -> AppCompositionRoot {
+    private func composition(_ recorder: Fix1128bPlayReleaseRecorder) -> AppCompositionRoot {
         RegionalLaunchConfiguration.shippedComposition(build: .init(
             market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
             makeTransport: { recorder })
@@ -37,7 +37,7 @@ import XCTest
 
     /// #5 photo devices + upload, #19 preference/tags capabilities, #22 kit artwork hosts.
     func testReleasePlayConfigurationTurnsOnPhotoUploadPreferenceTagsAndArtwork() throws {
-        let built = composition(Fix1128bRecorder())
+        let built = composition(Fix1128bPlayReleaseRecorder())
         XCTAssertTrue(try XCTUnwrap(built.reviewed).playerWritesEnabled)
         let player = try playerContext(built)
         let configuration = try XCTUnwrap(built.sessionDependencies(player).configuration)
@@ -80,7 +80,7 @@ import XCTest
     /// #16, #19, #21: the shipped runtime transport sends the finish reads, the templated reads/writes and the consent
     /// routes through the composition lease to the wire.
     func testShippedRuntimeTransportSendsFinishPreferenceTagOSAndConsentRoutes() async throws {
-        let recorder = Fix1128bRecorder()
+        let recorder = Fix1128bPlayReleaseRecorder()
         let built = composition(recorder)
         let player = try playerContext(built)
         let composed = built.transport()
@@ -127,7 +127,7 @@ import XCTest
     /// mp-journey r3 (plan audit J-09a / J-10b): the Release play lease admits the MP hint ladder and the points hint
     /// unlock (form fields session scope, nodeId, level match `PlayExperienceService.hint`; pinned in PlayModeLifecycleTests).
     func testReleasePlayLeaseAdmitsPuzzleHintAndHintUnlock() throws {
-        let built = composition(Fix1128bRecorder())
+        let built = composition(Fix1128bPlayReleaseRecorder())
         let player = try playerContext(built)
         let configuration = try XCTUnwrap(built.sessionDependencies(player).configuration)
         XCTAssertTrue(configuration.play.contains(.hints))
@@ -143,7 +143,7 @@ import XCTest
     /// mp-journey r3 (plan audit J-16): the play page now asks `productionPlayCircle` first. Its session transport goes
     /// through the player write grant, which admits every circle route the MP circle page sends (offers/card by id).
     func testReleasePlayGrantAdmitsTheCirclePageRoutes() throws {
-        let built = composition(Fix1128bRecorder())
+        let built = composition(Fix1128bPlayReleaseRecorder())
         let player = try playerContext(built)
         let grant = try XCTUnwrap(built.playerWriteGrant(player))
         for path in ["api/circle-theme/session", "api/circle-theme/session/join", "api/circle-theme/session/answer",
@@ -158,7 +158,7 @@ import XCTest
     /// their MP shapes: GET reads with a query and no body, POST writes with a body. A POST to a read path, a bodiless
     /// write and a GET settle stay refused.
     func testReleaseLeaseAdmitsClubLeadBarAndToolsOnTheirShapes() throws {
-        let built = composition(Fix1128bRecorder())
+        let built = composition(Fix1128bPlayReleaseRecorder())
         let player = try playerContext(built)
         let grant = try XCTUnwrap(built.playerWriteGrant(player))
         let configuration = try XCTUnwrap(built.sessionDependencies(player).configuration)
@@ -185,11 +185,11 @@ import XCTest
     func testStoreDayGatesOpenProofAndConsentWritesForThePlayerOnly() throws {
         let gates = MerchantCityNPCParityGates.playStoreDay
         let service = PlayStoreDayService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))),
-                                          transport: Fix1128bRecorder(), market: .china, gates: gates, readsEnabled: true, currentSession: { nil })
+                                          transport: Fix1128bPlayReleaseRecorder(), market: .china, gates: gates, readsEnabled: true, currentSession: { nil })
         XCTAssertTrue(service.permitsProofWrites)
         XCTAssertTrue(service.permitsConsentWrites)
         let unitedStates = PlayStoreDayService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))),
-                                               transport: Fix1128bRecorder(), market: .unitedStates, gates: gates, readsEnabled: true, currentSession: { nil })
+                                               transport: Fix1128bPlayReleaseRecorder(), market: .unitedStates, gates: gates, readsEnabled: true, currentSession: { nil })
         XCTAssertFalse(unitedStates.permitsProofWrites)
         XCTAssertFalse(MerchantCityNPCParityGates.mpFirst.storeDayPlayerEndpoints)
         XCTAssertFalse(MerchantCityNPCParityGates.mpFirst.allows("api/play/checkin", market: .china))
@@ -200,7 +200,7 @@ import XCTest
     }
 }
 
-private final class Fix1128bRecorder: HTTPTransport {
+private final class Fix1128bPlayReleaseRecorder: HTTPTransport {
     var paths: [String] = []
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         let relative = request.url?.path.split(separator: "/").drop(while: { $0 != "api" }).joined(separator: "/") ?? ""
