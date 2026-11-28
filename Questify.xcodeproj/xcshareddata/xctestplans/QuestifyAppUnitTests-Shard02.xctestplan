@@ -524,6 +524,7 @@
         "RegistrationPayLeaseTests",
         "RegistrationUncertainEvidenceCacheTests",
         "ReleaseArchiveChecklistSectionViewTests",
+        "ReleasePlayerServiceAuditTests",
         "ReleasePreflightDiagnosticsViewTests",
         "RetainedImageNormalHostTests",
         "RetainedImageSanitizerTests",

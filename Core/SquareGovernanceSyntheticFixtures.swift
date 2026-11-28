@@ -7,12 +7,15 @@ import FoundationNetworking
 public final class SquareGovernanceSyntheticTransport: SquareGovernanceOfflineTransport {
     public private(set) var requests: [URLRequest] = []
     public var mutationFailure: SquareGovernanceFailure?
+    /// Server reply (body code, HTTP status) for writes; nil answers code 200.
+    public var mutationReply: (code: Int, status: Int)?
     public init() {}
     public func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         let data: SquareGovernanceJSON
         if request.httpMethod != "GET" {
             if let mutationFailure { throw mutationFailure }
+            if let mutationReply { return (try JSONEncoder().encode(SquareGovernanceJSON.object(["code": .integer(mutationReply.code)])), mutationReply.status) }
             data = .null
         } else {
             switch request.url?.path {

@@ -183,10 +183,11 @@ struct PostGovernanceRow: Identifiable, Equatable {
             if !row.decisionReason.isEmpty {
                 Text("mpd.postGov.decision \(row.decisionReason)").font(.subheadline).foregroundStyle(.secondary)
             }
-            // MP pg-warn: an earlier appeal whose result is still unconfirmed replaces the 提交申诉 action
-            // (the dispatch journal keeps it locked, so a second submit would be a dead control).
-            if row.canAppeal && unconfirmed(row) {
-                Label { Text("mpd.postGov.pendingUnknown") } icon: { Image(systemName: "exclamationmark.triangle") }
+            if row.canAppeal, pendingUnknown(row) {
+                // MP pg-warn `pendingUnknown`: an appeal went out but the server shows none yet.
+                // The native journal never re-sends an unknown dispatch, so the row asks for a
+                // pull-to-refresh check instead of offering a second submit.
+                Label { Text("mpd.postGov.pendingRow") } icon: { Image(systemName: "clock.badge.questionmark") }
                     .font(.footnote).foregroundStyle(.orange)
                     .accessibilityIdentifier("settings.postGov.pending.\(row.id)")
             } else if row.canAppeal {
@@ -197,9 +198,9 @@ struct PostGovernanceRow: Identifiable, Equatable {
         .accessibilityIdentifier("settings.postGov.row.\(row.id)")
     }
 
-    private func unconfirmed(_ row: PostGovernanceRow) -> Bool {
+    private func pendingUnknown(_ row: PostGovernanceRow) -> Bool {
         guard let snapshot else { return false }
-        return coordinator.appealOutcomeUnconfirmed(enforcementID: row.id, snapshot: snapshot)
+        return coordinator.dispatched(.appeal(enforcementID: row.id, reason: ""), snapshot: snapshot)
     }
 
     @ViewBuilder private func appealArea(_ row: PostGovernanceRow) -> some View {
@@ -268,16 +269,13 @@ struct PostGovernanceRow: Identifiable, Equatable {
             editingID = nil; reason = ""; notice = "mpd.postGov.submitted"
             await reload()
         } catch SquareGovernanceFailure.unknown, SquareGovernanceFailure.outcomeLocked {
-            // MP `unknown()`: read back first. The appeal counts as submitted once the row no longer
-            // offers an appeal; otherwise say the result is still unconfirmed (no resubmit: journal-locked).
+            // Result unknown: read back first (MP `unknown()`). A row that no longer takes an appeal
+            // means it landed; otherwise the row keeps the pending warning.
+            editingID = nil; reason = ""
             notice = "mpd.postGov.confirming"
             await reload()
-            let stillOpen = PostGovernanceRow.rows(self.snapshot?.enforcements ?? []).contains { $0.id == enforcementID && $0.canAppeal }
-            if phase == .ready && !stillOpen {
-                editingID = nil; reason = ""; notice = nil
-            } else {
-                editingID = nil; notice = "mpd.postGov.unconfirmed"
-            }
+            let landed = PostGovernanceRow.rows(self.snapshot?.enforcements ?? []).first { $0.id == enforcementID }.map { !$0.canAppeal } ?? false
+            notice = landed ? nil : "mpd.postGov.unconfirmed"
         } catch {
             notice = "mpd.postGov.submitFailed"
         }

@@ -67,12 +67,10 @@ import Foundation
         case .deleteOwnComment(let id): return "delete:\(snapshot.comments.first(where: { $0.id == id })?.generation.rawValue ?? "unknown"):\(id)"
         }
     }
-    /// Read-only: an appeal for this disposition was dispatched from this account (journal claimed) and
-    /// the snapshot still offers an appeal, so its outcome is not confirmed yet (mini-program
-    /// `post-governance` `pendingUnknown`). The journal never unlocks, so the row cannot be appealed again here.
-    public func appealOutcomeUnconfirmed(enforcementID: Int, snapshot: SquareGovernanceSnapshot) -> Bool {
-        guard snapshot.identity.valid, snapshot.enforcements.contains(where: { $0.id == enforcementID && $0.canRequestReview }) else { return false }
-        return journal.contains("appeal:\(enforcementID)", identity: snapshot.identity)
+    /// Read-only: this account already dispatched `action` and the journal holds it (the result may be
+    /// unknown). Mini-program post-governance `_withPending` reads the same intent to warn on a row.
+    public func dispatched(_ action: SquareGovernanceAction, snapshot: SquareGovernanceSnapshot) -> Bool {
+        journal.contains(Self.lockKey(action, snapshot: snapshot), identity: snapshot.identity)
     }
     public func prepare(_ action: SquareGovernanceAction, snapshot: SquareGovernanceSnapshot, access: any SquareGovernanceAccess, now: Date = Date()) throws -> SquareGovernanceReview {
         guard !inFlight else { throw SquareGovernanceFailure.busy }
@@ -93,14 +91,16 @@ import Foundation
         guard let token = access.token else { throw SquareGovernanceFailure.signedOut }
         try check(fresh.identity, access: access)
         // Consume before dispatch. Unknown results cannot be repeated with a new request ID.
-        guard journal.claim(Self.lockKey(review.action, snapshot: fresh), identity: fresh.identity) else { throw SquareGovernanceFailure.outcomeLocked }
+        let lockKey = Self.lockKey(review.action, snapshot: fresh)
+        guard journal.claim(lockKey, identity: fresh.identity) else { throw SquareGovernanceFailure.outcomeLocked }
         consumed.insert(review.id)
-        return try await service.dispatch(review, token: token) { try self.check(fresh.identity, access: access) }
+        let journal = self.journal
+        return try await service.dispatch(review, token: token, release: { journal.remove(lockKey, identity: fresh.identity) }) { try self.check(fresh.identity, access: access) }
     }
 }
 
 /// Conservative account-scoped dispatch journal: survives relogin/epoch changes.
-/// Stores only target/action IDs, never credentials or appeal text. No automatic unlock.
+/// Stores only target/action IDs, never credentials or appeal text. No automatic unlock; a definite appeal refusal is released by the service.
 @MainActor public final class SquareGovernanceJournal {
     private let defaults: UserDefaults?
     private var memory: [String: Set<String>] = [:]
@@ -125,6 +125,13 @@ import Foundation
     func insert(_ action: String, identity: SquareGovernanceIdentity) {
         let key = key(identity)
         var values = Set(defaults?.stringArray(forKey: key) ?? []); values.formUnion(memory[key] ?? []); values.insert(action)
+        memory[key] = values; defaults?.set(Array(values).sorted(), forKey: key)
+    }
+    /// Only for a definite server refusal of an appeal (MP `intent.settle(..., 'rejected')`):
+    /// nothing was recorded, so the row takes a new appeal. Unknown results never unlock.
+    func remove(_ action: String, identity: SquareGovernanceIdentity) {
+        let key = key(identity)
+        var values = Set(defaults?.stringArray(forKey: key) ?? []); values.formUnion(memory[key] ?? []); values.remove(action)
         memory[key] = values; defaults?.set(Array(values).sorted(), forKey: key)
     }
     /// MainActor serialization keeps check-and-insert indivisible between app coordinators.

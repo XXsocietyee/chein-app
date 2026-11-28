@@ -662,3 +662,25 @@ Merged `origin/ui/combined-r7` (68 commits, clean). Sweep unchanged (build 0446d
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
 
 Not done: `CharacterCardReadbackView` byte pin; post-governance `pendingUnknown` warning.
+
+## Continue 41 (11-28, hourly run): post-governance pending-appeal warning
+
+Merged `origin/ui/combined-r7` (clean). B lane (`mp/r3-mine-b`) unchanged since run 1 (`c4f3c4744`), nothing new to mark. Top open row after the blocked `CharacterCardReadbackView` byte pin: the continue 40 post-governance `pendingUnknown` warning.
+
+| MP page | Native file | MP sections | Level | Result |
+|---|---|---|---|---|
+| `pages/shezhi/components/post-governance` `pg-warn` `pendingUnknown` (wxml:16, js `_withPending` / `unknown()`) | `App/SettingsPostGovernanceView.swift`, `Core/SquareGovernanceCoordinator.swift` (`dispatched(_:snapshot:)`), `Resources/Localizable.xcstrings`, `Tests/CoreTests/SquareGovernanceTests.swift` | ✓ (row warning added in MP place: after 复核说明, before the appeal action) | C | **Fixed (closes the continue 40 Not done row).** The MP keeps a local appeal intent and warns on a row whose appeal went out but the server still shows none. Native already keeps the same account-scoped record (`SquareGovernanceJournal`); the coordinator now exposes a read-only `dispatched(_:snapshot:)`, and a row that is still appealable but already dispatched shows an orange footnote (id `settings.postGov.pending.<id>`) instead of 提交申诉. Copy differs from the MP on purpose: the native journal never re-sends an unknown dispatch (security design, "no automatic unlock"), so the MP's "可以再次提交（不会重复提交）" would promise a dead button (OWNER RULE 2); the row says 上次申诉的提交结果未确认，下拉刷新再次核对. After an unknown submit the sheet now follows MP `unknown()`: closes the form, shows 提交结果未确认，正在确认…, reads back, and clears the notice when the row no longer takes an appeal, else 没有查到这条申诉，请稍后下拉刷新确认. (Before, the form stayed open with the old "submit again" notice, and a second submit always failed with `outcomeLocked`.) Test: `testDispatchedReadsTheJournalForThePendingAppealRow`. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
+
+Not done: `CharacterCardReadbackView` byte pin (needs the pin owner).
+
+## Continue 42 (11-28, half-hourly run): appeal refusal releases the row (MP `rejected`)
+
+Merged `origin/ui/combined-r7` (clean). Sweep unchanged (build 0446d1c4f), every mp-mine coordinator finding is closed. B lane run 2 (`c5acc598b`) did the continue 41 `pendingUnknown` row in parallel: same result, nothing more to mark (B lane). Its "For other lanes / Core owner" note is in this area, so this run takes it.
+
+| MP page | Native file | MP sections | Level | Result |
+|---|---|---|---|---|
+| `pages/shezhi/components/post-governance` submit (`index.js:138-149`: body code ≠ 200 → `settle('rejected')` except 409 → `unknown()`; HTTP 4xx except 408/409 → `rejected`; else `unknown()`) | `Core/SquareGovernanceService.swift` (`appealOutcome`, `dispatch(release:)`), `Core/SquareGovernanceCoordinator.swift` (`SquareGovernanceJournal.remove`), `Core/SquareGovernanceSyntheticFixtures.swift` (`mutationReply`), `Tests/CoreTests/SquareGovernanceTests.swift` | ✓ (unchanged) | C | **Fixed.** Before, the device journal claimed `appeal:<id>` before dispatch and never released it, so a definite refusal (e.g. 400 reason invalid) left the row showing 提交申请 that always failed with `outcomeLocked` and the continue 41 pending warning forever. Now an appeal refused definitely releases the claim (the form stays open with 申诉未提交, as the MP `done(requestError)`), and a 409 (an appeal already exists) reads back like an unknown result. Unknown / 5xx / 408 / transport failures stay locked (no automatic unlock). Other governance actions unchanged. Tests: `testDefiniteAppealRefusalReleasesTheRowLikeTheMP`, `testAppealConflictAndServerErrorStayLocked`. |
+
+Not done: `CharacterCardReadbackView` byte pin (needs the pin owner). The refusal notice is the fixed 申诉未提交 copy; the MP shows the server `msg` (`requestError`), which needs the failure to carry it.

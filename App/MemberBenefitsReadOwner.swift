@@ -8,7 +8,8 @@ import Observation
         var opensEarnings: Bool { rows.contains { $0.opensEarnings } }
     }
     struct Navigation: Hashable {
-        let id: UUID, snapshot: Snapshot
+        nonisolated let id: UUID
+        let snapshot: Snapshot
         nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
         nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
     }

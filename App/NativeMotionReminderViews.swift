@@ -7,6 +7,7 @@ import SwiftUI
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var stage: NativeStepCoordinator?
+    @State private var confirmSkip = false
     /// MP `buildSteps`: today's server steps (never typed in), the merchant goal (locked), and the derived figures.
     private var todaySteps: Int { max(0, segment["todaySteps"].integer ?? 0) }
     private var goal: Int { max(0, segment["goal"].integer ?? 0) }
@@ -55,8 +56,17 @@ import SwiftUI
                 NavigationLink("nativeEnrollment.manage") { NativeEnrollmentView(model: enrollment, privacyURL: runtime?.acceptance.privacyNoticeURL) }
                     .accessibilityIdentifier("nativeEnrollment.open")
             }
-            if let stage, let runtime { NativeStepsControls(stage: stage, advanced: advanced, privacyURL: runtime.acceptance.privacyNoticeURL) }
-            else {
+            if segment["skipped"].bool == true {
+                EmptyView()
+            } else if let stage, let runtime {
+                NativeStepsControls(stage: stage, advanced: advanced, privacyURL: runtime.acceptance.privacyNoticeURL)
+                if showsSkip(stage) {
+                    // MP `wk__skip`: 跳过这一站 only when the server says `canSkip`, never while syncing.
+                    Button("playkit.sensor.skip") { confirmSkip = true }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("playkit.sensor.skip")
+                }
+            } else {
                 Label("nativePlatform.disabled", systemImage: "lock.shield")
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -64,11 +74,25 @@ import SwiftUI
             }
         }
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
+        .confirmationDialog(Text("playkit.sensor.skip"), isPresented: $confirmSkip, titleVisibility: .visible) {
+            Button("playkit.sensor.skip") { Task { await skipStation() } }
+                .accessibilityIdentifier("playkit.sensor.skip.confirm")
+            Button("nativePlatform.cancel", role: .cancel) {}
+        }
         .task(id: advanced.state?.sessionID) { await runtime?.enrollment?.load(); if let id = advanced.state?.sessionID { stage = runtime?.stepModel(for: id) } }
     }
 }
 
 extension NativeStepsHostView {
+    /// MP `playkit-walk` `onSkip`: the server decides (`canSkip`); the client only asks, with `{game: steps}`.
+    func showsSkip(_ stage: NativeStepCoordinator) -> Bool {
+        PlayKitSensorStation.offersSkip(segment) && advanced.canInteract
+            && !["reading", "signing", "submitting", "review"].contains(stage.phase)
+    }
+    func skipStation() async {
+        guard let review = try? advanced.review(kind: PlayKitScreenKind.steps.rawValue, action: PlayKitSensorStation.skipAction) else { return }
+        await advanced.submit(review)
+    }
     /// MP `wk__stats`: 目标 · 已走 · 少排 N kg (the last only above zero).
     @ViewBuilder var walkStats: some View {
         stat("playkit.walk.stat.goal", value: Text(goal, format: .number))
@@ -145,12 +169,12 @@ extension NativeStepsHostView {
                         LabeledContent("nativePlatform.steps.delta") { Text(verbatim: String(delta)).monospacedDigit() }
                     }
                 }
-                Button { purpose = true } label: {
+                Button { readTapped() } label: {
                     Label("nativePlatform.steps.read", systemImage: "figure.walk")
                 }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-                    .disabled(!advanced.canInteract || !stage.supported)
+                    .disabled(!advanced.canInteract)
                     .accessibilityIdentifier("nativePlatform.steps.read")
                 if !stage.supported {
                     Text("nativePlatform.issue.unsupported")
@@ -186,6 +210,7 @@ extension NativeStepsHostView {
                 .roleThemedPresentation()
             }
         }
+        .modifier(NativeStepsFailureReport(issue: stage.issue, advanced: advanced))
         .onChange(of: advanced.state?.version) { _, version in if let version { stage.observeVersion(version) } }
         .cyHapticEvent(.sensorStepsProgress, trigger: stage.receipt?["acceptedDelta"].integer) { old, next in
             (next ?? 0) > (old ?? 0)
@@ -204,6 +229,35 @@ extension NativeStepsHostView {
             .accessibilityIdentifier(identifier)
     }
     private func refresh() async { if stage.latestState != nil && advanced.isCurrent { await advanced.refreshAuthoritative() } }
+    /// MP `_submitSteps`: a device that cannot count steps fails at once (no purpose sheet), which reports it.
+    private func readTapped() {
+        guard !stage.supported else { purpose = true; return }
+        guard let state = advanced.state else { return }
+        Task { await stage.read(sessionID: state.sessionID, version: state.version) }
+    }
+}
+
+/// MP `_submitSteps` `weRunDenied` (round 11 i1): a denied, restricted or missing step sensor is reported once to
+/// the server as `REPORT_SENSOR_FAILURE {game: steps, denied: true}`, which counts it to the skip threshold at once.
+/// Other failures (network, clock, interruption) are not sensor failures and are not reported.
+@MainActor struct NativeStepsFailureReport: ViewModifier {
+    let issue: NativePlatformIssue?
+    let advanced: PlayAdvancedCoordinator
+
+    func body(content: Content) -> some View {
+        content.onChange(of: issue) { (old: NativePlatformIssue?, next: NativePlatformIssue?) in changed(old, next) }
+    }
+
+    static func reports(_ issue: NativePlatformIssue) -> Bool {
+        issue == .denied || issue == .restricted || issue == .unsupported
+    }
+
+    private func changed(_ old: NativePlatformIssue?, _ next: NativePlatformIssue?) {
+        guard let next, next != old, Self.reports(next),
+              let review = try? advanced.review(kind: PlayKitScreenKind.steps.rawValue, action: PlayKitSensorStation.reportAction,
+                                                detail: ["denied": .bool(true)]) else { return }
+        Task { await advanced.submit(review) }
+    }
 }
 
 @MainActor struct NativeTimeWindowHostView: View {

@@ -400,6 +400,16 @@ Merged `origin/ui/combined-r7` (xcstrings: both sides' keys kept). Club hero art
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 52/52 new 0, design consistency PASS.
 
+## Pass 41: Not done row 61 (director sheets), first sheet: 定向广播 (no new coordinator finding for mp-club; latest sweep is still 0446d1c4f, handled in pass 40)
+Merged `origin/ui/combined-r7` (xcstrings: theirs was a superset, all keys kept). All club/talent MP pages now have a row; only the director sheets were left, so they are taken one per pass.
+| MP page | Native view | MP sections | Fix |
+|---|---|---|---|
+| `pages/club/components/club-director-broadcast-sheet` (topic-detail wxml:403-412, `director.js:190-272, 1226-1367`; level C) | `App/PlayDirectorView.swift` `PlayDirectorCommandEditor` (broadcast branch), new `App/PlayDirectorBroadcastForm.swift` | ① 发给 + count (「N 人 · K 队」, else the scope label; never a made-up 0) ② 范围 chips 全部 / 队伍 / 角色 ③ target rows when scope ≠ 全部: title, 「N 人」, 已选 / 选择 (switching scope selects the first) ④ 内容* textarea, 50 字 + counter, MP placeholder ⑤ one primary 发送给 N 人 / 发送, disabled until recipients > 0 and text | **Fixed.** Before: a generic 指令 form (title + notice, 广播范围 menu picker, 广播内容 field, team/role menu pickers, 确认提交？ pill) under 导演台. Now titled 定向广播 with sections ①-⑤ in MP order: `LabeledContent` 发给, segmented scope `Picker`, plain-button target rows (44 pt, checkmark 已选, `.isSelected` trait), vertical `TextField` capped at 50 with an `n/50` footer, full-width `.borderedProminent` send (`.large`). Counts follow `broadcastRecipientCount` / `roleRecipientCount` (nil when the server did not send every count). The content is trimmed before sending. Kept: the review → confirm modal → `model.submit` path and `PlayDirectorProjection.allows` (same payload keys). Not copied: the per-person avatar strip (`targetType: MEMBERS`, `memberIds`), which `PlayDirectorCommand`'s payload whitelist does not admit, so group mode only (the MP's own fallback when the roster is incomplete). 16 new keys (en + zh-Hans, en plurals). No fixture yet (director pages have none) |
+| 9 other director sheets (ready, recap, chapter, team, role, incident, chip-group, row-list, end-confirm) | `PlayDirectorView` | — | end-confirm already matches (pass 22); the rest stay **Not done**, next passes |
+| P2-4 rest | `/api/club/name-check` | — | Still **Not done** (backend route unconfirmed) |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 52/52 new 0 (the 16 keys are also in `docs/play-experience-localizations.json` for the director source check), design consistency PASS (`.cyAdaptiveSegmented()` scope picker).
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.
