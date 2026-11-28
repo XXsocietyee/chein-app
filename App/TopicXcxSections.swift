@@ -104,7 +104,7 @@ struct TopicXcxHero: View {
                     if let review = topic.ownerReviewLabel {
                         Label(LocalizedStringKey(TopicXcxHero.reviewKey(review)), systemImage: "hourglass")
                             .font(.subheadline)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("topic.ownerReviewState")
                     }
                 }
