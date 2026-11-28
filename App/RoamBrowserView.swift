@@ -376,8 +376,8 @@ struct RoamBrowserView: View {
                 .cyText(.bodyMedium, monospacedDigit: true).foregroundStyle(.primary)
             Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(.secondary).accessibilityHidden(true)
         }
-        // design-r2-roam (en sweep d2-roam): the collapsed line sits on a material with semantic foregrounds so the
-        // count and chevron read on the black panel in light and dark (CYColor.text* is black in light mode).
+        // design-r2-roam (en sweep d2-roam): the collapsed line sits on a material with semantic foregrounds; the panel
+        // is the elevated system surface (`cyMapPanelColor`), so both follow the system appearance.
         .padding(.horizontal, CYSpacing.lg).frame(maxWidth: .infinity, minHeight: 44)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .padding(.horizontal, CYSpacing.md)
