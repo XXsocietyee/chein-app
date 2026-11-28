@@ -888,7 +888,7 @@ struct RoamRecapShareFace: View {
     @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text(month, format: .dateTime.year().month(.wide)).cyText(.meta, weight: .semibold).foregroundStyle(.white.opacity(0.85)).textCase(.uppercase)
+            Text(month, format: .dateTime.year().month(.wide)).cyText(.meta, weight: .semibold).foregroundStyle(.white.opacity(0.85))
             Text(routes, format: .number).cyText(.data2XL).foregroundStyle(.white)
                 .cyWrapText()
             Text("roam.tools.recap.routesDone").cyText(.bodyMedium).foregroundStyle(.white.opacity(0.9))

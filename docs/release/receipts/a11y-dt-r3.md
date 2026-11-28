@@ -240,9 +240,23 @@ Not done item 2 (fixed-width rails at AX5):
 | `pages/templatedetail` image mosaic + node images | `DiscoveryTemplateDetailView.swift` | ✓ (mp-publish owns order) | VoiceOver heard "Open photo" for every tile → `accessibilityValue` "2 of 5" / "第 2 个，共 5 个" (existing `carousel.position` key) | Done |
 | every MP image strip (shared gallery) | `NativeMediaGallery.swift` | ✓ | Value "1 / 5" was read as "one slash five" → `carousel.position` ("1 of 5" / "第 1 个，共 5 个") | Done |
 
+## Run 14 (2026-11-27, half-hourly)
+Merged `origin/ui/combined-r7` (a2baf94fa). Sweep index is still build 8fa84e4d3, so Not done item 1 (re-read sheets) waits.
+Not done item 2: VoiceOver "n / N" values read as "slash" on player screens.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| review photo strip (retained images) | `RetainedPublicReviewImages.swift` | ✓ | "1 / 9" → `carousel.position` ("1 of 9" / "第 1 个，共 9 个") | Done |
+| project draft story preview chapter picker | `ProjectDraftStoryPreviewView.swift` | ✓ (mp-publish owns order) | chapter "2 / 5" → `carousel.position` | Done |
+| object card rotation frames | `ObjectCardViews.swift` | ✓ | frame "3 / 8" → `carousel.position` | Done |
+| `playkit` question tries left (还能错) | `PlayKitQuestionForms.swift` | ✓ (mp-journey owns order) | "2 / 3" → new `a11y.value.ofTotal` ("2 of 3" / "2，共 3") | Done |
+| character sheet attribute row | `CharacterSheetDetailView.swift` | ✓ | "7 / 10, level" → `a11y.value.ofTotal` + level | Done |
+| group poll result bar | `GroupPollViews.swift` | ✓ (mp-club owns order) | votes "4 / 12" → `a11y.value.ofTotal` | Done |
+| bundle review compose character counter | `BundleReviewComposeView.swift` | ✓ | "12/500" read as "twelve slash five hundred" → "12 of 500 characters" / "已输入 12 字，最多 500 字" | Done |
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 8fa84e4d3) to confirm run 13 (badge heading, passport AX rows, roam light map).
-- VoiceOver: scan other `accessibilityValue(Text("\(a) / \(b)"))` slash values on player screens (read as "slash") → `carousel.position` / domain "n of N" keys.
+- VoiceOver: scan remaining slash values built as `String` (e.g. `"\(a)/\(b)"` without spaces, `accessibilityLabel` with " / ") on player screens.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch

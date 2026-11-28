@@ -51,7 +51,9 @@ enum MemberParityFixture {
     func identity() async throws -> MemberIdentitySnapshot {
         identityReads += 1
         if scenario == "failure", identityReads == 1 { throw APIError.httpStatus(503) }
-        return try JSONDecoder().decode(MemberIdentitySnapshot.self, from: Data(#"{"nickname":"Synthetic member","city":"Synthetic City","levelId":2,"friendNum":3,"followNum":12,"fansNum":8,"topicNum":1,"activityNum":2,"likeNum":0,"createTime":"2026-01-02 08:00:00"}"#.utf8))
+        // mp-mine r3 (22:11 sweep): fixture data follows the UI language (zh UI read "Synthetic member / Synthetic City").
+        let name = iaFixtureText("Synthetic member", "示例会员"), city = iaFixtureText("Synthetic City", "示例城市")
+        return try JSONDecoder().decode(MemberIdentitySnapshot.self, from: Data(#"{"nickname":"\#(name)","city":"\#(city)","levelId":2,"friendNum":3,"followNum":12,"fansNum":8,"topicNum":1,"activityNum":2,"likeNum":0,"createTime":"2026-01-02 08:00:00"}"#.utf8))
     }
     func roleInfo() async throws -> MemberRoleInfo {
         if scenario == "failure" { throw APIError.httpStatus(503) }
