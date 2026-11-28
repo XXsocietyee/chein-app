@@ -32,8 +32,9 @@ import SwiftUI
         MessagingHomeView(reader: readerOwner.reader(for: session), mediaReader: session.socialMessageMediaReader,
             senderForConversation: { session.messageSender(for: $0) }, expanded: session.imExpandedNavigation,
             emptyFeedAction: openDiscoverFeed,
-            predictionEntry: { AnyView(SessionMerchantPredictionEntry(session: session)) },
-            merchantChrome: session.account?.role == "merchant")
+            // K12: 竞猜 inbox row and merchant chrome are merchant-center entries, hidden in Release.
+            predictionEntry: PlayerLaunch.merchantCenterEnabled ? { AnyView(SessionMerchantPredictionEntry(session: session)) } : nil,
+            merchantChrome: PlayerLaunch.merchantCenterEnabled && session.account?.role == "merchant")
             .id(session.messagingViewIdentity)
             .environment(\.imCoopInviteStrip, IMCoopInviteStripFactory.make(reader: session.cooperationReader))
             // Local preference plus the notification primer. No server write and no push topic.

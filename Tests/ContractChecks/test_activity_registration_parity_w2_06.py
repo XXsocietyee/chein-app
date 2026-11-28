@@ -50,7 +50,8 @@ class ActivityDetailParityTests(unittest.TestCase):
             # mp-home r3: MP shows the cancelled notice right under the hero; r3 continue: the native info card and
             # static map (no MP counterpart) are gone, so the facts and 主题路线 follow directly.
             'accessibilityIdentifier("activity.detail.cancelled")',
-            "ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail), onOpenLocation: directionsAction(detail))",
+            # continue 36: the 集合点 fact carries the shared static map snippet (level B), still inside the facts.
+            "ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail), onOpenLocation: directionsAction(detail),",
             'accessibilityIdentifier("activity.openTopic")',
             'Section("activity.about")',
             "ActivityPeopleSection(people:",

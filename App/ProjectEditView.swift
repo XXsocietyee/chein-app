@@ -322,6 +322,8 @@ import SwiftUI
     @State private var replacingPlace: ProjectEditPlaceTarget?
     @State private var topicDetailRequest: ProjectEditTopicDetailRequest?
     @State private var ticketSettingsRequest: ProjectEditTicketSettingsRequest?
+    /// MP `_locateStructureIssue('endings')`: the 运行结局 sheet, opened from its 发布前需要修改 row.
+    @State private var runtimeEndingsOpen = false
     @StateObject private var undoCenter = ProjectEditUndoCenter()
     /// fix/1128c-ai-showcase (H-08b): the AI safety precheck runs before the publish step, as MP fabu does.
     @StateObject private var aiPrecheck = AISafetyPrecheckGate()
@@ -684,7 +686,7 @@ import SwiftUI
                 modeReview.presentation != nil || ownedCover.presentation != nil || approvedRelease.presentation != nil ||
                 reviewRequest.presentation != nil || starter.destination != nil || pending.destination != nil ||
                 issueNavigation.destination != nil || model.confirmation != nil || topicDetailRequest != nil ||
-                ticketSettingsRequest != nil
+                ticketSettingsRequest != nil || runtimeEndingsOpen
         }))
         .modifier(ProjectEditIssueNavigationPresentation(controller: issueNavigation))
         .modifier(ProjectEditTopicDetailHost(request: $topicDetailRequest, rootRequestID: issueNavigation.rootRequest?.id,
@@ -695,6 +697,9 @@ import SwiftUI
                                                 rootAnchor: issueNavigation.rootRequest?.capture.location.anchor) { anchor in
             ticketSettingsPage(anchor: anchor)
         })
+        .modifier(ProjectRuntimeEndingsHost(model: model, isPresented: $runtimeEndingsOpen,
+                                            rootRequestID: issueNavigation.rootRequest?.id,
+                                            rootAnchor: issueNavigation.rootRequest?.capture.location.anchor))
         .onChange(of: model.revision) { _, _ in
             if model.coordinator.state == .acknowledged, let next = model.submittedHandoff, next.id != handledSubmission {
                 handledSubmission = next.id; submission = next
