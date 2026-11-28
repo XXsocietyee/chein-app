@@ -3949,7 +3949,29 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "%1$@ · %2$lld segments"
+          "value": "%1$@ · %#@segment@"
+        },
+        "substitutions": {
+          "segment": {
+            "argNum": 2,
+            "formatSpecifier": "lld",
+            "variations": {
+              "plural": {
+                "one": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg segment"
+                  }
+                },
+                "other": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg segments"
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "zh-Hans": {
@@ -4032,9 +4054,21 @@
     "extractionState": "manual",
     "localizations": {
       "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "%lld segments"
+        "variations": {
+          "plural": {
+            "one": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "%lld segment"
+              }
+            },
+            "other": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "%lld segments"
+              }
+            }
+          }
         }
       },
       "zh-Hans": {
