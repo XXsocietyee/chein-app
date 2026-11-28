@@ -129,6 +129,15 @@ Merged `origin/ui/combined-r7` (clean). Sweep build 8fa84e4d3 (22:11Z) en: `mp-c
 | 48 | `SupportTicketReadView`, `CityTaskHistoryView` | Checked: raw timestamps next to raw ids / enum values (`sender_type`, `event_type`, board/season ids) | Diagnostic/record surfaces with ISO instants, not MP player pages; left as sent. No change | Checked |
 | 49 | `pages/template/*` 我的节点玩法 → `TemplateAuthoringMineView.swift` (cover use count, shelf state rows) | Checked: "Used 1 time" plural, shelf states via `LabeledContent` (value wraps under long English labels); market state copy is pinned by `test_template_shelf_state_projection.py` | No change |  Checked |
 
+### Run 12 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep still build 8fa84e4d3 (22:11Z). Looked at `mp-nav/sheet-en.jpg` (inbox, tabs, login, onboarding, welcome: no English layout problem) and `mp-activity/sheet-en.jpg`. Catalog scan: no English value contains CJK, no CJK key without an English value (merchant excluded).
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 50 | `pages/activity/baoming` 选择参与人信息 half-screen + 选择票种 links → `RegistrationSheetView.swift:729`, `:828` (`en-t5-baoming`) | Link labels read "Select participant sheet" / "Choose ticket sheet" (internal wording) | en → "Choose participant details" / "Choose a ticket" (MP titles); zh unchanged. Fixture names ("Offline fixture activity", "Standard fixture ticket") and the ticket price "—" are mp-activity's (coordinator 22:20) | Done |
+| 51 | Workshop creator consent / pending (`WorkshopCreatorConsentView`, `WorkshopCreatorPendingView`) | Checked: `declaredAt` / `expiresAt` raw next to version ids and hashes | Record surfaces with ISO instants (same as row 48); left as sent | Checked |
+
 ## Not done
 
 | Item | Why |
