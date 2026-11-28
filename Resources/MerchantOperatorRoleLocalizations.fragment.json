@@ -212,7 +212,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Verify"
+          "value": "Verify redemptions"
         }
       },
       "zh-Hans": {
@@ -468,7 +468,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "View aftercare"
+          "value": "View aftercare cases"
         }
       },
       "zh-Hans": {
@@ -500,7 +500,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Respond aftercare"
+          "value": "Respond to aftercare"
         }
       },
       "zh-Hans": {

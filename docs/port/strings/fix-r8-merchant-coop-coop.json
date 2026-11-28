@@ -245,7 +245,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reply invite"
+            "value": "Reply with invite"
           }
         },
         "zh-Hans": {
@@ -313,7 +313,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite someone"
+            "value": "Invite someone else"
           }
         },
         "zh-Hans": {

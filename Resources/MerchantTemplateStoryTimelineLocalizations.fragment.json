@@ -141,7 +141,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Move"
+          "value": "Move earlier"
         }
       },
       "zh-Hans": {
@@ -158,7 +158,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Move"
+          "value": "Move later"
         }
       },
       "zh-Hans": {

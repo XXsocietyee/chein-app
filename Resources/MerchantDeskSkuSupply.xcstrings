@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting platform review"
+            "value": "Waiting for platform review"
           }
         },
         "zh-Hans": {
@@ -284,7 +284,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original catalog status is unverified. Review of the new revision isn't yet enabled; doesn't indicate approval."
+            "value": "The original catalog status is unverified. Review of the new revision is not yet enabled; this does not indicate approval."
           }
         }
       }
@@ -300,7 +300,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original qualification is confirmed. Doesn't replace review product revision."
+            "value": "The original qualification is currently confirmed. This does not replace review of the product revision."
           }
         }
       }
@@ -316,7 +316,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original qualification unconfirmed no longer valid."
+            "value": "The original qualification is unconfirmed or no longer valid. A past approval does not establish current eligibility for publication."
           }
         }
       }
@@ -332,7 +332,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server confirms publication allowed current product revision associated."
+            "value": "The server confirms that publication is allowed for the current product revision and its associated qualification revision."
           }
         }
       }
@@ -348,7 +348,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publication eligibility current product qualification revisions can't confirmed."
+            "value": "Publication eligibility for the current product and qualification revisions cannot be confirmed. Past submission receipts are retained."
           }
         }
       }
@@ -476,7 +476,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original store"
+            "value": "Original store location"
           }
         }
       }
@@ -540,7 +540,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "I have checked the actual store and explicitly confirm manually selected location. Won't treat map lookup proof store visit."
+            "value": "I have checked the actual store and explicitly confirm this manually selected location. I will not treat a map lookup as proof of a store visit."
           }
         }
       }
@@ -556,7 +556,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm save original anchor settings"
+            "value": "Confirm and save the original anchor settings"
           }
         }
       }
@@ -588,7 +588,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh original"
+            "value": "Refresh the original settings"
           }
         }
       }
@@ -780,7 +780,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh current decision original"
+            "value": "Refresh the current decision on the original case"
           }
         }
       }
@@ -828,7 +828,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Private image evidence for case"
+            "value": "Private image evidence for this case"
           }
         }
       }
@@ -860,7 +860,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Select an authentic image for case"
+            "value": "Select an authentic image for this case"
           }
         }
       }
@@ -892,7 +892,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The image request result is unknown. Retain the original request identity check result. Select image again, must same original image; don't start new request."
+            "value": "The image request result is unknown. Retain the original request identity and check its result. If you select the image again, it must be the same original image; do not start a new request."
           }
         }
       }
@@ -908,7 +908,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check original image upload"
+            "value": "Check the original image upload"
           }
         }
       }
@@ -924,7 +924,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Authorize access to original image case"
+            "value": "Authorize access to the original image for this case"
           }
         }
       }
@@ -940,7 +940,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original image request is still unconfirmed and can't treated uploaded attachment."
+            "value": "The original image request is still unconfirmed and cannot be treated as an uploaded attachment."
           }
         }
       }
@@ -1069,7 +1069,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original approved product"
+            "value": "Original approved product revision"
           }
         },
         "zh-Hans": {
@@ -1086,7 +1086,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original qualification"
+            "value": "Original qualification revision"
           }
         },
         "zh-Hans": {
@@ -1103,7 +1103,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original approval request"
+            "value": "Original approval request ID"
           }
         },
         "zh-Hans": {
@@ -1120,7 +1120,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original approved snapshot"
+            "value": "Original approved snapshot hash"
           }
         },
         "zh-Hans": {
@@ -1188,7 +1188,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No products are available in current access scope."
+            "value": "No products are available in your current access scope."
           }
         },
         "zh-Hans": {
