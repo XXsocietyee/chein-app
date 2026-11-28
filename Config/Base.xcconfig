@@ -13,7 +13,8 @@ INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES
 INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
 INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
 CODE_SIGN_STYLE = Automatic
-// No ATS relaxation, credentials, or service endpoints. The only entitlement is Sign in with Apple (Config/Questify.entitlements, set on the app target).
+// No ATS relaxation, credentials, or service endpoints. Entitlements: Config/Questify.entitlements, or with
+// QUESTIFY_ASSOCIATED_DOMAINS = YES Config/QuestifyAssociatedDomains.entitlements (the same plus applinks).
 
 // Set only an approved public API base URL; never put secrets in build settings.
 QUESTIFY_MARKET = CN
@@ -36,6 +37,18 @@ QUESTIFY_CITY_GAME_REGION =
 // DEBUG e2e only: the TEST backend board region. Release stays empty until production ships a board.
 QUESTIFY_CITY_GAME_REGION[config=Debug] = gaps-a-test
 INFOPLIST_KEY_QuestifyCityGameRegion = $(QUESTIFY_CITY_GAME_REGION)
+
+// P0-5 / P1-1 owner values (WeChat AppID, Universal Link, link domain): Config/OwnerValues.xcconfig,
+// docs/release/owner-values.md. Public identifiers only; the WeChat AppSecret stays on the backend.
+#include "OwnerValues.xcconfig"
+// 1 only once the official WechatOpenSDK is in Vendor/WechatOpenSDK/WechatOpenSDK.xcframework (App/QFWeChatSDKBridge.m).
+QUESTIFY_WECHAT_SDK_APPROVED = 0
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) QUESTIFY_WECHAT_SDK_APPROVED=$(QUESTIFY_WECHAT_SDK_APPROVED)
+// YES only after the owner enables Associated Domains on the App ID and hosts the AASA file
+// (docs/release/aasa-template.json). NO keeps signing working with the current provisioning profile.
+QUESTIFY_ASSOCIATED_DOMAINS = NO
+QUESTIFY_APP_ENTITLEMENTS_NO = Config/Questify.entitlements
+QUESTIFY_APP_ENTITLEMENTS_YES = Config/QuestifyAssociatedDomains.entitlements
 
 #include? "Local.xcconfig"
 

@@ -101,14 +101,25 @@ gltf_dependency=obj('gltf-dependency',isa='PBXTargetDependency',name='GLTFKit2',
 gltf_link=obj('gltf-link',isa='PBXBuildFile',fileRef=gltf_product)
 gltf_embed=obj('gltf-embed',isa='PBXBuildFile',fileRef=gltf_product,settings={'ATTRIBUTES':['CodeSignOnCopy','RemoveHeadersOnCopy']})
 embed_phase=obj('embed-frameworks',isa='PBXCopyFilesBuildPhase',buildActionMask=2147483647,dstPath='',dstSubfolderSpec=10,files=[gltf_embed],name='Embed Frameworks',runOnlyForDeploymentPostprocessing=0)
-framework_phase=obj('frameworks',isa='PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[gltf_link],runOnlyForDeploymentPostprocessing=0)
+# P0-5: the official Tencent WechatOpenSDK (static XCFramework from open.weixin.qq.com) is linked only when the owner has
+# placed it at Vendor/WechatOpenSDK/WechatOpenSDK.xcframework. The bridge also needs QUESTIFY_WECHAT_SDK_APPROVED = 1
+# (Config/Base.xcconfig). Without the folder the project is unchanged and the WeChat sign-in button stays hidden.
+WECHAT_SDK=ROOT/'Vendor/WechatOpenSDK/WechatOpenSDK.xcframework'
+framework_links=[gltf_link]
+if WECHAT_SDK.is_dir():
+    wechat_ref=obj('wechat-sdk',isa='PBXFileReference',lastKnownFileType='wrapper.xcframework',path='Vendor/WechatOpenSDK/WechatOpenSDK.xcframework',sourceTree='<group>')
+    objects[group]['children'].append(wechat_ref)
+    framework_links.append(obj('wechat-sdk-link',isa='PBXBuildFile',fileRef=wechat_ref))
+framework_phase=obj('frameworks',isa='PBXFrameworksBuildPhase',buildActionMask=2147483647,files=framework_links,runOnlyForDeploymentPostprocessing=0)
 def configurations(scope):
     configs=[]
     for name in ['Debug','Release']:
         settings = {'SDKROOT':'iphoneos','CLANG_ENABLE_MODULES':'YES'} if scope=='project' else {'PRODUCT_NAME':'$(TARGET_NAME)','SUPPORTED_PLATFORMS':'iphoneos iphonesimulator','SWIFT_EMIT_LOC_STRINGS':'YES'}
         if scope=='target': settings.update({'FRAMEWORK_SEARCH_PATHS':'$(inherited) $(BUILT_PRODUCTS_DIR)','LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks'})
         if scope=='target': settings['SWIFT_OBJC_BRIDGING_HEADER']='$(SRCROOT)/App/Questify-Bridging-Header.h'
-        if scope=='target': settings['CODE_SIGN_ENTITLEMENTS']='Config/Questify.entitlements'
+        # P1-1: Config/Base.xcconfig QUESTIFY_ASSOCIATED_DOMAINS (NO/YES) picks the plain or the applinks entitlements file.
+        if scope=='target': settings['CODE_SIGN_ENTITLEMENTS']='$(QUESTIFY_APP_ENTITLEMENTS_$(QUESTIFY_ASSOCIATED_DOMAINS))'
+        if scope=='target' and WECHAT_SDK.is_dir(): settings['OTHER_LDFLAGS']='$(inherited) -ObjC -lc++ -lz -lsqlite3 -framework WebKit -framework Security -framework CoreGraphics'
         if scope=='target': settings.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O','DEBUG_INFORMATION_FORMAT':'dwarf' if name=='Debug' else 'dwarf-with-dsym'})
         if scope=='target' and name=='Debug':
             settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'+METAL_COND

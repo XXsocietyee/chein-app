@@ -385,6 +385,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FB53FC250F5D748AB9855D92";
 		};
+		"0E49F9779B1EF9E56607897B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/AppSession+AppLinks.swift";
+			"sourceTree" = "<group>";
+		};
+		"9C53D95CE6A766031C0B271F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0E49F9779B1EF9E56607897B";
+		};
 		"371621415840187D6BD04583" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -21314,6 +21324,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "ACBFDD22B21316FBB70C1108";
 		};
+		"F216A8BDF5F54E1CCF2FAD3C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/AppUniversalLinkRouter.swift";
+			"sourceTree" = "<group>";
+		};
+		"7CE39FD44F423FF0946CD66B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F216A8BDF5F54E1CCF2FAD3C";
+		};
 		"7EF3EC2B73AF5B73D46B7C55" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -40524,6 +40544,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "49114918B7A175A52573A3EB";
 		};
+		"521A81B3453021A8BAA75684" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/WeChatAppLaunch.swift";
+			"sourceTree" = "<group>";
+		};
+		"6F4CF94CBBE556CFE9408D4C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "521A81B3453021A8BAA75684";
+		};
 		"87837EBDAEED81C733261E0D" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -43562,6 +43592,7 @@
 				"3CC07A68C823F4B04914A5D0",
 				"7E0EEE36BAFCB2989C8FF87B",
 				"FB53FC250F5D748AB9855D92",
+				"0E49F9779B1EF9E56607897B",
 				"371621415840187D6BD04583",
 				"C72F00EC6273D3F1D949214A",
 				"5EB3A07DF6D0092D915A520A",
@@ -45654,6 +45685,7 @@
 				"5BD0DE4C6D169E2A6E6362ED",
 				"050BB47592A60DF8706C3F72",
 				"ACBFDD22B21316FBB70C1108",
+				"F216A8BDF5F54E1CCF2FAD3C",
 				"7EF3EC2B73AF5B73D46B7C55",
 				"79DC35470968F5654CA57B0E",
 				"45EC084AD400033BB425F22D",
@@ -47575,6 +47607,7 @@
 				"8D2EF0B83962DE2F587AD2E7",
 				"7EA26B186B50B5A20E2DE199",
 				"49114918B7A175A52573A3EB",
+				"521A81B3453021A8BAA75684",
 				"87837EBDAEED81C733261E0D",
 				"7C45806AF850D7E13D74F6F0",
 				"CB63893C18702C855DA3D4BD",
@@ -49113,6 +49146,7 @@
 				"9E420C817FF6FD08A8D5F8CD",
 				"192DFB5C8E6FE6CC388B6B54",
 				"DB984F0206DFF46F3EC3D818",
+				"9C53D95CE6A766031C0B271F",
 				"23751FBF7D94E9BA67EED0A6",
 				"33E096726DB61E7014BF0E98",
 				"05EFA7BA68A026505FCC379B",
@@ -51205,6 +51239,7 @@
 				"9F3D88562AB25EC93DECC717",
 				"DDBB636CEA6C33D7DA38CFC3",
 				"FA28C387E68C4A7EAEDE8D8F",
+				"7CE39FD44F423FF0946CD66B",
 				"184948260147CDF3AB6C01D9",
 				"BDA251FEFDCA0B2CA5E05EEF",
 				"E5F8FC3BC8EF69447ABDD0C5",
@@ -53126,6 +53161,7 @@
 				"9F9EFB9EFA57FCCD248A76A2",
 				"9531CBF7F3334E0932846293",
 				"84F73A6E3A15FEE11AFBF66B",
+				"6F4CF94CBBE556CFE9408D4C",
 				"E04859F3F909E1F8AF0746A4",
 				"A46157112E99ED92B2032E29",
 				"D88C57489F18A42BFE288E47",
@@ -53723,7 +53759,7 @@
 				"FRAMEWORK_SEARCH_PATHS" = "$(inherited) $(BUILT_PRODUCTS_DIR)";
 				"LD_RUNPATH_SEARCH_PATHS" = "$(inherited) @executable_path/Frameworks";
 				"SWIFT_OBJC_BRIDGING_HEADER" = "$(SRCROOT)/App/Questify-Bridging-Header.h";
-				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
+				"CODE_SIGN_ENTITLEMENTS" = "$(QUESTIFY_APP_ENTITLEMENTS_$(QUESTIFY_ASSOCIATED_DOMAINS))";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf";
 				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG $(inherited)";
@@ -53741,7 +53777,7 @@
 				"FRAMEWORK_SEARCH_PATHS" = "$(inherited) $(BUILT_PRODUCTS_DIR)";
 				"LD_RUNPATH_SEARCH_PATHS" = "$(inherited) @executable_path/Frameworks";
 				"SWIFT_OBJC_BRIDGING_HEADER" = "$(SRCROOT)/App/Questify-Bridging-Header.h";
-				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
+				"CODE_SIGN_ENTITLEMENTS" = "$(QUESTIFY_APP_ENTITLEMENTS_$(QUESTIFY_ASSOCIATED_DOMAINS))";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
 				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift AppStoreScreenshotHarness.swift CarouselFixtures.swift CityKitFixtures.swift ClubCardFixtures.swift Cur3UITestFixtures.swift Cur4Fixtures.swift Cur7Fixtures.swift Cur9Fixtures.swift CurFixtures2.swift CurFixtures3.swift CurFixtures5.swift CurFixtures6.swift CurFixtures8.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift DesignKitFixture.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift FixR3PlayRoamBFixtures.swift GParityFixtures.swift IAFixtures.swift IMRecipientPreviewFixtures.swift KitGalleryFixture.swift MemberAreaPopupFixtures.swift MerchantAreaPopupCloseFixtures.swift MerchantAreaPopupFixtures.swift MerchantConsoleFixtures.swift MotionLabFixture.swift NewFeatureFixtures.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PlayAreaPopupCloseFixtures.swift PlayAreaPopupFixtures.swift PopupsSocialFixtures.swift PremergeChineseFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift R3InPlaceKitFixtures.swift R4PlayFlowFixtures.swift RegistrationAppPayFixtures.swift RoamFixtures.swift RoamR3NearbyFixture.swift RoamR3PoiFixture.swift RoamR3RoutesFixture.swift UGCSafetyFixtures.swift WaveFixtures.swift";

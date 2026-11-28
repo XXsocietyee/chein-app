@@ -219731,22 +219731,6 @@
         }
       }
     },
-    "region.usLoginPending": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign-in isn't available in your region yet."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你所在的地区暂不支持登录。"
-          }
-        }
-      }
-    },
     "registration.benefits.title": {
       "extractionState": "manual",
       "localizations": {
