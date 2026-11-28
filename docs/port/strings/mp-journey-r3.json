@@ -3928,5 +3928,39 @@
         }
       }
     }
+  },
+  "playCard.saved": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved to your collection"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已收进藏品册"
+        }
+      }
+    }
+  },
+  "playCard.savedGenerating": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved to your collection · 3D is being made; turn it around in your collection later"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已收进藏品册 · 3D 生成中，稍后在藏品册里转着看"
+        }
+      }
+    }
   }
 }

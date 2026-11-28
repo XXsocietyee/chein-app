@@ -402,9 +402,8 @@ import VisionKit
                         }
                         Text(verbatim: card.title).font(.headline).accessibilityIdentifier("playCard.title")
                         if !card.caption.isEmpty { Text(verbatim: card.caption).foregroundStyle(.secondary) }
+                        // MP `oc__form`: 名称 → 物品信息 · 地点 → 已收进藏品册 (· 3D 生成中…); the card style is not listed.
                         if !card.place.isEmpty { LabeledContent("objects.place", value: card.place) }
-                        LabeledContent("objects.style") { Text(card.cardStyle == "plain" ? "objects.plain" : "objects.foil") }
-                        if card.generating { Label("objects.generating", systemImage: "hourglass") }
                         if card.generationStatus == "FAILED" { Text("playCard.framesUnavailable").foregroundStyle(.secondary) }
                     }
                 } label: {
@@ -416,7 +415,7 @@ import VisionKit
                 Text("objects.sessionChanged")
             }
         } footer: {
-            Text("playCard.collectionHint")
+            Text(card.generating ? LocalizedStringKey("playCard.savedGenerating") : LocalizedStringKey("playCard.saved"))
         }
         .privacySensitive()
         .accessibilityIdentifier("playCard.reveal")
