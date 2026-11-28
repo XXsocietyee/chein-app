@@ -689,7 +689,9 @@ private struct ParticipationCoverPlaceholder: View {
                                 let done = row.doneCount
                                 if row.completed == true || (done.map { $0 >= total } ?? false) { Label("playerJourney.finished", systemImage: "checkmark.circle") }
                                 else if done == 0 { Text("playerJourney.notStarted") }
-                                Text(verbatim: "\(done.map(String.init) ?? "—") / \(total)").monospacedDigit()
+                                // a11y-dt r3: VoiceOver reads "3 of 5" instead of "3 slash 5".
+                                if let done { Text(verbatim: "\(done) / \(total)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotal \(done) \(total)")) }
+                                else { Text(verbatim: "— / \(total)").monospacedDigit() }
                             } else if row.total == nil {
                                 Text(verbatim: "—").monospacedDigit().accessibilityIdentifier("playerJourney.completed.unknown")
                             } else {

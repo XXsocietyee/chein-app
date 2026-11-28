@@ -252,6 +252,7 @@ extension EnvironmentValues {
     @State private var gameplayPicker = false
     @State private var showsSignIn = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let makeCoverService: (() -> ActivityCoverService?)?
     private let coverSession: () -> PublishingSession?
     let sessionRevision: UInt64
@@ -292,7 +293,8 @@ extension EnvironmentValues {
     }
     private func jump(to section: EditorOutlineSection, _ proxy: ScrollViewProxy) {
         outlineCurrent = section
-        withAnimation(.easeOut(duration: EditorMotionSpec.pushSeconds)) { proxy.scrollTo(section.anchor, anchor: .top) }
+        // a11y-dt r3: Reduce Motion jumps to the section without the scroll animation.
+        withAnimation(reduceMotion ? nil : .easeOut(duration: EditorMotionSpec.pushSeconds)) { proxy.scrollTo(section.anchor, anchor: .top) }
     }
     private func jumpToFirstError(_ proxy: ScrollViewProxy) {
         jump(to: outline.firstError ?? .gameplay, proxy); errorJumps += 1
