@@ -1,4 +1,4 @@
-"""w2-07: source guards for mini-program Square list/detail parity and the dormant deletion contract."""
+"""w2-07: source guards for mini-program Square list/detail parity and the reviewed deletion contract."""
 import json
 from pathlib import Path
 import re
@@ -48,17 +48,23 @@ class W207SquareParity(unittest.TestCase):
         self.assertIn('try await reader.events(city: nil)', strip)
         self.assertNotRegex(strip, r'URLSession|httpMethod')
 
-    def test_deletion_is_dormant_explicit_and_source_shaped(self):
+    def test_deletion_is_issued_for_the_player_and_source_shaped(self):
         flow = read('Core/SquareDeletionFlow.swift')
         for exact in ['request.httpMethod = "DELETE"', '"expectedVersion": target.expectedVersion, "requestId": requestID',
                       'guard case .confirming(let target) = phase, isAllowed(target)',
                       'approval.allows(configuration: configuration, namespace: session.namespace, accountID: session.accountID, path: target.routeTemplate)',
                       'case .unknown: phase = .unknown(target)']:
             self.assertIn(exact, flow)
-        app = '\n'.join(p.read_text() for p in (ROOT / 'App').glob('*.swift'))
-        # No host supplies an approved coordinator; the reviewed allowlist is empty.
-        self.assertNotRegex(app, r'SquareDeletionCoordinator\(service:')
-        self.assertNotRegex(app, r'\.environment\(\\\.squareDeletion')
+        # K40 M-01d: the player tabs supply one approved coordinator. Merchant stays off because the approval
+        # exists only when the community writer does (China player or club).
+        approvals = read('App/MPFirstSocialApprovals.swift')
+        self.assertIn('guard community(root, context) != nil else { return nil }', approvals)
+        self.assertIn('SquareDeletionTarget.postRoute', approvals)
+        self.assertIn('SquareDeletionTarget.commentRoute', approvals)
+        host = read('App/SquareDeletionViews.swift')
+        self.assertIn('return .disabled()', host)
+        self.assertIn('SquareDeletionCoordinator(', host)
+        self.assertIn('.environment(\\.squareDeletion, SquarePlayerDeletionHost.coordinator(session))', read('App/QuestifyApp.swift'))
         detail = read('App/SquareDetailView.swift')
         # Delete controls (post and comment) render only when the approved coordinator allows that exact target.
         self.assertIn('if let target = SquareDeletionTarget(post: post), deletion?.isAllowed(target) == true {', detail)

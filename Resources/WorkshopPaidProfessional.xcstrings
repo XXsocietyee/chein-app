@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creating a draft from this purchase isn't available yet."
+            "value": "Creating a draft from purchase isn't available yet."
           }
         },
         "zh-Hans": {
@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose a professional target"
+            "value": "Choose a pro target"
           }
         }
       }

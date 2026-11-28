@@ -374,7 +374,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "registrants"
+            "value": "Pax"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting check-in"
+            "value": "Awaiting"
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registration fees are held in escrow by the platform."
+            "value": "Sign-up fees are held in escrow by platform."
           }
         },
         "zh-Hans": {
@@ -598,7 +598,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try updating again"
+            "value": "Try updating"
           }
         },
         "zh-Hans": {

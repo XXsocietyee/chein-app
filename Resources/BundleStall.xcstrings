@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reservations are temporarily unavailable."
+            "value": "Bookings temporarily unavailable."
           }
         },
         "zh-Hans": {
@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reservations are temporarily unavailable."
+            "value": "Bookings temporarily unavailable."
           }
         },
         "zh-Hans": {

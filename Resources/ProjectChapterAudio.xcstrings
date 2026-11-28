@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clear this chapter’s narration?"
+            "value": "Clear chapter’s narration?"
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use for this chapter"
+            "value": "Use for chapter"
           }
         },
         "zh-Hans": {

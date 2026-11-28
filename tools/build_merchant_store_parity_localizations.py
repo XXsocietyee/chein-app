@@ -8,24 +8,24 @@ FRAGMENT = ROOT / 'Resources/MerchantStoreParityLocalizations.fragment.json'
 CATALOG = ROOT / 'Resources/Localizable.xcstrings'
 PAIRS = {
 # pages/merchant/index reminders (index.wxml:113-132)
-'merchant.workbench.aftercareReminder %lld': ('%lld after-sales requests await your response', '有 %lld 笔售后待回应'),
+'merchant.workbench.aftercareReminder %lld': ('%lld after-sales requests await response', '有 %lld 笔售后待回应'),
 'merchant.workbench.predictReminder %lld': ('%lld prediction rounds await your answer', '有 %lld 轮竞猜待给答案'),
 'merchant.workbench.reminderUnavailable': ('Open this from the business workspace.', '请从经营工作区进入处理。'),
 # pages/merchant/reviews summary (index.wxml:31-77)
 'merchant.reviewSummary.title': ('Reviews', '口碑'),
 'merchant.reviewSummary.stars %lld': ('%lld of 5 stars', '%lld 星（满分 5 星）'),
 'merchant.reviewSummary.total %lld': ('%lld verified-redemption reviews · merchants cannot edit original reviews', '%lld 条已核销评价 · 商家不能改用户原评'),
-'merchant.reviewSummary.pending': ('Awaiting reply', '待回复'),
-'merchant.reviewSummary.pendingHint': ('Replies can be edited later', '回复后可修改'),
+'merchant.reviewSummary.pending': ('Awaiting', '待回复'),
+'merchant.reviewSummary.pendingHint': ('Replies can edited later', '回复后可修改'),
 'merchant.reviewSummary.month': ('New this month', '本月新增'),
-'merchant.reviewSummary.monthHint': ('From this month’s redemption reviews', '来自本月核销评价'),
+'merchant.reviewSummary.monthHint': ('From this month’s redeem reviews', '来自本月核销评价'),
 'merchant.reviewSummary.rate': ('Reply rate', '已回复率'),
 'merchant.reviewSummary.rateHint': ('Across all public reviews', '按全量公开评价计算'),
 'merchant.reviewSummary.average30': ('30-day average', '近 30 天均分'),
 'merchant.reviewSummary.average30Hint': ('Average of public reviews', '公开评价平均分'),
 # pages/merchant/team non-admin card (index.wxml:109-114)
 'merchant.operatorSelf.title': ('Your role permissions', '你的岗位权限'),
-'merchant.operatorSelf.copy': ('The workbench only shows the business entries available to your current role. The owner changes roles or ends access, and it takes effect on the next request.', '工作台只显示当前岗位可用的经营入口。岗位调整或离职由店主操作，并在下一次请求时立即生效。'),
+'merchant.operatorSelf.copy': ('To change your role or leave the team, contact the store owner.', '工作台只显示当前岗位可用的经营入口。岗位调整或离职由店主操作，并在下一次请求时立即生效。'),
 'merchant.operatorSelf.openWorkbench': ('Go to workbench', '进入工作台'),
 # pages/merchant/decor entry subtitles (index.wxml:69-119)
 'merchant.operationsHint.profile': ('Name · address · hours', '名称 · 地址 · 营业时间'),

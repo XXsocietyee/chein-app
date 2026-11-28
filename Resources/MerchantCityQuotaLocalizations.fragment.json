@@ -28,7 +28,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Your online-node quota is full. Take a node offline before placing another."
+          "value": "Your online-node quota is full. Take node offline before placing another."
         }
       }
     }

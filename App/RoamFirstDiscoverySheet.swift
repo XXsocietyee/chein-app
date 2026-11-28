@@ -106,7 +106,8 @@ extension AppSession {
             },
             tasks: { [weak self] in
                 guard let self else { return AnyView(EmptyView()) }
-                return AnyView(RoamOfficialTasksView(roamReader: self.roamExperienceReader, reader: self.officialEventReader))
+                return AnyView(RoamOfficialTasksView(roamReader: self.roamExperienceReader, reader: self.officialEventReader,
+                                                      actions: self.officialActionCoordinator))
             },
             exploreDay: { [weak self] in
                 guard let self else { return nil }

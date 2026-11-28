@@ -150,7 +150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose as the correct answer"
+            "value": "Choose as correct answer"
           }
         },
         "zh-Hans": {
@@ -182,7 +182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Move down"
+            "value": "Move"
           }
         },
         "zh-Hans": {

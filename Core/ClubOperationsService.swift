@@ -174,8 +174,9 @@ public struct ClubOperationsService {
         }
     }
 
-    /// Read-only name check. China production does not admit this route, so that host returns
-    /// `.unchecked` without a send. Any other failure also stays unchecked and does not block create.
+    /// Read-only name check. The China host sends only when `offersFeature` admits the route.
+    /// A firewall refusal, a transport error, or a body that is not a name-check answer stays `.unchecked`
+    /// and does not block create.
     func checkName(_ name: String, token: String) async -> ClubNameCheck.Result {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard ClubNameCheck.shouldQuery(trimmed),

@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publisher identity registration"
+            "value": "Publisher identity sign-up"
           }
         },
         "zh-Hans": {
@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explicitly submit registration"
+            "value": "Explicitly submit sign-up"
           }
         },
         "zh-Hans": {
@@ -313,7 +313,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This independent status does not confirm the original request receipt. Its uncertainty marker is retained."
+            "value": "This independent status doesn't confirm the original request receipt. Its uncertainty marker is retained."
           }
         },
         "zh-Hans": {

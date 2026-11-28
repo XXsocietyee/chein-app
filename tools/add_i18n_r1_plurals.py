@@ -37,6 +37,9 @@ SINGULAR = {
     'teams': 'team', 'themes': 'theme', 'tickets': 'ticket', 'times': 'time', 'topics': 'topic',
     'weeks': 'week', 'works': 'work', 'years': 'year', 'stamps': 'stamp', 'districts': 'district',
     'groups': 'group', 'runs': 'run', 'visits': 'visit', 'votes': 'vote', 'tries': 'try', 'winners': 'winner', 'pieces': 'piece',
+    # en-layout r3 run 36
+    'stars': 'star', 'medals': 'medal', 'legs': 'leg', 'slots': 'slot', 'pictures': 'picture', 'choices': 'choice',
+    'roles': 'role', 'fields': 'field', 'picks': 'pick', 'segments': 'segment', 'images': 'image',
 }
 # Keys where the matched word is a verb ("the invite for seat %lld stops working"), not a counted noun.
 VERB_KEYS = {'mp.seats.cancel.message %lld'}

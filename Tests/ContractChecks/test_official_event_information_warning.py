@@ -49,8 +49,8 @@ class OfficialEventInformationWarningChecks(unittest.TestCase):
     def test_original_bilingual_copy_makes_no_unsupplied_reason_claim(self):
         strings = json.loads(read("Resources/Localizable.xcstrings"))["strings"]
         expected = {
-            "official.informationIncomplete": ("Information incomplete", "信息不全"),
-            "official.informationReasonUnknown": ("Reason not provided by the source", "来源未提供原因"),
+            "official.informationIncomplete": ("Info incomplete", "信息不全"),
+            "official.informationReasonUnknown": ("Reason not provided by source", "来源未提供原因"),
         }
         for key, values in expected.items():
             for language, value in zip(["en", "zh-Hans"], values):

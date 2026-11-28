@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlocks only when you are back online"
+            "value": "Unlocks only when you're back"
           }
         },
         "zh-Hans": {
@@ -86,7 +86,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Expired. This place can no longer be unlocked"
+            "value": "Expired. Place can no longer unlocked"
           }
         },
         "zh-Hans": {
@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How visits are checked"
+            "value": "How visits"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan code"
+            "value": "Scan"
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This place unlocks by scanning its code."
+            "value": "This place unlocks by scanning code."
           }
         },
         "zh-Hans": {
@@ -726,7 +726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result is not confirmed yet. Refresh to check; it will not be sent again automatically."
+            "value": "The result isn't confirmed yet. Refresh to check; it won't be sent again automatically."
           }
         },
         "zh-Hans": {
@@ -828,7 +828,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlocks after you visit"
+            "value": "Unlocks after visit"
           }
         },
         "zh-Hans": {
@@ -908,7 +908,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan the code at this place to unlock this chapter."
+            "value": "Scan the code at this place to unlock chapter."
           }
         },
         "zh-Hans": {
@@ -1072,7 +1072,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completed at the desk"
+            "value": "Completed at desk"
           }
         },
         "zh-Hans": {
@@ -1105,7 +1105,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Evidence from this run"
+            "value": "Evidence from run"
           }
         },
         "zh-Hans": {
@@ -1121,7 +1121,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photos from this run"
+            "value": "Photos from run"
           }
         },
         "zh-Hans": {
@@ -1169,7 +1169,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reservation required"
+            "value": "Booking required"
           }
         },
         "zh-Hans": {
@@ -1185,7 +1185,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How this run started"
+            "value": "How run started"
           }
         },
         "zh-Hans": {

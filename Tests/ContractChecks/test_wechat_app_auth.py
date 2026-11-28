@@ -29,7 +29,12 @@ class WeChatAuthSourceChecks(unittest.TestCase):
         self.assertIn('guard request?.attemptID == attemptID else { return }', source)
     def test_localization_and_accessibility(self):
         catalog = json.loads((ROOT/'Resources/WeChatAppAuthLocalizations.fragment.json').read_text())
-        self.assertEqual(len(catalog['strings']), 18)
+        # K40: the mini-program account note and its dismiss label (en + zh-Hans).
+        self.assertEqual(len(catalog['strings']), 20)
+        for key in ('auth.wechat.linkedMiniProgram', 'auth.wechat.linkedMiniProgram.dismiss'):
+            self.assertIn(key, catalog['strings'])
+            for language in ('en', 'zh-Hans'):
+                self.assertTrue(catalog['strings'][key]['localizations'][language]['stringUnit']['value'])
         for entry in catalog['strings'].values():
             for language in ['en','zh-Hans']:
                 self.assertTrue(entry['localizations'][language]['stringUnit']['value'])
@@ -47,4 +52,28 @@ class WeChatAuthSourceChecks(unittest.TestCase):
         manifest=(ROOT/'Package.swift').read_text()
         self.assertNotIn('Wechat', manifest)
         self.assertNotIn('WeChatSDK', manifest)
+    def test_mini_program_note_is_not_authorization(self):
+        auth = (ROOT/'Core/WeChatAppAuth.swift').read_text()
+        self.assertIn('linkedMiniProgram = (try? c.decode(Bool.self, forKey: .linkedMiniProgram)) ?? false', auth)
+        self.assertIn('linkedMiniProgram: body.linkedMiniProgram', auth)
+        self.assertIn('linkedMiniProgram: result.linkedMiniProgram', auth)
+        self.assertNotIn('body.msg', auth)
+        session = (ROOT/'App/AppSession.swift').read_text()
+        self.assertIn('return try self.commitChannelLogin(result, expected: expected.session)', session)
+        note_before_commit = session.index('if result.linkedMiniProgram { noteLinkedMiniProgramAccount() }; self.commitAuthenticatedSession(token: result.token, account: result.account);self.errorKey=nil')
+        self.assertGreater(note_before_commit, 0)
+        self.assertEqual(session.count('clearLinkedMiniProgramAccountNote()'), 2)
+        self.assertIn('clearLinkedMiniProgramAccountNote(); roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey=nil', session)
+        self.assertIn('clearLinkedMiniProgramAccountNote(); roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey="auth.expired"', session)
+        phone = (ROOT/'Core/AuthChannelService.swift').read_text()
+        self.assertIn('return LoginResult(token: token, account: account)', phone)
+        self.assertNotIn('linkedMiniProgram: true', phone)
+        view = (ROOT/'App/WeChatAppAuthSection.swift').read_text()
+        self.assertIn('.accessibilityIdentifier("auth.wechat.linkedMiniProgram")', view)
+        self.assertIn('session.clearLinkedMiniProgramAccountNote()', view)
+        catalog = json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())
+        for key in ('auth.wechat.linkedMiniProgram', 'auth.wechat.linkedMiniProgram.dismiss'):
+            entry = catalog['strings'][key]
+            for language in ('en', 'zh-Hans'):
+                self.assertTrue(entry['localizations'][language]['stringUnit']['value'])
 if __name__ == '__main__': unittest.main()

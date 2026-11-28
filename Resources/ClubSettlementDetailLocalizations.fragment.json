@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settlement details"
+            "value": "Payout details"
           }
         },
         "zh-Hans": {
@@ -55,7 +55,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amount pending verification"
+            "value": "Amount pending check"
           }
         },
         "zh-Hans": {
@@ -119,7 +119,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting credit"
+            "value": "Awaiting"
           }
         },
         "zh-Hans": {
@@ -151,7 +151,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending verification"
+            "value": "Pending check"
           }
         },
         "zh-Hans": {
@@ -183,7 +183,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settlement breakdown"
+            "value": "Payout breakdown"
           }
         },
         "zh-Hans": {
@@ -199,7 +199,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original amount due"
+            "value": "Original amount"
           }
         },
         "zh-Hans": {
@@ -231,7 +231,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Calculated net amount"
+            "value": "Calculated net"
           }
         },
         "zh-Hans": {
@@ -247,7 +247,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payment information"
+            "value": "Payment info"
           }
         },
         "zh-Hans": {

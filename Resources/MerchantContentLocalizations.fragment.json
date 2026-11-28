@@ -132,7 +132,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "You've already registered"
+          "value": "You've already"
         }
       },
       "zh-Hans": {
@@ -212,7 +212,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Review application"
+          "value": "Review request"
         }
       },
       "zh-Hans": {
@@ -276,7 +276,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Cancel registration"
+          "value": "Cancel sign-up"
         }
       },
       "zh-Hans": {
@@ -292,7 +292,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Chapter recruitment"
+          "value": "Chapter"
         }
       },
       "zh-Hans": {
@@ -372,7 +372,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Placement and claim applications"
+          "value": "Placement and claim requests"
         }
       },
       "zh-Hans": {
@@ -516,7 +516,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "I have checked the address and coordinates"
+          "value": "I have checked the address and coords"
         }
       },
       "zh-Hans": {
@@ -548,7 +548,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Current access does not permit this operation"
+          "value": "Current access doesn't permit this operation"
         }
       },
       "zh-Hans": {
@@ -692,7 +692,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Hosting description"
+          "value": "Hosting details"
         }
       },
       "zh-Hans": {
@@ -948,7 +948,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Recruiting category"
+          "value": "Recruiting"
         }
       },
       "zh-Hans": {
@@ -1108,7 +1108,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Description"
+          "value": "Details"
         }
       },
       "zh-Hans": {
@@ -1188,7 +1188,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Private-information reminder"
+          "value": "Private-info reminder"
         }
       },
       "zh-Hans": {
@@ -1252,7 +1252,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Longitude"
+          "value": "Lng"
         }
       },
       "zh-Hans": {
@@ -1364,7 +1364,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Application message"
+          "value": "Request message"
         }
       },
       "zh-Hans": {
@@ -1828,7 +1828,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Application source"
+          "value": "Request source"
         }
       },
       "zh-Hans": {
@@ -2116,7 +2116,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Recording reference"
+          "value": "Recording"
         }
       },
       "zh-Hans": {
@@ -2132,7 +2132,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Voice state from source"
+          "value": "Voice state source"
         }
       },
       "zh-Hans": {
@@ -2148,7 +2148,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Registration status"
+          "value": "Sign-up status"
         }
       },
       "zh-Hans": {
@@ -2516,7 +2516,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This content couldn't be loaded correctly"
+          "value": "Content couldn't loaded correctly"
         }
       },
       "zh-Hans": {
@@ -2676,7 +2676,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No character has been configured for this node"
+          "value": "No char has been configured for node"
         }
       },
       "zh-Hans": {
@@ -2692,7 +2692,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Take offline"
+          "value": "Take"
         }
       },
       "zh-Hans": {
@@ -2708,7 +2708,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Make available"
+          "value": "Make"
         }
       },
       "zh-Hans": {
@@ -2900,7 +2900,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Duplicate submission"
+          "value": "Duplicate entry"
         }
       },
       "zh-Hans": {
@@ -3092,7 +3092,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Registration detail"
+          "value": "Sign-up detail"
         }
       },
       "zh-Hans": {
@@ -3172,7 +3172,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This request couldn't be completed."
+          "value": "Request couldn't."
         }
       },
       "zh-Hans": {
@@ -3364,7 +3364,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The station receipt confirms this operation failed"
+          "value": "The station receipt confirms action failed"
         }
       },
       "zh-Hans": {
@@ -3636,7 +3636,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Withdraw application"
+          "value": "Withdraw request"
         }
       },
       "zh-Hans": {

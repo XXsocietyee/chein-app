@@ -56,7 +56,7 @@
     "zh-Hans": "添加一对"
   },
   "playkitAuthor.categories": {
-    "en": "Categories",
+    "en": "Groups",
     "zh-Hans": "类别"
   },
   "playkitAuthor.addCategory": {
@@ -144,7 +144,7 @@
     "zh-Hans": "配对右列需要 2 至 6 个条目"
   },
   "playkitAuthor.validation.match.sameCount": {
-    "en": "The matching columns must contain the same number of items",
+    "en": "The matching columns must contain same number items",
     "zh-Hans": "配对两列的条目数必须相同"
   },
   "playkitAuthor.validation.classify.bins.count": {
@@ -192,15 +192,15 @@
     "zh-Hans": "发声挑战奖励须为 0 至 1000 积分的整数"
   },
   "templateAuthor.game.sort": {
-    "en": "Put in order",
+    "en": "Put",
     "zh-Hans": "排序"
   },
   "templateAuthor.game.match": {
-    "en": "Match pairs",
+    "en": "Match",
     "zh-Hans": "配对"
   },
   "templateAuthor.game.classify": {
-    "en": "Classify items",
+    "en": "Classify",
     "zh-Hans": "分类"
   },
   "templateAuthor.game.compass": {
@@ -236,11 +236,11 @@
     "zh-Hans": "可在此编辑全部 37 类设置。无法识别的设置会保留，但需移除后才能提交；部分预览会说明其限制。"
   },
   "playkit.kind.blindTaste": {
-    "en": "Blind tasting",
+    "en": "Blind",
     "zh-Hans": "盲品"
   },
   "playkit.kind.diyName": {
-    "en": "Name your creation",
+    "en": "Name creation",
     "zh-Hans": "作品命名"
   },
   "playkit.kind.silentOrder": {
@@ -392,7 +392,7 @@
     "zh-Hans": "刚才那杯是哪一种？"
   },
   "playkitLegacy.name.photo": {
-    "en": "The creation you just photographed",
+    "en": "The creation you photographed",
     "zh-Hans": "你刚拍下的作品"
   },
   "playkitLegacy.name.suggestions": {

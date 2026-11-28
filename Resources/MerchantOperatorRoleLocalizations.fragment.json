@@ -4,7 +4,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No permissions are listed for this role."
+          "value": "No access are listed for this role."
         }
       },
       "zh-Hans": {
@@ -212,7 +212,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Verify redemptions"
+          "value": "Verify"
         }
       },
       "zh-Hans": {
@@ -468,7 +468,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "View aftercare cases"
+          "value": "View aftercare"
         }
       },
       "zh-Hans": {
@@ -500,7 +500,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Respond to aftercare"
+          "value": "Respond aftercare"
         }
       },
       "zh-Hans": {
@@ -692,7 +692,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Manage cooperation"
+          "value": "Manage collab"
         }
       },
       "zh-Hans": {

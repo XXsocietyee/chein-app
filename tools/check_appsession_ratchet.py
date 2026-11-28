@@ -8,7 +8,7 @@ import pathlib, sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CEILINGS = {
     'App/AppSession.swift':     7977,
-    'App/AppCompositionRoot.swift':     4175,
+    'App/AppCompositionRoot.swift':     4173,
 }
 
 failed = False

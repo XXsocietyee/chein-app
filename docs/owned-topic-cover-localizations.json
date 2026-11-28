@@ -32,7 +32,7 @@
     "zh-Hans": "选择用于审核的封面"
   },
   "ownedCover.unconfigured": {
-    "en": "Choosing a cover isn't available right now.",
+    "en": "Choosing a cover isn't available right.",
     "zh-Hans": "选择封面暂不可用。"
   },
   "ownedCover.scope": {

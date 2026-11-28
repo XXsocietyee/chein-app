@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "If a merchant failed to deliver, please go to After-sales to follow up."
+            "value": "If a merchant failed to deliver, go to After-sales to follow up."
           }
         },
         "zh-Hans": {
@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Based on the current status, the refund would go back to your original payment method."
+            "value": "Based current status, refund would go back original payment."
           }
         },
         "zh-Hans": {
@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund to original payment method"
+            "value": "Refund original"
           }
         },
         "zh-Hans": {
@@ -150,7 +150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Based on the current status, the refund would go to your platform balance."
+            "value": "Based on the current status, the refund would go to platform balance."
           }
         },
         "zh-Hans": {

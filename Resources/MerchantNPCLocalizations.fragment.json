@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No reply is available"
+            "value": "No reply"
           }
         },
         "zh-Hans": {
@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Audio playback isn't available right now"
+            "value": "Audio playback isn't available"
           }
         },
         "zh-Hans": {
@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clear conversation"
+            "value": "Clear chat"
           }
         },
         "zh-Hans": {
@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording, uploads and voice generation aren't available right now."
+            "value": "Recording, uploads and voice generation aren't available right."
           }
         },
         "zh-Hans": {
@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review voice authorization withdrawal"
+            "value": "Review voice authorization cash-out"
           }
         },
         "zh-Hans": {
@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not available right now"
+            "value": "Not available"
           }
         },
         "zh-Hans": {

@@ -40,6 +40,8 @@ import MapKit
     private struct Metric: Identifiable {
         let id: String
         let value: String
+        /// mp-journey-b r3: MP `fst__sub` under 解谜分 (个人最佳 N); nil shows nothing.
+        var personalBest: Int? = nil
     }
 
     private var route: PlayRouteMapPresentation? {
@@ -61,7 +63,10 @@ import MapKit
         if walkedMeters > 0 { items.append(.init(id: "nativeR2.city.metric.distance", value: CityOrientationFormat.distance(walkedMeters, locale: locale))) }
         if let snapshot = model.snapshot {
             let puzzle = PlayPuzzleSummary(snapshot: snapshot)
-            if puzzle.count > 0 { items.append(.init(id: "playx.finish.puzzleScore", value: String(puzzle.score))) }
+            if puzzle.count > 0 {
+                let best = PlayPuzzleSummary.personalBest(result: snapshot.result, receipt: model.reward)
+                items.append(.init(id: "playx.finish.puzzleScore", value: String(puzzle.score), personalBest: best))
+            }
         }
         return items
     }
@@ -88,6 +93,10 @@ import MapKit
         return Array(repeating: GridItem(.flexible(), alignment: .leading), count: n)
     }
     @Environment(\.dynamicTypeSize) private var typeSize
+    private func metricAccessibilityValue(_ metric: Metric) -> Text {
+        guard let best = metric.personalBest else { return Text(verbatim: metric.value) }
+        return Text(verbatim: metric.value + ", ") + Text("playx.finish.puzzleBest \(best)")
+    }
 
     private var doneCount: Int {
         guard let snapshot = model.snapshot else { return 0 }
@@ -131,10 +140,13 @@ import MapKit
                                         .font(.title2.bold().monospacedDigit())
                                         .lineLimit(1).minimumScaleFactor(0.7)
                                         .nativeR2RollingNumber(revealed ? 1 : 0)
+                                    if let best = metric.personalBest {
+                                        Text("playx.finish.puzzleBest \(best)").font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                                    }
                                 }
                                 .accessibilityElement(children: .ignore)
                                 .accessibilityLabel(Text(LocalizedStringKey(metric.id)))
-                                .accessibilityValue(Text(verbatim: metric.value))
+                                .accessibilityValue(metricAccessibilityValue(metric))
                             }
                         }
                         .padding(.vertical, 4)

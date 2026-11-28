@@ -73,7 +73,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This feature isn't available right now"
+          "value": "Feature isn't available right"
         }
       },
       "zh-Hans": {
@@ -124,7 +124,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Your current merchant role does not grant this permission"
+          "value": "Current merchant role doesn't grant permission"
         }
       },
       "zh-Hans": {
@@ -141,7 +141,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This information couldn't be loaded"
+          "value": "This info couldn't loaded"
         }
       },
       "zh-Hans": {
@@ -158,7 +158,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Review the selected answer and acknowledge its effects"
+          "value": "Review the selected answer and acknowledge effects"
         }
       },
       "zh-Hans": {
@@ -209,7 +209,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The safety record could not be saved. Nothing was submitted."
+          "value": "The safety record couldn't be saved. Nothing submitted."
         }
       },
       "zh-Hans": {
@@ -226,7 +226,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Something went wrong"
+          "value": "Something went"
         }
       },
       "zh-Hans": {
@@ -243,7 +243,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "AI analysis and prediction settlement aren't available right now."
+          "value": "AI analysis and guess payout aren't available right now."
         }
       },
       "zh-Hans": {
@@ -328,7 +328,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Winning participants"
+          "value": "Winning people"
         }
       },
       "zh-Hans": {
@@ -413,7 +413,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redemption rate"
+          "value": "Redeem rate"
         }
       },
       "zh-Hans": {
@@ -481,7 +481,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Activities"
+          "value": "Events"
         }
       },
       "zh-Hans": {
@@ -668,7 +668,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Repeat visit rate"
+          "value": "Repeat visit"
         }
       },
       "zh-Hans": {
@@ -753,7 +753,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Business interpretation"
+          "value": "Business"
         }
       },
       "zh-Hans": {
@@ -872,7 +872,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Active entitlements"
+          "value": "Active"
         }
       },
       "zh-Hans": {
@@ -906,7 +906,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Permanent"
+          "value": "Forever"
         }
       },
       "zh-Hans": {
@@ -1093,7 +1093,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Remaining"
+          "value": "Left"
         }
       },
       "zh-Hans": {
@@ -1144,7 +1144,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No predictions awaiting settlement"
+          "value": "No predictions awaiting payout"
         }
       },
       "zh-Hans": {
@@ -1314,7 +1314,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Confirm settlement"
+          "value": "Confirm payout"
         }
       },
       "zh-Hans": {
