@@ -243894,6 +243894,23 @@
         }
       }
     },
+    "share.card.shareLink": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share link"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享链接"
+          }
+        }
+      }
+    },
     "share.card.stat.category": {
       "extractionState": "manual",
       "localizations": {
