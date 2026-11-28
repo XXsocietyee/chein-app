@@ -518,6 +518,45 @@
         }
       }
     },
+    "club.detail.people.withOthers %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ and %#@others@"
+          },
+          "substitutions": {
+            "others": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg other"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg others"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 和其他 %2$lld 人"
+          }
+        }
+      }
+    },
     "creator.mp.estimate.answer": {
       "extractionState": "manual",
       "localizations": {

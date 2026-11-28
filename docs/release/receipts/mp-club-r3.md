@@ -505,6 +505,16 @@ Merged `origin/ui/combined-r7`.
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS.
 
+## Pass 53: next P34/P38 gap in area — club header people line (no new coordinator finding for mp-club since 18:30; no K50 `lane-layout` rows for club)
+Merged `origin/ui/combined-r7` (021045941). Not done rows re-checked: 重复方式 step 3 and P2-4 name-check unchanged (below).
+| MP page | Native view | MP sections | Fix |
+|---|---|---|---|
+| `pages/club/detail` header member strip (wxml:219-260 头像 + 成员数; js:509-515 `canSeeClubRoster`; level B, P34 (2) "people visible: face pile + social sentence", P38 face pile beside the count) | `App/ClubDetailView.swift` `ClubDetailHeader.peopleRow` / `peopleSentence` | Sweep 18:30 (`mp-club/sheet-en.jpg`, member-side d4-tab-posts): three small faces alone on a line under the meta line, no sentence, so the pile read as decoration | **Fixed.** The face pile now sits with a footnote social sentence in one row: 「示例主理人 和其他 2 人」 / "Fixture creator and 2 others" (first visible member + total − 1, total = max(club count, roster)); one member reads just the name. The sentence carries the total, so the pile drops its "+N" capsule when the sentence shows (kept when no name is known). Count changes roll with `.contentTransition(.numericText)`; VoiceOver reads faces + sentence as one element (same id `club.detail.header.people`). Same gate as before (members, owner, public-join visitors; 需审核 applicants see no faces, as in the MP). 1 new key `club.detail.people.withOthers %@ %lld` (en plural via substitution, zh-Hans) |
+| club/event-ops 重复方式 step 3 (form inline on the hub) | — | — | Still **Not done** (moves `ClubGovernanceCommandForm` review/return ownership onto the hub; step 2 already opens the form for the picked topic in one tap) |
+| P2-4 rest | `/api/club/name-check` | — | Still **Not done** (backend route unconfirmed) |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS, missing keys 0 (en-strings blocking 1 is pre-existing `BundleCommerce` retry, not club).
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.
