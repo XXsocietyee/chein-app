@@ -357161,6 +357161,57 @@
           }
         }
       }
+    },
+    "roam.tasks.staleLine": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t update the event list. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动列表更新失败，请稍后重试"
+          }
+        }
+      }
+    },
+    "roam.tasks.staleTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t update the event list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动列表暂时无法更新"
+          }
+        }
+      }
+    },
+    "roam.tasks.staleRetryLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload the event list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取活动列表"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
