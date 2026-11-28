@@ -58,10 +58,18 @@ struct ConsentFixture: View {
     }
 }
 
+/// Offline stand-in so the fixture shows the shipped enabled buttons; every call fails without a network request.
+@MainActor private struct LoginFixtureOfflineService: AuthChannelServing {
+    func sendSMSCode(phone: String) async throws { throw APIError.notConfigured }
+    func loginWithPhone(phone: String, code: String) async throws -> LoginResult { throw APIError.notConfigured }
+    func loginWithApple(identityToken: String) async throws -> LoginResult { throw APIError.notConfigured }
+    func currentAccount(token: String) async throws -> Account { throw APIError.notConfigured }
+}
+
 struct LoginFixture: View {
     /// Sweep 04:50: render the shipped CN channel set (Apple approved), not the unreviewed bare session.
     @State private var channels = AuthChannelCoordinator(
-        service: nil, appleSignInApproved: true,
+        service: LoginFixtureOfflineService(), appleSignInApproved: true,
         currentSession: { AuthChannelSessionSnapshot(epoch: 0, accountID: nil) },
         commitLogin: { (_: LoginResult, _: AuthChannelSessionSnapshot) -> Bool in false })
     @StateObject private var session = AppSession()
