@@ -299,6 +299,16 @@ import FoundationNetworking
         run.interrupt(); XCTAssertEqual(run.phase,.interrupted); XCTAssertEqual(run.elapsed(now:1000),0)
         run.beginAfterAcknowledgement(now:2000); run.measure(now:2001.5); XCTAssertEqual(run.elapsedMilliseconds,1500)
     }
+    /// MP playkit-stopwatch 暂停 / 继续: a paused clock holds, cannot be stopped, and resumes from the held reading.
+    func testStopwatchPauseHoldsAndResumesFromTheHeldReading() {
+        var run = PlayKitTimingRun(); run.beginAfterAcknowledgement(now:10)
+        run.pause(now:12); XCTAssertTrue(run.isPaused); XCTAssertEqual(run.elapsed(now:50),2000)
+        run.measure(now:51); XCTAssertEqual(run.phase,.running)
+        run.resume(now:60); XCTAssertFalse(run.isPaused); XCTAssertEqual(run.elapsed(now:61),3000)
+        run.measure(now:61.5); XCTAssertEqual(run.phase,.measured); XCTAssertEqual(run.elapsedMilliseconds,3500)
+        run.beginAfterAcknowledgement(now:100); run.pause(now:101); run.interrupt()
+        XCTAssertFalse(run.isPaused); XCTAssertEqual(run.phase,.interrupted)
+    }
     func testReactionEarlyTapDoesNotManufactureARound() {
         var run = PlayKitReactionRun(rounds:2)
         run.beginAfterAcknowledgement(now:10, randomUnit:0); run.tap(now:10.5)
