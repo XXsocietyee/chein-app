@@ -28,6 +28,7 @@ import XCTest
                        ["stage_enter", "hint_open", "stage_skip", "stage_issue_report", "material_view"])
         XCTAssertEqual(Set(PlayStageIssueKind.allCases.map(\.rawValue)), ["ALT_MATERIAL", "NOT_FOUND", "UNREADABLE", "LOGIC_ERROR"])
         XCTAssertTrue(PlayStageAnalyticsGate.enabled) // PLAY-r11-3: MP utils/stage-events.js:36-50
+        XCTAssertTrue(PlayStageEvent.allCases.allSatisfy { AnalyticsEventClient.allowedEvents.contains($0.rawValue) })
     }
 
     func testStagePropertiesCarryOnlyCodes() {

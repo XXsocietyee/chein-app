@@ -24,6 +24,7 @@ extension EnvironmentValues {
 /// `api/registration/info` read alone decides paid / checking. No row ever says paid without that read.
 @MainActor struct RegistrationAppPayRows: View {
     @Environment(\.locale) private var locale
+    @Environment(\.analyticsEventClient) private var analytics
     let context: RegistrationAppPayContext?
     let registrationID: Int
     let parameters: [String: String]
@@ -51,7 +52,10 @@ extension EnvironmentValues {
         .sensoryFeedback(.success, trigger: stage, condition: Self.becamePaid)
         .sensoryFeedback(.warning, trigger: stage, condition: Self.becameCancelled)
         .onChange(of: stage) { old, new in
-            if Self.becamePaid(old, new) { onSettled?() }
+            if Self.becamePaid(old, new) {
+                onSettled?()
+                trackPaymentSuccess()
+            }
         }
         .cySheet(isPresented: $showsWallet) { walletSheet }
     }
@@ -62,6 +66,15 @@ extension EnvironmentValues {
 
     private static func becameCancelled(_ old: RegistrationAppPayStage, _ new: RegistrationAppPayStage) -> Bool {
         new == .cancelled && old != .cancelled
+    }
+
+    /// `payment_success` once the registration read says paid. Registration id only: no pay params, token, phone, or address.
+    private func trackPaymentSuccess() {
+        guard registrationID > 0 else { return }
+        MiniProgramAnalytics.track(analytics, "payment_success", bizType: "activity",
+            pagePath: "/pages/activity/baoming/baoming",
+            properties: ["registrationId": .integer(Int64(registrationID))],
+            idempotencyKey: "payment_success_registration_\(registrationID)")
     }
 
     private var walletSheet: some View {
