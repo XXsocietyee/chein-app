@@ -102,13 +102,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有收到交换的城市签"
+            "value": "还没有收到的邮票"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No exchanged stamps received yet"
+            "value": "No received stamps yet"
           }
         }
       }

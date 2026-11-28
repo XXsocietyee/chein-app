@@ -64,6 +64,8 @@ struct CityCheckRow: View {
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @QuestifyReduceMotion private var reduceMotion
+    /// Status glyph slot grows with the `.sectionTitle` glyph so it is not clipped at accessibility sizes.
+    @ScaledMetric(relativeTo: .title3) private var glyphSide: CGFloat = 28
     private var swap: AnyTransition { reduceMotion ? AnyTransition.opacity : AnyTransition(.blurReplace).combined(with: .scale(scale: 0.6)) }
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
@@ -76,7 +78,7 @@ struct CityCheckRow: View {
                 case .failed: Image(systemName: "xmark.circle.fill").foregroundStyle(palette.danger).transition(swap)
                 }
             }
-            .cyText(.sectionTitle).frame(width: 28, height: 28).accessibilityHidden(true)
+            .cyText(.sectionTitle).frame(width: min(glyphSide, 56), height: min(glyphSide, 56)).accessibilityHidden(true)
             .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: state)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
