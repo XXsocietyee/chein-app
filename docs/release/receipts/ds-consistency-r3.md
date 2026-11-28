@@ -729,7 +729,7 @@ shared money rule, so English showed a bare `¥` beside `CN¥` elsewhere. All no
 Checker: locale money **0** baselined (was 9), ratcheted with `--update` (baseline now 29 hits, all status capsule).
 
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
-(locale money 0, status capsule 29 baselined, 81 allowed), `contract_ratchet --check` RATCHET_RESULT.
+(locale money 0, status capsule 29 baselined, 81 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 Simulator check of an en club settlement detail / registration summary (CN¥) still needed (next sweep).
 
 ### Not done (next run)
