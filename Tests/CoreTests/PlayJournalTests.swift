@@ -88,6 +88,17 @@ final class PlayJournalTests: XCTestCase {
         XCTAssertEqual(summary.count, 2)
     }
 
+    /// MP `play-route-state.js` keeps attributes with a text label and a finite number value; 旅程手记 lists them first.
+    func testRouteAttributesKeepLabelledNumbersOnly() throws {
+        let route = #"{"routeMode":"LINEAR","attributes":[{"key":"courage","label":"勇气","value":3},{"label":"体力","value":2.5},{"label":"坏","value":"7"},{"value":1},"x"]}"#
+        let state = try JSONDecoder().decode(PlayRouteState.self, from: Data(route.utf8))
+        XCTAssertEqual(state.attributes.map(\.label), ["勇气", "体力"])
+        XCTAssertEqual(state.attributes.map(\.valueText), ["3", "2.5"])
+        let none = try JSONDecoder().decode(PlayRouteState.self, from: Data(#"{"routeMode":"LINEAR","attributes":"bad"}"#.utf8))
+        XCTAssertEqual(none.attributes, [])
+        XCTAssertEqual(PlayJournal.attributes(in: try snapshot(mode: 1, nodes: "[]")), [])
+    }
+
     private func snapshot(mode: Int, nodes: String) throws -> PlaySnapshot {
         let data = "{\"topicId\":9,\"mode\":\(mode),\"playable\":true,\"registered\":true,\"nodes\":\(nodes),\"chapters\":[{\"chapterId\":8,\"name\":\"Chapter\"}]}"
         let wire = try JSONDecoder().decode(PlayWireValue.self, from: Data(data.utf8))

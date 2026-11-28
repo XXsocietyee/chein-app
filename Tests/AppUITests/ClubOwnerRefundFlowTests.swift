@@ -61,7 +61,7 @@ final class ClubOwnerRefundFlowTests: XCTestCase {
         let app = launch("club.refund.fixtureAccepted"); tap("club.refund.review", app); tap("club.refund.confirm", app)
         let cancellation = app.descendants(matching: .any)["club.refund.receipt"].firstMatch
         XCTAssertTrue(cancellation.waitForExistence(timeout: 5), app.debugDescription)
-        XCTAssertEqual(cancellation.value as? String, "Cancelled")
+        XCTAssertEqual(cancellation.value as? String, "Canceled")
         let cash = app.descendants(matching: .any)["club.refund.cashStatus"].firstMatch
         let points = app.descendants(matching: .any)["club.refund.pointsStatus"].firstMatch
         XCTAssertTrue(cash.exists); XCTAssertTrue(points.exists)

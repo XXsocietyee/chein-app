@@ -154,12 +154,9 @@ import SwiftUI
     }
 }
 
-/// Original send receipts and confirmed supply stations for `pages/coop/invite`.
+/// Original send receipts for `pages/coop/invite`. The 核销据点 card is `CoopInviteSupplyStationSection` (after ③).
 @MainActor struct CoopInviteReceiptSections: View {
     let reader: any CoopFlowReading
-    let kind: CoopFlowTargetKind
-    let topicID: Int?
-    let merchantMemberIDs: [Int]
     /// MC7-31-2: MP `unknownTargets` — the 原请求 block shows only after a send whose outcome is unknown.
     var showsRequests = false
     @Environment(\.locale) private var locale
@@ -171,11 +168,8 @@ import SwiftUI
     @State private var loadingMoreRequests = false
     /// MC8-31-6: 查看已发出邀请 → 协作列表 · 我发出的 when the list pushed this page (MP `checkUnknownInvites`).
     @Environment(\.coopInviteSent) private var showSentInvites
-    @State private var stations = Load.idle
-    @State private var stationRows: [CoopFlowJSON] = []
     private enum Load: Equatable { case idle, loading, empty, failed, ready }
     private struct RequestKey: Hashable { let session: Bool; let shows: Bool }
-    private var stationKey: String { "\(kind.rawValue):\(topicID ?? 0):\(merchantMemberIDs.sorted().map(String.init).joined(separator: ","))" }
     var body: some View {
         Group {
             if showsRequests {
@@ -188,15 +182,8 @@ import SwiftUI
                 }
                 .accessibilityIdentifier("cooperation.invite.unknownOutcome")
             }
-            if kind == .merchant, let topicID, topicID > 0, !merchantMemberIDs.isEmpty {
-                Section {
-                    sectionTitle(locale.pick("已确定据点", "Confirmed stations"))
-                    stationBody
-                }
-            }
         }
         .task(id: RequestKey(session: reader.session != nil, shows: showsRequests)) { if showsRequests { await loadRequests() } }
-        .task(id: stationKey) { await loadStations() }
     }
     private func sectionTitle(_ title: String) -> some View {
         Text(verbatim: title)
@@ -240,24 +227,6 @@ import SwiftUI
             }
         }
     }
-    @ViewBuilder private var stationBody: some View {
-        if reader.session == nil { Text("cooperation.login").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
-        else {
-            switch stations {
-            case .idle, .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
-            case .empty:
-                Text(verbatim: locale.pick("暂无已确定据点", "No confirmed station")).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-            case .failed:
-                Text(verbatim: locale.pick("据点读取失败，请重试", "Stations did not load. Try again.")).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await loadStations() } }
-            case .ready:
-                if stationRows.isEmpty { valueLine(nil, style: .body, color: CYColor.textSecondary) }
-                ForEach(Array(stationRows.enumerated()), id: \.offset) { _, row in
-                    valueLine(row["stationName"].text, style: .body, color: CYColor.textPrimary)
-                }
-            }
-        }
-    }
     private func stateLine(_ state: String?) -> String {
         state == "CREATED" ? locale.pick("邀请已创建", "Invitation created")
                            : locale.pick("结果仍待确认，请勿重复发送", "Still unconfirmed. Do not send again.")
@@ -297,21 +266,6 @@ import SwiftUI
             requestRows += rows
             acceptCursor(page, before: before)
         } catch { requestsHaveMore = false; requests = .failed }
-    }
-    private func loadStations() async {
-        guard kind == .merchant, let topicID, topicID > 0, !merchantMemberIDs.isEmpty, reader.session != nil else {
-            stations = .idle; stationRows = []; return
-        }
-        stations = .loading
-        do {
-            var found: [CoopFlowJSON] = []
-            for memberID in merchantMemberIDs where memberID > 0 {
-                let page = try await reader.read(.supplyStations(topicID: topicID, merchantMemberID: memberID))
-                found.append(contentsOf: page["stations"].rows ?? [])
-            }
-            stationRows = found
-            stations = found.isEmpty ? .empty : .ready
-        } catch { stations = .failed }
     }
 }
 
@@ -361,6 +315,19 @@ import SwiftUI
     @State private var fixedTerms = false
     @State private var fee = ""
     @FocusState private var feeFocused: Bool
+    /// MP wxml:114-131 核销据点: per merchant memberId, the confirmed stations and the chosen one.
+    @State private var stationsRequired = false
+    @State private var stationLists: [Int: [CoopInviteStationOption]] = [:]
+    @State private var stationPicks: [Int: CoopInviteStationOption] = [:]
+    private var stationMerchants: [CoopInviteStationMerchant] {
+        guard model.isCurrent, model.kind == .merchant else { return [] }
+        return model.candidates.filter { model.selected.contains($0.id) && $0.kind == .merchant }
+            .map { CoopInviteStationMerchant(id: $0.recipient.id, name: $0.name) }
+    }
+    private var stationsReady: Bool {
+        CoopInviteSupplyStations.ready(required: stationsRequired, merchantIDs: stationMerchants.map(\.id),
+                                       stations: stationLists, picks: stationPicks)
+    }
     private var termsReady: Bool {
         !fixedTerms || Double(fee.trimmingCharacters(in: .whitespacesAndNewlines)).map { $0 > 0 } == true
     }
@@ -390,8 +357,7 @@ import SwiftUI
         let permit = model.permit
         Form {
             // MP coop/invite wxml:13-27: send receipts and the unknown-result lookup sit above ① 关联主题.
-            CoopInviteReceiptSections(reader: reader, kind: model.kind, topicID: model.topic?.id, merchantMemberIDs: model.candidates.filter { model.selected.contains($0.id) && $0.kind == .merchant }.map(\.recipient.id),
-                                      showsRequests: sendOutcomeUnknown)
+            CoopInviteReceiptSections(reader: reader, showsRequests: sendOutcomeUnknown)
             Section("mpr3.coop.invite.topicTitle") {
                 // MP wxml:31-34, 43: 正在刷新主题… while a loaded list re-reads; 主题加载失败 + 重试 on failure.
                 if model.topicsBusy, !model.topics.isEmpty { Text("mpr3.coop.invite.topicsRefreshing").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
@@ -525,6 +491,8 @@ import SwiftUI
                     if !model.selected.isEmpty { Text("mpr3.coop.invite.selectedCount \(model.selected.count)") }
                 }
             }
+            CoopInviteSupplyStationSection(reader: reader, topicID: model.topic?.id, merchants: stationMerchants,
+                                           required: $stationsRequired, lists: $stationLists, picks: $stationPicks)
             if model.topic == nil {
                 // MP cta-bar hint 请先选择主题 (wxml:138).
                 Text("mpr3.coop.invite.needTopic").cyText(.meta).foregroundStyle(CYColor.textTertiary)
@@ -533,11 +501,12 @@ import SwiftUI
             if !model.selected.isEmpty, model.isCurrent {
                 // Mini `.cta-bar`: one solid action for the whole screen, 发送邀约(N).
                 CYPillButton("mpr3.coop.invite.send \(model.selected.count)") {
-                    guard let contexts = model.contexts(permit: permit) else { return }
-                    editing = contexts; showEditor = true
+                    guard stationsReady, let contexts = model.contexts(permit: permit),
+                          let withStations = CoopInviteSupplyStations.attach(contexts, required: stationsRequired, picks: stationPicks) else { return }
+                    editing = withStations; showEditor = true
                 }
                 .listRowBackground(Color.clear)
-                .disabled(model.contexts(permit: permit) == nil || !termsReady)
+                .disabled(model.contexts(permit: permit) == nil || !termsReady || !stationsReady)
             }
             CoopFlowSafetyNotice()
         }.cyMiniListScreen().navigationTitle("context.coop.new").navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
@@ -688,6 +657,10 @@ import SwiftUI
                     Text("mpr3.coop.invite.proposedTerms")
                 }
                 .accessibilityIdentifier("cooperation.invite.proposedTerms")
+                // MP sheet wxml:151: {商家} · 接受后冻结 / 核销据点：{据点}.
+                ForEach(contexts.filter { $0.supplyStationName != nil }) { context in
+                    CoopInviteFrozenStationRow(merchant: context.recipientName, station: context.supplyStationName ?? "")
+                }
             }
             Section {
                 // MP `.iv-hero` + `.iv-copy`.

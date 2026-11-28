@@ -14,9 +14,9 @@ final class RoamEnrolledChaptersFlowTests: XCTestCase {
     private func element(_ id: String, _ app: XCUIApplication) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
     func testOrdinaryRoamTopicsOnlyCurrentRegistrationDetailAndBack() {
         let app = app(), row = app.buttons["roam.chapters.row.901"]
-        XCTAssertTrue(row.waitForExistence(timeout: 10)); XCTAssertFalse(app.staticTexts["Sample activity ticket"].exists)
+        XCTAssertTrue(row.waitForExistence(timeout: 10)); XCTAssertFalse(app.staticTexts["Riverside Night Ride"].exists)
         row.tap(); XCTAssertTrue(element("ticketWallet.detail", app).waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Sample exploration ticket"].exists)
+        XCTAssertTrue(app.staticTexts["West Lake Night Walk"].exists)
         XCTAssertTrue(revealFixtureElement(app.staticTexts["Sample pending chapter"], in: app))
         XCTAssertFalse(app.buttons["ticketWallet.play.open"].exists) // No fake play provider in offline host.
         app.navigationBars.buttons.element(boundBy: 0).tap(); XCTAssertTrue(row.waitForExistence(timeout: 5))
@@ -39,7 +39,7 @@ final class RoamEnrolledChaptersFlowTests: XCTestCase {
     }
     func testSignOutClearsPrivateEnrolledTopicsAndDisablesEntry() {
         let app = app(roam: "sessionChange"); XCTAssertTrue(app.buttons["roam.chapters.row.901"].waitForExistence(timeout: 10))
-        app.buttons["roam.experience.fixture.signOut"].tap(); XCTAssertFalse(app.staticTexts["Sample exploration ticket"].exists)
+        app.buttons["roam.experience.fixture.signOut"].tap(); XCTAssertFalse(app.staticTexts["West Lake Night Walk"].exists)
         XCTAssertTrue(app.buttons["roam.chapters.open"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["roam.chapters.open"].isEnabled)
     }
 }

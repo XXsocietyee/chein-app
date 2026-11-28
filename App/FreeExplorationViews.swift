@@ -549,6 +549,7 @@ struct FreeExplorationStoreName: View {
                         .accessibilityLabel(Text("playFree.story.locked.a11y"))
                 }
                 .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                .accessibilityElement(children: .combine)
             }
         }
     }

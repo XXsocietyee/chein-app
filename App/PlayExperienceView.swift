@@ -240,14 +240,14 @@ struct PlayThemeMusicKey: Equatable {
                 .cyDomainSheet(detents: [.half, .full])
         }
         .sheet(isPresented: $showPlayTools) { playToolsSheet }
+        .sheet(isPresented: $guideShown) { AIGuideSheet(context: guideContext, journal: guideJournal) }
+        .modifier(PlayGuideJournalFeed(journal: guideJournal, stop: guideStop?.name, greeting: guideStop?.npc?.greeting))
         .modifier(PlayContactReader(
             currentNodeID: model.snapshot.flatMap { PlayTaskSummaryPresentation(snapshot: $0).currentNodeID },
             active: model.hasCurrentMediaSnapshot && model.snapshot != nil,
             finished: model.snapshot?.availability == .completed,
             contact: $playContact
         ))
-        .sheet(isPresented: $guideShown) { AIGuideSheet(context: guideContext, journal: guideJournal) }
-        .modifier(PlayGuideJournalFeed(journal: guideJournal, stop: guideStop?.name, greeting: guideStop?.npc?.greeting))
         .cySheet(isPresented: $showChapterPicker) {
             if let snapshot = model.snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
@@ -789,6 +789,7 @@ struct PlayThemeMusicKey: Equatable {
             onLocationRow: Self.openLocationSettings,
             teamLead: model.lead,
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
+            journalAttributes: model.snapshot.map(PlayJournal.attributes(in:)) ?? [],
             boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
             scoreDestination: orientScoreDestination,
             entryCodeRegistrationID: entryCode?.registrationID,

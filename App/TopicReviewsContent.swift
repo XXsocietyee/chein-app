@@ -90,7 +90,7 @@ private struct TopicReviewCard: View {
                     .foregroundStyle(.secondary)
             }
             LabeledContent("topic.reviews.rating") {
-                if let rating = review.rating { Text(verbatim: "\(rating) / 5") }
+                if let rating = review.rating { Text(verbatim: "\(rating) / 5").accessibilityLabel(Text("a11y.value.ofTotal \(Int(rating)) \(Int(5))")) }
                 else {
                     Text("topic.reviews.ratingUnknown")
                         .accessibilityIdentifier("topic.reviews.ratingUnknown.\(index)")

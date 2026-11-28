@@ -35,6 +35,7 @@ public struct PlayToolsAndLeadSheetView: View {
     public var teamLead: PlayLeadProgress? = nil
     /// mp-journey r3: MP 游玩工具 旅程手记 (`buildJournal`). Nil hides the row.
     public var journalRows: [PlayJournalRow]? = nil
+    public var journalAttributes: [PlayRouteAttribute] = []
     /// mp-journey r3: MP mode-2 我的权益 (`merchantCount` 家 · 已核销 `merchantDoneCount` 家). Nil hides the row.
     public var rights: PlayToolsRights? = nil
     public var onRights: () -> Void = {}
@@ -82,6 +83,7 @@ public struct PlayToolsAndLeadSheetView: View {
         onLocationRow: @escaping () -> Void = {},
         teamLead: PlayLeadProgress? = nil,
         journalRows: [PlayJournalRow]? = nil,
+        journalAttributes: [PlayRouteAttribute] = [],
         boardDestination: (() -> AnyView)? = nil,
         scoreDestination: (() -> AnyView)? = nil,
         rights: PlayToolsRights? = nil,
@@ -97,6 +99,7 @@ public struct PlayToolsAndLeadSheetView: View {
         self.onRights = onRights
         self.teamLead = teamLead
         self.journalRows = journalRows
+        self.journalAttributes = journalAttributes
         self.boardDestination = boardDestination
         self.scoreDestination = scoreDestination
         self.locationOn = locationOn
@@ -212,7 +215,7 @@ public struct PlayToolsAndLeadSheetView: View {
                         }
                         if let journalRows {
                             NavigationLink {
-                                PlayJournalListView(rows: journalRows)
+                                PlayJournalListView(rows: journalRows, attributes: journalAttributes)
                             } label: {
                                 Label("playTools.journal", systemImage: "book.pages")
                             }
@@ -391,12 +394,26 @@ public struct PlayToolsAndLeadSheetView: View {
 /// Rows ahead of the next station stay closed and show a placeholder instead of their text (no spoilers).
 struct PlayJournalListView: View {
     let rows: [PlayJournalRow]
+    var attributes: [PlayRouteAttribute] = []
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         List {
-            if rows.isEmpty {
+            if rows.isEmpty && attributes.isEmpty {
                 ContentUnavailableView("playTools.journal.empty", systemImage: "book.pages")
+            }
+            if !attributes.isEmpty {
+                Section {
+                    ForEach(Array(attributes.enumerated()), id: \.offset) { _, attribute in
+                        LabeledContent {
+                            Text(verbatim: attribute.valueText).monospacedDigit()
+                        } label: {
+                            Text(verbatim: attribute.label)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                }
+                .accessibilityIdentifier("playTools.journal.attributes")
             }
             ForEach(rows) { row in
                 if let head = row.chapterHead, !head.isEmpty {
