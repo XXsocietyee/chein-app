@@ -159804,7 +159804,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check the current server refund policy and deadline."
+            "value": "Check the latest refund policy and deadline."
           }
         },
         "zh-Hans": {
@@ -206793,7 +206793,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recruitment deadline"
+            "value": "Merchant sign-up deadline"
           }
         },
         "zh-Hans": {
@@ -209591,7 +209591,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sale end"
+            "value": "Ticket sales end"
           }
         },
         "zh-Hans": {
@@ -209639,7 +209639,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sale start"
+            "value": "Ticket sales start"
           }
         },
         "zh-Hans": {
@@ -210279,7 +210279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free exploration needs a recruitment deadline."
+            "value": "Free exploration needs a merchant sign-up deadline."
           }
         },
         "zh-Hans": {
@@ -295207,7 +295207,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Parent-child ticket"
+            "value": "Family ticket"
           }
         },
         "zh-Hans": {
@@ -350457,7 +350457,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Youngest child (age)"
+            "value": "Minimum child age"
           }
         },
         "zh-Hans": {
@@ -350474,7 +350474,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Oldest child (age)"
+            "value": "Maximum child age"
           }
         },
         "zh-Hans": {
@@ -355013,7 +355013,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld of 9 set"
+            "value": "%lld of 9 cells set"
           }
         },
         "zh-Hans": {
