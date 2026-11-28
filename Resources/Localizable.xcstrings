@@ -231582,6 +231582,23 @@
         }
       }
     },
+    "roam.poi.favorite.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't update your favorite"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收藏状态没有更新"
+          }
+        }
+      }
+    },
     "roam.poi.location.denied.message": {
       "extractionState": "manual",
       "localizations": {
@@ -296088,6 +296105,40 @@
         }
       }
     },
+    "fixr3.deregister.applyFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your closure request wasn't submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注销申请没有提交"
+          }
+        }
+      }
+    },
+    "fixr3.deregister.cancelFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request wasn't withdrawn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销没有完成"
+          }
+        }
+      }
+    },
     "fixr3.deregister.code": {
       "extractionState": "manual",
       "localizations": {
@@ -296186,6 +296237,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "获取验证码"
+          }
+        }
+      }
+    },
+    "fixr3.deregister.smsFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The code wasn't sent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证码没有发送"
           }
         }
       }
