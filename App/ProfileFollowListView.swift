@@ -100,6 +100,7 @@ import SwiftUI
                     Color.clear.navigationDestination(item: selectionBinding(selection)) { selected in
                         ProfileFollowListMemberDestination(flow: flow, selected: selected,
                             squareReader: squareReader, actions: actions)
+                            .cyPushedChrome()
                     }.id(selection.id)
                 }
             }

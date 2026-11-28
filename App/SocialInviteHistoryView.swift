@@ -56,6 +56,7 @@ import SwiftUI
                             NavigationLink {
                                 SocialPublicProfileView(memberID: member.id, reader: reader, squareReader: squareReader, actions: actions)
                                     .environment(\.socialConversationDestination, conversationDestination) // A2-03 发消息
+                                    .cyPushedChrome(domain: .player)
                             } label: { memberRow(member) }.accessibilityIdentifier("social.invite.\(member.id)")
                         }
                     } header: {
