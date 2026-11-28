@@ -363,6 +363,10 @@ struct PlayThemeMusicKey: Equatable {
                   model.hasCurrentMediaSnapshot, finishShownFor != model.identity else { return }
             finishShownFor = model.identity; finishScreen = true
         }
+        .onChange(of: finishScreen) { _, shown in
+            // MP chapter finish (`index.js:9039`): re-read `sessStats` for the 本局成绩 rank.
+            if shown { Task { await loadSessionStats() } }
+        }
     }
 
     private var playExperienceTail: some View {
@@ -1020,6 +1024,11 @@ struct PlayThemeMusicKey: Equatable {
             }
         }
     }
+    /// MP `finish-journal-entry` value: `{{provisional ? '暂列' : ''}}第 N 名` once `sessStats` has a rank.
+    private var finishScoreRank: CityOrientationScoreRank? {
+        guard case .ready(_, _, let rank, let provisional)? = sessionStats, let rank else { return nil }
+        return CityOrientationScoreRank(rank: rank, provisional: provisional)
+    }
     @ViewBuilder private var cityFinishSummary: some View {
         let snapshot = model.snapshot
         let medals = model.reward.map { PlayRewardSection.medals(in: $0, locale: locale) } ?? []
@@ -1031,7 +1040,8 @@ struct PlayThemeMusicKey: Equatable {
             model: model, titleKey: key, subtitle: [topic, earned].compactMap { $0 }.joined(separator: " · "),
             medals: medals, shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
             walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
-            scoreDestination: (snapshot?.result.allDone ?? false) ? nil : orientScoreDestination?(),
+            scoreDestination: (snapshot?.result.allDone ?? false) || sessionStatsOff ? nil : orientScoreDestination?(),
+            scoreRank: finishScoreRank,
             collectionDestination: cityCollectionDestination,
             onClose: { finishScreen = false })
     }

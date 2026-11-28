@@ -362767,6 +362767,23 @@
           }
         }
       }
+    },
+    "playx.finish.rankProvisional %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provisional No. %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂列第 %lld 名"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
