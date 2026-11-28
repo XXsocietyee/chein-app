@@ -757,6 +757,7 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
     @ViewBuilder let content: () -> Content
     @State private var result: ActivityPublishPrecheck?
     @State private var showsSignIn = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         Group {
@@ -765,8 +766,13 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
                 switch result {
                 case .allowed?: content()
                 case .denied(let reason)?:
+                    // MP `pages/publish/activity/index.wxml:16` cy-empty 暂时不能发布活动 · deniedReason · cta 返回.
                     ContentUnavailableView { Label("playerGap.publish.denied", systemImage: "lock") } description: {
                         if let reason, !reason.isEmpty { Text(verbatim: reason) }
+                    } actions: {
+                        Button("action.back") { dismiss() }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("playerGap.publish.back")
                     }
                 case .signInRequired?:
                     // C-A5: MP 登录后发布活动 + 去登录.
@@ -781,7 +787,10 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
                     ContentUnavailableView { Label("playerGap.publish.failed", systemImage: "exclamationmark.triangle") } description: {
                         if let message, !message.isEmpty { Text(verbatim: message) }
                     } actions: {
+                        // MP `:13` cy-error load-failure 暂时无法确认身份 · accessError · 重试.
                         Button("playerGap.retry") { Task { await check() } }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("playerGap.publish.retry")
                     }
                 case nil:
                     ProgressView { Text("cy.state.loading") }
