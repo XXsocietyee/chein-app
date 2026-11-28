@@ -43,17 +43,19 @@ import Observation
     @State private var coordinator: ShopNPCCoordinator?
     var makeScriptedGuide: ((ShopNPCScope) -> ShopNPCScriptedGuideSource?)? = nil
     @State private var scriptedGuide: ShopNPCScriptedGuideSource?
+    /// fix/1128c: the voice capture exists only when the composition granted voice (Release: on).
+    @State private var capture: (any ShopNPCVoiceCapturing)?
     var body: some View {
         Group {
-            if let coordinator { ShopNPCView(coordinator: coordinator, name: name, greeting: greeting, scriptedGuide: scriptedGuide) }
+            if let coordinator { ShopNPCView(coordinator: coordinator, name: name, greeting: greeting, capture: capture, scriptedGuide: scriptedGuide) }
             else { ProgressView() }
         }
         .task {
             if coordinator == nil {
                 let value = makeCoordinator(); coordinator = value
-                if value.active { scriptedGuide = makeScriptedGuide?(value.scope) }
+                if value.active { scriptedGuide = makeScriptedGuide?(value.scope); capture = ShopNPCVoiceCaptureFactory.make(for: value.grants) }
             }
         }
-        .onDisappear { scriptedGuide?.retire(); scriptedGuide = nil; coordinator?.invalidate() }
+        .onDisappear { scriptedGuide?.retire(); scriptedGuide = nil; capture?.cancel(); capture = nil; coordinator?.invalidate() }
     }
 }

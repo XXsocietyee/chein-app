@@ -103,6 +103,9 @@ struct NPCChatDataReadPresentation: Identifiable {
         .cyToast(message: $toastMessage, tone: toastTone)
         .onChange(of: session.npcChatDataReadIdentity) { _, _ in retire() }
         .onDisappear { retire() }
+        // fix/1128c: the Release read lease is issued before the row can be tapped, so a tap never changes identity.
+        .task { session.ensureReleaseNPCChatDataApproval() }
+        .onChange(of: scene) { _, phase in if phase == .active { session.ensureReleaseNPCChatDataApproval() } }
     }
     private func retire() { showsOptions = false; confirmsClear = false; presentation?.coordinator.invalidate(); presentation = nil }
 }
