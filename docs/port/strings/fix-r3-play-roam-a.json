@@ -582,7 +582,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ · %lld picks"
+            "value": "%1$@ · %#@pick@"
+          },
+          "substitutions": {
+            "pick": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg pick"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg picks"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
