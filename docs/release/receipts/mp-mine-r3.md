@@ -759,3 +759,5 @@ Merged `origin/ui/combined-r7` (clean). Still no `docs/release/receipts/cursor-k
 Checked, no change: ticket rows (`e4-tickets`) show the MP route illustration when there is no cover (continue 44, MP `cover-route.svg`); session tickets carry time · place on the sub-line without a calendar glyph, as the MP `sessionLine`.
 
 Coordinator: please re-sweep `e5b-badge-wall` and `a11y-badges-ax5`.
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. **Half done**; A half rows 1–2 still blocked.
