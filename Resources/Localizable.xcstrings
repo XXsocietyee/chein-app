@@ -317140,6 +317140,23 @@
         }
       }
     },
+    "nativeR2.mapHome.walkMinutes %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min walk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "步行 %lld 分钟"
+          }
+        }
+      }
+    },
     "club.quick.settings": {
       "extractionState": "manual",
       "localizations": {

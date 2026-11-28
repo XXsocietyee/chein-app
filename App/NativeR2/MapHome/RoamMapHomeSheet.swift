@@ -314,9 +314,18 @@ import QuestifyCore
                 .textCase(nil)
                 .accessibilityIdentifier("city.roam.nearby")
             } else {
-                Text("roam.w208.entry.title")
-                    .accessibilityAddTraits(.isHeader)
-                    .accessibilityIdentifier("city.roam.nearby")
+                // P29: the 附近活动 header states how many places / activities are nearby (OpenTable "331 restaurants").
+                HStack {
+                    Text("roam.w208.entry.title")
+                    Spacer()
+                    if !pins.isEmpty {
+                        Text(pins.count, format: .number).monospacedDigit()
+                            .accessibilityIdentifier("roam.mapHome.nearby.count")
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("city.roam.nearby")
             }
         } footer: {
             if dependencies.roamReader.isOfflineExample {
@@ -515,6 +524,12 @@ import QuestifyCore
     private var metaLayout: AnyLayout {
         dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 4))
     }
+    /// Walking minutes at about 80 m a minute (4.8 km/h), rounded up; nil past 3 km, where walking is not the hint.
+    static func walkMinutes(_ meters: Double) -> Int? {
+        guard meters >= 0, meters <= 3000 else { return nil }
+        return max(1, Int((meters / 80).rounded(.up)))
+    }
+
     var body: some View {
         NavigationLink(value: RoamMapHomeRoute.pin(pin.id)) {
             Label {
@@ -525,6 +540,11 @@ import QuestifyCore
                         if let meters = pin.distanceMeters {
                             if !dynamicTypeSize.isAccessibilitySize { Text(verbatim: "·").accessibilityHidden(true) }
                             Text(Measurement(value: meters, unit: UnitLength.meters), format: .measurement(width: .abbreviated, usage: .road))
+                            // P29: walk time next to the distance (about 80 m a minute), only within walking range.
+                            if let minutes = RoamMapHomePinRow.walkMinutes(meters) {
+                                if !dynamicTypeSize.isAccessibilitySize { Text(verbatim: "·").accessibilityHidden(true) }
+                                Text("nativeR2.mapHome.walkMinutes \(minutes)")
+                            }
                         }
                     }
                     .font(.subheadline)

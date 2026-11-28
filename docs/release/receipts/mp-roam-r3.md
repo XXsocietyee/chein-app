@@ -356,6 +356,17 @@ Base re-merged with `origin/ui/combined-r7`: two conflicts with ds-consistency's
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (26) — P29 map sheet on the shipping map home (01:40 "next round" list)
+
+No open coordinator finding for mp-roam (01:50 sweep, build a32387e9b: "Roam Nearby activities sheet follows the appearance" kept). Every
+roam MP page already has a row, so this run applies the new principles. Screens read: `docs/sweeps/latest/mp-roam/sheet-en.jpg`
+(d2-roam / d6-roam / e2-stamp-album / e5b-stamp; the album still shows the pre-continue-25 names, fixed there).
+
+| MP page → native | Principle → change | Fixture |
+|---|---|---|
+| `pages/roam/index` entry-peek 附近活动 (wxml:143–174) → `App/NativeR2/MapHome/RoamMapHomeSheet.swift` `nearbySection` header + `RoamMapHomePinRow` | **P29** — the header now states the count of loaded rows trailing the 附近活动 title (combined VoiceOver element, header trait, id `roam.mapHome.nearby.count`; hidden while empty / loading). Each row's kind · distance gains `· N min walk` / `· 步行 N 分钟` (80 m/min, rounded up, only ≤ 3 km; `RoamMapHomePinRow.walkMinutes`), stacked at AX sizes like the distance. MP sections / order unchanged (the MP card meta is kept; no chips added: the MP tabs 附近活动 / 本城推荐 already are the segmented header). Distances stay `Measurement` `.road` (locale units). New key `nativeR2.mapHome.walkMinutes %lld`. | Shipping map home (no map-home fixture yet, see continue 11 Not done) |
+| `e5b-stamp` (`CYCelebrationMoment(kind: .stamp)`, generic pin glyph) | Read only: the component is not mounted by any shipping roam screen (grep: fixture-only), so it is a design-system preview, not a roam page. | For ds-consistency (below). |
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
@@ -368,3 +379,4 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - Entry peek `.login`: 401 part done in continue (16); the no-deployment `.login` fixture state stays (not reachable by players).
 - Live map bottom strip P-32: done in continue (21) for the map home (shipping tab root); the legacy `RoamBrowserView` live cover (flag off) gets no feed.
 - No Swift build ran here; integrator compiles.
+- For ds-consistency: `e5b-stamp` (`CYCelebrationMoment` .stamp) draws a generic `mappin.and.ellipse` glyph; P24/P30 want the stamp's own art. Not mounted by roam screens.
