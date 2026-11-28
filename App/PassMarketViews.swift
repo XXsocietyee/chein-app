@@ -225,6 +225,7 @@ struct PassMarketView: View {
                     }
                 } label: { EmptyView() }
                 .cyAdaptiveSegmented()
+                .sensoryFeedback(.selection, trigger: tab)
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             }
@@ -732,6 +733,7 @@ struct PassDetailView: View {
                         }
                     } label: { EmptyView() }
                     .cyAdaptiveSegmented()
+                    .sensoryFeedback(.selection, trigger: state.forGift)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                 }
