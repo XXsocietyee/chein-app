@@ -40,6 +40,19 @@ still blocked on the backend device-token route; remote push is also now in Curs
 No `docs/release/receipts/cursor-k50-p*.md` `lane-layout` rows exist on any remote branch yet. One open row = nothing in the B
 half. **Half done** — run stopped per the collision-fix rule.
 
+## Run 11-28 (fifth B run, split by half)
+
+A receipt open rows at start (`origin/mp/r3-states` 51f4d8d9d, merged into this branch): the A lane's 18:10 run took the first
+two 17:30 rows and handed the third to this lane ("the search-overlay row is the B half"); P1-9 stays blocked on the backend
+(and is in Cursor K50-R scope). No `cursor-k50-p*.md` `lane-layout` rows exist on any remote branch.
+
+| A-receipt row / screen | MP state | Before | After (level) |
+|---|---|---|---|
+| **Coordinator 17:30 (P2)** search 灯笼: translucent brand logo over the 推荐搜索 chips (`GlobalSearchView`, fixture `d2-search-empty`; screenshot `mp-states/zh-Hans-d2-search-empty.jpg`, compared with `en-d2-search-empty.jpg`; level B) | `pages/search2/result` cy-skeleton while searching, then cy-empty 没有找到 · 再搜一次 | the floating mark is `LaunchMark` (`Config/Info.plist:28` `UILaunchScreen` → `App/Assets.xcassets/LaunchMark.imageset`, rendered and compared shape for shape), and the whole frame is dimmed: the iOS launch-screen crossfade caught mid-way, the same as the A lane's `e4-tickets-*` tiles. The frame is also before the fixture's first search (the 搜索 button still shows; `initialQuery` waits for `isVisible`); the en tile, captured later, shows the finished 没有找到 state. The in-app loading state already follows P10: an inline `ProgressView("search.r3.loading.results")` section (`App/GlobalSearchView.swift:116-122`), with suggestions hidden while loading (`:128`) and no overlay anywhere on the page | no code change: the sweep must wait for the first content frame (and here for `searchMap.loading` to clear) before the screenshot; listed for the coordinator below. Nothing in the app puts the logo over content |
+
+**Half done (run 11-28, fifth B run):** the B half (17:30 P2 search overlay) is closed as sweep timing, and P1-9 is still blocked.
+Run stopped per the collision-fix rule.
+
 ## Not done
 
 | Row | Why |
@@ -52,3 +65,9 @@ Before each push, on the branch head: `python3 tools/generate_project.py` (no pr
 PASS, `python3 -B tools/check_a11y_lint.py` (0 new), `python3 -B tools/contract_ratchet.py --check` (52 failing = baseline 52,
 new 0), `python3 tools/check_design_consistency.py` PASS. No Swift compiler here: the edit mirrors the existing
 `ProgressView { Text(…) }` / `Label { } icon: { }` / `.buttonStyle(.bordered)` patterns.
+
+## For other lanes
+
+- **coordinator (sweep script, 17:30 P2):** `zh-Hans-d2-search-empty.jpg` was captured during the iOS launch-screen crossfade
+  (translucent `LaunchMark` over the dimmed page) and before the fixture's initial search ran. Wait for the first content frame
+  and for `searchMap.loading` to disappear before shooting `d2-search-*` fixtures.

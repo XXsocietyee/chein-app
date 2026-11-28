@@ -228,7 +228,7 @@ struct RoamFinishReport: Equatable {
                         HStack(spacing: CYSpacing.md) {
                             Image(systemName: medal.card.kind == .shop ? "storefront.circle.fill" : "medal.fill")
                                 .font(.title)
-                                .foregroundStyle(Color.yellow)
+                                .foregroundStyle(CYColor.medalGold)
                                 .symbolEffect(.bounce, value: revealed && !reduceMotion)
                                 .frame(width: 44, height: 44)
                                 .accessibilityHidden(true)
