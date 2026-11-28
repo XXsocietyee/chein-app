@@ -41,6 +41,7 @@ struct TopicDetailView: View {
     @State private var favorited: Bool?
     @State private var favoriteBusy = false
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.popupCloseActions) private var popupCloseActions
     @State private var showsPricing = false
     @State private var showsEditor = false
@@ -290,7 +291,7 @@ struct TopicDetailView: View {
                         Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
                             .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
                         Text(verbatim: value.name).font(.title2.bold()).foregroundStyle(.primary)
-                        if let subtitle = TopicXcxFacts.heroIntro(value.subtitle) { Text(verbatim: subtitle).font(.body).foregroundStyle(.secondary).lineLimit(1) }
+                        if let subtitle = TopicXcxFacts.heroIntro(value.subtitle) { Text(verbatim: subtitle).font(.body).foregroundStyle(.secondary).lineLimit(typeSize.isAccessibilitySize ? 3 : 1) }
                         else { Text("topicXcx.coverHint").font(.body).foregroundStyle(.secondary) }
                     }
                     .padding(.vertical, CYSpacing.sm)

@@ -824,7 +824,8 @@ private struct RoamRecapWeekChart: View {
         // (MP subpackageTools monthly-recap week bars; TRECAP-6). Tap selects a week like the MP `pickWeek`.
         Chart(weeks) { week in
             BarMark(x: .value(Self.xSeries, Self.key(week.index)), y: .value(Self.ySeries, week.count), width: .fixed(28))
-                .foregroundStyle(week.isMax ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary.opacity(0.4)))
+                // a11y-dt r3: plain .secondary (≈ 3.5:1 on the page, WCAG 1.4.11 non-text 3:1); .secondary at 0.4 was ≈ 1.6:1.
+                .foregroundStyle(week.isMax ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
                 .annotation(position: .top) {
                     Text(week.count, format: .number).cyText(.meta, weight: .bold)
                         .opacity(week.isMax || picked == week.index ? 1 : 0)

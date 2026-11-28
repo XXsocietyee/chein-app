@@ -120,14 +120,9 @@ import SwiftUI
             if let onOpenTickets, onStartExplore != nil {
                 actionRow(onOpenTickets)
             } else if let onOpenTickets {
-                // Mini-program member header: one full-width 票夹 button under the counters.
-                Button(action: onOpenTickets) {
-                    Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent).controlSize(.large)
-                .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
-                .accessibilityIdentifier("member.card.tickets")
+                // Mini-program member header: one full-width 票夹 button under the counters, drawn like the
+                // paired one (glyph + centred label) so the glyph does not drop out (e4-member, 01:10 sweep).
+                ticketsButton(onOpenTickets, fixedLabel: false)
             }
             identityState
         }

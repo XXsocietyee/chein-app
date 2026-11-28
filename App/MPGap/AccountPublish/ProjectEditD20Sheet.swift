@@ -74,7 +74,7 @@ import SwiftUI
                 attributesSection
                 Section {
                     NavigationLink {
-                        ProjectEditD20MoreRulesPage(rules: rules)
+                        ProjectEditD20MoreRulesPage(rules: $rules, readOnly: readOnly)
                     } label: {
                         LabeledContent("mpPublish.d20.more") {
                             Text("mpPublish.d20.more.value \(rules.clocks.count) \(rules.aspects.count)")
@@ -275,47 +275,262 @@ import SwiftUI
     }
 }
 
-/// MP `d20-settings` second level 更多规则: 进度钟 (name · 坏事逼近 / 事情进展 · N 格) → 特质 (name, description).
-/// Shown as read; adding and editing clocks and traits is the next pass.
+/// MP `d20-settings` second level 更多规则, in MP order: 进度钟 (rows `name · 坏事逼近 / 事情进展 · N 格`; expand for
+/// 名称 · 类型 · 格数 · 删除; 添加进度钟 up to 6) → 特质 (rows expand for the description and 移除; preset chips add, up to 12).
+/// Edits go into the sheet's local model; the sheet's 完成 saves them.
 @MainActor struct ProjectEditD20MoreRulesPage: View {
-    let rules: ProjectEditD20Rules.Model
+    @Binding var rules: ProjectEditD20Rules.Model
+    let readOnly: Bool
+    @State private var openClock: String?
+    @State private var openAspect: String?
+    @State private var addingClock = false
+    @State private var clockName = ""
+    @State private var pendingClock: ProjectEditD20Rules.Clock?
+    @State private var pendingAspect: ProjectEditD20Rules.Aspect?
 
     var body: some View {
         List {
-            Section {
-                if rules.clocks.isEmpty {
-                    Text("mpPublish.d20.clocks.empty")
-                        .foregroundStyle(.secondary)
-                }
-                ForEach(rules.clocks) { clock in
-                    LabeledContent(clock.label) {
-                        Text("mpPublish.d20.clock.detail \(Text(LocalizedStringKey(clock.danger ? "mpPublish.d20.clock.danger" : "mpPublish.d20.clock.progress"))) \(clock.segments)")
-                    }
-                }
-            } header: {
-                Text("mpPublish.d20.clocks")
-            }
-            Section {
-                if rules.aspects.isEmpty {
-                    Text("mpPublish.d20.aspects.empty")
-                        .foregroundStyle(.secondary)
-                }
-                ForEach(rules.aspects) { aspect in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(aspect.label)
-                        if !aspect.desc.isEmpty {
-                            Text(aspect.desc)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .accessibilityElement(children: .combine)
-                }
-            } header: {
-                Text("mpPublish.d20.aspects")
-            }
+            clocksSection
+            aspectsSection
         }
         .navigationTitle(Text("mpPublish.d20.more"))
         .navigationBarTitleDisplayMode(.inline)
+        .alert("mpPublish.d20.clock.namePrompt", isPresented: $addingClock) {
+            TextField("mpPublish.d20.clock.namePrompt", text: $clockName)
+            Button("action.cancel", role: .cancel) { clockName = "" }
+            Button("mpPublish.d20.clock.addAction") { addClock() }
+        }
+        .confirmationDialog(clockDeleteTitle, isPresented: clockDialogShown, titleVisibility: .visible) {
+            Button("mpPublish.d20.clock.delete", role: .destructive) { confirmClockDelete() }
+            Button("action.cancel", role: .cancel) { pendingClock = nil }
+        } message: {
+            Text("mpPublish.d20.clock.deleteMessage")
+        }
+        .confirmationDialog(aspectRemoveTitle, isPresented: aspectDialogShown, titleVisibility: .visible) {
+            Button("mpPublish.d20.aspect.remove", role: .destructive) { confirmAspectRemove() }
+            Button("action.cancel", role: .cancel) { pendingAspect = nil }
+        } message: {
+            Text("mpPublish.d20.aspect.removeMessage")
+        }
+    }
+
+    // MARK: 进度钟
+
+    private var clocksSection: some View {
+        Section {
+            if readOnly && rules.clocks.isEmpty {
+                Text("mpPublish.d20.clocks.empty")
+                    .foregroundStyle(.secondary)
+            }
+            ForEach(rules.clocks) { clock in
+                clockRow(clock)
+            }
+            .onDelete { offsets in
+                guard !readOnly, let index = offsets.first else { return }
+                pendingClock = rules.clocks[index]
+            }
+            .deleteDisabled(readOnly)
+            if !readOnly && rules.clocks.count < ProjectEditD20Rules.maxClocks {
+                Button {
+                    clockName = ""
+                    openClock = nil
+                    addingClock = true
+                } label: {
+                    Label("mpPublish.d20.clock.add", systemImage: "plus")
+                }
+                .accessibilityIdentifier("projectEdit.d20.clock.add")
+            }
+        } header: {
+            Text("mpPublish.d20.clocks")
+        }
+    }
+
+    @ViewBuilder private func clockRow(_ clock: ProjectEditD20Rules.Clock) -> some View {
+        let summary = LabeledContent(clock.label) {
+            Text("mpPublish.d20.clock.detail \(Text(LocalizedStringKey(clock.danger ? "mpPublish.d20.clock.danger" : "mpPublish.d20.clock.progress"))) \(clock.segments)")
+        }
+        if readOnly {
+            summary
+        } else {
+            DisclosureGroup(isExpanded: openBinding(clock.key, $openClock)) {
+                ProjectEditD20ClockNameField(label: clock.label) { name in rename(clock.key, name) }
+                Picker("mpPublish.d20.clock.kind", selection: clockKind(clock.key)) {
+                    Text("mpPublish.d20.clock.danger").tag(true)
+                    Text("mpPublish.d20.clock.progress").tag(false)
+                }
+                .cyAdaptiveSegmented()
+                Picker("mpPublish.d20.clock.segments", selection: clockSegments(clock.key)) {
+                    ForEach(ProjectEditD20Rules.clockSegmentOptions, id: \.self) { count in
+                        Text("mpPublish.d20.clock.segmentsOption \(count)").tag(count)
+                    }
+                }
+                .cyAdaptiveSegmented()
+                Button("mpPublish.d20.clock.delete", role: .destructive) { pendingClock = clock }
+            } label: {
+                summary
+            }
+            .accessibilityIdentifier("projectEdit.d20.clock")
+        }
+    }
+
+    private func clockKind(_ key: String) -> Binding<Bool> {
+        Binding(get: { rules.clocks.first(where: { $0.key == key })?.danger ?? true }, set: { value in
+            guard let index = rules.clocks.firstIndex(where: { $0.key == key }) else { return }
+            rules.clocks[index].danger = value
+        })
+    }
+
+    private func clockSegments(_ key: String) -> Binding<Int> {
+        Binding(get: { rules.clocks.first(where: { $0.key == key })?.segments ?? 6 }, set: { value in
+            guard let index = rules.clocks.firstIndex(where: { $0.key == key }) else { return }
+            rules.clocks[index].segments = value
+        })
+    }
+
+    /// MP `clockRename`: a blank name keeps the old one.
+    private func rename(_ key: String, _ name: String) {
+        let label = String(name.trimmingCharacters(in: .whitespacesAndNewlines).prefix(ProjectEditD20Rules.clockNameLimit))
+        guard !label.isEmpty, let index = rules.clocks.firstIndex(where: { $0.key == key }) else { return }
+        rules.clocks[index].label = label
+    }
+
+    /// MP `clockAdd`: the new clock opens expanded.
+    private func addClock() {
+        let label = String(clockName.trimmingCharacters(in: .whitespacesAndNewlines).prefix(ProjectEditD20Rules.clockNameLimit))
+        clockName = ""
+        guard !label.isEmpty, rules.clocks.count < ProjectEditD20Rules.maxClocks else { return }
+        let clock = ProjectEditD20Rules.newClock(label: label, in: rules)
+        rules.clocks.append(clock)
+        openClock = clock.key
+    }
+
+    private var clockDialogShown: Binding<Bool> {
+        Binding(get: { pendingClock != nil }, set: { if !$0 { pendingClock = nil } })
+    }
+
+    private var clockDeleteTitle: Text {
+        Text("mpPublish.d20.clock.deleteTitle \(pendingClock?.label ?? "")")
+    }
+
+    private func confirmClockDelete() {
+        guard let clock = pendingClock else { return }
+        rules.clocks.removeAll { $0.key == clock.key }
+        if openClock == clock.key { openClock = nil }
+        pendingClock = nil
+    }
+
+    // MARK: 特质
+
+    private var aspectsSection: some View {
+        Section {
+            if readOnly && rules.aspects.isEmpty {
+                Text("mpPublish.d20.aspects.empty")
+                    .foregroundStyle(.secondary)
+            }
+            ForEach(rules.aspects) { aspect in
+                aspectRow(aspect)
+            }
+            .onDelete { offsets in
+                guard !readOnly, let index = offsets.first else { return }
+                pendingAspect = rules.aspects[index]
+            }
+            .deleteDisabled(readOnly)
+            if !readOnly && rules.aspects.count < ProjectEditD20Rules.maxAspects && !availableAspects.isEmpty {
+                Menu {
+                    ForEach(availableAspects) { preset in
+                        Button(LocalizedStringKey(preset.labelKey)) { addAspect(preset) }
+                    }
+                } label: {
+                    Label("mpPublish.d20.aspect.add", systemImage: "plus")
+                }
+                .accessibilityIdentifier("projectEdit.d20.aspect.add")
+            }
+        } header: {
+            Text("mpPublish.d20.aspects")
+        }
+    }
+
+    @ViewBuilder private func aspectRow(_ aspect: ProjectEditD20Rules.Aspect) -> some View {
+        if readOnly {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(aspect.label)
+                if !aspect.desc.isEmpty {
+                    Text(aspect.desc)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .accessibilityElement(children: .combine)
+        } else {
+            DisclosureGroup(isExpanded: openBinding(aspect.key, $openAspect)) {
+                if !aspect.desc.isEmpty {
+                    Text(aspect.desc)
+                        .foregroundStyle(.secondary)
+                }
+                Button("mpPublish.d20.aspect.remove", role: .destructive) { pendingAspect = aspect }
+            } label: {
+                Text(aspect.label)
+            }
+            .accessibilityIdentifier("projectEdit.d20.aspect")
+        }
+    }
+
+    private var availableAspects: [ProjectEditD20Rules.AspectPreset] {
+        let taken = Set(rules.aspects.map(\.label))
+        return ProjectEditD20Rules.aspectPresets.filter { !taken.contains(localized($0.labelKey)) }
+    }
+
+    private func localized(_ key: String) -> String {
+        String(localized: String.LocalizationValue(key))
+    }
+
+    /// MP `aspectAdd`: the new trait opens expanded.
+    private func addAspect(_ preset: ProjectEditD20Rules.AspectPreset) {
+        guard rules.aspects.count < ProjectEditD20Rules.maxAspects else { return }
+        let aspect = ProjectEditD20Rules.newAspect(label: localized(preset.labelKey), desc: localized(preset.descKey), in: rules)
+        rules.aspects.append(aspect)
+        openAspect = aspect.key
+    }
+
+    private var aspectDialogShown: Binding<Bool> {
+        Binding(get: { pendingAspect != nil }, set: { if !$0 { pendingAspect = nil } })
+    }
+
+    private var aspectRemoveTitle: Text {
+        Text("mpPublish.d20.aspect.removeTitle \(pendingAspect?.label ?? "")")
+    }
+
+    private func confirmAspectRemove() {
+        guard let aspect = pendingAspect else { return }
+        rules.aspects.removeAll { $0.key == aspect.key }
+        if openAspect == aspect.key { openAspect = nil }
+        pendingAspect = nil
+    }
+
+    private func openBinding(_ key: String, _ open: Binding<String?>) -> Binding<Bool> {
+        Binding(get: { open.wrappedValue == key }, set: { open.wrappedValue = $0 ? key : nil })
+    }
+}
+
+/// MP 名称 input (`maxlength="10"`, saved on blur / confirm): commits when editing ends.
+@MainActor struct ProjectEditD20ClockNameField: View {
+    let label: String
+    let onCommit: (String) -> Void
+    @State private var text = ""
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        LabeledContent("mpPublish.d20.clock.name") {
+            TextField("mpPublish.d20.clock.namePrompt", text: $text)
+                .multilineTextAlignment(.trailing)
+                .focused($focused)
+                .submitLabel(.done)
+                .onSubmit { onCommit(text) }
+        }
+        .onAppear { text = label }
+        .onChange(of: focused) { _, isFocused in
+            if !isFocused { onCommit(text) }
+        }
+        .accessibilityIdentifier("projectEdit.d20.clock.name")
     }
 }

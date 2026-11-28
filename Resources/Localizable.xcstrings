@@ -17690,7 +17690,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approval to join"
+            "value": "Approval required"
           }
         },
         "zh-Hans": {
@@ -17836,7 +17836,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved members can see the members"
+            "value": "Member list unlocks once you’re approved"
           }
         },
         "zh-Hans": {
@@ -81323,13 +81323,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Home can’t open right now"
+            "value": "Home is unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "首页无法打开"
+            "value": "首页暂不可用"
           }
         }
       }
@@ -136005,13 +136005,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Includes %lld work"
+                  "value": "Covers %lld play"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Includes %lld works"
+                  "value": "Covers %lld plays"
                 }
               }
             }
@@ -136031,7 +136031,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Includes %#@work@ · %#@person@"
+            "value": "Covers %#@work@ · %#@person@"
           },
           "substitutions": {
             "work": {
@@ -136042,13 +136042,13 @@
                   "one": {
                     "stringUnit": {
                       "state": "translated",
-                      "value": "%arg work"
+                      "value": "%arg play"
                     }
                   },
                   "other": {
                     "stringUnit": {
                       "state": "translated",
-                      "value": "%arg works"
+                      "value": "%arg plays"
                     }
                   }
                 }
@@ -136243,7 +136243,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Playable works"
+            "value": "Included plays"
           }
         },
         "zh-Hans": {
@@ -276655,7 +276655,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ | Host club"
+            "value": "Hosted by %@"
           }
         },
         "zh-Hans": {
@@ -276671,7 +276671,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scroll down for games, sessions and sign-up"
+            "value": "Scroll down for plays, sessions and sign-up"
           }
         },
         "zh-Hans": {
@@ -276958,9 +276958,21 @@
     "topicXcx.include.chapters %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld chapters"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chapter"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chapters"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -277050,9 +277062,21 @@
     "topicXcx.include.plays %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld games"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld play"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld plays"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -277066,9 +277090,21 @@
     "topicXcx.include.stops %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stops"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stop"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stops"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -277188,9 +277224,21 @@
     "topicXcx.moreMerchants %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld shops in total"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld shop in total"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld shops in total"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -297145,7 +297193,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tick every prep item to start"
+            "value": "Check off every prep item to start"
           }
         },
         "zh-Hans": {
@@ -298262,7 +298310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Get approved to see the contribution board"
+            "value": "Contribution board unlocks once you’re approved"
           }
         },
         "zh-Hans": {
@@ -353867,6 +353915,686 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ · %2$lld 格"
+          }
+        }
+      }
+    },
+    "playkit.blind.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blind taster · Tasting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "闭眼味觉师 · 盲品"
+          }
+        }
+      }
+    },
+    "playkit.blind.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close your eyes, take a sip, guess which one it is"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "闭上眼，尝一口，猜猜是哪一种"
+          }
+        }
+      }
+    },
+    "playkit.blind.got": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have the samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小样拿到了"
+          }
+        }
+      }
+    },
+    "playkit.blind.closeEyes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close your eyes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "闭上眼"
+          }
+        }
+      }
+    },
+    "playkit.blind.dontPeek": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep your eyes closed, take your time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "别睁眼，慢慢尝"
+          }
+        }
+      }
+    },
+    "playkit.blind.openEyes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done tasting. Tap to open your eyes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尝好了，轻点睁眼"
+          }
+        }
+      }
+    },
+    "playkit.blind.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好"
+          }
+        }
+      }
+    },
+    "playkit.blind.peeked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peeked? Close your eyes again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偷看了？再闭一次眼"
+          }
+        }
+      }
+    },
+    "playVerdict.tapToContinue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap anywhere to continue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轻点继续"
+          }
+        }
+      }
+    },
+    "playkit.scan.matchNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only checks this stop's task code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅确认这一站的任务码"
+          }
+        }
+      }
+    },
+    "playkit.scan.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan this stop's code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描这一站的二维码"
+          }
+        }
+      }
+    },
+    "playkit.scan.imagePending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The picture you get after scanning"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫完给的那张图"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.namePrompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clock name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进度钟名称"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.kind": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clock type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进度钟类型"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.segments": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格数"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.segmentsOption %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld segments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 格"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add clock"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加进度钟"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.addAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.deleteTitle %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete clock “%@”?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除进度钟「%@」？"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.deleteMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditions and effects that use it will need to be chosen again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用到它的条件和效果需要重新选择。"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add trait"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加特质"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.removeTitle %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove trait “%@”?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除特质「%@」？"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.removeMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditions that use it will need to be chosen again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用到它的条件需要重新选择。"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.nightOwl": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Night owl"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夜行者"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.nightOwl.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moves more easily at night"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夜里行动更顺手"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.hurt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Injured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受了伤"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.hurt.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actions are harder until healed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行动吃力，直到治好"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.sharpEye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharp-eyed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "眼尖"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.sharpEye.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spots clues more easily"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更容易发现线索"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.bold": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bold"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "胆大"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.bold.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stays calmer in danger"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "面对危险更镇定"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.handy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手巧"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.handy.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Better at picking locks and repairs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开锁和修理更顺手"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.memory": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记性好"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.memory.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remembers the clues already seen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记得住看过的线索"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.watched": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Being watched"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被盯上了"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.watched.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Night watchers notice you more easily"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "巡夜人更容易注意到你"
           }
         }
       }
