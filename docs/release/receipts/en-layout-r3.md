@@ -243,6 +243,14 @@ Merged `origin/ui/combined-r7` (clean). Not done row unchanged (owner decision).
 | 85 | Same jargon on player screens: club group poll (`poll.optionLimit`, `GroupPollViews.swift`), profile complaint (`profile.complaint.contactHint`, `.reasonHint`), Square comment report (`squareReport.invalid`, `SquareReportView.swift`), collect-set name (`collectSet.validation.titleTooLong`) | "UTF-16 units / text units" in both languages | en + zh → plain "characters / 个字符" with the same limits; validation code unchanged. Fragments `SquareReportLocalizations` + `ProfileComplaintPreparationLocalizations` kept equal to the catalog. Merchant strings with the same wording left (merchant out of scope) | Done |
 | 86 | Creator walking-entrance editor (`ProjectEditView` → `NativeStoryWalkingAuthorView.swift`, validation `NativeStoryWalkingAuthorValidation.swift`; `WalkingValidation.xcstrings` label/source/floor/approach/alternative/businessTime) | "at most 300 UTF-16 units, with no null character" on six field errors (both languages) | en + zh → plain limits in characters ("Enter an entrance name of up to 300 characters.", "Keep the opening hours to 1,000 characters or fewer." …); validation unchanged | Done |
 
+### Run 23 (2026-11-28, half-hourly)
+
+Merged `origin/ui/combined-r7` (clean). No open coordinator finding for en-layout; Not done row unchanged (owner decision). Catalog-wide scan for "UTF-16 / text units" on non-merchant keys: `creatorRoot.*` and `playkitAuthor.validation.*` catalog values already read "characters" (their fragments keep older values pinned by contract tests; catalog wins at build).
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 87 | `pages/publish/temp` node narrative field (creator; MP order unchanged) → `ProjectNodeNarrativeFields.swift:132` (`projectNodeNarrative.tooLong`) | "The current editor allows 2,000 text units." — engineering jargon | en → "This field allows up to 2,000 characters. Shorten the text before saving; nothing has been cut."; zh → "最多 2,000 字。请缩短后保存；现有文字未被截断。" (catalog + fragment); limit logic unchanged | Done |
+
 ## Not done
 
 | Item | Why |
