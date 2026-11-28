@@ -114,6 +114,7 @@ import SwiftUI
                 LabeledContent {
                     Text(verbatim: row.max.map { "\(row.value) / \($0)" } ?? row.value)
                         .cyText(.numericBody)
+                        .accessibilityLabel(row.max.map { Text("a11y.value.ofTotalText \(row.value) \($0)") } ?? Text(verbatim: row.value))
                 } label: {
                     HStack { name(row.name); if row.zero { Text("playx.backpack.zero").foregroundStyle(CYColor.dangerText) } }
                 }
@@ -458,7 +459,7 @@ import SwiftUI
             HStack { name(hp); Text("playx.backpack.zero") }
             if let message = zero.message { Text(verbatim: message) }
             if let progress = zero.progress, let required = zero.required {
-                ProgressView(value: Double(min(progress, required)), total: Double(required)) { Text(verbatim: "\(progress) / \(required)") }
+                ProgressView(value: Double(min(progress, required)), total: Double(required)) { Text(verbatim: "\(progress) / \(required)").accessibilityLabel(Text("a11y.value.ofTotal \(progress) \(required)")) }
             }
             zeroRecovery(zero)
         }

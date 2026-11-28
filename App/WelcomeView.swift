@@ -37,6 +37,8 @@ struct WelcomeView: View {
     /// P-008: the checkbox appears only once the agreement is found missing; checking it here keeps it visible
     /// (VoiceOver focus stays put), and an agreement already on record never asks again.
     @State private var asksConsent = false
+    /// mp-nav r3 (Next round 2): counts the player's own taps, so the stored agreement syncing in does not tick.
+    @State private var consentTaps = 0
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -179,6 +181,7 @@ struct WelcomeView: View {
             .accessibilityIdentifier("welcome.consent.checkbox")
             .accessibilityAddTraits(consentChecked ? [.isSelected] : [])
             .accessibilityValue(Text(consentChecked ? "fixr9.ap.consent.checked" : "fixr9.ap.consent.unchecked"))
+            .sensoryFeedback(.selection, trigger: consentTaps)
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 16) { agreementLink; privacyLink }
                 VStack(alignment: .leading, spacing: 6) { agreementLink; privacyLink }
@@ -281,6 +284,7 @@ struct WelcomeView: View {
             try? consentPolicy.agree(agreementChecked: true)
         }
         consentChecked = consentPolicy.granted
+        consentTaps += 1
     }
 }
 

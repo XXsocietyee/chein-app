@@ -195,6 +195,10 @@ struct RegistrationSheetView: View {
             .modifier(RegistrationPlayerSheetHeader(onClose: { flow.leave(); dismiss() }))
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
+            // Next-round motion: a player's own choice (ticket, saved participant, sharing consent) answers with a
+            // selection tick; the first automatic preselect (nil → id) stays silent.
+            .modifier(RegistrationSelectionHaptics(ticket: flow.selectedTicketID, participant: flow.selectedParticipantID,
+                                                   consented: flow.consented))
             .sheet(isPresented: $showingTicketSheet) { ticketSheetContent }
             .sheet(isPresented: $showingParticipantSheet, onDismiss: {
                 if addAfterParticipantSheet { addAfterParticipantSheet = false; showingAddParticipant = true }
@@ -972,7 +976,8 @@ struct RegistrationSheetView: View {
             // Source k9 p1 N-11: 订单金额 only appears when a deduction row follows; with no quote it is the only amount.
             if flow.selectedTicket != nil && showsOrderAmount {
                 RegistrationAmountRow(key: "registrationParity.orderAmount",
-                    amount: RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket).orderAmount)
+                    amount: RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket).orderAmount,
+                    currencyCode: RegistrationUIMoney.yuanCurrencyCode, listedPrice: true)
             }
             if !flow.quoteEnabled {
                 Text("registration.form.quoteDisabled").foregroundStyle(.secondary)
@@ -1140,9 +1145,13 @@ private struct RegistrationAmountRow: View {
     var currencyCode: String? = nil
     /// R11-PC-C-2: server promotion label shown verbatim (MP baoming.wxml:179).
     var verbatimLabel: String? = nil
+    /// MP baoming.wxml 订单金额 is the ticket's listed price: always shown like 票种价格 (¥ amount, 免费, 价格待定), never a bare dash.
+    var listedPrice = false
     var body: some View {
         LabeledContent {
-            if let amount, amount > .zero, !PlayAreaPopupCopy.paymentsOpen {
+            if listedPrice {
+                Text(verbatim: listedText).monospacedDigit().foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")
+            } else if let amount, amount > .zero, !PlayAreaPopupCopy.paymentsOpen {
                 Text(verbatim: "—").foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")
             } else if let text = RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode) {
                 VStack(alignment: .trailing, spacing: 2) {
@@ -1154,6 +1163,13 @@ private struct RegistrationAmountRow: View {
         } label: {
             if let verbatimLabel { Text(verbatim: verbatimLabel) } else { Text(LocalizedStringKey(key)) }
         }
+    }
+    private var listedText: String {
+        let copy = CoreLoopCopy(locale: locale)
+        guard let amount, !amount.isNaN, amount >= .zero else { return copy.t("价格待定", "Price to be confirmed") }
+        if amount == .zero { return copy.t("免费", "Free") }
+        return RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode)
+            ?? copy.t("价格待定", "Price to be confirmed")
     }
 }
 
@@ -1521,5 +1537,26 @@ private struct RegistrationChoiceRow: View {
             Text(title).foregroundStyle(.primary)
         }
         .contentShape(Rectangle())
+    }
+}
+
+
+/// Selection ticks for the player's own choices, kept out of `RegistrationSheetView.body` so the body type-checks in time.
+private struct RegistrationSelectionHaptics<T: Equatable, P: Equatable>: ViewModifier {
+    let ticket: T?
+    let participant: P?
+    let consented: Bool
+    func body(content: Content) -> some View {
+        let ticketChanged: (T?, T?) -> Bool = Self.userChange
+        let participantChanged: (P?, P?) -> Bool = Self.userChange
+        return content
+            .cyHaptic(.selection, trigger: ticket, where: ticketChanged)
+            .cyHaptic(.selection, trigger: participant, where: participantChanged)
+            .cyHaptic(.selection, trigger: consented)
+    }
+    /// A change between two real values; the first automatic preselect (nil → id) stays silent.
+    private static func userChange<V: Equatable>(_ old: V?, _ new: V?) -> Bool {
+        guard let old, let new else { return false }
+        return old != new
     }
 }

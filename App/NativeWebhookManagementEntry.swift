@@ -243,7 +243,7 @@ enum NativeWebhookSheet: String, Identifiable {
         NavigationStack(path: $model.path) {
             NativeWebhookManagementView(model: model)
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
+                    ToolbarItem(placement: .confirmationAction) {
                         Button(nativeWebhookLocalized("d7.webhook.done")) { model.leave(); dismiss() }
                             .accessibilityIdentifier("webhook.channel.return")
                     }
