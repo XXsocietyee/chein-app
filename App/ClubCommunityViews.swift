@@ -1230,6 +1230,7 @@ struct ClubCommunityReviewView: View {
     var onSettled: ((ClubCommunityOperation) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     private var isDestructiveOperation: Bool {
         switch review.operation {
@@ -1244,13 +1245,14 @@ struct ClubCommunityReviewView: View {
                 Section {
                     Text(LocalizedStringKey("club.community." + review.operation.labelKey))
                         .font(.headline)
+                        .accessibilityAddTraits(.isHeader)
 
                     // X10 (parity r1): name the post / comment by its words, never by internal ids.
                     if let target = review.evidence.comment?.content ?? review.evidence.post?.content,
                        !target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Text(verbatim: target)
                             .foregroundStyle(.secondary)
-                            .lineLimit(3)
+                            .lineLimit(typeSize.isAccessibilitySize ? 8 : 3)
                     }
 
                     switch review.operation {
