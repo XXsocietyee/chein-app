@@ -27,6 +27,7 @@ import QuestifyCore
                 }
             case .empty:
                 ContentUnavailableView("nativeR2.mapHome.routes.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                    .accessibilityIdentifier("officialRoute.list.empty")
             case .failed, .offline:
                 ContentUnavailableView {
                     Label(state == .offline ? LocalizedStringKey("nativeR2.mapHome.offline") : LocalizedStringKey("nativeR2.mapHome.routes.failed"),
@@ -34,6 +35,7 @@ import QuestifyCore
                 } actions: {
                     Button("action.retry") { Task { await load() } }.buttonStyle(.bordered)
                 }
+                .accessibilityIdentifier("officialRoute.list.error")
             }
         }
         .listStyle(.insetGrouped)

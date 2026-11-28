@@ -131,6 +131,10 @@ enum DesignFixtureRegistry {
         // mp-roam r3: 集邮册 (scene-roam-stamp-album) empty / error states for the sweep (content = e2-stamp-album).
         case "r3-roam-stamp-album-empty": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
         case "r3-roam-stamp-album-error": return AnyView(NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
+        // mp-roam r3: 官方线路 (subpackageRoam/official-routes) list / empty / error on the shipping map-home list.
+        case "r3-roam-routes": return RoamR3RoutesFixture.make(.content)
+        case "r3-roam-routes-empty": return RoamR3RoutesFixture.make(.empty)
+        case "r3-roam-routes-error": return RoamR3RoutesFixture.make(.failure)
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
