@@ -656,9 +656,20 @@ Variable-built "a/b" strings shown through `Text(verbatim:)`. New shared helper 
 
 | `pages/member/index` cy-profile tabs 项目/帖文/成就/关于 | `AccountView.swift:66` | ✓ (mp-mine owns order) | Audit: system `Picker` + `.cyAdaptiveSegmented()` (stacks at large type), labelled container, identifier, `.sensoryFeedback(.selection)`. No change | Done |
 
+## Run 39 (2026-11-28, hourly)
+Merged `origin/ui/combined-r7`. Sweep index still build 0446d1c4f, so the sheets re-read waits. Not done pages: ticket
+wallet rows, club detail header + join at AX5.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `subpackageMember/signup` wallet card (票夹) | `TicketWalletView.swift:404,436` (`TicketWalletRow`) | ✓ (cover → tag → title → facts kept visually) | VoiceOver: the row is one element (the non-link row was read piece by piece); the title is read first (`.accessibilitySortPriority(1)`), then tag and facts. A cancelled / expired pass was only dimmed: its status now reads as the value ("Canceled" / "已取消", existing `ticketWallet.status.*` keys). Visible card unchanged (owner rule: no status on the card). Level B | Done |
+| `pages/club/detail` header role tags | `ClubDetailView.swift:818` (`statusTags`) | ✓ | 创建者/已加入/审核中 + 管理员 tags were one `HStack` that runs off the edge at AX sizes; now `AnyLayout` HStack → VStack at accessibility sizes. Level B | Done |
+| `pages/club/detail` floating 加入 / 申请加入 / 等待审核 | `ClubActionPanel.swift:273` (`floatingBar`) | ✓ | Audit: system `.borderedProminent` capsule `.large`, full-width label wraps at AX5, glyph-only tint on the reward line (run 2x). Tab bar becomes a menu Picker at AX sizes. No change | Done |
+| `subpackageMember/signup` order detail 权益 rows | `TicketWalletDetailView.swift:393` (`TicketWalletEntitlementRow`) | ✓ | Audit: AnyLayout stack at AX sizes, status glyph labelled, row combined. No change | Done |
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-38).
-- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`): club detail header and join button at AX5, ticket wallet rows VoiceOver order.
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club overview leaderboard rows + members section VoiceOver, club posts feed rows at AX5.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
