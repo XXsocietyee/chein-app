@@ -116,6 +116,7 @@ public struct RoamMergedHistoryListView: View {
     public var onRetryServer: () -> Void
     public var onLoadMore: () -> Void
     public var onSelectRow: (MergedRoamHistoryRow) -> Void
+    @Environment(\.locale) private var locale
 
     public init(
         rows: [MergedRoamHistoryRow],
@@ -164,7 +165,7 @@ public struct RoamMergedHistoryListView: View {
                                     .foregroundStyle(CYColor.textSecondary)
                             }
                             Spacer()
-                            Text(String(format: "%.1f km", row.distanceKM))
+                            Text(verbatim: LocaleDisplay.walkedKilometers(row.distanceKM, locale: locale))
                                 .cyText(.numericBody, monospacedDigit: true)
                         }
                     }

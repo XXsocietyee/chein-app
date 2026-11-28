@@ -106,7 +106,7 @@ struct UsageConsentGateView: View {
             .navigationBarTitleDisplayMode(.inline)
             .cySheet(item: $document) { sheet in
                 NavigationStack {
-                    SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
+                    SettingsLegalDocumentView(type: sheet.type, market: UserMarketMemory.legalDocumentMarket(deployment: market), reader: legalReader)
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button("action.close") { document = nil }

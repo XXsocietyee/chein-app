@@ -34,8 +34,14 @@ public struct TemplateCreatorField: Identifiable {
     public let kind: Kind
     public let initial: TemplateAuthoringJSON
     private let customLabelKey: String?
+    /// MP placeholder (`publish/temp/index.wxml` `placeholder=`), shown as the text field prompt; nil keeps the label as the prompt.
+    public let promptKey: String?
     public var labelKey: String { customLabelKey ?? ("creator.field." + id) }
-    public init(_ id: String, _ kind: Kind, _ initial: TemplateAuthoringJSON, labelKey: String? = nil) { self.id = id; self.kind = kind; self.initial = initial; customLabelKey = labelKey }
+    public init(_ id: String, _ kind: Kind, _ initial: TemplateAuthoringJSON, labelKey: String? = nil, promptKey: String? = nil) { self.id = id; self.kind = kind; self.initial = initial; customLabelKey = labelKey; self.promptKey = promptKey }
+    /// The same field with the MP card's own label and / or placeholder (mp-publish-b field-level audit).
+    public func mp(label: String? = nil, prompt: String? = nil) -> TemplateCreatorField {
+        TemplateCreatorField(id, kind, initial, labelKey: label ?? customLabelKey, promptKey: prompt ?? promptKey)
+    }
 }
 public enum TemplateCreatorSchema {
     public typealias Field = TemplateCreatorField
@@ -74,7 +80,11 @@ public enum TemplateCreatorSchema {
                 .init("maxAttempts", .number(min: 1, max: 10, integer: true), .null), xp(),
                 .init("effects", .strings(min: 0, max: 0, length: 32), .null)]
         case .random:
-            return [t("deckName", 20), n("drawCount", 1, 50, 1), a("items", [id(), t("label", 40, true), n("weight", 1, 100000, 1), t("content", 500), media("audioUrl", 500)], 1, 50, identity: "id", count: 1)]
+            // MP temp/index.wxml:136-147 (这副卡叫什么 · 每局抽取数量 · per card 唯一 ID / 玩家看到的名称 / 权重 / 抽中后展示的内容).
+            let card = [id().mp(prompt: "creator.mp.random.id.prompt"), t("label", 40, true).mp(prompt: "creator.mp.random.label.prompt"),
+                        n("weight", 1, 100000, 1).mp(label: "creator.mp.random.weight"), t("content", 500).mp(prompt: "creator.mp.random.content.prompt"), media("audioUrl", 500)]
+            return [t("deckName", 20).mp(label: "creator.mp.random.deckName", prompt: "creator.mp.random.deckName.prompt"),
+                    n("drawCount", 1, 50, 1).mp(label: "creator.mp.random.drawCount"), a("items", card, 1, 50, identity: "id", count: 1)]
         case .branch:
             return [t("startStepId", 64, true, "start", pattern: keyPattern), a("steps", [id(), t("title", 80), t("body", 1000), b("terminal", true), t("outcomeCode", 64, false, "COMPLETED", pattern: keyPattern), t("outcomeLabel", 80), a("options", [id(), t("label", 80, true), id("nextStepId"), n("score", -100000, 100000, 0), effectList("effects")], 0, 12, identity: "id")], 1, 50, identity: "id", count: 1)]
         case .leaderboard:
@@ -88,10 +98,16 @@ public enum TemplateCreatorSchema {
         case .silentOrder: return [t("title", 64, true), t("rule", 200), n("limitSeconds", 0, 3600, 0)]
         case .diyName: return [t("title", 64, true), n("maxLength", 2, 40, 16), s("suggestions", 0, 6, 40)]
         case .musicCorner: return [t("title", 64, true), t("trackName", 40), media("audioUrl"), n("durationSeconds", 0, 3600, 0)]
-        case .steps: return [n("goal", 100, 100000, 6000), t("eyebrow", 32), xp()]
+        // MP temp/index.wxml:150-156 (目标步数 · 小标题).
+        case .steps: return [n("goal", 100, 100000, 6000), t("eyebrow", 32).mp(label: "creator.mp.steps.eyebrow", prompt: "creator.mp.steps.eyebrow.prompt"), xp()]
         case .dailySign: return [t("signer", 16), t("sealText", 8), .init("poems", .poems, .array([]))]
         case .slowTask: return [t("title", 64, true), t("startLabel", 24), t("waitHint", 60), t("unlockLabel", 24), t("unlockText", 200, true), n("waitDays", 1, 7, 1), xp()]
-        case .estimate: return [t("title", 64, true), t("unit", 8), n("min", -Double.greatestFiniteMagnitude, Double.greatestFiniteMagnitude, 0, integer: false), n("max", -Double.greatestFiniteMagnitude, Double.greatestFiniteMagnitude, 1000, integer: false), n("answer", -Double.greatestFiniteMagnitude, Double.greatestFiniteMagnitude, 500, integer: false), n("tolerance", 0, 500000, 50, integer: false), t("reveal", 200), xp()]
+        // MP temp/index.wxml:158-174 (题干 · 单位 · 量程下限/上限 · 正确答案 · 容差 · 揭晓文字).
+        case .estimate: return [t("title", 64, true).mp(label: "creator.mp.estimate.title", prompt: "creator.mp.estimate.title.prompt"), t("unit", 8).mp(prompt: "creator.mp.estimate.unit.prompt"),
+            n("min", -Double.greatestFiniteMagnitude, Double.greatestFiniteMagnitude, 0, integer: false).mp(label: "creator.mp.estimate.min"),
+            n("max", -Double.greatestFiniteMagnitude, Double.greatestFiniteMagnitude, 1000, integer: false).mp(label: "creator.mp.estimate.max"),
+            n("answer", -Double.greatestFiniteMagnitude, Double.greatestFiniteMagnitude, 500, integer: false).mp(label: "creator.mp.estimate.answer"),
+            n("tolerance", 0, 500000, 50, integer: false), t("reveal", 200).mp(label: "creator.mp.estimate.reveal", prompt: "creator.mp.estimate.reveal.prompt"), xp()]
         case .pricePair: return [t("title", 64, true), xp(200), n("maxTries", 0, 10, 0), a("items", [id(), t("name", 32, true), media("imageUrl"), b("correct")], 3, 8, identity: "id", count: 3)]
         case .hiddenObject: return [t("title", 64, true), t("hint", 60), media("imageUrl", required: true), xp(), n("maxTries", 0, 10, 0), a("hotspots", [id(), t("label", 24, true), n("x", 0, 1, 0.5, integer: false), n("y", 0, 1, 0.5, integer: false), n("r", 0.03, 0.15, 0.08, integer: false)], 3, 5, identity: "id", count: 3)]
         case .predict: return [t("question", 120, true), t("hint", 60), a("options", [id("key"), t("label", 32, true)], 2, 4, identity: "key", count: 2), n("closeAtHour", 0, 23, 20), n("revealDays", 0, 30, 1), n("revealHour", 0, 23, 20), xp()]

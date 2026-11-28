@@ -119,7 +119,7 @@ struct PrivacyProtectionView: View {
         .navigationTitle(Text("authEntry.privacy.title", tableName: "AuthEntry")).navigationBarTitleDisplayMode(.inline)
         .cySheet(item: $document) { sheet in Group {
             NavigationStack {
-                SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
+                SettingsLegalDocumentView(type: sheet.type, market: UserMarketMemory.legalDocumentMarket(deployment: market), reader: legalReader)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { document = nil } } }
             }
             }

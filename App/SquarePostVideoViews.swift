@@ -176,6 +176,7 @@ struct SquarePostVideoComposerSection: View {
             VStack(alignment: .leading, spacing: 2) {
                 if let ms = item.durationMilliseconds { Text("square.video.duration \(Int(ms / 1000))") }
                 Text(verbatim: "\(item.width)×\(item.height)").font(.caption)
+                    .accessibilityLabel(Text("a11y.label.pixelSize \(item.width) \(item.height)"))
                 Text(verbatim: ByteCountFormatter.string(fromByteCount: item.byteCount, countStyle: .file)).font(.caption).foregroundStyle(.secondary)
             }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("square.video.preview")

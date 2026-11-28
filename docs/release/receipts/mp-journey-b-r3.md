@@ -45,3 +45,5 @@ Open rows of the A receipt in file order: J-18 club-lead bar · stopwatch 再来
 **B half done**: 个人最佳 built; the hero 3D card face is story-flow (paused). Nothing open left in the B half; J-18 waits for the coordinator (A half).
 
 **B lane, 11-28 ~17:xx run:** merged `origin/mp/r3-journey` (receipt only). Open rows of the A receipt unchanged: J-18 club-lead bar (A half, waits for the coordinator) | free-explore hero 3D card face (story-flow, paused). No `cursor-k50-p*` lane-layout rows on any branch; brief unchanged since the K50 post (no new mp-journey sweep finding, no J-18 ruling). **B half still done** — run stopped.
+
+**B lane, 11-28 ~18:xx run:** merged `origin/mp/r3-journey` (`14f990e74`: A's ui/combined-r7 merge + the 17:10-sweep "Unavailable" fix). Open rows of the A receipt unchanged: J-18 club-lead bar (A half, waits for the coordinator) | free-explore hero 3D card face (story-flow, paused). No `cursor-k50-p*` lane-layout rows on any branch; latest sweep is still 17:10 (`2fc0feb24`, already checked by the A lane); the 17:30 sweep has no mp-journey finding. **B half still done** — run stopped.
