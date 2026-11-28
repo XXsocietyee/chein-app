@@ -440,6 +440,13 @@ Merged `origin/ui/combined-r7` (xcstrings: both sides' keys kept; keys changed o
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS.
 
+## Pass 46: Not done row club/event-ops 重复方式 (first part: topic dropdown + empty state); no new coordinator finding for mp-club (latest sweep c4e43841a covers mp-home / mp-roam)
+Merged `origin/ui/combined-r7` (a7c956335; xcstrings: both sides' keys kept, club.* keys from this branch). The K19 lint (unguarded `import QuestifyCore`) caught `App/ClubDirectorTeamSheet.swift` and `App/PlayDirectorRoleForm.swift` from pass 43; both now use `#if canImport(QuestifyCore)`.
+| MP page | Native view | MP sections | Fix |
+|---|---|---|---|
+| `pages/club/event-ops` 重复方式 card (wxml:178-196, js:62-74 `topicDropdownLabel` CU-C-34) | `App/ClubOpsEventView.swift` `.recurrence` section, `topicLabel`; `Core/ClubOpsEventPresentation.swift` `ClubOpsEventTopicFact` | ① `cy-empty` 暂无可开场的主题 when the topics read answered empty ② 主题 dropdown always shown (not only with 2+ topics), each option 「名称 · 起止日期 · 自有/合作」 (未命名 / 日期未定 fallbacks) so two same-named topics can be told apart | **Fixed.** `ClubOpsEventTopicFact` now carries `startDate` / `endDate` (same parser as the occurrence clock) and `ownClub` (row `clubId` == this club); `rangeText(locale:)` gives 「12月1日–12月7日」 (en: "Dec 1–Dec 7"). The menu `Picker` shows whenever there is a topic; a confirmed empty read replaces the push row with the MP empty line (a failed read keeps the row, as before). 5 new keys `clubOpsEvent.recurrence.noTopic`, `clubOpsEvent.topic.unnamed/.dateUnknown/.own/.partner` (en + zh-Hans). Test: `ClubOpsEventPresentationTests.testTopicFactsCarryDateRangeAndOwnClubLikeMiniDropdownLabel`. The rest of the 重复方式 inline form (recurrence chips, first date, 场次数, 集合时刻, 默认负责人 on the hub instead of in the pushed create form) stays **Not done** |
+| P2-4 rest | `/api/club/name-check` | — | Still **Not done** (backend route unconfirmed) |
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.
