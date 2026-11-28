@@ -349,22 +349,34 @@ extension EnvironmentValues {
                     if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                 } label: { Label("nativeR2.city.enableLocation", systemImage: "location.slash") }
                     .accessibilityIdentifier("nativeR2.city.enableLocation")
+                    .modifier(CityMapControlMaterial())
             }
             channel()
             if let onOpenRoute {
                 Button(action: onOpenRoute) { Label("playRoute.open", systemImage: "map") }
                     .accessibilityIdentifier("playRoute.open")
+                    .modifier(CityMapControlMaterial())
             }
             if let onEnd, model.clock.phase != .ended {
                 Button(action: onEnd) { Label("playx.run.end", systemImage: "flag.checkered") }
                     .disabled(!model.canManageRun)
                     .accessibilityIdentifier("playx.run.end")
+                    .modifier(CityMapControlMaterial())
             }
         }
         .labelStyle(.iconOnly)
         .buttonStyle(.bordered)
         .buttonBorderShape(.circle)
         .controlSize(.large)
+        .tint(.primary)
+    }
+}
+
+/// ADA 1128 (d2-play): the map buttons were pale accent circles on the light map. Each one now sits on the system
+/// material with a primary glyph, the same look in light and dark.
+private struct CityMapControlMaterial: ViewModifier {
+    func body(content: Content) -> some View {
+        content.background(.regularMaterial, in: Circle())
     }
 }
 

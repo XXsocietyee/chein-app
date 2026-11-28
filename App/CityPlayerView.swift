@@ -70,11 +70,6 @@ struct CityPlayerView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Independent original titles/request recovery does not require a published board.
-                CityAcquisitionEntry(factory: acquisitionEntry?.acquisitionFactory, open: {
-                    guard visible, scenePhase == .active, let factory = acquisitionEntry?.acquisitionFactory else { return }
-                    acquisition = CityAcquisitionDestination(controller: factory())
-                })
                 // Personal history uses its own original region approval, even without a published map.
                 if let owner = historyFactory?(), owner.isCurrent {
                     NavigationLink { CityTaskHistoryRuntimeHostView(owner: owner, revision: historyRevision) } label: {
@@ -159,6 +154,12 @@ struct CityPlayerView: View {
                         else { pointContent(context) }
                     } else { Text("city.read.points.unavailable").foregroundStyle(.secondary) }
                 }
+                // ADA 1128 (d2-city): the ownership / original-receipt link is a page footer, not the first row.
+                // Independent original titles/request recovery does not require a published board.
+                CityAcquisitionEntry(factory: acquisitionEntry?.acquisitionFactory, open: {
+                    guard visible, scenePhase == .active, let factory = acquisitionEntry?.acquisitionFactory else { return }
+                    acquisition = CityAcquisitionDestination(controller: factory())
+                })
             }.padding()
         }
         .toolbar {
