@@ -295,7 +295,8 @@ struct E4SettingsFixture: View {
     @StateObject private var session = AppSession()
     var body: some View {
         var view = SettingsView()
-        view.designOverride = .init(nickname: "Mia Chen", level: 7, query: query)
+        // Same member as d2-me / e4-member, in the UI language (00:10 sweep: "Mia Chen" Lv.7 beside 示例会员 Lv.3).
+        view.designOverride = .init(nickname: iaFixtureText("Synthetic member", "示例会员"), level: 3, query: query)
         return view.environmentObject(session).environmentObject(NativeOriginalUnreadBadgeState())
     }
 }
