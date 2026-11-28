@@ -1159,6 +1159,32 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 - Badge detail name weight (needs the `test_object_badge_wall_layout…byte_identical` re-pin).
 
+## Continue run 35 (2026-11-28, merged combined-r7 8952067e9)
+
+Merge clean. No new coordinator row for this lane (07:45 sweep: mp-nav, mp-activity). Run 34 Not done: badge detail
+weight still waits for the `test_object_badge_wall_layout…byte_identical` re-pin. Next cross-screen row from the ADA
+audit §3 **Role / level** ("Lv.3 City explorer" vs "Level 3 · City explorer"): one player-level string, the MP's
+`Lv.N` (`components/cy/level-progress/index.wxml:12`, `post-card/index.wxml:26`, `pages/club/detail/index.wxml:298`,
+`subpackageMember/components/cy/profile/index.wxml:69`), in both languages.
+
+| Page (MP → native) · level | Key / line | Before → after |
+|---|---|---|
+| growth centre (`level-progress`) → `GrowthCenterView:229` · B | `growth.level.value %lld` | en "Level %lld" → "Lv.%lld" (zh already Lv.) |
+| settings account row → `SettingsView:422` · C | `settings.account.subtitle %lld` | en "Level %lld · City explorer" → "Lv.%lld · City explorer" |
+| club members (`pages/club/detail` member-meta) → `ClubMembersView:279`, `ClubPublicRosterView:138` · B | `club.memberLevel %lld` | en "Level %lld" / zh "等级 %lld" → "Lv.%lld" both |
+
+Already `Lv.N`: Me header (`MemberHomeHeader:239`), public profile (`SocialPublicProfileView:146`), square post badge.
+Not touched (different concepts): territory property level (`CityMonopolyLevel`, game, level A), attribute levels
+(`MemberAttributesSection`). Pins updated with the change: `test_club_member_display.py` (catalog values, UI-test
+tokens) and `ModuleFlowTests.swift:137–143` ("Level 7/4/0" → "Lv.7/4/0"), string snapshots
+`docs/release/ui-strings-e4.json:12`, `ui-strings-subpackageP3-pages-growthcenter-index-index.json:46`.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS,
+`contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- Badge detail name weight (needs the `test_object_badge_wall_layout…byte_identical` re-pin).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

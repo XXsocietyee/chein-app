@@ -27294,13 +27294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Level %lld"
+            "value": "Lv.%lld"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等级 %lld"
+            "value": "Lv.%lld"
           }
         }
       }
@@ -79233,7 +79233,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Level %lld"
+            "value": "Lv.%lld"
           }
         },
         "zh-Hans": {
@@ -242497,7 +242497,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Level %lld · City explorer"
+            "value": "Lv.%lld · City explorer"
           }
         },
         "zh-Hans": {
