@@ -1392,7 +1392,7 @@ struct ClubCommunityCommentsView: View {
                                     Task { await model.prepare(canDelete ? .deleteComment : .reportComment, clubID: clubID, post: post, comment: comment) }
                                 } label: {
                                     Text(LocalizedStringKey(canDelete ? "club.community.deleteComment" : "club.community.reportComment"))
-                                        .frame(minHeight: CYSpacing.minTouchTarget)
+                                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                                         .contentShape(Rectangle())
                                 }
                                 .font(.subheadline)
