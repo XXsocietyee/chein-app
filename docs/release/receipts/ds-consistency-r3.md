@@ -564,6 +564,60 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 None from this run.
 
+## Continue run 18 (2026-11-28, after merging combined-r7 into 230b6f219)
+
+Merge clean (45 files). Run 17 Not done: none. No new coordinator row for this lane (latest sweep still build
+793c3190b). Sheets read: `mp-mine/sheet-en.jpg`, `mp-club/sheet-zh-Hans.jpg`.
+
+Scan: one grid pattern. `mp-club/sheet-zh-Hans.jpg` (`zh-Hans-d4-badges`, 我的徽章) shows a **stray `>` chevron beside
+every badge tile** (示例城市勋章 › 示例成就 ›): each grid cell was a `NavigationLink` inside a `List` row, and List draws
+its disclosure indicator next to every link in the row. The same wall in a `ScrollView` (stamps, 集邮册) has none.
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| `subpackageP3/badge-wall` (已点亮 → 未解锁 grid) | `App/ObjectBadgeViews.swift` `link(...)` / `destination(...)` | unchanged (header, partial, empty + 去探索, 已点亮, 未解锁; identifiers `profile.badge.*` kept, still buttons for UI tests) | cell `NavigationLink` → plain `Button` setting `openSlot`; one `.navigationDestination(item: $openSlot)` on the List opens the same `ObjectBadgeDetailView` (3D entry + hero zoom kept). No chevrons in the grid. |
+| `subpackageP3/object-cards` (VoiceOver / Reduce Motion grid) | `App/ObjectCardViews.swift` collection grid | unchanged (pile, grid, empty title; `objects.card.<id>` kept) | same fix, reusing the existing `pileSelection` destination (`fromGrid: true` keeps the hero zoom). |
+
+New checker kind **grid link**: a `NavigationLink` in a `LazyVGrid` / `LazyHGrid` / `Grid` cell (directly, or through a
+same-file helper the cell calls) whose nearest container is a `List`. Grids in a `ScrollView` are fine. Baseline 0.
+Self-test: the pre-fix tree fails in exactly the two files above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(grid link 0, status capsule 29 baselined, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**
+(`test_object_badge_wall_layout` passes unchanged). Simulator check of d4-badges still needed (next sweep).
+
+### Not done (next run)
+None from this run.
+
+## Continue run 19 (2026-11-28, after merging combined-r7 into 0ca14c667)
+
+Merge clean (73 files). Run 18 Not done: none. No new coordinator row for this lane. New sweep `docs/sweeps/latest` =
+build 283dd3b52 (00:10Z, light mode); sheets read: `mp-roam/sheet-en.jpg`, `mp-activity/sheet-zh-Hans.jpg`.
+
+Scan: one appearance. `mp-roam/sheet-en.jpg` (`en-d2-roam`) shows the 漫游 map home in light mode with a **black panel**
+under the "Nearby activities 2" peek line: `cyMapPanelColor` (the fill of every map scaffold panel) was `Color.black`,
+so every map page drew a dark slab under a light map, while the 城市 nearby drawer and all system sheets follow the
+system appearance. Contents already use semantic colours (the peek line even carried a comment working around the
+black panel), so only the surface changes.
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| `pages/roam/index` map home panel (`en-d2-roam`) + nearby teams map, play map, play session (same scaffold) | `App/DesignSystem/CYMapChrome.swift:391` `cyMapPanelColor` (used by `CYMapScaffold`, `CYRoamKit` sheet, `RoamBrowserView:604`) | unchanged | fixed `Color.black` → `CYColor.bgElevated` (light: white elevated surface, dark: system elevated grey). |
+| — (panel grabbers) | `CYMapChrome.swift:499`, `CYRoamKit.swift:365` | — | `Color.white.opacity(0.5 / 0.3)` (invisible on a light panel) → system `tertiaryLabel`, the sheet-grabber colour. |
+| — | `App/RoamBrowserView.swift:380` | — | stale "black panel" comment updated. |
+
+New checker kind **fixed surface**: a shared colour token `let x = Color.black` / `.white` (design system included).
+Baseline 0, nothing allowed. Self-test: the pre-fix `CYMapChrome.swift` fails at line 391. Other `Color.black` fills
+(image caption backing with `.colorScheme(.dark)`, Island overlay, route thumbnail art, a `#Preview`) are local art
+surfaces, not shared tokens, and stay.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(fixed surface 0, status capsule 29 baselined, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+Simulator check of d2-roam / d6-roam panel in light and dark still needed (next sweep).
+
+### Not done (next run)
+None from this run.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

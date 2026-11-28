@@ -11,7 +11,7 @@ final class PublicProfileFriendsFlowTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["Synthetic growth owner"].waitForExistence(timeout: 10))
         let picker = app.buttons["social.profile.tabs"]; if picker.exists { picker.tap() }
-        let tab = app.buttons["Achievements"]; if tab.waitForExistence(timeout: 3) { tab.tap() } else { app.staticTexts["Achievements"].tap() }
+        let tab = app.buttons["Awards"]; if tab.waitForExistence(timeout: 3) { tab.tap() } else { app.staticTexts["Awards"].tap() }
         let friends = app.descendants(matching: .any)["social.profile.friends"]
         for _ in 0..<6 where !friends.exists { app.swipeUp() }
         XCTAssertTrue(friends.waitForExistence(timeout: 5))

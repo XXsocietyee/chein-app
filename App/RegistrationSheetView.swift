@@ -28,6 +28,8 @@ struct RegistrationSheetView: View {
     @Environment(\.registrationMySignupsDestination) private var mySignupsDestination
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    /// Design fixtures only (offline bundled MP cover); production never sets it.
+    @Environment(\.e1ActivityHeroFixtureCover) private var fixtureCover
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.offlineWriteSession) private var offlineWriteSession
     @Environment(\.registrationHidesFixtureNotice) private var hidesFixtureNotice
@@ -399,8 +401,14 @@ struct RegistrationSheetView: View {
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     Color.clear.frame(width: 72, height: 72)
-                        .overlay { E1CoverArt(seed: name, symbol: "ticket", imageURL: summary.imageURL, debugLabel: false,
-                                              fallbackImage: MPAsset.BannerCover.coverRoute, fallbackFills: false) } // MP baoming.wxml:85
+                        .overlay {
+                            if QuestifyCardArtwork.safeURL(summary.imageURL) == nil, let fixtureCover {
+                                fixtureCover.resizable().scaledToFill().accessibilityHidden(true)
+                            } else {
+                                E1CoverArt(seed: name, symbol: "ticket", imageURL: summary.imageURL, debugLabel: false,
+                                           fallbackImage: MPAsset.BannerCover.coverRoute, fallbackFills: false) // MP baoming.wxml:85
+                            }
+                        }
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         if name.isEmpty { Text("registrationParity.activityNamePending").cyText(.cardTitle) }
@@ -496,7 +504,7 @@ struct RegistrationSheetView: View {
         }
     }
     private var confirmationTitle: String {
-        let titleKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"
+        let titleKey = "registration.waitlist.confirmTitle"
         return appLocalized(String.LocalizationValue(stringLiteral: titleKey), locale: locale)
     }
     private var confirmationMessage: String {
@@ -508,7 +516,7 @@ struct RegistrationSheetView: View {
         return base + gatedPayAmount(review.quote.payAmount) + nonRefundableSuffix
     }
     @ViewBuilder private var confirmationButtons: some View {
-        let confirmKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate"
+        let confirmKey = "registration.waitlist.confirmCreate"
         Button(appLocalized(String.LocalizationValue(stringLiteral: confirmKey), locale: locale)) { confirmRegistration() }
             .accessibilityIdentifier("registration.form.confirm")
         Button(appLocalized("action.cancel", locale: locale), role: .cancel) {
@@ -633,7 +641,7 @@ struct RegistrationSheetView: View {
                 // MP baoming.wxml:325-328 bmbottom_box: the separate, unticked sharing consent (PIPL Art. 23) sits
                 // in the bottom bar directly above the button, so "tick it first" points at something in view.
                 if flow.creationPolicy.permitsCreation {
-                    Toggle(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.fixtureConsent" : "registration.r3.hostShareConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
+                    Toggle(LocalizedStringKey("registration.r3.hostShareConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
                         .font(.footnote)
                         .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.consent")
                 }

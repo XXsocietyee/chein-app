@@ -169,6 +169,23 @@ Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON 
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration + square contract suites OK (`test_square_workspace` fails identically on the base: missing `flutter_source` module).
 
+## Round 3 continue (2026-11-28, seventeenth session — sweep 23:37 build 793c3190b)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON + duplicate-key check ok). Sheets `en/zh-Hans-t5-baoming`, `-d2-square`, `-t5-pass-market` re-read; this build predates the sixteenth-session fixes (Square More threshold, consent in the bottom bar), so those still look old in the shots.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` 活动信息 cover (wxml:85) | `App/RegistrationSheetView.swift` `activitySection`, `App/RegistrationFixtureSupport.swift` | screenshot `zh-Hans/en-t5-baoming`: the 72 pt cover was an empty grey tile with a dot (offline fixture, no HTTPS cover, route fallback drawn tiny). The fixture now hands a bundled MP cover through the existing `e1ActivityHeroFixtureCover` key (same as mp-home's activity hero); the card uses it only when the activity has no loadable HTTPS cover. Production never sets it, real covers / MP fallback unchanged | no empty image frame in the reference fixture |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration parity suite 10 OK.
+
+## Round 3 continue (2026-11-28, eighteenth session — sweep 00:10 build 283dd3b52, coordinator 00:20)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side added no keys, kept theirs; JSON ok). Sheet `en-t5-baoming` re-read. The 00:20 thumbnail item (grey cover) is the seventeenth-session fix, which this build predates.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` bottom bar consent (wxml:325-328) + confirm modal | `App/RegistrationSheetView.swift` `checkoutBar`, `confirmationTitle`, `confirmationButtons` | screenshot `en-t5-baoming`: the consent toggle read 「Demo only: confirm the contact-sharing step」 in the offline fixture, and the confirm dialog said 「Confirm demo registration?」/「Create demo registration」. All three now use the MP copy in every mode (同意将姓名、手机号提供给主办方，用于报名核验 / 确认报名？ / 确认报名); the fixture is still marked by its own top notice where a test needs it | one consent label, one confirm dialog, no demo wording in the rendered sheet |
+| `subpackageMember/market/passes/index` 在售 card foot (wxml:34-36 `mk-card__foot`: 含 N 个作品 · seats and price on one row) | `App/PassMarketViews.swift` `PassProductCardView` | screenshot `en-t5-pass-market`: the first card put 「¥168.00 / 1,200 points」 on its own line under 「Includes 3 works · 2 people」 while the second card kept the price trailing, so the two rows read differently (`ViewThatFits` dropped to the stacked form whenever the one-line foot was wider than the card). The foot is now always one row as in the MP: cover line wraps on the left, price fixed on the right; stacked only at accessibility Dynamic Type sizes | consistent card rhythm in both languages; price never truncates |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration contract suites OK.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

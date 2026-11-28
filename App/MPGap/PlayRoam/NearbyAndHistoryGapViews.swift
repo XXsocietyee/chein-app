@@ -88,8 +88,9 @@ public struct NearbyTeamsMapSheetView: View {
                                             .foregroundStyle(CYColor.textSecondary)
                                     }
                                     Spacer()
-                                    Text("\(team.memberCount)/\(team.capacity)")
+                                    Text(verbatim: "\(team.memberCount)/\(team.capacity)")
                                         .cyText(.numericBody, monospacedDigit: true)
+                                        .accessibilityLabel(Text("a11y.value.ofTotal \(team.memberCount) \(team.capacity)"))
                                         .foregroundStyle(CYColor.brand)
                                 }
                             }

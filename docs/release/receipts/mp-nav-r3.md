@@ -204,6 +204,25 @@ Sweep sheets (en / zh-Hans): `d2-inbox` inline 消息 ✓, `ia-tabs` large 首�
 |---|---|---|---|
 | signed-out 我的 root / launch welcome ⋯ → 设置 (MP navigateTo pages/shezhi/shezhi) → App/WelcomeView.swift | `.cySheet(item:)` case `.settings` with its own stack + 完成 | both welcome modes already own a `NavigationStack` (the 23:xx note was wrong): `navigationDestination(isPresented: $showsSettings)` push of `SettingsView(isPushed: true)` + `.cyPushedChrome()`, system back, like 我的 → 设置; consent re-read on the pop. 登录 / legal stay sheets (MP popups). UI tests EntryFlowTests / NativeSettingsReuseFlowTests leave Settings with the nav-bar back button instead of 完成/Done | fixed |
 
+## Re-scan 11-28 00:xx (sweep build 793c3190b; mp-nav sheets clean)
+
+Merged `origin/ui/combined-r7` (793c3190b). Sweep sheets (en / zh-Hans): `d2-inbox` inline 消息 ✓, `ia-tabs` large 首页 / Home ✓, `login-player` one mark + phone sign-in only ✓, `onboarding-1` Chein in en ✓, `welcome` ✓. No new coordinator row for mp-nav. Next pages without a row: 发布 shelf (pages/templatedetail/shelf openTopic / openGame → topic-preview / templatedetail: `navigationDestination` / `NavigationLink` pushes, OK) and 俱乐部 帖文 feed edges (MP talent/list index.js:229-281).
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| pages/talent/list 帖文 (and club detail 帖子) 引用卡 → pages/topic/index/index (`onPostReference`, index.js:241-246 navigateTo) → App/ClubPostReferenceView.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` + 关闭 (popup for a page edge, OWNER RULE 2) | `NavigationLink` push of `ClubPostReferenceDestination` (no own stack, no 关闭, `.cyPushedChrome()`, system back); the destination still re-checks the route and pops when the post / identity / scope changed. Row content and MP order unchanged | fixed |
+| pages/talent/list 帖文 引用卡 现在去玩 → pages/play/index?topicId= (`onPostReferencePlay`, index.js:248-252 navigateTo) → App/ClubPostPlayPreview.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` + 关闭 around `SessionPlayRuntimeView` | `NavigationLink` push of `ClubPostPlayDestination` (no own stack, no 关闭, `.cyPushedChrome()`), same as topic 开始 (`showingPlay` push); route / identity / revision re-checks still pop it; signed-out 登录 stays a sheet (MP popup) | fixed |
+| pages/club/detail 成员 / 贡献榜 row → pages/userinfo/userinfo (`goMemberProfile`, detail index.js:2506 navigateTo) → App/ClubPublicRosterView.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` | `navigationDestination(item:)` push of `SocialPublicProfileView` + `.cyPushedChrome()`; the roster's onDisappear reset is skipped while the profile is pushed (as with the sheet), scene-phase / identity checks still close it | fixed |
+| talent/list 帖文 post tap / author / club chip → square detail, club detail (postId), pages/userinfo (onPostTap / onPostUser / onPostClub) | — | `navigationDestination(item:)` pushes in ClubCommunityFeedView (ClubCommunityViews.swift:471-493) | OK |
+
+## Re-scan 11-28 00:4x (sweep build 283dd3b52; mp-nav sheets clean)
+
+Merged `origin/ui/combined-r7` (283dd3b52). Sweep sheets (en / zh-Hans) `d2-inbox`, `ia-tabs`, `login-player`, `onboarding-1`, `welcome`: clean, no new coordinator row for mp-nav. Contract-cleanup row `/api/compliance/usage-records` already fixed (21:0x). Next edge without a row: club detail 帖子 post-card author.
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| pages/club/detail 帖子 post-card author → pages/userinfo/userinfo (`onPostUser`, detail index.js:2895-2897 navigateTo) → App/ClubPostAuthorProfile.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` + 关闭 around `SocialPublicProfileView` | `NavigationLink` push of `ClubPostAuthorDestination` (no own stack, no 关闭, `.cyPushedChrome()`, system back); destination still re-checks post / identity / profile reader and pops when stale. Author label (avatar + name) unchanged; `club.postAuthor.close` retired | fixed |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.

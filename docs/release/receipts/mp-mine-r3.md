@@ -336,3 +336,26 @@ No merge needed (branch already contains combined-r7). Screen checked: `docs/swe
 | `en-d2-me.jpg`: stacked Me card reads [Start exploring] full width, then [Ticket wallet] + a small "···" capsule | 23:20: the two primary buttons equal width in both rows; "···" as a card item or a trailing icon button | `App/MemberHomeHeader.swift` `actionRow`, `moreButton` | **Fixed.** The ··· `Menu` moved to the trailing end of the identity row (name / level / city), as a `.bordered` circle icon button (`.large`, 44 pt). The action row is now only [开始探索][票夹]: side by side when they fit, else both full width stacked. MP content unchanged (same three controls, same menu items); only the ··· placement is native chrome. Needs a simulator look. |
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 16 (hourly re-arm, sweep 23:37 UTC build 793c3190b)
+
+Merged `origin/ui/combined-r7` (clean). Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `sheet-zh-Hans.jpg`. That build predates continue 15, so the Me card button row is not re-checked here.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `en-d2-me.jpg`: the Me tabs are a "Profile section · Projects ⌃" menu in English. zh-Hans shows the segmented 项目 / 帖文 / 成就 / 关于. | MP tabs 项目 / 推文 / 成就 / 关于 are a tab row on every language. OWNER RULE 2: one pattern. | `App/AccountView.swift` `AccountMineTab`, `App/SocialPublicProfileView.swift` `profileTabs` | **Fixed.** `cyAdaptiveSegmented` falls back to the menu when one segment does not fit. A quarter of 343 pt is too narrow for "Achievements". The tab now uses its own key, `account.mine.tab.achievements` (en **Awards**, zh-Hans 成就, unchanged), on 我的 and on the public profile, so both tab rows read the same. The 成就 section header keeps `social.achievements`. UI tests that tap the public profile tab now tap "Awards". Needs a simulator look at 375 pt en. |
+| `en-e4-member.jpg` / `en-ia-passport.jpg` | — | `MemberHomeFixture`, `IAFixtures` | Not done. These are standalone component fixtures (member card + benefits; passport overview with capsules), not the 我的 tab root. The real root is `d2-me`. Left as they are for the a11y-dt lane, which uses the passport fixture. |
+| `en-*`: amounts read `CN¥0.00` / `CN¥168.00` | 20:25: zh shows ¥ | — | Kept. That is the en-US system currency format for CNY. zh shows ¥ (`zh-Hans-*`). |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, missing string keys 0, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 17 (half-hourly re-arm, sweep 00:10 UTC build 283dd3b52)
+
+Branch already contains combined-r7. That build has continue 15 (··· on the identity row) but not continue 16 (en **Awards** tab), so the en tab row still shows the menu fallback there. No mp-mine rows in the 23:50 / 00:20 coordinator sweeps. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `en-d2-me.jpg`, `zh-Hans-d2-me.jpg`.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `en-d2-me.jpg`, `zh-Hans-d2-me.jpg`: Me card [开始探索][票夹] now equal width ✓ and ··· on the identity row ✓; but 票夹 / Ticket wallet has no glyph and its text sits right of centre (an empty icon gap) | MP `pc-ticket`: coupon icon + 票夹, same size and colour as the primary | `App/MemberHomeHeader.swift` `ticketsButton` | **Fixed.** The label is an explicit `HStack { Image("ticket"), Text }` centred in the full-width frame instead of a system `Label`. Same key, id and action. Needs a simulator look. |
+| `*-e4-settings.jpg`: the account card reads "Mia Chen · Lv.7" in both languages, beside 示例会员 / Synthetic member Lv.3 on d2-me | 19:50: fixture data follows the UI language | `App/DesignFixtures/DesignFixtureRegistry.swift` `E4SettingsFixture` | **Fixed.** Same member as d2-me: `iaFixtureText("Synthetic member", "示例会员")`, Lv.3. No test reads the old name. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.

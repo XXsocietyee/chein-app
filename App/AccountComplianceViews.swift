@@ -284,24 +284,21 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 }
             }
             if model.state.busy {
-                HStack(spacing: 8) {
-                    ProgressView()
-                    // B-DR-09-r7: the MP names what is loading (正在核验注销条件) on the deregister page.
-                    if destination == .cancellation, model.state.status == nil {
-                        Text("fixr3.deregister.loading").font(.subheadline).foregroundStyle(.secondary)
-                    }
+                // B-DR-09-r7 / mp-states r3: one labelled system loader; the MP names what is loading
+                // (cy-empty kind loading 正在核验注销条件) on the deregister page, 加载中… elsewhere.
+                ProgressView {
+                    Text(LocalizedStringKey(destination == .cancellation && model.state.status == nil ? "fixr3.deregister.loading" : "compliance.loading"))
                 }
-                    .accessibilityElement(children: .combine)
+                    .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("compliance.loading")
-                    .accessibilityLabel(Text(LocalizedStringKey(destination == .cancellation && model.state.status == nil ? "fixr3.deregister.loading" : "compliance.loading")))
             }
             // B-DR-03: the missing-bound-phone message shows inline under 获取验证码, not twice.
             if let error = model.state.error, error != DeregistrationBoundPhone.missingMessage {
-                VStack(alignment: .leading, spacing: 4) {
-                    // B-DR-09-r7: a failed condition read is titled 注销条件核验失败, as in the MP.
-                    if destination == .cancellation, model.state.status == nil {
-                        Text("fixr3.deregister.readFailed").font(.headline)
-                    }
+                if destination == .cancellation {
+                    // mp-states r3 (MP scene-settings-deregister cy-error): one state with its title, the reason
+                    // as the description and 重试 inside it — 注销条件核验失败 / 验证码没有发送 / 注销申请没有提交 / 撤销没有完成.
+                    cancellationIssue(error)
+                } else {
                     Text(LocalizedStringKey(error), tableName: error == "compliance.impactChanged" ? "AccountDeregistrationPresentation" : nil)
                         .foregroundStyle(.red).accessibilityIdentifier("compliance.error")
                 }
@@ -386,6 +383,48 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         guard model.coordinator.isCurrentDeregistrationIntent(intent), scenePhase == .active else { return }
         if case .sourceDocument(let value)? = availability { document = value } else { document = nil }
         await model.coordinator.load(intent: intent)
+    }
+    private var cancellationIssueTitle: LocalizedStringKey {
+        if model.state.status == nil { return "fixr3.deregister.readFailed" }
+        switch model.state.step {
+        case .verify: return "fixr3.deregister.smsFailed"
+        case .review: return "fixr3.deregister.applyFailed"
+        case .pending: return "fixr3.deregister.cancelFailed"
+        default: return "fixr3.deregister.readFailed"
+        }
+    }
+    private var cancellationIssueRetry: (() -> Void)? {
+        if model.state.status == nil { return { requestCancellationRead() } }
+        switch model.state.step {
+        case .verify:
+            return {
+                guard let intent = model.cancellationIntent() else { return }
+                Task { await model.sendBoundSMSOnContract(intent: intent) }
+            }
+        case .pending:
+            return {
+                cancelIntent = model.cancellationIntent()
+                cancelReview = cancelIntent != nil
+            }
+        case .review:
+            return nil
+        default:
+            return { requestCancellationRead() }
+        }
+    }
+    @ViewBuilder private func cancellationIssue(_ error: String) -> some View {
+        ContentUnavailableView {
+            Label { Text(cancellationIssueTitle) } icon: { Image(systemName: "exclamationmark.triangle") }
+        } description: {
+            Text(LocalizedStringKey(error), tableName: error == "compliance.impactChanged" ? "AccountDeregistrationPresentation" : nil)
+                .accessibilityIdentifier("compliance.error")
+        } actions: {
+            if let retry = cancellationIssueRetry {
+                Button(action: retry) { Text("fixr3.common.retry") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("compliance.error.retry")
+            }
+        }
     }
     private func requestCancellationRead() {
         guard destination == .cancellation, scenePhase == .active else { return }

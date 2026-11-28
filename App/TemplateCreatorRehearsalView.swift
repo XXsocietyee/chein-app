@@ -114,7 +114,7 @@ import SwiftUI
         case .hiddenObject:
             hiddenObjectCanvas
             Text(verbatim: text("hint")); Text("creator.hotspotReview").font(.subheadline).foregroundStyle(.secondary)
-            Text(verbatim: "\(rehearsal.foundTargets.count) / \(rows("hotspots").count)")
+            Text(verbatim: "\(rehearsal.foundTargets.count) / \(rows("hotspots").count)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(rehearsal.foundTargets.count)) \(Int(rows("hotspots").count))"))
         case .predict:
             Text(verbatim: text("question")); Text(verbatim: text("hint")); options(rows("options"), identity: "key", label: "label", multiple: false)
         case .scan:

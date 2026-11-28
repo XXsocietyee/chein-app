@@ -2606,7 +2606,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Shared routes in a session"
+          "value": "Shared routes"
         }
       },
       "zh-Hans": {
@@ -2623,7 +2623,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Team play doesn't support replaying alone. Turn off Allow playing again."
+          "value": "Team play can’t be replayed alone. Turn off “Allow playing again.”"
         }
       },
       "zh-Hans": {
@@ -2732,6 +2732,533 @@
         "stringUnit": {
           "state": "translated",
           "value": "过半接受（平票可复议）"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Play format"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "进行方式"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.question": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "How do teams play together?"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍怎样一起玩？"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.player": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Each player on their own"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "个人独立进行"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.team": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Each team on its own"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍独立进行"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.shared": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Teams share one world"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍共用现场"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.none": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not set"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未选择"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.reason.hostUnlock": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Turn off staff-opened chapters first"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先关闭章节的工作人员开幕"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.reason.shared": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Trading, voting and shared facilities between teams need a shared world"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "跨队交易、表决和共享设施需要队伍共用现场"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.reason.node": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A node's gameplay doesn't support this format"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "有节点玩法不支持这种进行方式"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reading supported gameplay…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在读取玩法支持范围"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.matrixFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Couldn't read supported gameplay. You can still save; the save result decides what is supported."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩法支持范围未读取。仍可保存，支持情况以保存结果为准"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.mode.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Result card"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结果卡"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.default": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Default"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "默认"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.custom": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Customized"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已自定义"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.cover": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Result card cover"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结果卡封面"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.coverFallback": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Without an upload, the topic cover is used."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "不上传则用主题封面"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.shows": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Show on the card"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "卡片上显示"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.showUnlocks": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Show unlocked content"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "显示已解锁内容"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.reset": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Restore the default result card"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "恢复默认结果卡"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.coverInvalid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upload a valid result card cover."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请上传有效的结果卡封面"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.fieldInvalid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose supported result card content."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择支持的结果卡内容"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.field.scene": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Scene"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "场景"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.field.ending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ending"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结局"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.field.hp": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Health"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "生命值"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.field.luck": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Luck"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "幸运值"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.field.actions": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Actions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "行动次数"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.field.medals": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Medals"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "勋章"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.field.items": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Items"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "物品"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.field.story": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Story"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "故事"
+        }
+      }
+    }
+  },
+  "mpPublish.rules.card.field.rescue": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Rescue record"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "救助记录"
         }
       }
     }

@@ -44,7 +44,7 @@ import SwiftUI
         var items: [CYTabItem<Tab>] = []
         if showsMineTab { items.append(.init(id: .mine, title: appLocalized("social.mine", locale: locale))) }
         items.append(.init(id: .posts, title: appLocalized("social.posts", locale: locale)))
-        items.append(.init(id: .achievements, title: appLocalized("social.achievements", locale: locale)))
+        items.append(.init(id: .achievements, title: appLocalized("account.mine.tab.achievements", locale: locale)))
         items.append(.init(id: .about, title: appLocalized("social.about", locale: locale)))
         return items
     }

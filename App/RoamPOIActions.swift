@@ -288,7 +288,8 @@ struct RoamPOIActionRows: View {
         .disabled(model.favoritePhase == .working)
         .accessibilityIdentifier("roam.poi.favorite")
         if case .failed(let failure) = model.favoritePhase {
-            failureRow(failure, retry: { model.toggleFavorite(poiID: node.poiId, current: favorited, actions: actions) })
+            // mp-states r3: MP scene-roam-poi-detail.wxml:46 cy-error 收藏状态没有更新 · sub · 重试.
+            failureRow(failure, title: "roam.poi.favorite.failed", retry: { model.toggleFavorite(poiID: node.poiId, current: favorited, actions: actions) })
         }
         // RPOI-3: while an attempt is pending (or storage is broken) the MP only offers 查询 / 重新现场核验.
         if (model.pending != nil || model.storageFailed) && !completed { pendingRows }
@@ -396,7 +397,7 @@ struct RoamPOIActionRows: View {
         }
     }
 
-    @ViewBuilder private func failureRow(_ failure: RoamPOIActionModel.Failure, retry: @escaping () -> Void) -> some View {
+    @ViewBuilder private func failureRow(_ failure: RoamPOIActionModel.Failure, title: LocalizedStringKey? = nil, retry: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             switch failure {
             case .locationDenied:
@@ -409,7 +410,12 @@ struct RoamPOIActionRows: View {
                 Label("roam.poi.location.unavailable", systemImage: "location.slash").cyText(.body)
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .rejected(let message):
-                Label { Text(verbatim: message) } icon: { Image(systemName: "exclamationmark.triangle") }.cyText(.bodyCompact)
+                if let title {
+                    Label { Text(title) } icon: { Image(systemName: "exclamationmark.triangle") }.cyText(.bodyMedium)
+                    Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(.secondary)
+                } else {
+                    Label { Text(verbatim: message) } icon: { Image(systemName: "exclamationmark.triangle") }.cyText(.bodyCompact)
+                }
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .signIn:
                 Label("roam.poi.signIn", systemImage: "person.crop.circle.badge.exclamationmark").cyText(.body)
@@ -420,7 +426,12 @@ struct RoamPOIActionRows: View {
                         .accessibilityIdentifier("roam.poi.signIn.action")
                 }
             case .network:
-                Label("roam.poi.action.failed", systemImage: "wifi.exclamationmark").cyText(.body)
+                if let title {
+                    Label { Text(title) } icon: { Image(systemName: "wifi.exclamationmark") }.cyText(.bodyMedium)
+                    Text("roam.poi.action.failed").cyText(.bodyCompact).foregroundStyle(.secondary)
+                } else {
+                    Label("roam.poi.action.failed", systemImage: "wifi.exclamationmark").cyText(.body)
+                }
                 Button("action.retry", action: retry).frame(minHeight: 44)
             }
         }

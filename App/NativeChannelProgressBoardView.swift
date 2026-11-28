@@ -324,7 +324,7 @@ private struct NativeChannelProgressMeterSection: View {
         Section {
             if meter.visible, let done = meter.done, let required = meter.required {
                 LabeledContent {
-                    Text(verbatim: "\(done)/\(required)")
+                    Text(verbatim: "\(done)/\(required)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(done)) \(Int(required))"))
                         .font(.title2.weight(.semibold))
                         .monospacedDigit()
                         .foregroundStyle(.primary)

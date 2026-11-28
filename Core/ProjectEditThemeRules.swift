@@ -113,6 +113,96 @@ public enum ProjectEditThemeRules {
         return try write(theme, into: draft)
     }
 
+    // MARK: 进行方式 (`theme-runtime-structure.js` `MODES`, `modeKey`, `modeReason`, `setMode`)
+
+    public typealias RunMode = NativeRuntimeStructureAuthorDraft.Mode
+
+    /// Why a 进行方式 choice is unavailable: a localized key for the MP theme checks,
+    /// or the existing Core node reason text (support matrix read).
+    public enum ModeReason: Equatable, Sendable {
+        case key(String)
+        case text(String)
+    }
+
+    /// MP `modeKey`: PLAYER, or the TEAM world mode; anything else is 未选择.
+    public static func runMode(in draft: ProjectEditDraft) -> RunMode? {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return nil }
+        let game = theme["gameplayRuntime"]?.object ?? [:]
+        if game["runtimeScope"]?.text == "PLAYER" { return .player }
+        guard game["runtimeScope"]?.text == "TEAM", let raw = game["worldMode"]?.text,
+              let mode = RunMode(rawValue: raw), mode != .player else { return nil }
+        return mode
+    }
+
+    /// Localized label of a mode in MP `MODES` order; nil reads 未选择.
+    public static func modeLabelKey(_ mode: RunMode?) -> String {
+        switch mode {
+        case .player: return "mpPublish.rules.mode.player"
+        case .team: return "mpPublish.rules.mode.team"
+        case .sharedWorld: return "mpPublish.rules.mode.shared"
+        case nil: return "mpPublish.rules.mode.none"
+        }
+    }
+
+    /// MP `modeReason`: the two theme checks always; the per-node support checks only when the
+    /// support matrix was read (MP `if (!matrix) return ''`).
+    public static func modeReason(_ mode: RunMode, in draft: ProjectEditDraft, inputs: NativeRuntimeStructureAuthorInputs?) -> ModeReason? {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return .key(Copy.unreadable) }
+        let game = theme["gameplayRuntime"]?.object ?? [:]
+        if mode == .player && (game["acts"]?.array ?? []).contains(where: { truthy($0.object?["hostUnlock"]) }) {
+            return .key("mpPublish.rules.mode.reason.hostUnlock")
+        }
+        if mode != .sharedWorld {
+            let facilities = (game["facilities"]?.array ?? []).compactMap(\.object)
+            let sharedFacility = facilities.contains { $0["scope"]?.text != "OWNER" || $0["targetScope"]?.text != "OWNER" }
+            if truthy(game["allowTrade"]) || truthy(game["votePolicy"]) || !(game["plans"]?.array ?? []).isEmpty || sharedFacility {
+                return .key("mpPublish.rules.mode.reason.shared")
+            }
+        }
+        guard let inputs else { return nil }
+        for node in draft.chapters.flatMap(\.nodes) {
+            if let reason = inputs.reason(node: node, theme: theme, mode: mode) {
+                return .text((node.name.isEmpty ? "节点" : node.name) + "：" + reason)
+            }
+        }
+        return nil
+    }
+
+    /// MP `setMode`: refused while `modeReason` has a reason; adds `schemaVersion` 1 / `capacity` 0 when missing,
+    /// writes `runtimeScope` + `worldMode` (removed for PLAYER), and the server's explicit survival default
+    /// only when no survival setting exists yet.
+    public static func setMode(_ mode: RunMode, in draft: ProjectEditDraft, inputs: NativeRuntimeStructureAuthorInputs?) throws -> ProjectEditDraft {
+        var theme = try readable(draft)
+        switch modeReason(mode, in: draft, inputs: inputs) {
+        case .key(let key)?: throw ProjectEditRuntimeActsError.refused(key)
+        case .text?: throw ProjectEditRuntimeActsError.refused("mpPublish.rules.mode.reason.node")
+        case nil: break
+        }
+        if theme["schemaVersion"] == nil || theme["schemaVersion"] == .null {
+            theme["schemaVersion"] = .number(1)
+            theme["capacity"] = .number(0)
+        }
+        var game = theme["gameplayRuntime"]?.object ?? [:]
+        game["runtimeScope"] = .string(mode.scope)
+        game["worldMode"] = mode == .player ? nil : .string(mode.rawValue)
+        if game["survival"] == nil {
+            game["survival"] = .object(["zeroHpPolicy": .string("BLOCK_HP_COST"), "actionLimitPolicy": .string("BLOCK_OVERFLOW")])
+        }
+        theme["gameplayRuntime"] = .object(game)
+        return try write(theme, into: draft)
+    }
+
+    /// JavaScript truthiness for a JSON value.
+    private static func truthy(_ value: ProjectEditJSON?) -> Bool {
+        switch value {
+        case .bool(let flag)?: return flag
+        case .number(let number)?: return number != 0
+        case .string(let text)?: return !text.isEmpty
+        case .array?, .object?: return true
+        default: return false
+        }
+    }
+
     /// MP `config()` defaults for a topic that has no runtime config yet.
     static var defaults: [String: ProjectEditJSON] {
         ["schemaVersion": .number(1), "capacity": .number(6), "allowDiscard": .bool(true),
@@ -123,7 +213,7 @@ public enum ProjectEditThemeRules {
         theme["gameplayRuntime"]?.object?["runtimeScope"]?.text
     }
 
-    private static func readable(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {
+    static func readable(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {
         do {
             return try NativeRuntimeStructureAuthorDraft.readTheme(draft)
         } catch {
@@ -131,7 +221,7 @@ public enum ProjectEditThemeRules {
         }
     }
 
-    private static func write(_ theme: [String: ProjectEditJSON], into draft: ProjectEditDraft) throws -> ProjectEditDraft {
+    static func write(_ theme: [String: ProjectEditJSON], into draft: ProjectEditDraft) throws -> ProjectEditDraft {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
         let data = try encoder.encode(ProjectEditJSON.object(theme))
@@ -139,5 +229,100 @@ public enum ProjectEditThemeRules {
         var next = draft
         next.preserved["themeRuntimeConfig"] = .string(text)
         return next
+    }
+}
+
+// MARK: 结果卡 (`theme-runtime-survival.js` `CARD_FIELDS`, `openSurvivalEditor`, `saveSurvivalEditor`, `validate` card part)
+
+extension ProjectEditThemeRules {
+    /// MP `CARD_FIELDS`, in MP order (卡片上显示 rows).
+    public enum CardField: String, CaseIterable, Identifiable, Sendable {
+        case scene, ending, hp, luck, actions, medals, items, story, rescue
+        public var id: String { rawValue }
+    }
+
+    /// MP `survivalSummary.cardText`: 已自定义 when the theme has a `card`, else 默认.
+    public static func cardCustomized(in draft: ProjectEditDraft) -> Bool {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return false }
+        return theme["card"]?.object != nil
+    }
+
+    /// MP `openSurvivalEditor` row: a copy of `card`, or an empty row for the default card.
+    public static func card(in draft: ProjectEditDraft) -> [String: ProjectEditJSON] {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return [:] }
+        return theme["card"]?.object ?? [:]
+    }
+
+    /// MP `labels`: the three value rows use the theme's own names (`hpName` / `luckName` / `actionName`) when set.
+    public static func cardCustomName(_ field: CardField, in draft: ProjectEditDraft) -> String? {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return nil }
+        let key: String
+        switch field {
+        case .hp: key = "hpName"
+        case .luck: key = "luckName"
+        case .actions: key = "actionName"
+        default: return nil
+        }
+        guard let text = theme[key]?.text, !text.isEmpty else { return nil }
+        return text
+    }
+
+    /// MP `cardFieldLabelKey` fallback copy (场景 · 结局 · 生命值 · 幸运值 · 行动次数 · 勋章 · 物品 · 故事 · 救助记录).
+    public static func cardFieldLabelKey(_ field: CardField) -> String {
+        "mpPublish.rules.card.field." + field.rawValue
+    }
+
+    /// MP `row.fields`: the chosen fields, in the order they were ticked.
+    public static func cardFields(_ row: [String: ProjectEditJSON]) -> [String] {
+        (row["fields"]?.array ?? []).compactMap(\.text)
+    }
+
+    /// MP `survivalEditor.row.cover` (empty = the topic cover is used).
+    public static func cardCover(_ row: [String: ProjectEditJSON]) -> String {
+        row["cover"]?.text ?? ""
+    }
+
+    /// MP `uploadSurvivalCover` / `clearSurvivalField('cover')`.
+    public static func settingCardCover(_ cover: String, in row: [String: ProjectEditJSON]) -> [String: ProjectEditJSON] {
+        var next = row
+        next["cover"] = cover.isEmpty ? nil : ProjectEditJSON.string(cover)
+        return next
+    }
+
+    /// MP `toggleSurvivalCardField`: removes a ticked field, else appends it.
+    public static func toggleCardField(_ field: CardField, in row: [String: ProjectEditJSON]) -> [String: ProjectEditJSON] {
+        var next = row
+        let fields = cardFields(row)
+        let updated = fields.contains(field.rawValue) ? fields.filter { $0 != field.rawValue } : fields + [field.rawValue]
+        next["fields"] = .array(updated.map { ProjectEditJSON.string($0) })
+        return next
+    }
+
+    /// MP `saveSurvivalEditor`: an empty row after 恢复默认结果卡 (or on a default card) removes `card`; otherwise the row
+    /// becomes `card`. An unchanged card writes nothing. Checks the MP card rules (`validate`): an `https` cover of at
+    /// most 500 characters and only `CARD_FIELDS`.
+    public static func saveCard(_ row: [String: ProjectEditJSON], reset: Bool, in draft: ProjectEditDraft) throws -> ProjectEditDraft {
+        var theme = try readable(draft)
+        let original = theme["card"]?.object
+        let next: [String: ProjectEditJSON]? = (reset || original == nil) && row.isEmpty ? nil : row
+        if next == original { return draft }
+        if let next {
+            if let cover = next["cover"]?.text, !validCover(cover) {
+                throw ProjectEditRuntimeActsError.refused("mpPublish.rules.card.coverInvalid")
+            }
+            if cardFields(next).contains(where: { CardField(rawValue: $0) == nil }) {
+                throw ProjectEditRuntimeActsError.refused("mpPublish.rules.card.fieldInvalid")
+            }
+        }
+        if theme.isEmpty { theme = defaults }
+        theme["card"] = next.map { ProjectEditJSON.object($0) }
+        return try write(theme, into: draft)
+    }
+
+    /// MP `/^https:\/\/[^\s]{1,492}$/`.
+    static func validCover(_ cover: String) -> Bool {
+        guard cover.hasPrefix("https://") else { return false }
+        let rest = cover.dropFirst("https://".count)
+        return (1...492).contains(rest.count) && !rest.contains(where: { $0.isWhitespace })
     }
 }

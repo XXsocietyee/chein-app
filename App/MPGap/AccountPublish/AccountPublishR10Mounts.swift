@@ -16,7 +16,8 @@ import QuestifyCore
 /// r11 C-F8c: like MP app.js:681-685 (`cropScale` → pages/crop), the picked photos open `MiniCropView` at that ratio first;
 /// the chosen frame is what uploads (使用原图 = the centred frame of the ratio).
 @MainActor struct ProjectEditTopicImageField: View {
-    enum Kind { case cover, gallery }
+    /// `resultCard`: MP 结果卡封面 (`theme-runtime-survival.js` `uploadSurvivalCover`, one 1:1 image, `image_1_1`).
+    enum Kind { case cover, gallery, resultCard }
     let kind: Kind
     let title: LocalizedStringKey
     @Binding var value: String
@@ -42,14 +43,22 @@ import QuestifyCore
     private var urls: [String] {
         value.split(separator: ",").map { String($0).trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
     }
-    private var maximum: Int { kind == .cover ? 1 : Self.galleryMaximum }
+    private var single: Bool { kind != .gallery }
+    private var maximum: Int { single ? 1 : Self.galleryMaximum }
     /// The cover is replaced by a new pick; the gallery appends until it is full.
-    private var selectable: Int { kind == .cover ? 1 : max(0, maximum - urls.count) }
+    private var selectable: Int { single ? 1 : max(0, maximum - urls.count) }
     private var bizType: String {
+        if kind == .resultCard { return "image_1_1" }
         let destination: RetainedImageScope.Destination = kind == .cover ? .topicCover : .topicGallery
         return destination.uploadBizType ?? "image_free"
     }
-    private var aspect: (width: Int, height: Int) { kind == .cover ? (3, 4) : (16, 9) }
+    private var aspect: (width: Int, height: Int) {
+        switch kind {
+        case .cover: return (3, 4)
+        case .gallery: return (16, 9)
+        case .resultCard: return (1, 1)
+        }
+    }
 
     var body: some View {
         Group {
@@ -95,9 +104,9 @@ import QuestifyCore
     private var picker: some View {
         PhotosPicker(selection: $picks, maxSelectionCount: selectable, matching: .images) {
             LabeledContent {
-                Text(LocalizedStringKey(kind == .cover && !urls.isEmpty ? "fixr10.ap.cover.replace" : "fixr10.ap.image.choose"))
+                Text(LocalizedStringKey(single && !urls.isEmpty ? "fixr10.ap.cover.replace" : "fixr10.ap.image.choose"))
             } label: {
-                Label(title, systemImage: kind == .cover ? "photo" : "photo.on.rectangle")
+                Label(title, systemImage: single ? "photo" : "photo.on.rectangle")
             }
         }
         .disabled(!isEnabled || uploader == nil)
@@ -124,7 +133,7 @@ import QuestifyCore
             .frame(width: thumbnailSide, height: thumbnailSide)
             .clipped()
             .accessibilityHidden(true)
-            if kind == .cover {
+            if single {
                 Text(title)
             } else {
                 Text("fixr10.ap.image.item \(index + 1)")
@@ -172,7 +181,7 @@ import QuestifyCore
                 failedCount += 1
             }
         }
-        if kind == .cover {
+        if single {
             if let first = uploaded.first { value = first }
         } else {
             value = (urls + uploaded).prefix(maximum).joined(separator: ",")

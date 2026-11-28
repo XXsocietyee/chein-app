@@ -274,14 +274,44 @@ Not done item 2: VoiceOver values built as `"\(a) / \(b)"` (read "slash" / "斜�
 | character counters (playkit note + short message, trust report, creator text field + rehearsal, orient/report appeals ×3, object-card rename, player content ×2, stamp slip caption, member report, contextual review, journey review) | `PlayKitPersonalForms.swift`, `CommunityTrustPlayerViews.swift`, `TemplateCreatorConfigurationView.swift`, `TemplateCreatorRehearsalView.swift`, `MPGap/Member/OrientScoreGapViews.swift`, `MPGap/Member/ReportAppealAndCouponSummaryViews.swift`, `MPGap/PlayRoam/ObjectCardCategoryAndRenameSheets.swift`, `MPGap/PlayerContent/PlayerContentRound2Views.swift`, `MPGap/PlayerContent/PlayerContentRound4Views.swift`, `RoamSubpageParityViews.swift`, `CommunityMemberReportSheet.swift`, `ContextualReviewComposer.swift`, `JourneyReportViews.swift` | ✓ | → `a11y.value.characters` | Done |
 | badge wall ring (zh) | `ObjectBadgeWallParityViews.swift:57` | ✓ (mp-mine owns order) | "已点亮 3 / 6 枚徽章" → "已点亮 3 枚徽章，共 6 枚" | Done |
 
+## Run 16 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7` (793c3190b). Sweep 23:37Z (build 793c3190b) a11y sheets read: build predates run 15 (d926759a1 not
+an ancestor), so `a11y-roam-ax5` still shows the black panel; re-read stays open. Badge wall ring-above-heading ✓, passport capsules ✓.
+Not done item 2 (VoiceOver slash scan, rest): types checked against Core contracts; integer pairs → `a11y.value.ofTotal`.
+
+| MP page / surface | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` attributes (AXP progress, today / soft cap) | `MemberAttributesSection.swift:68,74` | ✓ (mp-mine owns order) | "120 / 500" → "120 of 500" / "120，共 500" | Done |
+| Home return-account row | `HomeReturnSection.swift:23`, `NativeHomeReturnSection.swift:28` | ✓ (mp-home owns order) | same (Int64 pair) | Done |
+| Club channel progress meter + team rows | `NativeChannelProgressBoardView.swift:327`, `NativeChannelProgressEntry.swift:150` | ✓ (mp-club owns order) | same | Done |
+| `pages/play` lead sheet arrived / play lead arrived | `PlayToolsAndLeadSheetView.swift:264`, `PlayExperienceView.swift:1986` | ✓ (mp-journey owns order) | same | Done |
+| `pages/topic` route progress | `TopicRouteMapAndTeamsSection.swift:45` | ✓ (mp-publish owns order) | same | Done |
+| Creator rehearsal hotspots, rule-step count, editor add-row limit, prefab check score / DC | `TemplateCreatorRehearsalView.swift:117`, `TemplateAuthoringRuleFields.swift:58`, `EditorKitLists.swift:135`, `PlayPrefabRuntimeView.swift:50` | ✓ | same | Done |
+
+## Run 17 (2026-11-28, hourly)
+Merged `origin/ui/combined-r7`. Not done item 1: sweep **283dd3b52** (00:10Z, contains d926759a1) a11y sheets read.
+`en-a11y-roam-ax5.jpg` / `zh-Hans-a11y-roam-ax5.jpg`: peek line "Nearby activities 2 ^" / "附近活动 2 ^" now reads on a
+material bar above the panel at AX5 ✓ (two lines in en, one in zh, chevron visible). Closed.
+Not done item 2 (slash scan leftovers): types verified in Core (`BallShake.hits/goal`, `owner.finalUsed/capacity`,
+`NearbyTeamMapPin.memberCount/capacity`, walk `todaySteps/goal` all `Int`).
+
+| MP page / surface | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `playkit` ball-shake sensor board (hits / goal) | `PlayKitSensorChallengeView.swift:139` | ✓ (mp-journey owns order) | "3 / 10" → `a11y.value.ofTotal` | Done |
+| `pages/play` gameplay backpack capacity | `PlayRuntimeGapViews.swift:397` | ✓ (mp-journey owns order) | same | Done |
+| `subpackageRoam` nearby teams sheet (members / capacity) | `MPGap/PlayRoam/NearbyAndHistoryGapViews.swift:91` | ✓ (mp-roam owns order) | "3/6" → `a11y.value.ofTotal`; literal no longer a catalog key (`Text(verbatim:)`) | Done |
+| free-explore bundle booking step header (选章节 → 选商家 → 定时间) | `FreeExploreBundleLaunchView.swift:157` | ✓ (mp-activity owns order) | "1/3 · Chapter" → "1 of 3, Chapter" | Done |
+| `playkit` walk challenge steps + percent | `PlayKitDecisionProgressViews.swift:122` | ✓ (mp-journey owns order) | "4,000 / 6,000 · 66%" → "4000 of 6000, 66%" | Done |
+
+Home tab root code read (`pages/index/index` → `HomeFeedView.swift`): rail cards are one button element with a spoken
+label (`pageTemplateGroupedCard(label:traits: .isButton)`, :386), each rail is a labelled container (:318), place row
+is a separate 44 pt link with an "Open in Maps" action, 即将上线 countdown is plain text under the card. No change needed.
+
 ## Not done (next run starts here)
-- Re-read `en-a11y-roam-ax5` after the next sweep (newer than b3b03703a) to confirm the peek line reads on the black panel.
-- VoiceOver slash scan, rest (types not verified as integers this run, so left alone): `PlayKitSensorChallengeView.swift:139`,
-  `HomeReturnSection.swift:23` / `NativeHomeReturnSection.swift:28`, `MemberAttributesSection.swift:68,74`, `ObjectBadgeWallParityViews.swift:36`,
-  `PlayPrefabRuntimeView.swift:50`, `PlayRuntimeGapViews.swift:397`, `NearbyAndHistoryGapViews.swift:91`, `PlayToolsAndLeadSheetView.swift:264`,
-  `TopicRouteMapAndTeamsSection.swift:45`, `PlayExperienceView.swift:1986`, `TemplateCreatorRehearsalView.swift:117`,
-  `NativeChannelProgressBoardView.swift:327`, `NativeChannelProgressEntry.swift:150`, `EditorKitLists.swift:135`, `TemplateAuthoringRuleFields.swift:58`,
-  `FreeExploreBundleLaunchView.swift:157`, `PlayKitDecisionProgressViews.swift:122`.
+- Ring numerals sized from geometry, not Dynamic Type: `DesignSystem/CYAlbum.swift:120,124`, `CYCollectible.swift:204`
+  (stamp / badge progress rings). Check they carry an `accessibilityLabel`/value and that the heading next to them scales
+  (AX5 sheet `a11y-badges-ax5` already shows ring + heading ✓; album ring not yet in a sweep).
+- Re-read the a11y sheets after the next sweep for the five run-17 labels (no visual change expected).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
@@ -292,3 +322,5 @@ Not done item 2: VoiceOver values built as `"\(a) / \(b)"` (read "slash" / "斜�
   declared under `App/DesignFixtures` but missing from `DesignFixtureReleaseExclusionAudit.symbols` (ds-consistency / owning lanes).
 - i18n-r3: `ClubComponents.swift:357` video play glyph `.accessibilityLabel(Text(verbatim: "Play"))` is English-only.
 - i18n-r3: `MPGap/Club/ClubGapRound4Views.swift` accessibility label `"删除凭证图片 \(index + 1)"` is a Chinese literal key (no en).
+- ds-consistency: `cyMapPanelColor = Color.black` (`DesignSystem/CYMapChrome.swift:391`) keeps the roam map panel black in light mode
+  (seen in `en-a11y-roam-ax5.jpg`); contrast is fine with the material peek, but consider `.regularMaterial` / system background if the owner wants light-mode consistency.

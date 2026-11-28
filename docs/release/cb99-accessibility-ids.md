@@ -1015,7 +1015,7 @@ Status `both` means the identifier is applied on this base and on ui/d6. Status 
 | `club.poolApplication.message` | both |
 | `club.poolApplication.open` | both |
 | `club.poolApplication.review` | both |
-| `club.postAuthor.close` | both |
+| `club.postAuthor.close` | retired (mp-nav r3: post author profile is a push) |
 | `club.postEditExit.cancel` | both |
 | `club.postEditExit.discard` | both |
 | `club.postEditExit.keep` | both |
@@ -1024,9 +1024,9 @@ Status `both` means the identifier is applied on this base and on ui/d6. Status 
 | `club.postImages.position` | both |
 | `club.postImages.previous` | both |
 | `club.postImages.reset` | both |
-| `club.postPlay.close` | both |
+| `club.postPlay.close` | retired (mp-nav r3: post 试玩 is a push) |
 | `club.postPlay.signIn` | both |
-| `club.postReference.close` | both |
+| `club.postReference.close` | retired (mp-nav r3: reference topic is a push) |
 | `club.profile.draft.currentImages` | both |
 | `club.profile.draft.discard` | both |
 | `club.profile.draft.readFresh` | both |

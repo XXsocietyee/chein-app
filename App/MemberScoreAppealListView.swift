@@ -96,11 +96,11 @@ private struct MemberScorePlayLayer: Hashable, Identifiable {
                     }
                 }
             } else if session.account == nil {
-                // Signed out: 登录后查看申诉, primary 微信登录, through the existing sign-in.
+                // Signed out: 登录后查看申诉, primary 登录 (the app sign-in; WeChat sign-in is not offered in the app).
                 ContentUnavailableView {
                     Label { memberScoreText("score.mine.signIn") } icon: { Image(systemName: "person.crop.circle") }
                 } actions: {
-                    Button { showsSignIn = true } label: { Text("auth.wechat.signIn") }
+                    Button { showsSignIn = true } label: { Text("mp.common.signIn") }
                         .buttonStyle(.borderedProminent).controlSize(.large)
                         .accessibilityIdentifier("score.mine.signIn")
                 }

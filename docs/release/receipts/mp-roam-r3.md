@@ -310,6 +310,27 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings: one pure-addition confli
 
 Gates: generate_project OK · check_scaffold PASS (20942 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (22) — live merchant layer drops 城市定向 topic shops (Not done) + sweep 23:37 (build 793c3190b)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: one pure-addition conflict, both sides' keys kept). Screens read: `docs/sweeps/latest/mp-roam/sheet-zh-Hans.jpg`, `sheet-en.jpg` — d6-roam, e2-stamp-album (MP photos, 共 3 枚 / 示例城市邮票), e5b-stamp unchanged and correct (keep); `zh-Hans-d2-roam.jpg` is the launch tile again (timing); `en-d2-roam.jpg` still shows the black `cyMapPanelColor` panel (shared `App/DesignSystem/CYMapChrome.swift:391`, ds-consistency — listed for ds-consistency in continue 16). Re-scan of `App/Roam*.swift`, `NativeR2/MapHome`, `NativeR2/FreeExplore`: no `.font(.system(size:))`, `.tracking`, `.kerning` or `Color(red:)`.
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` merchant layer `_fetchNearbyMerchants` (index.js:1394 `if (n.topicId && Number(n.productType) !== 2) return null`) — Not done since continue (13) | `Core/RoamContracts.swift` `RoamRouteNode.isLiveMerchantLayerShop` → `Core/RoamLiveService.swift` `registeredShops` → live 附近 shop rows / `RoamLiveTopicSheet` | Native kept shops attached to a 城市定向 topic and labelled them 城市定向 in the topic half-screen; the MP never shows them on the live map. | **Fixed:** `registeredShops` keeps a shop only when it has no topic (`topicId` nil / 0) or its topic is 自由探索 (`productType == 2`), exactly the MP test. Core test `RoamLiveSessionTests.testLiveMerchantLayerDropsCityTopicShopsLikeMP`. Search map (`SearchMapService`, other lane) unchanged. No new strings. |
+
+Gates: generate_project OK · check_scaffold PASS (20969 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
+## Round 3 continue (23) — live map merchant-pin layer (Not done) + sweep 00:10 (build 283dd3b52)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: one pure-addition conflict, both sides' keys kept, 20986 keys). Screens read: `docs/sweeps/latest/mp-roam/sheet-zh-Hans.jpg`, `sheet-en.jpg` — d6-roam (inline 漫游 on `.bar`, appearance-following map, 规则 · 走起 · 附近), e2-stamp-album (MP photos, 共 3 枚), e5b-stamp localized: keep. `zh-Hans-d2-roam.jpg` is the launch tile (timing); `en-d2-roam.jpg` still has the black `cyMapPanelColor` panel (shared `App/DesignSystem/CYMapChrome.swift:391`, ds-consistency; not picked up in their receipt yet — listed again under For other lanes).
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` merchant layer on the live map (index.js `_fetchNearbyMerchants` 1393–1430: shops with a coordinate become grey `cat: 'merchant'` pins, name or 商家; `onMarkerTap` 4209–4239 → shop strip on that shop, `_openPlaceDetail` 4306 → topic half-screen when the pin has a topic) — Not done since continue (8) | `App/RoamLiveSessionView.swift` `liveMapGround` (MapKit `Map`) | Native drew only the roam place pins; registered shops were list rows only, so the topic half-screen could only be opened from the row. | **Fixed:** shop pins (`Marker` `storefront.fill`, `.tint(.gray)`, name or `nativeR2.mapHome.kind.merchant` 商家 / Shop) for every registered shop with a coordinate (already MP-filtered in continue 22). One map selection `RoamLiveMapPick` (`.place` / `.shop`, ids of the two layers may collide) replaces the Int tag; a place pin keeps the old behaviour (`selectedPlaceID` → 地点卡 facts), a shop pin with a topic opens `RoamLiveTopicSheet`, every pin opens the 附近 list (shop rows = MP shop strip) and lifts the sheet from 0.3 to medium. Deselecting clears `selectedPlaceID` as before. No new strings. |
+| Same merchant layer, photo pins (index.js:1400–1414 `photo: n.picUrl ? imgUrl : ''`, photo-pins.js `pinPhoto`) | `Core/RoamContracts.swift` `RoamRouteNode` + `RoamLivePhotoPin.url(for: RoamRouteNode)` | `RoamRouteNode` did not decode `picUrl`, so every shop was a symbol pin. | **Fixed:** `picUrl` decoded (trimmed, blank → nil, malformed value → nil without failing the row); a shop with an allowlisted absolute photo URL is a 40 pt photo pin (same `RoamLivePhotoPin` as place shops, grey ring), others keep the grey `storefront.fill` marker (MP: no placeholder photo). Relative MP paths (`baseImgUrl + picUrl`) stay symbol pins (no app-side base). Core test `RoamLiveSessionTests.testLiveMerchantPinKeepsMPShopPhotoAndToleratesMalformedPicUrl`. |
+
+Gates: generate_project OK · check_scaffold PASS (20986 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
@@ -317,7 +338,8 @@ Gates: generate_project OK · check_scaffold PASS (20942 keys) · a11y lint 0 ne
   upload-only camera mode returning the picture URL and session wiring for the coordinator — left for a compiled pass.
 - team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
-- Topic half-screen: MP pins on the live **map** itself (merchant pins) — native has no merchant-pin layer on the live map yet (shops are list rows); the sheet hangs off the row until a pin layer exists. MP also drops `topicId` shops whose `productType != 2` from the merchant layer; native keeps them and labels them 城市定向.
+- Topic half-screen from merchant pins + shop photo pins: done in continue (23).
+- For other lanes (ds-consistency): `cyMapPanelColor = Color.black` (`App/DesignSystem/CYMapChrome.swift:391`) draws a black panel under light content in light mode (en-d2-roam, every sweep since 20:45).
 - Entry peek `.login`: 401 part done in continue (16); the no-deployment `.login` fixture state stays (not reachable by players).
 - Live map bottom strip P-32: done in continue (21) for the map home (shipping tab root); the legacy `RoamBrowserView` live cover (flag off) gets no feed.
 - No Swift build ran here; integrator compiles.

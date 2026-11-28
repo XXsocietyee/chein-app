@@ -9,7 +9,7 @@ final class ProfileSelfGrowthFlowTests:XCTestCase {
         app.launchArguments=["--uitesting-profile-self-growth","--profile-self-growth-scenario",scenario,"--uitesting-reset-language","-AppleLanguages","(en)","-AppleLocale","en_US"]
         app.launch();XCTAssertTrue(app.staticTexts["Synthetic growth owner"].waitForExistence(timeout:10))
         let picker=app.buttons["social.profile.tabs"];if picker.exists {picker.tap()}
-        let tab=app.buttons["Achievements"];if tab.waitForExistence(timeout:3) {tab.tap()}else{app.staticTexts["Achievements"].tap()}
+        let tab=app.buttons["Awards"];if tab.waitForExistence(timeout:3) {tab.tap()}else{app.staticTexts["Awards"].tap()}
     }
     func testOwnSummaryOpensExistingGrowthCenter() {
         launch();XCTAssertTrue(app.staticTexts["700"].waitForExistence(timeout:5));app.buttons["profile.selfGrowth.openCenter"].tap()

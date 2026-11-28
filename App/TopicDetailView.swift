@@ -510,8 +510,11 @@ struct TopicDetailView: View {
             // C13: the empty state is said once (TopicReviewsContent), with no 0 total and no small print under the
             // reviews (MP `det6`: 还没有评价 card, else rating + 基于 N 条评论 + list).
             Section("topic.comments") {
-                Button("context.review.title") { asSignedIn { showsReview = true } }
-                    .buttonStyle(.bordered).accessibilityIdentifier("topic.openReview")
+                // mp-home r3 (MP topic/index.wxml:302-316): with no reviews the 还没有评价 card is the only write entry.
+                if !(value.reviews.hasConfirmedNoReviews && value.reviews.preview.isEmpty) {
+                    Button("context.review.title") { asSignedIn { showsReview = true } }
+                        .buttonStyle(.bordered).accessibilityIdentifier("topic.openReview")
+                }
                 // R8-PC-B1-2 (MP `det6`): the 还没有评价 card itself is the write entry; the content view stays read-only.
                 // R9-PC-BN-4: a real Button (system traits and highlight) instead of onTapGesture + a manual trait.
                 if value.reviews.hasConfirmedNoReviews && value.reviews.preview.isEmpty {

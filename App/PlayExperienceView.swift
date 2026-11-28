@@ -1983,7 +1983,7 @@ struct PlayExperienceIssueView: View {
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("playx.lead.gather")
                 }
-                if !gathering, let arrived = lead.arrived, !lead.members.isEmpty { LabeledContent("playx.lead.arrived") { Text(verbatim: "\(arrived) / \(lead.members.count)") } }
+                if !gathering, let arrived = lead.arrived, !lead.members.isEmpty { LabeledContent("playx.lead.arrived") { Text(verbatim: "\(arrived) / \(lead.members.count)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(arrived)) \(Int(lead.members.count))")) } }
                 ForEach(lead.members) { member in
                     Label { if let name = member.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") } }
                         icon: { Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle").foregroundStyle(member.arrived ? CYColor.successText : CYColor.textTertiary) }
@@ -2164,7 +2164,6 @@ extension PlayExperienceView {
                 }
             }
             .mapStyle(.standard(elevation: .flat, emphasis: .muted))
-            .environment(\.colorScheme, .light)
             .background { CYMapPlaceholder(fog: false) }
             // Decorative ground: the stop list in the panel carries the same facts for VoiceOver.
             .accessibilityHidden(true)
