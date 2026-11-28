@@ -55,16 +55,17 @@ struct LoginView: View {
             // Native r2: a grouped Form (Settings / Apple ID sign-in style). The brand header is the first section.
             Form {
                 Section {
-                    VStack(spacing: 12) {
+                    // P27: one mark, then a left-aligned title that says what happens.
+                    VStack(alignment: .leading, spacing: 12) {
                         brandMark
                         Text("auth.login.headline").font(.title.bold())
-                            .multilineTextAlignment(.center)
+                            .multilineTextAlignment(.leading)
                             .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                         Text("auth.login.subtitle").font(.subheadline).foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                            .multilineTextAlignment(.leading)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 8)
                 }
                 if !consentGranted {
@@ -188,6 +189,7 @@ struct LoginView: View {
 #if DEBUG
         .onChange(of: showsOtherSignIn) { _, value in recordIntegratedLoginPhase(value ? "presentation_true" : "presentation_false") }
 #endif
+        .sensoryFeedback(.success, trigger: session.account?.id) { old, new in old == nil && new != nil }
         .interactiveDismissDisabled(session.isWorking)
         .onChange(of:session.account?.id) { _,newID in if newID != nil { password=""; model.clear(); dismiss() } }
         .onDisappear { password=""; model.clear(); session.weChatAuth.cancel() }
@@ -254,9 +256,8 @@ struct LoginView: View {
             .renderingMode(.template)
             .resizable()
             .scaledToFit()
-            .frame(width: 88, height: 88)
+            .frame(width: 56, height: 56)
             .foregroundStyle(.primary)
-            .frame(maxWidth: .infinity)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(verbatim: AppLanguage.interfaceIsChinese(locale) ? "城瘾" : "Chein"))
     }
