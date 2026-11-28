@@ -370,7 +370,7 @@ func imShownName(_ name: String) -> String {
     private func readMutation() -> IMMutation {
         guard let readCursor, readCursor >= 0 else { return .read(conversationID: model.owner.scope.conversationID) }
         return .readCursor(conversationID: model.owner.scope.conversationID, lastMessageID: readCursor,
-                           requestID: "ack-" + UUID().uuidString.lowercased())
+                           requestID: UUID().uuidString.lowercased())
     }
     private func review(_ mutation: IMMutation) { _ = model.review(mutation, permits: permits) }
     private func submit(_ operation: IMExpandedSubmission.Operation) {

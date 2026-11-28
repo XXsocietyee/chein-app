@@ -19,6 +19,8 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   (custom back buttons / MP custom nav chrome)
   fixed surface   a shared colour token `let x = Color.black` / `.white` (design system included): it ignores
                   light / dark -> CYColor / palette / system colours
+  dark backing    `.background(Color.black.opacity(…))` stacked right under a material background (design system
+                  included): semantic text on a darkened material is black-on-grey in light mode -> the material alone
   custom back     `CYNavBar(` / `CYBareBackButton(` / `CYHeroBackButton(` outside App/DesignSystem
                   (use the system bar; `cyGuardedBack(when:onBack:)` for an unsaved-changes exit)
   button style    a page-level `struct …: ButtonStyle` outside App/DesignSystem, or `.buttonStyle(.questifyPrimary)`
@@ -177,12 +179,17 @@ FIXED_SURFACE = 'fixed surface'
 # slab under a light map). Tokens resolve through CYColor / the palette / system colours.
 FIXED_SURFACE_PATTERN = re.compile(r'^\s*(?:(?:public|internal|private|fileprivate|static)\s+)*let\s+\w+\s*(?::\s*Color\s*)?='
                                    r'\s*(?:Color\.|\.)(?:black|white)\s*$')
+DARK_BACKING = 'dark backing'
+# A material already adapts to light / dark; a fixed black layer under it turns a light chip grey, so the semantic
+# (black in light mode) text on top loses contrast (roam fog chips over the light map).
+DARK_BACKING_PATTERN = re.compile(r'\.background\(\s*Color\.black\.opacity\(')
+MATERIAL_BACKGROUND = re.compile(r'\.background\(\s*\.(?:ultraThin|thin|regular|thick|ultraThick|bar)Material\b')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
-         ALL_CAPS, GRID_LINK, FIXED_SURFACE, DUPLICATE_TYPE, UNDECLARED_STATE)
+         ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -341,7 +348,11 @@ def scan_file(rel, text):
     is_root = rel in TAB_ROOTS
     # `.system(size: x)` where `x` is an `@ScaledMetric` scales with Dynamic Type: that is the approved pattern.
     scaled = set(SCALED_METRIC.findall(text))
+    prev_code = ''
     for number, code in lines:
+        if DARK_BACKING_PATTERN.search(code) and (MATERIAL_BACKGROUND.search(prev_code) or MATERIAL_BACKGROUND.search(code)):
+            hits.append((number, DARK_BACKING, code.strip()))
+        prev_code = code
         sized = SYSTEM_SIZE_ARG.findall(code)
         scaled_only = bool(sized) and all(name in scaled for name in sized) and not any(
             p.search(code) for p in FONT_PATTERNS[1:])

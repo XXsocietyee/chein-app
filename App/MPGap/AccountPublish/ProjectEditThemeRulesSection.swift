@@ -5,6 +5,7 @@ import SwiftUI
 // theme-ownership.js:96-107 onThemeAllowTrade / onThemeVotePolicy (shared team world only)
 // theme-runtime-survival.js:101 display, :124-137 toggleThemeReplay / toggleThemeTeamTrail
 // survival-editor.wxml + theme-runtime-survival.js openSurvivalEditor / saveSurvivalEditor (结果卡 sheet)
+// theme-d20-page.js onD20Toggle / openD20Sheet (rows d20 检定 · d20 与角色设定; sheet in ProjectEditD20Sheet.swift)
 
 /// 玩法规则 in the 主题详情 sheet, after the runtime-values entries and before 可玩时段 (MP order).
 /// Two system `Toggle` rows bound to Core `ProjectEditThemeRules`; a refusal shows as a red section footer
@@ -13,6 +14,7 @@ import SwiftUI
     @ObservedObject var model: ProjectEditModel
     @State private var refusalKey: String?
     @State private var editingCard = false
+    @State private var editingD20 = false
 
     var body: some View {
         Section {
@@ -60,6 +62,24 @@ import SwiftUI
                 Label("mpPublish.rules.teamTrail", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
             }
             .accessibilityIdentifier("projectEdit.rules.teamTrail")
+            Toggle(isOn: Binding(get: { d20.checkEnabled }, set: { setD20($0) })) {
+                Label("mpPublish.d20.check", systemImage: "die.face.5")
+            }
+            .accessibilityIdentifier("projectEdit.rules.d20")
+            if d20.checkEnabled {
+                Button {
+                    editingD20 = true
+                } label: {
+                    LabeledContent {
+                        ProjectEditD20Summary(rules: d20)
+                    } label: {
+                        Label("mpPublish.d20.settings", systemImage: "person.text.rectangle")
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("projectEdit.rules.d20Settings")
+            }
         } header: {
             Text("mpPublish.rules.title")
         } footer: {
@@ -75,6 +95,18 @@ import SwiftUI
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $editingD20) {
+            ProjectEditD20Sheet(model: model)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+
+    private var d20: ProjectEditD20Rules.Model { ProjectEditD20Rules.model(in: model.draft) }
+
+    /// MP `onD20Toggle`: a refused write leaves the switch where it was and shows the reason.
+    private func setD20(_ enabled: Bool) {
+        apply { try ProjectEditD20Rules.setCheckEnabled(enabled, in: $0) }
     }
 
     private func setReplay(_ enabled: Bool) {
