@@ -639,7 +639,7 @@ extension PlayKitScreen {
                 } icon: {
                     Image(systemName: "xmark.circle")
                 }
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("playkit.accusation.wrong")
             }
         }

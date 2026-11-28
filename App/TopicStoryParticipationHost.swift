@@ -48,7 +48,7 @@ import QuestifyCore
                     if let message = StoryParticipationFeedbackMapping.joinMessage(actions.joinState) {
                         Label(message, systemImage: "exclamationmark.triangle.fill")
                             .font(.subheadline)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("story.joinMessage")
                     }
                 }

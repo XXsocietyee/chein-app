@@ -36,7 +36,7 @@ import Combine
                 if !issues.isEmpty {
                     Section("templateAuthor.validationTitle") {
                         ForEach(issues) { issue in VStack(alignment: .leading) {
-                            Label(LocalizedStringKey(issue.labelKey), systemImage: "exclamationmark.circle").foregroundStyle(.red)
+                            Label(LocalizedStringKey(issue.labelKey), systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText)
                         } }
                     }
                 }

@@ -42,4 +42,23 @@ public enum RegistrationPayMethod: String, CaseIterable, Hashable, Sendable {
         }
     }
 
+    /// P32: the primary button is the payment method — "微信支付 ¥12.50" / "Pay ¥12.50 with WeChat Pay".
+    /// `amount` is the already formatted total (currency symbol included). zh first, en second.
+    public func payTitle(amount: String) -> (zh: String, en: String) {
+        switch self {
+        case .wechatPay: return ("微信支付 " + amount, "Pay " + amount + " with WeChat Pay")
+        case .alipay: return ("支付宝支付 " + amount, "Pay " + amount + " with Alipay")
+        case .applePay: return ("Apple Pay 支付 " + amount, "Pay " + amount + " with Apple Pay")
+        case .card: return ("银行卡支付 " + amount, "Pay " + amount + " by card")
+        }
+    }
+
+    /// The method in effect: the player's choice when it is offered in this market, else the market default.
+    public static func effective(_ selection: RegistrationPayMethod?, market: RegionalMarket?,
+                                 applePayAvailable: Bool) -> RegistrationPayMethod {
+        let offered = options(market: market, applePayAvailable: applePayAvailable)
+        if let selection, offered.contains(selection) { return selection }
+        return offered[0]
+    }
+
 }

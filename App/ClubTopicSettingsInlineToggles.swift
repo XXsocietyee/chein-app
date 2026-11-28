@@ -26,8 +26,8 @@ import SwiftUI
     }
 
     @ViewBuilder private var footer: some View {
-        if let failureText { Text(verbatim: failureText).foregroundStyle(.red) }
-        else if let failureKey { Text(failureKey).foregroundStyle(.red) }
+        if let failureText { Text(verbatim: failureText).foregroundStyle(CYColor.dangerText) }
+        else if let failureKey { Text(failureKey).foregroundStyle(CYColor.dangerText) }
     }
 
     private func toggle(_ key: String, _ title: LocalizedStringKey) -> some View {

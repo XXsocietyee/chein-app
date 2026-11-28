@@ -61,7 +61,7 @@ import SwiftUI
                                     TextField(text:$deleteMessageSeconds,prompt:Text(verbatim:"0")) { Text("d7.channelModeration.deleteMessages") }
                                         .keyboardType(.numberPad).multilineTextAlignment(.trailing)
                                 }
-                                Text("d7.channelModeration.deleteWarning").foregroundStyle(.red).fixedSize(horizontal:false,vertical:true)
+                                Text("d7.channelModeration.deleteWarning").foregroundStyle(CYColor.dangerText).fixedSize(horizontal:false,vertical:true)
                             }
                             Picker("d7.channelModeration.reasonType",selection:$reasonCode) {
                                 Text("d7.channelModeration.reason.NOISE").tag("NOISE")
@@ -70,7 +70,7 @@ import SwiftUI
                                 }
                             }
                             TextField("d7.channelModeration.details",text:$reason,axis:.vertical).lineLimit(3...7)
-                            if invalidDraft { Text("d7.channelModeration.invalid").foregroundStyle(.red).fixedSize(horizontal:false,vertical:true) }
+                            if invalidDraft { Text("d7.channelModeration.invalid").foregroundStyle(CYColor.dangerText).fixedSize(horizontal:false,vertical:true) }
                         }
                         Section {
                             Button("d7.channelModeration.review") {

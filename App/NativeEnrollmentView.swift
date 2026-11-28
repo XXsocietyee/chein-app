@@ -26,7 +26,7 @@ import CryptoKit
                     .accessibilityIdentifier("nativeEnrollment.phase")
                 if let issue = model.issue {
                     Label(LocalizedStringKey("nativeEnrollment.issue." + issue.rawValue), systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("nativeEnrollment.issue")
                 }
                 if let privacyURL { Link("nativePlatform.privacy", destination: privacyURL) }

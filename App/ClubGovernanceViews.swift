@@ -1799,7 +1799,7 @@ struct ClubGovernanceReadView: View {
             // the counts come from topic-manage-stats. Missing counts render as an em dash.
             // mp-club r3 (MP topic-detail wxml:86-109): 未通过原因 comes before 核销 + 台账.
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
-                Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
+                Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(CYColor.dangerText) }
             }
             // MP topic-detail wxml:92 (C-11, Figma D9): once the director has ended the topic the page is a review;
             // the in-progress blocks (核销 / 主题 / 接下来) are not drawn.

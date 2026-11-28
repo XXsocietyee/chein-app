@@ -31,7 +31,7 @@ import SwiftUI
     private func requiredLabel(_ key: String) -> some View {
         HStack(spacing: 2) {
             invoiceText(key)
-            Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true)
+            Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true)
         }
     }
 
@@ -76,7 +76,7 @@ import SwiftUI
                 Toggle(isOn: $isDefault) { invoiceText("setDefault") }
             }
             .disabled(!model.allows(.saveTitle) || saveLocked)
-            if invalid { Label { invoiceText("notSaved") } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(.red) }
+            if invalid { Label { invoiceText("notSaved") } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(CYColor.dangerText) }
             // A server refusal keeps the form and says why: 发票抬头未保存 · reason (FIN-15-3).
             if let notice = model.writeNotice, notice.action == .saveTitle, notice.kind != .unknown {
                 Section { InvoiceLaunchWriteNoticeView(notice: notice) }

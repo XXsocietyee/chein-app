@@ -242,7 +242,7 @@ struct ProjectEditRuntimeValueEditorItem: Identifiable, Hashable {
         } footer: {
             if let errorKey {
                 Label(LocalizedStringKey(errorKey), systemImage: "exclamationmark.circle")
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("projectEdit.values.custom.editor.error")
             }
         }

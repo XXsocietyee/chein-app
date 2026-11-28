@@ -28,6 +28,8 @@ enum DesignFixtureRegistry {
         case "d2-home-offline": return AnyView(D2Fixture(screen: .homeOffline))
         case "d2-home-empty": return AnyView(D2Fixture(screen: .homeEmpty))
         case "d2-home-failed": return AnyView(D2Fixture(screen: .homeSectionFailed))
+        case "rep3-activity-list": return AnyView(HomeActivityListFixture(failing: false))
+        case "rep3-activity-list-failed": return AnyView(HomeActivityListFixture(failing: true))
         case "d2-search": return AnyView(D2Fixture(screen: .search))
         case "d2-search-results": return AnyView(D2Fixture(screen: .searchResults))
         case "d2-search-empty": return AnyView(D2Fixture(screen: .searchEmpty))
@@ -159,6 +161,10 @@ enum DesignFixtureRegistry {
         case "r3-roam-my-teams-empty": return RoamR3NearbyFixture.make(.mineEmpty)
         case "r3-roam-my-teams-error": return RoamR3NearbyFixture.make(.mineFailure)
         case "r3-roam-my-teams-signedout": return RoamR3NearbyFixture.make(.mineSignedOut)
+        // mp-roam r3: 官方活动 (scene-roam-task-list) list / cy-empty 暂无进行中的活动 / cy-error 活动列表没能打开 + 重试.
+        case "r3-roam-tasks": return AnyView(NavigationStack { RoamOfficialTasksView(roamReader: RoamExperienceFixtureReader(scenario: .content), reader: OfficialFixtureReader(scenario: .content)) })
+        case "r3-roam-tasks-empty": return AnyView(NavigationStack { RoamOfficialTasksView(roamReader: RoamExperienceFixtureReader(scenario: .content), reader: OfficialFixtureReader(scenario: .empty)) })
+        case "r3-roam-tasks-error": return AnyView(NavigationStack { RoamOfficialTasksView(roamReader: RoamExperienceFixtureReader(scenario: .content), reader: OfficialFixtureReader(scenario: .failure)) })
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).

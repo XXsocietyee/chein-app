@@ -223,7 +223,7 @@ import SwiftUI
                     TimelineView(.periodic(from: .now, by: 1)) { context in
                         if pool.isTimerExpired(at: context.date) {
                             Text("teamPool.timerExpired")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(CYColor.dangerText)
                         } else if let remaining = pool.remainingTimerSeconds(at: context.date) {
                             Text(verbatim: c.t("全队计时剩余 \(TeamPoolHintSection.formatDuration(remaining))",
                                                "Team timer \(TeamPoolHintSection.formatDuration(remaining))"))
