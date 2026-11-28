@@ -111,7 +111,7 @@ import SwiftUI
             }
         }
         .cySheet(isPresented: $showShare) { Group {
-            if case .ready(let detail) = state { CatalogShareCardView(content: shareContent(detail), tint: .ember) }
+            if case .ready(let detail) = state { CatalogShareCardView(content: shareContent(detail), tint: .ember, link: PublicContentShareLink.officialRoute(id: routeID)) }
         }.cySheet() }
         .task { await load() }
         .accessibilityIdentifier("officialRoute.detail")

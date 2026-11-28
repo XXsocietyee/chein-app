@@ -153,6 +153,20 @@ public enum PublicContentShareLink {
         return reviewedPage("subpackageA/pages/infomationdetail/infomationdetail", items: [URLQueryItem(name: "id", value: String(id))])
     }
 
+    /// Mini-program `pages/activity/official-detail/index?id=` (MP official-detail index.js:651 `onShareAppMessage`).
+    /// mp-nav r3: the official event share card carries this link. Nil for a non-canonical id or when it would not parse back.
+    public static func officialEvent(id: Int) -> URL? {
+        guard canonicalID(String(id)) != nil else { return nil }
+        return reviewedPage("pages/activity/official-detail/index", items: [URLQueryItem(name: "id", value: String(id))])
+    }
+
+    /// Mini-program `subpackageRoam/official-route/index?id=` (MP official-route index.js:9 `SHARE_PATH`, :57-60).
+    /// mp-nav r3: the official route share card carries this link. Nil for a non-canonical id or when it would not parse back.
+    public static func officialRoute(id: String) -> URL? {
+        guard canonicalID(id) != nil else { return nil }
+        return reviewedPage("subpackageRoam/official-route/index", items: [URLQueryItem(name: "id", value: id)])
+    }
+
     /// Path text when the information page is not a universal link. Not a URL.
     public static func informationCopyText(id: Int) -> String? {
         guard canonicalID(String(id)) != nil, information(id: id) == nil else { return nil }
