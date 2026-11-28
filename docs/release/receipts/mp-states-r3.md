@@ -196,6 +196,8 @@ Sweep check (build ffeef67c7, `docs/sweeps/latest/mp-states/sheet-zh-Hans.jpg`):
 launch screen while `en-e4-tickets-error.jpg` renders. `TicketWalletFixtureReader` (`.failure`) throws synchronously with no
 delay or locale-dependent path, so this reads as a capture-timing flake in the sweep — please re-capture that tile.
 
+**Half done (run 11-28 ~18:10):** first half of the open rows (17:30 P1 login fixtures, P2 launch-logo tiles) closed; the search-overlay row is the B half; P1-9 stays blocked on the backend. Run stopped per the collision-fix rule.
+
 ## Not done
 
 | Screen | MP state | Why not done |
