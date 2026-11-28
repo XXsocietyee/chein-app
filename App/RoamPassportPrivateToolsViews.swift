@@ -726,12 +726,7 @@ extension RoamGoalState {
         }
         .onDisappear { retire(leaving: true) }
         .confirmationDialog("roam.goals.cancelTitle", isPresented: Binding(get: { model.cancelReview != nil }, set: { if !$0 { model.keepGoal() } }), titleVisibility: .visible) {
-            Button("roam.goals.cancelGoal", role: .destructive) {
-                page.settle(write: true, { await model.confirmCancel() }, refresh: { await model.load() }, finished: { (_: Void) in
-                    // Motion r3: the server confirmed the cancellation (detail now reads 已取消).
-                    if model.detail?.state == .cancelled { HapticsService.shared.play(.success) }
-                })
-            }.accessibilityIdentifier("roam.goals.confirmCancel")
+            Button("roam.goals.cancelGoal", role: .destructive) { page.settle(write: true, { await model.confirmCancel() }, refresh: { await model.load() }, finished: Self.cancelSettled(model)) }.accessibilityIdentifier("roam.goals.confirmCancel")
             Button("roam.goals.keep", role: .cancel) { model.keepGoal() }
         } message: { Text("roam.goals.cancelMessage") }
         .background { RoamHostedAccessibilityGroup(items: goalsAccessibilityItems) }
@@ -799,6 +794,12 @@ extension RoamGoalState {
         if leaving { creating = false; startDate = ""; endDate = "" }
     }
     private func isRejection(_ issue: RoamPrivateToolIssue) -> Bool { if case .rejected = issue { return true }; return false }
+    /// Motion r3: one success tap once the server confirms the cancellation (detail reads 已取消).
+    private static func cancelSettled(_ model: RoamGoalsCoordinator) -> @MainActor (Void) -> Void {
+        return { (_: Void) in
+            if model.detail?.state == .cancelled { HapticsService.shared.play(.success) }
+        }
+    }
     private func usePeriod(_ kind: RoamGoalPeriod.Kind) {
         guard let value = model.periods.first(where: { $0.kind == kind }) else { return }
         period = kind; startDate = value.startDate; endDate = value.endDateExclusive
