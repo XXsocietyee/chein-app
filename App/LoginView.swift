@@ -86,14 +86,11 @@ struct LoginView: View {
         }
     }
 
-    /// The sign-in form, split out of `stack(_:)` so each part type-checks in time.
-    private func loginForm(_ model: AuthChannelModel) -> some View {
-        Form {
-            loginHeaderSection
-            if !consentGranted {
-                // Asked here only when the launch agreement was declined (P-008: consent is asked once).
-                UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
-            }
+    /// Phone entry, split out of `loginForm(_:)` so the form type-checks in time.
+    @ViewBuilder private var phoneEntrySection: some View {
+        // Owner 11-28 04:30 (P27 order): phone first in both markets (+86 / +1, default from the market);
+        // the US page appears once the deployment verified `.internationalPhone`, otherwise nothing renders.
+        if session.supportsPhoneSignIn {
             Section {
                 Button {
                     session.weChatAuth.cancel(); password=""; path.append(.phone)
@@ -110,8 +107,20 @@ struct LoginView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             }
-            // Owner 11-28 04:30 / P27 order: phone first (+86 / +1 in both markets), then the third-party row —
-            // WeChat (CN), Alipay (CN), then Sign in with Apple (both markets). Gated channels render nothing.
+        }
+    }
+
+    /// The sign-in form, split out of `stack(_:)` so each part type-checks in time.
+    private func loginForm(_ model: AuthChannelModel) -> some View {
+        Form {
+            loginHeaderSection
+            if !consentGranted {
+                // Asked here only when the launch agreement was declined (P-008: consent is asked once).
+                UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
+            }
+            phoneEntrySection
+            // Owner 11-28 04:30 / P27 order: phone first (+86 / +1), then the third-party row — WeChat (CN), Alipay (CN),
+            // then Sign in with Apple (both markets; Apple's own button). Gated channels render nothing.
             if session.operationalMarket == .china && consentGranted {
                 WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
                 AlipayAppAuthSection(coordinator: session.makeAlipayAuthCoordinator(), context: session.authChannelSnapshot)
@@ -168,9 +177,8 @@ struct LoginView: View {
     @ViewBuilder private func loginDestination(_ route: LoginRoute, model: AuthChannelModel) -> some View {
         switch route {
         case .phone:
-            // Owner 11-28 04:30: the US market signs in by phone (+1) too; the country menu defaults from the market.
             AuthChannelView(embeddedModel: model, sessionSnapshot: session.authChannelSnapshot,
-                            domesticPhoneVisible: session.supportsPhoneSignInInput)
+                            domesticPhoneVisible: session.supportsPhoneSignIn)
 #if DEBUG
                 .onAppear { recordIntegratedLoginPhase("channels_appear") }
                 .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
@@ -320,9 +328,4 @@ private struct LoginAuthChannelHost<Content: View>: View {
     }
 
     var body: some View { content(model) }
-}
-
-extension AppSession {
-    /// Owner 11-28 04:30: phone sign-in in both markets (+86 China digits, +1 E.164); the coordinator still gates the service.
-    var supportsPhoneSignInInput: Bool { operationalMarket != nil }
 }

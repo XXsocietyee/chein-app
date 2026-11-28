@@ -24,19 +24,21 @@ final class RegionalEntryFlowTests:XCTestCase {
         launch("CN",first:false)
         XCTAssertTrue(app.staticTexts["Let's go"].waitForExistence(timeout:5))
     }
+    /// Owner 11-28 04:30: the US gets +1 phone + Apple, each shown only once the deployment verified it (P27: a
+    /// gated channel renders nothing, no "not available in your region" notice). This UI-test deployment verifies
+    /// nothing, so the US sheet shows no China credential form and no phone page.
     func testUSDefaultsEnglishAndCannotUseChinaCredentialForms() {
         launch("US")
         XCTAssertTrue(app.staticTexts["Let's go"].waitForExistence(timeout:5))
         app.buttons["welcome.player"].tap()
-        XCTAssertTrue(app.buttons["auth.otherChannels"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["auth.close"].waitForExistence(timeout:5))
         XCTAssertFalse(app.secureTextFields.firstMatch.exists)
-        // Owner 11-28 04:30: no "not available in your region" row; the US signs in by phone (+1).
         XCTAssertFalse(app.staticTexts["region.auth.pending"].exists)
-        app.buttons["auth.otherChannels"].tap()
-        XCTAssertTrue(app.textFields["auth.channels.phone"].waitForExistence(timeout:5))
-        XCTAssertEqual((app.buttons["auth.phone.countryCode"].value as? String)?.hasSuffix("+1"), true)
+        XCTAssertFalse(app.buttons["auth.otherChannels"].exists)
+        XCTAssertFalse(app.textFields["auth.channels.phone"].exists)
+        XCTAssertFalse(app.buttons["auth.channels.sendCode"].exists)
         XCTAssertFalse(app.buttons["auth.channels.appleSignIn"].exists)
-        let shot=XCTAttachment(screenshot:app.screenshot());shot.name="US phone sign-in (+1) – no password form";shot.lifetime = .keepAlways;add(shot)
+        let shot=XCTAttachment(screenshot:app.screenshot());shot.name="US login – gated channels render nothing";shot.lifetime = .keepAlways;add(shot)
     }
     func testUSCanChooseChineseWithoutEnablingDomesticPhone() {
         launch("US")
@@ -48,11 +50,12 @@ final class RegionalEntryFlowTests:XCTestCase {
         app.buttons["完成"].tap()
         XCTAssertTrue(app.staticTexts["出发吧"].waitForExistence(timeout:5))
         app.buttons["welcome.player"].tap()
-        XCTAssertTrue(app.buttons["auth.otherChannels"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["auth.close"].waitForExistence(timeout:5))
         XCTAssertFalse(app.staticTexts["region.auth.pending"].exists)
         XCTAssertFalse(app.secureTextFields.firstMatch.exists)
-        app.buttons["auth.otherChannels"].tap()
-        XCTAssertTrue(app.textFields["auth.channels.phone"].waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["auth.otherChannels"].exists)
+        XCTAssertFalse(app.textFields["auth.channels.phone"].exists)
+        XCTAssertFalse(app.buttons["auth.channels.sendCode"].exists)
     }
 
     func testComputedLabelsUseSelectedLanguageInsteadOfDeviceLanguage() {

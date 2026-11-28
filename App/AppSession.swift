@@ -7304,7 +7304,7 @@ final class AppSession: ObservableObject {
 #else
             service=nil
 #endif
-            authChannelService=regional.canUseDomesticChinaPhone ? AuthChannelService(configuration:configuration,transport:transport,allowLoginRoleFallback:composition.reviewed?.allowLoginRoleFallbackOnRolelessUserInfo ?? false) : nil
+            authChannelService=regional.canUsePhoneSignIn ? AuthChannelService(configuration:configuration,transport:transport,allowLoginRoleFallback:composition.reviewed?.allowLoginRoleFallbackOnRolelessUserInfo ?? false) : nil
             searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap, .publicMapLayers]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
             mapPublicLayerService=composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false && regional.showsRoute("/api/map/public-layers") ? MapPublicLayerService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
             activityService=ActivityService(configuration:configuration,transport:transport)
