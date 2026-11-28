@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading featured examples"
+            "value": "Loading featured examples…"
           }
         },
         "zh-Hans": {
@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Featured examples could not be loaded."
+            "value": "Couldn’t load featured examples"
           }
         },
         "zh-Hans": {
@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry examples"
+            "value": "Try again"
           }
         },
         "zh-Hans": {

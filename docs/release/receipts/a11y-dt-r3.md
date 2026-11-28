@@ -364,6 +364,21 @@ same a11y fixtures read in run 20 (passport / badges / roam AX5 clean), no open 
 | Club governance command form, bundle commerce, channel management, external game import, publisher lifecycle, series schedule editor | `ClubGovernanceCommandForm.swift`, `BundleCommerceMount.swift`, `NativeChannelManagementViews.swift`, `ExternalGameImportView.swift`, `PublisherLifecycleViews.swift`, `ClubSeriesScheduleEditor.swift` | ✓ | Audit: system Form / List rows; only zero-size anchors and 44 pt / 24 pt icon frames; no raw sizes or 1-line limits. No change | Done |
 | Timed game clock, exploration export file row, club post image row, parity kit glow | `NativeR2/Games/NativeGameTimedKit.swift:209`, `RoamExplorationExportView.swift:351`, `ClubPostImagePicker.swift:321`, `MPParityKit.swift:355` | ✓ | Audit: clock digits are one number (scale factor keeps it on one line, VoiceOver reads the value); file name / image URL middle-truncate under a wrapping title; glow decorative. No change | Done |
 
+## Run 22 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7` (ad55acd94), clean. Sweep index still 41374363f (a11y fixtures read in run 20, clean), no
+open coordinator finding for this lane. Pages without a row (largest player views):
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/club` 管理 → 入会申请 list | `ClubManagementView.swift:176` | ✓ (mp-club owns order) | Handled request card slide-out `.easeOut` always → no animation under Reduce Motion | Done |
+| `pages/publishkit` 发布预览 查看将提交的全部内容 | `ProjectEditDetailForms.swift:593` (`ProjectEditReviewView`) | ✓ (mp-publish owns order) | Expand/collapse `withAnimation` always → none under Reduce Motion (chevron flips, value read "expanded/collapsed") | Done |
+| `subpackageJourney` free-explore store map | `NativeR2/FreeExplore/NativeFreeExploreMapView.swift:559` | ✓ (mp-journey owns order) | Camera fly to the focused store animated always → jumps under Reduce Motion (draw-on already gated) | Done |
+| `pages/club` 报名名单 per-session money (owner) | `ClubEnrollmentView.swift:341` | ✓ (mp-club owns order) | Session label `.lineLimit(1)` → wraps at AX sizes | Done |
+| MP reviewed page screen, UGC safety, cooperation flow editors, play-area popups, story rule editor, mod upgrade | `MPReviewedPageScreen.swift`, `UGCSafetyComponents.swift`, `CooperationFlowEditors.swift`, `PlayAreaPopupCloseSurfaces.swift`, `StoryRuleEditorView.swift`, `ModUpgradeView.swift` | ✓ | Audit: no raw sizes, tap gestures, 1-line limits or unguarded animations; ModUpgrade "a / b" facts are id pairs (not counts, read as text). No change | Done |
+| `subpackageJourney` 背包 (team + theme) | `PlayTeamBackpackView.swift:72`, `PlayThemeBackpackView.swift:115,461` | ✓ (mp-journey owns order) | Value "8 / 10" read "slash" → new key `a11y.value.ofTotalText %@ %@` ("8 of 10" / "8，共 10"; values are server number strings); zero-HP recovery progress → `a11y.value.ofTotal` | Done |
+| `subpackageTools` 摇球 (ball shake) board | `NativeR2/Games/NativeGameSensorKit.swift:148` | ✓ (mp-journey owns order) | Big "hits / goal" combined read "3 slash 10, hits" → label "Hits", value `a11y.value.ofTotal` | Done |
+| Account publish float cards, game shell score, chance kits DC gauge, G6 / NPC chat / official event thumbs | `AccountPublishR8Mounts.swift:839`, `NativeGameShell.swift:371`, `ChanceKits.swift:350`, `G6CapabilityViews.swift`, `NPCChatDataView.swift`, `OfficialEventDetailView.swift` | ✓ | Audit: float and score count-up already gated on Reduce Motion; DC gauge has its own label; fixed thumbs decorative + hidden. No change | Done |
+
 ## Not done (next run starts here)
 - Continue pages without a row (largest player views next; pick by `wc -l App/*.swift`, skip Merchant / Fixture / Diagnostics).
 - Re-read the a11y sheets after the next sweep (newer than 41374363f).

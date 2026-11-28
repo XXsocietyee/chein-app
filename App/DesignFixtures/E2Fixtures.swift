@@ -145,7 +145,9 @@ private struct E2BadgeDetailHost: View {
         self.offlineFailure = offlineFailure
         let config = try! APIConfiguration(baseURL: URL(string: "https://fixture.example/native/")!)
         let session = try? PlayExperienceSession(accountID: 9001, epoch: 1, namespace: "synthetic-play-cn", token: "synthetic-token")
-        let service = PlayExperienceService(configuration: config, transport: Rep3PlayFixtureTransport(offlineFailure: offlineFailure), enabled: [.reads, .playerCommands])
+        // mp-journey r3 (sweep rep3-task-play): `.runPersistence` like the live lease (ReviewedPlayerWriteLeases), so 开始 and
+        // 结束 render enabled as players see them; it only writes on pause / end, which the sweep never taps.
+        let service = PlayExperienceService(configuration: config, transport: Rep3PlayFixtureTransport(offlineFailure: offlineFailure), enabled: [.reads, .playerCommands, .runPersistence])
         _model = State(initialValue: PlayExperienceCoordinator(scope: .activity(41), service: service, recovery: PlayMemoryCompletionRecovery(), pausedStorage: PlayMemoryPausedStorage(), currentSession: { session }))
     }
 

@@ -111,6 +111,8 @@ enum DesignFixtureRegistry {
         case "d4-ops-create": return AnyView(D4ClubOpsFixture(screen: .operations(create: true)))
         case "d4-ops-facts": return AnyView(D4ClubOpsFixture(screen: .operationsFacts(unknown: false)))
         case "d4-ops-facts-unknown": return AnyView(D4ClubOpsFixture(screen: .operationsFacts(unknown: true)))
+        case "d4-event-ops": return AnyView(D4ClubOpsFixture(screen: .eventOps(emptySeries: false)))
+        case "d4-event-ops-empty": return AnyView(D4ClubOpsFixture(screen: .eventOps(emptySeries: true)))
         // D5 merchant console (synthetic data, light, real views under .roleTheme(.merchant))
         case "merchant-home": return merchantConsoleFixture(.home)
         case "merchant-home-unknown": return merchantConsoleFixture(.homeUnknown)
@@ -122,6 +124,10 @@ enum DesignFixtureRegistry {
         case "d6-play": return AnyView(D6MapFixture(kind: .play))
         case "d6-play-loading": return AnyView(D6MapFixture(kind: .playLoading))
         case "d6-roam": return AnyView(D6MapFixture(kind: .roam))
+        // mp-roam r3: 漫游记录 (subpackageRoam/history) content / empty / error states for the sweep.
+        case "r3-roam-history": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .content), toolsReader: RoamPassportToolsFixtureReader(scenario: .content)) })
+        case "r3-roam-history-empty": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
+        case "r3-roam-history-error": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).

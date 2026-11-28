@@ -315,7 +315,7 @@
       "zh-Hans": "这场活动怎么卖票？"
     },
     "activityPublishing.review.createHeading": {
-      "en": "Summary before publishing",
+      "en": "Review before publishing",
       "zh-Hans": "发布前摘要"
     },
     "activityPublishing.review.editHeading": {
@@ -538,12 +538,12 @@
     },
     {
       "id": "publishModes.activity.reviewSummary",
-      "en": "Summary before publishing",
+      "en": "Review before publishing",
       "zh-Hans": "发布前摘要"
     },
     {
       "id": "publishModes.activity.reviewSummary.heading",
-      "en": "Summary before publishing",
+      "en": "Review before publishing",
       "zh-Hans": "发布前摘要"
     },
     {

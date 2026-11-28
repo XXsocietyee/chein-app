@@ -209,6 +209,21 @@ Gates: scaffold, a11y, design consistency PASS; ratchet 52/52 new 0. Coordinator
 |---|---|---|---|
 | `pages/activity/baoming/baoming` 费用明细 ticket row (wxml:149-153 `money.amount(selectedTicket.price)`) and ticket popup (wxml:133) | `App/RegistrationSheetView.swift` `ticketSection`, ticket sheet rows, new `ticketPriceText` | screenshot `zh-Hans-t5-baoming` (coordinator 01:50): 票种价格 rendered a bare 「—」 for the ¥12.5 fixture ticket because the money switch was closed (the ticket popup subtitle did the same). The price is now always shown as the MP does: ¥ amount via `RegistrationUIMoney.display(…, currencyCode: CNY)`, 免费 / Free when 0, 价格待定 / Price to be confirmed when the server sends no price. Checkout / pay amounts stay gated by the money switch | no lone dash; monospaced digits; both languages |
 
+## Round 3 continue (2026-11-28, twenty-second session — sweep 02:10 build 41374363f)
+Merged `origin/ui/combined-r7` (41374363f, clean). Gates: scaffold, a11y (0 new), design consistency PASS; ratchet 52/52 new 0; registration parity suite OK. Sweep sheets `mp-activity/sheet-{zh-Hans,en}.jpg` predate the 票种价格 fix (172c6ffc9, already in combined-r7). Not done list unchanged (all rows are documented keeps).
+
+| MP page | Native view | Change | Optimization |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` 费用明细 订单金额 (wxml:149-153, the selected ticket's listed price) | `App/RegistrationSheetView.swift` `quoteSection`, `RegistrationAmountRow(listedPrice:)` | screenshot `zh-Hans/en-t5-baoming`: 订单金额 / Order amount still rendered a bare 「—」 under the now-priced 票种价格 row (the money switch blanked every amount). The order-amount row now shows the listed price exactly like 票种价格 (¥ amount, 免费 / Free at 0, 价格待定 / Price to be confirmed when unpriced); deductions, total and the pay CTA stay gated by the money switch | no lone dash; monospaced digits; both languages |
+| `subpackagePass/pages/passes/index` mk-card__foot (wxml:34-36: cover line + price) | `App/PassMarketViews.swift` `PassProductCardView` | screenshot `en-t5-pass-market`: "Covers 3 plays · 2 people" broke mid-phrase onto two lines beside "¥168.00 / 1,200 points". The foot is now `ViewThatFits`: one row (cover leading, price trailing) when both fit unbroken, otherwise the price stacks under the cover line; AX sizes always stack. zh (含 3 个作品 · 2 人) keeps one row | stack instead of wrap/shrink; Dynamic Type text styles only |
+
+## Round 3 continue (2026-11-28, twenty-third session — sweep 02:10 build 41374363f, no newer sweep)
+Merged `origin/ui/combined-r7` (ad55acd94, clean). Gates: scaffold, a11y (0 new), design consistency PASS; ratchet 52/52 new 0. No open coordinator finding for this lane; Not done rows are documented keeps, so this session works the 01:40 "Next round" list (motion and feedback).
+
+| MP page | Native view | Change | Optimization |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` 票种 popup, 参与人信息 popup, bottom-bar sharing consent | `App/RegistrationSheetView.swift` (Form modifiers) | Next round item 2: the player's own choices were silent (only the blocked Register tap had a warning haptic). A selection haptic now plays when the ticket or saved participant changes from one value to another and when the consent toggle flips; the automatic preselect on load (nil → id) stays silent. Motion spec: trigger = tap in the popup / toggle → nothing moves (haptic only) → title, bottom bar fixed → system selection feedback via `cyHaptic` → no motion, so no Reduce Motion fallback needed | `.selection` feedback on choices, `.warning` kept on blocked submit |
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
