@@ -524,9 +524,19 @@ Gates: generate_project OK · check_scaffold PASS (21277 keys) · a11y lint 0 ne
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. Contract checks `test_roam_audit_p1_location_maps.py` OK (7). No Swift build here.
 
+## Round 3 continue (38) — function audit P1-21 rest (导航 offers AMap / Baidu Maps)
+
+Base re-merged with `origin/ui/combined-r7` (clean; `fix/1128-wechat-login` landed, so Info.plist `LSApplicationQueriesSchemes` is free to extend). No open coordinator finding for mp-roam. Map panel settled (02:05) — not touched.
+
+| Audit id | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| **P1-21** (rest, Not done since continue 36) | `subpackageRoam/components/roam-place-card` 导航 + `utils/open-address.js` (`wx.openLocation`: WeChat's map page lets the player pick Apple Maps / 高德 / 百度) → `Core/PlatformExternalMaps.swift` (`PlatformMapApp`, `PlatformMapDestination.launchURL(in:)`), `App/NativePlatformAdapters.swift` `NativePlatformMapOpener`, `App/PlatformConsumerViews.swift` `PlatformExternalMapButton`, `App/NativeR2/MapHome/RoamMapHomePlaceCard.swift` `directionsActions`, `Config/Info.plist` | 导航 could only send the place to Apple Maps. | The opener lists Apple Maps plus AMap / Baidu Maps when `canOpenURL` finds them (`iosamap`, `baidumap` added to `LSApplicationQueriesSchemes`); the review dialog shows one system button per installed app (高德地图 / 百度地图 / Apple 地图, title 用哪个地图打开这个目的地？) and keeps the old single "在 Apple 地图中打开" button when only Apple Maps is there. Walking directions, GCJ-02 coordinates as-is (`dev=0`, `coord_type=gcj02`, like the MP `gcj02` fixes). Same result states / copy-address fallback. Protocol additions have defaults, so the other callers (free explore, coupons, meeting point) keep Apple Maps unchanged. Core test `PlatformConsumerTests.testMapAppChoiceOpensChosenAppWithGCJWalkingLink`; contract pin `test_universal_link_associated_domains.py` re-pinned (one-line reason). New keys `platform.map.app.apple/amap/baidu`, `platform.map.choose` (en + zh-Hans). | B · place card / A · live 地点卡 |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. Contract checks `test_universal_link_associated_domains.py` + `test_roam_audit_p1_location_maps.py` OK (11). No Swift build here.
+
 ## Not done / next
 
-- Function audit (mp-roam, not on a fix worker): P1-21 rest (AMap / Baidu after Info.plist queries schemes), P1-22 city-game region (owner value), P1-25 US roam,
+- Function audit (mp-roam, not on a fix worker): P1-21 done (continue 38), P1-22 city-game region (owner value), P1-25 US roam,
   P2-7 rest (`/api/roam/checkin` from 点亮: the MP posts it when the player taps a *built-in* map POI (`bindpoitap`); native needs MapKit feature
   selection (`MapSelection<MapFeature>`, iOS 18) beside the existing pin selection plus a `.checkin` capability (`productionEnabled` false today) — compiled pass).
 

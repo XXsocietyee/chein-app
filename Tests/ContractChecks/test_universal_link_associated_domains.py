@@ -28,7 +28,8 @@ class UniversalLinkAssociatedDomains(unittest.TestCase):
                       self.read("Questify.xcodeproj/project.pbxproj"))
         info = plistlib.loads((ROOT / "Config/Info.plist").read_bytes())
         self.assertEqual([t["CFBundleURLSchemes"] for t in info["CFBundleURLTypes"]], [["$(QUESTIFY_WECHAT_APP_ID)"], ["chein"]])
-        self.assertEqual(info["LSApplicationQueriesSchemes"], ["weixin", "weixinULAPI", "weixinURLParamsAPI", "alipay"])
+        # P1-21 (mp-roam): iosamap / baidumap let 导航 offer AMap and Baidu Maps when installed.
+        self.assertEqual(info["LSApplicationQueriesSchemes"], ["weixin", "weixinULAPI", "weixinURLParamsAPI", "alipay", "iosamap", "baidumap"])
         self.assertNotIn("applinks:", self.read("Config/Info.plist"))
         self.assertNotIn("applinks:", self.read("Config/Base.xcconfig"))
 

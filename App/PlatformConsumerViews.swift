@@ -50,8 +50,10 @@ import SwiftUI
                 CYPillButton("platform.map.copy", style: .tertiary) { model.copySelectedAddress() }.accessibilityIdentifier("platform.map.copy")
             }
         }
-        .confirmationDialog("platform.map.review", isPresented: $review, titleVisibility: .visible) {
-            Button("platform.map.open") { let selected = destination; Task { await model.openReviewedDestination(selected) } }
+        .confirmationDialog(PlatformMapApp.reviewTitle(model.apps), isPresented: $review, titleVisibility: .visible) {
+            ForEach(model.apps, id: \.self) { app in
+                Button(PlatformMapApp.label(app, among: model.apps)) { open(in: app) }
+            }
             Button("platform.cancel", role: .cancel) {}
         } message: { Text(verbatim: destination.copyText) }
         .onAppear { model.select(destination) }
@@ -59,6 +61,27 @@ import SwiftUI
         .onChange(of: scope) { _, _ in review = false; model.select(destination) }
         .onChange(of: scenePhase) { _, next in if next != .active { review = false; model.invalidate() } else { model.select(destination) } }
         .onDisappear { review = false; model.invalidate() }
+    }
+    private func open(in app: PlatformMapApp) {
+        let selected = destination
+        Task { await model.openReviewedDestination(selected, in: app) }
+    }
+}
+/// P1-21: one wording for the map-app choice everywhere the review dialog appears.
+extension PlatformMapApp {
+    var titleKey: LocalizedStringKey {
+        switch self {
+        case .apple: return "platform.map.app.apple"
+        case .amap: return "platform.map.app.amap"
+        case .baidu: return "platform.map.app.baidu"
+        }
+    }
+    /// Only Apple Maps installed keeps the old single "Open in Maps" button.
+    static func label(_ app: PlatformMapApp, among apps: [PlatformMapApp]) -> LocalizedStringKey {
+        apps.count > 1 ? app.titleKey : "platform.map.open"
+    }
+    static func reviewTitle(_ apps: [PlatformMapApp]) -> LocalizedStringKey {
+        apps.count > 1 ? "platform.map.choose" : "platform.map.review"
     }
 }
 

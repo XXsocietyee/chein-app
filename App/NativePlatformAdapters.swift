@@ -228,6 +228,20 @@ extension NativePlatformAudioDriver: PlatformAudioTransporting {
         // Selected destination only; no location manager, live origin, routing, or permission prompt.
         return item.openInMaps(launchOptions: nil)
     }
+    /// P1-21: Apple Maps always; AMap / Baidu Maps when installed (schemes listed in Info.plist).
+    func installedApps() -> [PlatformMapApp] {
+        var apps: [PlatformMapApp] = [.apple]
+        for app in [PlatformMapApp.amap, PlatformMapApp.baidu] {
+            guard let scheme = app.queryScheme, let probe = URL(string: scheme + "://") else { continue }
+            if UIApplication.shared.canOpenURL(probe) { apps.append(app) }
+        }
+        return apps
+    }
+    func open(_ destination: PlatformMapDestination, in app: PlatformMapApp) async -> Bool {
+        guard app != .apple else { return await open(destination) }
+        guard let url = destination.launchURL(in: app) else { return false }
+        return await UIApplication.shared.open(url)
+    }
 }
 @MainActor struct NativePlatformAddressCopier: PlatformAddressCopying {
     func copy(_ text: String) throws { LocalPasteboard.copy(text) }

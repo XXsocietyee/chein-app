@@ -20,7 +20,7 @@
         <dict><key>CFBundleTypeRole</key><string>Editor</string><key>CFBundleURLName</key><string>weixin</string><key>CFBundleURLSchemes</key><array><string>$(QUESTIFY_WECHAT_APP_ID)</string></array></dict>
         <dict><key>CFBundleTypeRole</key><string>Editor</string><key>CFBundleURLName</key><string>chein</string><key>CFBundleURLSchemes</key><array><string>chein</string></array></dict>
     </array>
-    <key>LSApplicationQueriesSchemes</key><array><string>weixin</string><string>weixinULAPI</string><string>weixinURLParamsAPI</string><string>alipay</string></array>
+    <key>LSApplicationQueriesSchemes</key><array><string>weixin</string><string>weixinULAPI</string><string>weixinURLParamsAPI</string><string>alipay</string><string>iosamap</string><string>baidumap</string></array>
     <key>NSPhotoLibraryAddUsageDescription</key><string>Save a walk card, a medal card, or a city stamp slip picture to Photos when you choose Save to Photos.</string>
     <key>NSSupportsLiveActivities</key><true/>
     <key>UIBackgroundModes</key><array><string>audio</string><string>location</string></array>
