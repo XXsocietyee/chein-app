@@ -63,7 +63,8 @@ import Combine
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Toggle("creator.field.terminal", isOn: editor.terminalBinding()).accessibilityIdentifier("creator.branch.terminal")
-            Text("templateBranch.terminalHint").cyText(.meta).foregroundStyle(.secondary)
+                .accessibilityHint(Text("templateBranch.terminalHint"))
+            Text("templateBranch.terminalHint").cyText(.meta).foregroundStyle(.secondary).accessibilityHidden(true)
             if editor.terminal {
                 Button("templateBranch.continueWithChoice", systemImage: "arrow.triangle.branch", action: editor.addAction())
                     .disabled(!editor.canAdd).accessibilityIdentifier("creator.branch.continue")

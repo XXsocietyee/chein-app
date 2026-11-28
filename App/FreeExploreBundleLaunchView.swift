@@ -271,7 +271,7 @@ import SwiftUI
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 4) {
                                 Text(verbatim: chapterName(unit.chapterId) ?? appLocalized("freeBundle.unit.fallback \(index + 1)", locale: locale))
-                                Text(verbatim: "·")
+                                Text(verbatim: "·").accessibilityHidden(true)
                                 Self.statusText(unit.status)
                             }
                             .accessibilityElement(children: .combine)
