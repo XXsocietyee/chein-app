@@ -121,7 +121,8 @@ import SwiftUI
     private func shareContent(_ detail: OfficialRouteDetail) -> CYShareCardContent {
         let route = detail.route
         let duration = OfficialRouteFormat.duration(route.totalMinutes, chinese: officialRouteIsChinese)
-        let distance = OfficialRouteFormat.distance(route.distanceKm)
+        let metric = OfficialRouteFormat.distance(route.distanceKm)
+        let distance = (!metric.isEmpty && LocaleDisplay.usesMiles(locale)) ? (LocaleDisplay.distance(kilometers: route.distanceKm, locale: locale) ?? metric) : metric
         let located = detail.nodes.filter { $0.latitude != nil && $0.longitude != nil }
         return CYShareCardContent(
             kind: .route,

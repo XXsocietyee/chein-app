@@ -5,6 +5,10 @@ enum OfficialRouteMeta {
     static func text(_ route: OfficialRoute, chinese: Bool) -> String {
         var distance = OfficialRouteFormat.distance(route.distanceKm)
         if chinese, distance.hasSuffix(" km") { distance = String(distance.dropLast(3)) + " 公里" }
+        // en-layout r3: US English reads road distances in miles, like the play HUD (`LocaleDisplay.distance`).
+        if !chinese, !distance.isEmpty, LocaleDisplay.usesMiles(Locale.current) {
+            distance = LocaleDisplay.distance(kilometers: route.distanceKm, locale: Locale.current) ?? distance
+        }
         return [route.city, distance, OfficialRouteFormat.duration(route.totalMinutes, chinese: chinese)]
             .filter { !$0.isEmpty }.joined(separator: " · ")
     }
