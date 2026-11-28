@@ -111,9 +111,10 @@ struct LoginView: View {
                 .listRowBackground(Color.clear)
             }
             // Owner 11-28 04:30 / P27 order: phone first (+86 / +1 in both markets), then the third-party row —
-            // WeChat (CN), then Sign in with Apple (both markets). Gated channels render nothing.
+            // WeChat (CN), Alipay (CN), then Sign in with Apple (both markets). Gated channels render nothing.
             if session.operationalMarket == .china && consentGranted {
                 WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
+                AlipayAppAuthSection(coordinator: session.makeAlipayAuthCoordinator(), context: session.authChannelSnapshot)
             }
             appleSignInSection(model)
             if showsPasswordForm {
