@@ -215,6 +215,7 @@ import SwiftUI
         .navigationDestination(isPresented: $showsAuthorProfile) {
             if let accountReader, let post, post.memberID > 0 {
                 SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions)
+                    .cyPushedChrome(domain: .player)
             }
         }
         .onChange(of: key) { _, _ in showsAuthorProfile = false; blockTarget = nil }
@@ -471,7 +472,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .firstTextBaseline) {
                     if let accountReader, comment.memberID > 0 {
-                        NavigationLink { SocialPublicProfileView(memberID: comment.memberID, reader: accountReader, squareReader: reader, actions: actions) } label: { commentAuthor(comment) }
+                        NavigationLink { SocialPublicProfileView(memberID: comment.memberID, reader: accountReader, squareReader: reader, actions: actions).cyPushedChrome(domain: .player) } label: { commentAuthor(comment) }
                             .buttonStyle(.borderless).tint(.primary)
                     } else {
                         commentAuthor(comment)
