@@ -13,7 +13,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "City point ownership and original receipts"
+            "value": "City spot ownership and receipts"
           }
         }
       }
@@ -149,7 +149,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "First city point ownership"
+            "value": "First claim on a city spot"
           }
         }
       }
