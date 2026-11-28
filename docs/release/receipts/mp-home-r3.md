@@ -267,9 +267,10 @@ Merged `origin/ui/combined-r7` (clean). Coordinator 23:50: the mp-home 19:15 / 1
 | MP page → native view | Difference (screenshot) | Fixed / not |
 |---|---|---|
 | `scene-play-activity-detail/index.wxml:55-62` `{{registrationCountText}} 人已报名` + avatars → `App/ActivityPeopleSection.swift` | `zh-Hans-rep3-activity-detail.jpg` / `en-…`: section 报名玩家预览 / "Participant preview" with a 报名总人数 24 row — the count repeats the 已报名 fact row right above, and the MP title is the count itself. MP also hides the section when there are no registrants. | **Fixed** — section only when `participants` is non-empty, header 「N 人已报名」 / "N going" (`activity.pinned.going %lld`; unknown count → 报名玩家预览), no total row; header keeps id `activity.people.total`. UI test `ActivityFlowTests` label → "12 going"; pin in `test_activity_topic_accessible_summaries.py` updated with a one-line reason. |
+| `pages/topic/index/index.wxml:302-316` 评价 empty → `App/TopicDetailView.swift` `Section("topic.comments")` | Continue-13 Not-done row: with no reviews the bordered 写评价 button sat above the 还没有评价 card, which is itself the write entry (two entries). | **Fixed** — the bordered button (`topic.openReview`) shows only when the empty card does not; the empty card button is unchanged (keeps `topic.reviews.empty`). `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` now asserts no `topic.openReview` in the empty state; `check_contextual_flows.py` still finds the id (its pre-existing failure at line 21, `ContextualTopicPicker`, is unrelated and fails on the base too). With reviews, 写评价 stays above the list (MP: trailing in the rating row) — kept. |
 
 ## Not done / follow-ups
-- 主题详情 评价: double write entry in the empty state (continue 13 row) — needs the UI test updated with a simulator.
+- ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
 - ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
 - Needs a simulator pass: P21 bar height over each tab's last row, zoom source/destination match on iOS 18 and 26, Reduce Motion crossfade, the roam HUD's persistent sheet inside the cover.
@@ -288,3 +289,4 @@ Merged `origin/ui/combined-r7` (clean). Coordinator 23:50: the mp-home 19:15 / 1
 - Needs a simulator pass (continue 12): zh `d2-search-results` row names.
 - Needs a simulator pass (continue 14): `d2-home` 编辑精选 card name.
 - Needs a simulator pass (continue 15): activity detail 「N 人已报名」 section header (and the `ActivityFlowTests` label "12 going").
+- Needs a simulator pass (continue 15): `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` with one write entry.
