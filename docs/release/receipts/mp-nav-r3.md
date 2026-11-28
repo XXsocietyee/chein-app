@@ -341,3 +341,13 @@ Sections / order unchanged; navigation only.
 Pins: Tests/ContractChecks/test_pkg19_login_deletion_chain.py:58-59 (phone page follows any configured market, owner 04:30); Tests/AppUITests/RegionalEntryFlowTests.swift US cases now expect the +1 phone field instead of the pending row. Note: a US *build* still has no approved host (`ReviewedMarketLaunch.approvedBaseURLs`), so there the phone page shows the existing `auth.notConfigured` line until a host is approved (coordinator/backend).
 
 Pins (Alipay commit): Tests/ContractChecks/test_remaining_native_clients.py:46 splits at `func commitChannelLogin(` (now internal so the Alipay channel shares the WeChat commit; `weChatContext` also internal).
+
+## Re-scan 11-28 06:xx — US phone gating (after the parallel 04:30 commits above)
+
+A parallel run of this lane showed the US phone page for any configured market (`supportsPhoneSignInInput`), but the US had no `AuthChannelService` (built for the CN capability only), so the page ended on the dead `auth.notConfigured` row (20:55 sweep finding, P27). Order phone → WeChat → Alipay → Apple kept; Alipay adapter = the one above (my duplicate dropped).
+
+| item | before | after | status |
+|---|---|---|---|
+| 1b. US +1 phone, gated | US phone page always shown, no service behind it | `RegionalConfiguration.implementedCapabilities` US = `[.internationalPhone]` + `canUseInternationalPhone` / `canUsePhoneSignIn`; `authChannelService` built for `canUsePhoneSignIn` (App/AppSession.swift); `AppSession.supportsPhoneSignIn` (App/AppSession+PhoneSignIn.swift) = CN, or US once the deployment verifies `.internationalPhone`; LoginView `phoneEntrySection` renders the phone row only then; AuthChannelView keeps only a status footer when phone is hidden. Unit test `RegionalConfigurationTests.testUSPhoneNeedsVerificationAndBackend` | fixed (not compiled here) |
+
+Pins: test_pkg19_login_deletion_chain (`canUsePhoneSignIn` / `supportsPhoneSignIn`), test_regional_storage_boundaries, test_cn_native_login_contract (US implements `.internationalPhone`), RegionalConfigurationTests + USAppleServiceTests (US all-verified set = `[.internationalPhone]`), RegionalEntryFlowTests (UI-test deployment verifies nothing → US sheet shows no pending notice and no phone row).

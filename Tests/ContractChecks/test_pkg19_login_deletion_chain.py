@@ -48,15 +48,14 @@ class Pkg19LoginDeletionChain(unittest.TestCase):
 
     def test_cn_only_auth_service_and_apple_hard_off(self):
         session = src('App/AppSession.swift')
-        self.assertIn('authChannelService=regional.canUseDomesticChinaPhone ? AuthChannelService(', session)
+        # Owner 11-28 04:30: US +1 phone shares the service, still behind a verified regional capability.
+        self.assertIn('authChannelService=regional.canUsePhoneSignIn ? AuthChannelService(', session)
         coordinator = block(session, 'lazy var authChannels=AuthChannelCoordinator(', 700)
         self.assertNotIn('appleConfigurationVerified', coordinator)
         core = src('Core/AuthChannelCoordinator.swift')
         self.assertIn('appleConfigurationVerified: Bool = false', core)
         self.assertIn('guard appleConfigurationVerified else { reject(.appleNotConfigured); return nil }', core)
-        # Owner 11-28 04:30: US signs in by phone (+1) too, so the phone page follows any configured market.
-        self.assertIn('domesticPhoneVisible: session.supportsPhoneSignInInput', src('App/LoginView.swift'))
-        self.assertIn('var supportsPhoneSignInInput: Bool { operationalMarket != nil }', src('App/LoginView.swift'))
+        self.assertIn('domesticPhoneVisible: session.supportsPhoneSignIn', src('App/LoginView.swift'))
         self.assertIn('var supportsDomesticPhoneInput:Bool { operationalMarket == .china }', session)
         for path in ['App', 'Core']:
             for file in (ROOT / path).glob('*.swift'):

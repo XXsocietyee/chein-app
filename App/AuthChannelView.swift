@@ -169,11 +169,9 @@ struct PhoneSignInForm<AppleContent: View>: View {
                         Text("auth.phone.or").textCase(nil)
                     }
                 }
-            } else {
-                // Phone entry hidden by the host: nothing for the channel itself (P27), only a live status.
-                Section {} footer: {
-                    status
-                }
+            } else if issueKey != nil {
+                // Owner 11-28 04:30: no regional "not available" notice; a gated phone channel renders nothing (P27).
+                Section {} footer: { status }
             }
             if notConfigured {
                 Section {
