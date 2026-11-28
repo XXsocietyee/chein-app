@@ -8,6 +8,8 @@ import FoundationNetworking
 /// ImServiceImpl.unreadTotal). Failure is silent in the source: no badge.
 public struct IMUnreadTotalService {
     public static let path = "api/im/unread-total"
+    /// Call sites build a new service per badge read. The value is dropped when the flight finishes.
+    private static let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let enabled: Bool
@@ -21,8 +23,12 @@ public struct IMUnreadTotalService {
         var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(Self.path), fields: [:], token: token)
         request.httpShouldHandleCookies = false
         try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
+        let response = try await Self.reads.join(InFlightReadKey.request(request)) {
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
         try Task.checkCancellation()
+        let (data, status) = (response.data, response.status)
         guard (200..<300).contains(status) else { throw MessagingReadFailure(httpStatus: status) }
         return try Self.decode(data)
     }

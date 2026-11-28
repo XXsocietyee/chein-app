@@ -80,7 +80,7 @@
     "zh-Hans": "查看结局与同行者榜"
   },
   "playx.stopwatch": {
-    "en": "Stopwatch challenge",
+    "en": "Stopwatch quest",
     "zh-Hans": "秒表挑战"
   },
   "playx.ending": {
@@ -160,7 +160,7 @@
     "zh-Hans": "此任务包含音频"
   },
   "playx.media.image": {
-    "en": "An image is attached to this task",
+    "en": "An image is attached to task",
     "zh-Hans": "此任务包含图片"
   },
   "playx.media.size": {
@@ -180,7 +180,7 @@
     "zh-Hans": "已完成"
   },
   "playx.merchant.steps": {
-    "en": "Three on-site steps",
+    "en": "Three on-site",
     "zh-Hans": "到店三步"
   },
   "playx.merchant.scan": {
@@ -192,7 +192,7 @@
     "zh-Hans": "记录到店时间，不代表已核销"
   },
   "playx.merchant.photo": {
-    "en": "Provide the requested photo",
+    "en": "Provide requested photo",
     "zh-Hans": "提交现场凭证"
   },
   "playx.merchant.photo.default": {
@@ -204,7 +204,7 @@
     "zh-Hans": "到店后显示拍摄要求"
   },
   "playx.merchant.verify": {
-    "en": "Merchant verification",
+    "en": "Shop verification",
     "zh-Hans": "商家核销"
   },
   "playx.merchant.verify.detail": {
@@ -216,15 +216,15 @@
     "zh-Hans": "现场参考"
   },
   "playx.merchant.onsite": {
-    "en": "On-site status",
+    "en": "On-site",
     "zh-Hans": "现场"
   },
   "playx.merchant.crowd.queue": {
-    "en": "Queuing now, consider visiting another store first",
+    "en": "Queuing consider visiting another store",
     "zh-Hans": "排队中，建议先去别家"
   },
   "playx.merchant.crowd.go": {
-    "en": "Ready to visit",
+    "en": "Ready visit",
     "zh-Hans": "可前往"
   },
   "playx.merchant.crowd.unknown": {
@@ -232,7 +232,7 @@
     "zh-Hans": "状态待同步"
   },
   "playx.merchant.stat.load": {
-    "en": "Arrived & waiting for verification",
+    "en": "Arrived & waiting check",
     "zh-Hans": "已到店待核销"
   },
   "playx.merchant.stat.perHour": {
@@ -252,7 +252,7 @@
     "zh-Hans": "到店和照片凭证是独立步骤，完成状态由商家核销确认"
   },
   "playx.merchant.consentGate": {
-    "en": "Merchant verification codes aren't available right now.",
+    "en": "Shop check codes aren't available.",
     "zh-Hans": "商家核销码暂不可用"
   },
   "playx.node.unavailable": {
@@ -288,7 +288,7 @@
     "zh-Hans": "仅显示已确认的奖励，不估算缺失奖励"
   },
   "playx.reward.xp": {
-    "en": "Exploration XP",
+    "en": "Exploration",
     "zh-Hans": "探索值"
   },
   "playx.reward.puzzle": {
@@ -300,7 +300,7 @@
     "zh-Hans": "完成方式"
   },
   "playx.lead.title": {
-    "en": "Team leader controls",
+    "en": "Team leader",
     "zh-Hans": "带队控制"
   },
   "playx.lead.load": {
@@ -324,7 +324,7 @@
     "zh-Hans": "开始带队"
   },
   "playx.lead.arrive": {
-    "en": "I have arrived",
+    "en": "Have arrived",
     "zh-Hans": "我到了"
   },
   "playx.lead.broadcast": {
@@ -332,7 +332,7 @@
     "zh-Hans": "向本队广播"
   },
   "playx.lead.unlock-chapter": {
-    "en": "Unlock the next chapter",
+    "en": "Unlock next chapter",
     "zh-Hans": "解锁下一章"
   },
   "playx.lead.settle": {
@@ -384,7 +384,7 @@
     "zh-Hans": "已收到运动传感器采样"
   },
   "playx.device.scan": {
-    "en": "Code scanner",
+    "en": "Code",
     "zh-Hans": "扫码"
   },
   "playx.device.location": {
@@ -404,7 +404,7 @@
     "zh-Hans": "运动传感器"
   },
   "playx.device.steps": {
-    "en": "Trusted step count",
+    "en": "Trusted step",
     "zh-Hans": "可信步数"
   },
   "playx.device.ar": {
@@ -468,7 +468,7 @@
     "zh-Hans": "最佳误差"
   },
   "playx.stillness": {
-    "en": "Stillness challenge",
+    "en": "Stillness quest",
     "zh-Hans": "静止挑战"
   },
   "playx.stillness.instructions": {
@@ -476,7 +476,7 @@
     "zh-Hans": "请保持设备平稳，后台时间不会计入"
   },
   "playx.stillness.progress": {
-    "en": "Continuous stillness progress",
+    "en": "Continuous stillness",
     "zh-Hans": "连续静止进度"
   },
   "playx.stillness.resets": {
@@ -488,7 +488,7 @@
     "zh-Hans": "特殊玩法"
   },
   "playx.advanced.start": {
-    "en": "Start this gameplay session",
+    "en": "Start gameplay session",
     "zh-Hans": "开始本次玩法"
   },
   "playx.advanced.authority": {
@@ -508,7 +508,7 @@
     "zh-Hans": "倒计时仅供参考，超时和完成以城瘾确认为准"
   },
   "playx.advanced.stepsGate": {
-    "en": "This task requires a trusted step receipt that has not been accepted for this platform.",
+    "en": "This task requires a trusted step receipt that hasn't been accepted for platform.",
     "zh-Hans": "此任务需要该平台尚未验收的可信步数回执"
   },
   "playx.advanced.continue": {
@@ -648,7 +648,7 @@
     "zh-Hans": "完成后的选择"
   },
   "playx.circle.stage.SELF_MOMENT": {
-    "en": "A moment that felt like you",
+    "en": "A moment that felt like",
     "zh-Hans": "像自己的时刻"
   },
   "playx.circle.stage.QUESTION_CARD": {
@@ -684,7 +684,7 @@
     "zh-Hans": "验证到达位置"
   },
   "playx.task.preference": {
-    "en": "Preference questionnaire",
+    "en": "Preference",
     "zh-Hans": "偏好题组"
   },
   "playx.task.sensor": {
@@ -700,7 +700,7 @@
     "zh-Hans": "提交到店照片凭证"
   },
   "playx.task.merchantVerify": {
-    "en": "Show merchant verification code",
+    "en": "Show merchant check code",
     "zh-Hans": "出示商家核销码"
   },
   "playx.task.unsupported": {
@@ -736,7 +736,7 @@
     "zh-Hans": "站点与现场事件"
   },
   "playx.director.pendingCount": {
-    "en": "Waiting for verification",
+    "en": "Waiting for check",
     "zh-Hans": "待核验数量"
   },
   "playx.director.teams": {
@@ -748,7 +748,7 @@
     "zh-Hans": "角色分配"
   },
   "playx.director.broadcasts": {
-    "en": "Broadcast receipts",
+    "en": "Broadcast",
     "zh-Hans": "广播回执"
   },
   "playx.director.recipients": {
@@ -756,7 +756,7 @@
     "zh-Hans": "接收人数"
   },
   "playx.director.submissions": {
-    "en": "Submissions needing attention",
+    "en": "Submissions needing",
     "zh-Hans": "待处理提交"
   },
   "playx.director.noEvidence": {
@@ -776,7 +776,7 @@
     "zh-Hans": "提交前请核对当前场次和所选人员，结果确认前操作将保持锁定"
   },
   "playx.director.target": {
-    "en": "Broadcast audience",
+    "en": "Broadcast",
     "zh-Hans": "广播范围"
   },
   "playx.director.target.all": {
@@ -844,7 +844,7 @@
     "zh-Hans": "选择不完整，或当前已不允许此操作"
   },
   "playx.director.finishNotice": {
-    "en": "This ends the current game session for its participants. Confirm only after reviewing the session.",
+    "en": "This ends the current game session for its people. Confirm only after reviewing the session.",
     "zh-Hans": "这将结束参与者的当前游戏会话，请核对后确认"
   },
   "playx.director.broadcastNotice": {
@@ -928,7 +928,7 @@
     "zh-Hans": "继续故事"
   },
   "playx.prefab.photo": {
-    "en": "Review photo capture and upload",
+    "en": "Review photo capture upload",
     "zh-Hans": "核对拍摄与上传"
   },
   "playx.prefab.photo.upload": {
@@ -952,7 +952,7 @@
     "zh-Hans": "开始故事，逐个场景推进"
   },
   "playx.prefab.gender": {
-    "en": "Gender description",
+    "en": "Gender details",
     "zh-Hans": "性别描述"
   },
   "playx.prefab.register": {
@@ -988,7 +988,7 @@
     "zh-Hans": "继续向前"
   },
   "playx.prefab.sign.photo": {
-    "en": "Photograph the sign",
+    "en": "Photograph sign",
     "zh-Hans": "拍摄路牌"
   },
   "playx.prefab.walk.start": {
@@ -1044,11 +1044,11 @@
     "zh-Hans": "背出标准答案"
   },
   "playx.prefab.teacher.1": {
-    "en": "Look out of the window",
+    "en": "Look out window",
     "zh-Hans": "望向窗外"
   },
   "playx.prefab.teacher.2": {
-    "en": "Ask whether there is a standard answer",
+    "en": "Ask whether there's standard answer",
     "zh-Hans": "问有没有标准答案"
   },
   "playx.prefab.teacher.3": {
@@ -1088,15 +1088,15 @@
     "zh-Hans": "老师"
   },
   "playx.prefab.job.4": {
-    "en": "Salesperson",
+    "en": "Seller",
     "zh-Hans": "销售"
   },
   "playx.prefab.job.5": {
-    "en": "Accountant",
+    "en": "Finance",
     "zh-Hans": "会计"
   },
   "playx.prefab.boss.0": {
-    "en": "Understood",
+    "en": "Got it",
     "zh-Hans": "收到"
   },
   "playx.prefab.boss.1": {
@@ -1120,7 +1120,7 @@
     "zh-Hans": "拍摄手机场景"
   },
   "playx.prefab.flow": {
-    "en": "Your story progress is saved on this device. On-site completion still needs to be confirmed.",
+    "en": "Your story progress is saved on device. On-site completion still needs confirmed.",
     "zh-Hans": "故事进度已保存在本机，现场完成仍需确认"
   },
   "playx.prefab.synced": {
@@ -1144,7 +1144,7 @@
     "zh-Hans": "前台持续1.5秒后醒来，可随时取消"
   },
   "playx.prefab.hold.birth": {
-    "en": "Remain here for three foreground seconds. You can cancel at any time.",
+    "en": "Remain three foreground seconds.",
     "zh-Hans": "前台持续三秒，可随时取消"
   },
   "playx.prefab.quiz.0.0": {
@@ -1312,7 +1312,7 @@
     "zh-Hans": "暂时无法确认"
   },
   "playx.phase.retryable": {
-    "en": "Original request can be retried",
+    "en": "Original request can",
     "zh-Hans": "可重试原请求"
   },
   "playx.phase.stale": {
@@ -1412,7 +1412,7 @@
     "zh-Hans": "你靠近过很多次，但没有推开最后那道边界"
   },
   "playx.prefab.ending.3.title": {
-    "en": "Coexistence",
+    "en": "Together",
     "zh-Hans": "共处"
   },
   "playx.prefab.ending.3.quote": {
@@ -1424,7 +1424,7 @@
     "zh-Hans": "看见足够多的人，读完所有的梦，然后选择留下"
   },
   "playx.prefab.ending.4.title": {
-    "en": "Departure",
+    "en": "Start",
     "zh-Hans": "出走"
   },
   "playx.prefab.ending.4.quote": {
@@ -1436,7 +1436,7 @@
     "zh-Hans": "推开最后那道边界，也需要你真的看过这座城市"
   },
   "playx.prefab.ending.5.title": {
-    "en": "Recycling",
+    "en": "Recycle",
     "zh-Hans": "回收"
   },
   "playx.prefab.ending.5.quote": {
@@ -1452,7 +1452,7 @@
     "zh-Hans": "开始连续传感器挑战"
   },
   "playx.preference.title": {
-    "en": "Preference questionnaire",
+    "en": "Preference",
     "zh-Hans": "偏好题组"
   },
   "playx.preference.result": {
@@ -1460,7 +1460,7 @@
     "zh-Hans": "你的结果"
   },
   "playx.preference.days": {
-    "en": "Suggested timeframe in days",
+    "en": "Suggested",
     "zh-Hans": "建议天数"
   },
   "playx.preference.tag": {
@@ -1492,7 +1492,7 @@
     "zh-Hans": "核对标签修改"
   },
   "playx.preference.completedNoResult": {
-    "en": "This checkpoint is complete. The result text isn't available.",
+    "en": "This checkpoint is complete. Result text isn't available.",
     "zh-Hans": "此节点已完成，暂无结果内容"
   },
   "playx.preference.inherit": {
@@ -1532,7 +1532,7 @@
     "zh-Hans": "私人构建，仅自己可见"
   },
   "playx.os.empty": {
-    "en": "No summary has been generated yet.",
+    "en": "No summary has.",
     "zh-Hans": "暂未生成总结"
   },
   "playx.os.tags": {
@@ -1552,15 +1552,15 @@
     "zh-Hans": "地图锚点"
   },
   "playx.os.week": {
-    "en": "Actions for the next seven days",
+    "en": "Actions next seven days",
     "zh-Hans": "未来七天行动"
   },
   "playx.os.month": {
-    "en": "Actions for the next thirty days",
+    "en": "Actions for next thirty days",
     "zh-Hans": "未来三十天行动"
   },
   "playx.os.revokeNotice": {
-    "en": "After you withdraw it, this tag won't be used for future personalized recommendations.",
+    "en": "After you withdraw it, this tag won't be used future personalized recommendations.",
     "zh-Hans": "撤回后，此标签将不再用于后续个性化推荐"
   },
   "playx.preference.done": {
@@ -1628,7 +1628,7 @@
     "zh-Hans": "出发后开局将记为已完成，确定出发吗？"
   },
   "playx.opening.confirm": {
-    "en": "Confirm and set off",
+    "en": "Confirm set off",
     "zh-Hans": "确认出发"
   },
   "playx.opening.cancel": {
@@ -1656,11 +1656,11 @@
     "zh-Hans": "路线状态没有加载出来。"
   },
   "playx.opening.disabled": {
-    "en": "Setting off from the opening chapter isn’t available in this version.",
+    "en": "Setting off from opening chapter isn’t available version.",
     "zh-Hans": "当前版本暂未开放开局出发。"
   },
   "playx.circleLink.title": {
-    "en": "This exploration link is incomplete",
+    "en": "Exploration link incomplete",
     "zh-Hans": "探索链接不完整"
   },
   "playx.circleLink.subtitle": {
@@ -1776,7 +1776,7 @@
     "zh-Hans": "入场码要绑定你那张票，所以只有从票夹点进来才带得到。现在去票夹？"
   },
   "playx.entryCode.missing.wallet": {
-    "en": "Go to ticket wallet",
+    "en": "Go ticket",
     "zh-Hans": "去票夹"
   },
   "playx.entryCode.missing.later": {
@@ -1856,7 +1856,7 @@
     "zh-Hans": "线索"
   },
   "playx.backpack.scope.public": {
-    "en": "Public to everyone",
+    "en": "Public everyone",
     "zh-Hans": "全场公开"
   },
   "playx.backpack.scope.team": {
@@ -1900,7 +1900,7 @@
     "zh-Hans": "休息恢复"
   },
   "playx.backpack.zeroPolicy.CHALLENGE": {
-    "en": "Depletion challenge",
+    "en": "Depletion quest",
     "zh-Hans": "归零挑战"
   },
   "playx.backpack.zeroPolicy.STEPS": {
@@ -1994,5 +1994,169 @@
   "playx.director.broadcast.send": {
     "en": "Send",
     "zh-Hans": "发送"
+  },
+  "playx.director.chapter.manualTitle": {
+    "en": "Unlock a chapter",
+    "zh-Hans": "手动解锁章节"
+  },
+  "playx.director.chapter.untitled": {
+    "en": "Untitled",
+    "zh-Hans": "未命名"
+  },
+  "playx.director.chapter.noneWaiting": {
+    "en": "No team has finished this chapter yet",
+    "zh-Hans": "还没有队伍完成本章"
+  },
+  "playx.director.chapter.reasonTitle": {
+    "en": "On-site reason (optional)",
+    "zh-Hans": "现场原因（选填）"
+  },
+  "playx.director.chapter.reasonPlaceholder": {
+    "en": "Why are you releasing it?",
+    "zh-Hans": "写明放行原因"
+  },
+  "playx.director.chapter.caption": {
+    "en": "Players can enter this chapter's stops right away. This can't be undone.",
+    "zh-Hans": "解锁后玩家立即可进入该章节的节点，不可撤回。"
+  },
+  "playx.director.chapter.confirm": {
+    "en": "Release",
+    "zh-Hans": "放行"
+  },
+  "playx.director.incident.title": {
+    "en": "On-site events",
+    "zh-Hans": "现场事件"
+  },
+  "playx.director.incident.modeTitle": {
+    "en": "How to handle it",
+    "zh-Hans": "处理方式"
+  },
+  "playx.director.incident.confirm": {
+    "en": "Handle event",
+    "zh-Hans": "确认处理"
+  },
+  "playx.director.incident.caption": {
+    "en": "Pausing affects only this stop. Rewards already given and finished submissions stay as they are.",
+    "zh-Hans": "暂停只影响本站，不改变已发放的权益与已完成的提交。"
+  },
+  "playx.director.incident.noPlanCaption": {
+    "en": "This stop has no approved backup plan: players will see the stop paused with its expected resume time and won't be sent elsewhere.",
+    "zh-Hans": "这一站没有已批准的备用方案：玩家会看到本站暂停和预计恢复时间，不会被引导到其他节点。"
+  },
+  "playx.director.incident.manyPlans": {
+    "en": "Several backup plans. Choose one in admin.",
+    "zh-Hans": "有多个备用方案，请到后台指定"
+  },
+  "playx.director.incident.rejectNotice": {
+    "en": "The player will see your reason and submit again.",
+    "zh-Hans": "玩家会看到驳回原因并重新提交。"
+  },
+  "playx.director.incident.kind.paused": {
+    "en": "Paused by venue",
+    "zh-Hans": "商家暂停"
+  },
+  "playx.director.incident.kind.backlog": {
+    "en": "Verification backlog",
+    "zh-Hans": "待核验积压"
+  },
+  "playx.director.incident.kind.pendingSubmit": {
+    "en": "Awaiting check",
+    "zh-Hans": "待核验提交"
+  },
+  "playx.director.incident.kind.rejected": {
+    "en": "Task rejected",
+    "zh-Hans": "任务驳回"
+  },
+  "playx.director.incident.untitledNode": {
+    "en": "Untitled stop",
+    "zh-Hans": "未命名节点"
+  },
+  "playx.director.incident.noReason": {
+    "en": "No reason given",
+    "zh-Hans": "未填原因"
+  },
+  "playx.director.incident.noPlan": {
+    "en": "No backup plan attached",
+    "zh-Hans": "未绑备用方案"
+  },
+  "playx.director.incident.mode.resume": {
+    "en": "Resume stop",
+    "zh-Hans": "恢复本站"
+  },
+  "playx.director.incident.mode.pause": {
+    "en": "Pause stop",
+    "zh-Hans": "暂停本站"
+  },
+  "playx.director.incident.mode.reject": {
+    "en": "Reject and resend",
+    "zh-Hans": "驳回重交"
+  },
+  "playx.director.incident.pauseReason": {
+    "en": "Pause reason (at least 2 characters; shared with the venue and players)",
+    "zh-Hans": "暂停原因（至少 2 个字，会同步给商家与玩家）"
+  },
+  "playx.director.incident.rejectReason": {
+    "en": "Rejection reason (at least 2 characters; players will see it)",
+    "zh-Hans": "驳回原因（至少 2 个字，玩家会看到）"
+  },
+  "playx.director.incident.confirmPause": {
+    "en": "Pause",
+    "zh-Hans": "确认暂停"
+  },
+  "playx.director.incident.confirmReject": {
+    "en": "Reject",
+    "zh-Hans": "确认驳回"
+  },
+  "playx.director.role.members": {
+    "en": "Choose a member",
+    "zh-Hans": "选择成员"
+  },
+  "playx.director.role.assign": {
+    "en": "Assign a role",
+    "zh-Hans": "分配角色"
+  },
+  "playx.director.role.takeover": {
+    "en": "Role takeover",
+    "zh-Hans": "角色接管"
+  },
+  "playx.director.role.noTargets": {
+    "en": "No teammate is waiting for a role",
+    "zh-Hans": "同队没有待分配成员"
+  },
+  "playx.director.role.takeoverTo": {
+    "en": "Hand over to",
+    "zh-Hans": "接管给"
+  },
+  "playx.director.role.reasonPlaceholder": {
+    "en": "Why are you taking over? This goes into the audit log",
+    "zh-Hans": "写明为什么要接管，会进审计记录"
+  },
+  "playx.director.role.cancelTakeover": {
+    "en": "Cancel takeover",
+    "zh-Hans": "取消接管"
+  },
+  "playx.director.role.memberFallback": {
+    "en": "Chein player",
+    "zh-Hans": "城瘾用户"
+  },
+  "playx.director.role.unassigned": {
+    "en": "Not assigned",
+    "zh-Hans": "待分配"
+  },
+  "playx.director.role.confirm": {
+    "en": "Confirm role",
+    "zh-Hans": "确认分配"
+  },
+  "playx.director.role.confirmTakeover": {
+    "en": "Confirm takeover",
+    "zh-Hans": "确认接管"
+  },
+  "playx.director.role.title": {
+    "en": "Role assignment",
+    "zh-Hans": "角色分配"
+  },
+  "playx.director.role.titleMember %@": {
+    "en": "Role assignment · %@",
+    "zh-Hans": "角色分配 · %@"
   }
 }

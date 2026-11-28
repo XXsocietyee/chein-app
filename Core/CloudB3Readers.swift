@@ -194,7 +194,7 @@ public enum ReportProgressUnread {
 
 /// Reads `api/v1/community/notifications` only when that service's read grant is already on.
 /// A disabled grant returns nil so the badge stays hidden. It does not turn the grant on,
-/// and it does not mark notifications read: production mutations stay disabled.
+/// and `markOpened()` does not send mark-read.
 @MainActor public final class ReportProgressUnreadReader {
     private let service: SquareGovernanceService
     private let token: () -> String?
@@ -223,10 +223,9 @@ public enum ReportProgressUnread {
         }
     }
 
-    /// Mark-read is a mutation. The production grant does not include it, so this returns
-    /// without building a request. A present grant still does not send: the review id belongs
-    /// to the governance coordinator, and this reader does not invent one.
-    /// Callers must not treat `false` as "nothing was unread".
+    /// Mark-read belongs to `SquareGovernanceCoordinator`. This reader never builds
+    /// `POST api/v1/community/notifications/{id}/read`, even when the lease allows it,
+    /// so a badge refresh is not a write. Callers must not treat `false` as "nothing was unread".
     public func markOpened() async -> Bool {
         guard service.readsEnabled, service.allows(.markRead(notificationID: 1)) else { return false }
         return false

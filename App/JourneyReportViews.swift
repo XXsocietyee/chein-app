@@ -339,7 +339,7 @@ struct JourneyRankBoardView: View {
                     MPAvatar(url: entry.avatarURL, initial: String((entry.name ?? "").prefix(1)), size: 32)
                     (entry.name.map { Text(verbatim: $0) } ?? Text("mp.rank.player")).cyText(.bodyMedium).cyWrapText()
                     Spacer()
-                    Text(verbatim: entry.scoreText).cyText(.bodyMedium).monospacedDigit()
+                    Text(verbatim: entry.scoreText).cyText(.bodyMedium).monospacedDigit().accessibilityLabel(CYFractionSpeech.label(entry.scoreText))
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                 .background(entry.mine ? CYColor.selection.opacity(0.16) : .clear)
@@ -1151,6 +1151,12 @@ struct JourneySettleView: View {
         .padding(.horizontal, CYSpacing.pageHorizontal)
         .contentShape(Rectangle())
         .onTapGesture { if !skipped { skipped = true } }
+        // P39: one confetti burst with the seal. CYBurst draws nothing under Reduce Motion; the success haptic still fires.
+        .overlay {
+            if sealSuccess && !reduceMotion {
+                CYBurst(origin: UnitPoint(x: 0.5, y: 0.28), count: 48, duration: 1.3, style: .confetti, reach: 180)
+            }
+        }
         .cyHaptic(.success, trigger: sealSuccess, where: CYHapticTransition.isOn)
         .onAppear {
             // The seal owns its spring (`CYMotion.seal`) and its heavy impact at contact.

@@ -92,7 +92,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Directions"
+            "value": "Route"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No results for this session yet"
+            "value": "No results for session yet"
           }
         },
         "zh-Hans": {
@@ -381,7 +381,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Control points"
+            "value": "Control"
           }
         },
         "zh-Hans": {
@@ -670,7 +670,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for location"
+            "value": "Waiting location"
           }
         },
         "zh-Hans": {
@@ -704,7 +704,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No location needed"
+            "value": "No location"
           }
         },
         "zh-Hans": {
@@ -772,7 +772,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Points"
+            "value": "Stops"
           }
         },
         "zh-Hans": {
@@ -959,7 +959,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This point is no longer on the route"
+            "value": "This stop is no longer on the route"
           }
         },
         "zh-Hans": {
@@ -1010,7 +1010,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Requirement"
+            "value": "Need"
           }
         },
         "zh-Hans": {
@@ -1112,7 +1112,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Teammates are not sharing their location"
+            "value": "Teammates aren't sharing"
           }
         },
         "zh-Hans": {

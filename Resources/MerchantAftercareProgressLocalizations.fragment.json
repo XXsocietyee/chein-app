@@ -138,7 +138,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Merchant disagreed with the request"
+          "value": "Shop disagreed with request"
         }
       }
     }
@@ -234,7 +234,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Handed over to platform support"
+          "value": "Handed over platform"
         }
       }
     }
@@ -410,7 +410,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Check-in staff"
+          "value": "Check-in"
         }
       }
     }
@@ -426,7 +426,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Marketing staff"
+          "value": "Promo"
         }
       }
     }
@@ -442,7 +442,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Finance staff"
+          "value": "Finance"
         }
       }
     }

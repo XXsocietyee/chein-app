@@ -55,7 +55,7 @@ Audited, unchanged (allowed by the rule): hidden nav bar only in live roam / fre
 | pages/club/detail/index → settings panel (MP cset popup, wxml:663-797) | toolbar gear | sheet `[.medium, .large]`; rows push the MP pages (customers / enroll / event-ops / roles / settlement) | OK |
 | pages/roam/index → pages/userinfo/userinfo, subpackageB/pages/im/chat (runnerOpenProfile / runnerSayHi, navigateTo) | 漫游工具 runner row → RoamRunnerDetailView 看 TA 的漫游 / 打个招呼 | `NavigationLink` + `navigationDestination(item:)` pushes (RoamRunnerDetailView.swift) | OK (re-scan 11-27 pm) |
 | pages/topic/index/index → subpackageRoam/my-teams (openTeamLobby), pages/club/detail + pages/userinfo (onLineupTap), subpackageMember/market/pass (onCheckoutPass) | 组队 card, lineup rows, self-play checkout pass rows | `NavigationLink` pushes (TopicTeamsCard.swift:37, TopicXcxSections.swift:584, MPPassEntries.swift:111 inside the checkout sheet stack) | OK |
-| pages/topic/index/index → pages/publish/fabu (owner 编辑, navigateTo) | topic bar 编辑 (owner, productType 2) | full-detent sheet with its own stack: an editor with discard state, kept modal like every native editor (OWNER RULE 2 popups vs pages); flagged, not changed | open |
+| pages/topic/index/index → pages/publish/fabu (owner 编辑, navigateTo) | topic bar 编辑 (owner, productType 2) | full-detent sheet with its own stack: an editor with discard state, kept modal like every native editor (OWNER RULE 2 popups vs pages); flagged, not changed | done (B lane: push + system back, test_mp_nav_topic_editor_push.py) |
 | pages/activity/official-detail → pages/roam/index (goRoam, switchTab + globalData eventId) | 去漫游完成 / 去点亮 | `RoamOfficialEventHandoff.hand(eventID:missionCode:)` then `rootTabSwitch(.roam)` (OfficialOrganizerConsoleView.swift:589/629) | OK |
 | pages/activity/list → official-mine / official-inbox (goMine / goInbox, navigateTo) | 我发布的 / 邀约 (top-right, no WeChat capsule) | `NavigationLink` pushes (OfficialEventsBrowserView.swift:82/86) | OK |
 | pages/club/detail → badges / notify / governance / coop list / customer-detail / club topic-detail / userinfo (navigateTo) | club page rows and settings rows | `NavigationLink` / `navigationDestination` pushes (ClubDetailView.swift:197-474); 成员 stays a sheet (MP in-page expand) | OK |
@@ -168,7 +168,7 @@ Sweep sheets (en / zh-Hans): inbox inline title, ia-tabs large titles, onboardin
 | 首页 今日票 → MP subpackageMember/signup/index (票夹, navigateTo) | sheet + 关闭 | push of `SessionTicketWalletHost(isPushed: true)` like 我的 → 票夹 | fixed |
 | 首页 小游戏 banner (app-only page, `native/mini-games`) → App/SessionHomeFeedView.swift | the only 首页 banner still opening a sheet + 关闭 (activity list / club apply banners push) | `navigationDestination(isPresented: $showsMiniGames)` push, inline title, system back | fixed |
 | 我的 合作 row → CooperationBrowserView sheet (App/AccountView.swift:163) | sheet + 关闭 although MP pages/coop/list is a navigateTo page | merchant-gated (`PlayerLaunch.merchantCenterEnabled`, hidden in Release): merchant out of scope | n/a |
-| pages/activity/detail → 票夹 (MP navigateTo subpackageMember/signup) → App/ActivityDetailView.swift:312 | `.cySheet` + 关闭 instead of a push | not changed: the footer pill is the zoom source of this sheet (continuity r1, `tileOpenedSheet`) and test_activity_design_structure pins the trigger; see For other lanes | open |
+| pages/activity/detail → 票夹 (MP navigateTo subpackageMember/signup) → App/ActivityDetailView.swift:312 | `.cySheet` + 关闭 instead of a push | not changed: the footer pill is the zoom source of this sheet (continuity r1, `tileOpenedSheet`) and test_activity_design_structure pins the trigger; see For other lanes | done (B lane: push of SessionTicketWalletHost, test_mp_nav_activity_wallet_push.py) |
 | club detail 成员 / 贡献榜 → ClubPublicRosterView member profile sheet (App/ClubPublicRosterView.swift:76) | MP pages/userinfo is a navigateTo page | both hosts pass `profile: nil` (ClubDetailView.swift:291/334), so the sheet is unreachable; no change | n/a |
 | 票夹 empty state + 去探索主题 (MP signup/index.js:701 switchTab 首页) in a pushed wallet → App/SessionTicketWalletHost.swift | on 首页 the tab was already selected, so the pushed wallet stayed open (dead tap) | a pushed host pops (`dismiss`) before selecting 首页, like MP switchTab closing the page | fixed |
 
@@ -185,7 +185,7 @@ Sweep sheets (en / zh-Hans): `login-player` now one mark, phone sign-in only, no
 | MP page / edge → native | finding | change | status |
 |---|---|---|---|
 | subpackageB/pages/im/list `onEmptyCta` (收件箱 empty → feed, `wx.switchTab` talent/list + markDiscoverFeed) → App/MessagingHomeView.swift `messaging.list.emptySquare` | opened 动态 as a `.cySheet` with its own stack and 关闭 (popup for a page edge) | `navigationDestination(isPresented: $showsSquare)` push; session host passes `SessionSquareBrowserView(onClose: nil, embedsNavigationStack: false)` + pushed chrome (App/SessionMessagingEntry.swift:33), like 首页 ⋯ 动态. The native 俱乐部 tab has no 全站帖文 feed segment (ClubHomeView A8-03), so 动态 stays the destination. UI test fixture close still pops | fixed |
-| pages/square/detail feed-play-card 试玩 (`goPlay` → navigateTo pages/play/index?activityId= / topicId= by `dataType`) → App/SquareDetailView.swift `SquareDetailPlayCard` | native 试玩 opens the related topic detail (play starts from there), one step more than MP; `SquareRelatedTopicDestination` deliberately injects no play/purchase provider | not changed: going straight to `SessionPlayRuntimeView` needs the session play gating in the square host (needs a compiled run); flagged for mp-activity (square owner) / coordinator | open |
+| pages/square/detail feed-play-card 试玩 (`goPlay` → navigateTo pages/play/index?activityId= / topicId= by `dataType`) → App/SquareDetailView.swift `SquareDetailPlayCard` | native 试玩 opens the related topic detail (play starts from there), one step more than MP; `SquareRelatedTopicDestination` deliberately injects no play/purchase provider | not changed: going straight to `SessionPlayRuntimeView` needs the session play gating in the square host (needs a compiled run); flagged for mp-activity (square owner) / coordinator | done (B lane: 试玩 pushes play, test_mp_nav_square_try_play.py) |
 
 ## Re-scan 11-27 23:xx (sweep build 8fa84e4d3 unchanged; carried Open rows)
 
@@ -194,7 +194,7 @@ Merged `origin/ui/combined-r7` (a2baf94fa). Sweep unchanged since 22:3x, so this
 | MP page / edge → native | finding | change | status |
 |---|---|---|---|
 | pages/member/index → 设置 (MP profile index.wxml:17 icon_set, navigateTo pages/shezhi/shezhi) → App/AccountView.swift | `.large` sheet with its own stack + 完成 (popup for a page edge, OWNER RULE 2) | `navigationDestination(isPresented: $showsSettings)` push of `SettingsView(…, isPushed: true)` + `.cyPushedChrome()`: no own stack, no 完成, system back; the 城瘾玩法 guide hand-off (`SettingsGuideHandoff`) now finishes on the pop (`onChange(of: showsSettings)` false) instead of the sheet's onDismiss, same begin/request/finish order; Settings no longer marks the 我的 root "sheet open" for replayed links (a push does not cover the tabs). MP shezhi list order unchanged | fixed |
-| signed-out 我的 root ⋯ → 设置 (App/WelcomeView.swift:66) | still a sheet (shared `cySheet(item:)` with 登录 / legal) | not changed this run: the welcome page is also the launch screen without a host stack; flagged | open |
+| signed-out 我的 root ⋯ → 设置 (App/WelcomeView.swift:66) | still a sheet (shared `cySheet(item:)` with 登录 / legal) | not changed this run: the welcome page is also the launch screen without a host stack; flagged | done (B lane verified: already a push, WelcomeView.swift:67-68) |
 
 ## Re-scan 11-27 23:3x (sweep build b3b03703a; mp-nav sheets clean)
 
@@ -490,3 +490,56 @@ Merged `origin/ui/combined-r7` (clean). Sweep index still build 0446d1c4f (mp-na
 | `pages/team/detail` 分享 (index.js:540-548 path `/pages/team/join/index?code=`) → App/NativeR2/CityOrientation/CityOrientationTeamLobbyView.swift bottom-bar 邀请队友 | shared the bare 6-char code | `PublicContentShareLink.teamInvite(code:)` link with the team title as preview, falling back to the code — the same item as `TeamInvitePreview` (T-02 row above) | fixed |
 
 Tests: existing `PublicContentShareLinkTests.testActivityShareCarriesTheParsedActivityLink` / `testTeamInviteShareIsTheMiniProgramJoinLinkThatParsesBack` cover both builders. Level B, navigation only, no section/order change. Not compiled here.
+
+## Re-scan 11-28 18:xx — play finish share link (merged combined-r7 89a55cd24)
+
+Merged `origin/ui/combined-r7` (clean). Sweep index still build 0446d1c4f (mp-nav sheets clean); no coordinator row for mp-nav after 07:45; Contract-cleanup `/api/compliance/usage-records` closed (21:0x / H-16). Item 3 (MP-account sync note) still blocked on the backend field. B receipt read: no overlap. Next outbound share edge without a row: the play finish screens.
+
+| MP edge → native | before | after | status |
+|---|---|---|---|
+| `subpackageJourney/pages/settle` 分享 (index.js:264-271 `onShareAppMessage`: referral landing when a token is issued, else `/pages/topic/index/index?id=<topicId>`) → App/PlayExperienceView.swift `cityFinishSummary` / medal screen, App/NativeR2/CityOrientation/CityOrientationFinishSummaryView.swift (toolbar 分享 + per-medal share), App/DesignSystem/CYMedalStack.swift `CYMedalScreen` share pill | shared only "我在…通关" text: the receiver could not open the topic | `PlayExperienceView.finishShareURL` = `PublicContentShareLink.topic(id:)` from the run's `result.topicID` (the MP fallback path; the app issues no referral here), shared with the same text as the message; text alone when there is no topic id / reviewed origin. Identifiers and layout unchanged. Level B, navigation only, no section/order change. Not compiled here | fixed |
+
+## Re-scan 11-28 19:xx — official event / route share links (merged combined-r7)
+
+Merged `origin/ui/combined-r7` (clean). Sweep index still build 0446d1c4f (mp-nav sheets clean); no coordinator row for mp-nav after 07:45. B receipt read: its four rows (topic 编辑 push, activity → 票夹 push, square 试玩, Welcome ⋯ 设置) are marked done above "(B lane)". Item 3 (MP-account sync note) still blocked on the backend field. K30 (Cursor deep links) has no branch yet; this row only touches outbound share builders. Next outbound share edges without a row: the two `CatalogShareCardView` callers that passed no `link`.
+
+| MP edge → native | before | after | status |
+|---|---|---|---|
+| `pages/activity/official-detail` 分享 (index.js:651-658 `onShareAppMessage` path `/pages/activity/official-detail/index?id=`) → App/OfficialEventDetailView.swift share card, Core/PublicContentShareLink.swift `officialEvent(id:)`, docs/release/aasa.json + aasa-template.json | the share card sent only the rendered image (no way back to the event); the AASA did not claim `/pages/activity/official-detail/index`, so a web link would open Safari | card gets `link:` = the https MP path (kept only when it parses back, `reviewedPage`), shown as the card's 分享链接 action like activity detail; AASA claims the path in both files (same position in each) | fixed (not compiled here) |
+| `subpackageRoam/official-route` 分享 (index.js:9 `SHARE_PATH`, :57-60) → App/OfficialRouteViews.swift share card, `PublicContentShareLink.officialRoute(id:)` | image only | same `link:` with `?id=<routeID>` (canonical digits only, as MP onLoad `/^\d{1,18}$/`); AASA already claimed the path | fixed (not compiled here) |
+
+Test: `PublicContentShareLinkTests.testOfficialEventAndRouteSharesCarryTheMiniProgramLinkThatParsesBack`. Level B (detail pages), navigation only, no section/order change.
+
+## Re-scan 11-28 20:xx — widget / Control Center check-in target (merged combined-r7)
+
+Merged `origin/ui/combined-r7` (clean). Sweep index still build 0446d1c4f (mp-nav sheets clean); no coordinator row for mp-nav after 07:45. B receipt read: no new rows. Item 3 (MP-account sync note) still blocked on the backend field. Every MP `onShareAppMessage` page now has a row (journey report/settle carry the referral + topic fallback; growthcenter and the order list share nothing in the MP). Next external entries without a row: widget, Live Activity and Control Center targets, checked one by one against `MiniProgramPageLink` and the MP page each lands on.
+
+| entry → MP page | before | after | status |
+|---|---|---|---|
+| Control Center 签到 / "Check in" (`QuestControlRoute.checkIn`, Core/QuestWidgetControlIntent.swift; description "Open the activities you joined to check in") → MP 入场码 = `subpackageMember/signup/index` (票夹, signup/index.json uses `cy-dot-qr`) | opened `pages/activity/list/index` = 官方活动 (MP nav title 官方活动, a browse list with no ticket or entry code) | `subpackageMember/signup/index`: lands on 票夹 pushed on 首页 through `MPNotificationTapRouter` (same host as the landed wallet link) | fixed |
+| event-countdown widget without a ticket id (`QuestWidgetBoard.ticket(nil)` → `myActivities`, Core/QuestWidgetBoard.swift) | `chein://mp/pages/activity/list/index` (官方活动) | `chein://mp/subpackageMember/signup/index` (= `QuestWidgetLinks.wallet`), where the joined event's pass is | fixed |
+| passport / stories / wallet widget links, Live Activity roam / event, team-invite plan link `pages/team/detail/index?teamId=` (MP onLoad `options.teamId`), club / messages / roam-history board links | all parse (`MiniProgramPageLink` rules :37, :129, :158, :204) | unchanged; parse now pinned for every `QuestWidgetLinks` / `QuestPlanLinks.team` URL | verified |
+
+Test: Tests/CoreTests/QuestWidgetBoardTests.swift (`myActivities == QuestWidgetLinks.wallet`; every widget link parses). Navigation only, no section/order change. Not compiled here.
+
+## Run 11-28 16:xx — half split (merged combined-r7 a7c956335)
+
+Merged `origin/ui/combined-r7` (clean). Sweep build c4e43841a, mp-nav sheets: zh-Hans `d2-inbox` inline 消息, `ia-tabs` large 首页, `login-player` (phone + system black Sign in with Apple, one mark), `onboarding-1`, `welcome` all read correctly; en `welcome` tile is the black launch frame (logo only), the same sweep warm-up issue the 15:50 sweep lists for mp-roam: a sweep timing item for the coordinator, not an app change. No coordinator row for mp-nav after 07:45.
+
+Open rows in file order (half split, "B lanes: collision fix" 15:45): (1) "漫游护照与工具" hub sheet (line 40), A half; (2) "3. MP-account sync note", B half (still blocked: `WeChatAppAuthService.Envelope` has no mini-program-origin field). Row (1) is kept by owner Q9 (map home) and stays with the coordinator: no code change to make.
+
+Scan for edges without a row: every non-merchant MP page in `app.json` is either accepted by `MiniProgramPageLink.reviewedPages` or is `pages/playkit|publishkit/index/index` (MP coverage exemptions, no share/notification path) or `pages/club/settlement|payout-receiver/index` (owner money pages reached only by in-app navigateTo; `MPParityRoute` already opens them in-app). The full inbound catalog (https, `/app/`, `chein://`, `chengyin://` spellings for 174 pages) is Cursor K30 (`cursor/1128-deep-links`), so this lane does not duplicate it. Order card 立即支付 / 取消 sheet (ProfileOrdersView.swift:225) checked: an action sheet over the list, while the row itself pushes the order detail (MP orderinfo navigateTo): OK.
+
+**Half done** (A half = one row, kept by owner decision). Run stopped.
+
+## Run 11-28 (half-hourly) — merged combined-r7 543d9033b
+
+Merged `origin/ui/combined-r7` 543d9033b (clean). Brief re-read: no coordinator finding for mp-nav after 07:45; sweep index still build c4e43841a (mp-nav sheets read correctly, as the run above). No `cursor-k50-p*` lane-layout receipts exist yet; new `cursor-k40-*` and `cursor-1128-dynamic-type` receipts carry no mp-nav row asking for a change (dynamic-type: IM inbox "No change asked"). Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, kept by owner Q9, coordinator); (2) "3. MP-account sync note" (B half, blocked on the backend field). Inbound deep-link catalog stays with K30.
+
+**Half done** (A half unchanged). Run stopped.
+
+## Run 11-28 ~17:xx UTC (hourly) — merged combined-r7 2b6ff8700
+
+Merged `origin/ui/combined-r7` 2b6ff8700 (clean). Brief re-read: no coordinator finding for mp-nav after 07:45; sweep index still build c4e43841a (mp-nav sheets clean). No `cursor-k50-p*` lane-layout receipts on any branch yet. B receipt read: no new rows. Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, kept by owner Q9, coordinator); (2) "3. MP-account sync note" (B half, blocked on the backend field).
+
+**Half done** (A half unchanged). Run stopped.

@@ -6,6 +6,7 @@ import UIKit
     @Environment(\.locale) private var locale
     @Environment(\.popupCloseActions) private var popupCloseActions
     @State private var editor: PlayDirectorAction?
+    @State private var showingIncidents = false
     @State private var showingPlanFallbackSheet = false
     @State private var planFallbackReason = ""
     @State private var planFallbackStatus: PlayPlanFallbackStatus?
@@ -35,6 +36,7 @@ import UIKit
                         .cyDomainSheet(detents: [.half, .full])
                 }
             }
+            .cySheet(isPresented: $showingIncidents) { incidentSheet }
             .cySheet(isPresented: $showingPlanFallbackSheet) {
                 if let projection = model.projection {
                     PlayCloseSheetHost(
@@ -104,6 +106,19 @@ import UIKit
         .cyDomainScreen(.game)
     }
 
+    /// MP topic-detail wxml:414-422: 现场事件 is one sheet for station pause / resume and submission reject.
+    @ViewBuilder private var incidentSheet: some View {
+        if let projection = model.projection {
+            NavigationStack {
+                PlayDirectorIncidentEditor(projection: projection) { command in
+                    showingIncidents = false
+                    Task { await model.submit(command) }
+                }
+            }
+            .cyDomainSheet(detents: [.half, .full])
+        }
+    }
+
     @ViewBuilder
     private func projectionSections(_ projection: PlayDirectorProjection) -> some View {
         Section("playx.director.readiness") {
@@ -124,15 +139,31 @@ import UIKit
         directorRecapSection(projection)
     }
 
+    /// MP D6 merges 角色接管 into the 角色分配 sheet, so TAKEOVER_ROLE has no own entry while ASSIGN_ROLES is offered.
+    static func listsAction(_ action: PlayDirectorAction, projection: PlayDirectorProjection, hidden: [PlayDirectorAction]) -> Bool {
+        let available = projection.availableActions
+        guard available.contains(action.rawValue), !hidden.contains(action) else { return false }
+        if action == .takeover, available.contains(PlayDirectorAction.assign.rawValue) { return false }
+        return true
+    }
+
     @ViewBuilder
     private func directorActionsSection(_ projection: PlayDirectorProjection) -> some View {
-        let actions: [PlayDirectorAction] = PlayDirectorAction.allCases.filter { projection.availableActions.contains($0.rawValue) }
+        let incidentActions: [PlayDirectorAction] = [.pause, .resume, .reject]
+        let actions: [PlayDirectorAction] = PlayDirectorAction.allCases.filter { Self.listsAction($0, projection: projection, hidden: incidentActions) }
+        let hasIncidents = !PlayDirectorIncidents.rows(projection).isEmpty && incidentActions.contains { projection.availableActions.contains($0.rawValue) }
         Section("playx.director.actions") {
             ForEach(actions) { action in
                 CYPillButton(LocalizedStringKey("playx.director.action." + action.rawValue), style: .secondary) { editor = action }
                     .listRowBackground(Color.clear)
                     .disabled(model.phase != "ready" || (action == .start && !projection.canStart))
                     .accessibilityIdentifier("playx.director.action.\(action.rawValue)")
+            }
+            if hasIncidents {
+                CYPillButton("playx.director.incident.title", style: .secondary) { showingIncidents = true }
+                    .listRowBackground(Color.clear)
+                    .disabled(model.phase != "ready")
+                    .accessibilityIdentifier("playx.director.action.incidents")
             }
             Button {
                 showingPlanFallbackSheet = true
@@ -230,6 +261,8 @@ import UIKit
     @State private var memberID = 0
     @State private var sourceMemberID = 0
     @State private var roleCode = ""
+    @State private var takeoverSource = ""
+    @State private var takeoverTarget = 0
     @State private var nodeID = 0
     @State private var chapterID = 0
     @State private var submissionID = 0
@@ -246,10 +279,14 @@ import UIKit
         Form {
             if action == .broadcast {
                 broadcastBody
+            } else if action == .unlock {
+                chapterBody
+            } else if action == .assign || action == .takeover {
+                roleBody
             } else {
                 commandBody
             }
-        }.cyGroupedSurface().cyPageTitle(action == .broadcast ? "club.topic.broadcast" : "playx.director.title")
+        }.cyGroupedSurface().cyPageTitle(verbatim: editorTitle)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playx.cancel") { dismiss() }.accessibilityIdentifier("playx.director.cancelEditor") } }
             .cyModalOverlay(isPresented: confirm) {
                 CYModal(
@@ -279,6 +316,84 @@ import UIKit
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
             .accessibilityIdentifier("playx.director.review")
+        }
+    }
+    /// MP club-director-chapter-sheet: chapter rows → 现场原因（选填） → 放行 (one primary).
+    @ViewBuilder private var chapterBody: some View {
+        PlayDirectorChapterSections(projection: projection, chapterID: $chapterID, reason: $reason)
+        Section {
+            if invalid { Text("playx.director.invalid").foregroundStyle(CYColor.dangerText) }
+            Button { prepare() } label: {
+                Text("playx.director.chapter.confirm").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(chapterID <= 0)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+            .accessibilityIdentifier("playx.director.review")
+        }
+    }
+    /// MP club-director-role-sheet: 选择成员 → 分配角色 → 角色接管 → 确认分配 (or 确认接管 while a takeover is open).
+    @ViewBuilder private var roleBody: some View {
+        PlayDirectorRoleSections(projection: projection,
+                                 canTakeover: projection.availableActions.contains(PlayDirectorAction.takeover.rawValue),
+                                 teamID: $teamID, memberID: $memberID, roleCode: $roleCode,
+                                 takeoverSource: $takeoverSource, takeoverTarget: $takeoverTarget, reason: $reason)
+        Section {
+            if invalid { Text("playx.director.invalid").foregroundStyle(CYColor.dangerText) }
+            Button { prepareRole() } label: {
+                roleConfirmTitle.frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(!roleReady)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+            .accessibilityIdentifier("playx.director.review")
+        }
+    }
+    @ViewBuilder private var roleConfirmTitle: some View {
+        if takeoverSource.isEmpty { Text("playx.director.role.confirm") } else { Text("playx.director.role.confirmTakeover") }
+    }
+    private var roleTakeoverMember: PlayDirectorRoles.Member? {
+        PlayDirectorRoles.takeoverSources(projection).first { $0.id == takeoverSource }
+    }
+    private var roleReady: Bool {
+        if let source = roleTakeoverMember {
+            return PlayDirectorRoles.takeoverPayload(projection, source: source, targetMemberID: takeoverTarget, reason: reason) != nil
+        }
+        return PlayDirectorRoles.assignPayload(teamID: teamID, memberID: memberID, roleCode: roleCode) != nil
+    }
+    private func prepareRole() {
+        var roleAction = PlayDirectorAction.assign
+        var payload: [String: PlayWireValue]?
+        if let source = roleTakeoverMember {
+            roleAction = .takeover
+            payload = PlayDirectorRoles.takeoverPayload(projection, source: source, targetMemberID: takeoverTarget, reason: reason)
+        } else {
+            payload = PlayDirectorRoles.assignPayload(teamID: teamID, memberID: memberID, roleCode: roleCode)
+        }
+        guard let payload else { invalid = true; return }
+        do {
+            let command = try PlayDirectorCommand(activityID: projection.activityID, nodeID: nil,
+                expectedRevision: projection.revision, action: roleAction, payload: payload)
+            guard projection.allows(command) else { throw PlayExperienceError.invalidAction }
+            draft = command; confirm = true; invalid = false
+        } catch { invalid = true }
+    }
+    /// MP wxml:376: 角色分配 · 成员名 once a member is picked.
+    private var roleTitle: String {
+        let member = PlayDirectorRoles.members(projection, teamID: teamID).first { $0.memberID == memberID }
+        if let name = member?.name { return directorLocalized("playx.director.role.titleMember \(name)") }
+        return directorLocalized("playx.director.role.title")
+    }
+    private var editorTitle: String {
+        switch action {
+        case .assign, .takeover: return roleTitle
+        case .broadcast: return directorLocalized("club.topic.broadcast")
+        case .unlock: return PlayDirectorChapterRelease.title(projection, locale: locale)
+        default: return directorLocalized("playx.director.title")
         }
     }
     private var broadcastRecipients: Int? {
@@ -343,6 +458,7 @@ import UIKit
         switch action {
         case .finish: return "playx.director.finishNotice"
         case .broadcast: return "playx.director.broadcastNotice"
+        case .unlock: return "playx.director.chapter.caption"
         default: return "playx.director.commandNotice"
         }
     }
@@ -367,7 +483,7 @@ import UIKit
             payload = ["targetType": .string(targetType), "content": .string(content.trimmingCharacters(in: .whitespacesAndNewlines))]
             if targetType == "TEAM" { payload["targetId"] = .int(teamID) }
             if targetType == "ROLE" { payload["roleCode"] = .string(roleCode) }
-        case .unlock: payload = ["chapterId": .int(chapterID), "reason": .string(reason)]
+        case .unlock: payload = PlayDirectorChapterRelease.payload(chapterID: chapterID, reason: reason)
         case .visibility: payload = ["visible": .bool(visible)]
         case .pause:
             payload = ["reasonCode": .string("ONSITE"), "reason": .string(reason), "resumeEta": .string(resumeETA)]

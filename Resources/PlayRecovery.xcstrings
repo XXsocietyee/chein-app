@@ -41,7 +41,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ask your team leader to release the chapter."
+            "value": "Ask team leader release chapter."
           }
         },
         "zh-Hans": {
@@ -415,7 +415,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The leader releases this chapter before anyone can continue."
+            "value": "Leader releases chapter before anyone can continue."
           }
         },
         "zh-Hans": {
@@ -449,7 +449,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location accuracy was invalid"
+            "value": "Location accuracy invalid"
           }
         },
         "zh-Hans": {
@@ -466,7 +466,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location is not precise enough"
+            "value": "Location isn't precise"
           }
         },
         "zh-Hans": {
@@ -483,7 +483,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location accuracy was missing"
+            "value": "Location accuracy missing"
           }
         },
         "zh-Hans": {
@@ -568,7 +568,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The location could not be used"
+            "value": "Location couldn't"
           }
         },
         "zh-Hans": {
@@ -602,7 +602,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The location reading was too old"
+            "value": "The location reading too old"
           }
         },
         "zh-Hans": {
@@ -738,7 +738,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for the team leader"
+            "value": "Waiting for team leader"
           }
         },
         "zh-Hans": {
@@ -1299,7 +1299,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Try"
           }
         },
         "zh-Hans": {
@@ -1447,7 +1447,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Downloads"
+            "value": "Saves"
           }
         },
         "zh-Hans": {
@@ -1464,7 +1464,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Downloads are not available for this run right now."
+            "value": "Downloads aren't available run right."
           }
         },
         "zh-Hans": {
@@ -1651,7 +1651,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Expected to resume"
+            "value": "Expected resume"
           }
         },
         "zh-Hans": {
@@ -1719,7 +1719,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original submission went through. It was counted once."
+            "value": "The original entry went through. It counted once."
           }
         },
         "zh-Hans": {
@@ -1838,7 +1838,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for confirmation"
+            "value": "Waiting check"
           }
         },
         "zh-Hans": {

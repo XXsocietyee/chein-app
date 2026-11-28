@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No field-specific validation message is currently shown."
+            "value": "No field-specific validation message is shown."
           }
         },
         "zh-Hans": {

@@ -70,8 +70,7 @@ public struct SearchMapService {
     public func cityNodes(_ query: CityNodeSearchQuery, token: String? = nil) async throws -> [SearchMapCityNode] {
         try query.filter.validate(); try validate(token)
         guard query.sortType == 1 || query.sortType == 2 else { throw APIError.invalidRequest }
-        // This source endpoint is private; guests cannot read city nodes.
-        guard token != nil else { throw APIError.unauthorized }
+        // Guest GET is the city-node projection. Places and nearby stay on their own routes.
         var fields = ["lat":String(query.area.coordinate.latitude), "lng":String(query.area.coordinate.longitude), "radius":"20000"]
         add(query.filter.keyword, key: "keyword", to: &fields)
         if let id = query.filter.categoryID { fields["categoryId"] = String(id) }
@@ -116,7 +115,6 @@ public struct SearchMapService {
     }
     public func cityNode(id: Int, token: String?) async throws -> SearchMapCityNode {
         guard id > 0 else { throw APIError.invalidRequest }
-        guard token != nil else { throw APIError.unauthorized }
         let data = try await get("api/city/nodes/\(id)", fields: [:], token: token)
         let result = try decode(SearchMapValue<SearchMapCityNode>.self, data).data
         guard result.poiID == id else { throw APIError.malformedResponse }
@@ -161,7 +159,7 @@ public struct SearchMapService {
         return try decode(ActivityListResponse.self, await form("api/activity/list", fields: fields, token: token)).rows
     }
     private func clubRows(_ query: GlobalSearchQuery, token: String?) async throws -> [ClubRecord] {
-        guard token != nil else { throw APIError.unauthorized }
+        // MP discover-search sends club/list for guests too; the backend route is @Anonymous (guest projection).
         let data = try await json("api/club/list", fields: nameCategoryFields(query), token: token)
         return try decode(SearchMapValue<[ClubRecord]>.self, data).data
     }

@@ -11,7 +11,7 @@ COPY = {
     'templateOwnShelf.read.signIn': '登录后查看我的节点玩法',
     'templateOwnShelf.read.signInHint': '登录后可管理当前账号创作的节点玩法',
     'templateOwnShelf.read.signInAction': '登录',
-    'templateOwnShelf.read.denied': '当前账号无法查看节点玩法',
+    'templateOwnShelf.read.denied': '当前身份不能查看这些模板',  # MP subpackageA/pages/myproject/index.wxml:110
     'templateOwnShelf.read.deniedHint': '请确认当前账号的查看权限',
     'templateOwnShelf.read.loading': '正在加载你的节点玩法',
     'templateOwnShelf.read.failed': '玩法草稿没加载出来',  # handbook wording, design hand-off r1 CF-70 (owner default Q-E),

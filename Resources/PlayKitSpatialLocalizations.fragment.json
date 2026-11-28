@@ -76,7 +76,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Point the camera at the configured reference image"
+            "value": "Point the camera at configured reference image"
           }
         },
         "zh-Hans": {
@@ -178,7 +178,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Spatial rendering has not been enabled for this session"
+            "value": "Spatial rendering hasn't been enabled for session"
           }
         },
         "zh-Hans": {

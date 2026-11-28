@@ -35,6 +35,7 @@ public struct PlayToolsAndLeadSheetView: View {
     public var teamLead: PlayLeadProgress? = nil
     /// mp-journey r3: MP 游玩工具 旅程手记 (`buildJournal`). Nil hides the row.
     public var journalRows: [PlayJournalRow]? = nil
+    public var journalAttributes: [PlayRouteAttribute] = []
     /// mp-journey r3: MP mode-2 我的权益 (`merchantCount` 家 · 已核销 `merchantDoneCount` 家). Nil hides the row.
     public var rights: PlayToolsRights? = nil
     public var onRights: () -> Void = {}
@@ -46,13 +47,26 @@ public struct PlayToolsAndLeadSheetView: View {
     /// mp-journey r3: MP 游玩工具 本局用时 · 当前得分 (`sessStats`, mode 1 with an orient `routeState.sessionId`; both open
     /// 本局成绩), pushed right before 同行者榜. Nil hides the row.
     public var scoreDestination: (() -> AnyView)? = nil
+    /// MP `sessStats` (`loadSessionStats`): nil before the read (one 本局用时 · 当前得分 link), `.loading` (static row with
+    /// …), `.failed` (暂时没有读到 · 重试), `.ready` (本局用时 when there is an elapsed time, 当前得分, 同行者榜 第 N 名).
+    public var sessionStats: PlayToolsSessionStats? = nil
+    /// MP: scoring is off for this round (`ORIENT_SCORING_DISABLED` / `NOT_APPLICABLE`), so the score rows stay hidden.
+    public var sessionStatsOff: Bool = false
+    public var onRetrySessionStats: () -> Void = {}
     /// mp-journey r3: MP 游玩工具 入场码 (`wx:if="{{regId && !isPreview && !isMock}}"`, `openTicketFromTools` →
     /// `scene-qr-ticket`). The run's ticket registration id; nil or 0 hides the row.
     public var entryCodeRegistrationID: Int? = nil
     /// mp-journey-b r3: MP 游玩工具 联系主办 / 联系商家 (`wx:if="{{playContact}}"`, after the lead rows): dial only,
     /// the number stays off screen; tap asks 拨打「name」的电话？ first (`callPlayContact`). Nil hides the row.
     public var contact: PlayContact? = nil
+    /// mp-journey-b r3: MP 队伍位置 tap = `leadBroadcastFromTools` → 队长广播 prompt (对全队说一句…) → `POST
+    /// /api/club/lead/broadcast`; returns the server line (r.msg, else 已广播). Nil keeps the row as a value only.
+    public var onTeamBroadcast: ((String) async -> String)? = nil
     @State private var confirmCall = false
+    @State private var broadcastAsk = false
+    @State private var broadcastText = ""
+    @State private var broadcastBusy = false
+    @State private var broadcastNote: String?
     @Environment(\.openURL) private var openURL
     @Environment(\.locale) private var locale
 
@@ -82,23 +96,33 @@ public struct PlayToolsAndLeadSheetView: View {
         onLocationRow: @escaping () -> Void = {},
         teamLead: PlayLeadProgress? = nil,
         journalRows: [PlayJournalRow]? = nil,
+        journalAttributes: [PlayRouteAttribute] = [],
         boardDestination: (() -> AnyView)? = nil,
         scoreDestination: (() -> AnyView)? = nil,
+        sessionStats: PlayToolsSessionStats? = nil,
+        sessionStatsOff: Bool = false,
+        onRetrySessionStats: @escaping () -> Void = {},
         rights: PlayToolsRights? = nil,
         onRights: @escaping () -> Void = {},
         freeTrackPerkOnly: Bool? = nil,
         entryCodeRegistrationID: Int? = nil,
-        contact: PlayContact? = nil
+        contact: PlayContact? = nil,
+        onTeamBroadcast: ((String) async -> String)? = nil
     ) {
         self.contact = contact
+        self.onTeamBroadcast = onTeamBroadcast
         self.entryCodeRegistrationID = entryCodeRegistrationID
         self.freeTrackPerkOnly = freeTrackPerkOnly
         self.rights = rights
         self.onRights = onRights
         self.teamLead = teamLead
         self.journalRows = journalRows
+        self.journalAttributes = journalAttributes
         self.boardDestination = boardDestination
         self.scoreDestination = scoreDestination
+        self.sessionStats = sessionStats
+        self.sessionStatsOff = sessionStatsOff
+        self.onRetrySessionStats = onRetrySessionStats
         self.locationOn = locationOn
         self.onLocationRow = onLocationRow
         self.lead = lead
@@ -154,19 +178,18 @@ public struct PlayToolsAndLeadSheetView: View {
                 }
                 if scoreDestination != nil || boardDestination != nil {
                     Section {
-                        if let scoreDestination {
-                            NavigationLink {
-                                scoreDestination()
-                            } label: {
-                                Label("playTools.sessionScore", systemImage: "clock")
-                            }
-                            .accessibilityIdentifier("playTools.sessionScore")
+                        if let scoreDestination, !sessionStatsOff {
+                            sessionStatsRows(scoreDestination)
                         }
                         if let boardDestination {
                             NavigationLink {
                                 boardDestination()
                             } label: {
-                                Label("playx.leaderboard", systemImage: "person.3")
+                                LabeledContent {
+                                    if let rank = boardRank { Text("playTools.boardRank \(rank)").monospacedDigit() }
+                                } label: {
+                                    Label("playx.leaderboard", systemImage: "person.3")
+                                }
                             }
                             .accessibilityIdentifier("playTools.board")
                         }
@@ -212,7 +235,7 @@ public struct PlayToolsAndLeadSheetView: View {
                         }
                         if let journalRows {
                             NavigationLink {
-                                PlayJournalListView(rows: journalRows)
+                                PlayJournalListView(rows: journalRows, attributes: journalAttributes)
                             } label: {
                                 Label("playTools.journal", systemImage: "book.pages")
                             }
@@ -262,36 +285,110 @@ public struct PlayToolsAndLeadSheetView: View {
         .accessibilityIdentifier(identifier)
     }
 
-    /// MP 队伍位置: the arrived count on the right; the pushed page lists who has arrived (positions stay private).
-    @ViewBuilder private var teamPositionSection: some View {
-        if let teamLead, teamLead.exists {
-            Section {
-                NavigationLink {
-                    List {
-                        if let broadcast = teamLead.broadcast, !broadcast.isEmpty {
-                            Section("playTools.team.broadcast") { Text(verbatim: broadcast) }
-                        }
-                        Section {
-                            ForEach(teamLead.members) { member in
-                                Label {
-                                    if let name = member.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") }
-                                } icon: {
-                                    Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle")
-                                        .foregroundStyle(member.arrived ? Color.green : Color.secondary)
-                                }
-                                .accessibilityValue(Text(LocalizedStringKey(member.arrived ? "playTools.team.arrived" : "playTools.team.notArrived")))
-                            }
-                        }
-                    }
-                    .navigationTitle(Text("playTools.team"))
-                    .navigationBarTitleDisplayMode(.inline)
-                } label: {
-                    LabeledContent("playTools.team") {
-                        Text(verbatim: "\(teamLead.arrived ?? 0)/\(teamLead.members.count)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotal \(Int(teamLead.arrived ?? 0)) \(Int(teamLead.members.count))"))
+    /// MP 同行者榜 `dv`: 第 N 名 once the score read has a rank.
+    private var boardRank: Int? {
+        if case .ready(_, _, let rank, _)? = sessionStats { return rank }
+        return nil
+    }
+
+    /// MP `pages/play/index.wxml:349-356`: 本局用时 / 当前得分 both open 本局成绩.
+    @ViewBuilder private func sessionStatsRows(_ destination: @escaping () -> AnyView) -> some View {
+        switch sessionStats {
+        case .ready(let elapsed, let score, _, _)?:
+            if let elapsed {
+                NavigationLink { destination() } label: {
+                    LabeledContent {
+                        Text(verbatim: elapsed).monospacedDigit()
+                    } label: {
+                        Label("playTools.sessionElapsed", systemImage: "clock")
                     }
                 }
-                .accessibilityIdentifier("playTools.team")
+                .accessibilityIdentifier("playTools.sessionElapsed")
             }
+            NavigationLink { destination() } label: {
+                LabeledContent {
+                    Text(verbatim: score).monospacedDigit()
+                } label: {
+                    Label("playTools.currentScore", systemImage: "star.circle")
+                }
+            }
+            .accessibilityIdentifier("playTools.currentScore")
+        case .loading?:
+            LabeledContent {
+                ProgressView()
+            } label: {
+                Label("playTools.sessionScore", systemImage: "clock")
+            }
+            .accessibilityIdentifier("playTools.sessionScore.loading")
+        case .failed?:
+            Button(action: onRetrySessionStats) {
+                LabeledContent {
+                    Text("playTools.sessionStatsRetry")
+                } label: {
+                    Label("playTools.sessionStatsFailed", systemImage: "arrow.clockwise")
+                }
+            }
+            .accessibilityIdentifier("playTools.sessionScore.retry")
+        case nil:
+            NavigationLink { destination() } label: {
+                Label("playTools.sessionScore", systemImage: "clock")
+            }
+            .accessibilityIdentifier("playTools.sessionScore")
+        }
+    }
+
+    /// MP 队伍位置 (`lead.exists && !lead.freeEntry`): value `lead.arrived/lead.total`; the tap opens 队长广播
+    /// (`leadBroadcastFromTools`), a one-line prompt sent to the whole team, then the team progress is read again.
+    @ViewBuilder private var teamPositionSection: some View {
+        if let teamLead, teamLead.exists, !teamLead.freeEntry {
+            let arrived = teamLead.arrived ?? 0
+            let total = teamLead.total ?? teamLead.members.count
+            Section {
+                if onTeamBroadcast != nil {
+                    Button {
+                        broadcastText = ""
+                        broadcastAsk = true
+                    } label: {
+                        teamPositionLabel(arrived: arrived, total: total)
+                    }
+                    .disabled(broadcastBusy)
+                    .accessibilityIdentifier("playTools.team")
+                } else {
+                    teamPositionLabel(arrived: arrived, total: total)
+                        .accessibilityIdentifier("playTools.team")
+                }
+                if let broadcast = teamLead.broadcast, !broadcast.isEmpty {
+                    LabeledContent("playTools.team.broadcast") { Text(verbatim: broadcast) }
+                }
+                if let broadcastNote {
+                    Text(verbatim: broadcastNote).font(.footnote).foregroundStyle(.secondary)
+                }
+            }
+            .alert("playTools.team.broadcastTitle", isPresented: $broadcastAsk) {
+                TextField("playTools.team.broadcastPlaceholder", text: $broadcastText)
+                Button("playTools.team.broadcastSend") { sendTeamBroadcast() }
+                Button("playx.cancel", role: .cancel) {}
+            }
+        }
+    }
+
+    private func teamPositionLabel(arrived: Int, total: Int) -> some View {
+        LabeledContent {
+            Text(verbatim: "\(arrived)/\(total)").monospacedDigit()
+                .accessibilityLabel(Text("a11y.value.ofTotal \(Int(arrived)) \(Int(total))"))
+        } label: {
+            Label("playTools.team", systemImage: "person.3")
+        }
+    }
+
+    private func sendTeamBroadcast() {
+        let text = broadcastText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let onTeamBroadcast, !text.isEmpty, !broadcastBusy else { return }
+        broadcastBusy = true
+        Task {
+            let note = await onTeamBroadcast(text)
+            broadcastNote = note
+            broadcastBusy = false
         }
     }
 
@@ -391,12 +488,26 @@ public struct PlayToolsAndLeadSheetView: View {
 /// Rows ahead of the next station stay closed and show a placeholder instead of their text (no spoilers).
 struct PlayJournalListView: View {
     let rows: [PlayJournalRow]
+    var attributes: [PlayRouteAttribute] = []
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         List {
-            if rows.isEmpty {
+            if rows.isEmpty && attributes.isEmpty {
                 ContentUnavailableView("playTools.journal.empty", systemImage: "book.pages")
+            }
+            if !attributes.isEmpty {
+                Section {
+                    ForEach(Array(attributes.enumerated()), id: \.offset) { _, attribute in
+                        LabeledContent {
+                            Text(verbatim: attribute.valueText).monospacedDigit()
+                        } label: {
+                            Text(verbatim: attribute.label)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                }
+                .accessibilityIdentifier("playTools.journal.attributes")
             }
             ForEach(rows) { row in
                 if let head = row.chapterHead, !head.isEmpty {

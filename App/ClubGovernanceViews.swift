@@ -196,12 +196,16 @@ struct ClubGovernanceReadView: View {
     /// CLB-topic-story-01: `pages/club/topic-story/index` opens the story directly. The topic overview stays the
     /// host that owns the read; once it has loaded, the story is pushed one time.
     var opensStoryOnLoad = false
+    /// mp-club r3 (MP event-ops wxml:178-238): the hub's 重复方式 card already chose the topic, so the topics read opens
+    /// the 重复方式 form for `scope.topicID` once, as soon as it has loaded (no second pick in the list).
+    var opensSeriesCreationOnLoad = false
     /// mp-club r3: members the 对成员执行 card loaded (nil until loaded); 0 with no ban records = MP 暂无可治理成员.
     @State private var governanceMemberCount: Int? = nil
     @State private var storyAutoOpen = false
     /// CLB-r10-apply-01: 切换到商家端 (MP reLaunch) presents the merchant home as a new root.
     @State private var merchantRelaunch = false
     @State private var storyAutoOpened = false
+    @State private var seriesCreationAutoOpened = false
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var customerPager = ClubOpsCustomerPager()
     @StateObject private var attendanceReturn = ClubAttendanceCorrectionReturn()
@@ -300,6 +304,19 @@ struct ClubGovernanceReadView: View {
                 storyAutoOpened = true
                 storyAutoOpen = true
             }
+            .onChange(of: seriesCreationAutoOpenReady, initial: true) { _, ready in
+                openSeriesCreationOnLoad(ready)
+            }
+    }
+    private var seriesCreationAutoOpenReady: Bool {
+        opensSeriesCreationOnLoad && operation == .eventTopics && seriesHostVisible && !loading &&
+            snapshot != nil && snapshotContext == readContext
+    }
+    private func openSeriesCreationOnLoad(_ ready: Bool) {
+        guard ready, !seriesCreationAutoOpened, scenePhase == .active, let topicID = scope.topicID,
+              let source = seriesCreationSource(topicID: topicID) else { return }
+        seriesCreationAutoOpened = true
+        seriesCreationReturn.open(source, visible: seriesHostVisible, active: true)
     }
     private var storyDestination: some View {
         ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration,
@@ -2010,15 +2027,9 @@ struct ClubGovernanceReadView: View {
                             }
                             .accessibilityElement(children: .combine)
                         }
-                        // Mini-program club/group-code: pick the session, then issue. One tap here; the reviewed
-                        // command still checks check-in permission and the provider gate before any request.
-                        if let issued { edit(.issueGroupCode, scope: target).accessibilityValue(Text(verbatim: issued.headcount.displayText)) }
-                        SharedRunControlEntry(activityID: id)
-                        if let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
-                            NavigationLink("context.ops.title") {
-                                ClubOpsTimeView(activityID: id, original: startDate, owner: opsTimeFactory?(id)) { Task { await load() } }
-                            }.accessibilityIdentifier("club.context.editOps.\(id)")
-                        }
+                        // mp-club r3 (MP topic-detail wxml:142-152): 接下来 rows carry only when / who / eta. 团码 is the round
+                        // action (wxml:63-80), 集合时间 is one row in the director block (wxml:190-200), and the shared-run
+                        // control lives on the director page (ROUTE), so no per-session rows here.
                     }
                 }
             } header: { Text("club.topic.upcoming") } footer: {
@@ -2034,9 +2045,33 @@ struct ClubGovernanceReadView: View {
                 }, presentation: terminalPresentation)
             // CLB-G13 (MP topic-detail wxml:160-500): with an activityId the topic detail carries the director block
             // (K8 banner, 准备总览, director tools, 排行榜), only where topic-manage-stats grants canDirect.
-            if let activityID = scope.activityID, canDirect { ClubTopicDirectorEmbeddedMount(activityID: activityID, topicID: scope.topicID) }
+            if let activityID = scope.activityID, canDirect {
+                topicOpsTimeRow(activityID: activityID, sessions: value["activityList"].array ?? [], ended: topicDisplay.state == .ended)
+                ClubTopicDirectorEmbeddedMount(activityID: activityID, topicID: scope.topicID)
+            }
             // CLB-topic-detail-02: the phase primary is the pinned footer (`topicPrimaryFooter`), not the last row.
         
+    }
+
+    /// MP topic-detail wxml:190-200 (HO-26): one 集合时间 row for the director's session, only when its start parses and
+    /// the topic has not ended; 修改 opens the edit-ops form (the server keeps the sold-session lock, CR-63).
+    @ViewBuilder private func topicOpsTimeRow(activityID: Int, sessions: [ClubGovernanceValue], ended: Bool) -> some View {
+        if !ended, let row = sessions.first(where: { $0["id"].int == activityID }),
+           let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
+            Section {
+                NavigationLink {
+                    ClubOpsTimeView(activityID: activityID, original: startDate, owner: opsTimeFactory?(activityID)) { Task { await load() } }
+                } label: {
+                    LabeledContent {
+                        Text(verbatim: ClubGroupCodePort.formatStart(date: startDate, time: row["startTime"].string)).monospacedDigit()
+                    } label: {
+                        Text("club.topic.opsTime")
+                    }
+                }
+                .accessibilityHint(Text("context.ops.title"))
+                .accessibilityIdentifier("club.context.editOps.\(activityID)")
+            }
+        }
     }
 
     @ViewBuilder private func contentAudienceCounts(_ snapshot: ClubGovernanceSnapshot) -> some View {

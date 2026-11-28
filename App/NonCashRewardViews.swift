@@ -74,7 +74,7 @@ import SwiftUI
                 else if let issue = model.state.moreIssue {
                     AccountCollectionIssueView(issue: issue, retry: { Task { await model.loadMore(reader: reader) } })
                 } else if model.state.nextCursor != nil {
-                    CYPillButton("accountCollection.loadMore", style: .secondary) { Task { await model.loadMore(reader: reader) } }
+                    CYLoadMoreRow("accountCollection.loadMore") { Task { await model.loadMore(reader: reader) } }
                         .accessibilityIdentifier("rewards.loadMore")
                 }
             }

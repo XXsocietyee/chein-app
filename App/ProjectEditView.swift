@@ -27,6 +27,8 @@ import SwiftUI
         }
     }
     @Published private(set) var editorIncarnation = UUID()
+    /// MP `manageAttributeDefinitions` (初始状态 → 调整定义): bumped to ask the root view for the 主题详情 sheet.
+    @Published var topicDetailAsk = 0
     /// In-memory ABA fence for a node draft chooser; not saved or sent to the server.
     private(set) var draftMutationRevision = 0
     private(set) var issueNodeIdentityRevision = 0
@@ -421,7 +423,9 @@ import SwiftUI
                 } header: { OpsR3Text.text("editor.settings") }
                 // r8 C-F5 (MP fabu wxml:172): 角色 card, city themes only, never in the whitelist scope.
                 if model.draft.product == .city, model.coordinator.snapshot?.scope != .whitelist {
-                    ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly, chapters: model.draft.chapters)
+                    ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly, chapters: model.draft.chapters,
+                                        avatarUpload: ProjectEditCastAvatarUpload.make(model),
+                                        voiceUpload: ProjectEditCastVoiceUpload.make(model))
                 }
                 // U02-03 place to-dos (MP fabu wxml:187: page 1, right above 章节) for an adopted template copy. Hidden while gated or without a place contract.
                 if let topicID = model.coordinator.snapshot?.topicID, TopicTemplateAdoptionFactory.bindingIsLive {
@@ -700,6 +704,7 @@ import SwiftUI
         .modifier(ProjectRuntimeEndingsHost(model: model, isPresented: $runtimeEndingsOpen,
                                             rootRequestID: issueNavigation.rootRequest?.id,
                                             rootAnchor: issueNavigation.rootRequest?.capture.location.anchor))
+        .onChange(of: model.topicDetailAsk) { _, _ in topicDetailRequest = ProjectEditTopicDetailRequest(anchor: nil) }
         .onChange(of: model.revision) { _, _ in
             if model.coordinator.state == .acknowledged, let next = model.submittedHandoff, next.id != handledSubmission {
                 handledSubmission = next.id; submission = next
@@ -1050,10 +1055,12 @@ import SwiftUI
         }
         .disabled(!model.canEdit)
     }
-    /// MP topic-detail-sheet.wxml, after the covers: 画面风格 → 剧情详情 (≤1000) → 伏笔, then the topic rules this app edits.
+    /// MP topic-detail-sheet.wxml, after the covers: 主题配乐 → 画面风格 → 剧情详情 (≤1000) → 伏笔, then the topic rules this app edits.
     @ViewBuilder private var storyFields: some View {
+        // MP topic-detail-sheet.wxml:70-77: 主题配乐 (上传 / 更换 / 移除) after the covers, then
         // r8 C-F7 (MP topic-detail-sheet.wxml:79, look-sheet.wxml): 画面风格.
         if model.coordinator.snapshot?.scope != .whitelist {
+            ProjectThemeAudioField(model: model)
             ProjectEditLookHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly,
                                 chapterNames: model.draft.chapters.map(\.name))
         }

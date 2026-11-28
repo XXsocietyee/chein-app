@@ -612,9 +612,95 @@ switch, cast sheet). Six captions sat as a sibling `Text` right under the switch
 | `pages/publishkit` initial attributes 启用 | `ProjectInitialAttributesEditor.swift:128` | ✓ (mp-publish owns order) | Same. The per-row "flag / integer" caption explains the whole row's fields, not the 可见 switch, so it stays a stop. Level C | Done |
 
 
+Not done item: `Picker` / `Stepper` rows with a sibling caption (same scan, 6 hits):
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/publishkit` profile question 题型 | `TemplateProfileQuestionFields.swift:85` | ✓ (mp-publish owns order) | Caption explains the kind picker → its `accessibilityHint`, caption hidden as its own stop. Level C | Done |
+| `pages/coop` topic filter (仅筛选已加载…) | `CooperationBrowserView.swift:179` | ✓ (mp-activity owns order) | Same: hint on the menu picker, caption hidden. Level C | Done |
+| square report legacy hint, club topic customers count scope, follow list "not friends" note, team config defaults | `SocialActionViews.swift:82`, `ClubGovernanceViews.swift:761`, `ProfileFollowListView.swift:39`, `ProjectTeamConfigurationEditor.swift:105` | ✓ | Audit: each caption explains the whole section or list, not the picker above it, so it stays its own stop. No change | Done |
+
+
+Not done item: `TextField` rows with a sibling caption. The scan found mostly character counters, and 11 of them read
+"12 slash 100" / "12 斜杠 100" to VoiceOver (the run-13 slash scan covered values, not `Text(verbatim:)` counters). Format hints
+(`RoamAreaPicker` lat/long, `ProjectNodeDuration`, `PublishingManagement` notices) explain the form section and stay their own stop.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Character counters on player composers: coop invite note + flow reason, club post composer, square appeal reason, picture-choice name, pass refund reason, host cancel reason, square cloud composer, group poll question, comment length row, legacy DIY name | `CooperationContextualViews:677`, `CooperationFlowEditors:266`, `ClubCommunityViews:1056`, `SquareGovernanceViews:67`, `TemplatePictureChoiceEditor:89`, `PassMarketViews:1231`, `ActivityHostCancelView:329`, `SquareCloudComposerView:110`, `GroupPollViews:142`, `SocialActionViews:53`, `PlayKitLegacyViews:82` | ✓ (owning lanes keep order) | `.accessibilityLabel` with the shared `a11y.value.characters` key: "12 of 100 characters" / "已输入 12 字，最多 100 字". Visible text unchanged; identifiers kept. Level B/C | Done |
+
+
+## Run 38 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7`. Sweep index still build 0446d1c4f, so the sheets re-read waits. Not done item 2: other
+`Text(verbatim:)` "a/b" counts (not characters). Already handled and skipped: `CYStepChecklist` ring (hidden, value on the
+row), `ClubBadgeArtKit` (row label), `CYAlbum` dots (page label), `PlayKitPersonalForms` step, `NativeGameKitsB`, `CameraKits`
+album, `NearbyAndHistoryGapViews`. `ObjectBadgeWallParityViews` counts are strings (em dash when unknown) and stay. Internal
+matrix/compliance section views are diagnostics, out of scope.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Nearby team row, free-explore redeemed + story counts (map and archive), city lobby members, city trail team progress, team orient board, group poll option votes, team re-form invite count, play session progress | `NearbyTeamMapViews:148`, `NativeFreeExploreMapView:399/405/635`, `CityOrientationTeamLobbyView:214`, `CityOrientationNavComponents:86`, `TeamOrientBoardView:210`, `GroupPollOriginalResultView:162`, `TeamReformFlowViews:121`, `PlaySessionView:108` | ✓ (owning lanes keep order) | `.accessibilityLabel` with the shared `a11y.value.ofTotalText` key ("3 of 5" / "3，共 5") instead of "3 slash 5" / "3 斜杠 5". Visible text and identifiers unchanged. Level C | Done |
+
+Localized `Text("\(a) / \(b)")` scan: gallery positions already use `carousel.position`. Two object-card frame counters read "slash":
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Object card rotation frames (collection detail + play reveal) | `ObjectCardViews:188`, `PlayObjectCardRevealView:58` | ✓ | Frame counter gets `a11y.value.ofTotal` ("2 of 8" / "2，共 8"). Level C | Done |
+
+Variable-built "a/b" strings shown through `Text(verbatim:)`. New shared helper `App/DesignSystem/CYFractionSpeech.swift`:
+`CYFractionSpeech.label(_:)` reads an "a/b" or "a / b" string as `a11y.value.ofTotalText` and anything else as shown (em dash stays).
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Orient lobby team rows (classic + city), city run control-points cell, city game actions tile, business progress counter, journey rank board score | `OrientLobbyTeamsView:73`, `CityOrientationTeamLobbyView:117`, `CityOrientationRunView:475`, `CityGamePanel:221`, `CYBusinessComponents:848`, `JourneyReportViews:342` | ✓ (owning lanes keep order) | `.accessibilityLabel(CYFractionSpeech.label(…))`: "3 of 6" / "3，共 6". Visible text unchanged. Level C | Done |
+
+| `pages/member/index` cy-profile tabs 项目/帖文/成就/关于 | `AccountView.swift:66` | ✓ (mp-mine owns order) | Audit: system `Picker` + `.cyAdaptiveSegmented()` (stacks at large type), labelled container, identifier, `.sensoryFeedback(.selection)`. No change | Done |
+
+## Run 39 (2026-11-28, hourly)
+Merged `origin/ui/combined-r7`. Sweep index still build 0446d1c4f, so the sheets re-read waits. Not done pages: ticket
+wallet rows, club detail header + join at AX5.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `subpackageMember/signup` wallet card (票夹) | `TicketWalletView.swift:404,436` (`TicketWalletRow`) | ✓ (cover → tag → title → facts kept visually) | VoiceOver: the row is one element (the non-link row was read piece by piece); the title is read first (`.accessibilitySortPriority(1)`), then tag and facts. A cancelled / expired pass was only dimmed: its status now reads as the value ("Canceled" / "已取消", existing `ticketWallet.status.*` keys). Visible card unchanged (owner rule: no status on the card). Level B | Done |
+| `pages/club/detail` header role tags | `ClubDetailView.swift:818` (`statusTags`) | ✓ | 创建者/已加入/审核中 + 管理员 tags were one `HStack` that runs off the edge at AX sizes; now `AnyLayout` HStack → VStack at accessibility sizes. Level B | Done |
+| `pages/club/detail` floating 加入 / 申请加入 / 等待审核 | `ClubActionPanel.swift:273` (`floatingBar`) | ✓ | Audit: system `.borderedProminent` capsule `.large`, full-width label wraps at AX5, glyph-only tint on the reward line (run 2x). Tab bar becomes a menu Picker at AX sizes. No change | Done |
+| `pages/club/detail` 本团贡献榜 · 本周 rows | `ClubDetailR8Mounts.swift:460` (`rowBody`) | ✓ | Rank reads "No. 1" / "第 1 名" (existing `mp.report.rank`) instead of a bare number; at AX sizes the trailing score moves under the meta line (name and meta keep the width, meta wraps). Level B | Done |
+| `subpackageMember/signup` order detail 权益 rows | `TicketWalletDetailView.swift:393` (`TicketWalletEntitlementRow`) | ✓ | Audit: AnyLayout stack at AX sizes, status glyph labelled, row combined. No change | Done |
+
+## Run 40 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7`. **Sweep c4e43841a (15:31Z) read:** `en/zh-Hans-a11y-badges-ax5`, `-passport-ax5`, `-roam-ax5`.
+Badge ring + Collected/Locked rows wrap cleanly; passport action capsules wrap to two lines at AX5 (no truncation), stamp count
+speaks "3 of 12"; Roam title + i · Go · map controls and the light "Nearby activities 2" panel fit at AX5 ✓. No open coordinator
+finding for this lane. Not done pages: club posts feed rows, club events tab rows.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/club/detail` 帖文 feed post card (cy-post-card) | `ClubCommunityViews.swift:731` (`ClubCommunityPostTile`) | ✓ (mp-club owns order) | Author + 关注 Follow button were one HStack that squeezes the name at AX sizes → `AnyLayout` stack, Follow moves under the author. Audit (no change): action bar already stacks at AX sizes, every icon action 44 pt with a spoken name, like/comment counts as values, cross-club count row combined. Level B | Done |
+| `pages/club/detail` 活动 tab summary | `ClubDetailEventsSection.swift:40` | ✓ | Bare `ProgressView()` (VoiceOver "in progress" only) → spinner with the loading words `cy.state.loading` (P10). 当前/已结束 counts are system `LabeledContent` (stacks at AX) ✓. Level B | Done |
+| `pages/club/detail` 活动 cards (`.ev-*`) + calendar list | `ClubActivityListContent.swift:83` (`ClubActivityCard`) | ✓ (cover → status → name → time → 距开始 → address → category → stats kept visually) | 距开始 mm:ss line used system `.orange` text (~2:1) → `CYColor.warningText`; label + timer stack at AX sizes; VoiceOver reads the activity name first (`.accessibilitySortPriority(1)`). Stats already `ViewThatFits` H → V. Level B | Done |
+| `pages/club/detail` 成员 list rows (wxml:297-298) | `ClubMembersView.swift:301` (`memberRow`) | ✓ (avatar → name + role tag → Lv.N · 加入 date) | Name + 创建者/管理员 tag were one HStack (tag squeezed beside a long name at AX sizes) → `ViewThatFits` H → V; the row is one VoiceOver element also when it is not a button (it was read as 3-4 pieces). ⋯ menu already stacks under the row at AX sizes, meta line already `ViewThatFits`. Level B | Done |
+
+## Run 41 (2026-11-28, hourly)
+Merged `origin/ui/combined-r7`. Sweep index still build c4e43841a (read in run 40), so no sheets re-read. Read
+`mp-club/en-d4-channels.jpg` and `en-d4-enroll.jpg` (default text size) for the two Not done pages.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/club/channel` 频道列表 rows + category header (screenshot `en-d4-channels`) | `ClubChannelMessagingView.swift:490` (`channelSidebarRow`), `:479` header | ✓ (category → channel rows with unread / @ badge, muted bell) | VoiceOver read the system `.badge` as a bare "2" and the header mention total "@2" as "at 2": each row now has a spoken value ("2 unread" / "2 条未读", "1 mention" / "N 条@提及", or "Muted" / "免打扰"); the header total reads "N mentions". Selected row keeps `.isSelected`. Level B | Done |
+| `pages/club/enroll` 报名名册 ticket fraction + registrant rows (screenshot `en-d4-enroll`) | `ClubEnrollmentView.swift:449` (`capacity`), `:514` (`checkinChip`) | ✓ (team header → tickets 「n / 上限」 → registrants avatar · name · 核销状态) | 「n / 上限」 was three VoiceOver pieces ("3", "slash", "10") → one element "3 of 10" / "3，共 10" (`a11y.value.ofTotal`, typed `ViewModifier`); 「n 人」 unchanged. 已核销 / 待核销 chip text used system `.green` / `.orange` (~2:1) → `CYColor.successText` / `warningText`. Audit: row already stacks at AX sizes, team header stacks cover/text/chevron, expand state spoken. Level C | Done |
+
+## Run 42 (2026-11-28, half-hourly)
+Rebased on `origin/design/r3-a11y`. Sweep index still build c4e43841a (read in run 40). No K50 `lane-layout` receipts exist yet
+(`cursor-k50-p*.md` not on any branch). No open coordinator finding.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/club/channel` 消息流 message groups (screenshot `en-d4-channel-chat`) | `ClubChannelMessagingView.swift:876` (`ChannelBurstGroupCard`) | ✓ (date divider → avatar · author · role · time → reply quote → body → attachments → send state) | Author / role / time, reply quote + thread count, attachment title + subtitle and the send-state line were HStacks that squeeze at AX sizes → `AnyLayout` stacks at AX sizes. Header is one VoiceOver element with the header trait (rotor jumps author to author). "Reply" is a named VoiceOver action on every message (it was only in the long-press menu). Failed-send glyph `.red` → `CYColor.dangerText`; Retry gets a 44 pt hit area. System-author initial `.orange` → `warningText`. Level B | Done |
+| `pages/club/channel` 成员与身份组 roster sheet | `ClubChannelMessagingView.swift:1068` (`ClubChannelMemberRosterSheet`) | ✓ (role sections → avatar · name · role · 已拉黑 → 有效期; admin ban list) | Name + role tag + Blocked stack at AX sizes; each member row is one VoiceOver element (swipe Block / Report / Remove / Ban stay as custom actions). Ban rows: name/type/reason combine to one element, Unban button moves under the text at AX sizes. Level C | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-36).
-- `Picker` / `Stepper` rows with a sibling caption (same pattern as the run-37 Toggle fix).
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club channel composer bar (attach / send targets, reply-to chip at AX sizes), club channel thread sheet.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
@@ -627,3 +713,4 @@ switch, cast sheet). Six captions sat as a sibling `Text` right under the switch
 - i18n-r3: `ClubComponents.swift:357` video play glyph `.accessibilityLabel(Text(verbatim: "Play"))` is English-only.
 - i18n-r3: `MPGap/Club/ClubGapRound4Views.swift` accessibility label `"删除凭证图片 \(index + 1)"` is a Chinese literal key (no en).
 - mp-roam: `cyMapPanelColor` is now `CYColor.bgElevated` (ds-consistency, kept in run 19); re-check any map panel content you own that assumed a black panel (white text / white strokes).
+- mp-mine / en-layout: passport stamp + badge counts read "3 共 12" in zh-Hans (`passport.stamps.ofTotal` = "共 %lld" after the big number); consider "3 / 12" or "已集 3 · 共 12" so the pair reads as one phrase (VoiceOver already says "3，共 12").

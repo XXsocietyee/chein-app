@@ -416,6 +416,7 @@ struct RoamPOIMissingView: View {
     @State private var noteGrabbed = false
     @State private var boxArmed = false
     @State private var boxFrame: CGRect = .zero
+    @Environment(\.locale) private var locale
     @QuestifyReduceMotion private var reduceMotion
     private static let writeSpace = "roamStampWrite"
     private let openedAt = Date()
@@ -425,7 +426,7 @@ struct RoamPOIMissingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 // RSTAMP-5: the kind title is the inline nav title only; the content keeps the `date · place` line.
-                HStack(spacing: 4) { Text(verbatim: RoamStampSlip.dateLabel(openedAt) + " ·"); placeText }
+                HStack(spacing: 4) { Text(verbatim: RoamStampSlip.dateLabel(openedAt, locale: locale) + " ·"); placeText }
                     .cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.stamp.header")
                 if let receipt { RoamStampSlipView(slip: RoamStampSlip(receipt), place: placeText, openedAt: openedAt) }
@@ -587,6 +588,7 @@ struct RoamPOIMissingView: View {
     @Environment(\.dismiss) private var dismiss
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
+    @Environment(\.locale) private var locale
     @State private var torn = false
     @State private var pull: CGFloat = 0
     @State private var scratched: CGFloat = 0
@@ -664,7 +666,7 @@ struct RoamPOIMissingView: View {
                 Spacer()
                 VStack(alignment: .leading) {
                     Text("roamSub.w208.stamp.leftAt").cyText(.caption).foregroundStyle(.secondary)
-                    Text(verbatim: slip.leftAt ?? "—").cyText(.meta, monospacedDigit: true)
+                    Text(verbatim: slip.leftAtText(locale: locale) ?? "—").cyText(.meta, monospacedDigit: true)
                 }
             }
             Divider()

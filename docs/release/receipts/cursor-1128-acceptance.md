@@ -2,7 +2,7 @@
 
 Lane2 simulator `Questify-iPhone17-Lane2` `2337B386-AC5F-4417-B8B8-012A8DB888BD`.
 DerivedData `~/Library/Developer/Xcode/DerivedData/cursor-1128-acceptance`.
-Base `origin/ui/combined-r7` `c4e43841afaddd576a72104f8bf8641af2060732` (K11–K16 and the sensors/artworkHosts argument-order fix). Merged by fast-forward. Not rebased.
+Base at the Lane2 run: `origin/ui/combined-r7` `c4e43841afaddd576a72104f8bf8641af2060732` (K11–K16 and the sensors/artworkHosts argument-order fix). After that run the tip moved to `45264c9bffa264968b62bb657f72f21dfc45ce24`. It was merged in (no rebase). The Lane2 counts below are the run on `c4e43841` plus the stale-test edits, not a second pass of the later tip. The poi-detail sample in the merged tree is `poiId` `7`, which is the same rule as the `5` used on the run.
 
 Gates on this tree: `check_scaffold.py` PASS (5403 Swift files, AppSession.swift 7977 lines), `check_a11y_lint.py` 0 new, `contract_ratchet.py --check` 46 failing / baseline 46 / new 0. No new `String(localized:)` literals.
 

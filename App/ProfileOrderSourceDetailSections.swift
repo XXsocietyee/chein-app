@@ -88,7 +88,16 @@ struct ProfileOrderTeamSeatClubSection: View {
         Group {
             if order.teamOpen, let activityID = order.ownerID, activityID > 0 {
                 Section {
-                    NavigationLink { SessionTeamCreateView(activityID: activityID, registrationID: order.id) } label: {
+                    if order.teamStartedNow {
+                        Text("orderDetail.team.started")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("profile.order.teamStarted")
+                    }
+                    NavigationLink {
+                        SessionTeamCreateView(activityID: activityID, registrationID: order.id, sessionStarted: order.teamStartedNow)
+                    } label: {
                         Label("orderDetail.inviteTeammates", systemImage: "person.2.badge.plus")
                     }
                     .accessibilityIdentifier("profile.order.teamOpen")

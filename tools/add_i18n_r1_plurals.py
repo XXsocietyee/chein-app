@@ -37,6 +37,9 @@ SINGULAR = {
     'teams': 'team', 'themes': 'theme', 'tickets': 'ticket', 'times': 'time', 'topics': 'topic',
     'weeks': 'week', 'works': 'work', 'years': 'year', 'stamps': 'stamp', 'districts': 'district',
     'groups': 'group', 'runs': 'run', 'visits': 'visit', 'votes': 'vote', 'tries': 'try', 'winners': 'winner', 'pieces': 'piece',
+    # en-layout r3 run 36
+    'stars': 'star', 'medals': 'medal', 'legs': 'leg', 'slots': 'slot', 'pictures': 'picture', 'choices': 'choice',
+    'roles': 'role', 'fields': 'field', 'picks': 'pick', 'segments': 'segment', 'images': 'image',
 }
 # Keys where the matched word is a verb ("the invite for seat %lld stops working"), not a counted noun.
 VERB_KEYS = {'mp.seats.cancel.message %lld'}
@@ -56,6 +59,33 @@ def stable_fragment(name):
         return json.dumps(json.loads(text), indent=2, ensure_ascii=False) + '\n' == text
     except (UnicodeDecodeError, OSError, ValueError):
         return False
+# en-layout r3 run 35: converted by hand; their mentions elsewhere are list docs no tool merges, catalog-shaped
+# port fragments updated to the same variations, or contract checks that read the plural `other` form.
+UNPINNED = {
+    '%lld 个点位', 'discovery.chapters %lld', 'globalSearch.resultsAnnounced %lld', 'passport.stamps.collected %lld',
+    'official.summary.live %lld', 'official.summary.ended %lld', 'official.summary.mine %lld',
+    'official.summary.upcoming %lld', 'official.detailParity.duration.days %lld', 'official.detailParity.duration.hours %lld',
+    # Square counts: `docs/parity/w2-07-localizations.json` rows carry `en_one`, and build_w2_07 writes the variations.
+    'square.xcx.commentsA11y %lld', 'square.xcx.likesA11y %lld', 'square.xcx.play.completedNodes %lld',
+    # Builders that write `en_one` themselves (build_roam_private_tools_localizations, add_im_messaging_localizations).
+    'roam.capsule.daysLeft %lld', 'roam.export.rows %lld', 'roam.goals.unit.routes %lld', 'roam.goals.unit.days %lld',
+    'im.card.pointCount %lld', 'social.guideTemplates.playedTimes %lld', 'playerJourney.parity.countdown %lld',
+    # EN_ONE in add_mp_drift / add_h8_ug / add_u10_screens; ClubStoryLocalizations fragment mirrors the catalog.
+    '%lld 站',
+    'club.story.stopCount %lld',
+    'mpd.chapters.allSub %lld',
+    'mpd.chapters.openSub %lld',
+    'mpd.chapters.completedSub %lld',
+    'mpd.chapters.lockedSub %lld',
+    'playHelp.freeLeft %lld',
+    'playHelp.cost %lld',
+    'playHelp.points %lld',
+    'playHelp.confirm.cost %lld',
+    'playHelp.chargedOnly %lld',
+    'playHelp.charged %lld %lld',
+    'u10.template.summary.games %lld',
+    'u10.template.summary.stops %lld',
+}
 # Families a contract check reads by prefix (Tests/ContractChecks/test_activity_registration_parity_w2_06.py).
 PINNED_PREFIXES = ('activityParity.', 'registrationParity.')
 ARG = re.compile(r'%(?:\d+\$)?(?:lld|ld|li|d|i|@|f|\.\d+f|u|llu|lu)')
@@ -82,7 +112,7 @@ def pinned_keys():
     # Only count strings can be affected, so only their keys are searched (the blob is large).
     candidates = [key for key, entry in catalog.items() if 'variations' in entry['localizations'].get('en', {})
                   or INT_NOUN.search(entry['localizations'].get('en', {}).get('stringUnit', {}).get('value', ''))]
-    return {key for key in candidates if key in text or escaped(key) in text or key.startswith(PINNED_PREFIXES)}
+    return {key for key in candidates if key not in UNPINNED and (key in text or escaped(key) in text or key.startswith(PINNED_PREFIXES))}
 
 
 def convertible(key, entry, pinned):

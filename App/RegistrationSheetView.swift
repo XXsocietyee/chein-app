@@ -651,17 +651,24 @@ struct RegistrationSheetView: View {
     }
     /// mp-activity r3 (MP baoming.wxml bmbottom cy-btn): when nothing blocks, the button says what it will do —
     /// 付款 (priced, quote in hand) / 确认价格并付款 (priced, quote pending) / 确认报名 (free). Blocked keeps the review key; the reason sits below.
-    private func submitLabelText(_ copy: CoreLoopCopy, blocked: Bool) -> String? {
-        // Sweep 04:50: a blocked button keeps its action label in the system disabled style; the MP reason
-        // (baoming.wxml:329 请先勾选信息共享同意 / 请选择参与人信息 / 报名已截止) is the footnote above it.
-        guard let ticket = flow.selectedTicket else { return nil }
-        if flow.quoteEnabled, case .received(let quote) = flow.quoteState, let amount = quote.payAmount {
-            if amount == .zero { return copy.t("确认报名", "Confirm sign-up") }
-            // P32 (fix-1128-alipay): the button is the method, "Pay ¥12.50 with WeChat Pay" / "… with Alipay".
-            return paymentsOpen ? payWithLabel(amount: amount, currency: quote.currency) : nil
+    private func submitLabelText(_ copy: CoreLoopCopy, blocked _: Bool) -> String? {
+        // Sweep 04:50 / ADA t5-baoming: a block never becomes the button label. The reason is the footnote.
+        let quote = flow.quoteState.quoteValue
+        switch RegistrationCheckoutPayUX.submit(
+            hasTicket: flow.selectedTicket != nil,
+            ticketPrice: flow.selectedTicket?.price,
+            quoteEnabled: flow.quoteEnabled,
+            quoteReceived: quote != nil,
+            quotePayAmount: quote?.payAmount,
+            paymentsOpen: paymentsOpen
+        ) {
+        case .confirmSignup: return copy.t("确认报名", "Confirm sign-up")
+        case .confirmPriceAndPay: return copy.t("确认价格并付款", "Confirm price and pay")
+        case .pay:
+            guard let amount = quote?.payAmount else { return nil }
+            return payWithLabel(amount: amount, currency: quote?.currency)
+        case .reviewKey, nil: return nil
         }
-        if ticket.price == 0 { return copy.t("确认报名", "Confirm sign-up") }
-        return paymentsOpen ? copy.t("确认价格并付款", "Confirm price and pay") : nil
     }
     /// fix-1128-alipay: Alipay is offered for this quote (backend `APP_ALIPAY` and the app can open Alipay).
     private var alipayOffered: Bool {
@@ -681,12 +688,12 @@ struct RegistrationSheetView: View {
     }
     private func footnoteReason(_ copy: CoreLoopCopy) -> String? {
         if flow.checkoutFooterNotice(paymentReadiness: effectivePaymentReadiness) != nil { return blockReason(copy) }
-        // MP baoming.wxml:329 cy-btn label while `!canPay`, shown as the reason above the disabled button.
-        switch flow.confirmationBlock {
-        case .missingConsent?: return copy.t("请先勾选信息共享同意", "Turn on sharing consent first")
-        case .invalidForm?: return copy.t("请选择参与人信息", "Choose a participant")
-        case .signupClosed?: return copy.t("报名已截止", "Registration is closed")
-        default: return blockReason(copy)
+        // MP baoming.wxml:329 reasons sit above the disabled button. They are not the button title.
+        switch RegistrationCheckoutPayUX.footnote(flow.confirmationBlock) {
+        case .sharingConsent: return copy.t("请先勾选信息共享同意", "Turn on sharing consent first")
+        case .chooseParticipant: return copy.t("请选择参与人信息", "Choose a participant")
+        case .signupClosed: return copy.t("报名已截止", "Registration is closed")
+        case .blockReason, nil: return blockReason(copy)
         }
     }
     private func footerNoticeText(_ notice: RegistrationCheckoutFooterNotice, _ copy: CoreLoopCopy) -> String {
@@ -702,7 +709,10 @@ struct RegistrationSheetView: View {
     @State private var blockedTaps = 0
     /// P32 (sweep 13:15 P1): 费用明细 → 支付方式 → consent → button, with the method row kept in view in the bar.
     private var payMethodBarRow: some View {
-        RegistrationPayMethodSection(selection: $payMethod, price: flow.selectedTicket?.price,
+        RegistrationPayMethodSection(selection: $payMethod, price: RegistrationCheckoutPayUX.payWithRowPrice(
+                                     ticketPrice: flow.selectedTicket?.price, quoteEnabled: flow.quoteEnabled,
+                                     quoteReceived: flow.quoteState.quoteValue != nil,
+                                     quotePayAmount: flow.quoteState.quoteValue?.payAmount),
                                      market: payMethodMarket,
                                      paymentChannels: flow.quoteState.quoteValue?.paymentChannels,
                                      applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,

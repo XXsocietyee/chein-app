@@ -816,7 +816,11 @@ private struct ClubDetailHeader: View {
         if club.isOwner || club.isJoined || club.joinPending || declinedReason != nil || club.viewerIsAdmin {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if club.isOwner || club.isJoined || club.joinPending || club.viewerIsAdmin {
-                    HStack(spacing: CYSpacing.md) {
+                    // a11y-dt r3: role + administrator tags stack at accessibility sizes instead of running off the edge.
+                    let tagLayout = typeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
+                        : AnyLayout(HStackLayout(spacing: CYSpacing.md))
+                    tagLayout {
                         if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
                         else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
                         else if club.joinPending { Label("club.membership.pending", systemImage: "clock").foregroundStyle(CYColor.warningText) }

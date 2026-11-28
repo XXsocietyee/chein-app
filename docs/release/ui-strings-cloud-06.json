@@ -1,42 +1,202 @@
 [
-  {"key": "cloud06.loading", "en": "Loading", "zh-Hans": "正在读取"},
-  {"key": "cloud06.actionBudget.title", "en": "Action budget", "zh-Hans": "行动额度"},
-  {"key": "cloud06.actionBudget.boundary", "en": "Records the roll only. It does not move you or grant a reward.", "zh-Hans": "仅记录掷骰结果，不移动、不发奖。"},
-  {"key": "cloud06.actionBudget.remaining", "en": "Remaining", "zh-Hans": "剩余额度"},
-  {"key": "cloud06.actionBudget.costEach", "en": "Cost per roll", "zh-Hans": "每次消耗"},
-  {"key": "cloud06.actionBudget.dice", "en": "Dice", "zh-Hans": "骰子"},
-  {"key": "cloud06.actionBudget.unread", "en": "The current budget has not been read yet. Refresh to load it.", "zh-Hans": "当前额度未读取，请刷新。"},
-  {"key": "cloud06.actionBudget.refresh", "en": "Refresh budget", "zh-Hans": "刷新额度"},
-  {"key": "cloud06.actionBudget.original", "en": "Original request", "zh-Hans": "原请求"},
-  {"key": "cloud06.actionBudget.pending", "en": "The result is still unconfirmed. The original request will not be submitted again.", "zh-Hans": "结果待确认。不会再次提交原请求。"},
-  {"key": "cloud06.actionBudget.recheck", "en": "Check the original result", "zh-Hans": "查询原结果"},
-  {"key": "cloud06.actionBudget.complete", "en": "The original request is complete", "zh-Hans": "原请求已完成"},
-  {"key": "cloud06.actionBudget.notRun", "en": "The original request did not run. Refresh to see the status.", "zh-Hans": "原请求未获执行，请刷新后查看状态。"},
-  {"key": "cloud06.actionBudget.storage", "en": "The original record cannot be read, so nothing can be submitted.", "zh-Hans": "原记录暂不可读，暂不能提交。"},
-  {"key": "cloud06.actionBudget.entryUnavailable", "en": "This entry is unavailable", "zh-Hans": "当前入口不可用"},
-  {"key": "cloud06.actionBudget.empty", "en": "No request is waiting", "zh-Hans": "没有待确认请求"},
-  {"key": "cloud06.actionBudget.verified", "en": "Verified original result", "zh-Hans": "已核原结果"},
-  {"key": "cloud06.actionBudget.face", "en": "Face", "zh-Hans": "骰面"},
-  {"key": "cloud06.actionBudget.spent", "en": "Spent", "zh-Hans": "消耗"},
-  {"key": "cloud06.actionBudget.after", "en": "Remaining", "zh-Hans": "剩余"},
-  {"key": "cloud06.actionBudget.confirm", "en": "Confirm this roll", "zh-Hans": "确认本次掷骰"},
-  {"key": "cloud06.actionBudget.confirmBody", "en": "Spends %lld action units and only records the server result.", "zh-Hans": "消耗 %lld 行动额度，仅记录服务器结果。"},
-  {"key": "cloud06.actionBudget.submit", "en": "Confirm and submit", "zh-Hans": "确认提交"},
-  {"key": "cloud06.actionBudget.cancel", "en": "Cancel", "zh-Hans": "取消"},
-  {"key": "cloud06.actionBudget.unauthorized", "en": "This original request is not authorized yet.", "zh-Hans": "尚未取得本次原请求授权。"},
-  {"key": "cloud06.actionBudget.prepare", "en": "Prepare roll", "zh-Hans": "准备掷骰"},
-  {"key": "cloud06.actionBudget.join", "en": "Join a city team first", "zh-Hans": "请先加入城市队伍"},
-  {"key": "cloud06.actionBudget.team", "en": "The team is not ready yet", "zh-Hans": "队伍尚未就绪"},
-  {"key": "cloud06.actionBudget.unconfigured", "en": "These rules have no action budget", "zh-Hans": "当前规则未配置行动额度"},
-  {"key": "cloud06.actionBudget.exhausted", "en": "This round's action budget is used up", "zh-Hans": "本轮行动额度已用完"},
-  {"key": "cloud06.actionBudget.available", "en": "Action budget is available", "zh-Hans": "当前行动额度可用"},
-  {"key": "cloud06.actionBudget.unavailableTitle", "en": "Action budget is unavailable", "zh-Hans": "行动额度暂不可用"},
-  {"key": "cloud06.actionBudget.unavailableDetail", "en": "The original request is kept and will not be submitted again.", "zh-Hans": "保留原请求，不会自动重新提交。"},
-  {"key": "cloud06.actionBudget.reopen", "en": "Open again", "zh-Hans": "重新打开"},
-  {"key": "cloud06.fairness.reason.firstOuting", "en": "First outing", "zh-Hans": "首次外出"},
-  {"key": "cloud06.fairness.reason.secondOuting", "en": "Second outing", "zh-Hans": "第二次外出"},
-  {"key": "cloud06.fairness.reason.insideDelta", "en": "Inside the window", "zh-Hans": "窗口内"},
-  {"key": "cloud06.fairness.reason.afterHorizon", "en": "After the horizon", "zh-Hans": "超过期限"},
-  {"key": "cloud06.fairness.reason.beforeT0", "en": "Before the start", "zh-Hans": "起点之前"},
-  {"key": "cloud06.fairness.reason.notEffective", "en": "Not effective", "zh-Hans": "尚未生效"}
+  {
+    "key": "cloud06.loading",
+    "en": "Loading",
+    "zh-Hans": "正在读取"
+  },
+  {
+    "key": "cloud06.actionBudget.title",
+    "en": "Action budget",
+    "zh-Hans": "行动额度"
+  },
+  {
+    "key": "cloud06.actionBudget.boundary",
+    "en": "Records the roll only. It does not move you or grant a reward.",
+    "zh-Hans": "仅记录掷骰结果，不移动、不发奖。"
+  },
+  {
+    "key": "cloud06.actionBudget.remaining",
+    "en": "Remaining",
+    "zh-Hans": "剩余额度"
+  },
+  {
+    "key": "cloud06.actionBudget.costEach",
+    "en": "Cost per roll",
+    "zh-Hans": "每次消耗"
+  },
+  {
+    "key": "cloud06.actionBudget.dice",
+    "en": "Dice",
+    "zh-Hans": "骰子"
+  },
+  {
+    "key": "cloud06.actionBudget.unread",
+    "en": "Current budget hasn't been read yet. Refresh load.",
+    "zh-Hans": "当前额度未读取，请刷新。"
+  },
+  {
+    "key": "cloud06.actionBudget.refresh",
+    "en": "Refresh budget",
+    "zh-Hans": "刷新额度"
+  },
+  {
+    "key": "cloud06.actionBudget.original",
+    "en": "Original",
+    "zh-Hans": "原请求"
+  },
+  {
+    "key": "cloud06.actionBudget.pending",
+    "en": "The result still unconfirmed. Original request won't submitted again.",
+    "zh-Hans": "结果待确认。不会再次提交原请求。"
+  },
+  {
+    "key": "cloud06.actionBudget.recheck",
+    "en": "Check original result",
+    "zh-Hans": "查询原结果"
+  },
+  {
+    "key": "cloud06.actionBudget.complete",
+    "en": "Original request complete",
+    "zh-Hans": "原请求已完成"
+  },
+  {
+    "key": "cloud06.actionBudget.notRun",
+    "en": "The original request did not run. Refresh to see the status.",
+    "zh-Hans": "原请求未获执行，请刷新后查看状态。"
+  },
+  {
+    "key": "cloud06.actionBudget.storage",
+    "en": "The original record can't be read, so nothing can submitted.",
+    "zh-Hans": "原记录暂不可读，暂不能提交。"
+  },
+  {
+    "key": "cloud06.actionBudget.entryUnavailable",
+    "en": "This entry is unavailable",
+    "zh-Hans": "当前入口不可用"
+  },
+  {
+    "key": "cloud06.actionBudget.empty",
+    "en": "No request is waiting",
+    "zh-Hans": "没有待确认请求"
+  },
+  {
+    "key": "cloud06.actionBudget.verified",
+    "en": "Verified original",
+    "zh-Hans": "已核原结果"
+  },
+  {
+    "key": "cloud06.actionBudget.face",
+    "en": "Face",
+    "zh-Hans": "骰面"
+  },
+  {
+    "key": "cloud06.actionBudget.spent",
+    "en": "Spent",
+    "zh-Hans": "消耗"
+  },
+  {
+    "key": "cloud06.actionBudget.after",
+    "en": "Left",
+    "zh-Hans": "剩余"
+  },
+  {
+    "key": "cloud06.actionBudget.confirm",
+    "en": "Confirm this roll",
+    "zh-Hans": "确认本次掷骰"
+  },
+  {
+    "key": "cloud06.actionBudget.confirmBody",
+    "en": "Spends %lld action units and only records the server result.",
+    "zh-Hans": "消耗 %lld 行动额度，仅记录服务器结果。"
+  },
+  {
+    "key": "cloud06.actionBudget.submit",
+    "en": "Confirm submit",
+    "zh-Hans": "确认提交"
+  },
+  {
+    "key": "cloud06.actionBudget.cancel",
+    "en": "Cancel",
+    "zh-Hans": "取消"
+  },
+  {
+    "key": "cloud06.actionBudget.unauthorized",
+    "en": "This original request is not authorized yet.",
+    "zh-Hans": "尚未取得本次原请求授权。"
+  },
+  {
+    "key": "cloud06.actionBudget.prepare",
+    "en": "Prepare roll",
+    "zh-Hans": "准备掷骰"
+  },
+  {
+    "key": "cloud06.actionBudget.join",
+    "en": "Join a city team first",
+    "zh-Hans": "请先加入城市队伍"
+  },
+  {
+    "key": "cloud06.actionBudget.team",
+    "en": "The team is not ready yet",
+    "zh-Hans": "队伍尚未就绪"
+  },
+  {
+    "key": "cloud06.actionBudget.unconfigured",
+    "en": "These rules have no action budget",
+    "zh-Hans": "当前规则未配置行动额度"
+  },
+  {
+    "key": "cloud06.actionBudget.exhausted",
+    "en": "This round's action budget is used up",
+    "zh-Hans": "本轮行动额度已用完"
+  },
+  {
+    "key": "cloud06.actionBudget.available",
+    "en": "Action budget is available",
+    "zh-Hans": "当前行动额度可用"
+  },
+  {
+    "key": "cloud06.actionBudget.unavailableTitle",
+    "en": "Action budget is unavailable",
+    "zh-Hans": "行动额度暂不可用"
+  },
+  {
+    "key": "cloud06.actionBudget.unavailableDetail",
+    "en": "The original request is kept and will not be submitted again.",
+    "zh-Hans": "保留原请求，不会自动重新提交。"
+  },
+  {
+    "key": "cloud06.actionBudget.reopen",
+    "en": "Open again",
+    "zh-Hans": "重新打开"
+  },
+  {
+    "key": "cloud06.fairness.reason.firstOuting",
+    "en": "First outing",
+    "zh-Hans": "首次外出"
+  },
+  {
+    "key": "cloud06.fairness.reason.secondOuting",
+    "en": "Second outing",
+    "zh-Hans": "第二次外出"
+  },
+  {
+    "key": "cloud06.fairness.reason.insideDelta",
+    "en": "Inside window",
+    "zh-Hans": "窗口内"
+  },
+  {
+    "key": "cloud06.fairness.reason.afterHorizon",
+    "en": "After the horizon",
+    "zh-Hans": "超过期限"
+  },
+  {
+    "key": "cloud06.fairness.reason.beforeT0",
+    "en": "Before the start",
+    "zh-Hans": "起点之前"
+  },
+  {
+    "key": "cloud06.fairness.reason.notEffective",
+    "en": "Not effective",
+    "zh-Hans": "尚未生效"
+  }
 ]

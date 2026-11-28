@@ -355,5 +355,464 @@
         }
       }
     }
+  },
+  "mpPublish.themeAudio.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Theme music"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "主题配乐"
+        }
+      }
+    }
+  },
+  "mpPublish.themeAudio.upload": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upload"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上传"
+        }
+      }
+    }
+  },
+  "mpPublish.themeAudio.replace": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Replace"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更换"
+        }
+      }
+    }
+  },
+  "mpPublish.themeAudio.remove": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除"
+        }
+      }
+    }
+  },
+  "mpPublish.themeAudio.removeLabel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remove theme music"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "移除主题配乐"
+        }
+      }
+    }
+  },
+  "mpPublish.themeAudio.uploadLabel": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upload theme music"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上传主题配乐"
+        }
+      }
+    }
+  },
+  "mpPublish.themeAudio.unsupported": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This topic's theme music was saved in a format this version can't change."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这段主题配乐的保存格式当前版本无法修改。"
+        }
+      }
+    }
+  },
+  "mpPublish.themeAudio.scope": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "One mp3, m4a or aac file up to 10 MB. It loops while players are in this topic. Nothing is uploaded until you tap Upload."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择一个 mp3、m4a 或 aac 文件，不超过 10 MB，玩家在主题内时循环播放。点上传前不会上传。"
+        }
+      }
+    }
+  },
+  "mpPublish.themeAudio.tooLong": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The returned file address is too long to save as theme music."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "返回的文件地址过长，无法保存为主题配乐。"
+        }
+      }
+    }
+  },
+  "mpPublish.themeAudio.apply": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Use as theme music"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "设为主题配乐"
+        }
+      }
+    }
+  },
+  "mpPublish.values.custom.notEnabled": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Turn this value on in the starting state first."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先在初始状态中启用注册属性"
+        }
+      }
+    }
+  },
+  "mpPublish.values.custom.definitionChanged": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This value's definition changed. Reload it, then edit the link."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "属性定义已变化，请重新读取后编辑关联"
+        }
+      }
+    }
+  },
+  "mpPublish.values.custom.boundFooter": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The name and range come from the registry. Only the link can change here."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "名称和范围由注册表管理，这里只能修改关联。"
+        }
+      }
+    }
+  },
+  "mpPublish.values.ref.node %lld %@ %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "gameplay binding of chapter %1$lld, stop “%2$@” (%3$@)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "第%1$lld章节点「%2$@」玩法绑定 · %3$@"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Name this play"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "给这个玩法起个名字"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.description": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sum up what makes this play fun in one line"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "一句话介绍这个玩法的看点"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.requiredMaterials": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "e.g. phone, pen"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "如：手机、笔"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.hint1": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "First hint, e.g. Look at the flagstones under your feet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "一级提示，如：留意脚下的石板"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.hint2": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Second hint (optional)"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "二级提示（可选）"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.answerReveal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Fallback answer, given straight away when players are stuck"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "备用答案，卡住时直接给出"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.feedbackText": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "e.g. Congratulations, you solved the old town's first secret!"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "例如：恭喜你解开了老城的第一个秘密！"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.medalName": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Medal name, e.g. Old Town Explorer"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "勋章名称，如 老城探秘者"
+        }
+      }
+    }
+  },
+  "templateRewardKinds.coupon": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Coupon"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "优惠券"
+        }
+      }
+    }
+  },
+  "templateRewardKinds.medal": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Medal"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "勋章"
+        }
+      }
+    }
+  },
+  "templateLegacyHints.enabled": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hints"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "提示"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.scanReply": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "e.g. Welcome to the old town teahouse"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "例如 欢迎来到老城茶馆"
+        }
+      }
+    }
+  },
+  "templateAuthor.round4.scanReplyPrompt": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reply text after scanning"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "扫完回复的内容"
+        }
+      }
+    }
   }
 }

@@ -50,9 +50,12 @@ extension EnvironmentValues {
                     if model.checkingOrder { ProgressView() }
                     if model.readbackFailed { Text("verificationCode.readbackFailed").cyText(.bodyCompact) }
                     if let detail = model.readback {
-                        Label(detail.registrationStatus == 2 ? "verificationCode.order.active" : "verificationCode.order.ended",
-                              systemImage: detail.registrationStatus == 2 ? "checkmark.circle" : "clock")
-                            .foregroundStyle(detail.registrationStatus == 2 ? Color.green : Color.secondary)
+                        // G-09: a finished pass (no chapter left) is not "active" just because registrationStatus is 2.
+                        let consumed = OrderPassAvailability(detail: detail) == .complete
+                        let active = !consumed && detail.registrationStatus == 2
+                        let orderKey: LocalizedStringKey = consumed ? "verificationCode.order.used" : (active ? "verificationCode.order.active" : "verificationCode.order.ended")
+                        Label(orderKey, systemImage: active ? "checkmark.circle" : "clock")
+                            .foregroundStyle(active ? Color.green : Color.secondary)
                             .accessibilityIdentifier("verificationCode.orderState")
                     }
                 }
@@ -95,7 +98,10 @@ extension EnvironmentValues {
                 Button("verificationCode.retry") { run { await model.present() } }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("verificationCode.refresh")
-                LabeledContent("verificationCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
+                // V-02: a ticket code renews itself. The countdown stays on the city voucher only.
+                if model.target.kind != .ticket {
+                    LabeledContent("verificationCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
+                }
             }
         } else if model.phase == .loading {
             // mp-states r3: P10 — the loader says what it is doing (正在获取实时码…), not a bare spinner.

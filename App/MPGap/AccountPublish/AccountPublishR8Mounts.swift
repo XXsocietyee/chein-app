@@ -101,7 +101,7 @@ private struct TeamApplicantsEnvelope: Decodable {
 /// MP `formData.castConfig` in its interface shape: `{enabled, playerName, playerIdentity, identities, cast:[member]}`.
 /// The app keeps that object in `ProjectEditDraft.preserved["castConfig"]`. `ProjectEditContract` posts it as the
 /// JSON string `serializeCastConfig` sends, and loads the topic or edit-detail value back into the same key.
-/// Member fields the app does not edit (avatar, a recorded voice) are kept as they were.
+/// A recorded voice (not edited in the app) is kept as it was; the avatar is edited in 编辑角色 (MP `pickCastAvatar`).
 /// One MP player identity (`castConfig.identities[]`: key · title · sub).
 public struct ProjectEditCastIdentity: Identifiable, Equatable {
     public let id: String
@@ -161,8 +161,29 @@ enum ProjectEditCastConfig {
                                         roleTitle: m["identity"]?.text ?? "", voiceID: preset,
                                         colorHex: colors.contains(color ?? "") ? color : nil, clues: clues,
                                         endingLow: lines["low"]?.text ?? "", endingMid: lines["mid"]?.text ?? "",
-                                        endingHigh: lines["high"]?.text ?? "")
+                                        endingHigh: lines["high"]?.text ?? "",
+                                        avatarURL: savableAvatar(m["avatarUrl"]?.text),
+                                        voiceRecordingURL: recordedVoice(voice))
         }
+    }
+
+    /// MP story-cast.js `normalizeVoice`: `{mode: 'record', url}` keeps its trimmed url (a non-empty one is kept as sent,
+    /// so a recording made on the MP survives an app edit).
+    static func recordedVoice(_ voice: [String: ProjectEditJSON]?) -> String? {
+        guard voice?["mode"]?.text == "record",
+              let url = voice?["url"]?.text?.trimmingCharacters(in: .whitespacesAndNewlines), !url.isEmpty else { return nil }
+        return url
+    }
+
+    /// MP story-cast.js `MEDIA_URL`: `https://…` or `media-asset:N` (N ≥ 1); anything else is not an uploaded photo.
+    static func savableAvatar(_ raw: String?) -> String? {
+        guard let value = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty,
+              !value.contains(where: { $0.isWhitespace }) else { return nil }
+        if value.hasPrefix("https://") { return value.count > 8 ? value : nil }
+        guard value.hasPrefix("media-asset:") else { return nil }
+        let digits = value.dropFirst("media-asset:".count)
+        guard let first = digits.first, first != "0", digits.allSatisfy({ $0.isASCII && $0.isNumber }) else { return nil }
+        return value
     }
 
     /// Switch on: an absent config becomes the MP `emptyCastConfig()`; switch off only sets `enabled=false`.
@@ -195,16 +216,23 @@ enum ProjectEditCastConfig {
             row["id"] = .string(member.id)
             row["name"] = .string(String(member.name.prefix(nameMax)))
             row["identity"] = .string(String(member.roleTitle.prefix(identityMax)))
-            if row["avatarUrl"] == nil { row["avatarUrl"] = .string("") }
+            if let avatar = savableAvatar(member.avatarURL) {
+                row["avatarUrl"] = .string(avatar)
+            } else if row["avatarUrl"] == nil {
+                row["avatarUrl"] = .string("")
+            }
             if let chosen = member.colorHex, colors.contains(chosen) {
                 row["color"] = .string(chosen)
             } else if row["color"]?.text == nil {
                 row["color"] = .string(colors.first { !used.contains($0) } ?? colors[index % colors.count])
             }
             if let color = row["color"]?.text { used.append(color) }
+            // MP onCastVoice / toggleCastRecord: one choice — a preset, the role's own recording, or none.
             if let preset = member.voiceID, voicePresets.contains(where: { $0.value == preset }) {
                 row["voice"] = .object(["mode": .string("preset"), "preset": .string(preset)])
-            } else if row["voice"]?.object?["mode"]?.text != "record" {
+            } else if let recording = member.voiceRecordingURL?.trimmingCharacters(in: .whitespacesAndNewlines), !recording.isEmpty {
+                row["voice"] = .object(["mode": .string("record"), "url": .string(recording)])
+            } else {
                 row["voice"] = .object(["mode": .string("none")])
             }
             // MP story-cast.js serialize: clues trimmed (≤6, ≤40), ending lines trimmed (≤60).
@@ -298,6 +326,10 @@ enum ProjectEditCastConfig {
     @Binding var preserved: [String: ProjectEditJSON]
     let readOnly: Bool
     var chapters: [ProjectEditChapter] = []
+    /// MP `pickCastAvatar` upload for 编辑角色; nil hides 上传头像.
+    var avatarUpload: ProjectEditCastAvatarUpload? = nil
+    /// MP `toggleCastRecord` upload for 编辑角色; nil hides 用自己的声音录.
+    var voiceUpload: ProjectEditCastVoiceUpload? = nil
     @State private var editing = false
     @State private var sheetMembers: [TopicCastMemberDraft] = []
     @State private var sheetPlayer = ProjectEditCastPlayer(playerName: true, playerIdentity: false, identities: [])
@@ -324,7 +356,8 @@ enum ProjectEditCastConfig {
             ProjectEditCastConfig.setMembers(sheetMembers, chapterIDs: chapterIDs, in: &preserved)
             ProjectEditCastConfig.setPlayer(sheetPlayer, in: &preserved)
         }) {
-            ProjectEditGapCastEditorSheet(members: $sheetMembers, player: $sheetPlayer, chapters: chapters, onPreviewVoice: nil)
+            ProjectEditGapCastEditorSheet(members: $sheetMembers, player: $sheetPlayer, chapters: chapters, onPreviewVoice: nil,
+                                          avatarUpload: avatarUpload, voiceUpload: voiceUpload)
                 .cySheet(detents: [.large])
         }
     }

@@ -65,6 +65,10 @@ struct OfficialSignupCommandSection: View {
             case .busy:
                 ProgressView()
             case .unknown:
+                if let message = flow.failureMessage, !message.isEmpty {
+                    Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("gap.signup.serverMessage")
+                }
                 Text("playerGap.signup.unknown").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 HStack {
                     Button("playerGap.signup.query") { run { await flow.query() } }
@@ -416,11 +420,29 @@ struct PlayerCodeAndJoinSection: View {
     /// open (正在加载邀请二维码 · 加载完成后即可扫码邀请好友), a failed read is cy-error 个人码加载失败 · 重新生成.
     @ViewBuilder private var codeState: some View {
         if let qr {
-            AsyncImage(url: qr) { $0.resizable().scaledToFit() } placeholder: {
-                ProgressView { Text("playerGap.playerCode.loading") }
+            // mp-states r3: MP scene-share-invite wxml:17-19 — a code image that will not load is
+            // cy-error 二维码加载失败 · 重新生成 (was an endless spinner).
+            AsyncImage(url: qr) { phase in
+                if let image = phase.image {
+                    image.resizable().scaledToFit()
+                        .frame(maxWidth: 180, maxHeight: 180)
+                        .accessibilityLabel(Text("playerGap.playerCode.image"))
+                } else if phase.error != nil {
+                    ContentUnavailableView {
+                        Label("playerGap.playerCode.imageFailed", systemImage: "qrcode")
+                    } description: {
+                        Text("playerGap.playerCode.failedHint")
+                    } actions: {
+                        Button(action: regenerate) { Text("playerGap.playerCode.retry") }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("gap.playerCode.regenerate")
+                    }
+                    .accessibilityIdentifier("gap.playerCode.imageFailed")
+                } else {
+                    ProgressView { Text("playerGap.playerCode.loading") }
+                        .frame(maxWidth: 180, maxHeight: 180)
+                }
             }
-            .frame(maxWidth: 180, maxHeight: 180)
-            .accessibilityLabel(Text("playerGap.playerCode.image"))
         } else if failed && !loading {
             ContentUnavailableView {
                 Label("playerGap.playerCode.failed", systemImage: "qrcode")
@@ -473,6 +495,12 @@ struct PlayerCodeAndJoinSection: View {
         Task { await loadCode() }
     }
 
+    private func regenerate() {
+        guard !loading else { return }
+        qr = nil
+        Task { await loadCode() }
+    }
+
     private func loadCode() async {
         guard let service = service else { return }
         loading = true
@@ -495,6 +523,7 @@ struct CityFavoriteNodesSection: View {
     @State private var pendingRemoval: CityFavoriteNode?
     @State private var removing: Int?
     @State private var removalFailed: Int?
+    @State private var removalMessage: String?
 
     var body: some View {
         if service != nil {
@@ -575,7 +604,12 @@ struct CityFavoriteNodesSection: View {
                 if let address = node.address, !address.isEmpty { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 if removing == node.id { ProgressView().controlSize(.small) }
                 if removalFailed == node.id {
-                    Text("playerGap.cityFavorites.removeFailed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    if let removalMessage, !removalMessage.isEmpty {
+                        Text(verbatim: removalMessage).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("playerGap.cityFavorites.serverMessage")
+                    } else {
+                        Text("playerGap.cityFavorites.removeFailed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    }
                 }
             }
         }
@@ -592,15 +626,15 @@ struct CityFavoriteNodesSection: View {
     private func remove(_ node: CityFavoriteNode) async {
         pendingRemoval = nil
         guard removing == nil, let service else { return }
-        removing = node.id; removalFailed = nil
-        let favorited = await service.toggleCityNodeFavorite(poiID: node.id)
+        removing = node.id; removalFailed = nil; removalMessage = nil
+        let reply = await service.postCityNodeFavorite(poiID: node.id)
         removing = nil
-        switch favorited {
-        case false?: nodes?.removeAll { $0.id == node.id }
-        case true?:
-            // The toggle turned it back on (state had changed elsewhere): read the list again instead of guessing.
-            await load()
-        case nil: removalFailed = node.id
+        if case .ok(let data, _) = reply, let favorited = data["favorited"].bool {
+            if favorited == false { nodes?.removeAll { $0.id == node.id } }
+            else { await load() }
+        } else {
+            removalFailed = node.id
+            removalMessage = reply.message
         }
     }
 }
@@ -613,6 +647,7 @@ struct MerchantCityNodeFavoriteRow: View {
     @State private var favorited = false
     @State private var busy = false
     @State private var failed = false
+    @State private var failureMessage: String?
 
     var body: some View {
         Group {
@@ -626,7 +661,14 @@ struct MerchantCityNodeFavoriteRow: View {
                     .disabled(busy)
                     .accessibilityLabel(Text(favorited ? "playerGap.node.unfavorite" : "playerGap.node.favorite"))
                 }
-                if failed { Text("playerGap.node.failed").cyText(.meta).foregroundStyle(CYColor.dangerText) }
+                if failed {
+                    if let failureMessage, !failureMessage.isEmpty {
+                        Text(verbatim: failureMessage).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("playerGap.node.serverMessage")
+                    } else {
+                        Text("playerGap.node.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    }
+                }
             }
         }
         .task(id: merchantID) {
@@ -637,9 +679,15 @@ struct MerchantCityNodeFavoriteRow: View {
 
     private func toggle(_ poiID: Int) {
         guard let service = service, !busy else { return }
-        busy = true; failed = false
+        busy = true; failed = false; failureMessage = nil
         Task {
-            if let value = await service.toggleCityNodeFavorite(poiID: poiID) { favorited = value } else { failed = true }
+            let reply = await service.postCityNodeFavorite(poiID: poiID)
+            if case .ok(let data, _) = reply, let value = data["favorited"].bool {
+                favorited = value
+            } else {
+                failed = true
+                failureMessage = reply.message
+            }
             busy = false
         }
     }
@@ -709,6 +757,7 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
     @ViewBuilder let content: () -> Content
     @State private var result: ActivityPublishPrecheck?
     @State private var showsSignIn = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         Group {
@@ -717,8 +766,13 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
                 switch result {
                 case .allowed?: content()
                 case .denied(let reason)?:
+                    // MP `pages/publish/activity/index.wxml:16` cy-empty 暂时不能发布活动 · deniedReason · cta 返回.
                     ContentUnavailableView { Label("playerGap.publish.denied", systemImage: "lock") } description: {
                         if let reason, !reason.isEmpty { Text(verbatim: reason) }
+                    } actions: {
+                        Button("action.back") { dismiss() }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("playerGap.publish.back")
                     }
                 case .signInRequired?:
                     // C-A5: MP 登录后发布活动 + 去登录.
@@ -733,7 +787,10 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
                     ContentUnavailableView { Label("playerGap.publish.failed", systemImage: "exclamationmark.triangle") } description: {
                         if let message, !message.isEmpty { Text(verbatim: message) }
                     } actions: {
+                        // MP `:13` cy-error load-failure 暂时无法确认身份 · accessError · 重试.
                         Button("playerGap.retry") { Task { await check() } }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("playerGap.publish.retry")
                     }
                 case nil:
                     ProgressView { Text("cy.state.loading") }

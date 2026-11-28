@@ -84,6 +84,7 @@ struct CityOrientationTeamProgressRow: View {
             LabeledContent {
                 if total > 0 {
                     Text(verbatim: "\(clampedDone)/\(total)")
+                        .accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: clampedDone)) \(String(describing: total))"))
                         .monospacedDigit()
                         .contentTransition(.numericText(value: Double(clampedDone)))
                 } else if team.done > 0 {

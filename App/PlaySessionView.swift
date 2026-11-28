@@ -12,6 +12,7 @@ struct PlaySessionView: View {
     /// fix/1128c-ai-weather: live weather on the play map + the topic's weather events.
     @StateObject private var sceneWeather = SceneWeatherModel()
     @Environment(\.locale) private var locale
+    @Environment(\.socialRoamCapabilities) private var capabilities
     init(reader: any PlayReading) {
         self.reader = reader; _model = State(initialValue: PlayViewModel(reader: reader))
     }
@@ -26,7 +27,7 @@ struct PlaySessionView: View {
             } else if model.isLoading {
                 mapPanel { CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).accessibilityIdentifier("play.loading") }
             } else if let issue = model.visibleIssue {
-                mapPanel { PlayIssueView(issue: issue) { Task { await model.load(keepingReceipt: true) } } }
+                mapPanel { PlayIssueView(issue: issue) { Task { await reloadKeepingReceipt() } } }
             } else if let snapshot = model.visibleSnapshot {
                 if snapshot.result.mode == 2 {
                     ScrollView {
@@ -51,7 +52,7 @@ struct PlaySessionView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("play.refresh", systemImage: "arrow.clockwise") { Task { await model.load(keepingReceipt: true) } }
+                Button("play.refresh", systemImage: "arrow.clockwise") { Task { await reloadKeepingReceipt() } }
                     .disabled(model.isLoading || model.isSubmitting || reader.identity == nil || !reader.isConfigured)
                     .accessibilityIdentifier("play.refresh")
             }
@@ -105,7 +106,7 @@ struct PlaySessionView: View {
                         .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("play.status")
                     if let total = snapshot.result.total, let done = snapshot.displayedDoneCount, total > 0 {
                         ProgressView(value: Double(min(done, total)), total: Double(total))
-                        LabeledContent("play.progress") { Text(verbatim: "\(done) / \(total)").cyText(.numericBody).monospacedDigit() }
+                        LabeledContent("play.progress") { Text(verbatim: "\(done) / \(total)").cyText(.numericBody).monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: done)) \(String(describing: total))")) }
                     } else {
                         // UNKNOWN progress is the em dash (PlayIndexPageReadiness.unknownMark), not a sentence or 0/0.
                         LabeledContent("play.progress") {
@@ -168,8 +169,15 @@ struct PlaySessionView: View {
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
-        .refreshable { await model.load(keepingReceipt: true) }
+        .refreshable { await reloadKeepingReceipt() }
         .accessibilityIdentifier("play.overview")
+    }
+    /// Session reload also drops the ten-minute weather caches so the scene matches the server gates again.
+    private func reloadKeepingReceipt() async {
+        await model.load(keepingReceipt: true)
+        let point = weatherPoint
+        await sceneWeather.reload(latitude: point?.latitude, longitude: point?.longitude, topicID: weatherTopicID,
+                                  client: capabilities?.client)
     }
     private func statusSymbol(_ availability: PlaySessionAvailability) -> String {
         switch availability { case .completed: return "checkmark.seal.fill"

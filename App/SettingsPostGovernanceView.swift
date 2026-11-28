@@ -96,6 +96,15 @@ struct PostGovernanceRow: Identifiable, Equatable {
     @State private var generation = UUID()
     private static let reasonMax = 500
 
+    @Environment(\.locale) private var locale
+
+    /// MP `done(requestError(res, '申诉未提交'))`: the server's own refusal sentence when it is safe to show.
+    /// Server text is Chinese, so English keeps the fixed copy instead of mixing languages.
+    static func refusalNotice(_ message: String?, locale: Locale) -> LocalizedStringKey {
+        guard let message, locale.language.languageCode?.identifier == "zh" else { return "mpd.postGov.submitFailed" }
+        return "\(message)"
+    }
+
     enum Phase: Equatable { case loading, signedOut, failed, ready }
 
     var body: some View {
@@ -183,10 +192,24 @@ struct PostGovernanceRow: Identifiable, Equatable {
             if !row.decisionReason.isEmpty {
                 Text("mpd.postGov.decision \(row.decisionReason)").font(.subheadline).foregroundStyle(.secondary)
             }
-            if row.canAppeal { appealArea(row) }
+            if row.canAppeal, pendingUnknown(row) {
+                // MP pg-warn `pendingUnknown`: an appeal went out but the server shows none yet.
+                // The native journal never re-sends an unknown dispatch, so the row asks for a
+                // pull-to-refresh check instead of offering a second submit.
+                Label { Text("mpd.postGov.pendingRow") } icon: { Image(systemName: "clock.badge.questionmark") }
+                    .font(.footnote).foregroundStyle(.orange)
+                    .accessibilityIdentifier("settings.postGov.pending.\(row.id)")
+            } else if row.canAppeal {
+                appealArea(row)
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("settings.postGov.row.\(row.id)")
+    }
+
+    private func pendingUnknown(_ row: PostGovernanceRow) -> Bool {
+        guard let snapshot else { return false }
+        return coordinator.dispatched(.appeal(enforcementID: row.id, reason: ""), snapshot: snapshot)
     }
 
     @ViewBuilder private func appealArea(_ row: PostGovernanceRow) -> some View {
@@ -243,7 +266,7 @@ struct PostGovernanceRow: Identifiable, Equatable {
     }
 
     private func submit(_ action: SquareGovernanceAction) async {
-        guard case .appeal(_, let text) = action else { return }
+        guard case .appeal(let enforcementID, let text) = action else { return }
         if text.isEmpty { notice = "mpd.postGov.reasonRequired"; return }
         guard access.identity != nil else { notice = "mpd.postGov.signInFirst"; return }
         guard let snapshot, !submitting else { return }
@@ -255,9 +278,15 @@ struct PostGovernanceRow: Identifiable, Equatable {
             editingID = nil; reason = ""; notice = "mpd.postGov.submitted"
             await reload()
         } catch SquareGovernanceFailure.unknown, SquareGovernanceFailure.outcomeLocked {
-            // Result unknown: read back first; resubmitting is idempotent server-side.
-            notice = "mpd.postGov.unknown"
+            // Result unknown: read back first (MP `unknown()`). A row that no longer takes an appeal
+            // means it landed; otherwise the row keeps the pending warning.
+            editingID = nil; reason = ""
+            notice = "mpd.postGov.confirming"
             await reload()
+            let landed = PostGovernanceRow.rows(self.snapshot?.enforcements ?? []).first { $0.id == enforcementID }.map { !$0.canAppeal } ?? false
+            notice = landed ? nil : "mpd.postGov.unconfirmed"
+        } catch SquareGovernanceFailure.appealRefused(let message) {
+            notice = Self.refusalNotice(message, locale: locale)
         } catch {
             notice = "mpd.postGov.submitFailed"
         }

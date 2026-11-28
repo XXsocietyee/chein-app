@@ -100,4 +100,77 @@ import XCTest
         }
         XCTAssertFalse(MPFirstClubWriteRoute.accepts(json("api/club/event-ops/series/occurrences", body: #"{"clubId":3}"#), baseURL: base, token: token))
     }
+
+    /// P2-4: the player path (`reviewedDeployment`) offers the create-page name check and sends `{name}` through the
+    /// composition firewall. A blank, untrimmed, over-long, or extra-key body is refused and does not leave the device.
+    func testReviewedDeploymentSendsCreateNameCheck() async throws {
+        let recorder = K40ClubNameCheckRecorder()
+        let root = RegionalLaunchConfiguration.reviewedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
+            bundleIdentifier: "invalid.example.questify.ios", realm: "cn-prod"), makeTransport: { recorder })
+        let deployment = try XCTUnwrap(root.reviewed)
+        let direct = try RegionalLaunchConfiguration.reviewedDeployment(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
+            bundleIdentifier: "invalid.example.questify.ios", realm: "cn-prod"))
+        XCTAssertTrue(deployment.playerWritesEnabled)
+        XCTAssertTrue(deployment.productionGatesEnabled)
+        XCTAssertEqual(deployment.regional.market, direct.regional.market)
+        let china = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
+        XCTAssertTrue(ChinaReviewedRouteCapability.offersFeature("/" + ClubNameCheck.path, baseURL: china))
+        let transport = root.transport()
+        transport.current = { .init(epoch: 1, accountID: 7, role: "player", token: self.token) }
+        recorder.body = #"{"code":200,"data":{"available":true,"reason":""}}"#
+        let service = try ClubOperationsService(configuration: .init(baseURL: china), transport: transport)
+        let available = await service.checkName("  夜行  ", token: token)
+        XCTAssertEqual(available, .available)
+        XCTAssertEqual(recorder.paths, [ClubNameCheck.path])
+        let sent = try XCTUnwrap(recorder.bodies.first)
+        let sentJSON = try XCTUnwrap(JSONSerialization.jsonObject(with: sent) as? [String: String])
+        XCTAssertEqual(sentJSON, ["name": "夜行"])
+        let before = recorder.paths.count
+        for body in [#"{"name":""}"#, #"{"name":" 夜行"}"#, #"{"name":"\#(String(repeating: "名", count: 31))}"#,
+                     #"{"name":"夜行","clubId":3}"#, #"{"clubId":3}"#] {
+            var request = URLRequest(url: china.appendingPathComponent(ClubNameCheck.path))
+            request.httpMethod = "POST"
+            request.setValue(token, forHTTPHeaderField: "Authorization")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = Data(body.utf8)
+            do {
+                _ = try await transport.send(request)
+                XCTFail("refused body was sent: \(body)")
+            } catch {
+                XCTAssertEqual(error as? APIError, .notConfigured, body)
+            }
+        }
+        XCTAssertEqual(recorder.paths.count, before)
+        let player = try playerContext(root)
+        let grant = try XCTUnwrap(root.playerWriteGrant(player))
+        var like = URLRequest(url: china.appendingPathComponent("api/club/post/like"))
+        like.httpMethod = "POST"
+        like.setValue(token, forHTTPHeaderField: "Authorization")
+        like.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        like.httpBody = Data(#"{"liked":false,"postId":20}"#.utf8)
+        XCTAssertTrue(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(like, baseURL: china, token: token, context: player, grant: grant))
+        like.httpBody = Data()
+        XCTAssertFalse(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(like, baseURL: china, token: token, context: player, grant: grant))
+    }
+
+    private func playerContext(_ composition: AppCompositionRoot) throws -> RuntimeDependencyContext {
+        let namespace = try XCTUnwrap(composition.reviewed?.storageScope.service)
+        let base = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
+        let session = try PlayExperienceSession(accountID: 7, epoch: 1, namespace: namespace, token: token)
+        return RuntimeDependencyContext(market: .china, baseURL: base, role: "player", session: session)
+    }
+}
+
+private final class K40ClubNameCheckRecorder: HTTPTransport {
+    var paths: [String] = []
+    var bodies: [Data] = []
+    var body = #"{"code":200,"data":{"available":true}}"#
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        let relative = request.url?.path.split(separator: "/").drop(while: { $0 != "api" }).joined(separator: "/") ?? ""
+        paths.append(relative)
+        bodies.append(request.httpBody ?? Data())
+        return (Data(body.utf8), 200)
+    }
 }

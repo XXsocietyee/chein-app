@@ -19,6 +19,17 @@ public enum ProjectEditRichStoryFixtures {
         var voice = ProjectEditRichStoryContract.defaultBlock(.voice); voice.id = "rich-voice"; voice.content = "Remember this place."; blocks.append(voice)
         var odd = ProjectEditRichStoryContract.defaultBlock(.odd); odd.id = "rich-odd"; odd.setField("level", .number(2)); blocks.append(odd)
         var reveal = ProjectEditRichStoryContract.defaultBlock(.reveal); reveal.id = "rich-reveal"; reveal.content = "You have been here before."; reveal.setField("who", .string("Guide")); blocks.append(reveal)
+        var gallery = ProjectEditRichStoryContract.defaultBlock(.gallery); gallery.id = "rich-gallery"
+        gallery.setField("images", .array([.object(["url": .string("fixture://gallery")])]))
+        blocks.append(gallery)
+        var branch = ProjectEditRichStoryContract.defaultBlock(.branch); branch.id = "rich-branch"
+        branch.setField("options", .array([
+            .object(["text": .string("Left"), "to": .string("continue")]),
+            .object(["text": .string("Right"), "to": .string("continue")])
+        ]))
+        blocks.append(branch)
+        var line = ProjectEditRichStoryContract.defaultBlock(.line); line.id = "rich-line"; line.content = "A spoken line."; line.setField("speaker", .string("Guide")); blocks.append(line)
+        var divider = ProjectEditRichStoryContract.defaultBlock(.divider); divider.id = "rich-divider"; blocks.append(divider)
         for index in blocks.indices where !blocks[index].id.hasPrefix("rich-") { blocks[index].id = "rich-base-\(index)" }
         chapter.blocks = blocks; draft.chapters = [chapter]; return draft
     }

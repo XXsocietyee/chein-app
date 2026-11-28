@@ -75,7 +75,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This topic isn't open to partners right now"
+            "value": "Topic isn't open partners right"
           }
         },
         "zh-Hans": {
@@ -245,7 +245,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cooperation invitation"
+            "value": "Collab invite"
           }
         },
         "zh-Hans": {
@@ -279,7 +279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Whole-topic cooperation invitation"
+            "value": "Whole-topic cooperation invite"
           }
         },
         "zh-Hans": {
@@ -313,7 +313,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation note"
+            "value": "Invite note"
           }
         },
         "zh-Hans": {
@@ -330,7 +330,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your current identity cannot view cooperation invitations"
+            "value": "Your current identity can't view collab invitations"
           }
         },
         "zh-Hans": {
@@ -347,7 +347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cooperation invitations could not be loaded"
+            "value": "Collab invitations couldn't loaded"
           }
         },
         "zh-Hans": {
@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cooperation details could not be loaded"
+            "value": "Collab details couldn't be loaded"
           }
         },
         "zh-Hans": {
@@ -575,6 +575,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "电话暂时没有拨出"
+          }
+        }
+      }
+    },
+    "merchantCoop.nearby.topic.replacement.sheetTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a replacement action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择补位操作"
           }
         }
       }

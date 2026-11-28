@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This feature isn't available right now."
+            "value": "Feature isn't available right."
           }
         },
         "zh-Hans": {
@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This code cannot be opened right now."
+            "value": "This code can't be opened right."
           }
         },
         "zh-Hans": {

@@ -266,7 +266,7 @@
   },
   {
     "key": "accountCollection.coupon.navigate",
-    "en": "Directions",
+    "en": "Route",
     "zh-Hans": "导航"
   },
   {
@@ -301,7 +301,7 @@
   },
   {
     "key": "accountCollection.favorites.failed",
-    "en": "Couldn’t load your favorites",
+    "en": "Couldn’t load favorites",
     "zh-Hans": "收藏加载失败"
   },
   {

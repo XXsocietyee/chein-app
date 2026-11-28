@@ -51,6 +51,16 @@ public struct TopicAttributeDefinition: Equatable {
     public let minValue: Int
     public let maxValue: Int
     public let visible: Bool
+    /// MP `attribute-binding.js` `fields`: every compared field (registry name → value), so the
+    /// 定义差异 list can show 显示方式 / 颜色 / 图标 / 排序 / 显示规则 too.
+    public var fields: [String: TopicAttributeFieldValue] = [:]
+}
+
+/// One registry field as the MP compares it (`stable(value)`) and shows it (`String(value)`, `null` → 未设置).
+public struct TopicAttributeFieldValue: Equatable, Sendable {
+    public let canonical: String
+    public let display: String?
+    public init(canonical: String, display: String?) { self.canonical = canonical; self.display = display }
 }
 
 public struct TopicAttributeRegistry: Equatable {
@@ -407,7 +417,8 @@ public struct TopicChapterSupplyTerms: Equatable {
                   let maximum = row["maxValue"].integer, minimum <= initial, initial <= maximum,
                   let visible = row["visible"].bool else { throw TopicCreatorEditorIssue.malformed }
             return TopicAttributeDefinition(stateKey: key, label: row["label"].text ?? "", keyType: row["keyType"].text ?? "",
-                scope: scope, persistScope: persist, initialValue: initial, minValue: minimum, maxValue: maximum, visible: visible)
+                scope: scope, persistScope: persist, initialValue: initial, minValue: minimum, maxValue: maximum, visible: visible,
+                fields: ProjectAttributeBinding.registryFields(row))
         }
         return TopicAttributeRegistry(topicID: String(topicID), configVersion: configVersion,
                                       registryVersion: registryVersion, definitions: definitions)

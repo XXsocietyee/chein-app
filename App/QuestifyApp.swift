@@ -334,7 +334,7 @@ struct SessionRootView: View {
                         .environment(\.cyTabBarVisibility, roamTabBarVisibility)
                         .modifier(activeSessionBar)
         } else {
-                    SessionCityRoamRoot(liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions).environment(\.roamPresenceVisibility, { [weak presenceOwner = session] in await presenceOwner?.setRoamPresenceVisibility(sessionID: $0, visible: $1) }).environment(\.roamClearLocal, { [weak clearOwner = session] in clearOwner?.clearRoamLocalHistory() ?? false }).environment(\.roamDiscoverDestinations, session.roamDiscoverDestinations)) },
+                    SessionCityRoamRoot(liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions).environment(\.roamPresenceVisibility, { [weak presenceOwner = session] in await presenceOwner?.setRoamPresenceVisibility(sessionID: $0, visible: $1) }).environment(\.roamClearLocal, { [weak clearOwner = session] in clearOwner?.clearRoamLocalHistory() ?? false }).environment(\.roamDiscoverDestinations, session.roamDiscoverDestinations).environment(\.roamFinishedRecordsArchive, RoamFinishedRecordsUpload.install(on: session))) },
                                         passportDestination: { AnyView(roamBrowser) }, onChooseArea: { showsAreaPicker = true })
                         .environment(\.cyTabBarVisibility, roamTabBarVisibility)
                         .modifier(activeSessionBar)
@@ -342,7 +342,7 @@ struct SessionRootView: View {
     }
 
     private var roamLiveDestination: AnyView {
-        AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions).environment(\.roamPresenceVisibility, { [weak presenceOwner = session] in await presenceOwner?.setRoamPresenceVisibility(sessionID: $0, visible: $1) }).environment(\.roamClearLocal, { [weak clearOwner = session] in clearOwner?.clearRoamLocalHistory() ?? false }).environment(\.roamDiscoverDestinations, session.roamDiscoverDestinations))
+        AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions).environment(\.roamPresenceVisibility, { [weak presenceOwner = session] in await presenceOwner?.setRoamPresenceVisibility(sessionID: $0, visible: $1) }).environment(\.roamClearLocal, { [weak clearOwner = session] in clearOwner?.clearRoamLocalHistory() ?? false }).environment(\.roamDiscoverDestinations, session.roamDiscoverDestinations).environment(\.roamFinishedRecordsArchive, RoamFinishedRecordsUpload.install(on: session)))
     }
 
     private func roamEventDestination(_ target: RoamEventDestination) -> AnyView {
@@ -395,7 +395,7 @@ struct SessionRootView: View {
 
     /// The shipped roam page (走起, 漫游护照, tools). Owner Q9: the 漫游 root is the map; this page opens from it.
     @ViewBuilder private var roamBrowser: some View {
-                    RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ openAccountOrSignIn() },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, territoryDestination: { AnyView(SessionRoamTerritoryView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environment(\.nearbyTeamsSignIn, { requestSignIn() })) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions).environment(\.roamPresenceVisibility, { [weak presenceOwner = session] in await presenceOwner?.setRoamPresenceVisibility(sessionID: $0, visible: $1) }).environment(\.roamClearLocal, { [weak clearOwner = session] in clearOwner?.clearRoamLocalHistory() ?? false }).environment(\.roamDiscoverDestinations, session.roamDiscoverDestinations)) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
+                    RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ openAccountOrSignIn() },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, territoryDestination: { AnyView(SessionRoamTerritoryView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environment(\.nearbyTeamsSignIn, { requestSignIn() })) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions).environment(\.roamPresenceVisibility, { [weak presenceOwner = session] in await presenceOwner?.setRoamPresenceVisibility(sessionID: $0, visible: $1) }).environment(\.roamClearLocal, { [weak clearOwner = session] in clearOwner?.clearRoamLocalHistory() ?? false }).environment(\.roamDiscoverDestinations, session.roamDiscoverDestinations).environment(\.roamFinishedRecordsArchive, RoamFinishedRecordsUpload.install(on: session))) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
                         switch target {
                         case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true))
                         case .topic(let id): return AnyView(SessionTopicDetailView(id: id, session: session))
@@ -468,7 +468,13 @@ struct SessionRootView: View {
 
     /// P21: the running roam / city run / game as a mini bar above the tab bar on every tab; it expands into the HUD.
     private var activeSessionBar: ActiveSessionMiniBarHost {
-        ActiveSessionMiniBarHost(isTabBarHidden: isTabBarHidden, roamHUD: { roamLiveDestination })
+        ActiveSessionMiniBarHost(isTabBarHidden: isTabBarHidden, roamHUD: { roamLiveDestination }, playScreen: activeSessionPlayScreen)
+    }
+
+    /// Plan audit H-02b: the running game's own screen, the same `SessionPlayRuntimeView` the topic / activity entries push.
+    private func activeSessionPlayScreen(_ key: String) -> AnyView? {
+        guard let scope = QuestLiveActivityCenter.shared.playScope(forKey: key) else { return nil }
+        return AnyView(SessionPlayRuntimeView(session: session, destination: .journey(scope)))
     }
 
     /// Native r2: the system tab bar (`TabView` + `Tab`, SF Symbols, system tint). No custom bar, pill or haptic.
@@ -513,6 +519,7 @@ struct SessionRootView: View {
                 .environment(\.cyTabBarHidden, isTabBarHidden)
                 .onPreferenceChange(CYTabBarHiddenPreferenceKey.self) { isTabBarHidden = $0 }
                 .environment(\.imRecipientPreviewLeases, session.imRecipientPreviewLeaseSource)
+                .environment(\.squareDeletion, SquarePlayerDeletionHost.coordinator(session))
                 .modifier(AIExperienceRootEnvironment(session: session))
                 .onChange(of: selectedTab) { _, tab in if !tab.isPlayerTab { selectedTab = .home } }
                 .roleTheme(.player)
@@ -538,6 +545,7 @@ struct SessionRootView: View {
                     .sessionOfflineBanner(reachability: reachability, session: session)
             }
         }
+        .linkedMiniProgramAccountNote(session: session)
         .onAppear { reachability.start() }
         return chain6(chain5(chain4(chain3(chain2(chain1(chain0(base)))))))
     }
@@ -626,6 +634,9 @@ struct SessionRootView: View {
         }
         .modifier(ExternalGameCatalogLaunch())
         .environmentObject(session)
+        // K40: 用这个模板 opens pages/publish/fabu?id= from home search, the create sheet and square 看看模板,
+        // the same destination the 发布 tab already injects. Merchant scope stays behind PlayerLaunch.
+        .environment(\.topicEditorDestination, PublishTabRootView.topicEditorDestination(session: session))
         .environment(\.passOrderWriteSession, session)
         .environment(\.profileIMStartWire, ProfileIMStartWire(
             baseURL: { session.currentRuntimeDependencyContext?.baseURL },

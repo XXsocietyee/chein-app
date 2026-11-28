@@ -5,7 +5,6 @@ import SwiftUI
 // theme-ownership.js:96-107 onThemeAllowTrade / onThemeVotePolicy (shared team world only)
 // theme-runtime-survival.js:101 display, :124-137 toggleThemeReplay / toggleThemeTeamTrail
 // survival-editor.wxml + theme-runtime-survival.js openSurvivalEditor / saveSurvivalEditor (结果卡 sheet)
-// runtime-structure-editor.wxml kind 'endings' via the publish-check locator (row only while 运行结局 blocks; ProjectEditRunEndingsSheet.swift)
 // theme-d20-page.js onD20Toggle / openD20Sheet (rows d20 检定 · d20 与角色设定; sheet in ProjectEditD20Sheet.swift)
 
 /// 玩法规则 in the 主题详情 sheet, after the runtime-values entries and before 可玩时段 (MP order).
@@ -16,7 +15,6 @@ import SwiftUI
     @State private var refusalKey: String?
     @State private var editingCard = false
     @State private var editingD20 = false
-    @State private var editingEndings = false
 
     var body: some View {
         Section {
@@ -30,9 +28,6 @@ import SwiftUI
                 }
             }
             .accessibilityIdentifier("projectEdit.rules.mode")
-            if let endingsIssue = ProjectEditRunEndings.issueKey(in: model.draft) {
-                ProjectEditRunEndingsIssueRow(issueKey: endingsIssue) { editingEndings = true }
-            }
             if ProjectEditThemeRules.worldShared(in: model.draft) {
                 Toggle(isOn: Binding(get: { ProjectEditThemeRules.allowTrade(in: model.draft) }, set: { setAllowTrade($0) })) {
                     Label("mpPublish.rules.allowTrade", systemImage: "arrow.left.arrow.right")
@@ -102,11 +97,6 @@ import SwiftUI
         }
         .sheet(isPresented: $editingD20) {
             ProjectEditD20Sheet(model: model)
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-        }
-        .sheet(isPresented: $editingEndings) {
-            ProjectEditRunEndingsSheet(model: model)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }

@@ -1,7 +1,7 @@
 [
   {
     "key": "merchant.access.awaitingActivation",
-    "en": "Awaiting activation",
+    "en": "Awaiting",
     "zh-Hans": "待启用"
   },
   {
@@ -36,7 +36,7 @@
   },
   {
     "key": "merchant.access.pending",
-    "en": "Application under review",
+    "en": "Request under review",
     "zh-Hans": "申请审核中"
   },
   {
@@ -66,7 +66,7 @@
   },
   {
     "key": "merchant.events.empty",
-    "en": "No recent activity",
+    "en": "No recent",
     "zh-Hans": "暂无动态"
   },
   {
@@ -111,7 +111,7 @@
   },
   {
     "key": "merchant.order.aftersale",
-    "en": "After-sales status",
+    "en": "After-sales",
     "zh-Hans": "售后状态"
   },
   {
@@ -126,7 +126,7 @@
   },
   {
     "key": "merchant.order.aftersale.3",
-    "en": "Refund processing",
+    "en": "Refund",
     "zh-Hans": "退款中"
   },
   {
@@ -156,12 +156,12 @@
   },
   {
     "key": "merchant.order.status.0",
-    "en": "Awaiting payment",
+    "en": "Awaiting",
     "zh-Hans": "待付款"
   },
   {
     "key": "merchant.order.status.1",
-    "en": "Awaiting shipment",
+    "en": "Awaiting",
     "zh-Hans": "待发货"
   },
   {
@@ -171,7 +171,7 @@
   },
   {
     "key": "merchant.order.status.3",
-    "en": "Awaiting review",
+    "en": "Awaiting",
     "zh-Hans": "待评价"
   },
   {
@@ -306,12 +306,12 @@
   },
   {
     "key": "merchant.revenue7d",
-    "en": "Revenue in the last 7 days",
+    "en": "Revenue in last 7 days",
     "zh-Hans": "近 7 日收入"
   },
   {
     "key": "merchant.role.checkIn",
-    "en": "Check-in staff",
+    "en": "Check-in",
     "zh-Hans": "核销员"
   },
   {
@@ -321,12 +321,12 @@
   },
   {
     "key": "merchant.role.manager",
-    "en": "Store manager",
+    "en": "Store",
     "zh-Hans": "店长"
   },
   {
     "key": "merchant.role.marketing",
-    "en": "Operations",
+    "en": "Ops",
     "zh-Hans": "运营"
   },
   {
@@ -336,7 +336,7 @@
   },
   {
     "key": "merchant.signIn",
-    "en": "Sign in to view your merchant information",
+    "en": "Sign in to view your merchant info",
     "zh-Hans": "登录后查看商家信息"
   },
   {
@@ -391,17 +391,17 @@
   },
   {
     "key": "merchant.todo.scan",
-    "en": "Scans awaiting confirmation",
+    "en": "Scans awaiting check",
     "zh-Hans": "扫码待确认"
   },
   {
     "key": "merchant.todo.verified",
-    "en": "Completed verifications",
+    "en": "Completed",
     "zh-Hans": "已核销"
   },
   {
     "key": "merchant.todo.verify",
-    "en": "Awaiting verification",
+    "en": "Awaiting",
     "zh-Hans": "待核销"
   }
 ]

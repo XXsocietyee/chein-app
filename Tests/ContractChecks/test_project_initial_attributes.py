@@ -14,7 +14,8 @@ APP_TESTS = (ROOT / 'Tests/AppUnitTests/ProjectInitialAttributesPresentationTest
 class InitialAttributesContracts(unittest.TestCase):
     def test_existing_first_chapter_entry_hosts_new_flow(self):
         self.assertEqual(HOST.count('ProjectInitialAttributesEntry(model: model, chapterID: controller.chapterID)'), 1)
-        self.assertIn('ProjectInitialStateSheet(controller: controller, original: original)', HOST)
+        # The sheet now also takes the creator service for the MP 启用的注册属性 card (attribute-binding-editor).
+        self.assertIn('ProjectInitialStateSheet(controller: controller, original: original, service: source?.make())', HOST)
     def test_full_edit_real_first_chapter_scope(self):
         for term in ['model.fullEdit', 'model.draft.product == .city', 'model.draft.chapters.first?.id.utf8.elementsEqual(chapterID.utf8)', 'model.draft.chapters.filter { $0.id == chapterID }.count == 1']:
             self.assertIn(term, UI)

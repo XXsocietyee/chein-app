@@ -252,6 +252,25 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
     }
 }
 
+/// mp-journey r3: one visible route attribute (MP `play-route-state.js` keeps rows with a text `label` and a finite
+/// number `value`; 旅程手记 lists them first as `.jkv` rows).
+public struct PlayRouteAttribute: Equatable {
+    public let label: String
+    public let value: Double
+    public init(label: String, value: Double) { self.label = label; self.value = value }
+    /// MP prints the raw number: integers without a fraction.
+    public var valueText: String {
+        if value.rounded() == value, abs(value) < 1_000_000_000_000 { return String(Int64(value)) }
+        return String(value)
+    }
+    static func filtered(_ raw: [PlayWireValue]?) -> [PlayRouteAttribute] {
+        (raw ?? []).compactMap { item in
+            guard item.object != nil, let label = item["label"].text, let value = item["value"].double, value.isFinite else { return nil }
+            return PlayRouteAttribute(label: label, value: value)
+        }
+    }
+}
+
 public struct PlayRouteState: Decodable, Equatable {
     public let mode: String?
     public let sessionID: Int?
@@ -266,14 +285,17 @@ public struct PlayRouteState: Decodable, Equatable {
     public let decisionLog: PlayBranchHistoryLog?
     /// Journey opening chapter state; nil when absent or malformed (mini-program `isRecord` check).
     public let opening: PlayJourneyOpening?
+    /// Visible route attributes; empty when absent or malformed (MP `attributes` filter).
+    public let attributes: [PlayRouteAttribute]
     public var isBranch: Bool { mode == "BRANCH_GRAPH" }
     private enum CodingKeys: String, CodingKey {
-        case routeMode, sessionId, status, version, currentNodeId, recommendedNodeId, nodeStates, lockReasons, thoughts, decisionLog, opening
+        case routeMode, sessionId, status, version, currentNodeId, recommendedNodeId, nodeStates, lockReasons, thoughts, decisionLog, opening, attributes
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         decisionLog = try? c.decode(PlayBranchHistoryLog.self, forKey: .decisionLog)
         opening = try? c.decode(PlayJourneyOpening.self, forKey: .opening)
+        attributes = PlayRouteAttribute.filtered(try? c.decode([PlayWireValue].self, forKey: .attributes))
         mode = try c.decodeIfPresent(String.self, forKey: .routeMode)
         sessionID = try c.playInt(.sessionId); status = try c.decodeIfPresent(String.self, forKey: .status)
         version = try c.playInt(.version); currentNodeID = try c.playInt(.currentNodeId)
@@ -333,12 +355,14 @@ public struct PlayNodesResult: Decodable, Equatable {
     public let altStations: [PlayAltStation]
     /// Only an explicit `true` hides chapter progress. Missing or a non-bool stays nil.
     public let perkOnly: Bool?
+    /// mp-journey-b r3: MP `d.puzzlePersonalBest` (finish grid 解谜分 · 个人最佳). Lenient: a bad value is nil, never a failed route.
+    public let puzzlePersonalBest: Int?
     private enum CodingKeys: String, CodingKey {
         case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount, teamId
         case timeNote, expiresAt, nodes, chapters, routeState, eggs
         case topicAiGenerated, productType, topicCover, topicAudioUrl
         case lookJSON = "look_json"
-        case storyUnlocked, storyTotal, runStartMode, altStations, perkOnly
+        case storyUnlocked, storyTotal, runStartMode, altStations, perkOnly, puzzlePersonalBest
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -374,6 +398,7 @@ public struct PlayNodesResult: Decodable, Equatable {
         runStartMode = (try? c.decodeIfPresent(PlayRunStartMode.self, forKey: .runStartMode)) ?? nil
         altStations = PlayAltStation.unique(from: (try? c.decodeIfPresent(PlayWireValue.self, forKey: .altStations)) ?? nil)
         perkOnly = (try? c.decodeIfPresent(Bool.self, forKey: .perkOnly)) ?? nil
+        puzzlePersonalBest = (try? c.playInt(.puzzlePersonalBest)) ?? nil
         guard Set(nodes.map(\.id)).count == nodes.count, Set(chapters.map(\.id)).count == chapters.count,
               total.map({ $0 >= 0 }) ?? true, doneCount.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
     }

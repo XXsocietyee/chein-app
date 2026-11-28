@@ -5,6 +5,7 @@ import SwiftUI
 
 @MainActor struct OfficialRouteListView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
     private var officialRouteIsChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     let reader: OfficialRouteReader
     @State private var state: LoadState = .loading
@@ -35,8 +36,14 @@ import SwiftUI
                     Button { Task { await load() } } label: { Text("officialRoute.retry") }.buttonStyle(.bordered)
                 }
             case .empty:
-                // MP cy-empty kind="empty".
-                ContentUnavailableView("officialRoute.list.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                // MP cy-empty kind="empty". The next step is the same return the map-home list already offers.
+                ContentUnavailableView {
+                    Label("officialRoute.list.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                } actions: {
+                    Button("roamSub.w208.poi.backToMap") { dismiss() }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("officialRoute.list.empty.backToMap")
+                }
             case .ready(let routes):
                 ScrollView {
                     // OfficialRouteCard draws its own surface; the links stay plain.
@@ -111,7 +118,7 @@ import SwiftUI
             }
         }
         .cySheet(isPresented: $showShare) { Group {
-            if case .ready(let detail) = state { CatalogShareCardView(content: shareContent(detail), tint: .ember) }
+            if case .ready(let detail) = state { CatalogShareCardView(content: shareContent(detail), tint: .ember, link: PublicContentShareLink.officialRoute(id: routeID)) }
         }.cySheet() }
         .task { await load() }
         .accessibilityIdentifier("officialRoute.detail")
@@ -121,7 +128,8 @@ import SwiftUI
     private func shareContent(_ detail: OfficialRouteDetail) -> CYShareCardContent {
         let route = detail.route
         let duration = OfficialRouteFormat.duration(route.totalMinutes, chinese: officialRouteIsChinese)
-        let distance = OfficialRouteFormat.distance(route.distanceKm)
+        let metric = OfficialRouteFormat.distance(route.distanceKm)
+        let distance = (!metric.isEmpty && LocaleDisplay.usesMiles(locale)) ? (LocaleDisplay.distance(kilometers: route.distanceKm, locale: locale) ?? metric) : metric
         let located = detail.nodes.filter { $0.latitude != nil && $0.longitude != nil }
         return CYShareCardContent(
             kind: .route,

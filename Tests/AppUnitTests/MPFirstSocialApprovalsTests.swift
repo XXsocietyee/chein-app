@@ -199,5 +199,64 @@ import MapKit
         let ctx = try context(root, market: .unitedStates)
         XCTAssertNil(root.playerWriteGrant(ctx), "US player writes stay behind the composition transport (receipt: owner action)")
         XCTAssertNil(MPFirstSocialApprovals.community(root, ctx))
+        XCTAssertNil(MPFirstSocialApprovals.deletionApproval(root, ctx))
+    }
+
+    // MARK: K40 M-01d delete, M-11a governance, M-04b member/activity report
+
+    func testReleaseCompositionIssuesSquareDeletionAndGovernanceForPlayersAndClubs() throws {
+        let root = try release()
+        let baseURL = try XCTUnwrap(URL(string: Self.base))
+        let api = try APIConfiguration(baseURL: baseURL)
+        for role in ["player", "club"] {
+            let ctx = try context(root, role: role)
+            let approval = try XCTUnwrap(MPFirstSocialApprovals.deletionApproval(root, ctx), role)
+            XCTAssertTrue(approval.allows(configuration: api, namespace: ctx.session.namespace, accountID: 7, path: SquareDeletionTarget.postRoute), role)
+            XCTAssertTrue(approval.allows(configuration: api, namespace: ctx.session.namespace, accountID: 7, path: SquareDeletionTarget.commentRoute), role)
+            let coordinator = SquareDeletionCoordinator(service: SquareDeletionService(configuration: api, transport: Wire()),
+                configuration: api, approval: approval, current: { (namespace: ctx.session.namespace, accountID: 7, token: Self.token) })
+            XCTAssertTrue(coordinator.isAllowed(.post(id: 5, expectedVersion: 1)), role)
+            XCTAssertTrue(coordinator.isAllowed(.comment(postID: 5, commentID: 9, expectedVersion: 2)), role)
+            XCTAssertFalse(coordinator.isAllowed(.post(id: 0, expectedVersion: 1)))
+            let governance = MPFirstSocialApprovals.governanceService(baseURL: baseURL, transport: Wire(), writerIssued: true)
+            XCTAssertTrue(governance.readsEnabled, role)
+            XCTAssertTrue(governance.allows(.appeal(enforcementID: 3, reason: "事实不符")), role)
+            XCTAssertTrue(governance.allows(.markRead(notificationID: 8)), role)
+            XCTAssertTrue(governance.allows(.preferences([.interactionEnabled: true])), role)
+            XCTAssertFalse(governance.allows(.approveComment(postID: 5, commentID: 9)), "comment approve stays off")
+            XCTAssertFalse(governance.allows(.deleteOwnComment(commentID: 9)), "own-comment delete stays on the square detail coordinator")
+        }
+        let merchant = try context(root, role: "merchant")
+        XCTAssertNil(MPFirstSocialApprovals.deletionApproval(root, merchant), "merchant stays off")
+        let quiet = MPFirstSocialApprovals.governanceService(baseURL: baseURL, transport: Wire(), writerIssued: false)
+        XCTAssertFalse(quiet.readsEnabled)
+        XCTAssertFalse(quiet.allowsInjectedWrites)
+    }
+
+    func testCompositionTransportAdmitsDeletionGovernanceAndTrustReports() throws {
+        let root = try release(), ctx = try context(root)
+        let grant = try XCTUnwrap(root.playerWriteGrant(ctx))
+        let baseURL = try XCTUnwrap(URL(string: Self.base))
+        let writes: [(String, String, String)] = [
+            ("DELETE", "api/v1/community/posts/5", #"{"expectedVersion":1,"requestId":"sq-delete-1128k40"}"#),
+            ("DELETE", "api/v1/community/posts/5/comments/9", #"{"expectedVersion":2,"requestId":"sq-delete-comment-k40"}"#),
+            ("POST", "api/v1/community/appeals", #"{"enforcementId":3,"reason":"事实不符","evidenceAssetIds":[],"requestId":"appeal-k40-0001"}"#),
+            ("POST", "api/v1/community/notifications/8/read", #"{"requestId":"read-k40-00000001"}"#),
+            ("POST", "api/community-trust/reports/submit", #"{"targetType":"MEMBER","targetId":6,"reasonCode":"OTHER","description":"骚扰","requestId":"rpt-k40-member"}"#),
+            ("POST", "api/community-trust/reports/submit", #"{"targetType":"ACTIVITY","targetId":7,"reasonCode":"OTHER","description":"活动","requestId":"rpt-k40-activity"}"#)
+        ]
+        for (method, path, body) in writes {
+            XCTAssertTrue(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(try post(path, body: body, method: method),
+                baseURL: baseURL, token: Self.token, context: ctx, grant: grant), path)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+        }
+        var notes = URLRequest(url: try XCTUnwrap(URL(string: Self.base + "/api/v1/community/notifications")))
+        notes.httpMethod = "GET"
+        notes.setValue(Self.token, forHTTPHeaderField: "Authorization")
+        XCTAssertTrue(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(notes, baseURL: baseURL, token: Self.token, context: ctx, grant: grant))
+        XCTAssertFalse(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(
+            try post("api/v1/community/posts/5", body: #"{"expectedVersion":1}"#, method: "DELETE"),
+            baseURL: baseURL, token: Self.token, context: ctx, grant: grant), "a delete without requestId stays refused")
+        XCTAssertTrue(grant.reports.paths.contains("api/community-trust/reports/submit"))
     }
 }

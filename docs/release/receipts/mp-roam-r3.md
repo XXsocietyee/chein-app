@@ -621,17 +621,81 @@ No new coordinator finding for mp-roam since 07:45; latest sweep still build 044
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet **new 0**. No Swift build here.
 
+## Round 3 continue (48) — pages without a row: roam components; official-route share on the shipping route card
+
+Base re-merged with `origin/ui/combined-r7` (clean). Latest sweep still build 0446d1c4f (no new mp-roam finding). B lane (`mp/r3-roam-b`) finished "team-recovery per-command rows on my-teams / nearby" (marked below).
+Pages in the area with no row until now, read this run: `components/roam-photo` (decorative event photo / 3D icon, `aria-hidden`; native rows use SF Symbols — no content), `components/roam-place-note` (tag → 推荐理由 + 资料来源 lookup; already rendered on the place card, row `pages/roam/index` 地标 · 地点卡), `components/cy/share-card` (roam page never sets `shareCard.show`, dead in the MP roam page), `components/cy/scene-qr-citynode` (covered by the `citynode-code` rows), `components/cy/route-thumb` / `scene-roam-history` (covered by `history` rows), `components/cy/slide-confirm` (used by `pages/play`, mp-journey), `components/roam-atmos-entry` (weather/atmosphere: `fix/1128c-ai-weather`), `utils/team-recovery-panel` (B lane).
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| MP `subpackageRoam/official-route/index.js` `SHARE_PATH` + `onShareAppMessage` / `onShareTimeline` (title = route name, else 城瘾官方线路; path `?id=`) | `subpackageRoam/official-route` → shipping `App/NativeR2/MapHome/RoamMapHomeRoutes.swift` `RoamMapHomeRouteCard` | The legacy `OfficialRouteDetailView` had a share card, but the route card players reach from the map home had no share at all, and no https link existed for the route page. | `Core/PublicContentShareLink.officialRoute(id:)` (MP path, kept only when `UniversalLinkParser` reads it back as the same `MiniProgramPageLink`); the route card's toolbar gets a system `ShareLink` (subject + preview = route name, fallback `officialRoute.share.fallbackTitle` 城瘾官方线路 / Chein official route) once the route is loaded. Test `PublicContentShareLinkTests.testOfficialRouteShareIsTheMiniProgramRoutePageThatParsesBack`. | B · `r3-roam-routes` → route card |
+| A row "team-recovery per-command rows on my-teams / nearby" | `subpackageRoam/my-teams`, `nearby` | — | Done (B lane, `817059d4c`). | — |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, **new 0**. No Swift build here.
+
+## Round 3 continue (49) — live map 输入地址 (MP `cy-map-address-search`, no row yet); B-lane P2-7 slice noted
+
+Base: `origin/mp/r3-roam` (contains `origin/ui/combined-r7`). No new coordinator finding for mp-roam (latest sweep still build 0446d1c4f). B lane landed the P2-7 Core outcome slice (`f3b61106d`, `nothingToRecord`); the MapKit POI tap stays open (compiled pass).
+ADA #2 "fog / explored area on the Roam tab root": the MP draws the fog only on `screen=='opening'|'map'|'arrive'` (wxml:229–250), never on `entry-map`; the live walk fog is on (`3a60af988`, gap #24). Map home stays without fog (OWNER RULE: MP decides content).
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| `pages/roam/index.wxml:297` `cy-map-address-search` (`screen=='map'`, `places = _searchPlaces()` = `_pois` with lat/lng; `components/cy/map-address-search`: 输入地址 bar → field 路名、门牌号或店名 + 取消 → ≤ 5 rows pin · name · address → 这附近没有搜到; `onSearchPick` moves the map, no page change) | `App/RoamLiveSessionView.swift` (toolbar + `Map(position:)`) + new `App/RoamLiveAddressSearch.swift` | The live map had no address search at all. | **Fixed:** a `magnifyingglass` toolbar item 输入地址 (id `roam.live.addressSearch`) opens a system sheet (medium / large) with `.searchable` (prompt 路名、门牌号或店名), 取消 as the cancellation action, and up to five of the session's located places matching name or address (MP `matchPlaces` ①), row = node-level glyph · name · address/description; empty = `ContentUnavailableView` 这附近没有搜到. Pick = camera to a 600 m region on the place (animated; Reduce Motion → no animation) and the pin selected, which opens its 地点卡 facts in 附近 and lifts the sheet (existing `mapPick` path). The live map now holds a `MapCameraPosition` (starts at `.userLocation(fallback: .automatic)` as before). New keys `roam.live.addressSearch.title/.prompt/.none` (en + zh-Hans, also in `docs/port/strings/mp-r3-roam.json`). **Not done:** MP remote fallback (Tencent place search, then `/api/city/nodes?keyword=`, 联网搜索暂时不可用…) and the per-row 导航 — next run. | A · live map / no fixture shot |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, **new 0**. No Swift build here.
+
+## Round 3 continue (50) — live 输入地址 remote leg + per-row 导航 (Not done since continue 49)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings conflict: both sides' keys kept). No new coordinator finding for mp-roam (brief sweeps through 13:15 list none for roam). B lane receipt read: nothing on this row. Map panel settled (02:05) — not touched.
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| `components/cy/map-address-search` `_searchRemote` / `_searchNodes` / `onNavigate` / wxml `addrrow__nav` + `addrlist__none` (正在搜索… / 这附近没有搜到 / 联网搜索暂时不可用，先显示附近的地点); `utils/map-address-search.js#cityNodesToPlaces` — Not done since continue (49) | `App/RoamLiveAddressSearch.swift` (`RoamLiveAddressMatch.rows`, `RoamLiveAddressRow`, `RoamLiveRemotePlaceModel`, sheet), `App/RoamLiveSessionView.swift` (`addressSearchCenter`, `pickAddress`), `Core/MapSearchPlayerService.swift` `cityNodePlaces` | The live 输入地址 sheet only filtered the session's own places: no remote search (owner 10-28: 「海星市场」 must be findable), no node-library fallback, no 正在搜索… / remote-error line, and no 导航 on a row. | **Fixed:** keyword ≥ 2 characters → 350 ms debounce, last keystroke wins → `POST api/map/place-search {keyword, longitude, latitude}` around the map centre (live map follows the player: the GCJ-02 fix, else the first located place); empty (Tencent off) → `GET api/city/nodes {lat, lng, radius: 20000, keyword}` (new Core `cityNodePlaces`: `name` else `merchantName`, point required, same-name dropped, `node-<poiId>`); place-search failure → MP line 联网搜索暂时不可用，先显示附近的地点 and the node rows still join. Rows = local matches first, then remote, same-name dropped, five at most (MP `_refresh`). Remote rows use a neutral `mappin` (MP `kind: 'place'` grey pin); picking one moves the camera only, a session place also selects its pin (地点卡) as before. Keyboard 搜索 picks the first row (MP `onConfirm`). Empty while searching = 正在搜索… (`search.r3.loading.results`), otherwise 这附近没有搜到. Each row gets a trailing `.borderless` 导航 (`nativeR2.mapHome.card.navigate`, VoiceOver 导航到<name>) → the P1-21 map-app choice (Apple / 高德 / 百度) via the session `makeExternalMaps`; hidden when maps are not configured (fixtures). Remote leg only with `socialRoamCapabilities` (signed in). Test `PlayerCapabilityRoutesTests.testAddressSearchCityNodeFallbackMatchesMP`. New keys `roam.live.addressSearch.remoteError`, `roam.live.addressSearch.navigateTo %@` (en + zh-Hans, also in `docs/port/strings/mp-r3-roam.json`). | A · live map / no fixture shot |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, **new 0**. No Swift build here.
+
+## Round 3 continue (51) — A half (collision rule 15:45): P2-7 toasts slice; coordinator 15:50 `d2-roam` black tile
+
+A-half rows this run (open rows in file order ①–⑥, B lane took ④–⑥ and "B half done"): ① P1-22 / P2-7 rest, ② citystamp write step, ③ P21 mini bar.
+
+| MP page → native | Difference | Fix | Level / evidence |
+|---|---|---|---|
+| Coordinator 15:50 P2: first roam fixture is the black launch screen | `zh-Hans-d2-roam.jpg` / `en-d2-roam.jpg` (build c4e43841a) show the system launch screen (`UILaunchScreen` `LaunchMark`); `d6-roam` mounts the same `RoamMapHomeFixture` (only `nearbyEmpty` differs) and renders map + sheet. `RoamMapHomeView` has no synchronous location / `CLLocationManager` work and no app overlay; the fixture readers are synchronous synthetic data. | **Not app-side:** the first fixture of the lane is the cold launch after install (MapKit first use), so the shot is taken before the first frame. The sweep needs a first-content wait for `d2-roam` (e.g. wait for `roam.mapHome` / any hittable element, as `Tests/AppUITests/Fixture_d2_roamTests.swift` does with 20 s) or a warm-up launch — sweep script (coordinator). | `d2-roam` |
+| `pages/roam/index.js` `onPoiTap` toasts (开启实时定位后才能点亮 / 离得有点远，走近点 / +xp 探索值 · 点亮<name> / 已点亮过 / 这个地点暂时没有可记录的信息 / 网络异常，请重试 / 登录后才能点亮 / 服务暂不可用) — ① P2-7 rest | new `Core/RoamCheckinFeedback.swift` | B's Core slice gave the disposition, but no MP toast copy or error mapping existed, so the map tap (compiled pass) would have had to invent copy. | **Fixed (slice):** `RoamCheckinFeedback(disposition:placeName:)` / `(error:)` → one MP toast key each (`openPlace` = the MP `roam-poi-detail` scene, no toast); 8 new keys `roam.checkin.*` en + zh-Hans (also in `docs/port/strings/mp-r3-roam.json`). Test `Tests/CoreTests/RoamCheckinFeedbackTests.swift`. **Still open (compiled pass):** MapKit POI feature selection (iOS 18 branch), live fix as `curLat/curLng`, `.checkin` capability on + Release-composition test. | C · contract / no fixture shot |
+| ② citystamp write step, ③ P21 mini bar | — | Both need a Swift build (wide session wiring) or the nav lane; unchanged. ① P1-22 waits on the owner's city-game region list. | — |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, **new 0**. No Swift build here.
+
+**A half done** for this run: every remaining A-half row needs a compiled pass or an owner value.
+
+## Round 3 continue (52) — merge `ui/combined-r7`; A half still done
+
+- Merged `origin/ui/combined-r7`. No `cursor-k50-p*` receipts exist yet (K50 posted 16:34), so no `lane-layout` rows for roam to take; the next run reads them.
+- Sweep unchanged (build c4e43841a, handled in continue 51). Every `pages/roam` / `subpackageRoam` page and component has a row (see the "no row until now" line).
+- A-half open rows (P2-7 MapKit POI tap, citystamp write-step coordinator, P21 mini bar) still need a compiled pass; P1-22 waits on the owner's region list. **A half done** — stopped per the 15:45 collision rule.
+
+## Round 3 continue (53) — merge `ui/combined-r7` (2b6ff8700); A half still done
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, new 0.
+
+- Merged `origin/ui/combined-r7` (K40 receipts, K27 strings). Still no `cursor-k50-p*` receipts on any branch, so no `lane-layout` rows for roam yet. `cursor-k40-map.md` leaves roam-tab work to this lane but lists no open roam row.
+- No new coordinator finding for roam: the brief's last roam item is the 15:50 sweep (handled in continue 51); `docs/sweeps/latest` is still build c4e43841a.
+- B receipt (16:55): B half ④–⑥ closed, nothing new to mark "(B lane)".
+- A-half open rows (P2-7 MapKit POI tap, citystamp write-step coordinator, P21 mini bar) still need a compiled pass; P1-22 waits on the owner's region list. **A half done**: stopped per the 15:45 collision rule.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
 - Function audit (mp-roam, not on a fix worker): P1-21 done (continue 38), P1-22 city-game region (owner value), P1-25 done (continue 39, shared backend),
-  P2-7 rest (`/api/roam/checkin` from 点亮: the MP posts it when the player taps a *built-in* map POI (`bindpoitap`); native needs MapKit feature
+  P2-7 rest (MP toast copy + error mapping done continue 51; `/api/roam/checkin` from 点亮: the MP posts it when the player taps a *built-in* map POI (`bindpoitap`); native needs MapKit feature
   selection (`MapSelection<MapFeature>`, iOS 18) beside the existing pin selection plus a `.checkin` capability (`productionEnabled` false today) — compiled pass).
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
   `RoamStampExchangeCoordinator` (never instantiated), so the citystamp camera (`showsCaption: true`) keeps its caption + exchange. Needs an
   upload-only camera mode returning the picture URL and session wiring for the coordinator — left for a compiled pass.
-- team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
+- team-recovery per-command rows on my-teams / nearby: done (B lane, `817059d4c`).
+- Live 输入地址 (continue 49): remote place search fallback and per-row 导航: done (continue 50).
+- P2-7 Core outcome slice: done (B lane, `f3b61106d`); map POI tap still open.
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen from merchant pins + shop photo pins: done in continue (23).
 - For other lanes (ds-consistency, mp-journey, mp-activity): the default panel is now ds-consistency's elevated surface (follows the appearance); roam additionally opts into `.environment(\.cyMapPanelFollowsAppearance, true)` (continue 24). The other `CYMapScaffold` users (`PlayExperienceView`, `PlaySessionView`, `NearbyTeamViews`) and `CYRoamNearbySheet` (fixture only) still use the black `cyMapPanelColor`; opt in once their panel content is checked for semantic colours.

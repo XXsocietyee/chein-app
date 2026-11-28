@@ -74,7 +74,8 @@ struct GlobalTemplateSearchLanes {
                     // R7-PC-A7-1: like the shelf, a 主题模板 result opens the topic-preview deck; 查看详情 pushes the detail.
                     let id = row.sourceID
                     return AnyView(DiscoveryTopicTemplateDeckHost(coordinator: session.publicTopicTemplateCoordinator(id: id), readonly: false,
-                                                                  makeDetail: { session.publicTopicTemplateCoordinator(id: id) }))
+                                                                  makeDetail: { session.publicTopicTemplateCoordinator(id: id) })
+                        .environment(\.topicEditorDestination, PublishTabRootView.topicEditorDestination(session: session)))
                 case .playTemplate:
                     return AnyView(DiscoveryTemplateDetailView(id: row.sourceID, reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
                                                        authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)
@@ -327,7 +328,7 @@ enum PlayerContentMPAppWire {
     }
 
     private func clubRows(_ query: GlobalSearchQuery, token: String?) async throws -> [ClubRecord] {
-        guard token != nil else { throw APIError.unauthorized }
+        // MP discover-search sends club/list for guests too; the backend route is @Anonymous (guest projection).
         guard let base = baseURL() else { throw APIError.notConfigured }
         let drafted = try PlayerContentMPContract.searchClubList(baseURL: base, name: query.keyword, categoryID: query.categoryID)
         let data = try await post(drafted, token: token)

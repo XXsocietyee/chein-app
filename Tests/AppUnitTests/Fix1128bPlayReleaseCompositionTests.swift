@@ -140,6 +140,55 @@ import XCTest
         XCTAssertTrue(grant.play.paths.isSuperset(of: ["api/play/puzzle/hint", "api/play/hint/unlock"]))
     }
 
+    /// K40 (plan audit J-08f / J-09h, J-07 leaderboard modifier): refresh, recovery and the per-node kit
+    /// board are GET reads on the shipped China composition. A POST to either path stays refused. Sensors stay
+    /// between devices and artwork hosts; egg collect stays off (the MP never calls it).
+    func testReleasePlayLeaseAdmitsAdvancedStateAndLeaderboard() async throws {
+        let recorder = Fix1128bRecorder()
+        let built = composition(recorder)
+        let player = try playerContext(built)
+        let configuration = try XCTUnwrap(built.sessionDependencies(player).configuration)
+        XCTAssertEqual(configuration.devices, ReviewedProductionGateLeases.playDevices)
+        XCTAssertEqual(configuration.sensors, ReviewedProductionGateLeases.playSensors)
+        XCTAssertEqual(configuration.sensors, [.acceleration, .soundPeak, .heading])
+        XCTAssertFalse(configuration.artworkHosts.isEmpty)
+        XCTAssertFalse(configuration.journeyCollect)
+        XCTAssertFalse(configuration.play.contains(.journeyEggCollection))
+        for path in ["api/play/advanced/state", "api/play/advanced/leaderboard"] {
+            XCTAssertTrue(configuration.endpoints.paths.contains(path), path)
+            XCTAssertTrue(ReviewedProductionGateLeases.playRuntimeReadPaths.contains(path), path)
+            XCTAssertTrue(ReviewedProductionGateLeases.isPlayGrantPath(path), path)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+        }
+        XCTAssertFalse(configuration.endpoints.paths.contains { $0.hasPrefix("api/merchant/") })
+        let composed = built.transport()
+        composed.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let api = try APIConfiguration(baseURL: player.baseURL)
+        let factory = RuntimeDependencyFactory(api: api, configuration: built.sessionDependencies(player).configuration,
+                                               transport: composed, current: { player })
+        let token = player.session.token, base = player.baseURL
+        let sends = [
+            try request(base, "api/play/advanced/state", method: "GET", query: "sessionId=41", token: token),
+            try request(base, "api/play/advanced/leaderboard", method: "GET", query: "activityId=3&nodeId=34&topicId=12", token: token)
+        ]
+        for outgoing in sends {
+            _ = try await factory.transport.send(outgoing)
+            XCTAssertEqual(recorder.paths.last, outgoing.url?.path.split(separator: "/").drop(while: { $0 != "api" }).joined(separator: "/"))
+        }
+        let grant = try XCTUnwrap(built.playerWriteGrant(player))
+        XCTAssertTrue(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(
+            try request(base, "api/play/advanced/state", method: "GET", query: "sessionId=41", token: token),
+            baseURL: base, token: token, context: player, grant: grant))
+        XCTAssertFalse(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(
+            try request(base, "api/play/advanced/state", method: "POST", json: #"{"sessionId":41}"#, token: token),
+            baseURL: base, token: token, context: player, grant: grant))
+        XCTAssertFalse(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(
+            try request(base, "api/play/advanced/leaderboard", method: "POST", json: #"{"nodeId":34}"#, token: token),
+            baseURL: base, token: token, context: player, grant: grant))
+    }
+
     /// mp-journey r3 (plan audit J-16): the play page now asks `productionPlayCircle` first. Its session transport goes
     /// through the player write grant, which admits every circle route the MP circle page sends (offers/card by id).
     func testReleasePlayGrantAdmitsTheCirclePageRoutes() throws {

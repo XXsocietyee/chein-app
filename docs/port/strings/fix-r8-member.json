@@ -277,7 +277,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Available"
+          "value": "Ready"
         }
       },
       "zh-Hans": {
@@ -379,7 +379,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Late cancellation"
+          "value": "Late"
         }
       },
       "zh-Hans": {

@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel this occurrence"
+            "value": "Cancel occurrence"
           }
         },
         "zh-Hans": {
@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This unpublishes the occurrence, processes refunds and ends the waitlist. Parts already checked in are not refunded."
+            "value": "This unpublishes the occurrence, processes refunds and ends waitlist. Parts already checked aren't refunded."
           }
         },
         "zh-Hans": {
@@ -150,7 +150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unpublishes this occurrence, processes refunds and ends the waitlist"
+            "value": "Unpublishes this occurrence, processes refunds and ends waitlist"
           }
         },
         "zh-Hans": {
@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capacity is optional; when full, the waitlist is first-in, first-out per event and ticket type"
+            "value": "Capacity optional; when full, waitlist first-in, first-out per event ticket type"
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use the ticket type’s capacity"
+            "value": "Use ticket type’s"
           }
         },
         "zh-Hans": {
@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The correction reason needs at least 2 characters"
+            "value": "The correction reason needs least 2 chars"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No notifications needed"
+            "value": "No alerts needed"
           }
         },
         "zh-Hans": {
@@ -470,7 +470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This occurrence is canceled"
+            "value": "Occurrence canceled"
           }
         },
         "zh-Hans": {
@@ -614,7 +614,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registration count to be confirmed"
+            "value": "Sign-up count to confirmed"
           }
         },
         "zh-Hans": {
@@ -806,7 +806,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund status awaiting readback"
+            "value": "Refund status awaiting"
           }
         },
         "zh-Hans": {
@@ -822,7 +822,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The refund window is counted as “24 hours before the meeting time”."
+            "value": "Refund window counted “24 hours before meeting."
           }
         },
         "zh-Hans": {
@@ -838,7 +838,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Corrections aren’t available right now"
+            "value": "Corrections aren’t"
           }
         },
         "zh-Hans": {
@@ -870,7 +870,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This occurrence’s roster · visible only with check-in permission"
+            "value": "Occurrence’s roster · visible only check-in permission"
           }
         },
         "zh-Hans": {
@@ -934,7 +934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in corrections are only allowed from the start of the event until 48 hours after it ends. Correction window for this occurrence: %@"
+            "value": "Check-in corrections are only allowed from the start of event until 48 hours after ends. Correction window occurrence: %@"
           }
         },
         "zh-Hans": {
@@ -950,7 +950,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in corrections are only allowed from the start of the event until 48 hours after it ends."
+            "value": "Check-in corrections are only allowed from start event until 48 hours after ends."
           }
         },
         "zh-Hans": {
@@ -1014,7 +1014,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This occurrence’s roster"
+            "value": "Occurrence’s"
           }
         },
         "zh-Hans": {
@@ -1110,7 +1110,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only future occurrences with no registrations can be changed"
+            "value": "Only future occurrences no registrations can changed"
           }
         },
         "zh-Hans": {
@@ -1222,7 +1222,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stops new registrations for this occurrence and removes it from listings."
+            "value": "Stops new registrations for occurrence removes listings."
           }
         },
         "zh-Hans": {
@@ -1238,7 +1238,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ends waiting list promotions and processes eligible refunds; checked-in items are not refunded."
+            "value": "Ends waiting list promotions processes eligible refunds; checked-in items aren't refunded."
           }
         },
         "zh-Hans": {
@@ -1312,6 +1312,134 @@
           "stringUnit": {
             "state": "translated",
             "value": "系列列表加载失败"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.recurrence.noTopic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No topics to schedule yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可开场的主题"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.topic.unnamed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.topic.dateUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dates TBD"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期未定"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.topic.own": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Own"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自有"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.topic.partner": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合作"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.topic.price %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket ¥%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票价 ¥%@"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.topic.free": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免费"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.topic.meetingPoint %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting point: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集合点 %@"
           }
         }
       }

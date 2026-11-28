@@ -150,7 +150,7 @@ public struct PublishingSafetyIssue: Equatable {
             if review.request.path == "api/ai/template/fill" {
                 let body = try? OperationAdapterHTTP.envelope(data), code = body?["code"]?.integer
                 if status == 401 || code == 401 { try journal.clear(record); return .rejected("请先登录") }
-                if status == 403 || code == 403 { try journal.clear(record); return .rejected("当前身份暂不支持AI创作") }
+                if status == 403 || code == 403 { try journal.clear(record); return .rejected(AISafetyPrecheckVerdict.roleGate) }
             }
             guard (200..<300).contains(status), let body = try? OperationAdapterHTTP.envelope(data), let code = body["code"]?.integer else {
                 // fix/1128c-ai-showcase: the safety precheck moves nothing, so a failed answer clears its marker; a stuck

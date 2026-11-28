@@ -23,3 +23,37 @@ Reviewed bottom-up and left open (not started here, so the A lane can still take
 
 For other lanes:
 - mp-activity: `App/TeamCreateView.swift` — add an `invitationOnlyLocked` input (true when the order's session has started); when set, keep `inviteOnly = true`, replace the toggle with the MP note 场次已开始，只能建仅邀请队伍 / "The session has started, so only invite-only teams can be created". mp-mine-b will then pass it from `ProfileOrderTeamSeatClubSection`.
+
+## Run 2 (11-28, hourly)
+
+Merged `origin/mp/r3-mine` (A continue 40, 43c88a665). A receipt read first: its open rows are the `CharacterCardReadbackView` byte pin (blocked, pin owner) and the continue 40 post-governance `pendingUnknown` warning (bottom-most, not started by A). Taken here.
+
+| A-receipt row | MP | Native file | Level | Fixed now |
+|---|---|---|---|---|
+| `pages/shezhi/components/post-governance` (帖文处置与申诉) … "Not done: the MP `pendingUnknown` warning (上次申诉的提交结果未确认…) needs the local pending-appeal store the MP keeps" | `index.js` `_withPending` (pending intent ∧ `canAppeal` ∧ status unknown), `unknown()` read-back; `index.wxml` `pg-warn` after 复核说明, before 提交申诉 | `Core/SquareGovernanceCoordinator.swift` (new read-only `appealOutcomeUnconfirmed(enforcementID:snapshot:)`), `App/SettingsPostGovernanceView.swift` `rowView` / `submit`, `Resources/Localizable.xcstrings` | C | **Fixed.** The local store already exists: `SquareGovernanceJournal` persists `appeal:<id>` per account before dispatch and never unlocks. A row that still offers an appeal while its key is in the journal now shows the MP `pg-warn` line in MP position (footnote, orange `exclamationmark.triangle`, id `settings.postGov.pending.<id>`) **in place of** 提交申诉, because the journal makes a second submit throw `outcomeLocked` (a dead control). The MP's "可以再次提交（不会重复提交）" is not true natively (no reused requestId), so the copy uses the MP's other unknown-branch wording: 上次申诉的提交结果未确认，请稍后下拉刷新确认 / "The result of your last appeal is not confirmed yet. Pull down to refresh later." An unknown submit now follows MP `unknown()`: notice 提交结果未确认，正在确认… → read back → row no longer appealable = submitted (form closes, no notice, as MP `done('', true)`), else 提交结果暂未确认，请稍后刷新确认. The old `mpd.postGov.unknown` ("can submit again") is no longer shown. Tests: `Tests/CoreTests/SquareGovernanceAppealPendingTests.swift`, `Tests/ContractChecks/test_mine_b_post_governance_pending.py`. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
+
+For other lanes / Core owner: `SquareGovernanceJournal` claims `appeal:<id>` before dispatch and never releases it, so a definite rejection (4xx) also locks the row on this device; the MP settles the intent as `rejected` and allows a new appeal. Releasing the key on a definite 4xx (not 408/409) in `SquareGovernanceService.dispatch` would match the MP. Not changed here (shared Core write path).
+
+## Run 3 (11-28 ~15:50 UTC, hourly)
+
+Merged `origin/mp/r3-mine` (A continue 42, f2e8bbf20). Per the coordinator's 15:45 collision fix the run 2 row above (post-governance `pendingUnknown`) was a duplicate of A continue 41; the merge keeps A's side (`App/SettingsPostGovernanceView.swift`, `Core/SquareGovernanceCoordinator.swift`, xcstrings) and drops B's `appealOutcomeUnconfirmed` and its two tests. Run 2's row counts as A's.
+
+Half split (fixed at run start; A receipt open rows in file order): 1 `CharacterCardReadbackView` byte pin (continue 18, blocked) · 2 `scene-member-order-detail` 场次已开始 note (waits on mp-activity `TeamCreateView`) · 3 `pass-unlock` gated reveal | 4 P2-5c participants +1 / legal copy (backend + legal owner) · 5 post-governance refusal shows the server `msg` (continue 42 Not done). (The continue 27 我的项目 empty row was closed by A continue 28.) **B half = 4–5**, taken bottom-up.
+
+| A-receipt row | MP | Native file | Level | Fixed now |
+|---|---|---|---|---|
+| Continue 42 "Not done: The refusal notice is the fixed 申诉未提交 copy; the MP shows the server `msg` (`requestError`), which needs the failure to carry it." | `pages/shezhi/components/post-governance/index.js:11-13,138-147` `done(requestError(res, '申诉未提交'))` → `app.getRequestErrorMessage` → `utils/transport/safe-user-message.js` `safeUserMessage` | `Core/SquareGovernanceContracts.swift` (new `appealRefused(message:)`), `Core/SquareGovernanceService.swift` (`dispatch` `.rejected` branch, new `refusalMessage(_:)`), `Core/SquareGovernanceSyntheticFixtures.swift` (`mutationMessage`), `App/SettingsPostGovernanceView.swift` (`refusalNotice`, `submit`) | C | **Fixed.** A definite appeal refusal still releases the row first (continue 42), then throws `appealRefused(message:)` with the server `msg` / `message` filtered like the MP `safeUserMessage` (empty, > 60 chars, multi-line, auth / timeout / SQL / Java / URL / path / token / id / phone / email text, and one-phrase developer messages such as 参数错误 → nil). The sheet shows that sentence as the notice with the form still open (MP `done(notice)`), else the fixed 申诉没有提交成功，请重试. English keeps the fixed copy (server text is Chinese; no mixed-language notice). 401 / 403 refusals stay `signedOut` / `forbidden`. Tests: `Tests/CoreTests/SquareGovernanceAppealRefusalMessageTests.swift`, `Tests/ContractChecks/test_mine_b_post_governance_refusal_msg.py`; `SquareGovernanceTests.testDefiniteAppealRefusalReleasesTheRowLikeTheMP` now expects `.appealRefused(message: nil)`. |
+
+Row 4 (P2-5c, participants +1 regex and US legal copy): still backend / legal owner, nothing app-side to change. Skipped.
+
+**Half done** (B half 4–5: 5 fixed, 4 blocked on backend / legal). Run stops here per the 15:45 split rule.
+
+## Run 4 (11-28, hourly)
+
+Merged `origin/mp/r3-mine` (A continue 44, 511b2f751). Fetched every branch: no `docs/release/receipts/cursor-k50-p*.md` exists yet, so there are no K50 `lane-layout` rows for mp-mine. The sweep is unchanged (build c4e43841a, already checked by A continue 44), and the brief has no mp-mine coordinator rows after 13:15 (that ticket-wallet glyph row was closed by A continue 44).
+
+Half split (fixed at run start; A receipt open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin owner) · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` off) | 3 P2-5c participants +1 / US legal copy (backend + legal owner). **B half = row 3**, still blocked with nothing to change app-side. Skipped.
+
+**Half done** (B half: row 3 blocked). Run stops here per the 15:45 split rule.

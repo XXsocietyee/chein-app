@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Whole-topic cooperation invitation"
+            "value": "Whole-topic cooperation invite"
           }
         },
         "zh-Hans": {
@@ -245,7 +245,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reply with invite"
+            "value": "Reply invite"
           }
         },
         "zh-Hans": {
@@ -313,7 +313,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite someone else"
+            "value": "Invite someone"
           }
         },
         "zh-Hans": {

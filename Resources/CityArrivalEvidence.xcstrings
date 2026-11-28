@@ -124,7 +124,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original round"
+            "value": "Original"
           }
         }
       }
@@ -172,7 +172,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Challenge validity in seconds"
+            "value": "Quest validity in seconds"
           }
         }
       }
@@ -188,7 +188,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Evidence validity in seconds"
+            "value": "Evidence validity seconds"
           }
         }
       }
@@ -236,7 +236,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Platform approval rationale"
+            "value": "Platform approval"
           }
         }
       }
@@ -476,7 +476,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original point"
+            "value": "Original"
           }
         }
       }
@@ -556,7 +556,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original authoritative evidence record"
+            "value": "Original authoritative evidence"
           }
         }
       }
@@ -1036,7 +1036,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Independent approval for this capability is disabled by default; it is unavailable now."
+            "value": "Independent approval for this capability is disabled default; it's unavailable."
           }
         }
       }
@@ -1206,7 +1206,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store verification employee"
+            "value": "Store check employee"
           }
         },
         "zh-Hans": {

@@ -12,7 +12,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notifications"
+            "value": "Alerts"
           }
         }
       }
@@ -44,7 +44,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notification settings"
+            "value": "Alert settings"
           }
         }
       }
@@ -60,7 +60,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System notification permission"
+            "value": "System alert permission"
           }
         }
       }
@@ -188,7 +188,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request completed, but current settings could not be loaded. Refresh to try again."
+            "value": "The original request completed, but current settings couldn't be loaded. Refresh try again."
           }
         }
       }
@@ -348,7 +348,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Effective after inheritance: %@"
+            "value": "Effective after %@"
           }
         }
       }
@@ -380,7 +380,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This level is permanently muted"
+            "value": "This level permanently muted"
           }
         }
       }
@@ -444,7 +444,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System notification permission"
+            "value": "System alert permission"
           }
         }
       }
@@ -460,7 +460,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System notification permission has not been read"
+            "value": "Alert permission pending"
           }
         }
       }
@@ -524,7 +524,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System notifications are allowed"
+            "value": "System alerts are allowed"
           }
         }
       }
@@ -556,7 +556,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Temporary permission"
+            "value": "Temporary"
           }
         }
       }
@@ -620,7 +620,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not supported on this device"
+            "value": "Not supported on device"
           }
         }
       }
@@ -716,7 +716,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose system notification permission"
+            "value": "Choose system alert permission"
           }
         }
       }
@@ -748,7 +748,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Even with system alerts allowed, whether you get a notification also depends on your channel settings."
+            "value": "Even with system alerts allowed, whether you get a alert also depends on your channel settings."
           }
         }
       }
@@ -1004,7 +1004,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh notification settings and unread counts"
+            "value": "Refresh alert settings unread counts"
           }
         }
       }
@@ -1148,7 +1148,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original receipt is checked before retrying. The original request is sent only if the result remains unknown and permission is still valid."
+            "value": "The original receipt is checked before retrying. The original request is sent only if result remains unknown permission still valid."
           }
         }
       }
@@ -1164,7 +1164,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check and retry the original request"
+            "value": "Check and retry original request"
           }
         }
       }
@@ -1228,7 +1228,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notifications at this level"
+            "value": "Alerts at level"
           }
         }
       }
@@ -1276,7 +1276,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The parent permanent mute is still effective. Change it in the corresponding override settings."
+            "value": "The parent permanent mute is still effective. Change it in corresponding override settings."
           }
         }
       }
@@ -1356,7 +1356,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time zone"
+            "value": "Time"
           }
         }
       }
@@ -1484,7 +1484,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lock-screen message preview"
+            "value": "Lock-screen message"
           }
         }
       }
@@ -1500,7 +1500,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inherit parent setting"
+            "value": "Inherit parent"
           }
         }
       }
@@ -1612,7 +1612,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save notification settings at this level?"
+            "value": "Save alert settings at this level?"
           }
         }
       }
@@ -2358,7 +2358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No notification settings yet"
+            "value": "No alert settings yet"
           }
         },
         "zh-Hans": {
@@ -2390,7 +2390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Try"
           }
         },
         "zh-Hans": {
@@ -2422,7 +2422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Try"
           }
         },
         "zh-Hans": {
@@ -2486,7 +2486,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System notifications"
+            "value": "System alerts"
           }
         },
         "zh-Hans": {
@@ -2582,7 +2582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Default notifications"
+            "value": "Default alerts"
           }
         },
         "zh-Hans": {
@@ -2710,7 +2710,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time zone"
+            "value": "Time"
           }
         },
         "zh-Hans": {
@@ -2902,7 +2902,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notification history"
+            "value": "Alert history"
           }
         },
         "zh-Hans": {

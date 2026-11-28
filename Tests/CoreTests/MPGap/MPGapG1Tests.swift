@@ -134,4 +134,19 @@ final class MPGapG1Tests: XCTestCase {
         PlayReducedMotionPreference.set(false, in: defaults)
         XCTAssertFalse(PlayReducedMotionPreference.isEnabled(in: defaults))
     }
+
+    func testOrientSafetyRetryKeepsTheServerSentence() {
+        XCTAssertEqual(
+            PlayerOrientSafetyDecision.decide(code: "500", errorCode: nil, allowed: nil, serverMessage: "现在不能开始"),
+            .retry("现在不能开始")
+        )
+        XCTAssertEqual(
+            PlayerOrientSafetyDecision.decide(code: "500", errorCode: nil, allowed: nil, serverMessage: "  "),
+            .retry(PlayerOrientSafetyDecision.retryLine)
+        )
+        XCTAssertEqual(
+            PlayerOrientSafetyDecision.decide(code: "409", errorCode: "ORIENT_DISABLED", allowed: nil, serverMessage: "关闭"),
+            .proceed
+        )
+    }
 }

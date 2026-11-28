@@ -544,6 +544,7 @@ struct StampSeal: View {
     let size: CGFloat
     let stamped: Bool
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var scale: CGFloat = 1
     @State private var lift: CGFloat = -14
     @State private var ring: CGFloat = 0
@@ -579,7 +580,10 @@ struct StampSeal: View {
             Text("onboarding.stamps.slam")
                 .cyText(.bodyMedium)
                 .foregroundStyle(CYNight.lanternHot)
-                .lineLimit(1).minimumScaleFactor(0.7)
+                .multilineTextAlignment(.center)
+                .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
+                .minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.7)
+                .fixedSize(horizontal: false, vertical: typeSize.isAccessibilitySize)
                 .offset(y: titleIn ? -size * 0.07 : -size * 0.07 + 10)
                 .opacity(titleIn ? 1 : 0)
         }
@@ -787,6 +791,7 @@ private struct GOHoldDemo: View {
             .accessibilityHint(Text("onboarding.roam.demo.hint"))
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { onComplete() }
+            .accessibilityAction(named: Text("onboarding.fog.clear")) { onComplete() }
             .accessibilityIdentifier("onboarding.demo")
             Text(done ? "onboarding.roam.done" : "onboarding.roam.prompt")
                 .cyText(.bodyCompact).foregroundStyle(.white.opacity(0.85))

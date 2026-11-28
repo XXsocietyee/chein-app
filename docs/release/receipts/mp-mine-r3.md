@@ -662,3 +662,61 @@ Merged `origin/ui/combined-r7` (68 commits, clean). Sweep unchanged (build 0446d
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
 
 Not done: `CharacterCardReadbackView` byte pin; post-governance `pendingUnknown` warning.
+
+## Continue 41 (11-28, hourly run): post-governance pending-appeal warning
+
+Merged `origin/ui/combined-r7` (clean). B lane (`mp/r3-mine-b`) unchanged since run 1 (`c4f3c4744`), nothing new to mark. Top open row after the blocked `CharacterCardReadbackView` byte pin: the continue 40 post-governance `pendingUnknown` warning.
+
+| MP page | Native file | MP sections | Level | Result |
+|---|---|---|---|---|
+| `pages/shezhi/components/post-governance` `pg-warn` `pendingUnknown` (wxml:16, js `_withPending` / `unknown()`) | `App/SettingsPostGovernanceView.swift`, `Core/SquareGovernanceCoordinator.swift` (`dispatched(_:snapshot:)`), `Resources/Localizable.xcstrings`, `Tests/CoreTests/SquareGovernanceTests.swift` | ✓ (row warning added in MP place: after 复核说明, before the appeal action) | C | **Fixed (closes the continue 40 Not done row).** The MP keeps a local appeal intent and warns on a row whose appeal went out but the server still shows none. Native already keeps the same account-scoped record (`SquareGovernanceJournal`); the coordinator now exposes a read-only `dispatched(_:snapshot:)`, and a row that is still appealable but already dispatched shows an orange footnote (id `settings.postGov.pending.<id>`) instead of 提交申诉. Copy differs from the MP on purpose: the native journal never re-sends an unknown dispatch (security design, "no automatic unlock"), so the MP's "可以再次提交（不会重复提交）" would promise a dead button (OWNER RULE 2); the row says 上次申诉的提交结果未确认，下拉刷新再次核对. After an unknown submit the sheet now follows MP `unknown()`: closes the form, shows 提交结果未确认，正在确认…, reads back, and clears the notice when the row no longer takes an appeal, else 没有查到这条申诉，请稍后下拉刷新确认. (Before, the form stayed open with the old "submit again" notice, and a second submit always failed with `outcomeLocked`.) Test: `testDispatchedReadsTheJournalForThePendingAppealRow`. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
+
+Not done: `CharacterCardReadbackView` byte pin (needs the pin owner).
+
+## Continue 42 (11-28, half-hourly run): appeal refusal releases the row (MP `rejected`)
+
+Merged `origin/ui/combined-r7` (clean). Sweep unchanged (build 0446d1c4f), every mp-mine coordinator finding is closed. B lane run 2 (`c5acc598b`) did the continue 41 `pendingUnknown` row in parallel: same result, nothing more to mark (B lane). Its "For other lanes / Core owner" note is in this area, so this run takes it.
+
+| MP page | Native file | MP sections | Level | Result |
+|---|---|---|---|---|
+| `pages/shezhi/components/post-governance` submit (`index.js:138-149`: body code ≠ 200 → `settle('rejected')` except 409 → `unknown()`; HTTP 4xx except 408/409 → `rejected`; else `unknown()`) | `Core/SquareGovernanceService.swift` (`appealOutcome`, `dispatch(release:)`), `Core/SquareGovernanceCoordinator.swift` (`SquareGovernanceJournal.remove`), `Core/SquareGovernanceSyntheticFixtures.swift` (`mutationReply`), `Tests/CoreTests/SquareGovernanceTests.swift` | ✓ (unchanged) | C | **Fixed.** Before, the device journal claimed `appeal:<id>` before dispatch and never released it, so a definite refusal (e.g. 400 reason invalid) left the row showing 提交申请 that always failed with `outcomeLocked` and the continue 41 pending warning forever. Now an appeal refused definitely releases the claim (the form stays open with 申诉未提交, as the MP `done(requestError)`), and a 409 (an appeal already exists) reads back like an unknown result. Unknown / 5xx / 408 / transport failures stay locked (no automatic unlock). Other governance actions unchanged. Tests: `testDefiniteAppealRefusalReleasesTheRowLikeTheMP`, `testAppealConflictAndServerErrorStayLocked`. |
+
+Not done: `CharacterCardReadbackView` byte pin (needs the pin owner). The refusal notice is the fixed 申诉未提交 copy; the MP shows the server `msg` (`requestError`), which needs the failure to carry it.
+
+## Continue 43 (11-28, hourly run): order detail 场次已开始 (A half)
+
+Merged `origin/ui/combined-r7` (clean). Half split per the coordinator 15:45 rule (same split the B lane fixed in its run 3): open rows in file order 1 `CharacterCardReadbackView` byte pin · 2 `scene-member-order-detail` 场次已开始 note · 3 `pass-unlock` gated reveal | 4 P2-5c · 5 post-governance refusal `msg`. **A half = 1–3.** Row 5 is done **(B lane)** (`mp/r3-mine-b` run 3, `43ea0bc2c`): `appealRefused(message:)` shows the filtered server `msg`.
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `components/cy/scene-member-order-detail` 和队友一起出发 (wxml:126-145; js:1118-1125 `teamStarted = teamOpen && !(startMs > now)`, js:591 `teamInviteOnly \|\| teamStarted ? 1 : null`) | `Core/ProfileContracts.swift` (`teamStarted(nowMilliseconds:)`, `teamStartedNow`), `App/ProfileOrderSourceDetailSections.swift`, `App/SessionTeamViews.swift`, `App/TeamCreateView.swift`, `Resources/Localizable.xcstrings` `orderDetail.team.started`, `Tests/CoreTests/ProfileContractTests.swift` | ✓ (note added in MP place: in the team card, before 叫上队友) | B | **Fixed (closes the continue 18 Not done row).** The order computes the MP `teamStarted` from the activity `startDate` with the shared MP `toTimestamp` (`MoneyParityTime.timestamp`; no readable start counts as started, as the MP's `NaN`). When started, the order detail shows 场次已开始，只能建仅邀请队伍。/ "This session has started, so you can only create an invite-only team." above 叫上队友 (id `profile.order.teamStarted`), and the team-create step opened from it has no 仅邀请可加入 switch and creates the team invite-only (MP sends `joinMode` 1). `TeamCreateView` gets a defaulted `sessionStarted` parameter, so its other callers (mp-activity routes, fixtures) are unchanged. Test: `testOrderTeamStartedFollowsTheMiniProgramStartTime`. |
+| `components/cy/pass-unlock` (market/pass post-purchase reveal; wxml `pu__skip` on every step but the last, `pu__dots`, 继续 / 完成; js reduced motion = end state at once) | `App/PassMarketViews.swift` `PassUnlockStepsView` | ✓ (pages 已到账 / 可玩主题 / 有效期 / 同行 from `PassUnlockStep`, unchanged) | A | **Partly fixed (row 3; the continue 18 row said "no native reveal", but `PassUnlockStepsView` exists).** Added the MP 跳过 (top trailing, `.borderless`, hidden on the last step, id `passDetail.unlock.skip`, ends the reveal like 完成) and a step transition (push from trailing, opacity under Reduce Motion, like the MP reduced path); the success haptic per step stays. Not done, still gated: the reveal is only reachable after a self-use PAID order and `MPCommerceGate.purchasesEnabled` is false (virtual-goods purchase off this release), so no native `unlockSteps` builder is wired and the 同行 step has no 邀请同伴 action yet (needs `primaryRegistrationId` from the order reply → journey seats). Build these when the owner turns pass purchase on. |
+
+For other lanes (mp-activity): `OrderLifecycleView.swift:189` (registration order lifecycle, `detail.teamOpen`) opens team creation without the started rule; pass `sessionStarted:` there the same way if that screen should follow the MP order detail.
+
+A half (rows 1–3): row 2 fixed, row 3 partly fixed (rest gated by `MPCommerceGate`), row 1 (`CharacterCardReadbackView` byte pin) still blocked on the pin owner. **Half done**; run stops here per the 15:45 split rule.
+
+## Continue 44 (11-28, half-hourly run): ticket wallet cover fallback visible again
+
+Merged `origin/ui/combined-r7` (clean). No K50 `cursor-k50-p*` receipts exist yet, and the brief has no mp-mine coordinator rows after 13:15. Half split at run start: open rows in file order 1 `CharacterCardReadbackView` byte pin (pin still in `docs/issue5-hunks/C02-ios-pbx.rnhunk.md`) · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` still false) | 3 P2-5c (backend / legal). All three are still blocked, and every MP page in the area already has a row. So this run fixes what the sweep shows. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg` (build c4e43841a): `e4-tickets` pass cards show an empty grey band with a single dot where the cover goes.
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `subpackageMember/signup` wallet card cover (wxml:67-69 `wc__im` with `wImg`, else `wc__im--illus cy-cover-fb` + `/images/cover-route.svg`; app.wxss:285 `cy-cover-fb` gradient) | `App/TicketWalletView.swift` `TicketWalletRow.coverBand`, `App/TicketPassSheet.swift` `header`, `App/E1CommerceComponents.swift` `E1CoverArt` | ✓ (cover, else route illustration; unchanged order) | B | **Fixed.** The MP art is white (made for the dark player theme); on the native light `bgSurfaceSubtle` / `.quaternary` tile at 50 % opacity only its dark pin hole showed, which read as a broken image. Both the wallet pass and the pass sheet now use the shared `E1CoverArt` (as the registration sheet does: cover URL, else the `cy-cover-fb` gradient tile with the illustration), and `E1CoverArt` draws a non-filling fallback as a template in `textPlaceholder`, so it is visible in light and dark. Two private cover implementations are gone (one design system). |
+
+For the coordinator: `ia-passport` in the mp-mine sheet is still the black launch screen (same fixture wait as the 15:50 roam note).
+For other lanes (mp-activity): the registration sheet uses the same `E1CoverArt` fallback, so its no-cover thumbnail now shows the tinted route illustration too.
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. Open rows unchanged (1–3 blocked). **Half done**; run stops here per the 15:45 split rule.
+
+## Continue 45 (11-28, hourly run): A half still blocked
+
+Merged `origin/ui/combined-r7` (clean). No `docs/release/receipts/cursor-k50-p*.md` on any branch yet, so there are no K50 `lane-layout` rows for mp-mine. Sweep unchanged (build c4e43841a, checked in continue 44); no mp-mine coordinator rows after 13:15. B lane run 4 changed nothing to mark.
+
+Half split at run start (open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin still in `docs/issue5-hunks/C02-ios-pbx.rnhunk.md`) · 2 `pass-unlock` rest (`App/MPParityKit.swift:12` `MPCommerceGate.purchasesEnabled = false`) | 3 P2-5c (backend / legal). **A half = rows 1–2, both still blocked**; no code change this run.
+
+Gates: generate_project no change, check_scaffold PASS (log redaction failed once while four gates ran in parallel, PASS on rerun), a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
+
+**Half done**; run stops here per the 15:45 split rule.

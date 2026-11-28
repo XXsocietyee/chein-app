@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create groups"
+            "value": "Create"
           }
         },
         "zh-Hans": {
@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "In-store redemption"
+            "value": "In-store redeem"
           }
         },
         "zh-Hans": {
@@ -182,7 +182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "unlimited"
+            "value": "No limit"
           }
         },
         "zh-Hans": {
@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No benefits to show."
+            "value": "No benefits show."
           }
         },
         "zh-Hans": {
@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Followers"
+            "value": "Fans"
           }
         },
         "zh-Hans": {
@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Following"
+            "value": "Follows"
           }
         },
         "zh-Hans": {
@@ -454,7 +454,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket wallet"
+            "value": "Ticket"
           }
         },
         "zh-Hans": {
@@ -710,7 +710,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending review"
+            "value": "Pending"
           }
         },
         "zh-Hans": {
@@ -934,7 +934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdrawing stops recording your tracks."
+            "value": "Withdrawing stops recording tracks."
           }
         },
         "zh-Hans": {
@@ -1382,7 +1382,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't unlike. Please try again."
+            "value": "Couldn't unlike."
           }
         },
         "zh-Hans": {
@@ -1494,7 +1494,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Yesterday"
+            "value": "Last day"
           }
         },
         "zh-Hans": {
@@ -1526,7 +1526,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "About recommendations"
+            "value": "About"
           }
         },
         "zh-Hans": {
@@ -1542,7 +1542,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Favorites and recommendations"
+            "value": "Favorites"
           }
         },
         "zh-Hans": {

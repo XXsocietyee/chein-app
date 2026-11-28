@@ -480,6 +480,7 @@ public struct ClubChannelMessagingView: View {
                             Text(verbatim: "@\(group.totalMentionCount)")
                                 .monospacedDigit()
                                 .foregroundStyle(CYColor.dangerText)
+                                .accessibilityLabel(Text(verbatim: mentionSpoken(group.totalMentionCount)))
                         }
                     }
                 }
@@ -516,6 +517,7 @@ public struct ClubChannelMessagingView: View {
         .badge(badgeText.map { Text(verbatim: $0) })
         .listRowBackground(isSelected ? Color(uiColor: .tertiarySystemFill) : nil)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityValue(Text(verbatim: channelSpokenValue(channel)))
         .contextMenu {
             Button(role: .destructive) {
                 Task {
@@ -533,6 +535,25 @@ public struct ClubChannelMessagingView: View {
             .accessibilityLabel(Text(verbatim: copy("举报该频道", "Report channel")))
             .accessibilityIdentifier("club.channel.report")
         }
+    }
+
+    /// a11y-dt r3 run 41: VoiceOver read the badge as a bare "2" / "@2" ("at 2"); speak what the count means.
+    private func mentionSpoken(_ count: Int) -> String {
+        copy("\(count) 条@提及", count == 1 ? "1 mention" : "\(count) mentions")
+    }
+
+    private func channelSpokenValue(_ channel: ChannelDiscordItemProjection) -> String {
+        if channel.mentionBadgeText != nil {
+            return mentionSpoken(channel.mentionCount)
+        }
+        if channel.unreadBadgeText != nil {
+            let unread = channel.unreadCount ?? 0
+            return copy("\(unread) 条未读", "\(unread) unread")
+        }
+        if channel.isMuted {
+            return copy("免打扰", "Muted")
+        }
+        return ""
     }
 
     // MARK: - Transcript + Paging Up + New-Message Jump + Composer
@@ -863,8 +884,14 @@ private struct ChannelBurstGroupCard: View {
     let onDeleteMessage: (MessagingMessage) -> Void
     @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .subheadline) private var initialSide: CGFloat = 28
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
+
+    /// a11y-dt r3: header / reply / attachment / send-state lines stack at AX sizes instead of squeezing side by side.
+    private var lineLayout: AnyLayout {
+        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -880,7 +907,7 @@ private struct ChannelBurstGroupCard: View {
             }
 
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                HStack(spacing: CYSpacing.sm) {
+                HStack(alignment: typeSize.isAccessibilitySize ? .top : .center, spacing: CYSpacing.sm) {
                     Circle()
                         .fill(group.isSystemGroup ? Color.orange.opacity(0.2) : Color(uiColor: .systemGray5))
                         .frame(width: min(initialSide, 48), height: min(initialSide, 48))
@@ -888,30 +915,35 @@ private struct ChannelBurstGroupCard: View {
                             Text(String(group.senderName.prefix(1)))
                                 .font(.subheadline.weight(.medium))
                                 .minimumScaleFactor(0.5)
-                                .foregroundStyle(group.isSystemGroup ? Color.orange : Color.primary)
+                                .foregroundStyle(group.isSystemGroup ? CYColor.warningText : Color.primary)
                         )
                         .accessibilityHidden(true)
-                    Text(group.senderName)
-                        .font(.subheadline.weight(.semibold))
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let badge = group.senderRoleBadge, !badge.isEmpty {
-                        Text(badge)
-                            .font(.caption)
-                            .foregroundStyle(.tint)
-                    }
-                    if group.precedingDividerText == nil {
-                        Text(group.headerTimestampText)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .cyWrapText()
+                    lineLayout {
+                        Text(group.senderName)
+                            .font(.subheadline.weight(.semibold))
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let badge = group.senderRoleBadge, !badge.isEmpty {
+                            Text(badge)
+                                .font(.caption)
+                                .foregroundStyle(.tint)
+                        }
+                        if group.precedingDividerText == nil {
+                            Text(group.headerTimestampText)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .cyWrapText()
+                        }
                     }
                 }
+                // a11y-dt r3: author, role and time read as one header element before the messages.
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isHeader)
 
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     ForEach(group.items) { item in
                         VStack(alignment: .leading, spacing: 4) {
                             if let reply = item.replyReference {
-                                HStack(spacing: 4) {
+                                lineLayout {
                                     Image(systemName: "arrowshape.turn.up.left")
                                         .accessibilityHidden(true).font(.caption)
                                         .foregroundStyle(.secondary)
@@ -934,7 +966,7 @@ private struct ChannelBurstGroupCard: View {
                                 .fixedSize(horizontal: false, vertical: true)
 
                             ForEach(Array(item.attachments.enumerated()), id: \.offset) { _, attachment in
-                                HStack(spacing: 6) {
+                                lineLayout {
                                     Image(systemName: attachment.kind == .image ? "photo" : "link")
                                         .accessibilityHidden(true).font(.caption)
                                         .foregroundStyle(.secondary)
@@ -952,7 +984,7 @@ private struct ChannelBurstGroupCard: View {
                             }
 
                             if let sendState = item.transcriptMessage.sendState {
-                                HStack(spacing: 6) {
+                                lineLayout {
                                     switch sendState {
                                     case ChannelOutboundSendPhase.pending.rawValue,
                                          ChannelOutboundSendPhase.sending.rawValue,
@@ -964,7 +996,7 @@ private struct ChannelBurstGroupCard: View {
                                             .foregroundStyle(.secondary)
                                     case ChannelOutboundSendPhase.failed.rawValue:
                                         Image(systemName: "exclamationmark.circle.fill")
-                                            .accessibilityHidden(true).foregroundStyle(.red)
+                                            .accessibilityHidden(true).foregroundStyle(CYColor.dangerText)
                                             .font(.caption)
                                         Text(copy("发送失败", "Failed to send"))
                                             .font(.caption)
@@ -975,6 +1007,8 @@ private struct ChannelBurstGroupCard: View {
                                             }
                                             .font(.caption.weight(.semibold))
                                             .buttonStyle(.borderless)
+                                            .frame(minHeight: CYSpacing.minTouchTarget)
+                                            .contentShape(Rectangle())
                                         }
                                     default:
                                         EmptyView()
@@ -983,6 +1017,10 @@ private struct ChannelBurstGroupCard: View {
                             }
                         }
                         .id(item.id)
+                        // a11y-dt r3: Reply is reachable from the VoiceOver actions rotor, not only the long-press menu.
+                        .accessibilityAction(named: Text(verbatim: copy("回复", "Reply"))) {
+                            onReply(item.message)
+                        }
                         .contextMenu {
                             Button {
                                 onReply(item.message)
@@ -1034,8 +1072,18 @@ public struct ClubChannelMemberRosterSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .subheadline) private var initialSide: CGFloat = 32
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
+
+    /// a11y-dt r3: name + role tag (and the ban row's Unban button) stack at AX sizes.
+    private var tagLayout: AnyLayout {
+        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))
+    }
+
+    private var banRowLayout: AnyLayout {
+        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout())
+    }
 
     public init(
         clubName: String,
@@ -1089,7 +1137,7 @@ public struct ClubChannelMemberRosterSheet: View {
                                         )
                                         .accessibilityHidden(true)
                                     VStack(alignment: .leading, spacing: 2) {
-                                        HStack(spacing: 6) {
+                                        tagLayout {
                                             Text(member.nickname)
                                             Text(member.badgeLabel)
                                                 .font(.caption)
@@ -1108,6 +1156,8 @@ public struct ClubChannelMemberRosterSheet: View {
                                     }
                                     Spacer()
                                 }
+                                // a11y-dt r3: one VoiceOver element per member; swipe actions stay as custom actions.
+                                .accessibilityElement(children: .combine)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     if member.memberID != policy.viewerMemberID {
                                         let isBlocked = coordinator.blockedSenderIDs.contains(member.memberID)
@@ -1174,9 +1224,9 @@ public struct ClubChannelMemberRosterSheet: View {
                     if policy.canRemoveOrBanMembers && !coordinator.activeBans.isEmpty {
                         Section(copy("封禁名单（管理员）", "Active Bans (Admin)")) {
                             ForEach(coordinator.activeBans) { ban in
-                                HStack {
+                                banRowLayout {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        HStack(spacing: 6) {
+                                        tagLayout {
                                             Text(ban.nickname)
                                             Text(ban.platformOnly ? copy("平台封禁", "Platform Ban") : copy("俱乐部封禁", "Club Ban"))
                                                 .font(.caption)
@@ -1186,7 +1236,8 @@ public struct ClubChannelMemberRosterSheet: View {
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
                                     }
-                                    Spacer()
+                                    .accessibilityElement(children: .combine)
+                                    Spacer(minLength: 0)
                                     Button(copy("解除封禁", "Unban")) {
                                         Task {
                                             _ = await coordinator.unbanMember(

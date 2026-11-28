@@ -31,6 +31,18 @@ enum DesignFixtureRegistry {
         case "rep3-activity-list": return AnyView(HomeActivityListFixture(failing: false))
         case "rep3-activity-list-failed": return AnyView(HomeActivityListFixture(failing: true))
         case "rep3-activity-list-empty": return AnyView(ActivityListEmptyFixture())
+        case "t5-official-inbox": return AnyView(OfficialInboxDesignFixture(mode: .content))
+        case "t5-official-inbox-empty": return AnyView(OfficialInboxDesignFixture(mode: .empty))
+        case "t5-official-inbox-error": return AnyView(OfficialInboxDesignFixture(mode: .failure))
+        case "t5-official-inbox-signed-out": return AnyView(OfficialInboxDesignFixture(mode: .signedOut))
+        case "t5-official-mine": return AnyView(OfficialPublishedDesignFixture(mode: .content))
+        case "t5-official-mine-empty": return AnyView(OfficialPublishedDesignFixture(mode: .empty))
+        case "t5-official-mine-error": return AnyView(OfficialPublishedDesignFixture(mode: .failure))
+        case "t5-official-mine-signed-out": return AnyView(OfficialPublishedDesignFixture(mode: .signedOut))
+        case "t5-official-organizer": return AnyView(OfficialOrganizerDesignFixture(mode: .draft))
+        case "t5-official-organizer-blocked": return AnyView(OfficialOrganizerDesignFixture(mode: .blocked))
+        case "t5-official-organizer-paused": return AnyView(OfficialOrganizerDesignFixture(mode: .paused))
+        case "t5-official-organizer-error": return AnyView(OfficialOrganizerDesignFixture(mode: .failure))
         case "d2-search": return AnyView(D2Fixture(screen: .search))
         case "d2-search-results": return AnyView(D2Fixture(screen: .searchResults))
         case "d2-search-empty": return AnyView(D2Fixture(screen: .searchEmpty))
@@ -39,6 +51,11 @@ enum DesignFixtureRegistry {
         case "d2-square": return AnyView(D2Fixture(screen: .square))
         case "d2-square-empty": return AnyView(D2Fixture(screen: .squareEmpty))
         case "d2-square-failed": return AnyView(D2Fixture(screen: .squareFailed))
+        case "d2-square-detail": return AnyView(SquareDetailDesignFixtureHost(scenario: .content))
+        case "d2-square-detail-no-comments": return AnyView(SquareDetailDesignFixtureHost(scenario: .empty))
+        case "d2-square-detail-comments-failed": return AnyView(SquareDetailDesignFixtureHost(scenario: .partial))
+        case "d2-square-detail-unavailable": return AnyView(SquareDetailDesignFixtureHost(scenario: .unavailable))
+        case "d2-square-detail-failed": return AnyView(SquareDetailDesignFixtureHost(scenario: .failure))
         case "d2-play": return AnyView(D2Fixture(screen: .play))
         case "d2-city": return AnyView(D2Fixture(screen: .city))
         case "d2-npc": return AnyView(D2Fixture(screen: .npc))
@@ -509,6 +526,9 @@ enum T5PageFixtures {
         case "t5-team-detail": return wrapPlayer(TeamDetailDesignFixtureHost(mode: .leader))
         case "t5-team-invite": return wrapPlayer(TeamDetailDesignFixtureHost(mode: .invitation))
         case "t5-team-detail-error": return wrapPlayer(TeamDetailDesignFixtureHost(mode: .failure))
+        case "t5-team-join": return wrapPlayer(TeamJoinDesignFixtureHost(mode: .blank))
+        case "t5-team-join-invalid": return wrapPlayer(TeamJoinDesignFixtureHost(mode: .invalid))
+        case "t5-team-join-network": return wrapPlayer(TeamJoinDesignFixtureHost(mode: .network))
         case "t5-pricing": return wrapMerchant(T5PublisherPricingFixtureHost(failed: false))
         case "t5-pricing-error": return wrapMerchant(T5PublisherPricingFixtureHost(failed: true))
         case "t5-partner": return wrapMerchant(T5PublisherPartnerFixtureHost(failed: false))
@@ -566,10 +586,26 @@ enum T5PageFixtures {
                     pointsDestination: { AnyView(WalletLedgerPointsFixturePage()) }
                 )
             })
-        case "t5-pass-market-error":
+        case "t5-pass-market-empty", "t5-pass-market-orders-empty", "t5-pass-market-loading":
+            // State fixtures for the sweep: nothing on sale (暂无在售通行证), no orders, and the first load.
+            let emptyContent = PassMarketContent(products: [], orders: [], giftsBought: [], giftsReceived: [])
             return wrapPlayer(NavigationStack {
                 PassMarketView(
-                    state: PassMarketState(content: .failed("Offline load error"), pointBalance: nil, member: nil, refreshFailed: false),
+                    state: PassMarketState(content: name == "t5-pass-market-loading" ? .loading : .ready(emptyContent),
+                                           pointBalance: nil, member: nil, refreshFailed: false),
+                    initialTab: name == "t5-pass-market-orders-empty" ? .orders : .shop,
+                    onReload: { _ in },
+                    onOpenProduct: { _ in },
+                    onOpenMembership: {},
+                    onOpenLibrary: nil,
+                    pointsDestination: nil
+                )
+            })
+        case "t5-pass-market-error":
+            // nil message: the page shows the localized MP load-failed copy, never fixture English in zh-Hans.
+            return wrapPlayer(NavigationStack {
+                PassMarketView(
+                    state: PassMarketState(content: .failed(nil), pointBalance: nil, member: nil, refreshFailed: false),
                     initialTab: .shop,
                     onReload: { _ in },
                     onOpenProduct: { _ in },

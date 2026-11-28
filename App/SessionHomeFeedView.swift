@@ -23,6 +23,9 @@ import SwiftUI
     @State private var showsTemplates=false
     @State private var showsCreate=false
     @State private var showsSquare=false
+    /// Plan audit H-17: the 动态 entry shows only while the owner-bound community read gate is open
+    /// (`communityFeatures().read`, the same gate `SquareBrowserView` reads); closed / unread → no dead entry (P27).
+    @State private var squareCommunityOpen=false
     @State private var showsOfficialEvents=false
     @State private var showsProjectEditor=false
     @State private var showsClubApplication=false
@@ -38,7 +41,7 @@ import SwiftUI
     var body:some View {
         navigationRoot
         .id(session.homeFeedReader.scope)
-        .task(id:session.playerJourneyReader.scope) { await reloadContinuationCards() }
+        // Plan audit H-02a: no 继续探索 read on 首页 — the MP wxml renders no continuation card (#29) and HomeFeedView draws none.
         .task(id:session.ticketWalletReader.scope) { await reloadTodayTicket() }
         .task(id:session.homeFeedReader.scope) { await cityConsent.refresh(session) }
         .task(id:session.sessionRevision) { await cityConsent.refresh(session) }
@@ -91,11 +94,18 @@ import SwiftUI
             .cyPlayerSheetGlass()
         }
     }
+    /// Plan audit H-17: one gate read per reader scope; any failure keeps the entry hidden.
+    private func loadSquareCommunityGate() async {
+        let features: SquareCommunityFeatures? = try? await session.squareReader.communityFeatures()
+        squareCommunityOpen = features?.read == true
+    }
     /// verify-r1 2.5: the former header ⋯ items, shown in the 更多玩法 menu under the greeting.
     private var homeMoreMenuContent: AnyView {
         AnyView(Group {
-            Button("square.title",systemImage:"square.grid.2x2") { showsSquare=true }
-                .accessibilityIdentifier("homeFeed.openSquare")
+            if squareCommunityOpen {
+                Button("square.title",systemImage:"square.grid.2x2") { showsSquare=true }
+                    .accessibilityIdentifier("homeFeed.openSquare")
+            }
             Button("official.title",systemImage:"sparkles") { showsOfficialEvents=true }
                 .accessibilityIdentifier("homeFeed.openOfficialEvents")
             // Templates stay reachable for guests: browse-only, so the capability is the discovery read (`isConfigured`).
@@ -179,6 +189,7 @@ import SwiftUI
                     }
                 }
                 .environment(\.homeMoreMenuContent, homeMoreMenuContent)
+                .task(id: session.squareReader.scope) { await loadSquareCommunityGate() }
                 .navigationDestination(for:AppRoute.self) { route in
                     Group {
                         switch route.homeFeedDestination {
@@ -238,8 +249,6 @@ import SwiftUI
                 }
         }
         .onChange(of: presentation?.homeLanding, initial: true) { _, _ in openHomeLanding() }
-        .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
-        .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
         .cySheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).cySheet(detents: [.large]) }
     }
     @ViewBuilder private func continuationDestination(_ scope: PlaySessionScope) -> some View {
@@ -415,11 +424,17 @@ import SwiftUI
     }
 }
 
-/// City centres for the 首页 city menu (`HomeCitySwitchState.defaultSupportedCities`). WGS-84, city-hall level.
+/// City centres for every `HomeHeroCityNames.manualOptions` city. WGS-84, city-hall level.
+/// A fix at a city's own centre maps back to that city. The coordinate is never sent.
 enum HomeCityCentre {
     private static let table: [String: (Double, Double)] = [
         "上海": (31.2304, 121.4737), "北京": (39.9042, 116.4074), "杭州": (30.2741, 120.1551),
         "成都": (30.5728, 104.0668), "深圳": (22.5431, 114.0579), "广州": (23.1291, 113.2644),
+        "重庆": (29.5630, 106.5516), "武汉": (30.5928, 114.3055), "西安": (34.3416, 108.9398),
+        "南京": (32.0603, 118.7969), "苏州": (31.2989, 120.5853), "天津": (39.3434, 117.3616),
+        "长沙": (28.2282, 112.9388), "郑州": (34.7466, 113.6254), "青岛": (36.0671, 120.3826),
+        "厦门": (24.4798, 118.0894), "昆明": (25.0389, 102.7183), "沈阳": (41.8057, 123.4315),
+        "济南": (36.6512, 117.1201), "合肥": (31.8206, 117.2272),
     ]
     static func coordinate(for city: String) -> RoamCoordinate? {
         let key = city.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "市", with: "")

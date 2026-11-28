@@ -479,6 +479,57 @@ Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: the HEAD h
 | ADA `d2-search` "Filters sits alone in a full card" (MP `search2/index.wxml`: 筛选 sits beside the field) → `App/GlobalSearchView.swift` first section | A trailing toolbar 筛选 button would match the MP row better, but the view has no `.toolbar` today and if any host lacks a navigation container the toolbar would not show, leaving 筛选 with no entry point. | **Not done** — needs a simulator pass over every host (首页 push, search tab, map explorer) before moving it; the row stays (documented Mail/Files pattern). |
 | ADA `d2-search-results` "No more results / Search again footer card does not need to exist" | MP `search2/result/index.wxml:82-86` has 没有更多了 + 重新搜索 (ghost) at the end of the list. | Not changed — MP content (OWNER RULE). |
 
+## Round 3 continue (39) — planning audit H-05e+ (guest 俱乐部 search lane)
+
+Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: ours only kept `registration.result.viewTicket`, which no Swift file uses any more; took theirs). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (46/46; `tools/check_search_map.py` credential count 3 → 2 and `test_global_search_category_recovery` SearchMapService hash re-pinned, each with a one-line reason) · design consistency PASS. Sweep still build 0446d1c4f (covered in continue 36); no open coordinator item for mp-home. Every 首页-reachable MP page has a row, so this run took the mp-home rows of the planning audit (`audit/1128-plan` home domain): H-01c+ (我的地盘 rail) stays kept by owner request (row 7 above); H-02a 继续探索 card is not rendered in the MP wxml either (#29), so no section is added (OWNER RULE). Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `pages/search2/result` ← `utils/discover-search.js:221` (sends `/api/club/list` for every viewer; BE `ApiClubController` `club/list` is `@Anonymous`, guest projection) → `Core/SearchMapService.swift` `clubRows`, `App/GlobalSearchLinksAndTemplates.swift` `clubRows` | Plan audit H-05e+: both search aggregates threw `.unauthorized` for guests before sending, so a guest saw no 俱乐部 results and a 登录后查看 gate the MP does not have. The Release transport already admits guest `api/club/list` (`AppCompositionRoot` public `reads`, `isPublicTemplateViewer`). | **Fixed** — the guest guard is removed in both; the request shape (JSON `name` / `categoryId`) is unchanged and sends no `Authorization` for guests. A real 401 on any lane still gates that lane only. Tests updated: `SearchMapTests.testGuestSearchesAllFourPublicSourcesLikeTheMP`, `GlobalSearchRetainedResultsTests` (guest 401 gates only 商家; guest 503 still reads clubs), the search design fixture (guests get club rows, no gate) and `SearchMapFlowTests.testGuestSeesClubResultsLikeTheMPWithoutAGate`. |
+| H-04b guest `/api/city/nodes` (map search POIs) → `SearchMapService.cityNodes` / `cityNode` | BE permits guest GET with a guest projection; the app refuses before sending. | **Not done** — the Release map transport (`ManualMapReadApproval` / `manualMap` read) is bound to a signed-in selected area; opening it for guests needs a Release-composition test and a simulator pass. |
+
+## Round 3 continue (40) — planning audit H-02b (P21: back into the running game)
+
+Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: kept every key of both sides, ours in our order). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (46/46) · design consistency PASS. Sweep still build 0446d1c4f (covered in continue 36); no open coordinator item for mp-home; the Not done rows above all need a simulator/device or the P2-3d decision; every 首页-reachable MP page has a row (re-listed this run: `pages/index/index.js` targets, `home-action-banner.js` routes, topic / activity-detail / search2 targets → other lanes' pages). So this run took the remaining mp-home rows of the planning audit, H-02b and H-17 (lane area: "P21 mini bar for running sessions"). Level B (Crafted) HUD, system components only.
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| P21 mini bar (app-only pattern; the MP has no cross-tab run bar) → `App/ActiveSessionMiniBar.swift` `ActiveSessionPlayHUD`, `App/QuestLiveActivityCenter.swift`, `App/QuestifyApp.swift` | Plan audit H-02b: expanding a **play** run from the bar opened a summary HUD (clock, 下一站, pause/resume) with no way back into the game screen; only roam expanded into its live screen. | **Fixed** — while the run's coordinator is alive (`QuestLiveActivityCenter.playScope(forKey:)`, the `play:<scope>` key the Live Activity already uses), the HUD's primary is a `.borderedProminent` 回到游戏 / Back to the game `NavigationLink` (`gamecontroller.fill`, id `activeSession.hud.openGame`, hint key) that pushes the same `SessionPlayRuntimeView(.journey(scope))` the topic / activity entries push, inside the expanded cover; pause / resume drops to a full-width `.bordered` secondary (one primary, P3). The game host marker then hides the bar as before. No coordinator → HUD unchanged (pause / resume stays the primary). Strings en + zh-Hans in the catalog and `docs/port/strings/mp-home-r3.json`. |
+| 首页 更多玩法 menu → 动态 (`App/SessionHomeFeedView.swift` `homeMoreMenuContent`; the MP `pages/index/index.wxml` has no square entry, `pages/square` is a subpackage reached from posts) | Plan audit H-17: the 动态 item pushed `SessionSquareBrowserView` even when the owner-bound community gate is closed, where it can only show 社区暂未开放 — a dead entry. | **Fixed** — the item shows only after `session.squareReader.communityFeatures().read == true` for the current reader scope (`.task(id: squareReader.scope)`, the same gate the square page reads); closed, unread or failed → no item (P27: render nothing while gated). Identifier `homeFeed.openSquare` kept once (`tools/tests/test_home_composition.py`). Removing the app-only entry outright stays a coordinator call (mp-activity owns `pages/square`). |
+
+## Round 3 continue (41) — planning audit H-02a (unused 继续探索 reads on 首页)
+
+Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (46/46) · design consistency PASS. Sweep still build 0446d1c4f (covered in continue 36); no open coordinator item for mp-home; the Not done rows above all need a simulator/device or the P2-3d decision. Level B (Crafted).
+
+| MP page → native | Difference | Result |
+|---|---|---|
+| `pages/index/index.wxml` (no 继续探索 card, #29 "wxml 未渲染") → `App/SessionHomeFeedView.swift` | Plan audit H-02a: 首页 still ran the signed-in `registration/my-joined` + paused-run reads on every load, on every journey-reader scope change and on every pop back to the root, although `HomeFeedView` draws no continuation card — two reads per home load for nothing. | **Fixed** — the `.task(id: playerJourneyReader.scope)` and the two `.onChange` reloads are removed; no MP section changes. The today-ticket wallet read stays: it feeds the widget (`QuestWidgetBoardPublisher.nextTicket`). The unreachable continuation plumbing is left in place for a later Swift-compiler cleanup. |
+
+## Round 3 continue (42) — coordinator sweep 11-28 15:50 (build c4e43841a, `sheet-en.jpg`)
+
+Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (46/46) · design consistency PASS. Level B (Crafted).
+
+| MP page → native | Difference | Result |
+|---|---|---|
+| `pages/index/index` cy-empty `offline` → `App/HomeFeedView.swift` `feedDownState` (`en-d2-home-offline.jpg`) | Retry was a small tinted `.bordered` pill; it is the page's one action. | **Fixed** — `.borderedProminent`, `.controlSize(.regular)`; id `homeFeed.retry.feed` kept. |
+| `pages/index/index.wxml:22-31` `v3-hero-action` (poster + `v3-hero-copy` title **inside** the slide; `home-action-banner.js` "横幅标题就是动作") → `App/HomeSearchTabParityViews.swift` `HomeActionBannerSlide`, `Core/HomeSearchTabParity.swift` `ActionBanner.actionTitle(locale:)` (`en-d2-home.jpg`) | The title sat under the black card like a stray caption; no action inside the hero (P34). | **Fixed** — the card now holds the poster (16:10 stage) and, on the stage's black under the art (no scrim), the white headline title + one white capsule action (去报名 / Browse, 去申请 / Apply, 去玩 / Play, 查看 / Open, `arrow.right`). `ViewThatFits` stacks title over action at large Dynamic Type. The whole card stays one button (MP slide tap); the capsule is its label (hidden from VoiceOver, the label stays the title); ids unchanged. |
+
+## Round 3 continue (43) — Next round item 2 (motion and feedback): topic 收藏
+
+Merged `origin/ui/combined-r7` (clean). No K50 `lane-layout` rows exist yet for mp-home (`docs/release/receipts/cursor-k50-p*.md` not present). Sweep still build c4e43841a (15:50 items closed in continue 42). Level B (Crafted).
+
+| MP page → native | Difference | Status |
+|---|---|---|
+| `pages/topic/index.js` `toggleFav` (optimistic flip, `api/topic/like`, toast on failure) → `App/TopicDetailView.swift` `toggleFavorite`, new `TopicFavoriteHaptics` | The 收藏 toggle (a primary action on a 首页-reachable page) gave no haptic; only the toast. | **Fixed** — `.success` once the like write is sent, `.warning` when it rolls back (rejected / network); the seed read-back plays nothing. Typed `ViewModifier` on two counters (no untyped closures, 03:50 / 04:20 rules); MP behaviour and copy unchanged. |
+
+## Round 3 continue (44) — P41 search no-results
+
+Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (46/46; `test_global_search_category_recovery` hash re-pinned with a one-line reason) · design consistency PASS. No K50 `lane-layout` rows for mp-home yet (`cursor-k50-p*.md` not present). Sweep still build c4e43841a (15:50 items closed in continue 42). Level B (Crafted).
+
+| MP page → native | Difference | Status |
+|---|---|---|
+| `pages/search2/result/index.wxml:24` `cy-empty` 没有找到 (`sub=""`) → `App/GlobalSearchView.swift` results empty state, new `GlobalSearchEmptyDescription` (`d2-search-empty`) | P41: the no-results state was a lone magnifier + 没有找到 + 刷新 (Instacart's dead end); it did not say what was searched or what to try. | **Fixed** — MP title 没有找到 / Nothing found and the 刷新 action kept; the description now quotes the query (新 key `globalSearch.emptyQuery %@`: 没有找到与“…”相关的结果。 / No results for “…”.) and gives one tip (existing `searchMap.emptyHint`, en + zh-Hans). A category-only search (no keyword) shows the tip alone. One combined VoiceOver element, id `globalSearch.emptyDescription`. No section added or moved (the entry page's chips stay on the entry page). |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -527,7 +578,17 @@ Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: the HEAD h
 - Needs a simulator pass (continue 35): `rep3-activity-detail` 「N 人已报名」 avatar wrap (en + zh-Hans, AX5: avatars grow, still wrap) and the en "When · …" hero line; UI test `testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack`.
 - Needs a simulator pass (continue 37): `rep3-activity-detail` map snippet under 集合点 (en + zh-Hans, light/dark, AX5: height scales, capped 220 pt); tap opens Maps.
 - Needs a simulator pass (continue 38): `d2-search-results` per-kind second lines and the scope chips running to the screen edge (zh: 商家 chip partly visible past the inset), en + zh-Hans.
+- Needs a simulator pass (continue 39): guest `d2-search-results` shows the 俱乐部 lane and no sign-in gate (en + zh-Hans); `SearchMapFlowTests` guest tests.
+- Plan audit H-04b (continue 39): guest city nodes on the map search — needs a Release-composition test + simulator.
+- Needs a simulator pass (continue 40): start a city run, switch tab, tap the mini bar → 回到游戏 pushes the game (bar hidden), back returns to the HUD, 收起 closes; the run is not restarted (same coordinator); en + zh-Hans, AX5.
+- Needs a simulator pass (continue 40): 首页 更多玩法 menu without 动态 while the community gate is closed, with it when open.
 - Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
+
+- Needs a simulator pass (continue 41): signed-in 首页 load and pop-to-root send no `registration/my-joined` read; the home widget still shows the next ticket.
+- Needs a simulator pass (continue 42): `d2-home` hero card with title + action inside (en + zh-Hans, AX5 stacks); `d2-home-offline` prominent Retry.
+
+- Needs a simulator pass (continue 44): `d2-search-empty` description quotes the query + tip in en + zh-Hans, AX5.
+- Needs a device pass (continue 43): topic 收藏 success haptic on save, warning on rollback, none on page open.
 
 ## For other lanes
 - mp-states: the 07:05 `d2-home-empty` next-step item is done on `mp/r3-home` (continue 30); `r3-roam-routes-empty` stays yours / mp-roam.

@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search for a place"
+            "value": "Search for place"
           }
         },
         "zh-Hans": {
@@ -427,7 +427,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Official event details"
+            "value": "Official event"
           }
         },
         "zh-Hans": {
@@ -667,7 +667,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the original recipients are restored. Deliveries with an unknown result or pending history are not resent."
+            "value": "Only the original recipients are restored. Deliveries with an unknown result or pending history aren't resent."
           }
         },
         "zh-Hans": {
@@ -827,7 +827,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You don't have withdrawal permission"
+            "value": "Don't have cash-out"
           }
         },
         "zh-Hans": {
@@ -843,7 +843,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't check withdrawal permission"
+            "value": "Couldn't check cash-out"
           }
         },
         "zh-Hans": {

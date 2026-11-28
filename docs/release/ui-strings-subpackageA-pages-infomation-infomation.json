@@ -2,38 +2,189 @@
   "page": "subpackageA/pages/infomation/infomation",
   "feature": "城瘾玩法指南列表",
   "strings": [
-    {"key": "social.guide.title", "en": "Play guide", "zh-Hans": "城瘾玩法", "accessibilityIdentifier": "social.guide"},
-    {"key": "guideXcx.heroLead", "en": "Three ways to play, ", "zh-Hans": "三种玩法，", "accessibilityIdentifier": "social.guide.hero"},
-    {"key": "guideXcx.heroEmphasis", "en": "ready when you are", "zh-Hans": "即开即玩", "accessibilityIdentifier": "social.guide.hero"},
-    {"key": "guideXcx.heroDetail", "en": "No rules to learn first. Pick a way to set out and the city will tell the rest.", "zh-Hans": "不用先学规则。挑一种出发方式，城市自己会讲下去。", "accessibilityIdentifier": "social.guide.hero"},
-    {"key": "social.guide.modes", "en": "Ways to explore", "zh-Hans": "探索方式"},
-    {"key": "social.guide.classic", "en": "City orienteering", "zh-Hans": "城市定向", "accessibilityIdentifier": "social.guide.classic"},
-    {"key": "social.guide.free", "en": "Free exploration", "zh-Hans": "自由探索", "accessibilityIdentifier": "social.guide.free"},
-    {"key": "social.guide.roam", "en": "Roaming", "zh-Hans": "漫游", "accessibilityIdentifier": "social.guide.roam"},
-    {"key": "guideXcx.classicTag", "en": "Group · In order", "zh-Hans": "组队 · 按顺序", "accessibilityIdentifier": "social.guide.classic"},
-    {"key": "guideXcx.freeTag", "en": "Anytime · On your own", "zh-Hans": "随时 · 自己走", "accessibilityIdentifier": "social.guide.free"},
-    {"key": "guideXcx.roamTag", "en": "No finish · Stroll", "zh-Hans": "无终点 · 散步", "accessibilityIdentifier": "social.guide.roam"},
-    {"key": "guideXcx.classicDetail", "en": "Check in stop by stop and set out together at the start time. Good for meetups and story routes.", "zh-Hans": "按顺序打卡通关，到点了大家一起出发。适合约人、适合有剧情的路线。", "accessibilityIdentifier": "social.guide.classic"},
-    {"key": "guideXcx.freeDetail", "en": "Every stop is open; start wherever you like. Get a pass and play any time without waiting for a full group.", "zh-Hans": "点位全开，想从哪个开始都行。买张通行证随时开玩，不用等人凑齐。", "accessibilityIdentifier": "social.guide.free"},
-    {"key": "guideXcx.roamDetail", "en": "Light up the city's fog as you walk, with no tasks and no finish line. A stroll on the way counts too.", "zh-Hans": "边走边点亮城市迷雾，没有任务也没有终点。顺路散个步也算数。", "accessibilityIdentifier": "social.guide.roam"},
-    {"key": "guideXcx.go", "en": "Take a look", "zh-Hans": "去看看", "accessibilityIdentifier": "social.guide.classic"},
-    {"key": "guideXcx.docs", "en": "Play docs", "zh-Hans": "玩法文档"},
-    {"key": "guideXcx.docsHint", "en": "Rules and play details", "zh-Hans": "规则与玩法细节"},
-    {"key": "guideXcx.docsEmpty", "en": "No play guides yet", "zh-Hans": "暂无玩法说明", "accessibilityIdentifier": "social.guide.docsEmpty"},
-    {"key": "guideXcx.docsEmptyDetail", "en": "They will appear here once published", "zh-Hans": "内容上线后会出现在这里", "accessibilityIdentifier": "social.guide.docsEmpty"},
-    {"key": "social.loading", "en": "Loading…", "zh-Hans": "正在加载…"},
-    {"key": "social.failed", "en": "Unable to load this information. Try again.", "zh-Hans": "暂时无法获取信息，请重试。", "accessibilityIdentifier": "social.issue"},
-    {"key": "social.notConfigured", "en": "This service is not configured.", "zh-Hans": "此服务尚未配置。", "accessibilityIdentifier": "social.issue"},
-    {"key": "social.offline", "en": "Example content. People, records and outcomes here aren't real.", "zh-Hans": "示例内容，人物、记录和结果均非真实。"},
-    {"key": "action.retry", "en": "Retry", "zh-Hans": "重试", "accessibilityIdentifier": "social.issue"},
-    {"key": "playGuide.list.count.unknown", "en": "—", "zh-Hans": "—", "accessibilityIdentifier": "social.guide.documentCount"},
-    {"key": "social.guideTemplates.title", "en": "Ready-made games", "zh-Hans": "现成玩法"},
-    {"key": "social.guideTemplates.unavailable", "en": "Game templates are unavailable in this context.", "zh-Hans": "当前暂时无法查看玩法模板。"},
-    {"key": "social.guideTemplates.empty", "en": "No games to show here yet.", "zh-Hans": "暂无可展示的玩法。", "accessibilityIdentifier": "social.guideTemplates.empty"},
-    {"key": "social.guideTemplates.failed", "en": "Game templates could not be loaded. Other guide sections are still available.", "zh-Hans": "玩法模板加载失败，仍可查看指南的其他内容。", "accessibilityIdentifier": "social.guideTemplates.failed"},
-    {"key": "social.guideTemplates.browse", "en": "Browse all templates", "zh-Hans": "浏览全部模板", "accessibilityIdentifier": "social.guideTemplates.browse"},
-    {"key": "social.guideTemplates.playedTimes %lld", "en": "Played %lld times", "zh-Hans": "已玩 %lld 次"},
-    {"key": "discovery.loading", "en": "Loading…", "zh-Hans": "正在加载…"}
+    {
+      "key": "social.guide.title",
+      "en": "Play guide",
+      "zh-Hans": "城瘾玩法",
+      "accessibilityIdentifier": "social.guide"
+    },
+    {
+      "key": "guideXcx.heroLead",
+      "en": "Three ways to play, ",
+      "zh-Hans": "三种玩法，",
+      "accessibilityIdentifier": "social.guide.hero"
+    },
+    {
+      "key": "guideXcx.heroEmphasis",
+      "en": "ready when you're",
+      "zh-Hans": "即开即玩",
+      "accessibilityIdentifier": "social.guide.hero"
+    },
+    {
+      "key": "guideXcx.heroDetail",
+      "en": "No rules to learn first. Pick a way to set out and the city will tell the rest.",
+      "zh-Hans": "不用先学规则。挑一种出发方式，城市自己会讲下去。",
+      "accessibilityIdentifier": "social.guide.hero"
+    },
+    {
+      "key": "social.guide.modes",
+      "en": "Ways to explore",
+      "zh-Hans": "探索方式"
+    },
+    {
+      "key": "social.guide.classic",
+      "en": "City orienteering",
+      "zh-Hans": "城市定向",
+      "accessibilityIdentifier": "social.guide.classic"
+    },
+    {
+      "key": "social.guide.free",
+      "en": "Free exploration",
+      "zh-Hans": "自由探索",
+      "accessibilityIdentifier": "social.guide.free"
+    },
+    {
+      "key": "social.guide.roam",
+      "en": "Roaming",
+      "zh-Hans": "漫游",
+      "accessibilityIdentifier": "social.guide.roam"
+    },
+    {
+      "key": "guideXcx.classicTag",
+      "en": "Group · In order",
+      "zh-Hans": "组队 · 按顺序",
+      "accessibilityIdentifier": "social.guide.classic"
+    },
+    {
+      "key": "guideXcx.freeTag",
+      "en": "Anytime · On your own",
+      "zh-Hans": "随时 · 自己走",
+      "accessibilityIdentifier": "social.guide.free"
+    },
+    {
+      "key": "guideXcx.roamTag",
+      "en": "No finish · Stroll",
+      "zh-Hans": "无终点 · 散步",
+      "accessibilityIdentifier": "social.guide.roam"
+    },
+    {
+      "key": "guideXcx.classicDetail",
+      "en": "Check in stop by stop and set out together at the start time. Good for meetups and story routes.",
+      "zh-Hans": "按顺序打卡通关，到点了大家一起出发。适合约人、适合有剧情的路线。",
+      "accessibilityIdentifier": "social.guide.classic"
+    },
+    {
+      "key": "guideXcx.freeDetail",
+      "en": "Every stop is open; start wherever you like. Get a pass and play any time without waiting for a full group.",
+      "zh-Hans": "点位全开，想从哪个开始都行。买张通行证随时开玩，不用等人凑齐。",
+      "accessibilityIdentifier": "social.guide.free"
+    },
+    {
+      "key": "guideXcx.roamDetail",
+      "en": "Light up the city's fog as you walk, with no tasks and no finish line. A stroll on the way counts too.",
+      "zh-Hans": "边走边点亮城市迷雾，没有任务也没有终点。顺路散个步也算数。",
+      "accessibilityIdentifier": "social.guide.roam"
+    },
+    {
+      "key": "guideXcx.go",
+      "en": "Take a look",
+      "zh-Hans": "去看看",
+      "accessibilityIdentifier": "social.guide.classic"
+    },
+    {
+      "key": "guideXcx.docs",
+      "en": "Play docs",
+      "zh-Hans": "玩法文档"
+    },
+    {
+      "key": "guideXcx.docsHint",
+      "en": "Rules and play details",
+      "zh-Hans": "规则与玩法细节"
+    },
+    {
+      "key": "guideXcx.docsEmpty",
+      "en": "No play guides yet",
+      "zh-Hans": "暂无玩法说明",
+      "accessibilityIdentifier": "social.guide.docsEmpty"
+    },
+    {
+      "key": "guideXcx.docsEmptyDetail",
+      "en": "They will appear here once published",
+      "zh-Hans": "内容上线后会出现在这里",
+      "accessibilityIdentifier": "social.guide.docsEmpty"
+    },
+    {
+      "key": "social.loading",
+      "en": "Loading…",
+      "zh-Hans": "正在加载…"
+    },
+    {
+      "key": "social.failed",
+      "en": "Unable to load this information. Try again.",
+      "zh-Hans": "暂时无法获取信息，请重试。",
+      "accessibilityIdentifier": "social.issue"
+    },
+    {
+      "key": "social.notConfigured",
+      "en": "This service is not configured.",
+      "zh-Hans": "此服务尚未配置。",
+      "accessibilityIdentifier": "social.issue"
+    },
+    {
+      "key": "social.offline",
+      "en": "Example content. People, records and outcomes here aren't real.",
+      "zh-Hans": "示例内容，人物、记录和结果均非真实。"
+    },
+    {
+      "key": "action.retry",
+      "en": "Retry",
+      "zh-Hans": "重试",
+      "accessibilityIdentifier": "social.issue"
+    },
+    {
+      "key": "playGuide.list.count.unknown",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "social.guide.documentCount"
+    },
+    {
+      "key": "social.guideTemplates.title",
+      "en": "Ready-made games",
+      "zh-Hans": "现成玩法"
+    },
+    {
+      "key": "social.guideTemplates.unavailable",
+      "en": "Game templates are unavailable in this context.",
+      "zh-Hans": "当前暂时无法查看玩法模板。"
+    },
+    {
+      "key": "social.guideTemplates.empty",
+      "en": "No games to show here yet.",
+      "zh-Hans": "暂无可展示的玩法。",
+      "accessibilityIdentifier": "social.guideTemplates.empty"
+    },
+    {
+      "key": "social.guideTemplates.failed",
+      "en": "Game templates could not be loaded. Other guide sections are still available.",
+      "zh-Hans": "玩法模板加载失败，仍可查看指南的其他内容。",
+      "accessibilityIdentifier": "social.guideTemplates.failed"
+    },
+    {
+      "key": "social.guideTemplates.browse",
+      "en": "Browse all templates",
+      "zh-Hans": "浏览全部模板",
+      "accessibilityIdentifier": "social.guideTemplates.browse"
+    },
+    {
+      "key": "social.guideTemplates.playedTimes %lld",
+      "en": "Played %lld times",
+      "zh-Hans": "已玩 %lld 次"
+    },
+    {
+      "key": "discovery.loading",
+      "en": "Loading…",
+      "zh-Hans": "正在加载…"
+    }
   ],
   "accessibilityIdentifiers": [
     "social.guide",

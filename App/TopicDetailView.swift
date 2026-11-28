@@ -43,6 +43,9 @@ struct TopicDetailView: View {
     @State private var favoriteHost: TopicFavoriteHost?
     @State private var favorited: Bool?
     @State private var favoriteBusy = false
+    /// mp-home r3 (continue 43): counts of sent / rolled-back 收藏 toggles; each change plays one haptic.
+    @State private var favoriteSentCount = 0
+    @State private var favoriteFailedCount = 0
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.popupCloseActions) private var popupCloseActions
@@ -127,7 +130,7 @@ struct TopicDetailView: View {
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false; showingPlay = false }
+        .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false; showingPlay = false; showsEditor = false }
         .navigationDestination(isPresented: $showingPlay) {
             if let playDestination { playDestination(id) }
         }
@@ -273,6 +276,7 @@ struct TopicDetailView: View {
             Text(verbatim: PlayCloseCopy.text("建单要用你的真实姓名和手机号，补一次就好，之后不用再填。", "Your real name and phone are needed to place this order. Save them once for future orders.", locale))
         }
         .cyToast(verbatimMessage: $topicToastMessage)
+        .modifier(TopicFavoriteHaptics(sent: favoriteSentCount, failed: favoriteFailedCount))
     }
     private func content(_ value: TopicDetail) -> some View {
         ScrollViewReader { proxy in
@@ -626,11 +630,12 @@ struct TopicDetailView: View {
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .cySheet(isPresented: $showsEditor) {
+        // mp-nav-b r3: MP 编辑 is navigateTo pages/publish/fabu/index (a page): push with system back, the same
+        // editor the template detail 用这个模板 already pushes; the editor autosaves, so popping keeps the draft.
+        .navigationDestination(isPresented: $showsEditor) {
             if let editorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {
-                NavigationStack { editorDestination(value.id, scope) }
-                    .cyPlayerSheetGlass()
-                    .cyDomainSheet(detents: [.full])
+                editorDestination(value.id, scope)
+                    .cyPushedChrome()
             }
         }
         // mp-nav r3: MP 定价 is navigateTo pages/topic/pricing/index (a page): push; its confirm pops back (MP index.js:451).
@@ -700,12 +705,15 @@ struct TopicDetailView: View {
             favoriteBusy = false
             switch state {
             case .awaitingReadback?, .confirmed?, .sending?:
+                favoriteSentCount += 1
                 topicToastMessage = next ? PlayCloseCopy.text("已收藏", "Saved", locale) : PlayCloseCopy.text("已取消收藏", "Removed from saved", locale)
             case .rejected(_, let message)?:
                 favorited = !next
+                favoriteFailedCount += 1
                 topicToastMessage = message ?? PlayCloseCopy.text("收藏没有保存，请重试", "Not saved. Try again", locale)
             default:
                 favorited = !next
+                favoriteFailedCount += 1
                 topicToastMessage = PlayCloseCopy.text("网络异常，收藏没有保存", "Network error. Not saved", locale)
                 // An uncertain write is resolved by reading back, never by resending.
                 _ = try? await host.controller.performReadback(topicID: topicID, using: host.readLiked)
@@ -908,5 +916,17 @@ struct TopicChapterView: View {
         case .notConfigured, .unauthorized:
             TopicIssueView(issue: issue, retry: retry)
         }
+    }
+}
+
+/// 收藏 toggle feedback, split out of the topic body so it type-checks in time (coordinator 03:50 rule):
+/// success when the write was sent, warning when it rolled back. The seed read-back plays nothing.
+private struct TopicFavoriteHaptics: ViewModifier {
+    let sent: Int
+    let failed: Int
+    func body(content: Content) -> some View {
+        content
+            .cyHaptic(.success, trigger: sent)
+            .cyHaptic(.warning, trigger: failed)
     }
 }

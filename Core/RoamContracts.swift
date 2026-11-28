@@ -112,7 +112,10 @@ public struct RoamRouteNode: Decodable, Equatable, Identifiable {
     public let productType: Int?
     /// MP `n.picUrl` (pages/roam/index.js:1401): the shop photo; the photo pin only uses a real photo, never a placeholder.
     public let picUrl: String?
-    enum CodingKeys: String, CodingKey { case id, addressName, latitude, longitude, topicId, nodeId, address, distance, productType, picUrl }
+    /// MP `matchPlaces` ②③. NearbyNodeVO sends these; a missing or malformed value stays nil and is never invented on device.
+    public let namePinyin: String?
+    public let nameInitials: String?
+    enum CodingKeys: String, CodingKey { case id, addressName, latitude, longitude, topicId, nodeId, address, distance, productType, picUrl, namePinyin, nameInitials }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
@@ -123,6 +126,8 @@ public struct RoamRouteNode: Decodable, Equatable, Identifiable {
         address = try c.roamText(.address)
         distance = try c.decodeIfPresent(Double.self, forKey: .distance)
         picUrl = (try? c.roamText(.picUrl)) ?? nil
+        namePinyin = try? c.roamText(.namePinyin)
+        nameInitials = try? c.roamText(.nameInitials)
         if let value = try? c.decode(Int.self, forKey: .productType) {
             productType = value
         } else if let raw = try? c.decode(String.self, forKey: .productType), let value = Int(raw.trimmingCharacters(in: .whitespaces)) {

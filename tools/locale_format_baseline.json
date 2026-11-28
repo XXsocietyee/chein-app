@@ -51,6 +51,9 @@
     "App/NativeR2/Motion/MotionR2Metrics.swift": {
       "unit": 1
     },
+    "App/PlayDirectorIncidentForm.swift": {
+      "pattern": 1
+    },
     "App/PlaySharedPlanLifecycleView.swift": {
       "joinzh": 3
     },

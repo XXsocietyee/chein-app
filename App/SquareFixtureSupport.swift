@@ -53,7 +53,7 @@ import SwiftUI
             ("\"createTime\":\"2026-01-01 10:00\"", "\"createTime\":\"\(createdMillis)\",\"memberAvatar\":\"\(SquareAuthorAvatar.fixtureMemojiPrefix)\(design.memoji)\""),
             ("\"memberId\":81", "\"memberId\":\(80 + design.memoji)"),
             ("\"likeNum\":12", "\"likeNum\":\(design.likes)"),
-            ("\"commentCount\":3", "\"commentCount\":\(design.comments)")
+            ("\"commentCount\":3", "\"commentCount\":\(scenario == .empty ? 0 : design.comments)")
         ]
         var json = SquareSyntheticFixtures.legacyPostJSON.replacingOccurrences(of: "\"id\":701", with: "\"id\":\(id)")
         for swap in swaps { json = json.replacingOccurrences(of: swap.0, with: swap.1) }
@@ -91,7 +91,11 @@ import SwiftUI
     }
     func squareDetail(id: Int) async throws -> SquarePost {
         try await check()
-        if scenario == .unavailable { throw SquareReadFailure.server(code: 404, message: "Synthetic unavailable post / 示例内容不可用") }
+        if scenario == .unavailable {
+            // Design fixtures show the MP 这条帖文暂不可用 shell in the UI language, never the synthetic server text.
+            if designLocalized { throw SquareReadFailure.unavailable }
+            throw SquareReadFailure.server(code: 404, message: "Synthetic unavailable post / 示例内容不可用")
+        }
         if scenario == .relatedCommunity {
             let post = try relatedCommunityPost()
             guard post.id == id else { throw SquareReadFailure.unavailable }
@@ -102,6 +106,22 @@ import SwiftUI
         }
         return try post(id: id)
     }
+    /// `d2-square-detail`: a root comment, a reply to it and a second root, in the UI language with recent times.
+    private static func designComments() throws -> [SquareComment] {
+        let now = Date().timeIntervalSince1970
+        func millis(_ minutesAgo: Int) -> String { String(Int64((now - Double(minutesAgo * 60)) * 1000)) }
+        let rows: [[String: Any]] = [
+            ["id": 801, "memberId": 82, "memberAvatar": SquareAuthorAvatar.fixtureMemojiPrefix + "2", "contents": tt("Which teahouse was it? Saving this route for Saturday.", "最后一站是哪家茶馆？周六也想走这条线。"),
+             "memberNickname": tt("Mia", "小米"), "likeCount": 4, "createTime": millis(18)],
+            ["id": 802, "memberId": 81, "memberAvatar": SquareAuthorAvatar.fixtureMemojiPrefix + "1", "contents": tt("The one by the old bridge, ask for the osmanthus tea.", "老桥边那家，点桂花茶。"),
+             "memberNickname": tt("Leo Chen", "陈乐"), "likeCount": 1, "createTime": millis(12),
+             "rootId": 801, "parentId": 801, "repliedToMemberId": 82],
+            ["id": 803, "memberId": 83, "memberAvatar": SquareAuthorAvatar.fixtureMemojiPrefix + "3", "contents": tt("Great photos. Did the lanes get crowded later?", "照片很好看！后面巷子人多吗？"),
+             "memberNickname": tt("Nina Zhou", "周宁"), "likeCount": 0, "createTime": millis(6)]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: rows)
+        return try JSONDecoder().decode([SquareComment].self, from: data).map { $0.qualified(as: .legacySquare) }
+    }
     private func relatedCommunityPost() throws -> SquarePost {
         try JSONDecoder().decode(SquarePost.self, from: Data(SquareSyntheticFixtures.wrappedPostJSON.utf8)).qualified(as: .communityV1)
     }
@@ -109,7 +129,7 @@ import SwiftUI
         try await check()
         if scenario == .partial && !commentsFailed { commentsFailed = true; throw APIError.httpStatus(503) }
         if scenario == .empty { return .init(items: [], pageNumber: pageNumber) }
-        let all = try SquareSyntheticFixtures.comments()
+        let all = try designLocalized ? Self.designComments() : SquareSyntheticFixtures.comments()
         // Small pages are fixture-only; the real reader always sends the source pageSize 50.
         return .init(items: pageNumber == 1 ? Array(all.prefix(2)) : [all[1], all[2]], pageNumber: pageNumber, pageSize: pageNumber == 1 ? 2 : 50)
     }

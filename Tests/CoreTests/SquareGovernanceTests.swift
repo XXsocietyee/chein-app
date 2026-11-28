@@ -128,6 +128,38 @@ import FoundationNetworking
         XCTAssertNil(snapshot.enforcements[0].appealStatus)
         do { _ = try await coordinator.confirm(review, access: access); XCTFail() } catch { XCTAssertEqual(error as? SquareGovernanceFailure, .outcomeLocked) }
     }
+    func testDispatchedReadsTheJournalForThePendingAppealRow() async throws {
+        let (coordinator, access, _) = fixture(); let snapshot = try await coordinator.load(access: access)
+        XCTAssertFalse(coordinator.dispatched(.appeal(enforcementID: 91, reason: ""), snapshot: snapshot))
+        let review = try coordinator.prepare(.appeal(enforcementID: 91, reason: "facts"), snapshot: snapshot, access: access)
+        _ = try await coordinator.confirm(review, access: access)
+        XCTAssertTrue(coordinator.dispatched(.appeal(enforcementID: 91, reason: ""), snapshot: snapshot))
+        XCTAssertFalse(coordinator.dispatched(.appeal(enforcementID: 92, reason: ""), snapshot: snapshot))
+    }
+    func testDefiniteAppealRefusalReleasesTheRowLikeTheMP() async throws {
+        let (coordinator, access, transport) = fixture(); let snapshot = try await coordinator.load(access: access)
+        transport.mutationReply = (code: 400, status: 400)
+        let review = try coordinator.prepare(.appeal(enforcementID: 91, reason: "facts"), snapshot: snapshot, access: access)
+        do { _ = try await coordinator.confirm(review, access: access); XCTFail() } catch { XCTAssertEqual(error as? SquareGovernanceFailure, .appealRefused(message: nil)) }
+        XCTAssertFalse(coordinator.dispatched(.appeal(enforcementID: 91, reason: ""), snapshot: snapshot))
+        transport.mutationReply = nil
+        let again = try coordinator.prepare(.appeal(enforcementID: 91, reason: "facts"), snapshot: snapshot, access: access)
+        _ = try await coordinator.confirm(again, access: access)
+        XCTAssertTrue(coordinator.dispatched(.appeal(enforcementID: 91, reason: ""), snapshot: snapshot))
+    }
+    func testAppealConflictAndServerErrorStayLocked() async throws {
+        for reply in [(code: 409, status: 200), (code: 409, status: 409), (code: 500, status: 500), (code: 408, status: 408)] {
+            let (coordinator, access, transport) = fixture(); let snapshot = try await coordinator.load(access: access)
+            transport.mutationReply = reply
+            let review = try coordinator.prepare(.appeal(enforcementID: 91, reason: "facts"), snapshot: snapshot, access: access)
+            do { _ = try await coordinator.confirm(review, access: access); XCTFail() } catch { }
+            XCTAssertTrue(coordinator.dispatched(.appeal(enforcementID: 91, reason: ""), snapshot: snapshot))
+        }
+        XCTAssertEqual(SquareGovernanceService.appealOutcome(Data("{\"code\":409}".utf8), status: 200), .alreadyExists)
+        XCTAssertEqual(SquareGovernanceService.appealOutcome(Data("{\"code\":422}".utf8), status: 200), .rejected)
+        XCTAssertEqual(SquareGovernanceService.appealOutcome(Data("{}".utf8), status: 403), .rejected)
+        XCTAssertEqual(SquareGovernanceService.appealOutcome(Data("{\"code\":200}".utf8), status: 200), .other)
+    }
     func testAmbiguousFailureLocksTargetAcrossNewReview() async throws {
         let (coordinator, access, transport) = fixture(); let snapshot = try await coordinator.load(access: access)
         transport.mutationFailure = .unknown

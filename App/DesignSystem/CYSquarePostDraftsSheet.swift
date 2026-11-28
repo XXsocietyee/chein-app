@@ -24,6 +24,7 @@ struct CYSquarePostDraftsSheet: View {
     @State private var undoID: String?
     @State private var undoTask: Task<Void, Never>?
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     private static let undoSeconds: UInt64 = 4
 
     private var visible: [CYSquarePostDraftRow] { drafts.filter { $0.id != undoID } }
@@ -88,17 +89,25 @@ struct CYSquarePostDraftsSheet: View {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     SquareAuthorAvatar(source: row.avatar, size: 40)
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        HStack(alignment: .firstTextBaseline) {
-                            if let name = row.nickname, !name.isEmpty { Text(verbatim: name) } else { Text("drafts.me", tableName: "SocialParity") }
-                            Spacer(minLength: CYSpacing.sm)
-                            Text(row.updatedAt, format: .dateTime.month().day().hour().minute())
-                                .cyText(.caption, monospacedDigit: true).foregroundStyle(CYColor.textTertiary)
-                        }
+                        Group { if typeSize.isAccessibilitySize {
+                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                                draftName(row).lineLimit(2)
+                                draftDate(row)
+                            }
+                        } else {
+                            HStack(alignment: .firstTextBaseline) {
+                                draftName(row)
+                                Spacer(minLength: CYSpacing.sm)
+                                draftDate(row)
+                            }
+                        } }
                         .cyText(.label, weight: .semibold).foregroundStyle(CYColor.textPrimary)
                         Group {
                             if let summary = row.summary, !summary.isEmpty { Text(verbatim: summary) } else { Text("drafts.untitled", tableName: "SocialParity") }
                         }
-                        .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).lineLimit(2)
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .lineLimit(typeSize.isAccessibilitySize ? 4 : 2)
+                        .fixedSize(horizontal: false, vertical: typeSize.isAccessibilitySize)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
@@ -142,6 +151,15 @@ struct CYSquarePostDraftsSheet: View {
         .background(Capsule().fill(CYColor.sheetCard).overlay(Capsule().strokeBorder(CYColor.borderSubtle, lineWidth: 1)))
         .padding(CYSpacing.lg)
         .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+    }
+
+    @ViewBuilder private func draftName(_ row: CYSquarePostDraftRow) -> some View {
+        if let name = row.nickname, !name.isEmpty { Text(verbatim: name) } else { Text("drafts.me", tableName: "SocialParity") }
+    }
+
+    private func draftDate(_ row: CYSquarePostDraftRow) -> some View {
+        Text(row.updatedAt, format: .dateTime.month().day().hour().minute())
+            .cyText(.caption, monospacedDigit: true).foregroundStyle(CYColor.textTertiary)
     }
 
     private func startUndo(_ id: String) {

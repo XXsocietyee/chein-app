@@ -29,6 +29,8 @@ private func monopolyDecode<T: Decodable>(_ type: T.Type, _ json: Any) throws ->
         var quoteValue: CityTerritoryQuote?
         var commandResult: CityTerritoryCommandResult?
         var commandError: Error?
+        var scoutBalance: Int64?
+        var shieldBalance: Int64?
         var revenueValue: CityRevenuePage?
         var attributeResponses: [MemberAttributesResponse] = []
         var commands: [CityTerritoryCommandRequest] = []
@@ -51,10 +53,14 @@ private func monopolyDecode<T: Decodable>(_ type: T.Type, _ json: Any) throws ->
         func challengeQuote(_ payload: CityTerritoryQuoteRequest) async throws -> CityTerritoryQuote { try quote() }
         func challenge(_ payload: CityTerritoryCommandRequest) async throws -> CityTerritoryCommandResult { try command(payload) }
         func scout(_ payload: CityPropertyActionRequest) async throws -> CityScoutResult {
-            try monopolyDecode(CityScoutResult.self, ["propertyId": payload.propertyId, "dc": 14, "cost": 10])
+            var json: [String: Any] = ["propertyId": payload.propertyId, "dc": 14, "cost": 10]
+            if let scoutBalance { json["balance"] = scoutBalance }
+            return try monopolyDecode(CityScoutResult.self, json)
         }
         func shield(_ payload: CityPropertyActionRequest) async throws -> CityShieldResult {
-            try monopolyDecode(CityShieldResult.self, ["propertyId": payload.propertyId, "cost": 60])
+            var json: [String: Any] = ["propertyId": payload.propertyId, "cost": 60]
+            if let shieldBalance { json["balance"] = shieldBalance }
+            return try monopolyDecode(CityShieldResult.self, json)
         }
         func revenue(cursor: String?, day: String?) async throws -> CityRevenuePage {
             guard let revenueValue else { throw RoamTerritoryError.malformed }
@@ -432,6 +438,7 @@ private func monopolyDecode<T: Decodable>(_ type: T.Type, _ json: Any) throws ->
         let fixes = try [0.0, 30, 60].map { try fix(lat: 31.2, lng: 121.4, accuracy: 10, at: $0) }
         let result = await model.confirm(fixes: fixes)
         XCTAssertEqual(result?.kind, .applied)
+        XCTAssertEqual(model.pointsBalance, 440, "command balance stands when GET /territory/points 404s and the wallet source is still 500")
         XCTAssertEqual(model.haptic?.event, .upgraded)
         XCTAssertNil(model.pendingQuote)
         XCTAssertEqual(fake.commands.first?.expectedVersion, 4)
@@ -440,6 +447,14 @@ private func monopolyDecode<T: Decodable>(_ type: T.Type, _ json: Any) throws ->
         balance = 440
         await model.reload()
         XCTAssertEqual(model.pointsBalance, 440)
+
+        fake.scoutBalance = 430
+        await model.scout(propertyId: "p2")
+        XCTAssertEqual(model.pointsBalance, 430, "scout balance stands when the points read 404s")
+        fake.shieldBalance = 370
+        await model.shield(propertyId: "p1")
+        XCTAssertEqual(model.pointsBalance, 370, "shield balance stands when the points read 404s and the wallet source is still 440")
+        XCTAssertEqual(balance, 440)
     }
 
     func testTerritoryModelChallengeLossPropertyLossDistrictAndRevenue() async throws {
@@ -471,6 +486,7 @@ private func monopolyDecode<T: Decodable>(_ type: T.Type, _ json: Any) throws ->
 
         await model.scout(propertyId: "p2")
         XCTAssertEqual(model.scoutedDC["p2"], 14)
+        XCTAssertNil(model.pointsBalance, "a scout reply with no balance does not invent one")
         XCTAssertEqual(CityMonopolyTerritoryModel.hapticEvent(for: .claim, result: try monopolyDecode(CityTerritoryCommandResult.self, ["outcome": "APPLIED"])), .claimSucceeded)
         XCTAssertEqual(CityMonopolyTerritoryModel.hapticEvent(for: .claim, result: try monopolyDecode(CityTerritoryCommandResult.self, ["outcome": "REJECTED"])), .presenceCheckFailed)
     }

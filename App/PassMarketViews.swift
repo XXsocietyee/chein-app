@@ -840,11 +840,22 @@ struct PassUnlockStepsView: View {
     let face: String
     let onDone: () -> Void
     @State private var index = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var isLast: Bool { index >= steps.count - 1 }
 
     var body: some View {
         let step = steps[min(index, steps.count - 1)]
-        ZStack {
+        ZStack(alignment: .topTrailing) {
             Rectangle().fill(.background).ignoresSafeArea()
+            if !isLast {
+                // MP pu__skip: 跳过 on every step but the last; it ends the reveal like 完成.
+                Button("mp.reveal.skip") { onDone() }
+                    .buttonStyle(.borderless)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .accessibilityIdentifier("passDetail.unlock.skip")
+            }
             VStack(spacing: 24) {
                 PassTicketHero(face: face)
                 VStack(spacing: 8) {
@@ -854,12 +865,13 @@ struct PassUnlockStepsView: View {
                     ForEach(step.rows, id: \.self) { Text(verbatim: $0).font(.subheadline).foregroundStyle(.secondary) }
                 }
                 .id(step.id)
+                .transition(reduceMotion ? AnyTransition.opacity : AnyTransition.push(from: .trailing))
                 ProgressView(value: Double(min(index, steps.count - 1) + 1), total: Double(max(steps.count, 1)))
                     .frame(maxWidth: 160)
                     .accessibilityHidden(true)
                 Button {
-                    if index < steps.count - 1 {
-                        index += 1
+                    if !isLast {
+                        withAnimation(reduceMotion ? nil : .snappy) { index += 1 }
                     } else {
                         onDone()
                     }
@@ -871,6 +883,7 @@ struct PassUnlockStepsView: View {
                 .accessibilityIdentifier("passDetail.unlock.next")
             }
             .padding(32)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .cyHaptic(.success, trigger: index)
         .accessibilityIdentifier("passDetail.unlock")
@@ -1228,7 +1241,7 @@ private struct PassOrderRefusedWrites: View {
                                     .foregroundStyle(CYColor.dangerText)
                                     .accessibilityIdentifier("passOrder.refund.reasonMissing")
                             }
-                            Text(verbatim: "\(reason.count)/200").monospacedDigit()
+                            Text(verbatim: "\(reason.count)/200").monospacedDigit().accessibilityLabel(Text("a11y.value.characters \(Int(reason.count)) \(Int(200))"))
                         }
                     }
                     Section {

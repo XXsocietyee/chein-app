@@ -121,40 +121,6 @@ public struct ShopNPCDialogueEffect: Equatable, Identifiable {
         try self.init(type: kind, key: key, delta: wire.delta, value: wire.value, label: wire.label)
     }
 }
-public struct ShopNPCDialogueReceipt: Equatable {
-    public let requestID: UUID
-    public let npcID: Int
-    public let routeActionID: String
-    public let stateVersion: Int
-    public let reply: String
-    public let effects: [ShopNPCDialogueEffect]
-    public let relation: ShopNPCRelationBadge?
-    public static func decode(_ bytes: Data, requestID: UUID, npcID: Int, routeActionID: String) throws -> Self {
-        struct Envelope: Decodable {
-            var code: Int?; var msg: String?; var data: Payload?
-            struct Payload: Decodable {
-                var npcId: Int?; var routeActionId: String?; var stateVersion: Int?; var reply: String?
-                var effects: [ShopNPCDialogueEffect.Wire]?; var relation: ShopNPCRelationBadge.Wire?
-            }
-        }
-        let body: Envelope
-        do { body = try JSONDecoder().decode(Envelope.self, from: bytes) }
-        catch { throw ShopNPCFailure.malformed }
-        guard let code = body.code else { throw ShopNPCFailure.malformed }
-        guard code == 200 else { throw ShopNPCFailure.server(code: code, message: body.msg) }
-        guard let data = body.data,
-              data.npcId == npcID,
-              data.routeActionId == routeActionID,
-              let version = data.stateVersion, version >= 0,
-              let reply = data.reply, !reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              reply.utf8.count <= 32_768 else {
-            throw ShopNPCFailure.malformed
-        }
-        let effects = try (data.effects ?? []).map(ShopNPCDialogueEffect.init(wire:))
-        let relation = try data.relation.map(ShopNPCRelationBadge.init(wire:))
-        return Self(requestID: requestID, npcID: npcID, routeActionID: routeActionID, stateVersion: version, reply: reply, effects: effects, relation: relation)
-    }
-}
 public struct ShopNPCReply: Equatable {
     public enum Outcome: String, Equatable { case succeeded = "SUCCEEDED", rejected = "REJECTED", failed = "FAILED", processing = "PROCESSING" }
     public let requestID: UUID

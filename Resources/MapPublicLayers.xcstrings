@@ -126,7 +126,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Available"
+            "value" : "Ready"
           }
         },
         "zh-Hans" : {
@@ -245,7 +245,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Public map layers aren't available right now."
+            "value" : "Public map layers aren't available right."
           }
         },
         "zh-Hans" : {
@@ -466,7 +466,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Associated Merchants"
+            "value" : "Associated Shops"
           }
         },
         "zh-Hans" : {
@@ -568,7 +568,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Difficulty"
+            "value" : "Level"
           }
         },
         "zh-Hans" : {

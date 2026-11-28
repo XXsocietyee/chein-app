@@ -73,7 +73,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Opens directions to the meeting point in Maps"
+          "value": "Opens route meeting point"
         }
       },
       "zh-Hans": {
@@ -250,6 +250,40 @@
         "stringUnit": {
           "state": "translated",
           "value": "在日历中保存这个活动"
+        }
+      }
+    }
+  },
+  "activeSession.play.open": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Back to the game"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "回到游戏"
+        }
+      }
+    }
+  },
+  "activeSession.play.open.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Opens the game screen of this run"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "打开这局游戏的页面"
         }
       }
     }
