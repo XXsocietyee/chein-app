@@ -110,3 +110,11 @@ The defaults keep every dependent feature hidden, so a build with placeholders s
 - **Backend gap (not app-side):** `/api/login/code` (MP, `ApiLoginController.java:188-207` on `us/r3-functional`) reads
   only `openid` from `jscode2session` and never writes `union_id`. Until it stores the returned `unionid` (and existing MP
   members log in once more), the `union_id` lookup finds no MP member and an app WeChat sign-in creates a new account.
+
+## fix/1128b-club-mine: 提现 support contact (audit 1128 gap #11)
+
+| Key (xcconfig → Info.plist) | Where | Value | Status |
+|---|---|---|---|
+| `QUESTIFY_WITHDRAW_SUPPORT_WECHAT_ID` → `QuestifyWithdrawSupportWeChatID` | `Config/OwnerValues.xcconfig` | The platform support WeChat id that every 提现 popup shows and copies. It is a public business contact, and the MP ships the same constant (`chengyinhub-xcx/utils/withdraw-cs.js:8`, `WITHDRAW_CS_WECHAT_ID`). Change it here and in the MP together. | set to the MP value; **owner to confirm** |
+
+If the value is empty, or it is not a valid WeChat id (2–64 of `A-Z a-z 0-9 _ -`), the popup shows "客服联系方式暂不可用". The popup never sends a withdraw request.
