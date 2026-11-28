@@ -614,14 +614,20 @@ struct TopicXcxRouteSection: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("topic.route.noteText")
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
-                Text("u9cde.topic.routeConfiguring").font(.headline)
-                    .accessibilityIdentifier("topic.route.empty")
-                // R7-PC-B1-17 (MP index.wxml:358, js:1120 `goTopicList` → pages/template/index, the 发布/模板 tab).
-                if rootTabSwitch.isAvailable {
-                    Button { rootTabSwitch(.publish) } label: {
-                        Text("topicXcx.route.browseOthers")
+                // mp-home r3 (MP index.wxml:405 `cy-empty` 路线配置中 + cta 浏览其他主题): the shared empty pattern, not a bare line.
+                ContentUnavailableView {
+                    Label { Text("u9cde.topic.routeConfiguring") } icon: { Image(systemName: "map") }
+                        .accessibilityIdentifier("topic.route.empty")
+                } actions: {
+                    // R7-PC-B1-17 (MP index.wxml:358, js:1120 `goTopicList` → pages/template/index, the 发布/模板 tab).
+                    if rootTabSwitch.isAvailable {
+                        Button { rootTabSwitch(.publish) } label: {
+                            Text("topicXcx.route.browseOthers")
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.regular)
+                        .accessibilityIdentifier("topic.route.browseOthers")
                     }
-                    .accessibilityIdentifier("topic.route.browseOthers")
                 }
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in
