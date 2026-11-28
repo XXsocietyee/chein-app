@@ -761,3 +761,11 @@ Checked, no change: ticket rows (`e4-tickets`) show the MP route illustration wh
 Coordinator: please re-sweep `e5b-badge-wall` and `a11y-badges-ax5`.
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. **Half done**; A half rows 1–2 still blocked.
+
+## Continue 49 (11-28, hourly run): A half still blocked
+
+Merged `origin/ui/combined-r7` (73 commits, clean). Still no `docs/release/receipts/cursor-k50-p*.md` on any branch and no K50 `lane-layout` rows for mp-mine; the brief has no mp-mine coordinator rows after 13:15 (18:30 sweep = mp-club / mp-journey). B lane run 6 changed nothing to mark. Half split at run start: 1 `CharacterCardReadbackView` byte pin (still pinned in `docs/issue5-hunks/C02-ios-pbx.rnhunk.md`) · 2 `pass-unlock` rest (`App/MPParityKit.swift:12` `MPCommerceGate.purchasesEnabled = false`) | 3 P2-5c. A half (1–2) still blocked. Screens checked: `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg` (build b954de71c, same build as continue 48): no new mp-mine issue (成为商家 row = K12).
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. **Half done**; run stops here per the 15:45 split rule.
+
+Coordinator: the A half stays blocked until the pin owner releases `CharacterCardReadbackView` or the owner turns pass purchase on; re-sweep `e5b-badge-wall`, `a11y-badges-ax5` and `d2-me` ("Tickets") once continue 47/48 are in a build.
