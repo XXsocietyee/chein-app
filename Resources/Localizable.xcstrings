@@ -364020,6 +364020,23 @@
           }
         }
       }
+    },
+    "club.topic.opsTime": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集合时间"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
