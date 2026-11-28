@@ -53,7 +53,7 @@
   },
   "registration.clubPriority.label": {
     "zh-Hans": "俱乐部会员权益",
-    "en": "Club Member Priority"
+    "en": "Club member priority"
   },
   "registration.pass.label": {
     "zh-Hans": "通行证",
@@ -377,11 +377,11 @@
   },
   "orientScore.appeal.singleEntry": {
     "zh-Hans": "申诉这一条计分",
-    "en": "Appeal This Score Entry"
+    "en": "Appeal this score"
   },
   "orientScore.appeal.missingNodeTitle": {
     "zh-Hans": "漏记任务的节点编号",
-    "en": "Missing Task Node ID"
+    "en": "Missing task ID"
   },
   "orientScore.appeal.missingNodePlaceholder": {
     "zh-Hans": "请输入数字节点编号",
@@ -393,7 +393,7 @@
   },
   "orientScore.syncTasks": {
     "zh-Hans": "同步已通过任务",
-    "en": "Sync Passed Tasks"
+    "en": "Sync completed tasks"
   },
   "orientScore.settleRun": {
     "zh-Hans": "结算本局",
@@ -525,7 +525,7 @@
   },
   "orderDetail.club.followOrJoin": {
     "zh-Hans": "关注 / 加入俱乐部",
-    "en": "Follow / Join Club"
+    "en": "Follow or join the club"
   },
   "participation.freeExploreBundle": {
     "zh-Hans": "自由探索权益",

@@ -8,6 +8,10 @@ import UIKit
 @MainActor
 struct AuthChannelAppleButton: UIViewRepresentable {
     @ObservedObject var model: AuthChannelModel
+    /// Sign-in page: the agreement is not on record yet. The button stays the enabled system button (HIG, P33) and a tap
+    /// asks for the agreement first instead of starting the authorization.
+    var needsConsent = false
+    var onConsentNeeded: (() -> Void)?
     @Environment(\.colorScheme) private var colorScheme
 
     func makeCoordinator() -> Coordinator { Coordinator(model: model) }
@@ -18,7 +22,10 @@ struct AuthChannelAppleButton: UIViewRepresentable {
     }
     func updateUIView(_ button: ASAuthorizationAppleIDButton, context: Context) {
         context.coordinator.model = model
-        button.isEnabled = model.canStart && model.coordinator.appleConfigurationVerified
+        context.coordinator.needsConsent = needsConsent
+        context.coordinator.onConsentNeeded = onConsentNeeded
+        // Never greyed while offered (sweep 3348aa51f): busy taps are ignored in `signIn(_:)` and the progress row shows.
+        button.isEnabled = model.coordinator.appleConfigurationVerified
         button.alpha = button.isEnabled ? 1 : 0.5
     }
     static func dismantleUIView(_ button: ASAuthorizationAppleIDButton, coordinator: Coordinator) {
@@ -28,11 +35,17 @@ struct AuthChannelAppleButton: UIViewRepresentable {
     @MainActor
     final class Coordinator: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
         var model: AuthChannelModel
+        var needsConsent = false
+        var onConsentNeeded: (() -> Void)?
         private var controller: ASAuthorizationController?
         private var attempt: AuthChannelAppleAttempt?
         private var window: UIWindow?
         init(model: AuthChannelModel) { self.model = model }
         @objc func signIn(_ sender: ASAuthorizationAppleIDButton) {
+            if needsConsent {
+                onConsentNeeded?()
+                return
+            }
             guard model.canStart, controller == nil, let window = sender.window,
                   let attempt = model.coordinator.beginAppleAuthorization() else { return }
             self.window = window; self.attempt = attempt

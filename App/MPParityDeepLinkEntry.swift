@@ -68,6 +68,7 @@ extension AppSession {
     /// `chein://mp/<page>?<query>`. True when the URL was a chein mp link and was handled (valid or not).
     func receiveMiniProgramPageURL(_ url: URL) -> Bool {
         guard url.scheme?.lowercased() == CheinDeepLink.scheme, url.host?.lowercased() == "mp" else { return false }
+        if let scene = Self.homeScene(url) { receiveNativeIntent(scene); return true }
         if let door = Self.homeReferral(url) { receiveNativeIntent(.door(door)); return true }
         if let link = MiniProgramPageLink(cheinURL: url) { receiveNativeIntent(.miniProgramPage(link)) }
         else { receiveNativeIntent(.routeError(.unsupported)) }
@@ -76,12 +77,23 @@ extension AppSession {
 
     /// `chein://mp/pages/index/index?inviter=` / `?id=` / `?scene=`: the MP invite card form (see `NativeNavigationContract.homeReferral`).
     static func homeReferral(_ url: URL) -> DoorIntent? {
+        guard let query = homeQuery(url) else { return nil }
+        return NativeNavigationContract.homeReferral(query)
+    }
+
+    /// `chein://mp/pages/index/index?scene=tp.<id>` etc.: the MP home QR scenes (see `NativeNavigationContract.homeScene`).
+    static func homeScene(_ url: URL) -> NativeEntryIntent? {
+        guard let query = homeQuery(url) else { return nil }
+        return NativeNavigationContract.homeScene(query)
+    }
+
+    private static func homeQuery(_ url: URL) -> [String: String]? {
         guard let c = URLComponents(url: url, resolvingAgainstBaseURL: false), c.path == "/pages/index/index" else { return nil }
         let items: [URLQueryItem] = c.queryItems ?? []
         guard Set(items.map(\.name)).count == items.count else { return nil }
         var query: [String: String] = [:]
         for item in items { query[item.name] = item.value ?? "" }
-        return NativeNavigationContract.homeReferral(query)
+        return query
     }
 
     /// Universal links (P1-1). The WeChat SDK callbacks (`/app/wx<AppID>/oauth`, `/pay`) are claimed first, and only while
