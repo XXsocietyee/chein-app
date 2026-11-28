@@ -187,6 +187,7 @@
         "MPFirstCMAGrantTests",
         "MPFirstCoopWritesTests",
         "MPFirstMerchantWriteRouteTests",
+        "MPFirstPublishApprovalsTests",
         "MPParityDeepLinkRouteTests",
         "MPParityPassBindingTests",
         "ManualMapCompositionTests",

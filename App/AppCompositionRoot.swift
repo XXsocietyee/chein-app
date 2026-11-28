@@ -514,11 +514,11 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else {
             productionGatesEnabled = false
         }
-        self.projectStoryAudioUploadApproval = projectStoryAudioUploadApproval; self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport
+        self.projectStoryAudioUploadApproval = MPFirstPublishApprovals.fallback(projectStoryAudioUploadApproval, deployment, { MPFirstPublishApprovals.storyAudio($0) }); self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport
         self.projectTopicImageUploadApproval = projectTopicImageUploadApproval; self.makeProjectTopicImageUploadTransport = makeProjectTopicImageUploadTransport
-        self.projectStoryImageUploadApproval = projectStoryImageUploadApproval; self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport
-        self.projectNodeImageUploadApproval = projectNodeImageUploadApproval; self.makeProjectNodeImageUploadTransport = makeProjectNodeImageUploadTransport
-        self.ownedTopicCoverApproval = ownedTopicCoverApproval; self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport
+        self.projectStoryImageUploadApproval = MPFirstPublishApprovals.fallback(projectStoryImageUploadApproval, deployment, { MPFirstPublishApprovals.storyImage($0) }); self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport
+        self.projectNodeImageUploadApproval = MPFirstPublishApprovals.fallback(projectNodeImageUploadApproval, deployment, { MPFirstPublishApprovals.nodeImage($0) }); self.makeProjectNodeImageUploadTransport = makeProjectNodeImageUploadTransport
+        self.ownedTopicCoverApproval = MPFirstPublishApprovals.fallback(ownedTopicCoverApproval, deployment, { MPFirstPublishApprovals.ownedCover($0) }); self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport; self.templateAuthoringOriginalReadApproval = MPFirstPublishApprovals.fallback({ _ in nil }, deployment, { MPFirstPublishApprovals.templateAuthoringRead($0) }); self.templateAuthoringOriginalSubmitApproval = MPFirstPublishApprovals.fallback({ _ in nil }, deployment, { MPFirstPublishApprovals.templateAuthoringSubmit($0) })
         self.invoiceLaunchReadApproval = { [gates] context in invoiceLaunchReadApproval(context) ?? gates.playerInvoiceApproval(context) }
         self.clubBadgeManagementApproval = clubBadgeManagementApproval
         self.merchantReviewOriginalReadApproval = merchantReviewOriginalReadApproval
@@ -529,7 +529,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.couponLocks = couponLocks
         self.couponReadApproval = couponReadApproval ?? (productionGatesEnabled ? { [gates] in gates.couponRead($0) } : { _ in nil })
         self.couponWriteApproval = couponWriteApproval ?? (productionGatesEnabled ? { [gates] in gates.couponWrite($0) } : { _ in nil })
-        self.templateShelfReadApproval = templateShelfReadApproval
+        self.templateShelfReadApproval = MPFirstPublishApprovals.fallback(templateShelfReadApproval, deployment, { MPFirstPublishApprovals.templateShelf($0) })
         self.messagingHistoryReadApproval = { [gates] context in
             messagingHistoryReadApproval(context) ?? (productionGatesEnabled ? gates.messagingHistory(context) : nil)
         }
