@@ -803,10 +803,7 @@ private struct ClubDetailHeader: View {
                                 .accessibilityIdentifier("club.detail.fact.memberCount")
                         }
                         if !people.isEmpty {
-                            // P6 people present + P2 live: the "+N" rolls when the member total changes.
-                            CYFacePile(people: people, total: max(peopleTotal, people.count))
-                                .transition(.opacity)
-                                .accessibilityIdentifier("club.detail.header.people")
+                            peopleRow
                         }
                     }
                     Spacer(minLength: 0)
@@ -824,6 +821,39 @@ private struct ClubDetailHeader: View {
             .padding(.bottom, CYSpacing.md)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// P34 / P38 people visible: the face pile with its social sentence (「示例主理人 和其他 2 人」 / "Mia and 2 others").
+    /// The sentence carries the total, so the pile drops its "+N" capsule when the sentence shows.
+    private var peopleCount: Int { max(peopleTotal, people.count) }
+
+    private var leadName: String? {
+        guard let name = people.first?.name.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
+        return name
+    }
+
+    private var peopleSentence: Text? {
+        guard let leadName else { return nil }
+        let others = peopleCount - 1
+        if others <= 0 { return Text(verbatim: leadName) }
+        return Text("club.detail.people.withOthers \(leadName) \(others)")
+    }
+
+    @ViewBuilder private var peopleRow: some View {
+        let sentence = peopleSentence
+        HStack(alignment: .center, spacing: CYSpacing.sm) {
+            CYFacePile(people: people, total: sentence == nil ? peopleCount : nil)
+            if let sentence {
+                sentence
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .contentTransition(.numericText(value: Double(peopleCount)))
+            }
+        }
+        .transition(.opacity)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("club.detail.header.people")
     }
 
     /// The viewer's relation to the club: role tags are neutral; pending is amber. mp-club r3 (23:20 sweep, MP detail
