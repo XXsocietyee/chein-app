@@ -174,7 +174,7 @@ struct NativeChannelProgressEntryIdentity: Hashable {
                 }
             }
             .navigationTitle(Text("title", tableName: "NativeChannelProgress")).navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .topBarLeading) { Button { close() } label: { Text("done", tableName: "NativeChannelProgress") } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button { close() } label: { Text("done", tableName: "NativeChannelProgress") } } }
             .refreshable { await model.loadDirectory() }
             .navigationDestination(for: String.self) { key in
                 if let board = model.definitions.first(where: { $0.boardKey == key }) { NativeChannelProgressBoardView(model: model, board: board, teamOptions: teams(board)) }

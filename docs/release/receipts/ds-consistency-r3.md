@@ -735,6 +735,32 @@ Simulator check of an en club settlement detail / registration summary (CN¥) st
 ### Not done (next run)
 None from this run.
 
+## Continue run 24 (2026-11-28, after merging combined-r7 ad55acd94)
+
+Merge clean (58 files). Run 23 Not done: none. No new coordinator row for this lane (latest sweep build 41374363f,
+02:20 rows are other lanes). Status capsule 29 stays baselined (internal release-checklist `*SectionView` screens).
+
+Scan: one sheet-dismiss placement (OWNER RULE 2 "toolbar items in the standard places"). The `done leading` kind only
+matched `Button("….done")`; three Done-only sheets put their single Done in the leading (Cancel) slot through a label
+closure or a helper, while 30+ sibling sheets put Done trailing (`.confirmationAction`). MP content unchanged (the MP
+popups close with the same 完成 action).
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| channel progress boards (in-game channel 进度) | `App/NativeChannelProgressEntry.swift:177` | unchanged | Done `.topBarLeading` → `.confirmationAction` |
+| club channel webhook management | `App/NativeWebhookManagementEntry.swift:246` | unchanged | Done `.cancellationAction` → `.confirmationAction` |
+| `pages/topic/*` 地点待办 sheet | `App/TopicLocationTodosSection.swift:58` | unchanged | Done `.cancellationAction` → `.confirmationAction` (still disabled while a slot is busy) |
+
+Checker `done leading` widened: also a Done label through a helper call (`Button(loc("x.done"))`), a label closure
+(`Button { … } label: { Text("done", …) }`) and `W8Text.t("完成", "Done")`. Self-test: the pre-fix files fail at the
+three lines above; baseline stays 0.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(done leading 0, status capsule 29 baselined), `contract_ratchet --check` RATCHET.
+
+### Not done (next run)
+None from this run.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
