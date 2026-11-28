@@ -207,6 +207,7 @@
         "InvoiceLaunchHistoryRulesTests",
         "InvoiceLaunchHostReadOnlyTests",
         "InvoiceLaunchNavigationCancellationTests",
+        "K40RoamOfficialTasksCompositionTests",
         "KeychainAndBiometricSessionSecuritySectionViewTests",
         "LBSGeofenceAndBatteryThermalSectionViewTests",
         "LanguageSwitcherTests",
