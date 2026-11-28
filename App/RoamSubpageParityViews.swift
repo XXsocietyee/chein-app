@@ -119,23 +119,32 @@ struct RoamRunCardParityMeta: View {
     }
 }
 
+enum RoamHistoryToolDestination: Hashable {
+    case anniversary, recap, export
+}
+
 /// 那年今日 / 月度回顾 / 导出 row inside the history page. Export is listed only with its owner-only tools.
+/// The links are buttons plus a hosted anchor: a `NavigationLink` inside this list row is destroyed while its
+/// push is still idle when the list rebuilds (`InvalidTransition` idle → `failed(deinit)`).
 @MainActor struct RoamHistoryToolsRow: View {
     let reader: (any RoamPassportToolsReading)?
     var privateTools: (any RoamPrivateToolsServing)? = nil
     var anniversaryRouteDestination: ((String) -> AnyView)? = nil
+    var openTool: (RoamHistoryToolDestination) -> Void = { _ in }
     var body: some View {
         HStack(spacing: 12) {
-            NavigationLink { RoamAnniversaryView(reader: reader, routeDestination: anniversaryRouteDestination) } label: { tool("roamSub.w208.history.tool.anniversary", "calendar") }
-                .accessibilityIdentifier("roamSub.w208.history.tool.anniversary")
-            NavigationLink { RoamMonthlyRecapView(reader: reader, routeDestination: anniversaryRouteDestination) } label: { tool("roamSub.w208.history.tool.recap", "list.bullet") }
-                .accessibilityIdentifier("roamSub.w208.history.tool.recap")
-            if let privateTools {
-                NavigationLink { RoamExplorationExportView(tools: privateTools) } label: { tool("roamSub.w208.history.tool.export", "arrow.down.doc") }
-                    .accessibilityLabel(Text("roamSub.w208.history.tool.exportLabel"))
-                    .accessibilityIdentifier("roamSub.w208.history.tool.export")
+            toolButton(.anniversary, "roamSub.w208.history.tool.anniversary", "calendar", id: "roamSub.w208.history.tool.anniversary")
+            toolButton(.recap, "roamSub.w208.history.tool.recap", "list.bullet", id: "roamSub.w208.history.tool.recap")
+            if privateTools != nil {
+                toolButton(.export, "roamSub.w208.history.tool.export", "arrow.down.doc", id: "roamSub.w208.history.tool.export", accessibilityLabel: "roamSub.w208.history.tool.exportLabel")
             }
         }.buttonStyle(QuestifyCardButtonStyle())
+    }
+    private func toolButton(_ destination: RoamHistoryToolDestination, _ key: LocalizedStringKey, _ symbol: String, id: String, accessibilityLabel: LocalizedStringKey? = nil) -> some View {
+        Button { openTool(destination) } label: { tool(key, symbol) }
+            .accessibilityLabel(Text(accessibilityLabel ?? key))
+            .accessibilityIdentifier(id)
+            .background { RoamHostedAccessibilityAnchor(identifier: id, action: { openTool(destination) }) }
     }
     private func tool(_ key: LocalizedStringKey, _ symbol: String) -> some View {
         VStack(spacing: 6) { Image(systemName: symbol).font(.title3).accessibilityHidden(true); Text(key).font(.caption.weight(.medium)) }

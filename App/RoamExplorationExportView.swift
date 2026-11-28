@@ -170,6 +170,10 @@ private struct RoamExportFileSaveLink: View {
         switch kind { case .last30Days: return "roam.export.range.30"; case .thisYear: return "roam.export.range.year"; case .lastYear: return "roam.export.range.365" }
     }
     private var prepared: Bool { model.checkpoint != nil }
+    /// A configured reader prepares only while its approval is live. An unconfigured reader stays tappable so the closed approval can be shown without a request.
+    private var exportPrepareEnabled: Bool {
+        !model.isBusy && RoamExportContract.isValidRange(start: startDate, end: endDate) && (owner.active || !tools.isConfigured)
+    }
     /// The preset's name when the chosen dates are exactly that preset, else the two dates as chosen.
     private var fileRangeText: Text {
         if let value = model.presets.first(where: { $0.kind == preset }),
@@ -325,7 +329,17 @@ private struct RoamExportFileSaveLink: View {
             // N-TOOLS (r10): a plain Form button row (MP subpackageTools export 生成).
             Button("roam.export.prepare") { saveResult = nil; owner.prepare(startDate: startDate, endDate: endDate) }
                 .frame(maxWidth: .infinity)
-                .disabled(!owner.active || model.isBusy || !RoamExportContract.isValidRange(start: startDate, end: endDate)).accessibilityIdentifier("roam.export.prepare")
+                // Unconfigured readers still offer prepare. The tap records the closed approval and does not dispatch.
+                .disabled(!exportPrepareEnabled)
+                .accessibilityIdentifier("roam.export.prepare")
+                .background {
+                    if exportPrepareEnabled {
+                        RoamHostedAccessibilityAnchor(identifier: "roam.export.prepare") {
+                            saveResult = nil
+                            owner.prepare(startDate: startDate, endDate: endDate)
+                        }
+                    }
+                }
             if model.phase == .preparing { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }  // N-TOOLS (r10)
         }
     }
@@ -448,7 +462,10 @@ private struct RoamExportFileSaveLink: View {
         }
     }
     func prepare(startDate: String, endDate: String) {
-        guard canRead, !model.isBusy else { return }
+        guard !model.isBusy else { return }
+        // A missing approval stays on this page: say so, and do not prepare or read.
+        guard tools.isConfigured else { model.closeWithoutDispatch(); return }
+        guard canRead else { return }
         deliveryContext.cleanupTemporary()
         run { await $0.prepare(startDate: startDate, endDateExclusive: endDate) }
     }

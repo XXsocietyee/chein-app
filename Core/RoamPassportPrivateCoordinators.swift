@@ -524,6 +524,13 @@ public enum RoamPrivateToolIssue: Equatable {
         return deliveryLease.validatedFile(file, now: tools.now, currentIdentity: tools.identity, foreground: foreground)
     }
 
+    /// The prepare control was used while this reader cannot dispatch. Record that and do not read.
+    public func closeWithoutDispatch() {
+        guard !isBusy else { return }
+        clear()
+        issue = owner == nil ? .signInRequired : (live() ? .notConfigured : .changedContext)
+        phase = .choosing
+    }
     public func prepare(startDate: String, endDateExclusive: String) async {
         guard presentationActive, !Task.isCancelled else { return }
         guard live() else { clear(); issue = owner == nil ? .signInRequired : .changedContext; phase = .choosing; return }

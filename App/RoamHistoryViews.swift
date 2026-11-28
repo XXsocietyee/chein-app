@@ -15,6 +15,8 @@ import SwiftUI
     @State private var startFirstWalk = false
     @State private var liveEntry = RoamHistoryLiveEntry()
     @State private var localWalk = RoamHistoryLocalWalkState()
+    @State private var historyTool: RoamHistoryToolDestination?
+    @State private var historyToolTicket = UUID()
     @Namespace private var hero
     @ViewBuilder private var unreadableNotice: some View {
         Label("roam.historyLocal.unreadable", systemImage: "exclamationmark.circle")
@@ -39,7 +41,7 @@ import SwiftUI
                 else if !loaded { ProgressView { Text("roamSub.w208.history.loading") }.frame(maxWidth: .infinity) }
                 else if records.isEmpty {
                     RoamHistoryRemoteStatusBanner()   // RHIST-2
-                    if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
+                    if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination, openTool: showHistoryTool) }
                     if let keys = localWalk.noticeKeys(reader: reader) {
                         CYEmptyState(systemImage: "pause.circle", LocalizedStringKey(keys.title), detail: LocalizedStringKey(keys.hint),
                                      actionTitle: "roam.historyLocal.backToMap", actionIdentifier: "roam.history.backToMap",
@@ -86,7 +88,7 @@ import SwiftUI
                         // 次漫游 · 家店 · 用时 columns under the total, as in the mini-program.
                         RoamHistoryParityStrip(records: records)
                     }
-                    if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
+                    if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination, openTool: showHistoryTool) }
                     ForEach(Array(records.enumerated()), id: \.element.id) { index, record in
                         if RoamHistoryMonthHead.isNewMonth(record, after: index > 0 ? records[index - 1] : nil), let date = record.recordedAt {
                             RoamHistoryMonthHead(date: date)
@@ -128,6 +130,7 @@ import SwiftUI
             // A navigationDestination inside a lazy List row is re-registered whenever that row re-renders (e.g. the
             // appear/disappear presentationID change), which pops pushes made from sibling rows such as the 那年今日 tool.
             .navigationDestination(isPresented: $startFirstWalk) { liveDestination?() }
+            .navigationDestination(item: $historyTool) { tool in historyToolPage(tool) }
             .modifier(RoamPassportHistoryNavigation(localReader: reader))
             .background {
                 if error == nil, loaded, !records.isEmpty {
@@ -141,6 +144,29 @@ import SwiftUI
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("roam.experience.history")
     }
+    private func showHistoryTool(_ tool: RoamHistoryToolDestination) {
+        historyToolTicket = UUID()
+        historyTool = tool
+    }
+    private func historyToolPage(_ tool: RoamHistoryToolDestination) -> some View {
+        let ticket = historyToolTicket
+        return Group {
+            switch tool {
+            case .anniversary:
+                RoamAnniversaryView(reader: toolsReader, routeDestination: anniversaryRouteDestination)
+            case .recap:
+                RoamMonthlyRecapView(reader: toolsReader, routeDestination: anniversaryRouteDestination)
+            case .export:
+                RoamExplorationExportView(tools: privateToolsReader)
+            }
+        }
+        .background(RoamHistoryToolPopSync {
+            // A non-animated UIKit pop removes the hosting controller without clearing this selection, so the
+            // history tools never return. Clear only the ticket that was popped.
+            guard historyTool == tool, historyToolTicket == ticket else { return }
+            historyTool = nil
+        })
+    }
     private func load() {
         localWalk.invalidate()
         let snapshot = liveEntry.beginRead(reader: reader)
@@ -148,6 +174,64 @@ import SwiftUI
         let records = historyRead.records(for: reader)
         if records.isEmpty { localWalk.load(reader: reader) }
         liveEntry.acceptRead(isEmpty: records.isEmpty, snapshot: snapshot, reader: reader)
+    }
+}
+
+/// Notices a UIKit `popViewController(animated: false)`. That pop never sets `isMovingFromParent`, and SwiftUI
+/// keeps the history-tool selection, so the list's tools stay covered. The callback runs only after this page has left the stack.
+@MainActor private struct RoamHistoryToolPopSync: UIViewControllerRepresentable {
+    var onPop: () -> Void
+    func makeUIViewController(context: Context) -> Controller { Controller(onPop: onPop) }
+    func updateUIViewController(_ controller: Controller, context: Context) { controller.onPop = onPop }
+    @MainActor final class Controller: UIViewController {
+        var onPop: () -> Void
+        private var wasInNavigation = false
+        private var departing = false
+        init(onPop: @escaping () -> Void) { self.onPop = onPop; super.init(nibName: nil, bundle: nil) }
+        required init?(coder: NSCoder) { return nil }
+        private var ancestry: [UIViewController] {
+            var values: [UIViewController] = [], next: UIViewController? = self
+            while let value = next { values.append(value); next = value.parent }
+            return values
+        }
+        private func navigationHost() -> UIViewController? {
+            var current: UIViewController? = self
+            while let value = current {
+                if let navigation = value.navigationController {
+                    var node: UIViewController? = value
+                    while let item = node {
+                        if navigation.viewControllers.contains(where: { $0 === item }) { return item }
+                        node = item.parent
+                    }
+                }
+                current = value.parent
+            }
+            return nil
+        }
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            if navigationHost() != nil { wasInNavigation = true }
+            departing = false
+        }
+        override func viewWillDisappear(_ animated: Bool) {
+            super.viewWillDisappear(animated)
+            if navigationHost() != nil { wasInNavigation = true }
+            departing = ancestry.contains { $0.isMovingFromParent || $0.isBeingDismissed }
+        }
+        override func viewDidDisappear(_ animated: Bool) {
+            super.viewDidDisappear(animated)
+            guard transitionCoordinator?.isCancelled != true else { return }
+            notifyIfPopped()
+            // The hosting controller can still be on the stack during viewDidDisappear. Recheck on the next turn.
+            DispatchQueue.main.async { [weak self] in self?.notifyIfPopped() }
+        }
+        private func notifyIfPopped() {
+            guard transitionCoordinator?.isCancelled != true else { return }
+            let leaving = departing || ancestry.contains { $0.isMovingFromParent || $0.isBeingDismissed }
+            let popped = wasInNavigation && navigationHost() == nil
+            guard leaving || popped else { return }
+            onPop()
+        }
     }
 }
 
