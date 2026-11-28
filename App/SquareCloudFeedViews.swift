@@ -84,8 +84,6 @@ struct SquareCloudRouteMap: View {
                         Text(verbatim: sourceText).font(.caption).foregroundStyle(.secondary)
                             .accessibilityIdentifier("square.cloud.route.source")
                     }
-                } else {
-                    state("这条活动没有可画的轨迹", "This activity has no route to draw", symbol: "point.topleft.down.to.point.bottomright.curvepath").accessibilityIdentifier("square.cloud.route.empty")
                 }
             }
         }
@@ -128,13 +126,16 @@ struct SquareCloudStravaBlock: View {
                 stat(copy("完成节点", "Nodes done"), SquareStravaCard.nodeText(done: card.nodeDone, total: card.nodeTotal)).accessibilityIdentifier("square.cloud.stat.nodes")
                 stat(copy("时长", "Duration"), SquareStravaCard.durationText(card.durationSeconds)).accessibilityIdentifier("square.cloud.stat.duration")
             }
-            SquareCloudRouteMap(
-                phase: card.route.count >= 2 ? .ready : (card.topicID == nil ? .empty : .empty),
-                points: card.route,
-                sourceText: card.routeSourceText,
-                onDoubleTap: onDoubleTapLike)
+            // MP `components/cy/post-card`: the route block exists only when there is a route; no "no route" line.
+            if card.route.count >= 2 {
+                SquareCloudRouteMap(
+                    phase: .ready,
+                    points: card.route,
+                    sourceText: card.routeSourceText,
+                    onDoubleTap: onDoubleTapLike)
+            }
             if card.cleared == true { clearedBanner }
-            if onDoubleTapLike != nil {
+            if onDoubleTapLike != nil, card.route.count >= 2 {
                 Text(verbatim: copy("双击路线点赞", "Double-tap the route to give kudos"))
                     .font(.caption).foregroundStyle(.secondary)
                     .accessibilityAction(named: Text(verbatim: copy("点赞", "Kudos"))) { onDoubleTapLike?() }
