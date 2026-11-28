@@ -146,7 +146,8 @@ enum HomeTodayFixtures {
     }
     static var clubEvent: HomeTodayCandidate {
         HomeTodayCandidate(id: "fx-club", title: HomeFixtureLanguage.zh ? "老城摄影漫步" : "Old Town photo walk", start: now.addingTimeInterval(0),
-                           place: HomeFixtureLanguage.zh ? "老城" : "Old Town", imageURL: nil)
+                           place: HomeFixtureLanguage.zh ? "老城" : "Old Town", imageURL: nil,
+                           meetingPoint: HomeTodayMeetingPoint(latitude: 31.2272, longitude: 121.4920))
     }
     static var unknownTime: HomeTodayCandidate { HomeTodayCandidate(id: "fx-unknown", title: "Mystery ticket", start: nil, place: nil, imageURL: nil) }
 }

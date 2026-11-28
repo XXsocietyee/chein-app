@@ -25,6 +25,8 @@ struct WaveTodayFixture: View {
         }
         .padding(CYSpacing.pageHorizontal)
         .padding(.top, CYSpacing.jumbo)
+        // mp-home r3 (sweep 11-28 04:50): the club event shows a full card (bundled MP cover + meeting-point map).
+        .environment(\.homeTodayFixtureCover, kind == .club ? MPAsset.BannerCover.clubCityCamera : nil)
         .cyDomainPageBackground()
         .themeDomain(.player)
         .task {
