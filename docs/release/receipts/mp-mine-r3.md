@@ -403,3 +403,13 @@ Merged `origin/ui/combined-r7` (clean, 57 files). That build predates continue 2
 | 我的 tabs 项目 / 帖文 / 成就 / 关于 (`d2-me`) and public profile tabs (`e4-self-medals`) | Next round 2: a selection change gets `.sensoryFeedback(.selection)`. MP `cy-tabs` bind:change. | `App/AccountView.swift`, `App/SocialPublicProfileView.swift`, `App/DesignFixtures/D2Fixtures.swift` | **Fixed.** `.sensoryFeedback(.selection, trigger:)` on each segmented tab picker. The haptic is system-provided, so it needs no Reduce Motion fallback. Order, keys and ids are unchanged. |
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 22 (hourly re-arm, sweep 02:10 UTC build 41374363f)
+
+Merged `origin/ui/combined-r7` (clean, 67 files). The sweep build is the same as in continue 21, and the 02:05 / 02:20 coordinator notes have no mp-mine rows. The blocked Not done rows are unchanged, so this run continues "Next round" item 2 (motion and feedback) on the 积分明细 / wallet ledgers.
+
+| Page | Principle → MP | Native file | Fixed now |
+|---|---|---|---|
+| `subpackageMember/points-history` 全部 / 获得 / 使用 chips (`e4-wallet-points`), 余额流水 全部 / 收入 / 支出 (`e4-wallet-balance`) | Next round 2: a filter change gets `.sensoryFeedback(.selection)`. MP `cy-tabs variant="chip"` bind:change="onFilter". P23 already met: balance on top, month groups, reason · time, signed delta + after-balance trailing. | `App/WalletCommerceViews.swift` `WalletLedgerView` | **Fixed.** `.sensoryFeedback(.selection, trigger: direction)` on the direction picker. |
+| `subpackageMember/income-detail` 收益 / 分佣 tabs and 全部 / 创作 / 品牌 filter (`e4-wallet-income`) | same | `App/WalletCommerceViews.swift` (revenue tabs, `WalletIncomeSegment` filter) | **Fixed.** `.sensoryFeedback(.selection, trigger:)` on both pickers. Keys, ids and order are unchanged. The haptic is system-provided, so it needs no Reduce Motion fallback. |
+| `subpackageMember/market/pass` tabs and the pass detail 自己用 / 送朋友 switch | same; MP `cy-tabs` bind:change | `App/PassMarketViews.swift` | **Fixed.** `.sensoryFeedback(.selection, trigger: tab)` and `trigger: state.forGift`. Keys and ids are unchanged. |
