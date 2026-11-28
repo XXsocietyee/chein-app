@@ -146,6 +146,8 @@ import SwiftUI
         switch kind {
         case .ballShake:
             bigValue("\(stage.ball.hits) / \(stage.ball.goal)", label: "playkit.ball.hits")
+                .accessibilityLabel(Text("playkit.ball.hits"))
+                .accessibilityValue(Text("a11y.value.ofTotal \(stage.ball.hits) \(stage.ball.goal)"))
             if stage.ball.limitSeconds > 0 {
                 Gauge(value: max(0, stage.ball.limitSeconds - stage.ball.elapsedSeconds), in: 0...max(0.1, stage.ball.limitSeconds)) {
                     Text("playkit.sensor.secondsLeft")

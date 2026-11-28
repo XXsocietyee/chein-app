@@ -2484,6 +2484,23 @@
       }
     }
   },
+  "playkit.window.afterRemind": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "until it opens · I'll remind you"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "后开播 · 到点提醒我"
+        }
+      }
+    }
+  },
   "playkit.slow.eyebrow": {
     "extractionState": "manual",
     "localizations": {

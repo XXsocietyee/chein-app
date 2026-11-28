@@ -138,7 +138,9 @@ struct SearchMapCard: View {
     private var textColumn: some View {
         Group {
             VStack(alignment: .leading, spacing: 2) {
-                Label(row.kind.titleKey, systemImage: row.kind.symbol)
+                // mp-home r3 (02:10 sweep d2-search-results; MP result wxml `result-card__type` / `__detail`): kind and
+                // detail are plain text lines, so every row's title, kind and area start on one leading edge.
+                Text(row.kind.titleKey)
                     .font(.caption).foregroundStyle(.secondary)
                 Group {
                     if row.title.isEmpty { Text("searchMap.untitled") } else { Text(verbatim: row.title) }
@@ -146,15 +148,9 @@ struct SearchMapCard: View {
                 .font(.body).foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
                 if let detail = row.detail, !detail.isEmpty {
-                    if row.kind == .activity {
-                        // P18: an activity's second line is its area (native detail = addressName ?? address).
-                        Label { Text(verbatim: detail) } icon: { Image(systemName: "mappin.and.ellipse").accessibilityHidden(true) }
-                            .font(.subheadline).foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    } else {
-                        Text(verbatim: detail).font(.subheadline).foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                    // P18: an activity's second line is its area (native detail = addressName ?? address).
+                    Text(verbatim: detail).font(.subheadline).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 if !row.tags.isEmpty {
                     // Mini-program result tags (at most three), as one quiet secondary line.

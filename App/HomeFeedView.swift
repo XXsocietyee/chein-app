@@ -850,8 +850,14 @@ struct HomeTodayCard: View {
     }
 
     /// time · place, em dash when the time is unknown (never a fake value).
+    /// mp-home r3 (sweep wave-today-club): the eyebrow already says 今天, so a same-day start shows the time only.
     private func meta(_ c: HomeTodayCandidate) -> String {
-        let time = c.start.map { $0.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened, locale: locale, timeZone: timeZone)) }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let time = c.start.map { start -> String in
+            let sameDay = calendar.isDate(start, inSameDayAs: Date())
+            return start.formatted(Date.FormatStyle(date: sameDay ? .omitted : .abbreviated, time: .shortened, locale: locale, timeZone: timeZone))
+        }
         let place = c.place?.trimmingCharacters(in: .whitespacesAndNewlines)
         return [time ?? "—", (place?.isEmpty ?? true) ? nil : place].compactMap { $0 }.joined(separator: " · ")
     }

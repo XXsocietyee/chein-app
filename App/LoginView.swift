@@ -50,130 +50,150 @@ struct LoginView: View {
         }
     }
 
-    private func stack(_ model: AuthChannelModel) -> some View {
-        NavigationStack(path: $path) {
-            // Native r2: a grouped Form (Settings / Apple ID sign-in style). The brand header is the first section.
-            Form {
-                Section {
-                    // P27: one mark, then a left-aligned title that says what happens.
-                    VStack(alignment: .leading, spacing: 12) {
-                        brandMark
-                        Text("auth.login.headline").font(.title.bold())
-                            .multilineTextAlignment(.leading)
-                            .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                        Text("auth.login.subtitle").font(.subheadline).foregroundStyle(.secondary)
-                            .multilineTextAlignment(.leading)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 8)
-                }
-                if !consentGranted {
-                    // Asked here only when the launch agreement was declined (P-008: consent is asked once).
-                    UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
-                }
-                Section {
-                    Button {
-                        session.weChatAuth.cancel(); password=""; path.append(.phone)
-#if DEBUG
-                        recordIntegratedLoginPhase("other_action")
-#endif
-                    } label: {
-                        Label(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title"), systemImage: "iphone")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm))
-                    .disabled(working || !consentGranted)
-                    .accessibilityIdentifier("auth.otherChannels")
+    /// Split out of `stack(_:)` so the login form type-checks in time.
+    private var loginHeaderSection: some View {
+        Section {
+            // P27: one mark, then a left-aligned title that says what happens.
+            VStack(alignment: .leading, spacing: 12) {
+                brandMark
+                Text("auth.login.headline").font(.title.bold())
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                Text("auth.login.subtitle").font(.subheadline).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 8)
+        }
+    }
+
+    @ViewBuilder private func appleSignInSection(_ model: AuthChannelModel) -> some View {
+        if consentGranted && model.coordinator.appleConfigurationVerified {
+            Section {
+                appleButton(model)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
-                }
-                // L1 P-006: Sign in with Apple is on the first screen, Apple's own button, under phone sign-in (20:55 sweep);
-                // gated channels render nothing (P27).
-                if consentGranted && model.coordinator.appleConfigurationVerified {
-                    Section {
-                        appleButton(model)
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                    } footer: {
-                        if let key = model.state.issue?.localizationKey, !showsOtherSignIn {
-                            Label { Text(LocalizedStringKey(key)) } icon: {
-                                Image(systemName: model.state.issue == .appleIncomplete ? "info.circle" : "exclamationmark.circle.fill")
-                            }
-                            .foregroundStyle(model.state.issue == .appleIncomplete ? Color.secondary : Color.red)
-                            .accessibilityIdentifier("auth.channels.error")
-                        }
+            } footer: {
+                if let key = model.state.issue?.localizationKey, !showsOtherSignIn {
+                    Label { Text(LocalizedStringKey(key)) } icon: {
+                        Image(systemName: model.state.issue == .appleIncomplete ? "info.circle" : "exclamationmark.circle.fill")
                     }
+                    .foregroundStyle(model.state.issue == .appleIncomplete ? Color.secondary : Color.red)
+                    .accessibilityIdentifier("auth.channels.error")
                 }
-                if session.operationalMarket == .china && consentGranted {
-                    WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
+            }
+        }
+    }
+
+    /// The sign-in form, split out of `stack(_:)` so each part type-checks in time.
+    private func loginForm(_ model: AuthChannelModel) -> some View {
+        Form {
+            loginHeaderSection
+            if !consentGranted {
+                // Asked here only when the launch agreement was declined (P-008: consent is asked once).
+                UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
+            }
+            Section {
+                Button {
+                    session.weChatAuth.cancel(); password=""; path.append(.phone)
+#if DEBUG
+                    recordIntegratedLoginPhase("other_action")
+#endif
+                } label: {
+                    Label(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title"), systemImage: "iphone")
+                        .frame(maxWidth: .infinity)
                 }
-                if showsPasswordForm {
-                    Section {
-                        TextField("auth.username",text:$username)
-                            .textContentType(.username).textInputAutocapitalization(.never)
-                            .autocorrectionDisabled().submitLabel(.next)
-                            .focused($focusedField,equals:.username)
-                            .onSubmit { focusedField = .password }
-                        SecureField("auth.password",text:$password)
-                            .textContentType(.password).submitLabel(.go)
-                            .focused($focusedField,equals:.password)
-                            .onSubmit { submit() }
-                    } footer: {
-                        // Validation sits in the section footer (native r2 inputs rule).
-                        if let key = shownErrorKey {
-                            Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
-                                .foregroundStyle(.red).accessibilityIdentifier("auth.error")
-                        }
-                    }
-                    Section {
-                        Button { submit() } label: {
-                            HStack(spacing: 8) {
-                                if working { ProgressView() }
-                                Text(working ? "auth.phone.verifying" : "auth.signIn")
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                        .disabled(!showsPasswordForm || working || username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || password.isEmpty)
-                        .accessibilityIdentifier("auth.signIn")
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                    }
-                } else if session.operationalMarket != .china {
-                    Section {
-                        Text("region.usLoginPending").foregroundStyle(.secondary).accessibilityIdentifier("region.auth.pending")
-                    }
-                }
-                if !showsPasswordForm, let key = shownErrorKey {
-                    Section {
+                .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm))
+                .disabled(working || !consentGranted)
+                .accessibilityIdentifier("auth.otherChannels")
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            }
+            // L1 P-006: Sign in with Apple is on the first screen, Apple's own button, under phone sign-in (20:55 sweep);
+            // gated channels render nothing (P27).
+            appleSignInSection(model)
+            if session.operationalMarket == .china && consentGranted {
+                WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
+            }
+            if showsPasswordForm {
+                Section {
+                    TextField("auth.username",text:$username)
+                        .textContentType(.username).textInputAutocapitalization(.never)
+                        .autocorrectionDisabled().submitLabel(.next)
+                        .focused($focusedField,equals:.username)
+                        .onSubmit { focusedField = .password }
+                    SecureField("auth.password",text:$password)
+                        .textContentType(.password).submitLabel(.go)
+                        .focused($focusedField,equals:.password)
+                        .onSubmit { submit() }
+                } footer: {
+                    // Validation sits in the section footer (native r2 inputs rule).
+                    if let key = shownErrorKey {
                         Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
                             .foregroundStyle(.red).accessibilityIdentifier("auth.error")
                     }
                 }
-                SessionRestorationRetrySection(session: session)
-                // P-009: the legal note scrolls with the form (no pinned bar to overlap at accessibility sizes).
-                // P-008: the "by signing in you agree" sentence only while the agreement is not yet on record.
-                Section {} footer: { legalFooter }
+                Section {
+                    Button { submit() } label: {
+                        HStack(spacing: 8) {
+                            if working { ProgressView() }
+                            Text(working ? "auth.phone.verifying" : "auth.signIn")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(!showsPasswordForm || working || username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || password.isEmpty)
+                    .accessibilityIdentifier("auth.signIn")
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
+            } else if session.operationalMarket != .china {
+                Section {
+                    Text("region.usLoginPending").foregroundStyle(.secondary).accessibilityIdentifier("region.auth.pending")
+                }
             }
-            .scrollDismissesKeyboard(.interactively)
+            if !showsPasswordForm, let key = shownErrorKey {
+                Section {
+                    Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
+                        .foregroundStyle(.red).accessibilityIdentifier("auth.error")
+                }
+            }
+            SessionRestorationRetrySection(session: session)
+            // P-009: the legal note scrolls with the form (no pinned bar to overlap at accessibility sizes).
+            // P-008: the "by signing in you agree" sentence only while the agreement is not yet on record.
+            Section {} footer: { legalFooter }
+        }
+        .scrollDismissesKeyboard(.interactively)
+    }
+
+    @ViewBuilder private func loginDestination(_ route: LoginRoute, model: AuthChannelModel) -> some View {
+        switch route {
+        case .phone:
+            AuthChannelView(embeddedModel: model, sessionSnapshot: session.authChannelSnapshot,
+                            domesticPhoneVisible: session.supportsDomesticPhoneInput)
+#if DEBUG
+                .onAppear { recordIntegratedLoginPhase("channels_appear") }
+                .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
+#endif
+        case .legal(let type):
+            legalDocument(type)
+        }
+    
+    }
+
+    private static func signedIn<V: Equatable>(_ old: V?, _ new: V?) -> Bool { old == nil && new != nil }
+    private static func errorAppeared(_ old: String?, _ new: String?) -> Bool { new != nil }
+
+    private func stack(_ model: AuthChannelModel) -> some View {
+        NavigationStack(path: $path) {
+            // Native r2: a grouped Form (Settings / Apple ID sign-in style). The brand header is the first section.
+            loginForm(model)
 #if DEBUG
             .onAppear { if let o = designOverride, username.isEmpty, !o.username.isEmpty { username = o.username; password = "design-stub" } }
 #endif
-            .navigationDestination(for: LoginRoute.self) { route in
-                switch route {
-                case .phone:
-                    AuthChannelView(embeddedModel: model, sessionSnapshot: session.authChannelSnapshot,
-                                    domesticPhoneVisible: session.supportsDomesticPhoneInput)
-#if DEBUG
-                        .onAppear { recordIntegratedLoginPhase("channels_appear") }
-                        .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
-#endif
-                case .legal(let type):
-                    legalDocument(type)
-                }
-            }
+            .navigationDestination(for: LoginRoute.self) { route in loginDestination(route, model: model) }
             .themeDomain(.player)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -189,7 +209,8 @@ struct LoginView: View {
 #if DEBUG
         .onChange(of: showsOtherSignIn) { _, value in recordIntegratedLoginPhase(value ? "presentation_true" : "presentation_false") }
 #endif
-        .sensoryFeedback(.success, trigger: session.account?.id) { old, new in old == nil && new != nil }
+        .sensoryFeedback(.success, trigger: session.account?.id, condition: Self.signedIn)
+        .sensoryFeedback(.warning, trigger: session.errorKey, condition: Self.errorAppeared)
         .interactiveDismissDisabled(session.isWorking)
         .onChange(of:session.account?.id) { _,newID in if newID != nil { password=""; model.clear(); dismiss() } }
         .onDisappear { password=""; model.clear(); session.weChatAuth.cancel() }
