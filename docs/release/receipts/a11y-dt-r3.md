@@ -579,11 +579,12 @@ Not done item: VoiceOver grouping on player cards (scripted scan: `*Card` / `*Ro
 | `subpackageMember` ticket detail 权益 rows | `TicketWalletDetailView.swift` (`TicketWalletEntitlementRow`) | ✓ (mp-mine owns order) | Chapter, status, redeemed time and invalid reason were up to four VoiceOver stops per List row → one combined row (no controls inside; row identifier kept on the parent). Level B | Done |
 | `pages/topic` reviews (评价) | `TopicReviewsContent.swift:93` | ✓ (mp-publish owns order) | Rating read "4 slash 5" → "4 of 5" / "4/5分" via the shared `a11y.value.ofTotal` key. Header not combined: `TopicFlowTests` queries `topic.reviews.rating.1` as its own element. Level B | Done |
 | `pages/play` free explore offline / expired archive | `FreeExplorationViews.swift` (`FreeExplorationArchiveCards` locked place) | ✓ (mp-journey owns order) | Locked place name + lock chip were two stops → one combined card ("Name, Locked"). Level A | Done |
+| `subpackageMember` order detail 开始 / 结束 time, `pages/activity/baoming` amount rows | `ProfileOrdersView.swift` (`ProfileOrderTicketTimeRow`), `RegistrationSheetView.swift` (`RegistrationAmountRow`) | ✓ (mp-mine / mp-activity own order) | Audit: both are `LabeledContent`, which VoiceOver already reads as one label + value; the amount keeps its `.amount` identifier for tests. No change. Level C | Done |
 
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-35).
-- VoiceOver grouping, rest of the run-35 scan: `TeamHomeRow` (NavigationLink label, likely fine), `ProfileOrderTicketTimeRow`,
-  `RegistrationAmountRow` / `RegistrationChoiceRow` (check UI-test identifiers before combining), `TemplateOwnShelfCard`.
+- VoiceOver grouping, rest of the run-35 scan: `TeamHomeRow` (NavigationLink label, likely fine), `RegistrationChoiceRow`
+  (check UI-test identifiers before combining), `TemplateOwnShelfCard`.
 - Then: `UGCSafetyMenuButton` default (text 举报 label) inline uses and `Toggle` / `Stepper` rows with caption labels.
 
 ## For other lanes
