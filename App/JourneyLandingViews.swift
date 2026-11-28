@@ -991,6 +991,7 @@ enum JourneyPromoPhase: Equatable {
 }
 
 struct JourneyPromoView: View {
+    @Environment(\.locale) private var locale
     let phase: JourneyPromoPhase
     let onRetry: () -> Void
     let onSignIn: () -> Void
@@ -1030,7 +1031,7 @@ struct JourneyPromoView: View {
             Section {
                 ForEach(content.buckets) { bucket in
                     LabeledContent {
-                        (bucket.amountText.map { Text(verbatim: $0) } ?? (bucket.multiCurrency ? Text("mp.promo.multiCurrency") : Text(verbatim: MPText.unknown)))
+                        (bucket.amountText.map { Text(verbatim: LocaleDisplay.yuanAmounts(in: $0, locale: locale)) } ?? (bucket.multiCurrency ? Text("mp.promo.multiCurrency") : Text(verbatim: MPText.unknown)))
                             .monospacedDigit()
                     } label: {
                         Text(bucket.title)

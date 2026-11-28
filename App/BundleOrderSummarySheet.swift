@@ -31,7 +31,7 @@ import SwiftUI
                                 Text(verbatim: copy.t("处理中…", "Processing…"))
                             } else {
                                 Text(verbatim: copy.t("确认支付", "Pay"))
-                                if let priceText { Text(verbatim: priceText).monospacedDigit() }
+                                if let priceText { Text(verbatim: LocaleDisplay.yuanAmounts(in: priceText, locale: locale)).monospacedDigit() }
                             }
                         }
                         .frame(maxWidth: .infinity)
@@ -72,7 +72,7 @@ import SwiftUI
         Section {
             if let priceText {
                 LabeledContent {
-                    Text(verbatim: priceText).monospacedDigit()
+                    Text(verbatim: LocaleDisplay.yuanAmounts(in: priceText, locale: locale)).monospacedDigit()
                 } label: {
                     Text(verbatim: copy.t("套餐价", "Bundle price"))
                 }

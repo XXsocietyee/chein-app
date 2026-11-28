@@ -673,6 +673,40 @@ Simulator check of `en-e4-wallet-balance` / `en-d2-me` (CN¥ everywhere in Engli
 ### Not done (next run)
 None from this run.
 
+## Continue run 22 (2026-11-28, after merging combined-r7 a32387e9b)
+
+Merge clean. Run 21 Not done: none. No new coordinator row for this lane (01:50 sweep row is mp-activity's 票种价格
+dash). Sweep `docs/sweeps/latest` = build a32387e9b (01:40Z, light); sheets read: `mp-activity/sheet-zh-Hans.jpg`,
+`mp-roam/sheet-en.jpg`.
+
+Scan: the run-21 money rule, one level up. Price / amount strings built with a bare `¥` (server text or
+`String(format: "¥%.2f")`) were drawn as-is, so English showed `¥` next to `CN¥` elsewhere. Each now goes through
+`LocaleDisplay.yuanAmounts(in:locale:)` (idempotent: zh unchanged, an already `CN¥` string unchanged).
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| `pages/play/*` 完局优惠卡 (JSETTLE-r7-1) price + VoiceOver label | `App/MPGap/PlayRoam/PlayRoamRound4Views.swift:46`, `:61` | unchanged | `Text(offer.priceText)` → locale money; `@Environment(\.locale)` added |
+| promo summary buckets (`mp.promo`) | `App/JourneyLandingViews.swift:1034` `JourneyPromoView` | unchanged | bucket `amountText` (`¥12.30`) → locale money |
+| 视频悬赏 accrual rows | `App/VideoBountyView.swift:308` | unchanged | `amountText` (`¥12.30`, `USD 3.00` kept) → locale money |
+| 通行证 explore card + checkout rows | `App/MPPassEntries.swift:75`, `:121` | unchanged | `priceText` / pass price → locale money |
+| bundle detail / order summary / native free-explore bundle / launch paid amount | `App/BundleDetailView.swift:57`, `App/BundleOrderSummarySheet.swift:34,75`, `App/NativeR2/FreeExplore/NativeFreeExploreBundleDetailView.swift:156`, `App/FreeExploreBundleLaunchView.swift:217` | unchanged | same (no-op where the source was already `E1Money`) |
+
+Checker kind **locale money** widened: `Text(verbatim: x.priceText / amountText)` shown bare. Baselined 9 (re-baseline
+reviewed; only locale money rose): club / coop settlement + `CYBusinessComponents` order totals (host/business side,
+source formatter not yet audited) and `RegistrationPaySection` (already `RegistrationUIMoney.display(locale:)`).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(locale money 9 baselined, status capsule 29 baselined, 79 allowed), `contract_ratchet --check` 52 failing, baseline 52,
+**new 0**. Simulator check of an en finish-offer / pass card (CN¥) still needed (next sweep).
+
+### For other lanes
+- en-layout: `Core/MPGap/PlayRoam/PlayRoamRound4Models.swift:141` builds the points price as `"\(pts) 积分"` — Chinese
+  in English; use the `mp.pass.points.amount` key.
+
+### Not done (next run)
+- Audit the 9 baselined locale-money sites' source formatters (club settlement, coop settlement, `CYBusinessComponents`
+  order totals); wrap or move to allowed with a reason.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

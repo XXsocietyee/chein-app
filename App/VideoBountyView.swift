@@ -111,6 +111,7 @@ struct VideoBountyState: Equatable {
 }
 
 struct VideoBountyView: View {
+    @Environment(\.locale) private var locale
     let state: VideoBountyState
     /// (campaignKey, topicId) from the ops link. Nil hides the submit form.
     let campaign: (String, String)?
@@ -304,7 +305,7 @@ struct VideoBountyView: View {
                             Text("mp.vb.accrual.recorded")
                         }
                     } label: {
-                        Text(verbatim: MPText.orDash(row.amountText))
+                        Text(verbatim: MPText.orDash(row.amountText.map { LocaleDisplay.yuanAmounts(in: $0, locale: locale) }))
                     }
                 }
             }
