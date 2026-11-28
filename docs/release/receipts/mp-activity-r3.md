@@ -287,6 +287,17 @@ Merged `origin/ui/combined-r7` (087a088a9). P0-1…P0-4, P1-2, P1-3, P1-4 belong
 
 Gates: generate_project ok; scaffold PASS (AppSession ratchet held at 7977); a11y 0 new; design consistency PASS; contract ratchet 52/52 new 0; contextual factory contracts OK.
 
+## Round 3 continue (2026-11-28, thirty-first session — coordinator 07:05 build ffeef67c7, ADA audit)
+Merged `origin/ui/combined-r7` (ffeef67c7, clean). Coordinator 07:05: no open finding for this lane (Pay with row + method-labelled button sit with `fix/1128-cn-pay` / `fix/1128-alipay`). Not done rows are blocked or documented keeps, so this session takes the ADA audit (`origin/audit/1128-ada`) rows for this area.
+
+| MP page | Native view | Change | Level / optimization |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` 已选参与人 (wxml:45-53 `address-info` name + phone) | `App/RegistrationSheetView.swift` `participantSection`, new `maskedPhone(_:)` (reuses `ProfileBoundPhoneDisplay.masking`) | ADA #5 / `en-t5-baoming`: the saved participant row showed the full phone 13900000000. The MP field stays; it now reads 139****0000 (shapes the masker cannot read keep the server text). Inputs and the request still carry the real number | B · Crafted; privacy, monospaced digits unchanged |
+| `pages/square/*` feed (MP `onReachBottom` paging, like the detail comments C-S9) | `App/SquareBrowserView.swift` load-more row; `Tests/AppUITests/SquareFlowTests.swift` (2 tests no longer tap the button) | ADA #12 / `d2-square`: the next page needed a "Load more posts" tap. It now loads when the end of the feed scrolls into view (`load(reset:)` already ignores a second call while loading; a failed page shows retry and stops auto-loading). The button stays for VoiceOver / Switch Control | B · Crafted; system paging behaviour |
+| `pages/square/*` feed card like counter | `App/SquareXcxPostCard.swift` `counters` | ADA `d2-square`: a liked post's heart.fill stayed grey like the rest. The filled heart now uses the brand accent; unliked stays `.secondary` (counts unchanged) | B · Crafted; one accent, state shown by fill + tint |
+
+Not taken (with reason): ADA "keep Register enabled" conflicts with coordinator 19:50 (disable until consent, as the MP) — kept disabled with the footnote reason. ADA "CN¥" conflicts with owner decision 9 (11-24: `¥12.50` everywhere via `MoneyDisplay`) — kept. Registration title `.dynamicTypeSize(...xxxLarge)` (ADA #14) is the bar title cap with Large Content Viewer, like the system inline title — kept. Square "Square" vs 动态 naming → en-layout (For other lanes).
+
 ## Not done
 - P1-8 needs a device check: backend `api/comment/add` must return the inserted row (`id`, `memberId`, `ownerType`, `ownerId`, `replyId`, `rating`, `contents`) or the writer reports 结果未知.
 - P2-1 checked, not changed here: (a) US readiness — `RegistrationStripePaySection.swift:118-122` waits on `payment-readiness.ready`, which the backend computes from WeChat only (audit row 507, owner **backend**; the app-side Stripe rows also sit with `fix/1128-us-pay`); (b) host tip `payable` → 支付已关闭 is `HostTipViews.swift:283-300` (audit row 529, owner **mp-club**); (c) pass detail price facts + 购买暂未开放 note is `PassMarketViews.swift:814-832` (audit row 525, owner **mp-mine**; MP shows prices, purchases deferred by `MPCommerceGate`). Listed under For other lanes.
@@ -300,6 +311,7 @@ Gates: generate_project ok; scaffold PASS (AppSession ratchet held at 7977); a11
 - Coop (audited, not yet fixed): invite — 俱乐部/商家 picker (kept: native entries without a route kind, e.g. coop list → 去发起邀请, need it) and search field are extra (MP takes the kind from the route); 核销据点 card copy and per-merchant picker; inline send result on the sheet (the 去编辑主题 exit exists on the review page; sends go through the per-recipient reviewed `CoopFlowRequestPreview`; failures stay there, not back on the sheet). List — no in-app 缴纳保证金 / 重试保证金退款 path on accepted cards (no native deposit payment client); 合作池 row kept (MP folded it into club detail, but it is the only native route to the pool and is UI-test pinned); extra per-section headers/empties and extra card fields; Detail — read-receipt row kept (it performs the `invite/read` write the MP sends silently), terms-card grouping, deposit footer. Nearby — consent block is extra (kept: native location-purpose consent before the search); 补位 sheet interaction and per-row chapter terms differ; missing-param state (native routes always pass a scope, no param-less entry).
 
 ## For other lanes
+- en-layout: ADA glossary — Square tab/page title reads "Square" in en but 动态 in zh (`square.xcx.navTitle`); ADA suggests "Posts". Many UI tests pin "Square", so rename together.
 - backend: `payment-readiness` should report Stripe readiness for USD quotes (audit 507). mp-club: host tip `payable` has no pay step (audit 529). mp-mine: pass detail buy (audit 525).
 
 ## Gates

@@ -21,7 +21,7 @@ final class SquareFlowTests: XCTestCase {
     func testPostPaginationDetailCommentPaginationAndBack() {
         launch()
         XCTAssertTrue(app.navigationBars["Square"].waitForExistence(timeout: 10))
-        reveal(app.buttons["square.loadMore"])
+        // The next page loads by itself once the end of the feed is on screen (onReachBottom).
         reveal(app.buttons["square.row.703"])
         XCTAssertTrue(app.navigationBars["Post details"].waitForExistence(timeout: 5))
         // C-S9: reaching the last comment loads the next page by itself (MP onReachBottom).
@@ -42,7 +42,8 @@ final class SquareFlowTests: XCTestCase {
     }
     func testPageFailureRetainsRowsAndRetriesSameCursor() {
         launch("pageFailure")
-        reveal(app.buttons["square.loadMore"])
+        // Scrolling to the end requests the next page by itself; the fixture fails it.
+        for _ in 0..<6 { if app.buttons["square.retry"].exists { break }; app.swipeUp() }
         XCTAssertTrue(revealFixtureElement(app.buttons["square.retry"], in: app, towardTop: true), app.debugDescription)
         reveal(app.buttons["square.retry"])
         reveal(app.buttons["square.row.703"])
