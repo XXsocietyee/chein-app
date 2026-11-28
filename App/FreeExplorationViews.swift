@@ -60,10 +60,11 @@ import UIKit
                         ForEach(Array(stores.enumerated()), id: \.element.id) { index, node in
                             Button { onSelect(node.id) } label: {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    // mp-journey r3 (MP `fx-tile__im`): the station photo chain (station → chapter → route cover),
-                                    // `photo-tex` texture when none; a hidden station photo never surfaces.
+                                    // mp-journey-b r3 (MP `fx-tile__im` / `photo-tex`, `_stationPhotos`): the station image chain
+                                    // (station → chapter → route cover → cover art); `fx-tile__lock` 前路未知 over a locked shop.
                                     PlayStationArtwork(image: PlayStationImageResolver.station(for: node, in: snapshot.result),
                                                        title: node.name ?? "", aspectRatio: 4.0 / 3.0, cornerRadius: CYRadius.sm)
+                                        .overlay { if node.locked == true { FreeExplorationTileLock() } }
                                     // mp-journey r3 (MP `fx-tile__chap`): one chapter per shop; the chapter is the card's identity.
                                     if let label = Self.chapterLabel(for: node, in: snapshot) {
                                         label.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
@@ -96,6 +97,21 @@ import UIKit
         }
     }
 }
+/// MP `fx-tile__lock`: lock glyph + 前路未知 centred on the tile photo of a shop the route has not opened yet.
+struct FreeExplorationTileLock: View {
+    var body: some View {
+        VStack(spacing: CYSpacing.xs) {
+            Image(systemName: "lock.fill").font(.title3).accessibilityHidden(true)
+            Text("play.nr2.route.state.locked").font(CYTypography.caption)
+        }
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.black.opacity(0.45))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+}
+
 extension FreeExplorationExperienceView {
     /// `utils/motion-preference.js`: the same stored preference the city run's 游玩工具 writes.
     /// MP `gpsOk` (when-in-use or always) for the 自动记录足迹 row.

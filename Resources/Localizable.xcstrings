@@ -363487,6 +363487,57 @@
           }
         }
       }
+    },
+    "playTools.team.broadcastTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team broadcast"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长广播"
+          }
+        }
+      }
+    },
+    "playTools.team.broadcastPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Say something to the team…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对全队说一句…"
+          }
+        }
+      }
+    },
+    "playTools.team.broadcastSend": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
