@@ -154,7 +154,7 @@ extension FreeExplorationCardBrowser {
                 } else if !facts.isPerkOnly, let done = presentation.redeemed, let total = presentation.total {
                     // Mini-program 已核销环: one ring that fills as stores are redeemed.
                     CYRing(progress: CYRingMath.fraction(done, of: total), tint: CYColor.textPrimary, diameter: 52, lineWidth: 5) {
-                        Text(verbatim: "\(done)/\(total)")
+                        Text(verbatim: "\(done)/\(total)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(done)) \(Int(total))"))
                             .cyText(.micro, monospacedDigit: true)
                             .lineLimit(1)
                             .minimumScaleFactor(0.5)

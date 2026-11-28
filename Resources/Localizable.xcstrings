@@ -1615,6 +1615,23 @@
         }
       }
     },
+    "a11y.value.characters %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已输入 %1$lld 字，最多 %2$lld 字"
+          }
+        }
+      }
+    },
     "a11y.value.ofTotal %lld %lld": {
       "extractionState": "manual",
       "localizations": {

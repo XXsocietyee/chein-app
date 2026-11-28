@@ -81,7 +81,7 @@ public struct MerchantApplyPickerGapView: View {
                     Text("merchantApply.rule.placeholder")
                         .cyText(.meta)
                     Spacer()
-                    Text("\(ruleInstructions.count)/\(maxRuleChars)")
+                    Text("\(ruleInstructions.count)/\(maxRuleChars)").accessibilityLabel(Text("a11y.value.characters \(Int(ruleInstructions.count)) \(Int(maxRuleChars))"))
                         .cyText(.meta, monospacedDigit: true)
                 }
             }
