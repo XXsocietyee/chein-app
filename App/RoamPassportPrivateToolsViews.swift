@@ -726,7 +726,7 @@ extension RoamGoalState {
         }
         .onDisappear { retire(leaving: true) }
         .confirmationDialog("roam.goals.cancelTitle", isPresented: Binding(get: { model.cancelReview != nil }, set: { if !$0 { model.keepGoal() } }), titleVisibility: .visible) {
-            Button("roam.goals.cancelGoal", role: .destructive) { page.settle(write: true, { await model.confirmCancel() }, refresh: { await model.load() }) }.accessibilityIdentifier("roam.goals.confirmCancel")
+            Button("roam.goals.cancelGoal", role: .destructive) { page.settle(write: true, { await model.confirmCancel() }, refresh: { await model.load() }, finished: Self.cancelSettled(model)) }.accessibilityIdentifier("roam.goals.confirmCancel")
             Button("roam.goals.keep", role: .cancel) { model.keepGoal() }
         } message: { Text("roam.goals.cancelMessage") }
         .background { RoamHostedAccessibilityGroup(items: goalsAccessibilityItems) }
@@ -794,6 +794,12 @@ extension RoamGoalState {
         if leaving { creating = false; startDate = ""; endDate = "" }
     }
     private func isRejection(_ issue: RoamPrivateToolIssue) -> Bool { if case .rejected = issue { return true }; return false }
+    /// Motion r3: one success tap once the server confirms the cancellation (detail reads 已取消).
+    private static func cancelSettled(_ model: RoamGoalsCoordinator) -> @MainActor (Void) -> Void {
+        return { (_: Void) in
+            if model.detail?.state == .cancelled { HapticsService.shared.play(.success) }
+        }
+    }
     private func usePeriod(_ kind: RoamGoalPeriod.Kind) {
         guard let value = model.periods.first(where: { $0.kind == kind }) else { return }
         period = kind; startDate = value.startDate; endDate = value.endDateExclusive
@@ -849,7 +855,10 @@ extension RoamGoalState {
                     ) {
                         await model.confirmCreate()
                     }
-                }, refresh: { await model.load() }) { saved in if saved { creating = false } }
+                }, refresh: { await model.load() }) { (saved: Bool) in
+                    // Motion r3: one success tap when the goal is created (the form closes on the new detail).
+                    if saved { creating = false; HapticsService.shared.play(.success) }
+                }
             }
                 .disabled(model.isBusy || model.pending != nil || !model.canWrite).accessibilityIdentifier("roam.goals.create")
             Button("roam.goals.later") { creating = false; model.dismissIssue() }.disabled(model.isBusy).accessibilityIdentifier("roam.goals.later")

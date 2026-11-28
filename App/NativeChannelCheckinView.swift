@@ -111,7 +111,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                     // Check-in moment: the system symbol bounce and success haptic (quiet under Reduce Motion).
                     .symbolEffect(.bounce, options: .nonRepeating, value: reduceMotion ? false : status.checked)
-                    .sensoryFeedback(.success, trigger: status.checked) { _, new in new }
+                    .sensoryFeedback(.success, trigger: status.checked, condition: CYHapticTransition.isOn)
             } else {
                 Label("d7.checkin.notCheckedToday", systemImage: "calendar")
                     .fixedSize(horizontal: false, vertical: true)

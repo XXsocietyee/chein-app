@@ -98,7 +98,7 @@ struct IMConversationReadAllButtonToken: Equatable {
             .listStyle(.insetGrouped)
             .navigationTitle(Text("im.readAll.title"))
             .navigationBarTitleDisplayMode(.inline)
-            .cyHaptic(.success, trigger: model.phase) { _, new in new == .finished }
+            .cyHaptic(.success, trigger: model.phase == .finished, where: CYHapticTransition.turnedOn)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(model.phase == .reviewing ? LocalizedStringKey("action.cancel") : LocalizedStringKey("action.close")) { model.dismiss(); dismiss() }

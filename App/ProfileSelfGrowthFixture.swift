@@ -7,10 +7,10 @@ import Observation
     var presentationRevision: UInt64 = 1
     var scope = UUID()
     var isConfigured = true
-    let isOfflineExample = true
+    var isOfflineExample = true
     var isSignedIn: Bool { identity.accountID != nil }
     func publicProfile(memberID:Int) async throws -> SocialPublicProfile {
-        try JSONDecoder().decode(SocialPublicProfile.self,from:Data("{\"id\":\(memberID),\"nickname\":\"Synthetic growth owner\"}".utf8))
+        try JSONDecoder().decode(SocialPublicProfile.self,from:Data("{\"id\":\(memberID),\"nickname\":\"\(iaFixtureText("Synthetic growth owner", "示例成长主人"))\"}".utf8))
     }
     func informationList() async throws -> [SocialInformation] { [] }
     func information(id:Int) async throws -> SocialInformation { throw APIError.notConfigured }
@@ -42,9 +42,13 @@ import Observation
     private let social:ProfileSelfGrowthFixturePublicReader
     private let growth:ProfileSelfGrowthFixtureReader
     private let memberID:Int
-    init(scenario:String="content") {
+    /// The design sweep (`e4-self-growth*`) shows the player screen only; UI tests keep the read counter and retire control.
+    private let showsTestControls:Bool
+    init(scenario:String="content",showsTestControls:Bool=true) {
+        self.showsTestControls=showsTestControls
         let social=ProfileSelfGrowthFixturePublicReader(),growth=ProfileSelfGrowthFixtureReader(scenario)
         if scenario == "guest" { social.identity = .init(accountID:nil,epoch:1);growth.isAuthenticated=false }
+        social.isOfflineExample=showsTestControls
         self.social=social;self.growth=growth;memberID=scenario == "other" ? 92 : 81
     }
     var body:some View {
@@ -52,12 +56,14 @@ import Observation
             SocialPublicProfileView(memberID:memberID,reader:social,squareReader:social,
                 selfGrowthAccess:.init(reader:growth,owner:social.identity))
                 .safeAreaInset(edge:.bottom) {
+                    if showsTestControls {
                     VStack {
                         Text(verbatim:"Growth reads: \(growth.reads)").accessibilityIdentifier("profile.selfGrowthFixture.reads")
                         Button("Retire synthetic account") {
                             social.identity = .init(accountID:82,epoch:2);social.presentationRevision += 1;growth.scope=UUID()
                         }.accessibilityIdentifier("profile.selfGrowthFixture.retire")
                     }.cyText(.meta)
+                    }
                 }
         }
     }

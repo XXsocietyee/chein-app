@@ -201,7 +201,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
         .onChange(of: smsSent) { _, sent in if sent { focus = .code } }
         .onChange(of: issueKey) { _, key in if key != nil, !issueIsSoft { shakes += 1 } }
         .onChange(of: code) { _, value in if value.count == 6, validPhone, canStart, !isSigningIn { focus = nil; onSignIn() } }
-        .sensoryFeedback(.success, trigger: signedIn) { _, new in new }
+        .sensoryFeedback(.success, trigger: signedIn, condition: CYHapticTransition.isOn)
         .sensoryFeedback(.error, trigger: shakes)
     }
 

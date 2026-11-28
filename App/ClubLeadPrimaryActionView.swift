@@ -112,7 +112,7 @@ extension ClubLeadPrimaryAction {
                 }
                 .disabled(controller.preparing || controller.route != nil || !current || destinations.destination == nil)
                 .accessibilityIdentifier("club.leadPrimary.open")
-                .cyHaptic(.impactMedium, trigger: controller.route?.id) { _, opened in opened != nil }
+                .cyHaptic(.impactMedium, trigger: controller.route?.id, where: CYHapticTransition.isSet)
                 if let hint = ownerStage?.hint, !hint.isEmpty {
                     Text(verbatim: hint)
                         .font(.subheadline)

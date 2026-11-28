@@ -68,10 +68,7 @@ struct IMSafetyCopy {
             .listStyle(.insetGrouped)
             .navigationTitle(Text("im.safety.title"))
             .navigationBarTitleDisplayMode(.inline)
-            .cyHaptic(.success, trigger: model.state) { _, new in
-                if case .acknowledged = new { return true }
-                return false
-            }
+            .cyHaptic(.success, trigger: model.state, where: Self.acknowledged)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.close") { close() }.disabled(isInFlight).accessibilityIdentifier("im.safety.close")
@@ -254,4 +251,12 @@ struct IMSafetyCopy {
         task = Task { @MainActor in await body(); task = nil }
     }
     private func close() { dismiss() }
+}
+
+/// Typed haptic condition (design consistency `untyped haptic`): fires when the state lands on `.acknowledged`.
+private extension IMSafetyReviewView {
+    static func acknowledged(_ old: IMSafetyState, _ new: IMSafetyState) -> Bool {
+        if case .acknowledged = new { return true }
+        return false
+    }
 }

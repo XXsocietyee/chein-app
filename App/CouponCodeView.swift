@@ -61,7 +61,7 @@ extension EnvironmentValues {
             // used / expired / leave / background. Same helper as the ticket pass; instant under Reduce Motion.
             .cyBrightnessBoost(model.historyID > 0 && model.phase == .ready && model.canDisplay)
             // MKT-9-4: MP coupon-qr vibrates once when the merchant scan lands (index.js:413-418).
-            .cyHaptic(.success, trigger: model.phase == .used, where: { old, new in !old && new })
+            .cyHaptic(.success, trigger: model.phase == .used, where: CYHapticTransition.turnedOn)
             .onAppear {
                 guard let permit = appearance.begin(model: model) else { return }
                 if scenePhase == .active {
