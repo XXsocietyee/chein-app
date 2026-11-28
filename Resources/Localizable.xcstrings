@@ -43011,7 +43011,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting payout"
           }
         },
         "zh-Hans": {
@@ -45711,7 +45711,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Host-side profit"
+            "value": "Host-side profit share"
           }
         },
         "zh-Hans": {
@@ -50775,7 +50775,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show this to the merchant scan redeem"
+            "value": "Show this to the merchant to scan and redeem"
           }
         },
         "zh-Hans": {
@@ -85357,7 +85357,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Horizontal"
+            "value": "Horizontal position"
           }
         },
         "zh-Hans": {
@@ -90120,7 +90120,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting activation"
           }
         },
         "zh-Hans": {
@@ -90459,7 +90459,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in"
+            "value": "Check-in staff"
           }
         },
         "zh-Hans": {
@@ -90475,7 +90475,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finance"
+            "value": "Finance staff"
           }
         },
         "zh-Hans": {
@@ -90958,7 +90958,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Handed over platform"
+            "value": "Handed over to platform support"
           }
         },
         "zh-Hans": {
@@ -91233,7 +91233,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending review"
           }
         },
         "zh-Hans": {
@@ -91297,7 +91297,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Undo accepted field"
+            "value": "Undo this accepted field"
           }
         },
         "zh-Hans": {
@@ -91314,7 +91314,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI generation isn't available right now. You can keep editing template yourself."
+            "value": "AI generation isn't available right now. You can keep editing the template yourself."
           }
         },
         "zh-Hans": {
@@ -91416,7 +91416,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Describe the activity want before generating."
+            "value": "Describe the activity you want before generating."
           }
         },
         "zh-Hans": {
@@ -91535,7 +91535,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completion"
+            "value": "Completion feedback"
           }
         },
         "zh-Hans": {
@@ -91790,7 +91790,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -92062,7 +92062,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Previous"
+            "value": "Previous image"
           }
         },
         "zh-Hans": {
@@ -92436,7 +92436,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting arrival"
           }
         },
         "zh-Hans": {
@@ -92748,7 +92748,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Business-account"
+            "value": "Business-account settlement"
           }
         },
         "zh-Hans": {
@@ -92780,7 +92780,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Business-account"
+            "value": "Business-account settlement"
           }
         },
         "zh-Hans": {
@@ -92844,7 +92844,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting response"
           }
         },
         "zh-Hans": {
@@ -93086,7 +93086,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submitting isn’t available."
+            "value": "Submitting isn’t available right now."
           }
         },
         "zh-Hans": {
@@ -93151,7 +93151,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Image upload isn't available right."
+            "value": "Image upload isn't available right now."
           }
         },
         "zh-Hans": {
@@ -93647,7 +93647,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Head"
+            "value": "Head count"
           }
         },
         "zh-Hans": {
@@ -93871,7 +93871,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "New"
+            "value": "New customers"
           }
         },
         "zh-Hans": {
@@ -94095,7 +94095,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting reply"
           }
         },
         "zh-Hans": {
@@ -94207,7 +94207,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Public-channel amount"
+            "value": "Public-channel amount pending"
           }
         },
         "zh-Hans": {
@@ -94351,7 +94351,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Returning"
+            "value": "Returning customers"
           }
         },
         "zh-Hans": {
@@ -94703,7 +94703,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source unit"
+            "value": "Source unit fee"
           }
         },
         "zh-Hans": {
@@ -94799,7 +94799,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending settlement"
           }
         },
         "zh-Hans": {
@@ -95343,7 +95343,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redemptions refunds"
+            "value": "Redemptions and refunds"
           }
         },
         "zh-Hans": {
@@ -95407,7 +95407,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request couldn't completed."
+            "value": "This request couldn't be completed."
           }
         },
         "zh-Hans": {
@@ -95471,7 +95471,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reason reporting"
+            "value": "Reason for reporting"
           }
         },
         "zh-Hans": {
@@ -95679,7 +95679,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Low"
+            "value": "Low ratings"
           }
         },
         "zh-Hans": {
@@ -95695,7 +95695,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting reply"
           }
         },
         "zh-Hans": {
@@ -95711,7 +95711,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photos"
+            "value": "With photos"
           }
         },
         "zh-Hans": {
@@ -95889,7 +95889,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in"
+            "value": "Check-in operator"
           }
         },
         "zh-Hans": {
@@ -96097,7 +96097,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Group"
+            "value": "Group code"
           }
         },
         "zh-Hans": {
@@ -96657,7 +96657,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree request"
+            "value": "Agree with request"
           }
         },
         "zh-Hans": {
@@ -96753,7 +96753,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in"
+            "value": "Check-in operator"
           }
         },
         "zh-Hans": {
@@ -96913,7 +96913,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending platform"
+            "value": "Pending platform review"
           }
         },
         "zh-Hans": {
@@ -96929,7 +96929,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending settlement"
           }
         },
         "zh-Hans": {
@@ -96993,7 +96993,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund"
+            "value": "Refund in progress"
           }
         },
         "zh-Hans": {
@@ -97153,7 +97153,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Platform review"
+            "value": "Platform review pending"
           }
         },
         "zh-Hans": {
@@ -97201,7 +97201,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "New"
+            "value": "New customer"
           }
         },
         "zh-Hans": {
@@ -97998,7 +97998,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your online-node quota is full. Take node offline before placing another."
+            "value": "Your online-node quota is full. Take a node offline before placing another."
           }
         },
         "zh-Hans": {
@@ -98134,7 +98134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redeem"
+            "value": "Redeem code"
           }
         },
         "zh-Hans": {
@@ -98406,7 +98406,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redeem city-node"
+            "value": "Redeem city-node code"
           }
         },
         "zh-Hans": {
@@ -99008,7 +99008,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You've already"
+            "value": "You've already registered"
           }
         },
         "zh-Hans": {
@@ -99169,7 +99169,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chapter"
+            "value": "Chapter invitations"
           }
         },
         "zh-Hans": {
@@ -99185,7 +99185,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chapter"
+            "value": "Chapter recruitment"
           }
         },
         "zh-Hans": {
@@ -99841,7 +99841,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recruiting"
+            "value": "Recruiting category"
           }
         },
         "zh-Hans": {
@@ -101009,7 +101009,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording"
+            "value": "Recording reference"
           }
         },
         "zh-Hans": {
@@ -101025,7 +101025,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voice state source"
+            "value": "Voice state from source"
           }
         },
         "zh-Hans": {
@@ -101409,7 +101409,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Content couldn't loaded correctly"
+            "value": "This content couldn't be loaded correctly"
           }
         },
         "zh-Hans": {
@@ -101569,7 +101569,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No char has been configured for node"
+            "value": "No character has been configured for this node"
           }
         },
         "zh-Hans": {
@@ -101585,7 +101585,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Take"
+            "value": "Take offline"
           }
         },
         "zh-Hans": {
@@ -101601,7 +101601,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Make"
+            "value": "Make available"
           }
         },
         "zh-Hans": {
@@ -102065,7 +102065,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request couldn't."
+            "value": "This request couldn't be completed."
           }
         },
         "zh-Hans": {
@@ -102927,7 +102927,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notes are visible only store"
+            "value": "Notes are visible only to your store"
           }
         },
         "zh-Hans": {
@@ -103803,7 +103803,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete merchant onboarding use brand."
+            "value": "Complete merchant onboarding to use the brand center."
           }
         },
         "zh-Hans": {
@@ -103888,7 +103888,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Office"
+            "value": "Office workers"
           }
         },
         "zh-Hans": {
@@ -103939,7 +103939,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Families children"
+            "value": "Families with children"
           }
         },
         "zh-Hans": {
@@ -104279,7 +104279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Historic"
+            "value": "Historic street"
           }
         },
         "zh-Hans": {
@@ -104854,7 +104854,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This action isn't available for this account store right."
+            "value": "This action isn't available for this account and store right now."
           }
         },
         "zh-Hans": {
@@ -105063,7 +105063,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clear this response screen"
+            "value": "Clear this response from the screen"
           }
         },
         "zh-Hans": {
@@ -105799,7 +105799,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aftercare"
+            "value": "Aftercare evidence"
           }
         },
         "zh-Hans": {
@@ -105847,7 +105847,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Selected aftercare"
+            "value": "Selected aftercare evidence"
           }
         },
         "zh-Hans": {
@@ -106199,7 +106199,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photos and camera aren't available right."
+            "value": "Photos and camera aren't available right now."
           }
         },
         "zh-Hans": {
@@ -106231,7 +106231,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No campaign history returned."
+            "value": "No campaign history was returned."
           }
         },
         "zh-Hans": {
@@ -106679,7 +106679,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Calculated"
+            "value": "Calculated audience"
           }
         },
         "zh-Hans": {
@@ -106775,7 +106775,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Partially"
+            "value": "Partially completed"
           }
         },
         "zh-Hans": {
@@ -106919,7 +106919,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Number"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {
@@ -107017,7 +107017,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No recent"
+            "value": "No recent activity"
           }
         },
         "zh-Hans": {
@@ -107340,7 +107340,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No activity candidates were returned for this account. The original featured item unchanged."
+            "value": "No activity candidates were returned for this account. The original featured item is unchanged."
           }
         },
         "zh-Hans": {
@@ -108360,7 +108360,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Available"
+            "value": "Available industries"
           }
         },
         "zh-Hans": {
@@ -108545,7 +108545,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Previous industry"
+            "value": "Previous industry ID"
           }
         },
         "zh-Hans": {
@@ -108863,7 +108863,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "New"
+            "value": "New visitors"
           }
         },
         "zh-Hans": {
@@ -108931,7 +108931,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Returning"
+            "value": "Returning visitors"
           }
         },
         "zh-Hans": {
@@ -109082,7 +109082,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Business"
+            "value": "Business opportunity"
           }
         },
         "zh-Hans": {
@@ -109184,7 +109184,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View"
+            "value": "View topic"
           }
         },
         "zh-Hans": {
@@ -109521,7 +109521,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Net"
+            "value": "Net adjustment"
           }
         },
         "zh-Hans": {
@@ -110292,7 +110292,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leaving isn't available right now. Can still check eligibility impact."
+            "value": "Leaving isn't available right now. You can still check eligibility and impact."
           }
         },
         "zh-Hans": {
@@ -110700,7 +110700,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This active supply can exited"
+            "value": "This active supply can be exited"
           }
         },
         "zh-Hans": {
@@ -111243,7 +111243,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Every"
+            "value": "Every day"
           }
         },
         "zh-Hans": {
@@ -111480,7 +111480,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Resident ID"
+            "value": "Resident ID number"
           }
         },
         "zh-Hans": {
@@ -111528,7 +111528,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This ID number isn't valid. Check it try again."
+            "value": "This ID number is not valid. Check it and try again."
           }
         },
         "zh-Hans": {
@@ -111710,7 +111710,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check the box to agree before continue"
+            "value": "Check the box to agree before you continue"
           }
         },
         "zh-Hans": {
@@ -111861,7 +111861,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Business license received by service"
+            "value": "Business license received by the service"
           }
         },
         "zh-Hans": {
@@ -112217,7 +112217,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upload business license before"
+            "value": "Upload a business license before continuing"
           }
         },
         "zh-Hans": {
@@ -112370,7 +112370,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting activation"
           }
         },
         "zh-Hans": {
@@ -113323,7 +113323,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Generation"
+            "value": "Generation pending"
           }
         },
         "zh-Hans": {
@@ -113499,7 +113499,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A previously uploaded char avatar is required. Uploading isn't available right."
+            "value": "A previously uploaded character avatar is required. Uploading isn't available right now."
           }
         },
         "zh-Hans": {
@@ -113771,7 +113771,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This content changed while you reviewing. Reload before making another draft."
+            "value": "This content changed while you were reviewing. Reload before making another draft."
           }
         },
         "zh-Hans": {
@@ -113948,7 +113948,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Derivative"
+            "value": "Derivative benefits"
           }
         },
         "zh-Hans": {
@@ -114241,7 +114241,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completion"
+            "value": "Completion feedback"
           }
         },
         "zh-Hans": {
@@ -114545,7 +114545,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review draft fields before continuing."
+            "value": "Review the draft fields before continuing."
           }
         },
         "zh-Hans": {
@@ -114785,7 +114785,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multiple-choice"
+            "value": "Multiple-choice question"
           }
         },
         "zh-Hans": {
@@ -114801,7 +114801,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Posted QR"
+            "value": "Posted QR code"
           }
         },
         "zh-Hans": {
@@ -115155,7 +115155,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location"
+            "value": "Location placement"
           }
         },
         "zh-Hans": {
@@ -115699,7 +115699,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Example placeholder"
+            "value": "Example placeholder image"
           }
         },
         "zh-Hans": {
@@ -115747,7 +115747,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Interaction"
+            "value": "Interaction template"
           }
         },
         "zh-Hans": {
@@ -116644,7 +116644,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View aftercare"
+            "value": "View aftercare cases"
           }
         },
         "zh-Hans": {
@@ -116676,7 +116676,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Respond aftercare"
+            "value": "Respond to aftercare"
           }
         },
         "zh-Hans": {
@@ -117188,7 +117188,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verify"
+            "value": "Verify redemptions"
           }
         },
         "zh-Hans": {
@@ -117569,7 +117569,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After-sales"
+            "value": "After-sales status"
           }
         },
         "zh-Hans": {
@@ -117620,7 +117620,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund"
+            "value": "Refund processing"
           }
         },
         "zh-Hans": {
@@ -117722,7 +117722,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting payment"
           }
         },
         "zh-Hans": {
@@ -117739,7 +117739,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting shipment"
           }
         },
         "zh-Hans": {
@@ -117773,7 +117773,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting review"
           }
         },
         "zh-Hans": {
@@ -117960,7 +117960,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter participation time positive whole number minutes."
+            "value": "Enter participation time as a positive whole number of minutes."
           }
         },
         "zh-Hans": {
@@ -118385,7 +118385,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose valid-until"
+            "value": "Choose valid-until date"
           }
         },
         "zh-Hans": {
@@ -119064,7 +119064,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -119370,7 +119370,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Predictions"
+            "value": "Predictions to answer"
           }
         },
         "zh-Hans": {
@@ -119387,7 +119387,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Predictions can't be loaded right"
+            "value": "Predictions can't be loaded right now"
           }
         },
         "zh-Hans": {
@@ -119438,7 +119438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Required"
+            "value": "Required materials"
           }
         },
         "zh-Hans": {
@@ -119540,7 +119540,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Historic town"
+            "value": "Historic town or street"
           }
         },
         "zh-Hans": {
@@ -119591,7 +119591,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Park green space"
+            "value": "Park or green space"
           }
         },
         "zh-Hans": {
@@ -119608,7 +119608,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scenic"
+            "value": "Scenic area"
           }
         },
         "zh-Hans": {
@@ -119982,7 +119982,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fulfilling"
+            "value": "Fulfilling merchant"
           }
         },
         "zh-Hans": {
@@ -120319,7 +120319,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Number"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {
@@ -120560,7 +120560,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write review"
+            "value": "Write a review"
           }
         },
         "zh-Hans": {
@@ -120897,7 +120897,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Isn't available"
+            "value": "This isn't available right now"
           }
         },
         "zh-Hans": {
@@ -120961,7 +120961,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo preview isn't available right"
+            "value": "Photo preview isn't available right now"
           }
         },
         "zh-Hans": {
@@ -121089,7 +121089,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send this report platform review. Reporting doesn't delete review"
+            "value": "Send this report for platform review. Reporting does not delete the review"
           }
         },
         "zh-Hans": {
@@ -121137,7 +121137,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -121489,7 +121489,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verified"
+            "value": "Verified redemption"
           }
         },
         "zh-Hans": {
@@ -121674,7 +121674,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconciliation"
+            "value": "Reconciliation confirmed"
           }
         },
         "zh-Hans": {
@@ -122393,7 +122393,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revenue in last 7 days"
+            "value": "Revenue in the last 7 days"
           }
         },
         "zh-Hans": {
@@ -122489,7 +122489,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Previous"
+            "value": "Previous photo"
           }
         },
         "zh-Hans": {
@@ -122870,7 +122870,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting reply"
           }
         },
         "zh-Hans": {
@@ -122903,7 +122903,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Replies can edited later"
+            "value": "Replies can be edited later"
           }
         },
         "zh-Hans": {
@@ -123017,7 +123017,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in"
+            "value": "Check-in staff"
           }
         },
         "zh-Hans": {
@@ -123051,7 +123051,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store"
+            "value": "Store manager"
           }
         },
         "zh-Hans": {
@@ -123339,7 +123339,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity revenue"
+            "value": "Activity revenue share"
           }
         },
         "zh-Hans": {
@@ -123547,7 +123547,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invoice"
+            "value": "Invoice issued"
           }
         },
         "zh-Hans": {
@@ -123563,7 +123563,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invoice not"
+            "value": "Invoice not issued"
           }
         },
         "zh-Hans": {
@@ -123579,7 +123579,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invoice"
+            "value": "Invoice reversed"
           }
         },
         "zh-Hans": {
@@ -123611,7 +123611,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirmed"
+            "value": "Reconciliation confirmed"
           }
         },
         "zh-Hans": {
@@ -123691,7 +123691,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Platform payment"
+            "value": "Platform payment recorded"
           }
         },
         "zh-Hans": {
@@ -123707,7 +123707,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting reconciliation"
           }
         },
         "zh-Hans": {
@@ -123739,7 +123739,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No payment required period"
+            "value": "No payment required for this period"
           }
         },
         "zh-Hans": {
@@ -123755,7 +123755,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconciliation"
+            "value": "Reconciliation confirmed"
           }
         },
         "zh-Hans": {
@@ -124457,7 +124457,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Derivative"
+            "value": "Derivative benefits"
           }
         },
         "zh-Hans": {
@@ -124751,7 +124751,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Move"
+            "value": "Move later"
           }
         },
         "zh-Hans": {
@@ -125074,7 +125074,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Move"
+            "value": "Move earlier"
           }
         },
         "zh-Hans": {
@@ -125924,7 +125924,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completed"
+            "value": "Completed verifications"
           }
         },
         "zh-Hans": {
@@ -125941,7 +125941,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting verification"
           }
         },
         "zh-Hans": {
@@ -126145,7 +126145,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store's station"
+            "value": "This store's station"
           }
         },
         "zh-Hans": {
@@ -126390,7 +126390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Total"
+            "value": "Total distance"
           }
         },
         "zh-Hans": {
@@ -126454,7 +126454,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stop"
+            "value": "Stop introductions"
           }
         },
         "zh-Hans": {
@@ -126470,7 +126470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld after-sales requests await response"
+            "value": "%lld after-sales requests await your response"
           }
         },
         "zh-Hans": {
@@ -127456,7 +127456,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add question"
+            "value": "Add question and answer"
           }
         },
         "zh-Hans": {
@@ -127609,7 +127609,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Day week"
+            "value": "Day of week"
           }
         },
         "zh-Hans": {
@@ -128051,7 +128051,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questions answers"
+            "value": "Questions and answers"
           }
         },
         "zh-Hans": {
@@ -128153,7 +128153,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Things NPC must never say"
+            "value": "Things the NPC must never say"
           }
         },
         "zh-Hans": {
@@ -128979,7 +128979,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Active"
+            "value": "Active entitlements"
           }
         },
         "zh-Hans": {
@@ -129302,7 +129302,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current merchant role doesn't grant permission"
+            "value": "Your current merchant role does not grant this permission"
           }
         },
         "zh-Hans": {
@@ -129523,7 +129523,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review the selected answer and acknowledge effects"
+            "value": "Review the selected answer and acknowledge its effects"
           }
         },
         "zh-Hans": {
@@ -129914,7 +129914,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Repeat visit"
+            "value": "Repeat visit rate"
           }
         },
         "zh-Hans": {
@@ -129999,7 +129999,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Something went"
+            "value": "Something went wrong"
           }
         },
         "zh-Hans": {
@@ -130050,7 +130050,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The safety record couldn't be saved. Nothing submitted."
+            "value": "The safety record could not be saved. Nothing was submitted."
           }
         },
         "zh-Hans": {
@@ -130101,7 +130101,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Business"
+            "value": "Business interpretation"
           }
         },
         "zh-Hans": {
@@ -130169,7 +130169,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Feature isn't available right"
+            "value": "This feature isn't available right now"
           }
         },
         "zh-Hans": {
@@ -130651,7 +130651,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Merchant qualification has."
+            "value": "The merchant qualification has been revoked."
           }
         },
         "zh-Hans": {
@@ -130782,7 +130782,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No reply"
+            "value": "No reply is available"
           }
         },
         "zh-Hans": {
@@ -130830,7 +130830,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Audio playback isn't available"
+            "value": "Audio playback isn't available right now"
           }
         },
         "zh-Hans": {
@@ -130846,7 +130846,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording, uploads and voice generation aren't available right."
+            "value": "Recording, uploads and voice generation aren't available right now."
           }
         },
         "zh-Hans": {
@@ -131134,7 +131134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not available"
+            "value": "Not available right now"
           }
         },
         "zh-Hans": {
@@ -131611,7 +131611,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Military"
+            "value": "Military cap"
           }
         },
         "zh-Hans": {
@@ -131771,7 +131771,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Orange"
+            "value": "Orange bear"
           }
         },
         "zh-Hans": {
@@ -131787,7 +131787,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pink"
+            "value": "Pink hair"
           }
         },
         "zh-Hans": {
@@ -132121,7 +132121,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording isn't available."
+            "value": "Recording isn't available right now."
           }
         },
         "zh-Hans": {
@@ -150769,7 +150769,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -190271,7 +190271,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ready visit"
+            "value": "Ready to visit"
           }
         },
         "zh-Hans": {
@@ -190287,7 +190287,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Queuing consider visiting another store"
+            "value": "Queuing now, consider visiting another store first"
           }
         },
         "zh-Hans": {
@@ -190351,7 +190351,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "On-site"
+            "value": "On-site status"
           }
         },
         "zh-Hans": {
@@ -190367,7 +190367,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provide requested photo"
+            "value": "Provide the requested photo"
           }
         },
         "zh-Hans": {
@@ -190511,7 +190511,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Three on-site"
+            "value": "Three on-site steps"
           }
         },
         "zh-Hans": {
@@ -238848,7 +238848,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Register merchant"
+            "value": "Register as a merchant"
           }
         },
         "zh-Hans": {
@@ -254198,7 +254198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Co-created station"
+            "value": "Co-created station onboarding"
           }
         },
         "zh-Hans": {
@@ -260374,6 +260374,7 @@
       }
     },
     "templateAuthor.finish": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -266057,13 +266058,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Position set"
+            "value": "Marked"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已有位置"
+            "value": "已标好"
           }
         }
       }
@@ -266121,7 +266122,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Needs a position"
+            "value": "Not marked yet"
           }
         },
         "zh-Hans": {
@@ -269016,7 +269017,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片 %lld"
+            "value": "图 %lld"
           }
         }
       }
@@ -270718,6 +270719,7 @@
       }
     },
     "templateRewardKinds.coupon": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -270766,6 +270768,7 @@
       }
     },
     "templateRewardKinds.medal": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -274026,7 +274029,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t open your ticket wallet"
+            "value": "Couldn't open your ticket wallet"
           }
         },
         "zh-Hans": {
@@ -275598,7 +275601,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participating"
+            "value": "Participating shops"
           }
         },
         "zh-Hans": {
@@ -277856,7 +277859,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participating"
+            "value": "Participating shops"
           }
         },
         "zh-Hans": {
@@ -298011,7 +298014,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start merchant"
+            "value": "Start merchant onboarding"
           }
         },
         "zh-Hans": {
@@ -298028,7 +298031,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Profit share"
+            "value": "Profit share details"
           }
         },
         "zh-Hans": {
@@ -298198,7 +298201,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Play original"
+            "value": "Play original recording"
           }
         },
         "zh-Hans": {
@@ -299958,7 +299961,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign In"
+            "value": "Sign in"
           }
         },
         "zh-Hans": {
@@ -301046,7 +301049,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Please sign first"
+            "value": "Please sign in first"
           }
         },
         "zh-Hans": {
@@ -301352,7 +301355,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Co-op Revenue"
+            "value": "Co-op Revenue Share"
           }
         },
         "zh-Hans": {
@@ -301607,7 +301610,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hosting"
+            "value": "Hosting Instructions"
           }
         },
         "zh-Hans": {
@@ -301879,7 +301882,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participating"
+            "value": "Participating shops"
           }
         },
         "zh-Hans": {
@@ -302440,7 +302443,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Don't have permission."
+            "value": "You do not have permission to approve requests."
           }
         },
         "zh-Hans": {
@@ -303686,7 +303689,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tick every item on checklist first"
+            "value": "Tick every item on the checklist first"
           }
         },
         "zh-Hans": {
@@ -303924,7 +303927,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original amount"
+            "value": "Original amount due"
           }
         },
         "zh-Hans": {
@@ -309168,7 +309171,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reply invite"
+            "value": "Reply with invite"
           }
         },
         "zh-Hans": {
@@ -309236,7 +309239,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite someone"
+            "value": "Invite someone else"
           }
         },
         "zh-Hans": {
@@ -309270,7 +309273,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact operations upgrade"
+            "value": "Contact operations to upgrade"
           }
         },
         "zh-Hans": {
@@ -309525,7 +309528,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open the ledger merchant workbench."
+            "value": "Open the ledger from the merchant workbench."
           }
         },
         "zh-Hans": {
@@ -309576,7 +309579,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite"
+            "value": "Invite as replacement"
           }
         },
         "zh-Hans": {
@@ -309593,7 +309596,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Find merchant partner"
+            "value": "Find a merchant partner"
           }
         },
         "zh-Hans": {
@@ -309644,7 +309647,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Good"
+            "value": "Good afternoon"
           }
         },
         "zh-Hans": {
@@ -309729,7 +309732,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Players follow the route to check store"
+            "value": "Players follow the route to check in at your store"
           }
         },
         "zh-Hans": {
@@ -309814,7 +309817,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grow business"
+            "value": "Grow your business"
           }
         },
         "zh-Hans": {
@@ -310052,7 +310055,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": " #"
+            "value": " orders"
           }
         },
         "zh-Hans": {
@@ -312439,7 +312442,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending review"
           }
         },
         "zh-Hans": {
@@ -312609,7 +312612,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stop you're"
+            "value": "Stop you are applying for"
           }
         },
         "zh-Hans": {
@@ -315688,7 +315691,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search for place"
+            "value": "Search for a place"
           }
         },
         "zh-Hans": {
@@ -323046,7 +323049,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off By"
+            "value": "Off by"
           }
         },
         "zh-Hans": {
@@ -330260,7 +330263,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending review"
           }
         },
         "zh-Hans": {
@@ -362829,7 +362832,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact merchant"
+            "value": "Contact the merchant"
           }
         },
         "zh-Hans": {
@@ -362897,7 +362900,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "merchant"
+            "value": "the merchant"
           }
         },
         "zh-Hans": {
@@ -366408,6 +366411,397 @@
           "stringUnit": {
             "state": "translated",
             "value": "位置只在本机匹配城市，不会上传。"
+          }
+        }
+      }
+    },
+    "creator.mp.pricePair.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题目"
+          }
+        }
+      }
+    },
+    "creator.mp.pricePair.title.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Which one is this shop's signature?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 哪一张是这家店的招牌"
+          }
+        }
+      }
+    },
+    "creator.mp.pricePair.name.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is this picture called? e.g. Iced Americano"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这张图叫什么，如 冰美式"
+          }
+        }
+      }
+    },
+    "creator.mp.pricePair.imageUrl.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image address (https or in-app path)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片地址（https 或站内路径）"
+          }
+        }
+      }
+    },
+    "creator.mp.hiddenObject.title.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Find the three cats hidden in the shop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 找出藏在店里的三只猫"
+          }
+        }
+      }
+    },
+    "creator.mp.hiddenObject.hint.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Windowsill, bookshelf, behind the counter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 窗台、书架、收银台后面"
+          }
+        }
+      }
+    },
+    "creator.mp.hiddenObject.imageUrl": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scene image address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场景图地址"
+          }
+        }
+      }
+    },
+    "creator.mp.hiddenObject.imageUrl.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "https link or in-app path"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "https 链接或站内路径"
+          }
+        }
+      }
+    },
+    "creator.mp.hiddenObject.label.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target name, e.g. the ginger cat on the windowsill"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标名，如 窗台上的橘猫"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题干"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.title.prompt.TYPE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. What year was this bridge built?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 这座桥建于哪一年？"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.title.prompt.PICK": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Which lantern hangs at the shop door?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 店门口挂的是哪种灯笼？"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.title.prompt.SHOT": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Take a photo with the stone lion at the door"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 和店门口的石狮子合个影"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.lead.prompt.TYPE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. The answer is carved on the stone tablet by the bridge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 桥头石碑上刻着答案"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.lead.prompt.PICK": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Look at the sign by the door first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 先看看门口的招牌"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.lead.prompt.SHOT": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Walk up to the front of the old tree"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 走到古树正前方"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.answerText": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确答案"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.answerText.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Several answers allowed, separated by 、"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可填多个，用、分隔"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.shotNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More instructions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "补充说明"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.shotNote.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Stand to the left of the tree and fit the whole tree in the frame"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 站在树的左边，把整棵树都框进去"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.option.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text players see"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家看到的文案"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.fb": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feedback when chosen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选中后的反馈"
+          }
+        }
+      }
+    },
+    "creator.mp.qa.fb.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text players see after choosing it"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选了它之后玩家看到的文字"
           }
         }
       }

@@ -38,7 +38,7 @@ ROWS = {
  'official.error.fallback': ('Could not load official events', '官方活动加载失败'),
  'official.cityAll': ('Citywide', '全城'),
  'official.gap': ('Info missing', '信息不全'),
- 'official.gapFallback': ('A key partner is missing. Replacement pending.', '关键承接方缺失，待补位'),
+ 'official.gapFallback': ('A key partner is missing and a replacement is pending', '关键承接方缺失，待补位'),
  'official.open': ('View event', '查看活动'),
  'official.openLabel': ('View official event: %@', '查看官方活动：%@'),
  'refresh': ('Refresh opportunities', '刷新合作机会'),

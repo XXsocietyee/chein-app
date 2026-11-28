@@ -203,7 +203,7 @@ class TemplateShelfStateProjectionContracts(unittest.TestCase):
             ('view', 'state.market.rawValue', 'state.personal.rawValue'),
             ('view', 'let state = rowStates[row.id] ?? .unknown', 'let state = rowStates[7] ?? .unknown'),
             ('view', '.disabled(readSnapshot)', ''),
-            ('catalog', 'Marketplace review', 'Marketplace approved'),
+            ('catalog', 'Marketplace review pending', 'Marketplace approved'),
         ]
         for target, before, after in changes:
             source = {'core': core, 'view': view, 'catalog': catalog}[target]

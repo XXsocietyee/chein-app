@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Isn't available"
+            "value": "This isn't available right now"
           }
         },
         "zh-Hans": {
@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -294,7 +294,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo preview isn't available right"
+            "value": "Photo preview isn't available right now"
           }
         },
         "zh-Hans": {
@@ -518,7 +518,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verified"
+            "value": "Verified redemption"
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send this report platform review. Reporting doesn't delete review"
+            "value": "Send this report for platform review. Reporting does not delete the review"
           }
         },
         "zh-Hans": {
@@ -902,7 +902,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Number"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {
@@ -918,7 +918,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write review"
+            "value": "Write a review"
           }
         },
         "zh-Hans": {

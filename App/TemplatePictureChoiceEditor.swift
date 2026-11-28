@@ -84,10 +84,10 @@ import Combine
             ForEach(Array(editor.rows.enumerated()), id: \.element.id) { index, row in
                 Section {
                     Text("templatePictures.number \(index + 1)").cyText(.cardTitle)
-                    TextField("creator.field.name", text: editor.text(row.id, field: .name), axis: .vertical)
+                    TextField("creator.field.name", text: editor.text(row.id, field: .name), prompt: Text("creator.mp.pricePair.name.prompt"), axis: .vertical)
                         .accessibilityIdentifier("creator.pictures.name.\(index)")
                     Text(verbatim: "\(row.name.utf16.count)/32").cyText(.meta).foregroundStyle(.secondary).accessibilityLabel(Text("a11y.value.characters \(Int(row.name.utf16.count)) \(Int(32))"))
-                    TextField("creator.field.imageUrl", text: editor.text(row.id, field: .imageURL), axis: .vertical)
+                    TextField("creator.field.imageUrl", text: editor.text(row.id, field: .imageURL), prompt: Text("creator.mp.pricePair.imageUrl.prompt"), axis: .vertical)
                         .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                         .accessibilityIdentifier("creator.pictures.imageURL.\(index)")
                     Button(action: editor.chooseAction(row.id)) {

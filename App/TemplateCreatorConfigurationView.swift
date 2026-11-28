@@ -142,7 +142,7 @@ import Combine
             } else {
             VStack(alignment: .leading) {
                 // MP card: the label stays above the field when the MP gives its own placeholder.
-                if let promptKey = field.promptKey {
+                if let promptKey = TemplateCreatorSchema.prompt(field, family: family, mode: object["mode"]?.string) {
                     Text(LocalizedStringKey(field.labelKey)).font(.subheadline).foregroundStyle(.secondary).accessibilityHidden(true)
                     TextField(LocalizedStringKey(field.labelKey), text: text, prompt: Text(LocalizedStringKey(promptKey)), axis: .vertical).textInputAutocapitalization(.never)
                 } else {
