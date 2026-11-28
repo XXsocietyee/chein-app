@@ -109,7 +109,7 @@
     "wp07.coupon.retry" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try again" } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重试" } }
       }
     },
@@ -172,7 +172,7 @@
     "wp07.group.retry" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try again" } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重试" } }
       }
     },
