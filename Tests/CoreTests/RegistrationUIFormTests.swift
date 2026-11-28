@@ -57,6 +57,10 @@ final class RegistrationUIFormTests: XCTestCase {
             XCTAssertFalse(cny?.contains("$") == true, "\(id) \(cny ?? "nil")")
         }
         XCTAssertEqual(RegistrationUIMoney.display(12.5, locale: Locale(identifier: "en_US")), "12.50")
+        XCTAssertEqual(RegistrationUIMoney.quoteDisplayCode(" usd "), "USD")
+        XCTAssertEqual(RegistrationUIMoney.quoteDisplayCode("RMB"), "CNY")
+        XCTAssertNil(RegistrationUIMoney.quoteDisplayCode(nil))
+        XCTAssertNil(RegistrationUIMoney.quoteDisplayCode("  "))
     }
     /// Owner 2026-11-24: one shared MoneyDisplay, two decimals (¥12.50). The live switch stays `.twoDecimals`.
     func testMoneyDisplaySwitchDefaultsToCurrentTwoDecimals() throws {

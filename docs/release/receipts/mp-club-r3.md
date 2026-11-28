@@ -466,6 +466,16 @@ Merged `origin/ui/combined-r7` (2b6ff8700, clean). Every `pages/club/*` and `pag
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS, en strings: no new club rows.
 
+## Pass 49: sweep 17:10 UTC (build 2fc0feb24, `docs/sweeps/latest/mp-club/sheet-en.jpg`, `sheet-zh-Hans.jpg`); no new coordinator finding for mp-club; no K50 `lane-layout` rows for club
+Merged `origin/ui/combined-r7` (45264c9bf). Sheets: zh `d4-detail` renders clean; the en `d4-detail` tile is dimmed with a centred logo, the same launch-screen crossfade the coordinator flagged for mp-roam (15:50) and mp-states (17:30), not a club view (the zh tile of the same fixture is clean).
+| MP page | Native view | MP sections | Fix |
+|---|---|---|---|
+| `pages/talent/list` 俱乐部 tab club rows (`index.js:28` `logoUrl = c.logo ? … : '/images/d_logo.png'`; `components/cy/club-card`; level B) | `App/ClubComponents.swift` `ClubRowThumbnail` (used by `ClubDirectoryView` 查找俱乐部 and `ClubHomeView` rows) | Shot `en-d4-directory` / `zh-Hans-d4-directory`: a club with no cover/logo showed a generic `person.3` glyph on grey, while the same club's detail header shows the MP default logo (`ClubDetailCover … fallback: MPAsset.BrandLogo.dLogo`). | **Fixed.** The thumbnail's base layer is now the MP default club logo `MPAsset.BrandLogo.dLogo` (shown while the image loads, when there is none, or when it fails), so one club reads the same in the directory, club home and detail. Same 48 pt size, radius and order (cover, then logo); no new keys |
+| P2-4 rest | `/api/club/name-check` | — | **Done (Cursor K40, `b6c470305`).** Admitted in `ChinaReviewedRouteCapability.swift:543-545` after the backend confirmed `ApiClubController` `POST /name-check`; tests `ClubPlayerFlowTests.testChinaNameCheckIsOfferedAndSendsTheTrimmedName`, `Fix1128bClubReadRouteTests.testReviewedDeploymentSendsCreateNameCheck` (`docs/release/receipts/cursor-k40-club.md`) |
+| club/event-ops 重复方式 step 3 (form inline on the hub) | — | — | Still **Not done** (moves `ClubGovernanceCommandForm` review/return ownership onto the hub; step 2 already opens the form for the picked topic in one tap) |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS.
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.

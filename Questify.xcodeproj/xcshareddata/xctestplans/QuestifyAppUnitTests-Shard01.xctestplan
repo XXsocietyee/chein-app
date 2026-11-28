@@ -533,6 +533,7 @@
         "ReleaseArchiveChecklistSectionViewTests",
         "ReleasePlayerServiceAuditTests",
         "ReleasePreflightDiagnosticsViewTests",
+        "RemotePushRegistrationClientTests",
         "RetainedImageSanitizerTests",
         "RevealChoreographerTests",
         "ReviewedAreaSwitchTests",

@@ -139,6 +139,14 @@ public enum MoneyDisplay {
 public enum RegistrationUIMoney {
     public static let yuanCurrencyCode = "CNY"
     public static let dollarCurrencyCode = "USD"
+    /// The quote's own currency when the server sent one (`USD` → `$`, `RMB` read as `CNY`).
+    /// Nil when the quote has no currency, so a China total stays the unconfirmed decimal.
+    /// Named `*Yuan` fields do not use this: they stay CNY and are not converted.
+    public static func quoteDisplayCode(_ currency: String?) -> String? {
+        let code = (currency ?? "").trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if code.isEmpty { return nil }
+        return code == "RMB" ? yuanCurrencyCode : code
+    }
     /// US r2: with a currency code the amount carries the order currency's own narrow symbol in every
     /// locale (`USD` → `$12.50`, `CNY` → `¥12.50`); the device locale only picks separators. Without a
     /// code the amount stays a bare decimal (currency unknown).

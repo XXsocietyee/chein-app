@@ -526,6 +526,7 @@
         "RegistrationUncertainEvidenceCacheTests",
         "RegistrationWaitlistOrderVisitTests",
         "ReleasePlayerServiceAuditTests",
+        "RemotePushRegistrationClientTests",
         "RetainedImageNormalHostTests",
         "RetainedImageSanitizerTests",
         "RevealChoreographerTests",
