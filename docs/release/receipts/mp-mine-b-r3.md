@@ -57,3 +57,13 @@ Merged `origin/mp/r3-mine` (A continue 44, 511b2f751). Fetched every branch: no 
 Half split (fixed at run start; A receipt open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin owner) · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` off) | 3 P2-5c participants +1 / US legal copy (backend + legal owner). **B half = row 3**, still blocked with nothing to change app-side. Skipped.
 
 **Half done** (B half: row 3 blocked). Run stops here per the 15:45 split rule.
+
+## Run 5 (11-28, hourly)
+
+Merged `origin/mp/r3-mine` (A continue 46, 928c405df). Every remote branch checked: still no `docs/release/receipts/cursor-k50-p*.md`, so no K50 `lane-layout` rows for mp-mine. Sweep unchanged (build 2fc0feb24, checked by A continue 46); the brief has no new mp-mine coordinator rows.
+
+Half split (fixed at run start; A receipt open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin owner) · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` off) | 3 P2-5c participants +1 / US legal copy. **B half = row 3**. Re-checked app side: the remaining mainland-only phone checks (`Core/JourneyLoopSource.swift:408`, `Core/MPGap/AccountPublish/AccountPublishGapModels.swift:490`, `App/JourneySeatTransferSheet.swift`, `App/ClubTopicDetailRows.swift:24`) are journey / activity / club files, not mp-mine, and the participant regex itself is the backend's. Nothing to change in this area. Skipped.
+
+For other lanes: mp-activity / mp-journey — once the backend accepts +1 E.164 participants (P2-5c), `AccountPublishGapModels.swift:490` and `JourneyLoopSource.swift:408` still reject `+1…` numbers on the client.
+
+**Half done** (B half: row 3 blocked on backend + legal). Run stops here per the 15:45 split rule.

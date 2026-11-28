@@ -1,12 +1,5 @@
-#if canImport(QuestifyApp)
-@testable import QuestifyApp
-#endif
-#if canImport(QuestifyCore)
-import QuestifyCore
-#elseif canImport(Core)
-import Core
-#endif
 import XCTest
+@testable import Questify
 
 /// MP topic-detail director.js:378-385 `classifyLoadError` → wxml:163-171 load states.
 @MainActor

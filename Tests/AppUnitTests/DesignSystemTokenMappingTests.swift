@@ -146,7 +146,7 @@ final class DesignSystemTokenMappingTests: XCTestCase {
         assertColor(merchant.bgSurface, matchesHex: 0xFFFFFF, scheme: .light, "merchant.bgSurface")
         assertColor(merchant.bgElevated, matchesHex: 0xFFFFFF, scheme: .light, "merchant.bgElevated")
         // Native iOS r2 (82bcf2c2d): the primary action is the system accent with a white label.
-        XCTAssertEqual(merchant.actionPrimaryBg, .accentColor, "merchant.actionPrimaryBg")
+        XCTAssertEqual(merchant.actionPrimaryBg, CYDomainPalette.systemAccent, "merchant.actionPrimaryBg")
         XCTAssertEqual(merchant.actionPrimaryFg, .white, "merchant.actionPrimaryFg")
         assertColor(merchant.textPrimary, matchesHex: 0x000000, scheme: .light, "merchant.textPrimary")
         assertSameColor(merchant.textDisabled, Color(uiColor: .quaternaryLabel), scheme: .light, "merchant.textDisabled")
@@ -160,7 +160,7 @@ final class DesignSystemTokenMappingTests: XCTestCase {
         assertColor(player.bgSurface, matchesHex: 0x1C1C1E, scheme: .dark, "player.bgSurface")
         assertSameColor(player.bgSurface, Color(uiColor: .secondarySystemGroupedBackground), scheme: .dark, "player.bgSurface")
         // Native iOS r2: no white-on-black player CTA; the primary action is the system accent with a white label.
-        XCTAssertEqual(player.actionPrimaryBg, .accentColor, "player.actionPrimaryBg")
+        XCTAssertEqual(player.actionPrimaryBg, CYDomainPalette.systemAccent, "player.actionPrimaryBg")
         XCTAssertEqual(player.actionPrimaryFg, .white, "player.actionPrimaryFg")
         // Native restyle: text follows the system label colours (label / quaternaryLabel) in the domain appearance.
         assertSameColor(player.textPrimary, Color(uiColor: .label), scheme: .dark, "player.textPrimary")
@@ -333,7 +333,7 @@ final class DesignSystemTokenMappingTests: XCTestCase {
 
             // The ONLY allowed #7A5CFF roles: avatarRing and resultSpinner.
             // Native iOS r2 (82bcf2c2d): the selected tab is the system accent, like Apple's tab bars (was PL-01 primary ink).
-            XCTAssertEqual(palette.tabSelectedTint, .accentColor, "\(domain) tabSelectedTint is the system accent")
+            XCTAssertEqual(palette.tabSelectedTint, CYDomainPalette.systemAccent, "\(domain) tabSelectedTint is the system accent")
             assertNotPurple(palette.tabSelectedTint, scheme: scheme, "\(domain) tabSelectedTint")
             assertColor(palette.avatarRing, matchesHex: 0x7A5CFF, scheme: scheme, "\(domain) avatarRing")
             assertColor(palette.resultSpinner, matchesHex: 0x7A5CFF, scheme: scheme, "\(domain) resultSpinner")
@@ -483,12 +483,12 @@ final class DesignSystemTokenMappingTests: XCTestCase {
 
         // CYFilterChip selected swaps to actionPrimaryBg/actionPrimaryFg; unselected uses bgElevated/textSecondary
         let chipSelMerchant = CYFilterChip.tokens(isSelected: true, in: merchant)
-        XCTAssertEqual(chipSelMerchant.background, .accentColor, "merchant selected chip bg")
+        XCTAssertEqual(chipSelMerchant.background, CYDomainPalette.systemAccent, "merchant selected chip bg")
         XCTAssertEqual(chipSelMerchant.foreground, .white, "merchant selected chip fg")
 
         let chipSelPlayer = CYFilterChip.tokens(isSelected: true, in: player)
         // Native iOS r2: the selected chip is the accent primary action (no forced-dark white chip on the player).
-        XCTAssertEqual(chipSelPlayer.background, .accentColor, "player selected chip bg")
+        XCTAssertEqual(chipSelPlayer.background, CYDomainPalette.systemAccent, "player selected chip bg")
         XCTAssertEqual(chipSelPlayer.foreground, .white, "player selected chip fg")
 
         // CYTabs underline & segmented indicators use neutral textPrimary (never violet)

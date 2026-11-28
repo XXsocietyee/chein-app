@@ -336,7 +336,7 @@ Sections / order unchanged; navigation only.
 | 4. +1 formatting | App/AuthChannelView.swift `onChange(of: phone)` → `PhoneCountryCode.fieldText` | already groups `(555) 123-4567`; E.164 wire via `AuthChannelInput.phone` | verified, no change | n/a |
 | 2. Alipay adapter | Core/AlipayAppAuth.swift (`AlipayAppAuthGate`, `AlipaySDKConfiguration`, `AlipaySDKAuthDriving`, `AlipayAuthAdapter`, `AlipayAppAuthService`, `AlipayAppAuthCoordinator`); App/AlipayAppAuthSection.swift; LoginView third-party row after WeChat | not present | backend-signed `authInfo` (`GET api/login/alipay/auth-info`) → SDK driver behind a protocol (`<scheme>://safepay` URL callback, `resultStatus` 9000 + `result_code=200` → `auth_code`, 6001 = cancelled) → `POST api/login/alipay` `auth_code` → `/api/userInfo` id check → shared `commitChannelLogin`. Gate defaults off and no driver/service is wired (no SDK binary), so the row renders nothing (P27). zh/en `auth.alipay.*` strings. Unit test Tests/CoreTests/AlipayAppAuthTests.swift (stub driver + stub transport: gated default, result parsing, callback scheme, full sign-in, cancel). Not compiled here. Remaining wiring (owner Alipay app + SDK): driver, `AlipaySDKConfiguration(appScheme:)`, gate, and `onOpenURL` → `adapter.acceptsURL` | fixed (gated) |
 | 2b. Alipay wiring | App/AppSession.swift | — | dropped: owner correction 11-28 04:45 (no Alipay login) | dropped (11-28 07:xx) |
-| 3. MP-account sync note | WeChat login result | not present | needs the backend to say the account came from the mini-program (no such field in `api/login/wechat/app` today); next run checks the backend receipt for the field name | Not done (blocked on backend field) |
+| 3. MP-account sync note | WeChat login result | not present | needs the backend to say the account came from the mini-program (no such field in `api/login/wechat/app` today); next run checks the backend receipt for the field name | done (B lane: closed app-side by Cursor K40 `0c3aaee3e`, `linkedMiniProgram` note; see B receipt) |
 
 Pins: Tests/ContractChecks/test_pkg19_login_deletion_chain.py:58-59 (phone page follows any configured market, owner 04:30); Tests/AppUITests/RegionalEntryFlowTests.swift US cases now expect the +1 phone field instead of the pending row. Note: a US *build* still has no approved host (`ReviewedMarketLaunch.approvedBaseURLs`), so there the phone page shows the existing `auth.notConfigured` line until a host is approved (coordinator/backend).
 
@@ -543,3 +543,17 @@ Merged `origin/ui/combined-r7` 543d9033b (clean). Brief re-read: no coordinator 
 Merged `origin/ui/combined-r7` 2b6ff8700 (clean). Brief re-read: no coordinator finding for mp-nav after 07:45; sweep index still build c4e43841a (mp-nav sheets clean). No `cursor-k50-p*` lane-layout receipts on any branch yet. B receipt read: no new rows. Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, kept by owner Q9, coordinator); (2) "3. MP-account sync note" (B half, blocked on the backend field).
 
 **Half done** (A half unchanged). Run stopped.
+
+## Run 11-28 ~17:3x UTC (half-hourly) — coordinator sweep 17:30 (build 2fc0feb24), merged combined-r7
+
+| finding → file | before | after | status |
+|---|---|---|---|
+| 17:30 P2 mp-nav en Home: "Home" with a lone house glyph (`en-ia-tabs.jpg`; same in `zh-Hans-ia-tabs.jpg`) → App/DesignFixtures/IAFixtures.swift `IATabsFixture` | each tab root's body was its tab SF Symbol alone, centred under the large title: reads as a broken page | the frame is the tab-root loading state: three redacted placeholder cards (cover block + `CYSkeletonBlock` headline/footnote lines on `.background.secondary`), one VoiceOver element "加载中… / Loading…"; large top-left title, tab bar and night overlay unchanged | fixed (fixture only; real Home loading is mp-home / mp-states) |
+
+Other 17:30 rows (sign-in Apple button in zh, launch-logo state fixtures, search logo overlay) are mp-states. Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, owner Q9, coordinator); (2) "3. MP-account sync note" (B half, blocked on the backend field). Not compiled here.
+
+## Run 11-28 ~18:xx UTC (hourly, A lane) — merged combined-r7
+
+Merged `origin/mp/r3-nav` and `origin/ui/combined-r7` (clean). Sweep index still build 2fc0feb24; its only mp-nav finding (17:30 P2 `ia-tabs` lone glyph) is fixed above. No `cursor-k50-p*` lane-layout receipt exists on any branch yet. B receipt read: "3. MP-account sync note" marked done here "(B lane)" (Cursor K40 `0c3aaee3e`). Open rows in file order: (1) "漫游护照与工具" hub sheet (line 40) → A half, kept by owner Q9 (map home), coordinator decision; no code change to make.
+
+**Half done** (A half = one row, owner decision). Run stopped.

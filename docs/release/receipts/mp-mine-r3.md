@@ -720,3 +720,15 @@ Half split at run start (open rows in file order): 1 `CharacterCardReadbackView`
 Gates: generate_project no change, check_scaffold PASS (log redaction failed once while four gates ran in parallel, PASS on rerun), a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
 
 **Half done**; run stops here per the 15:45 split rule.
+
+## Continue 46 (11-28, half-hourly run): Settings 投诉建议 row reads "Feedback"
+
+Merged `origin/ui/combined-r7` (clean). Still no `docs/release/receipts/cursor-k50-p*.md` on any branch, so no K50 `lane-layout` rows for mp-mine; the 17:30 sweep has no mp-mine rows. Half split at run start: 1 `CharacterCardReadbackView` byte pin · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` false) | 3 P2-5c. A half (1–2) still blocked. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `sheet-zh-Hans.jpg` (build 2fc0feb24).
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `pages/shezhi` 投诉建议 row (`en-e4-settings`) | `Resources/Localizable.xcstrings` `profile.complaint.title`, `投诉建议` | ✓ (unchanged) | C | **Fixed.** The en row read "Complaints &": the K27 en-length shortening (`90663aed1`) cut "Complaints & feedback" to fit the 2.2× zh budget (投诉建议 = 17.6). Now "Feedback" in both keys (fits the budget, plain US English; the pushed page keeps its own title "Complaints & feedback", whose zh key 投诉与建议 has room). `tools/check_en_strings.py`: 11 problems before and after (none in these keys). |
+
+Checked, no change: zh balance-ledger times `2026-11-06 18:20` follow the owner-approved zh `yyyy-MM-dd HH:mm` (`Core/LocaleDisplay.swift:8`); ticket-wallet grey bands are from a build before continue 44 (`511b2f751` is not in 2fc0feb24); 成为商家 belongs to K12.
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. **Half done**; A half rows 1–2 still blocked.

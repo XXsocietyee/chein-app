@@ -67,7 +67,7 @@ final class DesignR1FoundationTests: XCTestCase {
         for domain in [ThemeDomain.player, .merchant] {
             let palette = CYDomainPalette(domain)
             XCTAssertTrue(palette.followsSystem, "\(domain)")
-            XCTAssertEqual(palette.tabSelectedTint, .accentColor, "\(domain) selected tab ink")
+            XCTAssertEqual(palette.tabSelectedTint, CYDomainPalette.systemAccent, "\(domain) selected tab ink")
             for scheme in [ColorScheme.light, .dark] {
                 assertSame(palette.tabSelectedCapsule, Color.accentColor.opacity(0.12), scheme: scheme, "\(domain) capsule 12%")
             }
@@ -89,7 +89,7 @@ final class DesignR1FoundationTests: XCTestCase {
         let player = CYDomainPalette(.player)
         XCTAssertFalse(player.isDarkDomain)
         let primary = CYPillButtonStyle.tokens(style: .primary, isEnabled: true, in: player)
-        XCTAssertEqual(primary.fill, .accentColor, "primary accent pill")
+        XCTAssertEqual(primary.fill, CYDomainPalette.systemAccent, "primary accent pill")
         XCTAssertEqual(primary.foreground, .white, "primary white label")
         let secondary = CYPillButtonStyle.tokens(style: .secondary, isEnabled: true, in: player)
         let onSheet = CYPillButtonStyle.tokens(style: .secondary, isEnabled: true, in: player, onSheet: true)
@@ -101,11 +101,11 @@ final class DesignR1FoundationTests: XCTestCase {
             assertSame(tertiary.foreground, player.textSecondary, scheme: scheme, "tertiary text (\(scheme))")
         }
         let merchant = CYPillButtonStyle.tokens(style: .primary, isEnabled: true, in: CYDomainPalette(.merchant))
-        XCTAssertEqual(merchant.fill, .accentColor, "merchant primary accent pill")
+        XCTAssertEqual(merchant.fill, CYDomainPalette.systemAccent, "merchant primary accent pill")
         // The play stage keeps the forced-dark white pill.
         let game = CYPillButtonStyle.tokens(style: .primary, isEnabled: true, in: CYDomainPalette(.game))
         XCTAssertTrue(CYDomainPalette(.game).isDarkDomain)
-        XCTAssertNotEqual(game.fill, .accentColor)
+        XCTAssertNotEqual(game.fill, CYDomainPalette.systemAccent)
     }
 
     // MARK: Status tag (PL-14)
