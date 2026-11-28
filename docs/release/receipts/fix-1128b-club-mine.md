@@ -11,6 +11,16 @@ This is static work. There is no Swift toolchain in the cloud, so the new XCTest
 
 Merchant stays off. No deploy, no SQL, and `main` was not touched.
 
+## Overlap with upstream (rebase onto `ui/combined-r7` @ c115882b3)
+
+`mp/r3-club` pass 34 (c39eec637) landed while this branch was in progress. It added the same club paths to `governancePaths` / `readShapes`, admitted `topic-registrations` inside the `"registration"` guard, and gated 可对接商家 / 收到的邀约. On rebase this branch takes upstream's version of those lines and keeps only what upstream lacks:
+- the stricter body checks: `topic-manage-stats` `activityId` must be present and be null or a positive id, and the `topic-customers` `filter` must be a string;
+- the director-console retry row;
+- the owner-stage merchant gate and the lead-destination gate;
+- every #10 / #11 / #29 change and the tests.
+
+My separate `acceptsTopicRegistrations` was dropped in favour of upstream's guard exemption; the tests still pin the same behaviour.
+
 ## How Release reaches these routes
 
 Club owner reads go through `CompositionHTTPTransport.guardedSend`. When the reviewed deployment has `playerWritesEnabled`, which is true for `RegionalLaunchConfiguration.reviewedDeployment` and for the shipped CN build, they reach `MPFirstClubWriteRoute.accepts`. Before this branch, the paths below were missing from that firewall or were refused by its substring guards.
