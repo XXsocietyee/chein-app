@@ -879,11 +879,15 @@ private struct ClubOverviewFacts: View {
 
     private func cell(_ fact: Fact) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            // One line at its full width, so ViewThatFits stacks the labelled rows instead of wrapping a cell (sweep en-d4-detail).
             Text(verbatim: fact.value)
                 .font(.headline)
-                .lineLimit(2)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
             Text(LocalizedStringKey(fact.labelKey))
                 .font(.caption)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
