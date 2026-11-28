@@ -1216,7 +1216,7 @@ key `passport.stamps.count` (en "N of M", zh "N / M"). Kept compact "n/m" on pur
 (`ClubBadgeArtKit:182`), HUD clues, character limits, team seats (counters, not collection totals). `CYCountRing` has
 no call site. Snapshot `docs/release/ui-strings-ia.json:45` follows.
 
-Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (0 debt, 114 allowed), `contract_ratchet --check` pending at push (see next commit).
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (0 debt, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
 ### Not done (next run)
 - Badge detail name weight (needs the `test_object_badge_wall_layout…byte_identical` re-pin).
