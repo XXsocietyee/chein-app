@@ -38,7 +38,6 @@ extension EnvironmentValues {
     @ObservedObject var model: ClubCommunityViewModel
     let openComments: () -> Void
     @Environment(\.clubPostPlayHost) private var host
-    @State private var selected: ClubPostPlayRoute?
     @State private var sourceActive = true
     private var context: ClubPostPlayContext {
         .init(clubID: clubID, identity: identity, readScope: model.imageReadScope,
@@ -64,9 +63,10 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("club.postPlay.comments.\(post.id)")
                 case .gameplay:
                     if let host, host.identity == identity, host.isCurrent() {
-                        Button {
-                            guard sourceActive, selected == nil, host.identity == identity, host.isCurrent(), current(target) else { return }
-                            selected = target
+                        // mp-nav r3: MP talent/list index.js:248-252 onPostReferencePlay = navigateTo pages/play/index, so
+                        // play is a push like topic 开始 (system back), not a sheet with 关闭. The destination re-checks the route.
+                        NavigationLink {
+                            ClubPostPlayDestination(target: target, identity: identity, host: host, model: model)
                         } label: { tryLabel }
                         .accessibilityHint("club.postPlay.hint")
                         .accessibilityIdentifier("club.postPlay.open.\(post.id)")
@@ -75,14 +75,6 @@ extension EnvironmentValues {
             }
         }
         .buttonStyle(.borderless)
-        .cySheet(item: $selected) { target in
-            if let host {
-                ClubPostPlayDestination(target: target, identity: identity, host: host, model: model)
-                    .presentationDetents([.large]).presentationCompactAdaptation(.sheet)
-            }
-        }
-        .onChange(of: context) { _, _ in selected = nil }
-        .onChange(of: post) { _, _ in selected = nil }
         .onAppear { sourceActive = true }
         .onDisappear { sourceActive = false }
     }
@@ -108,16 +100,12 @@ extension EnvironmentValues {
         target.isCurrent(acceptedPosts: model.snapshot?.posts, context: context)
     }
     var body: some View {
-        NavigationStack {
+        Group {
             if current, case let .gameplay(scope) = target.destination, let destination = host.destination(scope) {
                 destination.id(target.id)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("action.close") { dismiss() }.accessibilityIdentifier("club.postPlay.close")
-                        }
-                    }
             } else { Color.clear.onAppear { dismiss() } }
         }
+        .cyPushedChrome()
         .onChange(of: context) { _, _ in dismiss() }
     }
 }

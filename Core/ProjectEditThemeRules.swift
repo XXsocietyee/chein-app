@@ -113,6 +113,96 @@ public enum ProjectEditThemeRules {
         return try write(theme, into: draft)
     }
 
+    // MARK: 进行方式 (`theme-runtime-structure.js` `MODES`, `modeKey`, `modeReason`, `setMode`)
+
+    public typealias RunMode = NativeRuntimeStructureAuthorDraft.Mode
+
+    /// Why a 进行方式 choice is unavailable: a localized key for the MP theme checks,
+    /// or the existing Core node reason text (support matrix read).
+    public enum ModeReason: Equatable, Sendable {
+        case key(String)
+        case text(String)
+    }
+
+    /// MP `modeKey`: PLAYER, or the TEAM world mode; anything else is 未选择.
+    public static func runMode(in draft: ProjectEditDraft) -> RunMode? {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return nil }
+        let game = theme["gameplayRuntime"]?.object ?? [:]
+        if game["runtimeScope"]?.text == "PLAYER" { return .player }
+        guard game["runtimeScope"]?.text == "TEAM", let raw = game["worldMode"]?.text,
+              let mode = RunMode(rawValue: raw), mode != .player else { return nil }
+        return mode
+    }
+
+    /// Localized label of a mode in MP `MODES` order; nil reads 未选择.
+    public static func modeLabelKey(_ mode: RunMode?) -> String {
+        switch mode {
+        case .player: return "mpPublish.rules.mode.player"
+        case .team: return "mpPublish.rules.mode.team"
+        case .sharedWorld: return "mpPublish.rules.mode.shared"
+        case nil: return "mpPublish.rules.mode.none"
+        }
+    }
+
+    /// MP `modeReason`: the two theme checks always; the per-node support checks only when the
+    /// support matrix was read (MP `if (!matrix) return ''`).
+    public static func modeReason(_ mode: RunMode, in draft: ProjectEditDraft, inputs: NativeRuntimeStructureAuthorInputs?) -> ModeReason? {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return .key(Copy.unreadable) }
+        let game = theme["gameplayRuntime"]?.object ?? [:]
+        if mode == .player && (game["acts"]?.array ?? []).contains(where: { truthy($0.object?["hostUnlock"]) }) {
+            return .key("mpPublish.rules.mode.reason.hostUnlock")
+        }
+        if mode != .sharedWorld {
+            let facilities = (game["facilities"]?.array ?? []).compactMap(\.object)
+            let sharedFacility = facilities.contains { $0["scope"]?.text != "OWNER" || $0["targetScope"]?.text != "OWNER" }
+            if truthy(game["allowTrade"]) || truthy(game["votePolicy"]) || !(game["plans"]?.array ?? []).isEmpty || sharedFacility {
+                return .key("mpPublish.rules.mode.reason.shared")
+            }
+        }
+        guard let inputs else { return nil }
+        for node in draft.chapters.flatMap(\.nodes) {
+            if let reason = inputs.reason(node: node, theme: theme, mode: mode) {
+                return .text((node.name.isEmpty ? "节点" : node.name) + "：" + reason)
+            }
+        }
+        return nil
+    }
+
+    /// MP `setMode`: refused while `modeReason` has a reason; adds `schemaVersion` 1 / `capacity` 0 when missing,
+    /// writes `runtimeScope` + `worldMode` (removed for PLAYER), and the server's explicit survival default
+    /// only when no survival setting exists yet.
+    public static func setMode(_ mode: RunMode, in draft: ProjectEditDraft, inputs: NativeRuntimeStructureAuthorInputs?) throws -> ProjectEditDraft {
+        var theme = try readable(draft)
+        switch modeReason(mode, in: draft, inputs: inputs) {
+        case .key(let key)?: throw ProjectEditRuntimeActsError.refused(key)
+        case .text?: throw ProjectEditRuntimeActsError.refused("mpPublish.rules.mode.reason.node")
+        case nil: break
+        }
+        if theme["schemaVersion"] == nil || theme["schemaVersion"] == .null {
+            theme["schemaVersion"] = .number(1)
+            theme["capacity"] = .number(0)
+        }
+        var game = theme["gameplayRuntime"]?.object ?? [:]
+        game["runtimeScope"] = .string(mode.scope)
+        game["worldMode"] = mode == .player ? nil : .string(mode.rawValue)
+        if game["survival"] == nil {
+            game["survival"] = .object(["zeroHpPolicy": .string("BLOCK_HP_COST"), "actionLimitPolicy": .string("BLOCK_OVERFLOW")])
+        }
+        theme["gameplayRuntime"] = .object(game)
+        return try write(theme, into: draft)
+    }
+
+    /// JavaScript truthiness for a JSON value.
+    private static func truthy(_ value: ProjectEditJSON?) -> Bool {
+        switch value {
+        case .bool(let flag)?: return flag
+        case .number(let number)?: return number != 0
+        case .string(let text)?: return !text.isEmpty
+        case .array?, .object?: return true
+        default: return false
+        }
+    }
+
     /// MP `config()` defaults for a topic that has no runtime config yet.
     static var defaults: [String: ProjectEditJSON] {
         ["schemaVersion": .number(1), "capacity": .number(6), "allowDiscard": .bool(true),

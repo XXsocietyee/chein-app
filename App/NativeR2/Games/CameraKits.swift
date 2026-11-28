@@ -442,24 +442,62 @@ extension PlayKitScreen {
     @ViewBuilder var cameraPhotoCheckForm: some View {
         if raw["mode"].text == "CARD" { cameraObjectCardForm } else { cameraOrdinaryPhotoCheck }
     }
+    /// MP `playkit-photocheck` under the shell kicker (title, default 拍一张): shotNote → last photo → verdict → reason →
+    /// 照片已核验 → reward note → 还能重拍 N 次 (only while there is no verdict) → capture flow. The framing outline is used
+    /// only inside the camera (MP `pcv`), never drawn on the page.
     @ViewBuilder private var cameraOrdinaryPhotoCheck: some View {
+        let passed = raw["passed"].bool == true
+        let used = raw["tries"].integer ?? 0
+        let cap = raw["maxTries"].integer ?? 0
+        let verdict = cameraPhotoVerdict
+        let reason = cameraPhotoReason
         Section {
             if let note = raw["shotNote"].text, !note.isEmpty { Text(verbatim: note).font(.headline) }
-            if let frame = raw["frameUrl"].text, !frame.isEmpty { artwork(frame) }
-            if let prior = raw["lastUrl"].text, !prior.isEmpty { artwork(prior) }
-            if raw["degraded"].bool != true, raw["passed"].bool != true, raw["flagged"].bool != true, (raw["tries"].integer ?? 0) > 0 {
-                Label("playkit.photo.retryTitle", systemImage: "arrow.clockwise")
-                if let reason = raw["lastReason"].text, !reason.isEmpty { Text(verbatim: reason).foregroundStyle(.secondary) }
+            if let prior = raw["lastUrl"].text, !prior.isEmpty {
+                artwork(prior).accessibilityLabel(Text("playkit.photo.lastShot"))
             }
-            if let used = raw["tries"].integer, let cap = raw["maxTries"].integer, cap > 0 {
-                LabeledContent("playkit.photo.remaining") { Text(verbatim: String(max(0, cap - used))).monospacedDigit() }
+            if let verdict {
+                Label { Text(verdict.text) } icon: {
+                    Image(systemName: verdict.ok ? "checkmark.circle.fill" : (verdict.no ? "xmark.circle.fill" : "questionmark.circle"))
+                }
+                .font(.headline)
+                .foregroundStyle(verdict.ok ? Color.green : (verdict.no ? Color.orange : Color.secondary))
+                .accessibilityIdentifier("playkit.photo.verdict")
             }
-            if raw["flagged"].bool == true { Label("playkit.photo.fallbackRecorded", systemImage: "info.circle") }
+            if let reason { Text(verbatim: reason).foregroundStyle(.secondary) }
+            if passed, raw["photoVerified"].bool == true {
+                Text("playkit.photo.verified").font(.footnote).foregroundStyle(.secondary)
+            }
+            if passed, raw["rewardCeiling"].text == "XP_BADGE_ONLY" {
+                Text("playkit.rewardNote.xpBadgeOnly").font(.footnote).foregroundStyle(.secondary)
+            }
+            if verdict == nil, reason == nil, cap > 0, raw["recordOnly"].bool != true {
+                Text("playkit.photo.triesLeft \(max(0, cap - used))").font(.footnote).foregroundStyle(.secondary).monospacedDigit()
+            }
         }
         cameraPhotoInput(frame: PlayKitPhotoFrame(source: raw["frameUrl"].text, opacityPercent: raw["frameOpacity"].double,
                                                   approvedHosts: approvedArtworkHosts)) { url in
             prepare("SUBMIT_PHOTO_CHECK", ["imageUrl": .string(url)])
         }
+    }
+    /// MP verdict ladder: degraded (no conclusion) → record-only → fallback pass → pass → retake after a try.
+    private var cameraPhotoVerdict: (text: LocalizedStringKey, ok: Bool, no: Bool)? {
+        let passed = raw["passed"].bool == true
+        if raw["degraded"].bool == true {
+            return (passed ? "playkit.photo.verdict.degradedPass" : "playkit.photo.verdict.degradedRetry", false, false)
+        }
+        if passed, raw["recordOnly"].bool == true { return ("playkit.photo.verdict.recorded", true, false) }
+        if passed, raw["flagged"].bool == true { return ("playkit.photo.verdict.fallback", true, false) }
+        if passed { return ("playkit.photo.verdict.passed", true, false) }
+        if (raw["tries"].integer ?? 0) > 0 { return ("playkit.photo.retryTitle", false, true) }
+        return nil
+    }
+    /// The server's real reason, only after a failed try or an unjudged retake.
+    private var cameraPhotoReason: String? {
+        guard raw["passed"].bool != true else { return nil }
+        guard raw["degraded"].bool == true || (raw["tries"].integer ?? 0) > 0 else { return nil }
+        let reason = raw["lastReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return reason.isEmpty ? nil : reason
     }
     @ViewBuilder private var cameraObjectCardForm: some View {
         if let receipt = model.objectCardReceipt {
