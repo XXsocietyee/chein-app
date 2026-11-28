@@ -19,10 +19,33 @@ import SwiftUI
     @Environment(\.dismiss) private var dismissPage
     /// Perks deep link: the TEST-only template executor (nil where merchant writes are closed).
     @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
-    /// RNEAR-5 / RTEAMS-4: the signed-out team pages offer 登录, which opens 我的 (the app's sign-in home).
+    @Environment(\.rootSignIn) private var rootSignIn
+    /// RNEAR-5 / RTEAMS-4: the signed-out team pages offer 登录. mp-states r3: it opens the sign-in sheet (see
+    /// `entrySignIn`); only a host without that sheet still opens 我的.
     private var openSignIn: (() -> Void)? {
+        if rootSignIn.isAvailable {
+            let signIn = entrySignIn
+            return { signIn() }
+        }
         guard rootTabSwitch.isAvailable else { return nil }
         return { session.dismissNativeEntry(); rootTabSwitch(.mine) }
+    }
+
+    /// mp-states r3 (MP cy-empty no-permission · 登录): sign-in from a link page. The root sign-in sheet cannot open
+    /// over the link's entry sheet, so the entry closes first and the sign-in sheet opens once it is gone; a page
+    /// pushed on 首页 opens it at once and stays where it is. Pages inside read it from the environment.
+    private var entrySignIn: RootSignIn {
+        guard rootSignIn.isAvailable else { return rootSignIn }
+        let signIn = rootSignIn
+        let session = session
+        return RootSignIn { resume in
+            guard session.nativeEntry != nil else { signIn(then: resume); return }
+            session.dismissNativeEntry()
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 450_000_000)
+                signIn(then: resume)
+            }
+        }
     }
 
     var body: some View {
@@ -30,6 +53,7 @@ import SwiftUI
             // Lane G: merchant-center, merchant-onboarding and coop pages are hidden in Release; open player home.
             if PlayerLaunch.isHidden(page: page) { playerHomeFallback } else { screen }
         }
+        .environment(\.rootSignIn, entrySignIn)
         .accessibilityIdentifier("mp.deepLink.screen")
     }
 
@@ -1030,8 +1054,10 @@ import SwiftUI
         if rootTabSwitch.isAvailable { rootTabSwitch(tab) }
     }
 
-    /// PC-C-3-1 / X7: 登录 leaves the link and opens 我的, where sign-in lives (no dead `{}`).
+    /// PC-C-3-1 / X7: 登录 is never a dead `{}`. mp-states r3: it opens the sign-in sheet (`entrySignIn`); a host
+    /// without that sheet leaves the link and opens 我的.
     private func signIn() {
+        if rootSignIn.isAvailable { entrySignIn(); return }
         session.dismissNativeEntry()
         if rootTabSwitch.isAvailable { rootTabSwitch(.mine) }
     }

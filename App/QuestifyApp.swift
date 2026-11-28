@@ -513,6 +513,7 @@ struct SessionRootView: View {
                 .environment(\.cyTabBarHidden, isTabBarHidden)
                 .onPreferenceChange(CYTabBarHiddenPreferenceKey.self) { isTabBarHidden = $0 }
                 .environment(\.imRecipientPreviewLeases, session.imRecipientPreviewLeaseSource)
+                .modifier(AIExperienceRootEnvironment(session: session))
                 .onChange(of: selectedTab) { _, tab in if !tab.isPlayerTab { selectedTab = .home } }
                 .roleTheme(.player)
     }
@@ -651,6 +652,9 @@ struct SessionRootView: View {
         .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })
         .environment(\.orderTeamCreate, { activityID, registrationID in
             AnyView(SessionTeamCreateView(activityID: activityID, registrationID: registrationID))
+        })
+        .environment(\.orderActivityDestination, { activityID in
+            AnyView(ActivityDetailView(id: activityID, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true))
         })
     }
 

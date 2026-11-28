@@ -155,11 +155,13 @@ public enum LocaleDisplay {
 
     /// Re-renders server civil text (`yyyy-MM-dd[ HH:mm[:ss]]`) for the locale. The server text is the
     /// wall time it means, so it is parsed and printed in one fixed zone and never shifted. Chinese
-    /// and any unparsable text return the input unchanged.
+    /// and any unparsable text return the input unchanged, except that Chinese drops server seconds
+    /// (`2026-11-06 18:20:00` -> `2026-11-06 18:20`, the `dayTime` shape; the MP never shows seconds).
     public static func civil(_ raw: String, locale: Locale) -> String {
         let text = raw.trimmingCharacters(in: .whitespaces)
-        guard !isChinese(locale), !text.isEmpty else { return raw }
+        guard !text.isEmpty else { return raw }
         let utc = TimeZone(secondsFromGMT: 0)!
+        if isChinese(locale) { return civilChineseMinutes(text, raw: raw, zone: utc) }
         let shapes: [(String, String)] = [
             ("yyyy-MM-dd HH:mm:ss", "yMMMdjmm"), ("yyyy-MM-dd'T'HH:mm:ss", "yMMMdjmm"), ("yyyy-MM-dd HH:mm", "yMMMdjmm"), ("yyyy-MM-dd'T'HH:mm", "yMMMdjmm"), ("yyyy/MM/dd HH:mm", "yMMMdjmm"),
             ("yyyy-MM-dd", "yMMMd"), ("yyyy/MM/dd", "yMMMd"), ("yyyy.MM.dd", "yMMMd"), ("yyyy-MM", "yMMM"),
@@ -170,6 +172,19 @@ public enum LocaleDisplay {
             parser.timeZone = utc; parser.dateFormat = pattern; parser.isLenient = false
             guard let parsed = parser.date(from: text), parser.string(from: parsed) == text else { continue }
             return date(parsed, zhPattern: pattern, template: template, locale: locale, timeZone: utc)
+        }
+        return raw
+    }
+
+    /// Chinese civil text with seconds re-rendered at minute precision; everything else unchanged.
+    static func civilChineseMinutes(_ text: String, raw: String, zone: TimeZone) -> String {
+        let patterns: [String] = ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss"]
+        for pattern in patterns {
+            let parser = DateFormatter()
+            parser.calendar = Calendar(identifier: .gregorian); parser.locale = posix
+            parser.timeZone = zone; parser.dateFormat = pattern; parser.isLenient = false
+            guard let parsed = parser.date(from: text), parser.string(from: parsed) == text else { continue }
+            return date(parsed, zhPattern: "yyyy-MM-dd HH:mm", template: "yMMMdjmm", locale: Locale(identifier: "zh_Hans_CN"), timeZone: zone)
         }
         return raw
     }

@@ -44,7 +44,9 @@ final class LocaleDisplayTests: XCTestCase {
     }
 
     func testCivilServerTextIsReformattedWithoutShifting() {
-        XCTAssertEqual(LocaleDisplay.civil("2026-11-27 23:30:00", locale: zh), "2026-11-27 23:30:00")
+        XCTAssertEqual(LocaleDisplay.civil("2026-11-27 23:30:00", locale: zh), "2026-11-27 23:30")
+        XCTAssertEqual(LocaleDisplay.civil("2026-11-27T23:30:00", locale: zh), "2026-11-27 23:30")
+        XCTAssertEqual(LocaleDisplay.civil("2026-11-27", locale: zh), "2026-11-27")
         let english = LocaleDisplay.civil("2026-11-27 23:30:00", locale: us)
         XCTAssertTrue(english.contains("Nov 27, 2026"), english)
         XCTAssertTrue(english.contains("11:30"), english)

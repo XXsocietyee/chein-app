@@ -50,6 +50,8 @@ struct CYSquareRouteMapCard: View {
                 if let onOpenTopic {
                     Button(action: onOpenTopic) {
                         Text("route.openTopic", tableName: "SocialParity")
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.borderless)
                     .font(.footnote)

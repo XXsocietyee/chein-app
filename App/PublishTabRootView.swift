@@ -123,6 +123,14 @@ import SwiftUI
     /// MP `cy-publish-sheet`: 自由探索, 城市定向, 互动 (in that order); dismissing the menu is 返回.
     private var publishMenu: some View {
         Menu {
+            // fix/1128c-ai-showcase (owner 11-28): AI is the visible first step of creating; the MP choices follow.
+            Button {
+                publishRoute = .aiCreation
+            } label: {
+                Label("aiCreation.title", systemImage: "wand.and.stars")
+            }
+            .accessibilityIdentifier("publishTab.publish.ai")
+            Divider()
             Button {
                 choose(.freeExplore)
             } label: {
@@ -183,6 +191,8 @@ import SwiftUI
             professionalEditor(.city)
         case .interaction:
             sessionTemplateAuthoringEntry(session)
+        case .aiCreation:
+            SessionAICreationHubView()
         }
     }
 
@@ -210,5 +220,7 @@ import SwiftUI
 /// The three choices of the MP publish sheet.
 enum PublishTabRoute: String, Hashable, Identifiable {
     case freeExplore, city, interaction
+    /// fix/1128c-ai-showcase: Create with AI (theme draft, template fill, club design).
+    case aiCreation
     var id: String { rawValue }
 }

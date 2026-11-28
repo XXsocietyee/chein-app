@@ -27,6 +27,7 @@ import FoundationNetworking
             switch feature {
             case .publishingAIClub: path = "api/ai/club/design"
             case .publishingAITemplate: path = "api/ai/template/fill"
+            case .publishingAISafety: path = AISafetyPrecheckRequest.path
             case .publishingAIQuota:
                 return request.url == baseURL.appendingPathComponent("api/ai/theme/draft/quota") && (request.httpBody == nil || request.httpBody?.isEmpty == true)
             default: return false
@@ -42,6 +43,8 @@ import FoundationNetworking
                   G6AIThemeDraft.isServerID(requestID) else { return false }
             return true
         }
+        // fix/1128c-ai-showcase (H-08b): exactly the backend `AiSafetyPrecheckReq` keys.
+        if feature == .publishingAISafety { return AISafetyPrecheckRequest.validates(fields) }
         if feature == .publishingAITemplate {
             guard Set(fields.keys).isSubset(of: ["shopName", "extraNote", "category", "reward", "playStyle", "validationMethod"]),
                   let name = fields["shopName"]?.text, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
@@ -68,7 +71,7 @@ import FoundationNetworking
 public extension BusinessRuntimeFactory {
     func publishingAuxiliary(feature: BusinessRuntimeFeature, journal: any OperationPendingJournal,
                              credentials: @escaping () -> PublishingCredentials?) -> PublishingAuxiliaryService? {
-        guard feature == .publishingAITheme || feature == .publishingAIClub || feature == .publishingAITemplate, permits(feature),
+        guard feature == .publishingAITheme || feature == .publishingAIClub || feature == .publishingAITemplate || feature == .publishingAISafety, permits(feature),
               let approval = approval([feature]), let api = try? APIConfiguration(baseURL: captured.baseURL) else { return nil }
         let scoped = PublishingAIRuntimeTransport(feature: feature, baseURL: captured.baseURL, transport: client([feature]))
         return PublishingAuxiliaryService(configuration: api, transport: scoped, approval: approval, journal: journal, credentials: credentials)
