@@ -105,6 +105,11 @@ final class ProfileOrderHistoryFilterTests: XCTestCase {
         XCTAssertEqual(future.historyState(now: now), .notStarted)
         XCTAssertFalse(future.showsUnusedPass(now: now))
         XCTAssertEqual(future.historyTagKey(now: now), "orderLifecycle.state.notStarted")
+        // U-033: once the server read time is past the start, 可使用 follows it even when the device clock is behind.
+        let served = try order(#""registrationStatus":2,"paymentStatus":2,"purchaseKind":2,"serverNow":1792468800000,"cmsTopic":{"startDate":"2026-10-20","endDate":"2026-10-21"}"#)
+        XCTAssertEqual(served.historyState(now: now), .notStarted)
+        XCTAssertTrue(served.showsUnusedPass(now: now))
+        XCTAssertEqual(served.historyTagKey(now: now), "orderLifecycle.state.passReady")
         let zeroTicket = try order(window + #","ownerType":1,"ticketId":0,"expiresAt":"2027-01-01 00:00:00""#)
         XCTAssertEqual(zeroTicket.ticketID, 0)
         XCTAssertTrue(zeroTicket.isSelfPlayPass)

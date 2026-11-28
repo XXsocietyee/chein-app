@@ -168,6 +168,13 @@ import FoundationNetworking
         XCTAssertTrue(try lead(#"{"exists":true,"status":2,"freeEntry":true,"sessionEnded":true}"#).showsLeadBar)
         XCTAssertFalse(try lead(#"{"exists":false,"sessionEnded":true}"#).showsLeadBar)
     }
+    /// mp-journey-b r3: MP 集合屏 `lg-members` shows `item.avatar` only when the server sent one.
+    func testGatherMembersCarryTheMPAvatar() throws {
+        let progress = try PlayLeadProgress(PlayExperienceSyntheticFixtures.wire(
+            #"{"exists":true,"status":1,"total":3,"members":[{"memberId":1,"avatar":"https://img.example/a.png","arrived":true},{"memberId":2,"avatar":""},{"memberId":3}]}"#))
+        XCTAssertEqual(progress.members.map(\.avatar), ["https://img.example/a.png", nil, nil])
+        XCTAssertEqual(progress.total, 3)
+    }
     func testLeaderEditOpsIsJSONNotMultipart() async throws {
         let transport = PlayExperienceTestTransport { _ in (PlayExperienceSyntheticFixtures.envelope("null"), 200) }
         try await service(transport).lead(activityID: 41, action: .editTime, text: "2026-10-02 10:00", token: "synthetic")

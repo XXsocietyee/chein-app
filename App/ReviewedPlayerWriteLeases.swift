@@ -660,6 +660,7 @@ enum ReviewedPlayerReadRoute {
     private var playerWritesEnabled = false
     private var playerWritersByContext: [String: ReviewedPlayerWriteGrant] = [:]
     private var playConfigurationByContext: [String: RuntimeDependencyConfiguration] = [:]
+    let playerReads = ReleasePlayerReadLeases()
     private var cityGameByContext: [String: CityGameCapabilityLease] = [:]
     private var clubPublicTopicsByKey: [ClubPublicTopicsKey: ClubPublicTopicsApproval] = [:]
     private struct ClubPublicTopicsKey: Hashable { let context: ClubPublicTopicsContext; let clubID: Int }
@@ -909,6 +910,8 @@ enum ReviewedPlayerReadRoute {
     }
     /// fix-1128b #5: the device kinds a play node may ask for (MP vm 2 photo, vm 4 scan, GPS arrive, shake).
     static let playDevices: Set<PlayDeviceKind> = [.photo, .scan, .location, .motion]
+    /// K13: kit sensors the nodes already ask for. The struct default stays empty; Release passes this set.
+    static let playSensors: Set<PlayKitSensorKind> = [.acceleration, .soundPeak, .heading]
     /// fix-1128b #22: bare hosts (what `PlayKitCameraAssets.approvedURL` compares) of the approved upload-result origins.
     /// An origin with a non-443 port is dropped because kit artwork only loads from the default https port.
     static func playArtworkHosts(apiBase: URL, extra: String? = Bundle.main.object(forInfoDictionaryKey: "CYStampImageOrigins") as? String) -> Set<String> {
@@ -1662,6 +1665,13 @@ enum ReviewedPlayerReadRoute {
         return approval
     }
 
+    /// K13: object-card list and IM message images for a signed-in China player or club.
+    func socialReader(_ context: RuntimeDependencyContext) -> SocialReaderProductionApproval? {
+        guard socialRole(context),
+              let endpoints = makeEndpoint(context, paths: ["api/object-card/list", "api/im/messages"]) else { return nil }
+        return playerReads.socialReader(context, endpoints: endpoints)
+    }
+
     func sessionDependencies(_ context: RuntimeDependencyContext) -> NativeRuntimeDependencies {
         guard context.market == .china else { return .dormant }
         let couponPaths: Set<String> = ["api/coupon/qr-token", "api/coupon/status"]
@@ -1719,6 +1729,8 @@ enum ReviewedPlayerReadRoute {
             // fix/1128c (plan audit J-04a): shop NPC text + voice reach the server; `shopNpcChat` decides there.
             shopNPCGrants: playerWritesEnabled ? Self.releaseShopNPCGrants() : .init(),
             couponCodeApproval: couponCodeApproval,
+            // K13: object cards and IM message images. Player and club only.
+            socialReaderApproval: socialReader(context),
             contextualReviewApproval: contextualReview(context),
             // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js:143-200): the owner 清退并退款.
             ownerRefundApproval: playerWritesEnabled ? MPFirstClubApprovals.ownerRefund(context) : nil,
@@ -1744,9 +1756,10 @@ enum ReviewedPlayerReadRoute {
         // fix-1128b #5 (J-06d/J-12b/J-11c): photo, scan, location and shake device kinds are on, so photo nodes, the filter
         // camera and the in-store photo step can capture → uploadOSS → `api/play/photo`. #22 (J-07 #2/#6/#7): kit artwork
         // loads from the same upload-result origins the avatar approval uses (API origin + `CYStampImageOrigins`).
+        // K13: sensors join on their own argument so the devices/artwork contract line stays intact.
         let configuration = RuntimeDependencyConfiguration(market: .china, endpoints: endpoints, play: Self.playCapabilities,
             publisherReads: true, devices: Self.playDevices, artworkHosts: Self.playArtworkHosts(apiBase: context.baseURL),
-            shopNPCWrites: true, playReadApprovalID: UUID())
+            sensors: Self.playSensors, shopNPCWrites: true, playReadApprovalID: UUID())
         playConfigurationByContext[key] = configuration
         return configuration
     }
