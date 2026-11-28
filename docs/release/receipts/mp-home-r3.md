@@ -230,7 +230,30 @@ Merged `origin/ui/combined-r7` first (clean). All MP pages reachable from `pages
 | `v3-reco-meta` 「编辑精选 · 参加条件以详情为准」 per card | Native shows it once as the rail subtitle (polish-d-r1, so it never sits under the tab bar). | Kept — same copy, once per rail instead of on every card. |
 | `pages/search2/index` `search-actions` → `GlobalSearchView.mapSection` | MP has only 在地图上找; native adds a 「更多查找方式」 menu (nearby / public layers / shops when not gated). | Kept — one menu row keeps native-only map entries reachable; noted for the coordinator. |
 
+## Round 3 continue (12) — 22:11 sweep (build 8fa84e4d3), mp-home sheets zh-Hans + en
+
+Sweep build predates continue 11 (编辑精选 card order); home / offline / activity detail / wave-today-club read clean in both languages.
+
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `pages/search2/result/index` → `d2-search-results` (`App/SearchMapFixtureSupport.swift`) | `zh-Hans-d2-search-results.jpg`: rows 示例主题 / 示例活动 / 示例俱乐部 / 示例商家 read as placeholders while en shows real names. | **Fixed** — zh design fixture: 灯笼夜行 / 灯笼集市探索 / 老城漫步者 / 灯笼茶馆; UI-test runs (no `--design-fixture`) keep 示例… |
+| same, activity row second line | Pin glyph before 老城 · 灯笼 on activity rows only (P18 area line, polish-search). | Kept — P18 marks an activity's area; noted for the coordinator. |
+
+## Round 3 continue (13) — hourly re-scan (sweep still build 8fa84e4d3, covered in continue 12)
+
+Merged `origin/ui/combined-r7` (already up to date). No new coordinator note for mp-home since 22:20. `pages/index/index.js` navigation targets re-listed (`goUser` → 我的 tab, `goRecoHero`/`goTopic` → `pages/topic/index`, `goActivity` → activity detail, banners → `pages/activity/list`, `pages/club/apply`, `pages/merchant/apply` (gated)); every one already has a row. Design-system grep on the 首页 files (`HomeFeedView`, `HomeSearchTabParityViews`, `OfficialEventsBrowserView`, `ActivityDetailView`, `E1ActivityDetailParts`, `TopicDetailView`, `SearchMapComponents`, `GlobalSearchView`): no `.font(.system(size:))`, `.tracking`/`.kerning`, `Color(red:)`, custom fonts or untranslated `Text("…")` literals.
+
+Re-scan of `pages/topic/index/index.wxml` 详情 / 故事 / 路线 against `App/TopicDetailView.swift` + `App/TopicXcxSections.swift`:
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `topic/index.wxml:292-296` story paywall 解锁完整体验 · price · 立即解锁 · 已购？去票夹 | Present (`TopicDetailView.swift:556-576`). | No change. |
+| `topic/index.wxml:357-358` 路线配置中 + 浏览其他主题 | Present (`TopicXcxSections.swift:615-624`). | No change. |
+| `topic/index.wxml:437` station card 到店礼 · gift | Present (`shopGift`, `TopicXcxSections.swift:640-644`). | No change. |
+| `topic/index.wxml:302-316` 评价: when there are no reviews the 还没有评价 card **is** the only write entry; with reviews 写评价 sits trailing in the rating row, above the list. Native always draws a separate bordered 写评价 button above the section content, so the empty state has two write entries. | **Not done** — `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` pins both `topic.reviews.empty` and the `topic.openReview` button in the empty state, and `tools/check_contextual_flows.py` pins the identifier; changing the accessibility tree of the empty card blind (no simulator) could break that UI test. Next run with a simulator: hide the bordered button when `hasConfirmedNoReviews && preview.isEmpty`, move `topic.openReview` onto the empty card, update the UI test. |
+
 ## Not done / follow-ups
+- 主题详情 评价: double write entry in the empty state (continue 13 row) — needs the UI test updated with a simulator.
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
 - ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
 - Needs a simulator pass: P21 bar height over each tab's last row, zoom source/destination match on iOS 18 and 26, Reduce Motion crossfade, the roam HUD's persistent sheet inside the cover.
@@ -246,3 +269,4 @@ Merged `origin/ui/combined-r7` first (clean). All MP pages reachable from `pages
 - Needs a simulator pass (continue 9): `rep3-activity-detail` and `d2-search(-results)` without fixture/synthetic names.
 - Needs a simulator pass (continue 10): `d2-search-results` text rows without image frames; `rep3-activity-detail` hero with the fe-night cover.
 - Needs a simulator pass (continue 11): 编辑精选 card with club / Beta 试玩 row above the title.
+- Needs a simulator pass (continue 12): zh `d2-search-results` row names.

@@ -739,13 +739,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Heading accuracy is too low. Move away from magnetic interference."
+            "value": "The direction is drifting. Move away from metal and trace a figure 8 with your phone."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "方位精度不足，请远离磁场干扰。"
+            "value": "方向有点飘，离金属远一点，拿手机画个「8」"
           }
         }
       }

@@ -127,6 +127,16 @@ public struct PlayKitScreenProjection: Equatable {
         default: return nil
         }
     }
+    /// MP `playkit-estimate` `resultLine`: after the server tier, its receipt also carries the guess, the true value
+    /// and the author's reveal. Only read once `estimateResultKey` exists; nil numbers hide the detail line.
+    public var estimateReadback: PlayKitEstimateReadback? {
+        guard estimateResultKey != nil else { return nil }
+        let guess = segment["guess"].double
+        let answer = segment["answer"].double
+        let reveal = segment["reveal"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return PlayKitEstimateReadback(guess: guess, answer: answer, reveal: reveal?.isEmpty == false ? reveal : nil,
+                                       exact: segment["tier"].text == "HIT" && guess != nil && guess == answer)
+    }
     public var feedback: String? { segment["lastFeedback"].text ?? segment["feedback"].text }
     public var options: [PlayKitOption] {
         if kind == .predict || kind == .blindTaste { return PlayKitOption.read(segment["options"], idKey: "key") }
@@ -163,6 +173,17 @@ public struct PlayKitReasoningFeedbackState: Equatable {
 /// A bounded picker over the public estimate range, matching mini's unit / ten /
 /// power-of-ten ticks and inclusive upper endpoint. It never reads an answer,
 /// tolerance, score or verdict. Numerically unsafe ranges have no picker.
+public struct PlayKitEstimateReadback: Equatable {
+    public let guess: Double?
+    public let answer: Double?
+    public let reveal: String?
+    public let exact: Bool
+    public var difference: Double? {
+        guard let guess, let answer, guess.isFinite, answer.isFinite else { return nil }
+        return abs(guess - answer)
+    }
+}
+
 public struct PlayKitEstimateWheel: Equatable {
     public static let maximumTicks = 2002
     public let minimum: Double

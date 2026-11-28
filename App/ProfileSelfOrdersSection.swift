@@ -53,7 +53,16 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
             if reader.isCurrentContext {
                 Section("profile.selfOrders.title") {
                     if model.isLoading || model.loadedScope == nil { ProgressView("profile.loading") }
-                    if let issue = model.issue {
+                    // mp-states r3: MP profile index.wxml:177 cy-error 订单加载失败 · 重试 — with nothing on screen the failure
+                    // is one state with 重试 inside; over stale rows it stays a line above them.
+                    if model.issue == .readFailed && model.rows == nil {
+                        CYEmptyState(systemImage: "exclamationmark.triangle", "profile.selfOrders.readFailed",
+                                     messageIdentifier: "profile.selfOrders.issue",
+                                     actionTitle: "action.retry", actionIdentifier: "profile.selfOrders.retry",
+                                     kind: .failure) { Task { await model.load(reader: reader) } }
+                            .disabled(model.isLoading)
+                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    } else if let issue = model.issue {
                         Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier("profile.selfOrders.issue")
                         if model.rows != nil { Text("profile.selfOrders.stale").font(.footnote).foregroundStyle(.secondary) }
                         if issue == .readFailed {

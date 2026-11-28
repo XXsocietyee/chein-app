@@ -97,7 +97,10 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
     @State private var model: PlayExperienceCoordinator
     @State private var service: PlayExperienceService
     @State private var revision = 0
-    init() {
+    private let designLocalized: Bool
+    /// mp-journey r3 (sweep 22:11 `d2-play`): the design fixture shows UI-language names and no debug account switch.
+    init(designLocalized: Bool = false) {
+        self.designLocalized = designLocalized
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-play-experience-scenario")
         let scenario = index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? "classic"
@@ -106,15 +109,22 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
         _service = State(initialValue: service)
         // The normal completion/run fixture uses a final scripted recorder with no network.
         let recorder = PlayRecoveryRecordingTransport(); state.normalRecorder = recorder
+        let named: (String) -> String = { raw in
+            guard designLocalized else { return raw }
+            return raw
+                .replacingOccurrences(of: "Synthetic journey", with: mpJourneyFixtureText("West Lake Night Walk", "西湖夜游漫步"))
+                .replacingOccurrences(of: "Synthetic courtyard", with: mpJourneyFixtureText("Lantern Courtyard", "灯笼庭院"))
+                .replacingOccurrences(of: "Enter your own synthetic answer", with: mpJourneyFixtureText("Enter the word carved above the gate", "输入门楣上刻着的字"))
+        }
         let initial = scenario == "mode2" ? PlayExperienceSyntheticFixtures.mode2 : scenario == "branch" ? PlayExperienceSyntheticFixtures.branch : scenario == "referenceComplete" ? PlayExperienceSyntheticFixtures.complete : PlayExperienceSyntheticFixtures.classic
-        recorder.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(initial), 200)
+        recorder.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(named(initial)), 200)
         if scenario == "referenceUnknownTotal" { recorder.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"topicId":71,"topicName":"Synthetic phase-only journey / 测试旅程","mode":1,"playable":true,"registered":true,"nodes":[{"nodeId":701,"name":"Synthetic task / 测试任务","done":false}]}"#), 200) }
         if scenario == "preference" { recorder.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"topicId":71,"mode":1,"playable":true,"registered":true,"nodes":[{"nodeId":701,"name":"Synthetic preference station","done":false,"validationMethod":6}]}"#), 200) }
         if scenario == "sensor" { recorder.responses["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"topicId":71,"topicName":"Synthetic stillness","mode":1,"playable":true,"registered":true,"nodes":[{"nodeId":701,"name":"Synthetic sensor station","done":false,"validationMethod":7,"sensorType":"still","sensorConfig":{"durationSec":1,"tolerance":0.02}}]}"#), 200) }
         if scenario == "referenceFailure" { recorder.responses["/fixture/api/play/nodes"] = .failure(.malformed) }
         recorder.responses["/fixture/api/play/route-state"] = .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.route), 200)
         for path in ["answer", "sensor-result", "checkin", "photo", "arrive"] { recorder.responses["/fixture/api/play/" + path] = scenario == "unknown" ? .failure(.unknownResult) : .reply(PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701,"firstTime":true,"xp":9,"completed":true}"#), 200) }
-        recorder.afterCompletion["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.complete), 200)
+        recorder.afterCompletion["/fixture/api/play/nodes"] = .reply(PlayExperienceSyntheticFixtures.envelope(named(PlayExperienceSyntheticFixtures.complete)), 200)
         recorder.responses["/fixture/api/play/run-session"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"runState":"PAUSED","savedAt":1000,"elapsedSeconds":12}"#), 200)
         for path in ["run-session/save", "run-session/clear"] { recorder.responses["/fixture/api/play/" + path] = .reply(PlayExperienceSyntheticFixtures.envelope("null"), 200) }
         recorder.responses["/fixture/api/play/ending"] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"opener":"","fragments":[]}"#), 200)
@@ -151,9 +161,11 @@ private final class PlayExperienceFixtureTransport: HTTPTransport {
                 playerModel: state.retained("player") { PlayPlayerGameCoordinator(activityID: 41, service: service, currentSession: { state.session }) },
                 circleModel: state.retained("circle") { PlayCircleCoordinator(topicID: 71, service: service, currentSession: { state.session }) })
                 .toolbar {
+                    if !designLocalized {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("playx.fixture.switch") { state.epoch += 1; state.accountID = 9002; model.invalidate(); revision += 1 }
                             .accessibilityIdentifier("playx.fixture.switch")
+                    }
                     }
                 }
         }.id(revision)

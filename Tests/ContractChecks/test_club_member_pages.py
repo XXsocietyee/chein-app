@@ -62,12 +62,14 @@ class ClubMemberPageContracts(unittest.TestCase):
         self.assertIn('testRefundedOrUnknownStepLightsNothing', read('Tests/CoreTests/ClubCheckinRailTests.swift'))
     def test_edit_admin_note_and_locked_settings(self):
         view = read('App/ClubOperationsViews.swift')
-        self.assertIn('if !isOwner { Text("club.ops.adminNote")', view)
+        # mp-club r3 pass 18: the MP edit page has no admin note; the locked card carries 仅主理人可设置 instead.
+        self.assertNotIn('Text("club.ops.adminNote")', view)
+        self.assertIn('Text("club.ops.locked.sub")', view)
         self.assertIn('lockedCurrent.cyText(.meta).accessibilityIdentifier("club.ops.locked.current")', view)
-        self.assertEqual(zh(self.catalog, 'club.ops.adminNote'), '你是管理员 · 只能改展示信息')
+        self.assertEqual(zh(self.catalog, 'club.ops.locked.sub'), '仅主理人可设置')
         self.assertEqual(zh(self.catalog, 'club.ops.locked.title'), '只有主理人能改经营配置')
         self.assertEqual(zh(self.catalog, 'club.ops.locked.quota %lld'), '保留 %lld 个')
-        self.assertIn('testAdministratorSeesNoteAndLockedSettingsWithoutToggles', read('Tests/AppUITests/ClubEditAdminLockFlowTests.swift'))
+        self.assertIn('testAdministratorSeesLockedSettingsWithoutToggles', read('Tests/AppUITests/ClubEditAdminLockFlowTests.swift'))
 
 if __name__ == '__main__':
     unittest.main()
