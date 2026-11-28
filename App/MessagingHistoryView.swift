@@ -362,18 +362,8 @@ struct MessagingHistoryView: View {
                                     .frame(maxWidth: .infinity).accessibilityIdentifier("im.chat.divider.\(message.id)")
                             }
                             let answersInline = expanded != nil && MessagingInlineCardAnswers.hasAnswers(message)
-                            NavigationLink {
-                                MessagingMessageDetailView(message: message, conversation: conversation,
-                                    reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
-                                    currentMessage: { history.messages.first { $0.id == message.id } })
-                            } label: {
-                                MessagingBubble(message: message, conversation: conversation, accountID: accountID, position: positions[message.id] ?? .single,
-                                                answersInline: answersInline)
-                                    .environment(\.imRecipientPreview, recipientPreviewInput)
-                                    .imSendFlight(message.id, in: sendFlight.namespace)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityIdentifier("messaging.message.\(message.id)")
+                            messageRowLink(message, accountID: accountID, position: positions[message.id] ?? .single,
+                                           answersInline: answersInline)
                             // design-r2-social P13: the card's answers sit in the transcript, outside the row link,
                             // as the MP chat draws `genericButtons` inside the card.
                             let isOwnRow = message.senderID == accountID && accountID > 0
@@ -574,6 +564,37 @@ struct MessagingHistoryView: View {
               let poll = owner.visiblePoll, let mine = poll.myOptionId,
               let option = poll.options.first(where: { $0.id == mine }) else { return }
         pollVotes[messageID] = option.content
+    }
+    /// mp-nav r3 (MP im/chat index.js:1077-1094 `onLocationTap` / `onRouteTap`): a route / signup card opens its
+    /// topic and a location card opens Maps in one tap; every other message keeps the message detail push.
+    @ViewBuilder private func messageRowLink(_ message: MessagingMessage, accountID: Int, position: ChatGroupPosition,
+                                             answersInline: Bool) -> some View {
+        let bubble = MessagingBubble(message: message, conversation: conversation, accountID: accountID, position: position,
+                                     answersInline: answersInline)
+            .environment(\.imRecipientPreview, recipientPreviewInput)
+            .imSendFlight(message.id, in: sendFlight.namespace)
+        if !answersInline, expanded != nil, let topicID = MessagingCardTap.topicID(message) {
+            Button { openCardTopic(topicID) } label: { bubble }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("messaging.message.\(message.id)")
+        } else if !answersInline, let place = MessagingCardTap.mapItem(message) {
+            Button { place.openInMaps(launchOptions: nil) } label: { bubble }
+                .buttonStyle(.plain)
+                .accessibilityHint(Text("accountCollection.coupon.openInMaps"))
+                .accessibilityIdentifier("messaging.message.\(message.id)")
+        } else {
+            NavigationLink {
+                MessagingMessageDetailView(message: message, conversation: conversation,
+                    reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
+                    currentMessage: { history.messages.first { $0.id == message.id } })
+            } label: { bubble }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("messaging.message.\(message.id)")
+        }
+    }
+    private func openCardTopic(_ id: Int) {
+        guard currentHistoryReady else { return }
+        cardRoute = .topic(id)
     }
     @ViewBuilder private func cardRouteDestination(_ route: MessagingCardRoute) -> some View {
         switch route {

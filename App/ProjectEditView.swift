@@ -323,6 +323,9 @@ import SwiftUI
     @State private var topicDetailRequest: ProjectEditTopicDetailRequest?
     @State private var ticketSettingsRequest: ProjectEditTicketSettingsRequest?
     @StateObject private var undoCenter = ProjectEditUndoCenter()
+    /// fix/1128c-ai-showcase (H-08b): the AI safety precheck runs before the publish step, as MP fabu does.
+    @StateObject private var aiPrecheck = AISafetyPrecheckGate()
+    @Environment(\.aiSafetyPrecheckSource) private var aiSafetySource
     @Environment(\.undoManager) private var undoManager
 
     private enum EditorParityModal: String, Identifiable {
@@ -518,6 +521,7 @@ import SwiftUI
                 NativeRpgPassiveRulesAuthorEntry(model: model)
                 Section { NativeStoryWalkingAuthorEntry(model: model) }
                 TopicPublishCheckSection(model: model)
+                AISafetyPrecheckStatusSection(gate: aiPrecheck)
                 if !model.coordinator.issues.isEmpty {
                     Section("projectEdit.fixBeforeReview") {
                         ForEach(issueRows) { row in
@@ -655,21 +659,23 @@ import SwiftUI
                 }
                 Spacer()
                 if model.coordinator.canSubmitServerDraft {
-                    Button { focusedField = nil; model.review(intent: .submitServerDraft) } label: {
+                    Button { focusedField = nil; precheckThenReview(.submitServerDraft) } label: {
                         Text("action.submitDraft", tableName: "ProjectCloudDraftReceipt")
                     }
                         .buttonStyle(.borderedProminent)
-                        .disabled(!model.canReview)
+                        .disabled(!model.canReview || aiPrecheck.isRunning)
                         .accessibilityIdentifier("projectEdit.submitServerDraft")
                 } else {
                     // Figma 237:31646: the bar is 保存草稿 + 下一步 (`projectEdit.review` now reads 下一步); it opens the
                     // publish preview, which holds the one confirmation.
-                    Button("projectEdit.review") { focusedField = nil; model.review() }
-                        .buttonStyle(.borderedProminent).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")
+                    Button("projectEdit.review") { focusedField = nil; precheckThenReview(.ordinary) }
+                        .buttonStyle(.borderedProminent).disabled(!model.canReview || aiPrecheck.isRunning).accessibilityIdentifier("projectEdit.review")
                 }
             }
         }
         .task(id: sessionRevision) { await model.load() }
+        .modifier(AISafetyPrecheckPresenter(gate: aiPrecheck))
+        .onChange(of: sessionRevision) { _, _ in aiPrecheck.reset() }
         .onAppear { undoCenter.attach(undoManager); chapterRemoval.onRemoved = { previous, removed in recordChapterRemoval(previous: previous, removed: removed) } }
         .modifier(TemplateLocationTodosHost(topicID: model.coordinator.snapshot?.topicID, scope: model.draft.owner.rawValue))
         .modifier(ProjectEditAutosaveObservation(model: model))
@@ -830,6 +836,10 @@ import SwiftUI
             }
             Button(MerchantCloseCopy.text("再改改", "Keep Editing", locale), role: .cancel) { activeEditorModal = nil }
         }
+    }
+    /// H-08b: AI safety precheck first (degrades to pass), then the existing review step.
+    private func precheckThenReview(_ intent: ProjectEditSubmissionIntent) {
+        aiPrecheck.begin(draft: model.draft, source: aiSafetySource) { model.review(intent: intent) }
     }
     private func submissionBinding(presentedSubmission: PublishingSubmissionHandoff?, submissionIncarnation: UUID) -> Binding<PublishingSubmissionHandoff?> {
         Binding<PublishingSubmissionHandoff?>(get: { () -> PublishingSubmissionHandoff? in

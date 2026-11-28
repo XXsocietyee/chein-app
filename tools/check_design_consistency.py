@@ -106,7 +106,7 @@ fixtures included; there is no Swift compiler in the lanes' cloud sessions):
                    Heuristic text scan: string literals are blanked first.
   effect on clean page  a call to the restored effect kit (OWNER RULE 3, 11-28): `CYBurst(` / `CYConfettiBurst(` /
                   `CYStarBloom(` / `CYFogLayer(` / `CYEdgeGlow(` / `CYCelebrationMoment(` / `CYJoinReward(` /
-                  `CYGlassCarousel(` / `CYGlassSliver(` / `CYCarouselBackdrop(`, `.cyFoil(` / `.cyFoilSheen(` /
+                  `CYGlassCarousel(` / `CYGlassSliver(` / `CYCarouselBackdrop(` / `CYWeatherScene(`, `.cyFoil(` / `.cyFoilSheen(` /
                   `.cyEdgeGlow(` / `.cyUnlockCelebration(` outside the distinctive surfaces: games, story flow,
                   payment, maps and celebration moments (EFFECT_SURFACE_DIRS / EFFECT_SURFACE_NAME) and the kit files
                   that host them (EFFECT_KIT_FILES). Home, search, lists, settings, Me, wallet, club admin, inbox,
@@ -255,7 +255,7 @@ EFFECT_ON_CLEAN = 'effect on clean page'
 # celebration moments. Every other page stays clean (system components, no glow / foil / particles / glass).
 EFFECT_PATTERN = re.compile(
     r'(?<![\w.])(?:CYBurst|CYConfettiBurst|CYStarBloom|CYFogLayer|CYEdgeGlow|CYCelebrationMoment|CYJoinReward|'
-    r'CYGlassCarousel|CYGlassSliver|CYCarouselBackdrop)\s*[(<]'
+    r'CYGlassCarousel|CYGlassSliver|CYCarouselBackdrop|CYWeatherScene)\s*[(<]'
     r'|\.(?:cyFoil|cyFoilSheen|cyEdgeGlow|cyUnlockCelebration)\s*\(')
 EFFECT_SURFACE_DIRS = ('App/NativeR2/Games/', 'App/NativeR2/Story/', 'App/NativeR2/FreeExplore/',
                        'App/NativeR2/CityOrientation/', 'App/NativeR2/MapHome/', 'App/NativeR2/Motion/')
@@ -268,7 +268,8 @@ EFFECT_SURFACE_NAME = re.compile(
 # The kit itself: definitions and the celebration / album / medal hosts that compose them.
 EFFECT_KIT_FILES = tuple('App/DesignSystem/' + n + '.swift' for n in (
     'CYBurst', 'CYEdgeGlow', 'CYFoil', 'CYRoamKit', 'CYSignature', 'CYStarBloom', 'CYGlassCarousel', 'CYAlbum',
-    'CYCollectible', 'CYBadgeCraft', 'CYCelebrationViews', 'CYCelebrationEngine', 'CYJoinReward', 'CYNightGlass'))
+    'CYCollectible', 'CYBadgeCraft', 'CYCelebrationViews', 'CYCelebrationEngine', 'CYJoinReward', 'CYNightGlass',
+    'CYWeatherScene'))
 
 
 def effect_surface(rel):

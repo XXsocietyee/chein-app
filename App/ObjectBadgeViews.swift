@@ -43,6 +43,7 @@ private enum ObjectBadgeWallColumns {
     @Namespace private var hero
     @CYAlbumSeen private var seen
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.rootSignIn) private var rootSignIn
     /// Opened grid cell (slot identifier). Cells are plain buttons, not `NavigationLink`s: inside a List row the system
     /// draws a disclosure chevron next to every link, which put stray chevrons between the grid's badges.
     @State private var openSlot: String?
@@ -52,8 +53,8 @@ private enum ObjectBadgeWallColumns {
         return Array(repeating: GridItem(.flexible(), spacing: CYSpacing.md, alignment: .top), count: count)
     }
     var body: some View {
-        // BWALL-5: the signed-out state offers 登录 (opens 我的) like the MP access gate.
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", issueCopy: .badgeWall, onSignIn: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil,
+        // BWALL-5: the signed-out state offers 登录 like the MP access gate (mp-states r3: the sign-in sheet over this page).
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", issueCopy: .badgeWall, onSignIn: rootSignIn.signedOutAction(fallback: rootTabSwitch),
                           load: { try await reader.profileBadges() }) { wall in
             let groups = ObjectBadgeWallColumns.split(wall)
             List {
@@ -255,7 +256,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                         .opacity(badge.isLocked ? 0.45 : 1)
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(Text(verbatim: displayName))
-                    Text(verbatim: displayName).font(.title2.weight(.semibold))
+                    Text(verbatim: displayName).font(.title2.bold())
                         .frame(maxWidth: .infinity).multilineTextAlignment(.center)
                 }
                 Section {

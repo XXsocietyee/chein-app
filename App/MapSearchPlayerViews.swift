@@ -31,38 +31,8 @@ import SwiftUI
     }
 }
 
-/// Map weather ambience. Rain/snow/fog draws a light overlay; clear, reduced motion, or any failure draws nothing.
-/// Cached per 20-cells-per-degree cell for ten minutes, like `weather-core.js`.
-@MainActor final class MapWeatherModel: ObservableObject {
-    @Published private(set) var weather: MapSearchPlayerService.Weather?
-    private var cache: [String: (at: Date, weather: MapSearchPlayerService.Weather?)] = [:]
-    static let ttl: TimeInterval = 600
-
-    func refresh(latitude: Double, longitude: Double, client: PlayerCapabilityClient, now: Date = Date()) async {
-        guard let cell = MapSearchPlayerService.cell(latitude: latitude, longitude: longitude) else { weather = nil; return }
-        let key = "\(cell.0):\(cell.1)"
-        if let hit = cache[key], now.timeIntervalSince(hit.at) < Self.ttl { weather = hit.weather; return }
-        let value = await MapSearchPlayerService(client: client).weather(latitude: latitude, longitude: longitude)
-        cache[key] = (now, value)
-        if cache.count > 64, let oldest = cache.min(by: { $0.value.at < $1.value.at })?.key { cache[oldest] = nil }
-        weather = value
-    }
-}
-
-struct MapWeatherOverlay: View {
-    let weather: MapSearchPlayerService.Weather?
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        if let weather, !reduceMotion {
-            Rectangle()
-                .fill(CYColor.textInverse.opacity(weather.kind == "fog" ? 0.18 * weather.intensity : 0.08 * weather.intensity))
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-                .ignoresSafeArea()
-        }
-    }
-}
+// Map weather ambience moved to `App/NativeR2/MapHome/MapWeatherLayer.swift` (fix/1128c-ai-weather: particles,
+// chip, WeatherKit and the `WeatherContext` hand-off).
 
 /// `open-address.js`: open a text-only address in Maps after `api/map/geocode`; 「暂时无法定位」 on failure.
 struct GeocodedAddressButton: View {

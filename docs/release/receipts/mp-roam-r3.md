@@ -563,6 +563,16 @@ Base re-merged with `origin/ui/combined-r7` (clean). No open coordinator finding
 
 No new strings. Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS (effect on clean page: 0) · contract_ratchet **new 0**. No Swift build here.
 
+## Round 3 continue (42) — ADA audit `e2-stamp-album` (P0): 共 N 枚 matches the grid, grouped ground
+
+(The stamp-collected burst landed from the twin run in continue 41; not repeated.)
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| ADA `e2-stamp-album` (P0, "3 stamps in total while showing 2"; white background) | `subpackageRoam/components/cy/scene-roam-stamp-album` (`album-sub` 共 `total` 枚 = server total; the live list never carries `check_state 2` rows, index.js:82 comment) → `App/RoamExperienceFixtureSupport.swift` `album`, `App/NativeR2/FreeExplore/NativeStampAlbumView.swift` | The design fixture carried a moderation-hidden row (903, `checkState 2`) counted in `total: 3`; the pager drops it (the MP server-count rule is pinned in `RoamReceivedStampMetadataScopeTests.testOriginalModerationFilterKeepsServerCountAndNoOtherReadOpens`, so Core is unchanged). Page ground was plain white. | Design-fixture mode drops row 903 and sets `total: 2` (UI tests without `--design-fixture` keep the pinned rows). Album ground → `cyGroupedBackground()` (system grouped) like the other pushed collection pages. MP sections / order unchanged (no named locked silhouettes or dates added: the MP grid has one 还没收到 cell and captions only). No new strings. | B · `e2-stamp-album` |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
