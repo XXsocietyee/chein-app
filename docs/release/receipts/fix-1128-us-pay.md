@@ -65,5 +65,7 @@ Not run (no Swift toolchain here).
 
 ## Notes for the coordinator
 
+- Rebased onto `ui/combined-r7` at `ffeef67c7`. That base already had the mp-activity P32 work (`RegistrationPayMethod.payTitle`, `effective`, and `payMethod` on `RegistrationPaySection`). Both are merged: the sheet's `selectedPayMethod` now uses the quote's pay market and channels (`effective(…paymentChannels:)`) instead of the storefront. The card label uses the same wording ("Pay $25.00 by card" / "银行卡支付 $25.00").
+
 - `fix/1128-cn-pay` (P1-2) also touches `RegistrationPaySection.swift`. This branch only changes the Stripe branch, the readiness `.task` guard and the idle readiness row, so a merge conflict should be small.
 - `fix/1128-alipay` may also edit `RegistrationPayMethod.options`. This branch only adds a trailing `paymentChannels:` parameter with a default value.

@@ -104,6 +104,13 @@ final class StripePayContractsTests: XCTestCase {
                                                      paymentChannels: ["APP_STRIPE"]), [.card])
         XCTAssertEqual(RegistrationPayMethod.options(market: .unitedStates, applePayAvailable: true,
                                                      paymentChannels: both), [.applePay, .card])
+        // The sheet's effective choice follows the quote: a USD quote without APP_STRIPE cannot keep "Card".
+        XCTAssertEqual(RegistrationPayMethod.effective(.card, market: .unitedStates, applePayAvailable: true,
+                                                       paymentChannels: ["APPLE_PAY"]), .applePay)
+        XCTAssertEqual(RegistrationPayMethod.effective(nil, market: StripePayEligibility.payMarket(currency: "USD", paymentChannels: both),
+                                                       applePayAvailable: false, paymentChannels: both), .card)
+        XCTAssertEqual(RegistrationPayMethod.effective(nil, market: StripePayEligibility.payMarket(currency: nil, paymentChannels: ["APP"]),
+                                                       applePayAvailable: true, paymentChannels: ["APP"]), .wechatPay)
     }
 
     func testUSDReadinessComesFromStripeChannelsNotTheWeChatProbe() {
