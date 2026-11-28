@@ -358261,6 +358261,40 @@
           }
         }
       }
+    },
+    "mpr3.order.reorder.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See sessions and buy again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看场次，重新购买"
+          }
+        }
+      }
+    },
+    "mpr3.order.reorder.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tickets can't be moved to another session. Buy a new ticket for the session you want."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门票不支持改期，请为想去的场次重新购买。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

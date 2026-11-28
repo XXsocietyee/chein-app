@@ -22,3 +22,15 @@ public extension OrderLifecycleDetail {
         return summary().state != .completed
     }
 }
+
+public extension OrderLifecycleDetail {
+    /// Planning audit G-04 (owner S14: refund + new purchase, no rebooking). After a refund or a cancellation the
+    /// order detail links back to the activity so the player can pick a session and buy again. Activity orders only.
+    var reorderActivityID: Int? {
+        guard ownerType == 2, let ownerID, ownerID > 0 else { return nil }
+        switch summary().state {
+        case .refunded, .cancelled: return ownerID
+        default: return nil
+        }
+    }
+}
