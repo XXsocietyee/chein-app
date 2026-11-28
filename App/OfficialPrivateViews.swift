@@ -319,7 +319,7 @@ private extension Decimal {
                     case .failed(let note):
                         Text(verbatim: OfficialBroadcastStats.failureLine(serverMessage: note, locale: locale))
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -337,7 +337,7 @@ private extension Decimal {
                     .accessibilityIdentifier("official.broadcast.recover")
             }
             if let recoverError {
-                Text(verbatim: recoverError).font(.caption).foregroundStyle(.red)
+                Text(verbatim: recoverError).font(.caption).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("official.broadcast." + "recoverError")
             }
         }

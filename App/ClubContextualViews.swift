@@ -90,7 +90,7 @@ struct ClubOperatingRulesView: View {
                         Label("context.ops.acknowledged", systemImage: "checkmark.circle").foregroundStyle(CYColor.successText)
                     }
                     if state == .rejected {
-                        Label("context.ops.rejected", systemImage: "exclamationmark.circle").foregroundStyle(.red)
+                        Label("context.ops.rejected", systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText)
                     }
                     if readFailed {
                         Label("context.ops.readFailed", systemImage: "arrow.clockwise").foregroundStyle(CYColor.warningText)

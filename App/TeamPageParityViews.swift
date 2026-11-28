@@ -148,7 +148,7 @@ struct TeamJoinRetryNotice: View {
     var reasonKey: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label("team.page.joinFailed", systemImage: "exclamationmark.circle").font(.subheadline.weight(.semibold)).foregroundStyle(.red)
+            Label("team.page.joinFailed", systemImage: "exclamationmark.circle").font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.dangerText)
             Text(LocalizedStringKey(reasonKey ?? "team.page.joinFailed.detail")).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }.frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.joinFailed")

@@ -248,7 +248,7 @@ extension ProfileLocalCoverOwner {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if hasError {
                 Text("profile.localCover.cropFailed")
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("profile.localCover.cropFailure")
             }
             if let image = UIImage(data: draft.source.jpeg) {

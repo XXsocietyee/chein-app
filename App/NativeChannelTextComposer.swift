@@ -45,7 +45,7 @@ import SwiftUI
                             }.buttonStyle(.borderless)
                         }
                         if coordinator.quotedMessageID != nil && !coordinator.quoteDraftIsCurrent {
-                            Text("channelText.replyUnavailable", tableName: "NativeChannelText").cyText(.bodyCompact).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+                            Text("channelText.replyUnavailable", tableName: "NativeChannelText").cyText(.bodyCompact).foregroundStyle(CYColor.dangerText).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     // `+` on the left, then a rounded field with the send control inside it.

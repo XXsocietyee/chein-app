@@ -128,7 +128,7 @@ public struct TopicPricingGapSection: View {
             // i18n r2: the amount carries its own symbol (`¥12.00` zh, `CN¥12.00` en).
             Text("topicPricing.belowFloor.amount \(LocaleDisplay.money(text: TopicPricingXcx.moneyText(decimal: minimum), locale: locale))")
                 .font(.footnote)
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
         }
         if let value, let texts = TopicPricingXcx.feeTexts(price: value, rate: platformRate) {
             LabeledContent("topicPricing.platformFee") { Text(verbatim: LocaleDisplay.yuanAmounts(in: texts.fee, locale: locale)).monospacedDigit() }

@@ -77,7 +77,7 @@ import SwiftUI
                                 : copy("原请求已明确拒绝；不会自动重试。请核对最新政策后重新确认。", "Original request was rejected and will not auto-retry. Please review the latest policy and confirm again."),
                             systemImage: "exclamationmark.triangle"
                         )
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                     }
                     if isReadFailure(model.state) {
                         ContentUnavailableView {

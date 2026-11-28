@@ -74,7 +74,7 @@ import SwiftUI
                     // MP myinvite: the failure copy stays where 加载更多 sits; the button below is that same entry.
                     ProfileInviteHistoryIssueView(error: error)
                 }
-                if model.pagination.continuationInvalid { Label("social.invites.continuationInvalid", systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
+                if model.pagination.continuationInvalid { Label("social.invites.continuationInvalid", systemImage: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText) }
                 if !model.loading && model.pagination.hasMore && (model.error == nil || !model.pagination.members.isEmpty) {
                     samePageEntry(permit: permit, failed: model.error != nil)
                 }

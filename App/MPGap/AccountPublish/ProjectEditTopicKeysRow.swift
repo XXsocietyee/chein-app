@@ -235,7 +235,7 @@ import QuestifyCore
                 if store.state == .failed {
                     Section {
                         Label("mpPublish.keys.loadFailed", systemImage: "exclamationmark.circle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                         Button("action.retry") { Task { await store.load() } }
                             .buttonStyle(.borderless)
                     }
@@ -249,7 +249,7 @@ import QuestifyCore
                 if let errorKey = store.errorKey {
                     Section {
                         Label(LocalizedStringKey(errorKey), systemImage: "exclamationmark.circle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("projectEdit.keys.error")
                     }
                 }
@@ -347,7 +347,7 @@ import QuestifyCore
         } footer: {
             if issueKind == kind, let issue {
                 Label(issueText(issue), systemImage: "exclamationmark.circle")
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
             }
         }
     }

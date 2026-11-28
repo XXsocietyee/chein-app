@@ -43,7 +43,7 @@ import SwiftUI
                 if let errorKey {
                     Section {
                         Label(LocalizedStringKey(errorKey), systemImage: "exclamationmark.circle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("projectEdit.d20.error")
                     }
                 }

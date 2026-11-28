@@ -224,8 +224,8 @@ enum OfficialDetailID {
                             Text("roam.official.signupFirst").font(.subheadline).foregroundStyle(.secondary)
                         }
                         if event.paused {
-                            if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(.red) }
-                            else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(.red) }
+                            if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(CYColor.dangerText) }
+                            else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(CYColor.dangerText) }
                         }
                         if presentation.missions.isEmpty { ContentUnavailableView("activityR3.official.detail.tasks.empty", systemImage: "checklist") }
                         if topicNameFailed {

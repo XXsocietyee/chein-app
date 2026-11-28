@@ -178,7 +178,7 @@ import ImageIO
                 if failed {
                     Label("d7.imVoice.playFailed", systemImage: "exclamationmark.circle")
                         .font(.footnote)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
