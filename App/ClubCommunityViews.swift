@@ -1380,8 +1380,12 @@ struct ClubCommunityCommentsView: View {
                             let moderator = evidence?.owner == true || evidence?.administrator == true || post.viewerCanManage
                             if identity.isSignedIn {
                                 let canDelete = comment.memberID == identity.accountID || moderator
-                                Button(canDelete ? "club.community.deleteComment" : "club.community.reportComment", role: canDelete ? .destructive : nil) {
+                                Button(role: canDelete ? .destructive : nil) {
                                     Task { await model.prepare(canDelete ? .deleteComment : .reportComment, clubID: clubID, post: post, comment: comment) }
+                                } label: {
+                                    Text(LocalizedStringKey(canDelete ? "club.community.deleteComment" : "club.community.reportComment"))
+                                        .frame(minHeight: CYSpacing.minTouchTarget)
+                                        .contentShape(Rectangle())
                                 }
                                 .font(.subheadline)
                                 .disabled(model.busy || model.context.coordinator?.permitsInjectedWrites != true)

@@ -711,8 +711,18 @@ open coordinator finding for this lane; no K50 `lane-layout` rows on any branch 
 | `pages/club/post-compose` (cy-post-compose, club mode) | `ClubCommunityViews.swift:1058` (`ClubCommunityComposer`), `ClubPostImagePicker.swift:321` | ✓ (text → 0/300 → images → play record → 作为公告发布) | Over-limit counter was system `Color.red` (colour only) → `CYColor.dangerText` plus a spoken value "Over the character limit" / "超出字数限制". Uploaded-image rows read the raw storage reference aloud → hidden from VoiceOver (the 44 pt preview button already says "Image"; Replace / Remove 44 pt with names). Audit: editor min height `@ScaledMetric`, focused on open, Review is `.borderedProminent` in the confirmation slot. Level C | Done |
 | `pages/club/channel` thread sheet | — | — | Checked: the club channel has no separate thread sheet; reply / thread is the composer reply chip (above) and the per-message "Reply" VoiceOver action (run 42). No row needed | Done |
 
+## Run 44 (2026-11-28, half-hourly)
+Rebased on `origin/design/r3-a11y`, merged `origin/ui/combined-r7` (d5702393c). Latest sweep 2fc0feb24 (17:30 section: P1/P2 rows
+are mp-states / mp-nav, none for this lane); no K50 `lane-layout` rows for this lane.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/club/post-compose` image list + preview sheet | `ClubPostImagePicker.swift:379`, `:483` | ✓ (images → size → replace / remove) | "1080×720" read as "1080 times 720" → spoken label "1080 by 720 pixels" / "1080 × 720 像素" (`a11y.label.pixelSize`, en + zh-Hans) | Done |
+| `pages/square` post video composer preview | `SquarePostVideoViews.swift:178` | ✓ (poster → duration → size → bytes) | Same pixel-size spoken label inside the combined preview element | Done |
+| `pages/club/post-detail` 评论 list (comments page) | `ClubCommunityViews.swift:1383` (`ClubCommunityCommentsView`) | ✓ (post → comments → delete / report → input + 预览) | Subheadline borderless Delete / Report comment button was ~20 pt tall → 44 pt hit area (`minHeight` + `contentShape`), look unchanged. Detail page comment rows: name + body one VO element, safety menu separate ✓; body wraps at AX5 ✓ | Done |
+
 ## Not done (next run starts here)
-- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club post detail + comments at AX5, club post image candidate size text ("1080×720" reads "times").
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club post history view (`ClubCommunityHistoryView`) at AX5, club review sheet (`ClubCommunityReviewView`) values, square post video player controls.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
