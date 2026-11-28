@@ -197222,7 +197222,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未点亮"
+            "value": "未解锁"
           }
         }
       }
@@ -297284,7 +297284,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "尚未点亮"
+            "value": "未解锁"
           }
         }
       }

@@ -1182,6 +1182,19 @@ tokens) and `ModuleFlowTests.swift:137–143` ("Level 7/4/0" → "Lv.7/4/0"), st
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS,
 `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
+### Batch 2 — one badge state pair (ADA audit §3 **State words**)
+ZH badge "locked" had three words (未点亮 / 未解锁 / 尚未点亮) for one state. MP badge wall sections are
+已点亮 / 未解锁 (`subpackageP3/pages/badge-wall/index/index.js:22–23`), so the pair is **已点亮 · 未解锁** / Unlocked · Locked.
+
+| Page (MP → native) · level | Key | Before → after |
+|---|---|---|
+| badge wall cell state + detail label → `ObjectBadgeViews:182, 263`, `ProfileBadgesView:144` · B | `profile.badges.locked` | zh 未点亮 → 未解锁 |
+| badge wall locked meta → `ObjectBadgeViews:213` · B | `objects.badge.meta.locked` | zh 尚未点亮 → 未解锁 |
+
+Section titles (`profile.badges.unlocked` 已点亮, `profile.badges.notUnlocked` 未解锁) unchanged; EN already Unlocked ·
+Locked. Snapshot `docs/release/ui-strings-subpackageP3-pages-badge-wall-index-index.json:111` follows. Gates: generate_project,
+check_scaffold, check_design_consistency PASS; `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
 ### Not done (next run)
 - Badge detail name weight (needs the `test_object_badge_wall_layout…byte_identical` re-pin).
 
