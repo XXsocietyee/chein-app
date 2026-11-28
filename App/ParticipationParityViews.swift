@@ -71,7 +71,7 @@ struct ParticipationScheduleBadge: View {
     let presentation: ProfileParticipationSchedule.Presentation
     var body: some View {
         if let days = presentation.reminderDays {
-            Text("playerJourney.parity.countdown \(days)").cyText(.meta, weight: .semibold).foregroundStyle(.orange)
+            Text("playerJourney.parity.countdown \(days)").cyText(.meta, weight: .semibold).foregroundStyle(CYColor.warningText)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("playerJourney.countdown")
         } else if let range = presentation.range {

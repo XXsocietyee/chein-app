@@ -415,9 +415,28 @@ No open coordinator finding for this lane. Not done pages first:
 | Roam city board 附近 drawer (`subpackageJourney` city roam) | `CityKit/CityRoamRootView.swift` (`CityNearbyDrawer.grabber`) | ✓ (mp-roam / mp-journey own order) | VoiceOver could only toggle peek ↔ medium and heard "Expanded" for both medium and large → adjustable handle (swipe up/down steps peek → half → full, Roam map panel pattern), value names all three heights, hint added; double-tap toggle kept | Done |
 | `pages/roam` territory (领地 nearby spaces) | `RoamTerritoryView.swift` (nearby card) | ✓ (mp-roam owns order) | Up to six status chips (status · tile · distance · tier · level · decay) sat in one HStack and ran off the card in English / at AX sizes → `ClubR1WrapLayout` wraps them; Claim · Check in · Deed card row → `AnyLayout` VStack at accessibility sizes (same order) | Done |
 
+## Run 26 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7`. Sweep **13a6690eb** (04:46Z, contains runs 24-25) a11y sheets read, en + zh-Hans:
+`a11y-badges-ax5` ring now the shipped `CYAlbumProgressRing` at ~118 pt (grew 1.4x) ✓; `a11y-passport-ax5` capsules
+full-width, "Ticket wallet" wraps inside its capsule ✓; `a11y-roam-ax5` peek "Nearby activities 2" wraps on the light
+panel ✓. No open coordinator finding for this lane. Not done pages:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| Shared tabs (项目/推文/成就/关于 etc.) | `DesignSystem/CYTabs.swift` | ✓ | Audit: system segmented `Picker` with `cyAdaptiveSegmented` (menu when a segment would truncate in en / AX sizes), badge read as "Title n". No change | Done |
+| `pages/club` detail join / apply bar | `ClubActionPanel.swift` (inline + floating bar) | ✓ (mp-club owns order) | Settled 待审核 / 已加入 status painted its text `.orange` / `.green` (~2:1 on the bar) → text primary, only the glyph tinted (both placements) | Done |
+| `pages/coop/list` invitation cards | `CooperationBrowserView.swift` | ✓ (mp-activity owns order) | Status chip + Spacer + "From X" squeezed one line at AX sizes, 拒绝 / 接受合作 pair side by side → `axStack` (`AnyLayout`) stacks both leading at accessibility sizes, same order | Done |
+| `pages/play` orienteering score timeline | `OrientScoreView.swift` | ✓ (mp-journey owns order) | 申诉中 footnote in `.orange` (~2:1) → secondary text with an orange hourglass glyph; VoiceOver label unchanged | Done |
+| `subpackageMember` participant form | `ParticipantFormView.swift` | ✓ | Audit: system `Form`, required marker hidden with a spoken hint, readback row wraps. No change | Done |
+| Search links / template lanes | `GlobalSearchLinksAndTemplates.swift` | — | Data / routing only, no UI | Skipped |
+| Status text contrast batch (activity countdown, 免费 price, club lead picker, payout receiver, media review state, channel onboarding 必填, organizer console applied, roam official paused) | `ParticipationParityViews.swift:74`, `ActivityPresentationComponents.swift:88`, `ClubSeriesLeadPicker.swift:105`, `ClubPayoutReceiverView.swift:152`, `SettingsPrivacyLocationView.swift:287-289`, `NativeChannelOnboardingView.swift:183`, `OfficialOrganizerConsoleView.swift:293`, `RoamOfficialArrivalSection.swift:105-107` | ✓ (owning lanes keep order) | System `.orange` / `.green` / `.red` text (~2:1 to 3.5:1 on white) → design-system `CYColor.warningText` / `successText` / `dangerText` (light `#96610A` / `#0B7A57`, ≥ 4.5:1; dark variants legible) | Done |
+| `pages/activity` detail reviews + club event payment notice + search map offline | `ActivityReviewsSection.swift:88`, `SearchMapOfflineBanner.swift:67` | ✓ | Review stars VoiceOver read "4 slash 5" → `a11y.value.ofTotal` ("4 of 5" / "4，共 5"); orange notice / "still offline" text → `CYColor.warningText` | Done |
+
 ## Not done (next run starts here)
-- Continue pages without a row (largest player views next; skip Merchant / Fixture / Diagnostics). Next candidates: `GlobalSearchLinksAndTemplates.swift`, `ClubActionPanel.swift`, `CooperationBrowserView.swift`, `OrientScoreView.swift`, `ParticipantFormView.swift`, `DesignSystem/CYTabs.swift`.
-- Re-read the a11y sheets after the next sweep (newer than 733bfb368; confirm the badge ring now scales in `a11y-badges-ax5`).
+- Continue pages without a row (largest player views next; skip Merchant / Fixture / Diagnostics). Next candidates: scan for remaining
+  `.foregroundStyle(.orange)` / `.green` / `.yellow` on text (contrast) in player views, then `.lineLimit(1)` in HStacks with two texts.
+  Run 26 fixed the single-line `Text(...).foregroundStyle(.orange/.green)` hits; next: multi-line `.foregroundStyle(.orange/.green)` hits (check text vs glyph): `EnvironmentBranchAndRewardLedgerSectionView.swift:244`, `ClubOpsEventFormFields.swift:27`, `ClubOpsEventView.swift:436,565`, `ClubTabParityViews.swift:50`, `TopicXcxSections.swift:107`, `ClubGovernanceCommandForm.swift:432`, `ClubTopicDetailRows.swift:185`, `NativeConditionAuthorView.swift:51,75`, `TemplateAuthoringView.swift:379`, `ClubOpsSettlementViews.swift:26`, `PublishingContextHandoffViews.swift:171,206`, `NativeChannelProgressPrivacyView.swift:93,144`, `ProjectChapterAtmosphereFields.swift:138`, `HomeSearchTabParityViews.swift:1578`.
+- Re-read the a11y sheets after the next sweep (newer than 13a6690eb).
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
