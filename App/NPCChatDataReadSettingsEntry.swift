@@ -23,7 +23,7 @@ struct NPCChatDataReadPresentation: Identifiable {
 
     var body: some View {
         let renderedIdentity = session.npcChatDataReadIdentity
-        Section {
+        SettingsEntrySection {
             // Mini-program settings row 「AI 对话记录」 (OFF-AI-DEL-01): option sheet -> view, export (copy) and delete.
             Button {
                 guard scene == .active, session.npcChatDataReadIdentity == renderedIdentity else { return }
