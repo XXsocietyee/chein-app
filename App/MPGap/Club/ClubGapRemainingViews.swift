@@ -21,7 +21,7 @@ struct ClubGapPlayRecordPickerRow: View {
                         .accessibilityHidden(true)
                     Text(verbatim: selected.title)
                         .font(.subheadline)
-                        .lineLimit(1)
+                        .lineLimit(2)
                     Spacer(minLength: 0)
                     Button { self.selected = nil } label: {
                         Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
