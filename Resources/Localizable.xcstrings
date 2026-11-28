@@ -61510,9 +61510,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld operation(s) have an unconfirmed outcome and stay locked without auto-retry."
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld change hasn’t been confirmed, so it won’t retry automatically."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld changes haven’t been confirmed, so they won’t retry automatically."
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -61544,9 +61556,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld offline write(s) queued to sync"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld saved change waiting to sync"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld saved changes waiting to sync"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -61782,9 +61806,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saved offline — %lld write(s) will send when online"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Saved offline — %lld change will send when you’re online"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Saved offline — %lld changes will send when you’re online"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -88203,9 +88239,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld medal(s) earned"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld medal earned"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld medals earned"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -328152,9 +328200,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld photo(s) failed to upload. %@"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld photo didn’t upload. %@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld photos didn’t upload. %@"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
