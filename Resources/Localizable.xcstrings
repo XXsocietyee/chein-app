@@ -195149,13 +195149,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "2–10 options, up to 100 UTF-16 characters each."
+            "value": "2–10 options, up to 100 characters each."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "2–10 个选项，每项最多 100 个 UTF-16 字符。"
+            "value": "2–10 个选项，每项最多 100 个字符。"
           }
         }
       }
@@ -197709,13 +197709,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "At most 50 UTF-16 text units. Contact details are included in the review text only."
+            "value": "Up to 50 characters. Your contact details are only added to this report."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "最多 50 个文本单位（UTF-16），仅合并到本页审阅内容。"
+            "value": "最多 50 个字符，仅附在本次投诉内容中。"
           }
         }
       }
@@ -198150,13 +198150,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter at least 5 and at most 500 UTF-16 text units. Overlength text is not silently truncated."
+            "value": "Enter 5 to 500 characters. Longer text isn’t cut off automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "至少 5、最多 500 个文本单位（UTF-16）；超长内容不会被静默截断。"
+            "value": "请输入 5–500 个字符；超出部分不会被自动截断。"
           }
         }
       }
@@ -250607,13 +250607,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose a valid reason and enter a description of no more than 2,000 UTF-16 units. You cannot report your own comment."
+            "value": "Choose a reason and describe the problem in 2,000 characters or fewer. You can’t report your own comment."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请选择有效原因并填写不超过2000个UTF-16单元的说明；不能举报自己的评论。"
+            "value": "请选择原因，并用不超过 2000 个字符说明问题；不能举报自己的评论。"
           }
         }
       }
