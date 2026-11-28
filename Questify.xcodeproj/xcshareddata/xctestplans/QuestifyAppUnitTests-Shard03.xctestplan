@@ -593,6 +593,7 @@
         "StoreKit2SubscriptionAndRefundSectionViewTests",
         "SupportTicketR463HostTests",
         "TeamInviteCopyTests",
+        "TeamMembershipWriteRouteTests",
         "TeamNoticePresentationTests",
         "TeamReadCompositionTests",
         "TeamScreenLifecycleTests",

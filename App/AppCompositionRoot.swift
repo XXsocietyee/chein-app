@@ -3592,7 +3592,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             // Owner 2026-11-25 MP-first rule: the merchant writes the MP sends; the server checks the merchant role.
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
-        } else if ReviewedNearbyTeamWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+        } else if ReviewedNearbyTeamWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) || ReviewedTeamMembershipWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {

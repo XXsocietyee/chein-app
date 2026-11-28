@@ -222,5 +222,21 @@
         }
       }
     }
+  },
+  "ticketTeam.manage": {
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open team"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "进入队伍"
+        }
+      }
+    }
   }
 }

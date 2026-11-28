@@ -5240,7 +5240,7 @@ final class AppSession: ObservableObject {
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
     // Team reads require a separately injected, revocable exact-context lease.
-    // Source write adapters exist, but no production write approval is supplied here.
+    // Writes (P0-8) additionally need `composition.teamMembershipWriteApproval`, issued with the reviewed production gates.
     private let teamService = TeamReadOnlyService()
     private lazy var teamJournal = TeamDefaultsJournal(defaults: composition.storage.defaults)
     private var currentTeamSession: TeamSession? {
@@ -5328,7 +5328,7 @@ final class AppSession: ObservableObject {
                              creationSource: OrderLifecycleTeamSource? = nil) -> TeamCoordinator {
         // Default callers provide neither deployment approval nor a registration source.
         // An approved read factory is reusable without silently enabling any write endpoint.
-        let reader: TeamReadOnlyService
+        let reader: any TeamServing
         var coordinatorSession: () -> TeamSession? = { [weak self] in self?.currentTeamSession }
         if let approval = currentTeamReadApproval, let configuration = regionalConfiguration?.apiConfiguration {
             // Capture this issuance. An old coordinator cannot silently adopt a replacement
@@ -5339,8 +5339,8 @@ final class AppSession: ObservableObject {
                           self.currentTeamReadApproval?.revision == approval.revision else { return nil }
                     return self.currentTeamSession
                 }
-            reader = TeamReadOnlyService(configuration: configuration, transport: runtimeHTTPTransport,
-                readApproval: approval.endpoints, currentSession: coordinatorSession, requiresIDMembership: true)
+            reader = TeamMembershipWriteComposition.service(configuration: configuration, transport: runtimeHTTPTransport, readEndpoints: approval.endpoints,
+                write: currentRuntimeDependencyContext.flatMap { composition.teamMembershipWriteApproval($0) }, journal: teamJournal, currentSession: coordinatorSession)
         } else if let readApproval, let configuration = regionalConfiguration?.apiConfiguration {
             reader = TeamReadOnlyService(configuration: configuration, transport: runtimeHTTPTransport,
                 readApproval: readApproval, currentSession: { [weak self] in self?.currentTeamSession },

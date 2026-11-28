@@ -595,6 +595,7 @@ enum ReviewedPlayerReadRoute {
     private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
     private var merchantOperationsWriteByContext: [String: OperationEndpointApproval] = [:]
     private var nearbyTeamWriteByContext: [String: OperationEndpointApproval] = [:]
+    private var teamMembershipWriteByContext: [String: OperationEndpointApproval] = [:]
     private var cityVoucherIssueByContext: [String: VerificationCodeApproval] = [:]
     private var playerWritesEnabled = false
     private var playerWritersByContext: [String: ReviewedPlayerWriteGrant] = [:]
@@ -1273,6 +1274,17 @@ enum ReviewedPlayerReadRoute {
         if let existing = nearbyTeamWriteByContext[key] { return existing }
         guard let approval = makeEndpoint(context, paths: ReviewedNearbyTeamWriteRoute.approvalPaths) else { return nil }
         nearbyTeamWriteByContext[key] = approval
+        return approval
+    }
+
+    /// P0-8: join by code, quit, kick, disband and join-mode (`ReviewedTeamMembershipWriteRoute`). The server checks
+    /// membership and captaincy; `TeamHTTPService` still re-reads `/api/team/info` and journals the operation first.
+    func teamMembershipWrite(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = teamMembershipWriteByContext[key] { return existing }
+        guard let approval = makeEndpoint(context, paths: ReviewedTeamMembershipWriteRoute.approvalPaths) else { return nil }
+        teamMembershipWriteByContext[key] = approval
         return approval
     }
 
