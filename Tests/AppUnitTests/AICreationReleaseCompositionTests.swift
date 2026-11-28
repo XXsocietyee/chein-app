@@ -176,6 +176,7 @@ import Foundation
         XCTAssertNil(AIShowcaseWeather(guideFacts: nil))
         XCTAssertEqual(AIShowcaseCatalog.suggestionKey(for: weather, dayOfYear: 5), "aiShowcase.guide.rain.3")
         XCTAssertEqual(AIShowcaseCatalog.suggestionKey(for: nil, dayOfYear: 3), "aiShowcase.guide.any.1")
-        XCTAssertEqual(AIShowcaseCatalog.allSuggestionKeys.count, 24)
+        XCTAssertEqual(AIShowcaseCatalog.allSuggestionKeys.count, 27)
+        XCTAssertEqual(AIShowcaseWeather(guideFacts: ["weather": "sand", "daypart": "evening"])?.condition, .sand)
     }
 }

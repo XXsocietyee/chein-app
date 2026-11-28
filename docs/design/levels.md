@@ -27,6 +27,7 @@ Screen names follow `docs/audits/1128-functions.md` (origin/audit/1128-functions
 |---|---|---|---|
 | 首页 feed + hero (banner, greeting/city, 编辑精选, 附近活动, 即将上线, feed tabs) | `SessionHomeFeedView`, `HomeFeedView` | B | banner art first; cards `.scrollTransition`; zoom to detail |
 | 首页 search (in-place + global) | `SessionHomeFeedView`, `GlobalSearchView` | B | P18 empty state; results as text rows when no image |
+| 首页 AI showcase (AI guide + NPC hero card, head of 编辑精选) | `SessionHomeAIShowcase`, `HomeAIShowcaseCard` | B | one designed object (sparkles art band on brand tint), weather-aware suggestion, `symbolEffect` on weather change, `.numericText` temperature; fix/1128c-ai-showcase |
 | Map search | `SearchMapExplorerView` | A | map surface (fog/trail not required here; pulsing position) |
 | Topic detail | `SessionTopicDetailView` | B | hero cover, map snippet per place, bottom action bar |
 | Activity detail | `ActivityDetailView` | B | P28 facts, face pile, map snippet, bottom bar |
@@ -57,6 +58,8 @@ Screen names follow `docs/audits/1128-functions.md` (origin/audit/1128-functions
 | 发布 tab root (template shelf) | `DiscoveryTemplateBrowserView` | B | |
 | Play template detail / topic template deck | `DiscoveryTemplateDetailView` | B | |
 | Project editor (fabu, chapter story, node) | `ProjectEditView` | C | forms; P31 composer |
+| Create with AI (hub), Draft with AI, Fill template with AI | `SessionAICreationHubView`, `SessionAIThemeDraftStartView`, `SessionAITemplateFillView` | C | Settings-style rows, review-before-apply, undo; fix/1128c-ai-showcase |
+| AI safety precheck (editor row + blocked sheet) | `AISafetyPrecheckStatusSection`, `AISafetyPrecheckReportSheet` | C | `.warning` haptic once on a block; fix/1128c-ai-showcase |
 | 我的项目, 内容草稿 | project / draft lists | C | |
 | IM inbox, friends, system conversation, report result | `MessagingHomeView`, `IMDriftEntries` | B | inbox is B (avatars, unread); report progress = C |
 | IM chat (+ attach, 更多) | `MessagingHistoryView` | B | bubbles, system components; chat settings = C |

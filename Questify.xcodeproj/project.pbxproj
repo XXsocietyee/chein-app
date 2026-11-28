@@ -5,6 +5,16 @@
 	};
 	"objectVersion" = 56;
 	"objects" = {
+		"FD5260BD153105E490855591" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/AICreationHubView.swift";
+			"sourceTree" = "<group>";
+		};
+		"7C6FA0070A37ECFD46E9B0A1" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "FD5260BD153105E490855591";
+		};
 		"1538495D021CBA1D50D5F8AB" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -15,6 +25,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "1538495D021CBA1D50D5F8AB";
 		};
+		"D43EBFFDE33E1D29BFB9C59F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/AIExperienceEnvironment.swift";
+			"sourceTree" = "<group>";
+		};
+		"B7FFE3ACE5A0BE4F48B43B4A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D43EBFFDE33E1D29BFB9C59F";
+		};
 		"F37DB893E5F73155AFE33F60" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -24,6 +44,16 @@
 		"25E6FB3D504E76EB7A7CDD07" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "F37DB893E5F73155AFE33F60";
+		};
+		"B9BED6228E3577E77A412FDB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/AISafetyPrecheckGate.swift";
+			"sourceTree" = "<group>";
+		};
+		"99E4A9BAB7AFC72C50F9C146" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B9BED6228E3577E77A412FDB";
 		};
 		"630D1CFA5FEBD33A996B0FD1" = {
 			"isa" = "PBXFileReference";
@@ -6354,6 +6384,16 @@
 		"06C8318ECE73A10ECC146FA9" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "46BC0CB2FA34B9F37EBD8563";
+		};
+		"91DA894A678D56686BE90986" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/HomeAIShowcaseCard.swift";
+			"sourceTree" = "<group>";
+		};
+		"5EB7561BAFC08F7EF0E4EDF3" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "91DA894A678D56686BE90986";
 		};
 		"A886D392243F9CDE07BA0814" = {
 			"isa" = "PBXFileReference";
@@ -21176,6 +21216,16 @@
 		"321E0D30D1516DAA787B77F9" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "5256D1709D35416A4E5E3DB0";
+		};
+		"3EC967AE92EA8C6676FECBC7" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/AITemplateFill.swift";
+			"sourceTree" = "<group>";
+		};
+		"0840D41DBCB03DB437BF40D2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3EC967AE92EA8C6676FECBC7";
 		};
 		"DD569E269DB56BCD23E31191" = {
 			"isa" = "PBXFileReference";
@@ -44023,8 +44073,11 @@
 		"19F479106CE8C3BA8C106518" = {
 			"isa" = "PBXGroup";
 			"children" = (
+				"FD5260BD153105E490855591",
 				"1538495D021CBA1D50D5F8AB",
+				"D43EBFFDE33E1D29BFB9C59F",
 				"F37DB893E5F73155AFE33F60",
+				"B9BED6228E3577E77A412FDB",
 				"630D1CFA5FEBD33A996B0FD1",
 				"BD8A1744099E3CC953FE9FFD",
 				"1C05F0EA73C477B9583A1D92",
@@ -44658,6 +44711,7 @@
 				"4A6D6E476A35450C9C697949",
 				"4C0D4A24227568074FEAB56A",
 				"46BC0CB2FA34B9F37EBD8563",
+				"91DA894A678D56686BE90986",
 				"A886D392243F9CDE07BA0814",
 				"710FF8CB842EA27B177E9720",
 				"ED4DB01987061E75B8BAB5E7",
@@ -46139,6 +46193,7 @@
 				"0C1A8A006473C4CCAB8E4DFE",
 				"6E320771F620D3DF3ED1F8CF",
 				"5256D1709D35416A4E5E3DB0",
+				"3EC967AE92EA8C6676FECBC7",
 				"DD569E269DB56BCD23E31191",
 				"BC8843C3AEDD9E864E74974B",
 				"91E015EA0C642AEFD97E61FA",
@@ -49643,8 +49698,11 @@
 			"isa" = "PBXSourcesBuildPhase";
 			"buildActionMask" = 2147483647;
 			"files" = (
+				"7C6FA0070A37ECFD46E9B0A1",
 				"F022CF9CB3D570DEC74D5195",
+				"B7FFE3ACE5A0BE4F48B43B4A",
 				"25E6FB3D504E76EB7A7CDD07",
+				"99E4A9BAB7AFC72C50F9C146",
 				"F24AD3F36FD050591D646093",
 				"AE2CD2CAF671FB06CBA37E0D",
 				"30B1D308D233AC486091C54C",
@@ -50278,6 +50336,7 @@
 				"C9362176F61EECB69B7ADFE2",
 				"76F57864D72215D6CE729F74",
 				"06C8318ECE73A10ECC146FA9",
+				"5EB7561BAFC08F7EF0E4EDF3",
 				"A2887A3A36E990F335D99B01",
 				"3C65B12F3BC633E7A069C17C",
 				"3A8A01E1DD56B132CD4BCA25",
@@ -51759,6 +51818,7 @@
 				"AA06F4DAD5A4E2171AAB3404",
 				"46C0A517C1373139EF062A30",
 				"321E0D30D1516DAA787B77F9",
+				"0840D41DBCB03DB437BF40D2",
 				"54FE7793AD08F2A7B60C1BE0",
 				"87E9697BED6A4CD0393D599A",
 				"1F0CF06FA67E63555B174652",
