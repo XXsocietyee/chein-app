@@ -746,7 +746,7 @@ struct ProjectPublishPreviewSummary: View {
             Label {
                 OpsR3Text.text("publish.preview.checksPassed")
             } icon: {
-                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
             }
             .accessibilityIdentifier("projectEdit.review.checks")
         }

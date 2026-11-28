@@ -142,12 +142,12 @@ struct SquarePostVideoComposerSection: View {
             case .empty: Text("square.video.empty").foregroundStyle(.secondary)
             case .working: CYLoadingState()
             case .failed:
-                Label { Text("square.video.failed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
+                Label { Text("square.video.failed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText) }
                     .accessibilityIdentifier("square.video.failed")
             case .ready(let item, let rejections):
                 preview(item)
                 if rejections.isEmpty {
-                    Label { Text("square.video.withinPolicy") } icon: { Image(systemName: "checkmark.circle").foregroundStyle(.green) }
+                    Label { Text("square.video.withinPolicy") } icon: { Image(systemName: "checkmark.circle").foregroundStyle(CYColor.successText) }
                         .accessibilityIdentifier("square.video.accepted")
                 }
                 ForEach(rejections, id: \.self) { rejection in

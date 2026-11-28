@@ -14,7 +14,7 @@ struct ProfileBadgesView: View {
                             Label {
                                 Text("profile.badges.partial")
                             } icon: {
-                                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText)
                             }
                             .accessibilityIdentifier("profile.badges.partial")
                             if let message = wall.medalFailureMessage, !message.isEmpty { Text(verbatim: message) }

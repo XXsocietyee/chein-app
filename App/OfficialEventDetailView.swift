@@ -444,7 +444,7 @@ struct OfficialDetailMissionRow: View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             // MP od-task-index: the 1-based number, or a check once verified.
             Group {
-                if mission.action == .verified { Image(systemName: "checkmark").foregroundStyle(Color.green) }
+                if mission.action == .verified { Image(systemName: "checkmark").foregroundStyle(CYColor.successText) }
                 else { Text(verbatim: String(mission.index + 1)).monospacedDigit().foregroundStyle(.secondary) }
             }.font(.headline).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 8) {

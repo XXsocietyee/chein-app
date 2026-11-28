@@ -193,7 +193,7 @@ import SwiftUI
             Label {
                 Text("bank.withdrawal.notPaid")
             } icon: {
-                Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
+                Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.warningText)
             }
         }
         withdrawalsSection
@@ -315,7 +315,7 @@ import SwiftUI
                 .foregroundStyle(CYColor.dangerText)
                 .modifier(Cloud02Identifier(identified ? "bank.withdrawal.issue" : nil))
         } icon: {
-            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
+            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.dangerText)
         }
     }
 

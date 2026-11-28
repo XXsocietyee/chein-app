@@ -1191,7 +1191,7 @@ private struct PassOrderRefusedWrites: View {
         VStack(alignment: .leading, spacing: 12) {
             MPGatedNote(text: Text("mp.passOrder.gated"), identifier: "passOrder.gated")
             if refusedNotice {
-                Label { Text("mp.passOrder.refused") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }
+                Label { Text("mp.passOrder.refused") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText) }
                     .font(.subheadline)
                     .accessibilityIdentifier("passOrder.refused")
             }
