@@ -1540,6 +1540,43 @@ Run 45 Not done row worked: **intentional manual paging → `allowed` with reaso
 Checker: manual paging 23 → **18** baselined (all remaining sites have UI/host tests on the tap or need an
 append-only read first — the run 43 list), 119 allowed.
 
+### Batch 2 — one rating / starred hue (ADA audit §3 **Accent colours**)
+
+The same concept drew in two hues: the starred-friend mark was yellow on 好友主页 and orange in the friend directory;
+review stars were orange (activity reviews, bundle reviews) but yellow on the 漫游 place card. New token
+`CYColor.ratingStar` (system orange, the majority and readable on light grouped backgrounds, where yellow is not);
+first-place / medal glyphs use the existing `CYColor.medalGold`.
+
+| Page (MP → native) · level | Site | Before → after |
+|---|---|---|
+| activity 评价 list (`pages/activity` comments) → `App/ActivityReviewsSection.swift:86` · B | 5-star row | `.orange` → `CYColor.ratingStar` |
+| bundle reviews → `App/BundleReviewListView.swift:42` · B | rating label | `.orange` → `CYColor.ratingStar` |
+| 漫游 map place card → `App/NativeR2/MapHome/RoamMapHomePlaceCard.swift:44` · A | place rating | `.yellow` → `CYColor.ratingStar` |
+| friend home (starred) → `App/NativeFriendHomeView.swift:386` · B | starred mark | `.yellow` → `CYColor.ratingStar` |
+| friend directory (starred) → `App/NativeFriendDirectoryView.swift:90` · C | starred mark | `.orange` → `CYColor.ratingStar` |
+| play companion board, first place → `App/MPGap/PlayRoam/PlayCompanionBoardView.swift:76` · B | leader star | `.yellow` → `CYColor.medalGold` |
+| 漫游 finish report medals → `App/RoamFinishReportView.swift:231` · A | medal glyph | `Color.yellow` → `CYColor.medalGold` |
+
+New checker kind **rating hue**: a `star.fill` image with a raw `.yellow` / `.orange` foreground or tint within 6
+lines, outside App/DesignSystem. Baseline 0; allowed: the 谢谢 thanks-sheet celebration star
+(`JourneyReportViews.swift:1029`). Self-test: the five pre-fix files each fail (`rating hue 1 > baseline 0`).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
+PASS (manual paging 18, rating hue 0, 120 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
+
+### For the coordinator — two rules for a state's Retry
+- Sweep 15:50 (mp-home, applied in `HomeFeedView.swift:479`): the offline page's Retry → `.borderedProminent`.
+- ADA audit `d2-home-offline` row: Retry → `.bordered` `.controlSize(.regular)` "so it matches other empty states".
+- The shared kit (`CYContentState` failed/offline, `CYErrorState`, `CYErrorStateView`) and ~175 page-level
+  `ContentUnavailableView` actions use `.bordered`. Home is now the one prominent Retry. I left both as they are (no
+  kit flip against the audit). Please pick one; if prominent wins, this lane flips the three kit sites in one commit
+  and adds a checker kind for page-level `.bordered` retries.
+
+### Not done (next run)
+- manual paging debt (18): tests-first sites only (run 43 list); leave for a lane that can run Swift.
+- Next ADA §3 rows in this lane's area: **Accent colours** beyond stars (role/PRO chips are mp-mine's Me header);
+  **Section headers** for List pages outside the `header font` kind (icon + title3 headers in Form sections).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
