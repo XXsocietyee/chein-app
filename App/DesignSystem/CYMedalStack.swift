@@ -161,6 +161,7 @@ struct CYMedalDeck: View {
     let items: [CYMedalItem]
     var side: CGFloat = 132
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var order = CYMedalOrder(count: 0)
     @State private var drag: CGFloat = 0
 
@@ -175,10 +176,12 @@ struct CYMedalDeck: View {
                         VStack(spacing: CYSpacing.xs) {
                             CYMedalFace(item: item, side: side, tone: index)
                             Text(verbatim: item.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                                .lineLimit(2).multilineTextAlignment(.center)
+                                .lineLimit(typeSize.isAccessibilitySize ? 4 : 2).multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: typeSize.isAccessibilitySize)
                             if let sub = item.subtitle, !sub.isEmpty {
                                 Text(verbatim: sub).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                    .lineLimit(2).multilineTextAlignment(.center)
+                                    .lineLimit(typeSize.isAccessibilitySize ? 3 : 2).multilineTextAlignment(.center)
+                                    .fixedSize(horizontal: false, vertical: typeSize.isAccessibilitySize)
                             }
                         }
                         .opacity(depth == 0 ? 1 : 0)

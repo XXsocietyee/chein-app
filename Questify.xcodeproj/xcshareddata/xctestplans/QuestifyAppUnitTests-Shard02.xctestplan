@@ -165,6 +165,7 @@
         "DesignSystemSharedComponentsTests",
         "DesignSystemTokenMappingTests",
         "DeviceOrientationAndSplitViewAdaptationSectionViewTests",
+        "DynamicTypeAX5SharedComponentsTests",
         "EndToEndReleaseCandidateGateSectionViewTests",
         "EnvironmentBranchAndRewardLedgerViewTests",
         "FinalReleaseSignoffAndZeroGapCertificateViewTests",
