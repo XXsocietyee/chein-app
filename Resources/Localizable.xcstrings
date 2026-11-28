@@ -33836,7 +33836,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the organiser and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
+            "value": "Only the organizer and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
           }
         },
         "zh-Hans": {
@@ -67707,7 +67707,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Colour (hex)"
+            "value": "Color (hex)"
           }
         },
         "zh-Hans": {
@@ -87882,7 +87882,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search around the map centre"
+            "value": "Search around the map center"
           }
         },
         "zh-Hans": {
@@ -205187,7 +205187,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pick a colour for this chapter."
+            "value": "Pick a color for this chapter."
           }
         },
         "zh-Hans": {
@@ -205315,7 +205315,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save the colour. Pick it again to retry."
+            "value": "Couldn't save the color. Pick it again to retry."
           }
         },
         "zh-Hans": {
@@ -220824,7 +220824,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your name and mobile number go to the organiser to verify your registration."
+            "value": "Your name and mobile number go to the organizer to verify your registration."
           }
         },
         "zh-Hans": {
@@ -255097,7 +255097,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send the invitation to friends travelling with you. They appear here after joining."
+            "value": "Send the invitation to friends traveling with you. They appear here after joining."
           }
         },
         "zh-Hans": {
@@ -257709,7 +257709,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settings this editor doesn't recognise are kept, but must be removed before you publish."
+            "value": "Settings this editor doesn't recognize are kept, but must be removed before you publish."
           }
         },
         "zh-Hans": {
@@ -348959,7 +348959,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Light colour"
+            "value": "Light color"
           }
         },
         "zh-Hans": {
