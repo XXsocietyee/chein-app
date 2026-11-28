@@ -38,7 +38,7 @@ import UIKit
         Section("settingsNative.legal.title") {
             ForEach(legalTypes) { type in
                 NavigationLink {
-                    SettingsLegalDocumentView(type: type, market: legalDocumentMarket, reader: legalReader)
+                    SettingsLegalDocumentView(type: type, market: UserMarketMemory.legalDocumentMarket(deployment: market), reader: legalReader)
                 } label: {
                     // MP shezhi 用户服务协议 = icon_lc_scroll-text; the other legal rows use about's icon_agreement.
                     Label { Text(LocalizedStringKey(type.titleKey)) } icon: {
@@ -160,7 +160,7 @@ import UIKit
             Section {
                 let type: SettingsLegalType = feature == .accountDeletion ? .cancellationNotice : .privacyPolicy
                 NavigationLink {
-                    SettingsLegalDocumentView(type: type, market: legalDocumentMarket, reader: legalReader)
+                    SettingsLegalDocumentView(type: type, market: UserMarketMemory.legalDocumentMarket(deployment: market), reader: legalReader)
                 } label: { Text(LocalizedStringKey(type.titleKey)) }
                 .accessibilityIdentifier("settingsNative.blocked.openDocument")
             }
