@@ -133,6 +133,14 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 设置 · 商家营销消息 failure (`AccountComplianceSheet` destination `.marketing`, MP `pages/shezhi/marketing` → `components/marketing-consent`, from 设置 · 营销消息) — code read (no sweep fixture for this state) | `pages/shezhi/components/marketing-consent/index.wxml:2-4,31-32` 正在加载… / cy-inline-error load-failure 营销同意状态加载失败 · sub · 重试 / after rows loaded cy-inline-error data 营销同意状态未更新 · sub (no action) | a bare red sentence (`compliance.error`) above the list with no title and no retry, plus the grey 当前状态未确认 line under it (two messages for one failure); only the list-bottom 刷新 row as the way back | one `ContentUnavailableView`: before the list loads 营销同意状态加载失败 (Couldn't load marketing consent), the reason as its description, `.bordered` 重试 inside (`compliance.error.retry`, re-reads the list); once rows are on screen 营销同意状态未更新 (Marketing consent wasn't updated) + reason, no action; the 当前状态未确认 line hides while the failure shows; loader (加载中…) and empty 还没有商家消息 unchanged |
 | 我的 · 关于 · 邀请好友 (`PlayerCodeAndJoinSection`, pushed from `AccountView` 邀请好友) — code read; fixtures `g-player-code`, `g-player-code-empty` now render the failure state (their `data:` code is not an http(s) URL) | `subpackageMember/components/cy/scene-share-invite/index.wxml:4-21` code loads on open: cy-progress-status 正在加载邀请二维码 · 加载完成后即可扫码邀请好友 / cy-error 个人码加载失败 · sub · 重新生成 / cy-empty 二维码暂时不可用 | no auto-load: a 显示我的邀请码 pill the player had to tap; while loading only the pill disabled (no words); a failed read put the same pill back (no failure state); no code source = blank page | the code loads when the page opens: labelled `ProgressView` 正在加载邀请二维码 (Loading your invite code) + footnote 加载完成后即可扫码邀请好友; failure = one `ContentUnavailableView` 个人码加载失败 (Couldn't load your personal code) with `.bordered` 重新生成 (Generate again) inside (`gap.playerCode.load` id kept on it); no service = `ContentUnavailableView` 二维码暂时不可用; the image loader is labelled too. The MP 邀请好友一起探索城市 copy + 分享链接 button are page content → mp-mine (For other lanes) |
 
+## Sweep fixtures for mp-states (coordinator 05:50 UTC: "mp-states has no sheets")
+
+The sweep script lives with the coordinator, so this lane lists the fixtures to add as `mp-states` in `docs/sweeps/latest`
+(all already registered, checked with `grep` in `App/DesignFixtures`): `d2-home-offline`, `d2-search-offline`,
+`d2-inbox-signed-out`, `d2-inbox-error`, `d2-square-empty`, `e4-tickets-empty`, `e4-wallet-points-error`,
+`r3-roam-routes-empty`, `r3-roam-stamp-album-error`, `d4-badges-error`, `t5-baoming-error`, `d6-play-loading`,
+`g-player-code-empty`. They cover offline, signed-out, failure + 重试, empty and loading on every tab.
+
 ## Not done
 
 | Screen | MP state | Why not done |
