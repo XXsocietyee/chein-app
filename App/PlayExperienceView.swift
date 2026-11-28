@@ -789,6 +789,7 @@ struct PlayThemeMusicKey: Equatable {
             onLocationRow: Self.openLocationSettings,
             teamLead: model.lead,
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
+            journalAttributes: model.snapshot.map(PlayJournal.attributes(in:)) ?? [],
             boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
             scoreDestination: orientScoreDestination,
             entryCodeRegistrationID: entryCode?.registrationID,

@@ -262,6 +262,10 @@ public struct PlayJournalRow: Equatable, Identifiable {
 }
 
 public enum PlayJournal {
+    /// MP 旅程手记 head rows (`journeyAttributes` = `routeState.attributes`), before the station rows.
+    public static func attributes(in snapshot: PlaySnapshot) -> [PlayRouteAttribute] {
+        (snapshot.authority ?? snapshot.result.routeState)?.attributes ?? []
+    }
     /// MP `buildJournal` for a linear route: city runs in station order, free exploration finished-first.
     public static func rows(in snapshot: PlaySnapshot) -> [PlayJournalRow] {
         let cityRun = snapshot.result.mode == 1
