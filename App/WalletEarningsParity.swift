@@ -9,8 +9,7 @@ struct WalletIncomeDayText: View {
         case .today: Text("member.wallet.today", tableName: "MemberProfile")
         case .yesterday: Text("member.wallet.yesterday", tableName: "MemberProfile")
         case .monthDay(let month, let day):
-            if locale.language.languageCode?.identifier == "zh" { Text(verbatim: "\(month)月\(day)日") }
-            else { Text(verbatim: "\(month)/\(day)") }
+            Text(verbatim: LocaleDisplay.monthDay(month: month, day: day, locale: locale) ?? "\(month)月\(day)日")
         }
     }
 }
