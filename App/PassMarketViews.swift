@@ -635,6 +635,7 @@ extension PassDetailBinding {
 
 struct PassDetailView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
     let state: PassDetailState
     let onRetry: () -> Void
     let onSetForGift: (Bool) -> Void
@@ -657,9 +658,16 @@ struct PassDetailView: View {
                 ContentUnavailableView {
                     Label { reason.map { Text(verbatim: $0) } ?? Text("mp.common.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle") }
                 } actions: {
-                    Button(action: onRetry) { Text("action.retry") }
-                        .buttonStyle(.bordered).controlSize(.large)
-                        .accessibilityIdentifier("passDetail.retry")
+                    // MP `market/pass` index.js:61: a server reason (off sale, not found …) takes 返回; a read failure takes 重试.
+                    if reason != nil {
+                        Button { dismiss() } label: { Text("action.back") }
+                            .buttonStyle(.bordered).controlSize(.large)
+                            .accessibilityIdentifier("passDetail.back")
+                    } else {
+                        Button(action: onRetry) { Text("action.retry") }
+                            .buttonStyle(.bordered).controlSize(.large)
+                            .accessibilityIdentifier("passDetail.retry")
+                    }
                 }
                 .accessibilityIdentifier("passDetail.error")
             case .ready(let product):
