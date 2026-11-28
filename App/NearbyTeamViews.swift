@@ -689,7 +689,7 @@ import SwiftUI
                                 Text(LocalizedStringKey(key)).fixedSize(horizontal: false, vertical: true)
                             } icon: {
                                 Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
-                                    .foregroundStyle(idx == consequenceKeys.count - 1 ? Color.red : Color.secondary)
+                                    .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : Color.secondary)
                             }
                         }
                     }

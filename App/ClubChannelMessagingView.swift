@@ -269,7 +269,7 @@ public struct ClubChannelMessagingView: View {
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: banner.isError ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
                 .accessibilityHidden(true)
-                .foregroundStyle(banner.isError ? Color.red : Color.green)
+                .foregroundStyle(banner.isError ? CYColor.dangerText : CYColor.successText)
             Text(banner.message)
                 .font(.footnote)
             Spacer()
@@ -1043,7 +1043,7 @@ public struct ClubChannelMemberRosterSheet: View {
                                 Text(banner.message)
                             } icon: {
                                 Image(systemName: banner.isError ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
-                                    .foregroundStyle(banner.isError ? Color.red : Color.green)
+                                    .foregroundStyle(banner.isError ? CYColor.dangerText : CYColor.successText)
                             }
                             if banner.canRetry {
                                 Button(copy("重试", "Retry")) {

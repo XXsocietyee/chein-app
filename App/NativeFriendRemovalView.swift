@@ -59,7 +59,7 @@ import SwiftUI
                             .accessibilityIdentifier("friendRemoval.outcome")
                     } icon: {
                         Image(systemName: result.outcome == "APPLIED" ? "checkmark.circle" : "xmark.circle")
-                            .foregroundStyle(result.outcome == "APPLIED" ? Color.green : Color.red)
+                            .foregroundStyle(result.outcome == "APPLIED" ? CYColor.successText : CYColor.dangerText)
                             .accessibilityHidden(true)
                     }
                 }

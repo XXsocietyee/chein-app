@@ -90,7 +90,7 @@ struct LoginView: View {
                     Label { Text(LocalizedStringKey(key)) } icon: {
                         Image(systemName: model.state.issue == .appleIncomplete ? "info.circle" : "exclamationmark.circle.fill")
                     }
-                    .foregroundStyle(model.state.issue == .appleIncomplete ? Color.secondary : Color.red)
+                    .foregroundStyle(model.state.issue == .appleIncomplete ? Color.secondary : CYColor.dangerText)
                     .accessibilityIdentifier("auth.channels.error")
                 }
             }
