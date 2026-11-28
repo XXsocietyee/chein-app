@@ -4,7 +4,7 @@ import Foundation
 /// Mini-program: `pages/publish/fabu/theme-d20.js` (`PRESETS`, `ATTR_PRESETS`, `read`, `apply`, `setCheckEnabled`,
 /// `summary`, `newAttr`, `clampAttr`) and `fabu/theme-d20-page.js` (`onD20Toggle`, `onD20Save`).
 /// Only the fields the MP sheet owns are touched: `checkEnabled`, `natAuto`, `tiers.*.dc`, `rpg.bargain`,
-/// `rpg.momentum` and the `counter.*` attribute rows. Clocks and traits are read, never rewritten here.
+/// `rpg.momentum`, `rpg.clocks`, `rpg.aspects` and the `counter.*` attribute rows (更多规则 edits clocks and traits).
 /// This does not post. The topic save already carries `journeyRules`.
 public enum ProjectEditD20Rules {
     /// MP `PRESETS` (规则难度), in MP order. A theme without `tiers` reads as 标准 (server default 10/13/16).
@@ -19,6 +19,14 @@ public enum ProjectEditD20Rules {
             }
         }
         public var labelKey: String { "mpPublish.d20.preset." + rawValue }
+        /// MP `PRESETS[].segments`: the size of a new 进度钟 under this difficulty.
+        public var clockSegments: Int {
+            switch self {
+            case .easy: return 8
+            case .std: return 6
+            case .hard: return 4
+            }
+        }
     }
 
     /// MP `ATTR_PRESETS`, in MP order: the label key and its range / start value.
@@ -41,6 +49,22 @@ public enum ProjectEditD20Rules {
     ]
 
     public static let maxAttributes = 6
+    /// MP `MAX_CLOCKS`, `MAX_ASPECTS`, the clock name `maxlength="10"` and `CLOCK_SEGMENTS`.
+    public static let maxClocks = 6
+    public static let maxAspects = 12
+    public static let clockNameLimit = 10
+    public static let clockSegmentOptions = [4, 6, 8]
+
+    /// MP `ASPECT_PRESETS`, in MP order: the 特质 chips (label + the description saved with it).
+    public struct AspectPreset: Identifiable, Sendable {
+        public let labelKey: String
+        public let descKey: String
+        public var id: String { labelKey }
+    }
+
+    public static let aspectPresets: [AspectPreset] = ["nightOwl", "hurt", "sharpEye", "bold", "handy", "memory", "watched"].map {
+        AspectPreset(labelKey: "mpPublish.d20.aspect.preset." + $0, descKey: "mpPublish.d20.aspect.preset." + $0 + ".desc")
+    }
     public static let attributeNameLimit = 6
     /// MP `theme-values.js` `RANGE`, shared with the runtime-values editor (L03-201).
     public static let attributeFloor = -10_000
@@ -62,6 +86,7 @@ public enum ProjectEditD20Rules {
         public var label: String
         public var danger: Bool
         public var segments: Int
+        public var visible = true
         public var id: String { key }
     }
 
@@ -69,6 +94,7 @@ public enum ProjectEditD20Rules {
         public var key: String
         public var label: String
         public var desc: String
+        public var kind = "aspect"
         public var id: String { key }
     }
 
@@ -109,10 +135,13 @@ public enum ProjectEditD20Rules {
         model.clocks = clockRows.map { row in
             let segments = row["segments"]?.integer ?? 0
             return Clock(key: row["var"]?.text ?? "", label: row["label"]?.text ?? "",
-                         danger: row["kind"]?.text == "danger", segments: segments == 0 ? 6 : segments)
+                         danger: row["kind"]?.text == "danger", segments: segments == 0 ? 6 : segments,
+                         visible: row["visible"] != .bool(false))
         }
         model.aspects = (rpg["aspects"]?.array ?? []).compactMap { $0.object }.map { row in
-            Aspect(key: row["key"]?.text ?? "", label: row["label"]?.text ?? "", desc: row["desc"]?.text ?? "")
+            let kind = row["kind"]?.text ?? ""
+            return Aspect(key: row["key"]?.text ?? "", label: row["label"]?.text ?? "", desc: row["desc"]?.text ?? "",
+                          kind: kind.isEmpty ? "aspect" : kind)
         }
         return model
     }
@@ -168,6 +197,28 @@ public enum ProjectEditD20Rules {
         var momentum = rpg["momentum"]?.object ?? [:]
         momentum["enabled"] = .bool(model.momentum)
         rpg["momentum"] = .object(momentum)
+        // MP `apply`: clocks and traits are rebuilt from the sheet (an empty list removes the field).
+        if current.clocks != model.clocks {
+            if model.clocks.isEmpty {
+                rpg.removeValue(forKey: "clocks")
+            } else {
+                rpg["clocks"] = .array(model.clocks.map { clock in
+                    .object(["var": .string(clock.key), "label": .string(clock.label), "segments": .number(Decimal(clock.segments)),
+                             "kind": .string(clock.danger ? "danger" : "progress"), "visible": .bool(clock.visible)])
+                })
+            }
+        }
+        if current.aspects != model.aspects {
+            if model.aspects.isEmpty {
+                rpg.removeValue(forKey: "aspects")
+            } else {
+                rpg["aspects"] = .array(model.aspects.map { aspect in
+                    var row: [String: ProjectEditJSON] = ["key": .string(aspect.key), "label": .string(aspect.label), "kind": .string(aspect.kind)]
+                    if !aspect.desc.isEmpty { row["desc"] = .string(aspect.desc) }
+                    return .object(row)
+                })
+            }
+        }
         rules["rpg"] = .object(rpg)
         if !current.bound {
             let mine = Set(current.attributes.map(\.key))
@@ -207,6 +258,31 @@ public enum ProjectEditD20Rules {
             key = "counter.value_\(stamp)_\(String(counter, radix: 36))"
         }
         return Attribute(key: key, label: label, min: preset?.min ?? 0, max: preset?.max ?? 5, initial: preset?.initial ?? 0)
+    }
+
+    /// MP `newClock`: 坏事逼近, sized by the current difficulty (标准 when customised), key `counter.clock_…`.
+    public static func newClock(label: String, in model: Model) -> Clock {
+        let used = Set(model.attributes.map(\.key) + model.clocks.map(\.key))
+        let key = uniqueKey(prefix: "counter.clock_", used: used)
+        return Clock(key: key, label: label, danger: true, segments: (model.preset ?? .std).clockSegments)
+    }
+
+    /// MP `newAspect`: key `trait_…`; a preset trait carries its description.
+    public static func newAspect(label: String, desc: String, in model: Model) -> Aspect {
+        let key = uniqueKey(prefix: "trait_", used: Set(model.aspects.map(\.key)))
+        return Aspect(key: key, label: label, desc: desc)
+    }
+
+    /// MP `uid(prefix, used)`: prefix + base-36 time + a base-36 counter, skipping used keys.
+    static func uniqueKey(prefix: String, used: Set<String>) -> String {
+        let stamp = String(Int(Date().timeIntervalSince1970 * 1000), radix: 36)
+        var counter = 1
+        var key = prefix + stamp + String(counter, radix: 36)
+        while used.contains(key) {
+            counter += 1
+            key = prefix + stamp + String(counter, radix: 36)
+        }
+        return key
     }
 
     public enum AttributeField: Sendable { case min, max, initial }

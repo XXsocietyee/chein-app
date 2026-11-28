@@ -41,7 +41,12 @@ import SwiftUI
         if scenario == .empty { return try decode(RoamAlbumPage.self, "{\"list\":[],\"total\":0,\"pageNum\":\(page),\"pageSize\":\(pageSize)}") }
         var json = RoamExperienceSyntheticFixtures.album
         // Sweep 18:54 zh-Hans: fixture captions follow the UI language (like the badge-wall fixture); en stays as UI tests pin it.
-        if Self.prefersChinese {
+        // mp-roam r3 (sweep 01:10 `e2-stamp-album`): design fixtures render the real page, so the stamps carry
+        // place names, not "Synthetic …" labels; UI tests (no `--design-fixture`) keep the pinned captions.
+        if ProcessInfo.processInfo.arguments.contains("--design-fixture") {
+            json = json.replacingOccurrences(of: "Synthetic city stamp", with: Self.prefersChinese ? "外滩夜色" : "The Bund at night")
+            json = json.replacingOccurrences(of: "Synthetic reviewed stamp", with: Self.prefersChinese ? "老街霓虹" : "Old street neon")
+        } else if Self.prefersChinese {
             json = json.replacingOccurrences(of: "Synthetic city stamp", with: "示例城市邮票")
             json = json.replacingOccurrences(of: "Synthetic reviewed stamp", with: "示例已审核邮票")
         }
