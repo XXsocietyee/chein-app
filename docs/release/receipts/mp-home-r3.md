@@ -514,6 +514,14 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 | `pages/index/index` cy-empty `offline` → `App/HomeFeedView.swift` `feedDownState` (`en-d2-home-offline.jpg`) | Retry was a small tinted `.bordered` pill; it is the page's one action. | **Fixed** — `.borderedProminent`, `.controlSize(.regular)`; id `homeFeed.retry.feed` kept. |
 | `pages/index/index.wxml:22-31` `v3-hero-action` (poster + `v3-hero-copy` title **inside** the slide; `home-action-banner.js` "横幅标题就是动作") → `App/HomeSearchTabParityViews.swift` `HomeActionBannerSlide`, `Core/HomeSearchTabParity.swift` `ActionBanner.actionTitle(locale:)` (`en-d2-home.jpg`) | The title sat under the black card like a stray caption; no action inside the hero (P34). | **Fixed** — the card now holds the poster (16:10 stage) and, on the stage's black under the art (no scrim), the white headline title + one white capsule action (去报名 / Browse, 去申请 / Apply, 去玩 / Play, 查看 / Open, `arrow.right`). `ViewThatFits` stacks title over action at large Dynamic Type. The whole card stays one button (MP slide tap); the capsule is its label (hidden from VoiceOver, the label stays the title); ids unchanged. |
 
+## Round 3 continue (43) — Next round item 2 (motion and feedback): topic 收藏
+
+Merged `origin/ui/combined-r7` (clean). No K50 `lane-layout` rows exist yet for mp-home (`docs/release/receipts/cursor-k50-p*.md` not present). Sweep still build c4e43841a (15:50 items closed in continue 42). Level B (Crafted).
+
+| MP page → native | Difference | Status |
+|---|---|---|
+| `pages/topic/index.js` `toggleFav` (optimistic flip, `api/topic/like`, toast on failure) → `App/TopicDetailView.swift` `toggleFavorite`, new `TopicFavoriteHaptics` | The 收藏 toggle (a primary action on a 首页-reachable page) gave no haptic; only the toast. | **Fixed** — `.success` once the like write is sent, `.warning` when it rolls back (rejected / network); the seed read-back plays nothing. Typed `ViewModifier` on two counters (no untyped closures, 03:50 / 04:20 rules); MP behaviour and copy unchanged. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -570,6 +578,8 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 
 - Needs a simulator pass (continue 41): signed-in 首页 load and pop-to-root send no `registration/my-joined` read; the home widget still shows the next ticket.
 - Needs a simulator pass (continue 42): `d2-home` hero card with title + action inside (en + zh-Hans, AX5 stacks); `d2-home-offline` prominent Retry.
+
+- Needs a device pass (continue 43): topic 收藏 success haptic on save, warning on rollback, none on page open.
 
 ## For other lanes
 - mp-states: the 07:05 `d2-home-empty` next-step item is done on `mp/r3-home` (continue 30); `r3-roam-routes-empty` stays yours / mp-roam.
