@@ -2164,7 +2164,6 @@ extension PlayExperienceView {
                 }
             }
             .mapStyle(.standard(elevation: .flat, emphasis: .muted))
-            .environment(\.colorScheme, .light)
             .background { CYMapPlaceholder(fog: false) }
             // Decorative ground: the stop list in the panel carries the same facts for VoiceOver.
             .accessibilityHidden(true)
