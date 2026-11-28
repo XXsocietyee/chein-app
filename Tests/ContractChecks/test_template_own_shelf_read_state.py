@@ -64,7 +64,9 @@ class TemplateOwnShelfReadStateContract(unittest.TestCase):
         self.assertIn('Text("templateOwnShelf.read.loadingMore")', self.view)
         self.assertIn('.accessibilityIdentifier("templateAuthor.shelf.loadMore")', self.view)
         self.assertNotIn('retryLogin', self.view)
-        self.assertIn('else { Text(action)', self.view)
+        # mp-states r3: 登录 is a real button (root sign-in sheet) or nothing; the dead footnote text is gone.
+        self.assertNotIn('else { Text(action)', self.view)
+        self.assertIn('perform: rootSignIn.signedOutAction(fallback: rootTabSwitch)', self.view)
 
     def test_failure_snapshot_market_and_owner_bounds_stay(self):
         self.assertIn('(requested == 1 && !Self.isTransientRefreshFailure(error)) || Self.invalidatesReadScope(error) { leave() }', self.core)

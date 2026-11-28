@@ -195,22 +195,8 @@ public struct ClubChannelMessagingView: View {
                 // iPhone: the channel list is its own screen; the conversation is full width.
                 channelCategorySidebar
             } else {
-                channelTopBar
-                Divider()
-                if !moderationCoordinator.hasAcceptedRules && !isReadOnlyForViewer {
-                    channelRulesGateRow
-                    Divider()
-                }
-                if isCompact {
-                    channelTranscriptColumn
-                } else {
-                    HStack(spacing: 0) {
-                        channelCategorySidebar
-                            .frame(width: 260)
-                        Divider()
-                        channelTranscriptColumn
-                    }
-                }
+                conversationColumn
+                    .toolbar { channelTopBar }
             }
         }
         .confirmationDialog(
@@ -365,10 +351,31 @@ public struct ClubChannelMessagingView: View {
         }
     }
 
+    /// ADA 1128 d4-channel-chat: one header only. The channel name, list button and ··· live in the navigation bar
+    /// (`channelTopBar`), so no second bar sits under it.
+    @ViewBuilder private var conversationColumn: some View {
+        VStack(spacing: 0) {
+            if !moderationCoordinator.hasAcceptedRules && !isReadOnlyForViewer {
+                channelRulesGateRow
+                Divider()
+            }
+            if isCompact {
+                channelTranscriptColumn
+            } else {
+                HStack(spacing: 0) {
+                    channelCategorySidebar
+                        .frame(width: 260)
+                    Divider()
+                    channelTranscriptColumn
+                }
+            }
+        }
+    }
+
     // MARK: - Top Header Bar
 
-    private var channelTopBar: some View {
-        HStack(spacing: CYSpacing.sm) {
+    @ToolbarContentBuilder private var channelTopBar: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
             if isCompact {
                 Button {
                     showChannelList = true
@@ -382,16 +389,17 @@ public struct ClubChannelMessagingView: View {
                 .accessibilityLabel(copy("频道列表", "Channel list"))
                 .accessibilityIdentifier("club.channel.backToList")
             }
-
+        }
+        ToolbarItem(placement: .principal) {
             if let channel = selectedChannel {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .center, spacing: 0) {
                     HStack(spacing: 6) {
                         Image(systemName: channel.symbolName)
                             .accessibilityHidden(true)
                             .foregroundStyle(.secondary)
                         Text(channel.name)
                             .font(.headline)
-                            .cyWrapText()
+                            .cyWrapText(alignment: .center)
                     }
                     if channel.isReadOnlyAnnouncement {
                         Text(copy("公告 · 只读", "Announcement · read only"))
@@ -402,13 +410,15 @@ public struct ClubChannelMessagingView: View {
                         Text(copy("已开启免打扰", "Muted"))
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                            .cyWrapText()
+                            .lineLimit(2)
                     }
                 }
+                .multilineTextAlignment(.center)
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isHeader)
             }
-
-            Spacer(minLength: CYSpacing.sm)
-
+        }
+        ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 Button {
                     guard let channel = selectedChannel else { return }
@@ -451,9 +461,6 @@ public struct ClubChannelMessagingView: View {
             .accessibilityLabel(copy("更多", "More"))
             .accessibilityIdentifier("club.channel.overflowMenu")
         }
-        .padding(.horizontal)
-        .padding(.vertical, CYSpacing.xs)
-        .background(.bar)
     }
 
     // MARK: - Category-Grouped Sidebar
@@ -638,6 +645,7 @@ public struct ClubChannelMessagingView: View {
 
             Divider()
             channelComposerBar
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(.bar)
         }
     }
@@ -891,10 +899,12 @@ private struct ChannelBurstGroupCard: View {
                             .font(.caption)
                             .foregroundStyle(.tint)
                     }
-                    Text(group.headerTimestampText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .cyWrapText()
+                    if group.precedingDividerText == nil {
+                        Text(group.headerTimestampText)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .cyWrapText()
+                    }
                 }
 
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {

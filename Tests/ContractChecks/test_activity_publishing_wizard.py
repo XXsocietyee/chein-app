@@ -19,9 +19,11 @@ STEPS = [
 ]
 # native r2: quick/prefix/suffix slices re-pinned after the presentation-only native SwiftUI conversion
 # (List/Form/LabeledContent/toolbar replace CY rows/pills; same actions, identifiers and request logic).
-QUICK_SHA = "257ea4bfcc31a7a3d9fdd1f079593cdc577c970675e69a7245dce77a029d3bb1"  # fix/1128c-ai-showcase H-08b: AI first step + safety precheck (deliberate)
+# fix/1128c-ai-showcase (deliberate): Create with AI first section, QuickPublishingView auto-open + undo AI draft.
+QUICK_SHA = "257ea4bfcc31a7a3d9fdd1f079593cdc577c970675e69a7245dce77a029d3bb1"  # design-r2-play: P4 CYStepProgressHeader section + stepsDone (layout-only; was 65a1870d)
 # fix/r8-player-content: re-pinned for R7-PC-D1-1 (pushed menu 我的项目 → makeProjects) only.
-PREFIX_SHA = "114dca68b0f4483735787d5d36d0e20908479f2f041aada055fe6cf3b45f5d5c"  # fix/1128c-ai-showcase: AI row first in the create menu (owner 11-28, deliberate); MP three choices kept
+# fix/1128c-ai-showcase (deliberate): Create with AI first section, QuickPublishingView auto-open + undo AI draft.
+PREFIX_SHA = "114dca68b0f4483735787d5d36d0e20908479f2f041aada055fe6cf3b45f5d5c"  # mp-r3-publish: menu is the MP sheet's three choices (V3-44 removed quick setup); R9-PC-D1-1 makeProjects kept
 SUFFIX_SHA = "ecaa89c66c768f3b3cf031fa6d0915de52d84361dfd06cd16cc34365cc286524"  # fix-1128b-social #26: place picker (MKLocalSearch + tap-to-drop-pin) in the suffix (previous pin: ds-consistency r3 CYLoadingState)
 
 
