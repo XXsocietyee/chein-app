@@ -188,6 +188,7 @@
         "MPFirstCoopWritesTests",
         "MPFirstMerchantWriteRouteTests",
         "MPFirstPublishApprovalsTests",
+        "MPFirstSocialApprovalsTests",
         "MPParityDeepLinkRouteTests",
         "MPParityPassBindingTests",
         "ManualMapCompositionTests",

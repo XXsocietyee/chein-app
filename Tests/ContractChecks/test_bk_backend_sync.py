@@ -77,7 +77,11 @@ class BackendSyncSourceTests(unittest.TestCase):
   # The star stays inside the communityV1 branch (legacy square never takes the community postAction route).
   # The saved-state symbol effect adds lines between the button and its hint; the gate and the post id stay.
   self.assertEqual(detail.count('purpose: .bookmark'), 1)
-  self.assertRegex(detail, r'if post\.generation == \.communityV1 \{\n\s*Button \{ editor = \.init\(purpose: \.bookmark, target: \.post\(post\.id\)[^\n]*\n(?:[^\n]*\n){1,12}[^\n]*social\.editor\.bookmark')
+  # fix-1128b-social gap #1 (audit 1128-plan M-01b, M-13b): the v1 star toggles at once through `bookmarkTapped`
+  # (server-confirmed community writer); the reviewed bookmark editor stays the fallback when the writer is off.
+  self.assertRegex(detail, r'if post\.generation == \.communityV1 \{\n\s*Button \{ bookmarkTapped\(post, actions: actions\) \}[^\n]*\n(?:[^\n]*\n){1,12}[^\n]*social\.editor\.bookmark')
+  self.assertIn('fallback: .init(purpose: .bookmark, target: .post(post.id)', detail)
+  self.assertIn('guard contentGeneration == .communityV1, actions.availability(for: command, target: target) == .approved else {', detail)
  def test_legacy_unbookmark_keeps_readback_only_resolution(self):
   value = (ROOT/'Core/ProfileFavoriteRemoval.swift').read_text()
   self.assertIn('"bookmark": "0"', value); self.assertNotIn('"bookmark": "1"', value)

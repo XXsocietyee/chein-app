@@ -235,7 +235,7 @@ import SwiftUI
     @ViewBuilder private var postsTabSections: some View {
         let actions = session.socialActionCoordinator
         if actions.identity.accountID == account.id {
-            OwnProfileComposerHost(actions: actions, offline: session.socialAccountReader.isOfflineExample)
+            OwnProfileComposerHost(actions: actions, offline: session.socialAccountReader.isOfflineExample, workspace: session.squareWorkspace())
         }
         ProfileAuthorPostsSection(memberID: account.id, accountReader: session.socialAccountReader,
                                   squareReader: session.squareReader, actions: actions, refreshTrigger: memberRefreshToken)

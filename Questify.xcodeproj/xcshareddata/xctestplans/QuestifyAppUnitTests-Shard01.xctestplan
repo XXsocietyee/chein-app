@@ -194,6 +194,7 @@
         "MPFirstClubWriteRouteR10Tests",
         "MPFirstCoopWritesTests",
         "MPFirstPublishApprovalsTests",
+        "MPFirstSocialApprovalsTests",
         "MPParityPassBindingTests",
         "ManualMapCompositionTests",
         "MapPublicLayerAppIntegrationTests",

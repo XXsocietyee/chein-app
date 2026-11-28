@@ -5133,7 +5133,7 @@ final class AppSession: ObservableObject {
             approvals: { [weak self] context in
                 guard let self, self.currentRuntimeDependencyContext == context else { return [] }
                 return self.runtimeDependencies.socialMemberActionApprovals
-            }, onUnauthorized: { [weak self] captured in
+            }, community: { [weak self] context in self?.squareCommunityWriteApproval(context) }, onUnauthorized: { [weak self] captured in
                 guard let self, self.currentRuntimeDependencyContext == captured else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
             })
@@ -5172,13 +5172,13 @@ final class AppSession: ObservableObject {
     private var retainedSquareWorkspace: SquareWorkspaceCoordinator?
     func squareWorkspace() -> SquareWorkspaceCoordinator? {
         guard let identity = currentSquareWorkspaceSession else { retainedSquareWorkspace = nil; return nil }
-        if let model = retainedSquareWorkspace, model.session == identity { return model }
-        let model = SquareWorkspaceCoordinator(session: identity, store: squareWorkspaceStore,
-            currentSession: { [weak self] in self?.currentSquareWorkspaceSession },
+        if let model = retainedSquareWorkspace, model.session == identity, model.grants == MPFirstSocialApprovals.workspaceGrants(currentSquareCommunityWriteApproval) { return model }
+        let model = SquareWorkspaceCoordinator(session: identity, store: squareWorkspaceStore, service: squareWorkspaceLiveService(),
+            grants: MPFirstSocialApprovals.workspaceGrants(currentSquareCommunityWriteApproval), currentSession: { [weak self] in self?.currentSquareWorkspaceSession },
             token: { [weak self] in
                 guard let self, self.currentSquareWorkspaceSession == identity else { return nil }
                 return self.token
-            }) // service nil, live/media/legal grants all off.
+            }) // fix-1128b-social #2: live service + grants only when the community writer is issued for this viewer.
         retainedSquareWorkspace = model; return model
     }
     private var currentSquareGovernanceIdentity: SquareGovernanceIdentity? {
@@ -5189,8 +5189,8 @@ final class AppSession: ObservableObject {
     private var retainedSquareReportBaseURL: URL?
     func squareReportContext() -> SquareReportContext? {
         guard let configuration = regionalConfiguration?.apiConfiguration else { return nil }
-        if retainedSquareReports == nil || retainedSquareReportBaseURL != configuration.baseURL {
-            retainedSquareReports = SquareReportCoordinator(service: .init(configuration: configuration, transport: runtimeHTTPTransport))
+        if retainedSquareReports == nil || retainedSquareReportBaseURL != configuration.baseURL || retainedSquareReports?.service.writesEnabled != (currentSquareCommunityWriteApproval != nil) {
+            retainedSquareReports = SquareReportCoordinator(service: squareReportLiveService(configuration))
             retainedSquareReportBaseURL = configuration.baseURL
         }
         guard let coordinator = retainedSquareReports else { return nil }
@@ -5203,7 +5203,7 @@ final class AppSession: ObservableObject {
                 let value = try await self.socialActionAccess.snapshot(target: target, generation: .communityV1)
                 guard self.currentSquareGovernanceIdentity == captured else { throw CancellationError() }; return value
             })
-        return .init(coordinator: coordinator, access: access) // Default policy reads and report writes remain OFF.
+        return .init(coordinator: coordinator, access: access) // fix-1128b-social #3: reads + report write follow the community writer.
     }
     private var retainedSquareGovernance: SquareGovernanceCoordinator?
     func squareGovernance() -> SquareGovernanceCoordinator? {

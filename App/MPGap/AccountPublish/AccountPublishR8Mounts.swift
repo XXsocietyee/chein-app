@@ -368,6 +368,9 @@ enum ProjectEditCastConfig {
 @MainActor struct OwnProfileComposerHost: View {
     let actions: SocialActionCoordinator
     let offline: Bool
+    /// fix-1128b-social #2 (audit M-02a): with a live community writer this opens the same workspace composer as the
+    /// square toolbar (text + images -> post -> publish); otherwise the legacy cloud composer stays.
+    var workspace: SquareWorkspaceCoordinator? = nil
     @State private var composing = false
 
     var body: some View {
@@ -375,10 +378,28 @@ enum ProjectEditCastConfig {
             AccountGapOwnProfileComposerRow(joinDateText: nil) { composing = true }
         }
         .cySheet(isPresented: $composing) {
+            OwnProfileComposerSheet(actions: actions, offline: offline, workspace: workspace, close: { composing = false })
+        }
+    }
+}
+
+/// The own-profile composer sheet body (typed view, not a closure in the host's body).
+@MainActor private struct OwnProfileComposerSheet: View {
+    let actions: SocialActionCoordinator
+    let offline: Bool
+    let workspace: SquareWorkspaceCoordinator?
+    let close: () -> Void
+
+    var body: some View {
+        if let workspace, workspace.grants.live, !offline {
+            NavigationStack { SquareWorkspaceView(coordinator: workspace) }
+                .id(workspace.session)
+                .cySheet(detents: [.large])
+        } else {
             SquareCloudComposerView(coordinator: actions, offline: offline,
                                     joinedHosted: { offline ? .offline : .permission },
                                     completed: { offline ? .offline : .permission },
-                                    onClose: { composing = false })
+                                    onClose: close)
                 .id(actions.identity)
                 .cySheet(detents: [.large])
         }
