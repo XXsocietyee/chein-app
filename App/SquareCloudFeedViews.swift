@@ -108,6 +108,7 @@ struct SquareCloudStravaBlock: View {
     var onDoubleTapLike: (() -> Void)?
     var onRepost: (() -> Void)?
     @Environment(\.locale) private var locale
+    @ScaledMetric(relativeTo: .caption) private var kudosFaceSide: CGFloat = 20
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -170,9 +171,9 @@ struct SquareCloudStravaBlock: View {
     private var kudos: some View {
         HStack {
             HStack(spacing: -6) {
-                ForEach(Array(card.kudosAvatars.prefix(3).enumerated()), id: \.offset) { _, _ in
-                    Image(systemName: "person.crop.circle.fill").foregroundStyle(.secondary)
-                        .accessibilityHidden(true)
+                ForEach(Array(card.kudosAvatars.prefix(3).enumerated()), id: \.offset) { _, source in
+                    SquareAuthorAvatar(source: source, size: kudosFaceSide)
+                        .overlay(Circle().strokeBorder(CYColor.bgSurface, lineWidth: 1.5))
                 }
             }
             Text(verbatim: card.kudosText ?? SquareCountDisplay.unknownMark)
