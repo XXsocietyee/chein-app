@@ -108,6 +108,8 @@ extension EnvironmentValues {
     /// US r2: the order's own `currency` / `paymentChannels` (order detail has no quote). A quote wins when present.
     let orderCurrency: String?
     let orderPaymentChannels: [String]?
+    /// P32: the sheet's 支付方式 choice; the pay button then reads 微信支付 ¥12.50. Nil keeps 立即支付 (order detail).
+    let payMethod: RegistrationPayMethod?
 
     @StateObject private var viewModel = RegistrationPayViewModel()
     @State private var readiness: RegistrationPaymentReadiness?
@@ -121,7 +123,8 @@ extension EnvironmentValues {
          channel: RegistrationPayChannel = RegistrationAppPayResolver.inAppChannel,
          onExpiredRebuild: (() -> Void)? = nil,
          orderCurrency: String? = nil,
-         orderPaymentChannels: [String]? = nil) {
+         orderPaymentChannels: [String]? = nil,
+         payMethod: RegistrationPayMethod? = nil) {
         self.registrationID = registrationID
         self.payableAmount = payableAmount
         self.quote = quote
@@ -132,6 +135,7 @@ extension EnvironmentValues {
         self.onExpiredRebuild = onExpiredRebuild
         self.orderCurrency = orderCurrency
         self.orderPaymentChannels = orderPaymentChannels
+        self.payMethod = payMethod
     }
 
     /// Quote first (registration sheet), else the order detail's own fields; nil on a China order.
@@ -170,7 +174,7 @@ extension EnvironmentValues {
                                                   paymentChannels: payChannels, consented: consented,
                                                   readiness: readiness)
                     } else if canTapPay {
-                        CYPillButton(verbatim: c.t("立即支付", "Pay now"), style: .primary) {
+                        CYPillButton(verbatim: payButtonTitle, style: .primary) {
                             Task {
                                 await viewModel.model.pay(
                                     registrationID: registrationID,
@@ -191,7 +195,7 @@ extension EnvironmentValues {
                             }
                         }
                         .accessibilityIdentifier("registration.pay.submit")
-                        .accessibilityLabel(Text(verbatim: c.t("立即支付", "Pay now")))
+                        .accessibilityLabel(Text(verbatim: payButtonTitle))
                         .accessibilityHint(Text(verbatim: payOnceHint))
                     }
                 }
@@ -225,6 +229,17 @@ extension EnvironmentValues {
         // US r2: the order currency picks the symbol; a backend without `currency` is the China one (MP shows ¥).
         RegistrationUIMoney.display(payableAmount, locale: locale,
                                     currencyCode: payCurrency ?? RegistrationUIMoney.yuanCurrencyCode) ?? "—"
+    }
+
+    /// P32: the button is the payment method plus the total; without a method or a known amount it stays 立即支付.
+    private var payButtonTitle: String {
+        guard let payMethod,
+              let total = RegistrationUIMoney.display(payableAmount, locale: locale,
+                                                      currencyCode: payCurrency ?? RegistrationUIMoney.yuanCurrencyCode) else {
+            return c.t("立即支付", "Pay now")
+        }
+        let title = payMethod.payTitle(amount: total)
+        return c.t(title.zh, title.en)
     }
 
     private var payOnceHint: String {

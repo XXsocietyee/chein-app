@@ -52,7 +52,7 @@ import SwiftUI
                         // The limit hint and validation sit in the section footer, like Settings text fields.
                         VStack(alignment: .leading, spacing: 4) {
                             if explanationCount > 500 {
-                                Text("input.tooLong", tableName: "NativeChannelAppealDetails").foregroundStyle(.red)
+                                Text("input.tooLong", tableName: "NativeChannelAppealDetails").foregroundStyle(CYColor.dangerText)
                             }
                             HStack {
                                 Text("input.limit", tableName: "NativeChannelAppealDetails")

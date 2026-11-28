@@ -85,7 +85,7 @@ import SwiftUI
         } footer: {
             if let refusalKey {
                 Label(LocalizedStringKey(refusalKey), systemImage: "exclamationmark.circle")
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("projectEdit.rules.error")
             }
         }
@@ -194,7 +194,7 @@ import SwiftUI
                     if let reason {
                         reasonText(reason)
                             .font(.footnote)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                     }
                 }
                 Spacer()
@@ -214,7 +214,7 @@ import SwiftUI
     @ViewBuilder private var footer: some View {
         if let refusalKey {
             Label(LocalizedStringKey(refusalKey), systemImage: "exclamationmark.circle")
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
         } else if loading {
             Label {
                 Text("mpPublish.rules.mode.loading")
@@ -302,7 +302,7 @@ import SwiftUI
                 if let errorKey {
                     Section {
                         Label(LocalizedStringKey(errorKey), systemImage: "exclamationmark.circle")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("projectEdit.card.error")
                     }
                 }

@@ -206,7 +206,7 @@ extension EnvironmentValues {
                 } icon: {
                     Image(systemName: "xmark.circle")
                 }
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
                 .symbolEffect(.bounce, value: reduceMotion ? nil : wrongReply)
                 .transition(reduceMotion ? AnyTransition.opacity : AnyTransition.move(edge: .top).combined(with: .opacity))
                 .accessibilityIdentifier("playkit.qa.wrongReply")

@@ -57,7 +57,7 @@ struct CityOrientationEventCTA {
             }
             if detail.isCancelled {
                 Section {
-                    Label("activity.cancelled.title", systemImage: "xmark.octagon").foregroundStyle(.red)
+                    Label("activity.cancelled.title", systemImage: "xmark.octagon").foregroundStyle(CYColor.dangerText)
                     if let reason = detail.cancelReason { Text("activity.cancelled.reason \(reason)") }
                 } footer: {
                     Text("activity.cancelled.hint")

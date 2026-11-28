@@ -607,7 +607,7 @@ struct ProfileOrderDetailView: View {
                     Section {
                         NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
                             if let key = order.selfServiceExitKey {
-                                Label(LocalizedStringKey(key), systemImage: "xmark.circle").foregroundStyle(.red)
+                                Label(LocalizedStringKey(key), systemImage: "xmark.circle").foregroundStyle(CYColor.dangerText)
                             } else {
                                 Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
                             }

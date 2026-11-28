@@ -27,5 +27,18 @@ final class RegistrationPayMethodTests: XCTestCase {
         XCTAssertEqual(RegistrationPayMethod.wechatPay.names.zh, "微信支付")
         XCTAssertEqual(RegistrationPayMethod.alipay.names.en, "Alipay")
     }
+
+    func testPayTitleNamesMethodAndTotal() {
+        let title = RegistrationPayMethod.wechatPay.payTitle(amount: "¥12.50")
+        XCTAssertEqual(title.zh, "微信支付 ¥12.50")
+        XCTAssertEqual(title.en, "Pay ¥12.50 with WeChat Pay")
+        XCTAssertEqual(RegistrationPayMethod.card.payTitle(amount: "$5.00").en, "Pay $5.00 by card")
+    }
+
+    func testEffectiveFallsBackToMarketDefault() {
+        XCTAssertEqual(RegistrationPayMethod.effective(nil, market: .china, applePayAvailable: true), .wechatPay)
+        XCTAssertEqual(RegistrationPayMethod.effective(.alipay, market: .china, applePayAvailable: true), .wechatPay)
+        XCTAssertEqual(RegistrationPayMethod.effective(.card, market: .unitedStates, applePayAvailable: true), .card)
+    }
 }
 #endif

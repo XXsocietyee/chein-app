@@ -41,7 +41,7 @@ struct ClubOpsNotifyContentFields: View {
     private func label(_ key: String) -> some View {
         HStack(spacing: 2) {
             ClubOpsJoinNotifyCopy.text(key)
-            Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true)
+            Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true)
         }
         .font(.subheadline)
         .foregroundStyle(.secondary)

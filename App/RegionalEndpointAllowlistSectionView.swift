@@ -212,14 +212,14 @@ public struct RegionalEndpointAllowlistSectionView: View {
             if !snapshot.isReleaseReady {
                 Text(verbatim: snapshot.releaseBlockerText)
                     .cyText(.meta, weight: .semibold)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("regionalAllowlist.releaseBlocker")
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: "禁用旧主机拦截规则（\(RegionalEndpointAllowlistSnapshot.forbiddenLegacyHost)）")
                     .cyText(.meta, weight: .semibold)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("regionalAllowlist.legacyHost.title")
                 Text(verbatim: snapshot.legacyHostRejectionNoticeText)
                     .cyText(.caption)

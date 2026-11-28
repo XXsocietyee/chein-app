@@ -309,7 +309,7 @@ import QuestifyCore
             .disabled(boardLoading)
             .accessibilityIdentifier("orientScore.board.open")
             if boardFailed {
-                Text("orientScore.board.failed").font(.footnote).foregroundStyle(.red)
+                Text("orientScore.board.failed").font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("orientScore.board.failed")
             }
         }
