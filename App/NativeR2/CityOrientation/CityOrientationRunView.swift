@@ -388,7 +388,8 @@ private struct CityMapControlMaterial: ViewModifier {
     var nextStopMeters: Double? = nil
     @ViewBuilder var trailing: () -> Trailing
     @Environment(\.locale) private var locale
-    /// Paused dims the stats only; the primary (Continue) keeps full strength (P3).
+    /// Paused dims the stat values only; captions keep `.secondary` contrast (ADA 1128) and the primary (Continue) keeps
+    /// full strength (P3).
     private var statsOpacity: Double { model.clock.phase == .paused ? 0.6 : 1 }
     private var leadsWithNextStop: Bool { walkedMeters <= 0 && nextStopMeters != nil }
 
@@ -448,31 +449,31 @@ private struct CityMapControlMaterial: ViewModifier {
                     .accessibilityAddTraits(.updatesFrequently)
                     .accessibilityIdentifier("playx.run.clock")
             }
+            .opacity(statsOpacity)
             Text(model.clock.phase == .paused ? "nativeR2.city.paused" : "nativeR2.city.metric.time")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .fixedSize()
-        .opacity(statsOpacity)
     }
     private var distanceCell: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: CityOrientationFormat.distance(walkedMeters > 0 ? walkedMeters : (nextStopMeters ?? 0), locale: locale))
                 .font(.title2.bold().monospacedDigit())
                 .nativeR2RollingNumber(walkedMeters > 0 ? walkedMeters : (nextStopMeters ?? 0))
+                .opacity(statsOpacity)
             Text(leadsWithNextStop ? "designR2Play.city.metric.toNext" : "nativeR2.city.metric.distance")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .fixedSize()
-        .opacity(statsOpacity)
     }
     private var pointsCell: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: points).font(.title2.bold().monospacedDigit())
                 .nativeR2RollingNumber(Double(doneCount))
+                .opacity(statsOpacity)
             Text("nativeR2.city.metric.points").font(.caption).foregroundStyle(.secondary)
         }
         .fixedSize()
-        .opacity(statsOpacity)
     }
 }
 
