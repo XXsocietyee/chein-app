@@ -593,5 +593,39 @@
         }
       }
     }
+  },
+  "templateAuthor.prompt.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Name this play"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "给这个玩法起个名字"
+        }
+      }
+    }
+  },
+  "templateAuthor.prompt.description": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sum up what makes this play fun in one line"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "一句话介绍这个玩法的看点"
+        }
+      }
+    }
   }
 }
