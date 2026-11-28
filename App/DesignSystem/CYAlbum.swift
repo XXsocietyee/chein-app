@@ -248,7 +248,6 @@ struct CYNewPulseBadge: View {
     var body: some View {
         text
             .cyText(.micro, weight: .heavy)
-            .textCase(.uppercase)
             .foregroundStyle(Color.black.opacity(0.85))
             .padding(.horizontal, CYSpacing.sm).padding(.vertical, 3)
             .background(CYAlbumMotion.gold, in: Capsule())

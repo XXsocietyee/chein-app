@@ -312,8 +312,8 @@
     "zh-Hans": "这个选择尚未答对，可以重新选择。"
   },
   "playkitLegacy.name.placeholder": {
-    "en": "Name this creation",
-    "zh-Hans": "给作品起个名字"
+    "en": "Give it a name",
+    "zh-Hans": "给它起个名字"
   },
   "playkitLegacy.name.audience": {
     "en": "The name may be shown publicly and is reviewed before it's saved.",
@@ -364,8 +364,8 @@
     "zh-Hans": "开始本地计时"
   },
   "playkitLegacy.silent.giveUp": {
-    "en": "Stop and speak",
-    "zh-Hans": "停止计时并说话"
+    "en": "Give up and speak",
+    "zh-Hans": "认输说话"
   },
   "playkitLegacy.music.arrived": {
     "en": "Arrived",

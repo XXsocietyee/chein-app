@@ -54,7 +54,7 @@ struct ObjectBadgeWallParityHeader: View {
     }
     private func ring(_ summary: ObjectBadgeWallSummary) -> some View {
         CYAlbumProgressRing(value: summary.unlocked, total: summary.total, size: 84,
-                            accessibilityLabel: Text(verbatim: ChannelCopy.text("已点亮 \(summary.unlocked) / \(summary.total) 枚徽章",
+                            accessibilityLabel: Text(verbatim: ChannelCopy.text("已点亮 \(summary.unlocked) 枚徽章，共 \(summary.total) 枚",
                                                                                 "\(summary.unlocked) of \(summary.total) badges unlocked", locale: locale)))
     }
     @ViewBuilder private func focusText(_ focus: ObjectBadgeWallFocus) -> some View {

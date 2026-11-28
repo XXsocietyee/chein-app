@@ -109,7 +109,7 @@ import SwiftUI
                     .minimumScaleFactor(0.5).lineLimit(1).padding(.horizontal, CYSpacing.xs)
             }.frame(width: min(progressRing, 132), height: min(progressRing, 132))
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: "\(found) / \(total)").cyText(.data2XL).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: "\(found) / \(total)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(found)) \(Int(total))")).cyText(.data2XL).foregroundStyle(CYColor.textPrimary)
                     .minimumScaleFactor(0.6).lineLimit(1)
                 Text("journey.record.discoveries").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }

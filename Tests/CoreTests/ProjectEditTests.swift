@@ -761,6 +761,25 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         XCTAssertEqual(try theme(teamOff)["teamTrail"], .bool(false))
     }
 
+    func testTradeAndVoteOnlyApplyToASharedTeamWorld() throws {
+        let solo = try draft(with: ["schemaVersion": .number(1), "gameplayRuntime": .object(["runtimeScope": .string("TEAM")])])
+        XCTAssertFalse(ProjectEditThemeRules.worldShared(in: solo))
+        XCTAssertEqual(try ProjectEditThemeRules.setAllowTrade(true, in: solo), solo)
+        XCTAssertEqual(try ProjectEditThemeRules.setVotePolicy(.unanimous, in: solo), solo)
+        let shared = try draft(with: ["schemaVersion": .number(1), "gameplayRuntime": .object(["runtimeScope": .string("TEAM"), "worldMode": .string("WORLD_SHARED")])])
+        XCTAssertTrue(ProjectEditThemeRules.worldShared(in: shared))
+        XCTAssertFalse(ProjectEditThemeRules.allowTrade(in: shared))
+        XCTAssertEqual(ProjectEditThemeRules.votePolicy(in: shared), .majority)
+        XCTAssertEqual(try ProjectEditThemeRules.setAllowTrade(false, in: shared), shared)
+        let trading = try ProjectEditThemeRules.setAllowTrade(true, in: shared)
+        XCTAssertTrue(ProjectEditThemeRules.allowTrade(in: trading))
+        let closed = try ProjectEditThemeRules.setAllowTrade(false, in: trading)
+        XCTAssertEqual(try theme(closed)["gameplayRuntime"]?.object?["allowTrade"], .bool(false))
+        let voting = try ProjectEditThemeRules.setVotePolicy(.majorityAcceptance, in: shared)
+        XCTAssertEqual(try theme(voting)["gameplayRuntime"]?.object?["votePolicy"], .string("MAJORITY_ACCEPTANCE"))
+        XCTAssertEqual(ProjectEditThemeRules.votePolicy(in: voting), .majorityAcceptance)
+    }
+
     private func draft(with theme: [String: ProjectEditJSON]) throws -> ProjectEditDraft {
         var draft = ProjectEditSyntheticFixtures.draft(product: .city)
         let data = try JSONEncoder().encode(ProjectEditJSON.object(theme))

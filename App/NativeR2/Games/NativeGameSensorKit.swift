@@ -89,7 +89,8 @@ import SwiftUI
     /// board under the figure (MP `qt__s`, `cp__hint`).
     @ViewBuilder private var kicker: some View {
         Group {
-            if let line = serverText("kicker") {
+            // The shell title falls back to the kicker (`PlayKitProjection.title`); never print it twice.
+            if let line = serverText("kicker"), line != (segment["title"].text ?? segment["question"].text ?? segment["kicker"].text ?? "") {
                 Text(verbatim: line).font(.headline).foregroundStyle(.primary)
             }
             switch kind {
