@@ -4,7 +4,7 @@ import SwiftUI
 // theme-runtime.js onRuntimeActionToggle / onRuntimeActionLimit / onRuntimeName (actionName) / _validateRuntimeConfig
 // theme-ownership.js onThemeConsumeOnNoEffect / runtimeConsumeOnNoEffectDisabledReason
 
-/// The 生命值 / 幸运值 rows (`ProjectEditRuntimeStatRow`), the 行动次数 row (switch, value line, 显示名称 and 上限 while editing) and the closing
+/// The 生命值 / 幸运值 rows (`ProjectEditRuntimeStatRow`), the 行动次数 row, the custom integer values (`ProjectEditRuntimeCustomValueRows`) (switch, value line, 显示名称 and 上限 while editing) and the closing
 /// 没有实际效果时也消耗 switch of the MP runtime-values card. Bound to Core `ProjectEditThemeRules`;
 /// no request, the topic save carries `themeRuntimeConfig`.
 @MainActor struct ProjectEditRuntimeValuesRows: View {
@@ -26,6 +26,10 @@ import SwiftUI
             editButton
             if editingAction {
                 actionFields
+            }
+            // MP topic-detail-sheet.wxml:130-135: custom integer values, then 自定义整数值 · 添加.
+            if ProjectEditRuntimeStats.available(in: model.draft) {
+                ProjectEditRuntimeCustomValueRows(model: model, refusalKey: $refusalKey)
             }
             consumeToggle
         } footer: {

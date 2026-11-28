@@ -236,4 +236,17 @@ final class WeChatSDKAuthAdapterTests: XCTestCase {
         XCTAssertEqual(coordinator.phase, .idle)
     }
 
+
+    /// Sweep 04:50: the login screen offers WeChat only when the app is installed and supported.
+    func testWeChatOfferedOnlyWhenInstalled() throws {
+        let driver = WeChatDriverFixture()
+        let adapter = WeChatSDKAuthAdapter(driver: driver, configuration: try configuration(), gate: { self.approved() }, context: { self.context() })
+        let coordinator = WeChatAppAuthCoordinator(adapter: adapter, service: WeChatSDKExchangeFixture(),
+            gate: { self.approved() }, context: { self.context() }, commit: { _, _ in true })
+        XCTAssertTrue(adapter.isAppAvailable)
+        XCTAssertTrue(coordinator.isOffered)
+        driver.isInstalledAndSupported = false
+        XCTAssertFalse(adapter.isAppAvailable)
+        XCTAssertFalse(coordinator.isOffered)
+    }
 }

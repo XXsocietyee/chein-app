@@ -452,3 +452,15 @@ Merged `origin/ui/combined-r7` (30 commits, clean). The sweep build is the same 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 
 Coordinator: please add `e4-self-projects`, `e4-self-projects-error`, `e4-self-growth`, `e4-self-growth-zero` and `e4-self-growth-error` to the mp-mine sweep, together with the continue 23 / 24 ids.
+
+## Continue 26 (hourly re-arm, sweep 04:46 UTC build 13a6690eb)
+
+Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts and `tools/check_design_consistency.py` taken from combined-r7; `DesignFixtureRegistry.swift` kept both sides' cases; xcstrings = combined-r7 plus `profile.selfGrowth.failed`; pbxproj regenerated). The 04:30 / 04:45 / 04:50 coordinator notes have no mp-mine rows. Screens checked: `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg`, `sheet-en.jpg`: no new visual issues. zh dates on 余额流水 / 订单查询 stay the server text (`LocaleDisplay.civil` returns the MP `createTimeText` as-is in zh by design; shared Core helper, not changed). The blocked Not done rows are unchanged, so this run continues "Next round" item 3 (all states, with a design fixture for each).
+
+| Page | MP states (`subpackageMember/components/cy/scene-member-withdraw-history/index.wxml`) | Native file | Fixed now |
+|---|---|---|---|
+| 提现记录 / Withdrawal history (`e4-wallet-withdrawals`; MP `subpackageMember/tixianjilu`) | skeleton while loading; empty 还没有发起提现 (wxml:20); error 提现记录加载失败 + 重试, denied 当前身份不能查看提现记录 (wxml:18) | `App/WalletCommerceViews.swift` `WalletWithdrawalsView`, `App/DesignFixtures/DesignFixtureRegistry.swift` | **Fixed.** The whole-read failure showed the shared wallet title; it now passes the MP titles through `failedKey: "withdrawal.history.failed.title"` and `deniedKey: "withdrawal.history.denied.title"` (existing keys, en + zh). The signed-out title stays the shared one, because `WalletCommerceFlowTests.testWithdrawal401ShowsSignInWithoutRetry` reads it. New fixture ids `e4-wallet-withdrawals-empty` (`--wallet-withdrawals-empty`) and `e4-wallet-withdrawals-error` (`--wallet-withdrawals-recover`: the first read fails, 重试 recovers). |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Coordinator: please add `e4-wallet-withdrawals-empty` and `e4-wallet-withdrawals-error` to the mp-mine sweep.

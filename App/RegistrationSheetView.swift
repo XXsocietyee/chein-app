@@ -50,6 +50,7 @@ struct RegistrationSheetView: View {
     @State private var toastMessage: String?
     /// Last `payment-readiness` answer for the selected paid ticket (acceptance R2 F-02).
     @State private var paymentReadiness: RegistrationPaymentReadiness?
+    @State private var payMethod: RegistrationPayMethod?
     @State private var orderDestination: RegistrationWaitlistOrderVisit?
     @State private var resultOrderDestination: RegistrationResultOrderPresentation?
     @State private var recoveredOrderDestination: RegistrationRecoveredOrderPresentation?
@@ -167,6 +168,10 @@ struct RegistrationSheetView: View {
                         ticketSection
                         childAgeSection
                         quoteSection
+                        RegistrationPayMethodSection(selection: $payMethod, price: flow.selectedTicket?.price,
+                                                     market: RegionalLaunchConfiguration.storefrontMarket,
+                                                     applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,
+                                                     enabled: flow.canEdit)
                         deliverySection
                         refundTiersSection
                         hostReservationSection
@@ -610,15 +615,8 @@ struct RegistrationSheetView: View {
     /// mp-activity r3 (MP baoming.wxml bmbottom cy-btn): when nothing blocks, the button says what it will do —
     /// 付款 (priced, quote in hand) / 确认价格并付款 (priced, quote pending) / 确认报名 (free). Blocked keeps the review key; the reason sits below.
     private func submitLabelText(_ copy: CoreLoopCopy, blocked: Bool) -> String? {
-        // MP baoming.wxml:329 cy-btn label while `!canPay`: 请先勾选信息共享同意 / 请选择参与人信息 / 报名已截止.
-        if blocked {
-            switch flow.confirmationBlock {
-            case .missingConsent?: return copy.t("请先勾选信息共享同意", "Turn on sharing consent first")
-            case .invalidForm?: return copy.t("请选择参与人信息", "Choose a participant")
-            case .signupClosed?: return copy.t("报名已截止", "Registration is closed")
-            default: return nil
-            }
-        }
+        // Sweep 04:50: a blocked button keeps its action label in the system disabled style; the MP reason
+        // (baoming.wxml:329 请先勾选信息共享同意 / 请选择参与人信息 / 报名已截止) is the footnote above it.
         guard let ticket = flow.selectedTicket else { return nil }
         if flow.quoteEnabled, case .received(let quote) = flow.quoteState, let amount = quote.payAmount {
             if amount == .zero { return copy.t("确认报名", "Confirm sign-up") }
@@ -629,8 +627,11 @@ struct RegistrationSheetView: View {
     }
     private func footnoteReason(_ copy: CoreLoopCopy) -> String? {
         if flow.checkoutFooterNotice(paymentReadiness: paymentReadiness) != nil { return blockReason(copy) }
+        // MP baoming.wxml:329 cy-btn label while `!canPay`, shown as the reason above the disabled button.
         switch flow.confirmationBlock {
-        case .missingConsent?, .invalidForm?, .signupClosed?: return nil
+        case .missingConsent?: return copy.t("请先勾选信息共享同意", "Turn on sharing consent first")
+        case .invalidForm?: return copy.t("请选择参与人信息", "Choose a participant")
+        case .signupClosed?: return copy.t("报名已截止", "Registration is closed")
         default: return blockReason(copy)
         }
     }
@@ -656,6 +657,22 @@ struct RegistrationSheetView: View {
                         .font(.footnote)
                         .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.consent")
                 }
+                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                    // Sweep 04:50: the reason sits above the disabled button (footnote), never as the button label.
+                    if let reason = footnoteReason(copy) {
+                        Label { Text(verbatim: reason) } icon: { Image(systemName: "info.circle") }
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("registration.form.blockReason")
+                    }
+                    if flow.checkoutFooterNotice(paymentReadiness: paymentReadiness)?.offersQuoteRetry == true {
+                        CYPillButton(verbatim: copy.t("重新获取价格", "Get the price again"), style: .secondary, compact: true) {
+                            Task { await flow.requestQuote() }
+                        }
+                        .disabled(!flow.canEdit || flow.isQuoting)
+                        .accessibilityIdentifier("registration.form.retryQuote")
+                    }
+                }
                 CurA11yActions {
                     TimelineView(.periodic(from: .now, by: 1)) { _ in
                         let blocked = flow.confirmationBlock != nil
@@ -678,8 +695,9 @@ struct RegistrationSheetView: View {
                                 Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44)
                             }
                         }
-                        .buttonStyle(.cyPrimary)
-                        // MP baoming.wxml:329 `disabled="{{!canPay}}"`: blocked draws the system disabled state; the reason sits below.
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        // MP baoming.wxml:329 `disabled="{{!canPay}}"`: blocked draws the system disabled state; the reason sits above.
                         .disabled(blocked)
                         .cyHaptic(.warning, trigger: blockedTaps)
                         .onChange(of: blockedTaps) { _, _ in toastMessage = blockReason(copy) }
@@ -691,22 +709,6 @@ struct RegistrationSheetView: View {
                         )
                         .pageTemplateReadingOrder(1)
                         .accessibilityIdentifier("registration.form.review")
-                    }
-                }
-                TimelineView(.periodic(from: .now, by: 1)) { _ in
-                    // The blocked button already names the step (MP cy-btn label); the footnote only adds other reasons.
-                    if let reason = footnoteReason(copy) {
-                        Label { Text(verbatim: reason) } icon: { Image(systemName: "info.circle") }
-                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .accessibilityIdentifier("registration.form.blockReason")
-                    }
-                    if flow.checkoutFooterNotice(paymentReadiness: paymentReadiness)?.offersQuoteRetry == true {
-                        CYPillButton(verbatim: copy.t("重新获取价格", "Get the price again"), style: .secondary, compact: true) {
-                            Task { await flow.requestQuote() }
-                        }
-                        .disabled(!flow.canEdit || flow.isQuoting)
-                        .accessibilityIdentifier("registration.form.retryQuote")
                     }
                 }
             }
