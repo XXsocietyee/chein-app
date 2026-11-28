@@ -81,6 +81,7 @@ struct PlayThemeMusicKey: Equatable {
     @State private var sessionStats: PlayToolsSessionStats?
     @State private var sessionStatsOff = false
     @Environment(\.playToolsSessionStatsLoader) private var sessionStatsLoader
+    @Environment(\.playOrientBoardLoader) private var orientBoardLoader
     @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
     @StateObject private var musicLifetime = PlayBackgroundMusicLifetime()
     @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
@@ -833,7 +834,8 @@ struct PlayThemeMusicKey: Equatable {
             teamLead: model.lead,
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
             journalAttributes: model.snapshot.map(PlayJournal.attributes(in:)) ?? [],
-            boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
+            boardDestination: model.snapshot == nil ? nil : { [model, sessionID = orientBoardSessionID, read = orientBoardLoader] in
+                AnyView(PlayCompanionBoardView(model: model, orientSessionID: sessionID, orientRead: read)) },
             scoreDestination: orientScoreDestination,
             sessionStats: sessionStats,
             sessionStatsOff: sessionStatsOff,
@@ -1023,6 +1025,12 @@ struct PlayThemeMusicKey: Equatable {
                 .accessibilityIdentifier("playx.run.resume")
             }
         }
+    }
+    /// MP `openBoard`: `mode === 1` with `routeState.sessionId` reads the orient-scoring board.
+    private var orientBoardSessionID: Int? {
+        guard let result = model.snapshot?.result, result.mode == 1,
+              let sessionID = result.routeState?.sessionID, sessionID > 0 else { return nil }
+        return sessionID
     }
     /// MP `finish-journal-entry` value: `{{provisional ? '暂列' : ''}}第 N 名` once `sessStats` has a rank.
     private var finishScoreRank: CityOrientationScoreRank? {

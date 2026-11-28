@@ -68,3 +68,27 @@ public enum PlayToolsSessionStats: Equatable {
         return nil
     }
 }
+
+/// mp-journey r3: MP 同行者榜 on a city-orientation round (`pages/play/index.js` `openBoard`, mode 1 with an orient session)
+/// reads `/api/orient/scoring/session/{id}/leaderboard`; `play-board-view.js` `project` names rows 我 / 同行者 and shows the
+/// SCORE points or the ROUTE 已到 / 未到结局 flag, plus mm:ss or 用时待确认.
+public struct PlayOrientBoardRow: Equatable, Identifiable {
+    public let id: String
+    public let rank: Int
+    public let mine: Bool
+    /// SCORE mode points text (two decimals); nil in ROUTE mode.
+    public let scoreText: String?
+    public let reachedEnding: Bool
+    /// mm:ss; nil is 用时待确认.
+    public let elapsed: String?
+
+    public static func rows(_ board: OrientSessionLeaderboard) -> (list: [PlayOrientBoardRow], me: PlayOrientBoardRow?) {
+        func item(_ row: OrientSessionLeaderboard.Row) -> PlayOrientBoardRow {
+            PlayOrientBoardRow(id: row.rowKey, rank: row.rank, mine: row.mine,
+                               scoreText: board.mode == .score ? OrientScoreFormat.centi(row.scoreCenti) : nil,
+                               reachedEnding: row.reachedEnding,
+                               elapsed: row.elapsedMs.map(PlayToolsSessionStats.clock(milliseconds:)))
+        }
+        return (board.list.map(item), board.me.map(item))
+    }
+}

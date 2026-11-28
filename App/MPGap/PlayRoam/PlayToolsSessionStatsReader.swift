@@ -32,9 +32,18 @@ private struct PlayToolsSessionStatsLoaderKey: EnvironmentKey {
     static let defaultValue: PlayToolsSessionStatsLoader? = nil
 }
 
+/// MP `openBoard` orient branch: the 同行者榜 read for a city-orientation round (`OrientScoreBoardRead`).
+private struct PlayOrientBoardLoaderKey: EnvironmentKey {
+    static let defaultValue: ((Int) async throws -> OrientSessionLeaderboard)? = nil
+}
+
 extension EnvironmentValues {
     var playToolsSessionStatsLoader: PlayToolsSessionStatsLoader? {
         get { self[PlayToolsSessionStatsLoaderKey.self] }
         set { self[PlayToolsSessionStatsLoaderKey.self] = newValue }
+    }
+    var playOrientBoardLoader: ((Int) async throws -> OrientSessionLeaderboard)? {
+        get { self[PlayOrientBoardLoaderKey.self] }
+        set { self[PlayOrientBoardLoaderKey.self] = newValue }
     }
 }
