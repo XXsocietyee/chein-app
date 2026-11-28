@@ -75,7 +75,7 @@ struct ProjectAlbumPhotoRemovalIdentity: Hashable {
         let snapshot = original.capture.snapshot
         return NavigationStack {
             Form {
-                LabeledContent { Text(verbatim: "\(snapshot.index + 1) / \(snapshot.count)") } label: {
+                LabeledContent { Text(verbatim: "\(snapshot.index + 1) / \(snapshot.count)").accessibilityLabel(Text("carousel.position \(Int(snapshot.index + 1)) \(Int(snapshot.count))")) } label: {
                     Text("projectAlbumRemoval.position", tableName: "ProjectAlbumPhotoRemoval")
                 }
                 if !snapshot.caption.isEmpty { Text(verbatim: snapshot.caption) }

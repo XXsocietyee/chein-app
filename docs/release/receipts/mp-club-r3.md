@@ -158,6 +158,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 21. Pass 11: 报名名册 escrow line removed, hideEmpty tickets, team row colours.
 22. Pass 12: merge combined-r7 (xcstrings: combined is a superset, plural variants); club fixtures follow the UI language; 创建俱乐部 intro without the checklist and 封面/Logo under the step-3 header; join-requests and apply done re-checked.
 23. Pass 17: merge combined-r7; 改为转让主理人 moved into the 解散 confirm as the MP alternative (with its hint).
+25. Pass 19: merge combined-r7; declined club detail follows the MP (no red tag, reason line only, 重新申请 capsule in d4-detail).
 24. Pass 18: merge combined-r7 (xcstrings: combined + our `club.ops.dissolve.transferHint`); club/edit full re-check, extra header row and admin note removed, locked card gets 仅主理人可设置.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
 
@@ -233,6 +234,12 @@ Sweep check: all nine club tiles read in the UI language now (d4-badges, d4-enro
 | MP page | Native view | MP sections | Optimizations / fix |
 |---|---|---|---|
 | `pages/club/edit` → `components/cy/scene-club-edit/index.wxml` (whole page, not only 危险操作) | `ClubOperationsViews.swift` `ClubOperationsProfileForm.editSections` + edit page | MP order: load states (正在读取俱乐部资料 / missing-param / 暂无编辑权限 / 编辑资料没能打开 / 网络连接失败) → draft panel → 俱乐部形象 (头像, 封面) → 基础信息 (名称* 城市* 关键词 风格) → 俱乐部介绍 (200 counter) → 定位 (俱乐部类型, 活动倾向 as disclosure rows + half sheets) → 会员经营配置 (owner: 成员优先报名, 入会需要审批, 成员保留名额 个; admin: locked card) → 危险操作 (owner) → 保存修改. Native: all ✓ in MP order (draft recovery section, load states, 形象 → … → 危险操作, bottom save). Extra: a cover · name · city · 主理人/管理员 header row above the form (CLB-r10-nat-edit-01 cited an MP club head that the MP snapshot does not have; 头像/封面 already sit in 俱乐部形象), and a 「你是管理员 · 只能改展示信息」 line at the top of 基础信息 for admins (not on the MP page). Missing: the locked card's 「仅主理人可设置」 sub line (wxml:124) | **Fixed.** Header row removed (`clubIdentityHero`; `test_club_operations_contracts` no longer requires `PlayerFeedRemoteImage` in the edit UI, reason in the pin). Admin note removed; the locked card reads 只有主理人能改经营配置 → 仅主理人可设置 (`club.ops.locked.sub`, en + zh-Hans, one combined VoiceOver element) → 当前: … . Pins: `test_club_member_pages.test_edit_admin_note_and_locked_settings` now asserts the note is gone and the sub line present; `ClubEditAdminLockFlowTests` admin test renamed and asserts no note. Kept: 当前: with an ASCII colon (two string fragments pin it) |
+
+## Pass 19: coordinator sweep 23:20 UTC (build b3b03703a, `docs/sweeps/latest/mp-club/zh-Hans-d4-detail.jpg`)
+Merged `origin/ui/combined-r7` (xcstrings: combined + our `club.ops.locked.sub`).
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/detail` declined applicant (wxml:82, 280-283, 342-345, 1028-1038) | `ClubDetailView.statusTags`, `App/DesignFixtures/D4Fixtures.swift` | MP for `myJoinStatus === 2`: no status tag; 「申请未通过：reason」 in secondary text under the header only when the server sent a reason; the locked 通过审核后可看成员名单 / 通过审核后可看贡献榜 lines stay (they are in the MP for every non-member of a 需审核 club); the one action is the floating 重新申请 capsule on 概览. Shot: red 「入会申请已拒绝」 tag in the header and no capsule (the d4 fixture passed no action coordinator, so the panel never mounted). | **Fixed.** Red rejected tag removed; the reason line is `.secondary` (MP `--cy-text-secondary`) and only drawn with a reason. d4-detail (visitor) now passes a synthetic `ClubActionCoordinator` (`D4ClubActionWriter`, never sends) so the 重新申请 capsule renders. Locked rows **kept** (MP content). Re-check next sweep |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.

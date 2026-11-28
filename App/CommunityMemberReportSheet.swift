@@ -208,7 +208,7 @@ enum CommunityMemberReportTaxonomy {
                     Text(verbatim: message).foregroundStyle(.red)
                         .accessibilityIdentifier("im.reportPeer.detailError")
                 }
-                Text(verbatim: "\(detail.count)/\(CommunityMemberReportDraft.descriptionMax)").monospacedDigit()
+                Text(verbatim: "\(detail.count)/\(CommunityMemberReportDraft.descriptionMax)").accessibilityLabel(Text("a11y.value.characters \(Int(detail.count)) \(Int(CommunityMemberReportDraft.descriptionMax))")).monospacedDigit()
                 Text("im.reportPeer.anonymous")
             }
         }

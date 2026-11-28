@@ -19,16 +19,17 @@ struct WelcomeView: View {
     /// flow through Settings / the Me tab; flip to `true` to restore the second role button.
     static let showsMerchantChoice = false
     private enum Destination: Identifiable {
-        case settings, login(RegistrationIntent), legal(SettingsLegalType)
+        case login(RegistrationIntent), legal(SettingsLegalType)
         var id: String {
             switch self {
-            case .settings: return "settings"
             case .login(let intent): return "login-" + intent.rawValue
             case .legal(let type): return "legal-" + type.rawValue
             }
         }
     }
     @State private var destination: Destination?
+    /// mp-nav r3: MP 设置 = navigateTo pages/shezhi/shezhi, a page: pushed on this stack (system back, no 完成).
+    @State private var showsSettings = false
     /// Set once the player has registered or chosen to browse (kept from the onboarding pager for returning launches).
     @AppStorage("onboarding.completed.v1") private var onboardingCompleted = false
     /// Mirrors the stored usage agreement (MP pages/privacy/index.wxml:10 `我已阅读并同意《用户服务协议》《隐私保护指引》`).
@@ -61,9 +62,11 @@ struct WelcomeView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { moreMenu }
             }
+            .navigationDestination(isPresented: $showsSettings) {
+                SettingsView(isPushed: true).themeDomain(.player).cyPushedChrome()
+            }
             .cySheet(item: $destination) { destination in
                 switch destination {
-                case .settings: SettingsView()
                 case .login(let intent): LoginView(intent: intent)
                 case .legal(let type): legalSheet(type)
                 }
@@ -72,6 +75,7 @@ struct WelcomeView: View {
         .themeDomain(.player)
         .onAppear { refreshConsent() }
         .onChange(of: destination?.id) { _, _ in refreshConsent() }
+        .onChange(of: showsSettings) { _, _ in refreshConsent() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { refreshConsent() } }
         .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in refreshConsent() }
     }
@@ -240,7 +244,7 @@ struct WelcomeView: View {
         Menu {
             NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
                 .accessibilityIdentifier("ownerDraft.guestEntry")
-            Button("settings.title", systemImage: "gearshape") { destination = .settings }
+            Button("settings.title", systemImage: "gearshape") { showsSettings = true }
                 .accessibilityIdentifier("welcome.settings")
             LanguageSwitcher(showsMenuTitle: true)
         } label: {
