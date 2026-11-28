@@ -286,7 +286,7 @@ if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_a11y.py')]).returnc
     raise SystemExit('Accessibility lint failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_log_redaction.py')]).returncode!=0:
     raise SystemExit('Log redaction check failed')
-for gate,label in (('check_appsession_ratchet.py','AppSession ratchet'),):
+for gate,label in (('check_appsession_ratchet.py','AppSession ratchet'),('check_story_content.py','Story content')):
     if subprocess.run([sys.executable,'-B',str(ROOT/'tools'/gate)]).returncode!=0:
         raise SystemExit(label+' failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/build_page_route_table.py'),'--check']).returncode!=0:
