@@ -51,6 +51,7 @@ private struct ClubActivityCard: View {
     let row: ClubActivityRow
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         // CLB-detail-39 (MP detail wxml:166-212, `.ev-*`): the cover (130 pt), then the status and details as plain
         // system text. The list row is the card.
@@ -75,19 +76,28 @@ private struct ClubActivityCard: View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
             .accessibilityIdentifier("club.activityList.status.\(row.id)")
-            if let name = row.name { Text(verbatim: name).font(.headline) }
-            else { Text("club.calendar.untitled").font(.headline) }
+            // a11y-dt r3: VoiceOver reads the activity name first, then its status and facts (visual order unchanged).
+            Group {
+                if let name = row.name { Text(verbatim: name).font(.headline) }
+                else { Text("club.calendar.untitled").font(.headline) }
+            }
+            .accessibilitySortPriority(1)
             if let value = timeText { Text(verbatim: value) }
             else { Text("club.calendar.dateUnknown") }
             if let start = soonStart {
                 // Design pass P2 / P1: inside the last hour the start time is a live 距开始 mm:ss (system timer text,
                 // same clock as the Live Activity), and reads 进行中 once it passes.
-                HStack(spacing: 4) {
+                // a11y-dt r3: system orange text was ~2:1 on white → `CYColor.warningText` (≥ 4.5:1); the label and the
+                // timer stack at accessibility sizes instead of running off the row.
+                let startsLayout = typeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2))
+                    : AnyLayout(HStackLayout(spacing: 4))
+                startsLayout {
                     Text("comp.kit.startsIn")
                     CYCountdown(until: start, style: nil, tint: nil, endedKey: "comp.kit.countdown.started")
                 }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.orange)
+                .foregroundStyle(CYColor.warningText)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.activityList.startsIn.\(row.id)")
             }
