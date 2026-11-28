@@ -71,7 +71,8 @@ class PaidInstallReentrySourceContracts(unittest.TestCase):
         original = source.replace(added, '.disabled(!presentation.canConfirmUpgrade(confirmedByBuyer: confirmedByBuyer))')
         # Re-pinned after 225fd1fb8 (native r2 group 5): CYPillButton/cyText -> Apple Button/.font only;
         # the submitUpgradeDraft action and the confirmedRequestId single-request guard are unchanged.
-        self.assertEqual(hashlib.sha256(original.encode()).hexdigest(), '9490871354b26292d8c33be7b3ef7b81b2ab3f9d5447cb6bb150a9c54aa87fc7')
+        # Re-pinned in ds-consistency r3 run 48: manifest / error notice `.red` -> `CYColor.dangerText` (colour only).
+        self.assertEqual(hashlib.sha256(original.encode()).hexdigest(), 'd259a863513072ecad38a521d5cb8b4ed71630ab346ffdf1c1b9eb661c5dd7fb')
         self.assertIn('guard confirmedRequestId == nil else { return }', source)
         self.assertNotIn('.modWorkflow', source)
 

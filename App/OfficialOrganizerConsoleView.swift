@@ -294,10 +294,10 @@ struct OfficialOrganizerConsoleView: View {
             case .notConfirmed(let a):
                 Label(c.t("平台已受理「\(actionName(a))」，但回读状态还没更新，请下拉刷新确认。",
                           "The platform accepted “\(actionName(a))”, but the refreshed state doesn't show it yet. Pull to refresh."),
-                      systemImage: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                      systemImage: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText)
             case .rejected(let message):
                 Label(message.isEmpty ? c.t("平台拒绝了这次操作", "The platform rejected this action") : c.tr(message),
-                      systemImage: "xmark.octagon.fill").foregroundStyle(.red)
+                      systemImage: "xmark.octagon.fill").foregroundStyle(CYColor.dangerText)
             case .cancelled:
                 Label(c.t("原请求已取消", "The original request was canceled"), systemImage: "minus.circle")
             }

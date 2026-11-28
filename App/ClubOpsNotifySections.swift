@@ -34,7 +34,7 @@ struct ClubOpsNotifyContentFields: View {
                 .accessibilityIdentifier("club.gov.input.content")
         }
         if !(title.isEmpty && content.isEmpty), let issue = ClubOpsNotifyPresentation.draftIssue(title: title, content: content) {
-            ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.issue." + issue.rawValue).font(.footnote).foregroundStyle(.red)
+            ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.issue." + issue.rawValue).font(.footnote).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("clubOpsJN.notify.issue")
         }
     }

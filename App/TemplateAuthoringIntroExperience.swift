@@ -149,7 +149,7 @@ import Combine
                 case .failed:
                     VStack(alignment:.leading,spacing:8) {
                         Label { Text("creatorIntro.failed",tableName:"CreatorIntroExamples") } icon: { Image(systemName: "exclamationmark.triangle") }
-                            .font(.footnote).foregroundStyle(.red)
+                            .font(.footnote).foregroundStyle(CYColor.dangerText)
                         Button(action:{ controller.load(permit) }) { Text("creatorIntro.retry",tableName:"CreatorIntroExamples") }
                             .buttonStyle(.bordered)
                             .accessibilityIdentifier("creatorIntro.retry")

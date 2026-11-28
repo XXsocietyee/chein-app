@@ -237,7 +237,7 @@ public struct TeamDetailGapApplicantsSection: View {
                 }
                 if let commandNotice, !commandNotice.isEmpty {
                     Text(verbatim: commandNotice)
-                        .font(.footnote).foregroundStyle(.red)
+                        .font(.footnote).foregroundStyle(CYColor.dangerText)
                         .accessibilityAddTraits(.updatesFrequently)
                 }
             }
