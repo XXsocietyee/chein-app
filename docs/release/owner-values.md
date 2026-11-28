@@ -110,3 +110,9 @@ The defaults keep every dependent feature hidden, so a build with placeholders s
 - **Backend gap (not app-side):** `/api/login/code` (MP, `ApiLoginController.java:188-207` on `us/r3-functional`) reads
   only `openid` from `jscode2session` and never writes `union_id`. Until it stores the returned `unionid` (and existing MP
   members log in once more), the `union_id` lookup finds no MP member and an app WeChat sign-in creates a new account.
+
+## fix/1128b-play: upload-result / kit artwork origins
+
+| Key (xcconfig → Info.plist) | Where | Value | Status |
+|---|---|---|---|
+| `QUESTIFY_IMAGE_ORIGINS` → `CYStampImageOrigins` | `Config/OwnerValues.xcconfig` | Comma-separated https origins that `api/common/uploadOSS` returns (OSS bucket / CDN host). Used by avatar, stamp, IM image, play photo upload and, since fix-1128b #22, play kit artwork (`artworkHosts`). The API origin is always included. Write each URL as `https:/$()/host`. | **owner to supply** (empty = API origin only) |

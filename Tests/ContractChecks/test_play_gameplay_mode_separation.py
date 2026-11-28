@@ -169,7 +169,8 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
         self.assertEqual(advanced.count('service: api.bound(to: lifetime)'),2)
         self.assertEqual(advanced.count('guard let lifetime, lifetime.isCurrent'),2)
         root=self.read('App/SessionPlayRuntimeView.swift')
-        self.assertEqual(root.count('lifetime: model.makeInteractionLifetime()'),4)
+        # fix-1128b #21: the store-day evidence device is the 5th child bound to a read lifetime.
+        self.assertEqual(root.count('lifetime: model.makeInteractionLifetime()'),5)
         self.assertIn('readLifetime: lifetime, current:',source)
         self.assertIn('readLifetime: lifetime, currentContext:',source)
         self.assertIn('testNormalChildFactoriesKeepReadLifetimeImmutableAcrossModeChanges',self.read('Tests/AppUnitTests/PlayReadCompositionTests.swift'))

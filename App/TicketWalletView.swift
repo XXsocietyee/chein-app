@@ -50,10 +50,9 @@ import SwiftUI
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
                 else if model.isLoading || model.loadedOwner != key { ProgressView { Text("mpfresh.ticketWallet.loading", tableName: "MpFresh") }.frame(maxWidth: .infinity) }
                 else if let issue = model.issue(owner: key) {
-                    // Source failure title 票夹没能打开 precedes the specific reason.
-                    Text("ticketWallet.parity.error.title").font(.headline)
-                        .accessibilityIdentifier("ticketWallet.errorTitle")
-                    TicketWalletIssueView(issue: issue, retry: { schedule(model.presentation ?? model.beginPresentation(owner: key)) })
+                    // Source failure title 票夹没能打开 is the one state's title; the specific reason is its description.
+                    TicketWalletIssueView(issue: issue, retry: { schedule(model.presentation ?? model.beginPresentation(owner: key)) },
+                                          titleKey: "ticketWallet.parity.error.title")
                 } else if let snapshot = model.value(owner: key) {
                     focusSection
                     if snapshot.tickets.isEmpty {
@@ -228,7 +227,8 @@ import SwiftUI
     }
     @ViewBuilder private var focusSection: some View {
         if focusPhase == .resolving {
-            ProgressView { Text("ticketWallet.loading") }
+            // MP signup wxml:34 loading-label 正在定位原报名凭证.
+            ProgressView { Text("ticketWallet.focus.resolvingLabel") }
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .accessibilityIdentifier("ticketWallet.focus.resolving")
         } else if focusPhase == .missing {

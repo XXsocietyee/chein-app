@@ -80,7 +80,8 @@ struct LoginView: View {
     }
 
     @ViewBuilder private func appleSignInSection(_ model: AuthChannelModel) -> some View {
-        if consentGranted && model.coordinator.appleConfigurationVerified {
+        // P27: no disabled Apple button when no sign-in service is behind it (sweep ffeef67c7 login-player).
+        if consentGranted && model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured {
             Section {
                 appleButton(model)
                     .listRowInsets(EdgeInsets())
@@ -134,8 +135,13 @@ struct LoginView: View {
             appleSignInSection(model)
         } else {
             appleSignInSection(model)
-            phoneEntrySection(prominent: !(consentGranted && model.coordinator.appleConfigurationVerified))
+            phoneEntrySection(prominent: !appleShown(model))
         }
+    }
+
+    /// Sign in with Apple is on screen: approved and a sign-in service behind it (same test as `appleSignInSection`).
+    private func appleShown(_ model: AuthChannelModel) -> Bool {
+        consentGranted && model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured
     }
 
     /// The WeChat button is on screen (it is then the first method and the primary action).

@@ -391,6 +391,10 @@ private struct CityMapControlMaterial: ViewModifier {
     /// Paused dims the stat values only; captions keep `.secondary` contrast (ADA 1128) and the primary (Continue) keeps
     /// full strength (P3).
     private var statsOpacity: Double { model.clock.phase == .paused ? 0.6 : 1 }
+    /// mp-journey r3 (ADA 1128 `rep3-task-play`: "00:00" beside "1/3" at Stop 2 read as a contradiction): before the run
+    /// starts the MP idle readouts carry no time (play/index.wxml 未开始: 章节数 / 游戏数 / 路程), so the clock cell appears
+    /// once the clock runs or a paused run is restored; distance and points stay.
+    private var showsClock: Bool { model.clock.phase != .idle }
     private var leadsWithNextStop: Bool { walkedMeters <= 0 && nextStopMeters != nil }
 
     private var doneCount: Int {
@@ -408,7 +412,7 @@ private struct CityMapControlMaterial: ViewModifier {
         // values never truncate or overflow the peek.
         ViewThatFits(in: .horizontal) {
             HStack(alignment: .center, spacing: 16) {
-                clockCell
+                if showsClock { clockCell }
                 distanceCell
                 pointsCell
                 Spacer(minLength: 0)
@@ -417,7 +421,7 @@ private struct CityMapControlMaterial: ViewModifier {
             VStack(alignment: .leading, spacing: 12) {
                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
                     GridRow {
-                        clockCell
+                        if showsClock { clockCell }
                         distanceCell
                     }
                     GridRow {
@@ -427,7 +431,7 @@ private struct CityMapControlMaterial: ViewModifier {
                 trailing()
             }
             VStack(alignment: .leading, spacing: 12) {
-                clockCell
+                if showsClock { clockCell }
                 distanceCell
                 pointsCell
                 trailing()
@@ -644,8 +648,7 @@ struct CityOrientationTeamStack: View {
             }
             Text("design.roam.teamsOnRoute \(teams.count)")
                 .font(.footnote.weight(.semibold))
-                .lineLimit(2)
-                .minimumScaleFactor(0.85)
+                .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, CYSpacing.sm)

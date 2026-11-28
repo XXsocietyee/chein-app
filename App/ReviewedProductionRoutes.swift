@@ -214,6 +214,13 @@ enum ReviewedProductionFormMutationRoute {
              baseURL.appendingPathComponent("api/im/unblock").absoluteString,
              baseURL.appendingPathComponent("api/im/start").absoluteString:
             requiredKeys = ["target_member_id"]; positiveKey = "target_member_id"; requiredTypeField = nil
+        // 1128 gap #10 (M-17c; MP subpackageMember profile onFollow → POST /api/user/follow/action, BE
+        // ApiUmsMemberController.java:910): the profile 关注 / 取消关注 final state, `follow` "1" or "0" only.
+        case baseURL.appendingPathComponent("api/user/follow/action").absoluteString:
+            requiredKeys = ["follow_member_id", "follow"]; positiveKey = "follow_member_id"; requiredTypeField = nil
+        // 1128 gap #10: the member action re-reads the target profile before and after the write (SocialMemberActionAccess).
+        case baseURL.appendingPathComponent("api/user/public-info").absoluteString:
+            requiredKeys = ["member_id"]; positiveKey = "member_id"; requiredTypeField = nil
         default:
             return acceptsMyProjectMutation(request, baseURL: baseURL, token: token)
         }
@@ -225,6 +232,7 @@ enum ReviewedProductionFormMutationRoute {
             fields[key] = String(text[range.upperBound..<end.lowerBound])
         }
         guard let rawID = fields[positiveKey], let id = Int(rawID), id > 0, String(id) == rawID else { return false }
+        if requiredKeys.contains("follow"), fields["follow"] != "0", fields["follow"] != "1" { return false }
         if let requiredTypeField, fields["type"] != requiredTypeField { return false }
         guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary) else { return false }
         return canonical.httpBody == body

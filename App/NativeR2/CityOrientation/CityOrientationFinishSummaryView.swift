@@ -3,8 +3,9 @@ import MapKit
 
 /// S12/S14 finish summary (Fitness workout summary) with the run ranking.
 /// Same reads as the medal screen it replaces: the run snapshot, the reward medals, the server
-/// result word (U08-01, passed in as `titleKey`) and the existing ending/leaderboard read, which
-/// is only sent when the player taps "结局与同行者榜", as before.
+/// result word (U08-01, passed in as `titleKey`) and the existing ending/leaderboard read.
+/// fix-1128b #16 (P30): the ranking is a preview read once when the screen opens, with the player's row pinned; a
+/// failed read is a quiet retry row (MP board `error`), never an error page.
 @MainActor struct CityOrientationFinishSummaryView: View {
     @Bindable var model: PlayExperienceCoordinator
     let titleKey: String
@@ -23,6 +24,9 @@ import MapKit
     /// P-059: the route draws itself on the thumbnail and the metrics roll up from zero once, on appear.
     @State private var draw = NativeR2DrawOn()
     @State private var revealed = false
+    /// OWNER RULE 3 (celebration, run finished): one confetti burst while the record reveals; never under Reduce Motion
+    /// (the reveal is instant there) and `CYBurst` itself draws nothing in Low Power (`CYLightBudget`).
+    @State private var burst = false
     /// design-r2-play P16: when the finish screen opened, for the record's "date · place" line.
     @State private var finishedAt = Date()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -182,10 +186,20 @@ import MapKit
         }
         .accessibilityIdentifier("medalScreen")
         .motionR2EdgeGlowOnAppear()
+        .overlay { if burst { CYBurst(origin: UnitPoint(x: 0.5, y: 0.22), count: 60, duration: 1.4, style: .confetti, reach: 220) } }
         // P30: the finish moment fires one success haptic when the record is revealed (also under Reduce Motion,
         // where the reveal is instant).
         .cyHaptic(.success, trigger: revealed, where: CYHapticTransition.turnedOn)
         .task { await reveal() }
+        .task { await loadBoardOnce() }
+    }
+
+    /// fix-1128b #16: one automatic ranking read per open; the retry row covers a failure.
+    private func loadBoardOnce() async {
+        guard model.leaderboard == nil, !loadingBoard else { return }
+        loadingBoard = true
+        await model.loadEndingAndLeaderboard()
+        loadingBoard = false
     }
 
     private func medalRow(_ medal: CYMedalItem) -> some View {
@@ -225,7 +239,10 @@ import MapKit
         guard !revealed else { return }
         guard NativeR2Flags.motion, !reduceMotion else { revealed = true; await draw.run(reduceMotion: true); return }
         withAnimation(.smooth(duration: 1.2)) { revealed = true }
+        burst = true
         await draw.run(reduceMotion: reduceMotion)
+        try? await Task.sleep(for: .seconds(1.6))
+        burst = false
     }
 
     /// The starting frame of a rolling value: every digit reads 0 ("00:12:40" → "00:00:00", "3/8" → "0/8" keeps the total).
@@ -293,6 +310,12 @@ import MapKit
             .accessibilityIdentifier("nativeR2.city.finish.board")
         } else {
             Section {
+                if model.leaderboardUnavailable, !loadingBoard {
+                    Text("playx.leaderboard.unavailable")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("playx.leaderboard.unavailable")
+                }
                 Button {
                     loadingBoard = true
                     Task { await model.loadEndingAndLeaderboard(); loadingBoard = false }

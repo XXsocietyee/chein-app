@@ -130,7 +130,7 @@ import SwiftUI
                     SocialPublicProfileView(memberID: selected.memberID, reader: currentReader, squareReader: squareReader,
                         actions: actions, showsStartChat: false, isCurrent: { flow.owns(selected) && currentReader.isCurrent })
                 }
-            } else { ProgressView().accessibilityLabel(Text("social.loading")) }
+            } else { ProgressView { Text("social.loading") } }
         }.onAppear {
             if reader == nil { reader = flow.memberReader(for: selected) }
         }

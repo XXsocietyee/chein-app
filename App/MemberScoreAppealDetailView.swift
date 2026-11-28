@@ -32,8 +32,7 @@ import SwiftUI
                     }
                     LabeledContent {
                         Text(verbatim: String(value.totalCenti))
-                            .font(.title2.bold())
-                            .monospacedDigit()
+                            .cyText(.numericTitle)
                     } label: {
                         memberScoreText("score.detail.centi")
                     }

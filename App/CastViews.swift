@@ -80,7 +80,7 @@ struct ChapterStoryLineView: View {
     }
     private func marginName(_ name: String) -> some View {
         Text(verbatim: name).font(.caption).foregroundStyle(.tertiary)
-            .lineLimit(2).minimumScaleFactor(0.8).padding(.trailing, 6)
+            .lineLimit(3).padding(.trailing, 6)
             .contentShape(Rectangle())
     }
 }

@@ -113,6 +113,7 @@ public enum ChinaReviewedRouteCapability {
         if memberGiftClaimOwnerGrant.contains(key) { return true }
         // JREF-r11-1: the share referral token follows the payout switch (money ON in Release, owner 2026-11-25).
         if journeyReferralOwnerGrant.contains(key) { return ReleaseMoneyWriteSwitch.payoutEnabled }
+        if PublishingTabRoutes.productionOwnerGrant.contains(key) { return true } // fix-1128b-social #4/#27
         return g6OwnerGrant.contains(key)
     }
 

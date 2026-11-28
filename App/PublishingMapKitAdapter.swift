@@ -8,6 +8,8 @@ import MapKit
     private let enabled: Bool
     private let region: MKCoordinateRegion?
     init(enabled: Bool = false, region: MKCoordinateRegion? = nil) { self.enabled = enabled; self.region = region }
+    /// fix-1128b-social #26: read by the drop-pin reverse geocoder.
+    var isEnabled: Bool { enabled }
     func search(_ query: String) async throws -> [PublishingPlace] {
         guard enabled else { throw PublishModesError.unavailable }
         let text = query.trimmingCharacters(in: .whitespacesAndNewlines)

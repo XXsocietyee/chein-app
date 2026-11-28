@@ -287,10 +287,29 @@ Merged `origin/ui/combined-r7` (087a088a9). P0-1…P0-4, P1-2, P1-3, P1-4 belong
 
 Gates: generate_project ok; scaffold PASS (AppSession ratchet held at 7977); a11y 0 new; design consistency PASS; contract ratchet 52/52 new 0; contextual factory contracts OK.
 
+## Round 3 continue (2026-11-28, thirty-first session — coordinator 07:05 build ffeef67c7, ADA audit)
+Merged `origin/ui/combined-r7` (ffeef67c7, clean). Coordinator 07:05: no open finding for this lane (Pay with row + method-labelled button sit with `fix/1128-cn-pay` / `fix/1128-alipay`). Not done rows are blocked or documented keeps, so this session takes the ADA audit (`origin/audit/1128-ada`) rows for this area.
+
+| MP page | Native view | Change | Level / optimization |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` 已选参与人 (wxml:45-53 `address-info` name + phone) | `App/RegistrationSheetView.swift` `participantSection`, new `maskedPhone(_:)` (reuses `ProfileBoundPhoneDisplay.masking`) | ADA #5 / `en-t5-baoming`: the saved participant row showed the full phone 13900000000. The MP field stays; it now reads 139****0000 (shapes the masker cannot read keep the server text). Inputs and the request still carry the real number | B · Crafted; privacy, monospaced digits unchanged |
+| `pages/square/*` feed (MP `onReachBottom` paging, like the detail comments C-S9) | `App/SquareBrowserView.swift` load-more row; `Tests/AppUITests/SquareFlowTests.swift` (2 tests no longer tap the button) | ADA #12 / `d2-square`: the next page needed a "Load more posts" tap. It now loads when the end of the feed scrolls into view (`load(reset:)` already ignores a second call while loading; a failed page shows retry and stops auto-loading). The button stays for VoiceOver / Switch Control | B · Crafted; system paging behaviour |
+| `pages/square/*` feed card like counter | `App/SquareXcxPostCard.swift` `counters` | ADA `d2-square`: a liked post's heart.fill stayed grey like the rest. The filled heart now uses the brand accent; unliked stays `.secondary` (counts unchanged) | B · Crafted; one accent, state shown by fill + tint |
+
+Not taken (with reason): ADA "keep Register enabled" conflicts with coordinator 19:50 (disable until consent, as the MP) — kept disabled with the footnote reason. ADA "CN¥" conflicts with owner decision 9 (11-24: `¥12.50` everywhere via `MoneyDisplay`) — kept. Registration title `.dynamicTypeSize(...xxxLarge)` (ADA #14) is the bar title cap with Large Content Viewer, like the system inline title — kept. Square "Square" vs 动态 naming → en-layout (For other lanes).
+
+## Round 3 continue (2026-11-28, thirty-second session — fix-worker follow-up, OWNER RULE 3 payment moment)
+Merged `origin/ui/combined-r7` (3348aa51f, clean; the coordinator's club-ops `isConfigured` correction keeps the P1-8 review writer on `permitsSome`). No new sweep since 07:05 (ffeef67c7). Not done rows are blocked or documented keeps; `fix/1128-cn-pay` left "ticket slides into the wallet" to this lane, so this session builds it.
+
+| MP page | Native view | Change | Level / optimization |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` pay result (MP `wx.requestPayment` success → 报名成功 / fail → toast) | new `App/RegistrationPayMoment.swift` (`RegistrationPaidTicketMoment`, `RegistrationPayCancelledLine`, `RegistrationPayShake`); used by `App/RegistrationAppPayRows.swift` (WeChat Pay) and `App/RegistrationAlipayPayRows.swift` (Alipay) | **added** the OWNER RULE 3 payment moment. Paid (only after the server read): a `ticket.fill` drops and shrinks into a brand `wallet.pass.fill`, the wallet and the check bounce (`symbolEffect(.bounce)`), a 24-particle `CYBurst` (Low Power: none) — then the existing 查看门票 / View ticket link. Cancelled: the 支付已取消 line shakes once (`GeometryEffect`, 0.36 s) with the `.warning` haptic; Alipay gained the missing `.warning` (named `static func` condition). Reduce Motion: no slide / shake / burst, the line cross-fades (`CYMotion.resolve`). Copy, identifiers and the server-confirmed loop unchanged | A · Signature (payment moment); file name matches the gate's `*Pay*` surface, so `CYBurst` is allowed |
+
 ## Not done
 - P1-8 needs a device check: backend `api/comment/add` must return the inserted row (`id`, `memberId`, `ownerType`, `ownerId`, `replyId`, `rating`, `contents`) or the writer reports 结果未知.
 - P2-1 checked, not changed here: (a) US readiness — `RegistrationStripePaySection.swift:118-122` waits on `payment-readiness.ready`, which the backend computes from WeChat only (audit row 507, owner **backend**; the app-side Stripe rows also sit with `fix/1128-us-pay`); (b) host tip `payable` → 支付已关闭 is `HostTipViews.swift:283-300` (audit row 529, owner **mp-club**); (c) pass detail price facts + 购买暂未开放 note is `PassMarketViews.swift:814-832` (audit row 525, owner **mp-mine**; MP shows prices, purchases deferred by `MPCommerceGate`). Listed under For other lanes.
 - Owner correction 11-28 04:45: Alipay adapter exists in Core (gated off); still open — the App-side SDK bridge driver + AppSession wiring + URL-scheme route once the SDK, app id and backend `alipay.trade.app.pay` exist; then flip `RegistrationPayMethod.alipayReady` and route the Alipay choice to it (US checkout verified: registration → Stripe, others gated off).
+- Payment moment: no simulator here, so the slide / shake is unseen until a sweep shows `t5-baoming-paid` (fixture from the cn-pay worker).
 - P32 still open on pass / bundle buy (purchases gated off by `MPCommerceGate`, no pay step to label) and order-detail Pay (`OrderLifecycleView` has no method choice; keeps 立即支付).
 - Owner check 05:35: no simulator here, so `t5-baoming-paying` / `t5-baoming-paid` are unseen until the next coordinator sweep; backend `/api/registration/pay/app` APP-param shape is the backend lane's check.
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
@@ -300,6 +319,7 @@ Gates: generate_project ok; scaffold PASS (AppSession ratchet held at 7977); a11
 - Coop (audited, not yet fixed): invite — 俱乐部/商家 picker (kept: native entries without a route kind, e.g. coop list → 去发起邀请, need it) and search field are extra (MP takes the kind from the route); 核销据点 card copy and per-merchant picker; inline send result on the sheet (the 去编辑主题 exit exists on the review page; sends go through the per-recipient reviewed `CoopFlowRequestPreview`; failures stay there, not back on the sheet). List — no in-app 缴纳保证金 / 重试保证金退款 path on accepted cards (no native deposit payment client); 合作池 row kept (MP folded it into club detail, but it is the only native route to the pool and is UI-test pinned); extra per-section headers/empties and extra card fields; Detail — read-receipt row kept (it performs the `invite/read` write the MP sends silently), terms-card grouping, deposit footer. Nearby — consent block is extra (kept: native location-purpose consent before the search); 补位 sheet interaction and per-row chapter terms differ; missing-param state (native routes always pass a scope, no param-less entry).
 
 ## For other lanes
+- en-layout: ADA glossary — Square tab/page title reads "Square" in en but 动态 in zh (`square.xcx.navTitle`); ADA suggests "Posts". Many UI tests pin "Square", so rename together.
 - backend: `payment-readiness` should report Stripe readiness for USD quotes (audit 507). mp-club: host tip `payable` has no pay step (audit 529). mp-mine: pass detail buy (audit 525).
 
 ## Gates

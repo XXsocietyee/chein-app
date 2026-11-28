@@ -88,7 +88,7 @@ struct SquareXcxPostCard: View {
     }
     private var counters: some View {
         HStack(spacing: 24) {
-            Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
+            Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart").foregroundStyle(post.isLiked == 1 ? AnyShapeStyle(CYColor.brand) : AnyShapeStyle(.secondary)) }
                 .accessibilityLabel(post.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
             Label { Text(verbatim: SquareCountDisplay.text(post.commentCount)) } icon: { Image(systemName: "bubble.right") }
                 .accessibilityLabel(post.commentCount.map { Text("square.xcx.commentsA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))

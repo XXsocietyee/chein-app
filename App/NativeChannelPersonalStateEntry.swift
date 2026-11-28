@@ -71,7 +71,7 @@ import SwiftUI
                 } actions: {
                     Button("d7.channelPersonal.reload") { Task { await open() } }
                 }
-            } else { ProgressView() }
+            } else { ProgressView { Text("d7.channelActivity.loading") }.frame(maxWidth: .infinity) }
         }
         .nativeChannelFlowPage()
         .navigationTitle(Text("d7.channelPersonal.title")).navigationBarTitleDisplayMode(.inline)

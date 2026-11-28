@@ -413,7 +413,7 @@ extension EnvironmentValues {
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("registration.pay.expired")
                 if let onExpiredRebuild {
-                    CYPillButton(verbatim: c.t("重新确认并下单", "Rebuild order"), style: .secondary) {
+                    CYPillButton(verbatim: c.t("重新确认并下单", "Place a new order"), style: .secondary) {
                         onExpiredRebuild()
                     }
                     .accessibilityIdentifier("registration.pay.rebuild")
@@ -428,7 +428,7 @@ extension EnvironmentValues {
                 if let row = RequestReferenceRow(pathFragment: "/api/registration/pay") { row }
             }
         case .unauthorized:
-            Text(c.t("登录状态已过期，请重新登录", "Session expired, sign in again"))
+            Text(c.t("登录状态已过期，请重新登录", "Your session expired. Sign in again."))
                 .cyText(.body)
                 .foregroundStyle(CYColor.warningText)
         case .outcomeUnknown(let message):

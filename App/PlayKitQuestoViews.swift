@@ -209,6 +209,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
         .accessibilityLabel(cell.character.isEmpty
             ? Text("playkit.hangman.cellEmpty \(cell.slot.index + 1)")
             : Text("playkit.hangman.cell \(cell.slot.index + 1) \(cell.character)"))
+        .accessibilityAddTraits(active ? .isSelected : [])
         .accessibilityIdentifier("playkit.hangman.cell.\(cell.slot.index)")
     }
 

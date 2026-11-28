@@ -484,32 +484,17 @@ import SwiftUI
             if phase == .active { activateHostMaterials() } else { hostMaterials.retire() }
         }
         .navigationTitle(ClubOpsEventFormCopy.title(route)).navigationBarTitleDisplayMode(.inline)
-        .cySheet(isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
-            NavigationStack {
-                List {
-                    Section {
-                        Label { Text("clubOpsEvent.cancel.consequence1", tableName: "ClubOpsEvent") } icon: { Image(systemName: "exclamationmark.triangle") }
-                        Label { Text("clubOpsEvent.cancel.consequence2", tableName: "ClubOpsEvent") } icon: { Image(systemName: "person.2.slash") }
-                    } footer: {
-                        Text("clubOpsEvent.cancel.confirmBody", tableName: "ClubOpsEvent")
-                    }
-                }
-                .navigationTitle(Text("clubOpsEvent.cancel.confirmTitle", tableName: "ClubOpsEvent"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button { cancelConfirmReview = nil } label: { Text("clubOpsEvent.cancel.keep", tableName: "ClubOpsEvent") }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button(role: .destructive) {
-                            guard let pending = cancelConfirmReview, pending.id == review?.id else { cancelConfirmReview = nil; return }
-                            cancelConfirmReview = nil; Task { await confirm(pending) }
-                        } label: { Text("clubOpsEvent.cancel.confirmAction", tableName: "ClubOpsEvent") }
-                        .foregroundStyle(CYColor.dangerText)
-                    }
-                }
-            }
-            .presentationDetents([.medium, .large])
+        // mp-club r3 C-07b (MP event-ops wxml:278-281 `cy-modal compact`): a centered confirm with the MP title, one
+        // content line and 再想想 / 取消本场 (danger), no top bar and no swipe-away, so a system alert, not a sheet.
+        .alert(Text("clubOpsEvent.cancel.confirmTitle", tableName: "ClubOpsEvent"),
+               isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
+            Button(role: .cancel) { cancelConfirmReview = nil } label: { Text("clubOpsEvent.cancel.keep", tableName: "ClubOpsEvent") }
+            Button(role: .destructive) {
+                guard let pending = cancelConfirmReview, pending.id == review?.id else { cancelConfirmReview = nil; return }
+                cancelConfirmReview = nil; Task { await confirm(pending) }
+            } label: { Text("clubOpsEvent.cancel.confirmAction", tableName: "ClubOpsEvent") }
+        } message: {
+            Text("clubOpsEvent.cancel.confirmBody", tableName: "ClubOpsEvent")
         }
         .cySheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
             if let kind = ClubGovernanceConsequence(route.operation) {

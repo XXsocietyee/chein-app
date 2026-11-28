@@ -110,9 +110,12 @@ import SwiftUI
                     if pagination.continuationInvalid { Text("square.invalidCursor").accessibilityIdentifier("square.invalidCursor") }
                     if loading { loadingRow }
                     else if pagination.hasMore && issue == nil {
+                        // ADA 11-28 #12: the next page loads when the end of the feed scrolls into view (MP onReachBottom);
+                        // the button stays for VoiceOver and Switch Control.
                         Button { Task { await load(reset: false) } } label: { Text("square.loadMore").frame(maxWidth: .infinity) }
                             .buttonStyle(.borderless)
                             .accessibilityIdentifier("square.loadMore")
+                            .onAppear { Task { await load(reset: false) } }
                     }
                 }
             }
@@ -173,6 +176,8 @@ import SwiftUI
             .onChange(of: keyword) { _, value in if value.isEmpty { query.keyword = nil } }
             .onChange(of: reader.scope) { _, _ in openedPost = nil; generation += 1; pagination = SquareFeedPagination(); loadedKey = nil; dismissCloudSheets() }
             .task(id: key) { await loadGate(); await load(reset: true) }
+            // fix-1128b-social #2: a server-confirmed publish (workspace read-back) shows in the feed straight away.
+            .onChange(of: workspace?.lastPost) { _, published in if published != nil { Task { await load(reset: true) } } }
             .refreshable { await load(reset: true) }
             .onDisappear { generation += 1; settleLoading() }
             .accessibilityIdentifier("square.browser")

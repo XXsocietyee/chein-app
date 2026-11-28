@@ -1,10 +1,17 @@
 import Foundation
 import Observation
 
-/// Host-supplied on-site evidence. Production supplies none: no camera or scanner runs here.
+/// Host-supplied on-site evidence. No camera or scanner runs in this file.
 @MainActor public protocol PlayStoreDayEvidenceSource: AnyObject {
     func storeCode() -> String?
     func proofPictureURL() -> String?
+}
+/// fix-1128b #21 (J-11b/J-11c): a host source that runs the scanner, or the camera plus the uploadOSS upload, on the
+/// player's tap, before the coordinator reads `storeCode()` / `proofPictureURL()`. Release supplies one.
+public enum PlayStoreDayCaptureResult: Equatable { case captured, cancelled, failed }
+@MainActor public protocol PlayStoreDayCapturingEvidenceSource: PlayStoreDayEvidenceSource {
+    func captureStoreCode() async -> PlayStoreDayCaptureResult
+    func captureProofPicture() async -> PlayStoreDayCaptureResult
 }
 public enum PlayStoreDayPhase: Equatable { case loading, loaded, notFound, failed, signedOut, unavailable }
 /// Feedback line (source `feedback`). `server` carries plain backend text verbatim.
@@ -209,6 +216,32 @@ public enum PlayStoreDayPreparedProof: Equatable { case scan(code: String), phot
         guard let url = evidence.proofPictureURL(), !url.isEmpty else { notice = .noPhoto; return }
         preparedProof = .photo(url: url)
     }
+    /// fix-1128b #21: MP `scanCode` → requestCheckin. Runs the host scanner first when it can; a cancelled scan is silent.
+    public func captureAndPrepareScan() async {
+        guard !busy, node != nil else { return }
+        guard canWriteProof else { notice = .writesUnavailable; return }
+        if let capturing = evidence as? any PlayStoreDayCapturingEvidenceSource {
+            busy = true; notice = nil
+            let result = await capturing.captureStoreCode()
+            busy = false
+            guard result == .captured else { if result == .failed { notice = .noCode }; return }
+        }
+        prepareScan()
+    }
+    /// fix-1128b #21: MP `takePhoto` → uploadOSS → `uploadProof`. The upload runs before the confirm alert, as in the MP.
+    public func captureAndPreparePhoto() async {
+        guard !busy, node != nil else { return }
+        guard canWriteProof else { notice = .writesUnavailable; return }
+        if let capturing = evidence as? any PlayStoreDayCapturingEvidenceSource {
+            busy = true; notice = nil
+            let result = await capturing.captureProofPicture()
+            busy = false
+            guard result == .captured else { if result == .failed { notice = .noPhoto }; return }
+        }
+        preparePhoto()
+    }
+    /// The task card's 去拍照 with the host camera.
+    public func taskGoPhotoCapturing() async { guard !busy else { return }; closeTaskCard(); await captureAndPreparePhoto() }
     public func cancelPreparedProof() { preparedProof = nil }
     /// Sends exactly the evidence the user confirmed; a stale or replaced preparation is ignored.
     public func submitProof(_ prepared: PlayStoreDayPreparedProof) async {

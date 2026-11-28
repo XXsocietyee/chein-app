@@ -41,6 +41,9 @@ public struct TicketWalletReadSession: Equatable {
         self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized
         snapshot = currentSession()
     }
+    /// Gap #8 (1128 plan): a server-confirmed ticket (registration read-back after create, pay or a waitlist claim) moves
+    /// the scope, so every wallet view keyed by `scope` reads `/api/registration/my` again. Older reads are discarded.
+    public func refresh() { stamp = UUID() }
     public func ticketWallet() async throws -> TicketWalletSnapshot {
         try await read { try await $0.wallet(token: $1) }
     }

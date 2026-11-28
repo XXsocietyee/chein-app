@@ -118,7 +118,7 @@ private struct RoamRunnerConversation: Identifiable, Hashable { let id: Int }
 
     private func statCell(_ value: Text, label: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
-            value.font(.title3.bold()).monospacedDigit()
+            value.cyText(.numericTitle)
             Text(label).font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)

@@ -406,7 +406,7 @@ struct FreeExplorationStoreName: View {
                         )
                         Text(verbatim: dispatched.displayName)
                             .cyText(.cardTitle)
-                        if let rule = dispatched.ruleInstructions, !rule.isEmpty {
+                        if let rule = dispatched.playerRuleInstructions {
                             Text(verbatim: rule)
                                 .cyText(.bodyCompact)
                                 .foregroundStyle(.secondary)
@@ -608,7 +608,7 @@ struct FreeExplorationVisitSteps: View {
                 Text("playx.merchant.verify.detail").font(.caption).foregroundStyle(.secondary)
             }
             Text("playx.merchant.notice").font(.footnote)
-            if node.arrived == true, let rule = node.ruleInstructions, !rule.isEmpty { Text(verbatim: rule).font(.footnote) }
+            if node.arrived == true, let rule = node.playerRuleInstructions { Text(verbatim: rule).font(.footnote) }
         }
         Section("playx.merchant.reference") {
             LabeledContent("playx.merchant.onsite") {
@@ -691,7 +691,7 @@ struct FreeExplorationHeroPerkAndGame: View {
                     Label { Text(verbatim: players) } icon: { Image(systemName: "person.2") }
                         .font(.subheadline)
                 }
-                let steps = Self.steps(node.ruleInstructions)
+                let steps = Self.steps(node.playerRuleInstructions)
                 if !steps.isEmpty {
                     Text("playFree.hero.howTo").font(.subheadline.weight(.semibold))
                     ForEach(Array(steps.enumerated()), id: \.offset) { index, step in

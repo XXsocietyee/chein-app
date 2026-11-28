@@ -86,7 +86,7 @@ import SwiftUI
             }
             LabeledContent {
                 Text(verbatim: priceText ?? "—")
-                    .font(.title3.weight(.semibold).monospacedDigit())
+                    .cyText(.numericTitle)
                     .foregroundStyle(.primary)
             } label: {
                 Text(verbatim: copy.t("合计", "Total")).font(.headline)

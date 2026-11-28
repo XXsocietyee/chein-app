@@ -12,9 +12,9 @@ final class MemberHomeFlowTests: XCTestCase {
     }
     func testReadyCardShowsServerCountsCityAndBenefits() {
         launch("ready")
-        XCTAssertTrue(app.staticTexts["Synthetic member"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Lin Yu"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.otherElements["member.card.following"].waitForExistence(timeout: 5) || app.staticTexts["12"].exists)
-        XCTAssertTrue(app.staticTexts["Synthetic City"].exists)
+        XCTAssertTrue(app.staticTexts["Hangzhou"].exists)
         let earnings = app.buttons["member.benefit.earnings"]
         XCTAssertTrue(earnings.waitForExistence(timeout: 5))
         earnings.tap()
@@ -27,7 +27,7 @@ final class MemberHomeFlowTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Synthetic account"].exists)
         XCTAssertFalse(app.staticTexts["12"].exists)
         retry.tap()
-        XCTAssertTrue(app.staticTexts["Synthetic member"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Lin Yu"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["member.benefits.retry"].exists)
     }
     func testDormantBuildExplainsUnavailableStateInChinese() {

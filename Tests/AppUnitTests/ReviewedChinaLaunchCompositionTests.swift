@@ -157,6 +157,10 @@ import XCTest
         XCTAssertTrue(grant.clubCommunity.paths.contains("api/club/post/repost"))
         // P1-10: 置顶/取消置顶 (MP pages/club/detail js:2099 `{id, pinned, version, requestId}`) rides the club community grant.
         XCTAssertTrue(grant.clubCommunity.paths.contains("api/club/post/pin"))
+        // J-15: the director recap export (GET `activityId`) rides the play grant as a runtime read, never as a POST.
+        XCTAssertTrue(grant.play.paths.contains("api/game/session/recap/export"))
+        XCTAssertTrue(ReviewedProductionGateLeases.playRuntimeReadPaths.contains("api/game/session/recap/export"))
+        XCTAssertTrue(ReviewedProductionGateLeases.isPlayGrantPath("api/game/session/recap/export"))
         // P1-13: the club post image upload (uploadOSS bizType=club_post_image) is issued per club, stable, picker on.
         let image = try XCTUnwrap(admitted.clubPostImageUploadApproval(player, 3))
         XCTAssertTrue(image.nativePicker)
@@ -191,8 +195,10 @@ import XCTest
         XCTAssertEqual(grant.channelTextReceipt.operation, .receipt)
         XCTAssertNotNil(admitted.clubCommunityWriteService(baseURL: player.baseURL, transport: PlayerWriteRecorder()))
         XCTAssertNotNil(admitted.teamCommandWriter(context: player, transport: PlayerWriteRecorder()))
+        // fix-1128b #5/#19 (planning audit gaps J-06d, J-06f/J-09d/J-09e): photo upload, preference and tag writes join the grant.
         XCTAssertEqual(try XCTUnwrap(admitted.sessionDependencies(player).configuration).play, [
-            .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding
+            .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding,
+            .mediaUpload, .preference, .tags
         ])
         XCTAssertEqual(try XCTUnwrap(admitted.roamLiveApproval(player)).presence, false)
         let roleAssign = try XCTUnwrap(admitted.clubRoleAssignmentApproval(player))

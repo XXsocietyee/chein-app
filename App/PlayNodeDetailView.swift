@@ -138,7 +138,7 @@ struct PlayNodeDetailView: View {
                 if let title = node.gameTitle, !title.isEmpty {
                     Section("play.task") {
                         Text(verbatim: title).cyText(.cardTitle)
-                        if let rules = node.ruleInstructions, !rules.isEmpty { Text(verbatim: rules) }
+                        if let rules = node.playerRuleInstructions { Text(verbatim: rules) }
                         if let materials = node.requiredMaterials, !materials.isEmpty { LabeledContent("play.materials") { Text(verbatim: materials) } }
                         if let duration = node.durationMinutes { LabeledContent("play.duration") { Text(verbatim: String(duration)) } }
                         if let players = node.players, !players.isEmpty { LabeledContent("play.players") { Text(verbatim: players) } }

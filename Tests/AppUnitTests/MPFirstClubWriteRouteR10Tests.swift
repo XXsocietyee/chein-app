@@ -82,6 +82,26 @@ import XCTest
         }
     }
 
+    func testAdmitsTopicDirectorReadsOnTheirExactBody() throws {
+        // 1128-plan C-08 / C-09 / C-07a / C-19: the topic-detail director, story answer, occurrence and roster reads.
+        let scope = ClubGovernanceScope(clubID: 3, topicID: 7, seriesID: 11, nodeID: 5)
+        for read in [ClubGovernanceRead.topicStats, .recruit, .topicCustomers, .nodeAnswer, .occurrences, .registrations] {
+            let fields = try read.fields(scope: scope)
+            let body = String(decoding: try JSONEncoder().encode(fields), as: UTF8.self)
+            XCTAssertTrue(MPFirstClubWriteRoute.accepts(json(read.path, body: body), baseURL: base, token: token), "\(read.path) \(body)")
+        }
+        let story = try XCTUnwrap(ClubNodeAnswerCall(clubID: 3, topicID: 7, nodeID: 5, scope: nil))
+        let storyBody = String(decoding: try JSONEncoder().encode(story.fields), as: UTF8.self)
+        XCTAssertTrue(MPFirstClubWriteRoute.accepts(json(story.path, body: storyBody), baseURL: base, token: token))
+        for (path, body) in [("api/club/topic-registrations", #"{"clubId":3}"#), ("api/club/topic-registrations", #"{"clubId":3,"topicId":7,"status":1}"#),
+                             ("api/registration/info", #"{"clubId":3,"topicId":7}"#), ("api/club/registration/list", #"{"clubId":3,"topicId":7}"#),
+                             ("api/club/crm/topic-manage-stats", #"{"clubId":3}"#), ("api/club/recruit/overview", #"{"clubId":3,"topicId":"7"}"#),
+                             ("api/club/crm/topic-customers", #"{"clubId":3,"topicId":7}"#), ("api/club/topic-node-answer", #"{"clubId":3,"topicId":7}"#),
+                             ("api/club/event-ops/series/occurrences", #"{"clubId":3,"seriesId":0}"#)] {
+            XCTAssertFalse(MPFirstClubWriteRoute.accepts(json(path, body: body), baseURL: base, token: token), "\(path) \(body)")
+        }
+    }
+
     func testAdmitsMultipartChapterWritesAndTopicReadOnly() throws {
         for path in ["api/topic/chapter/recruit", "api/topic/chapter/finish", "api/topic/info-to-user"] {
             let form = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: ["chapterId": "12", "scope": ""], token: token)

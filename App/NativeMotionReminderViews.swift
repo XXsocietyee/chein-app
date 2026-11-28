@@ -28,7 +28,7 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text("playkit.walk.left").font(.subheadline).foregroundStyle(.secondary)
                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-                        Text(left, format: .number).font(.largeTitle.bold()).monospacedDigit()
+                        Text(left, format: .number).cyText(.dataXL)
                             .contentTransition(.numericText())
                         Text(LocalizedStringKey(reached ? "playkit.walk.arrived" : "playkit.walk.unit")).font(.subheadline).foregroundStyle(.secondary)
                     }
@@ -103,8 +103,7 @@ extension NativeStepsHostView {
             if let issue = stage.issue { issueText("nativePlatform.issue." + issue.rawValue, identifier: "nativePlatform.steps.issue") }
             if stage.phase == "review", let sample = stage.reading, let challenge = stage.challenge {
                 Text(verbatim: String(sample.steps))
-                    .font(.largeTitle.bold())
-                    .monospacedDigit()
+                    .cyText(.dataXL)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("nativePlatform.steps.count")
                 LabeledContent("nativePlatform.steps.day") { Text(verbatim: challenge.dayKey).monospacedDigit() }
@@ -251,7 +250,7 @@ extension NativeStepsHostView {
             if let stage {
                 if let window = stage.window, window.openNow {
                     Label("nativePlatform.reminder.open", systemImage: "clock")
-                        .foregroundStyle(Color.green)
+                        .foregroundStyle(CYColor.successText)
                 }
                 if let scheduled = stage.scheduled {
                     Label("playkit.window.subscribed", systemImage: "bell.badge")
@@ -363,7 +362,7 @@ extension NativeStepsHostView {
             text = "—"
         }
         return Text(verbatim: text)
-            .font(.largeTitle.bold()).monospacedDigit()
+            .cyText(.dataXL)
     }
     private var afterLabel: some View {
         Text("playkit.window.afterRemind").font(.footnote).foregroundStyle(.secondary)

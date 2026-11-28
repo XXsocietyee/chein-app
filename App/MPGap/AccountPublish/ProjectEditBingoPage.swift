@@ -81,7 +81,7 @@ struct ProjectEditBingoPage: View {
         let rewarded = !value.feedbackText.isEmpty || (Int(value.couponID) ?? 0) > 0
         return VStack(spacing: CYSpacing.xs) {
             if label.isEmpty {
-                Text(step + 1, format: .number).font(.title3.weight(.semibold)).monospacedDigit()
+                Text(step + 1, format: .number).cyText(.numericTitle)
                     .foregroundStyle(.secondary)
             } else {
                 Text(verbatim: label).font(.subheadline.weight(.semibold)).multilineTextAlignment(.center)

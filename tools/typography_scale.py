@@ -29,10 +29,11 @@ SCALE = {
     'caption': (11, 'regular', 1.45, 'caption2', 22),
     'micro': (10, 'medium', 1.3, 'caption2', 20),
     'numericBody': (14, 'semibold', 1.3, 'body', 28),
+    'numericTitle': (20, 'semibold', 1.25, 'title3', 40),
     'dataXL': (32, 'bold', 1.05, 'largeTitle', 64),
     'data2XL': (42, 'bold', 1.05, 'largeTitle', 84),
 }
-NUMERIC = {'numericBody', 'dataXL', 'data2XL'}
+NUMERIC = {'numericBody', 'numericTitle', 'dataXL', 'data2XL'}
 CJK_NATURAL = 1.4
 
 TEXT_STYLES = ('largeTitle', 'title', 'title2', 'title3', 'headline', 'subheadline', 'body',

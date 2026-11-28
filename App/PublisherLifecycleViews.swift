@@ -117,7 +117,7 @@ import SwiftUI
                 if preview.productType != 2 {
                     Section(text("publisherPricing.costFloor")) {
                         // Floor reads TopicPricingXcx money text: two decimals, em dash when unknown, literal 0 stays 0.00.
-                        Text(verbatim: LocaleDisplay.money(text: TopicPricingXcx.moneyText(decimal: preview.minimum), locale: locale)).font(.largeTitle.bold()).monospacedDigit()
+                        Text(verbatim: LocaleDisplay.money(text: TopicPricingXcx.moneyText(decimal: preview.minimum), locale: locale)).cyText(.dataXL)
                             .contentTransition(.numericText()).accessibilityIdentifier("publisher.floor")
                     }
                 }

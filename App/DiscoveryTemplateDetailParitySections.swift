@@ -75,7 +75,7 @@ struct DiscoveryTemplateDetailParitySections: View {
         if let rating = presentation.rating {
             Section {
                 HStack {
-                    Text(verbatim: rating).font(.largeTitle.weight(.semibold)).monospacedDigit()
+                    Text(verbatim: rating).cyText(.dataXL)
                     if let count = presentation.commentCount, count > 0 {
                         Text("discovery.templateDetail.reviewCount \(count)")
                     } else {

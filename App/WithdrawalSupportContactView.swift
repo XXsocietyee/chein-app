@@ -87,7 +87,8 @@ extension EnvironmentValues {
             configuration = value; loadedScope = scope
         } catch {
             guard ticket == generation, !Task.isCancelled else { return }
-            issue = "withdrawal.support.unconfigured"
+            // 1128 gap #11: a signed-out or switched account says so instead of "未配置".
+            issue = (error as? WithdrawalSupportFailure) == .staleSession ? "withdrawal.support.signedOut" : "withdrawal.support.unconfigured"
         }
     }
     private func copy(_ displayed: WithdrawalSupportSnapshot, offered: UUID) async {

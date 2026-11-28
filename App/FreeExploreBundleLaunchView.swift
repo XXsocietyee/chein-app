@@ -94,7 +94,8 @@ import SwiftUI
         .privacySensitive()
         .task { await model.load() }
         .refreshable { await model.load() }
-        .onChange(of: unitID) { _, _ in offerID = nil; model.cancelReview() }
+        .onChange(of: unitID) { _, _ in offerID = onlyStore(unitID); model.cancelReview() }
+        .onChange(of: model.state) { _, _ in closeFormIfLanded() }
         .onChange(of: offerID) { _, _ in model.cancelReview() }
         .onChange(of: date) { _, _ in model.cancelReview() }
         .cySheet(item: Binding(get: { model.review }, set: { if $0 == nil { model.cancelReview() } })) { review in
@@ -149,13 +150,30 @@ import SwiftUI
         // A reopened destination must receive a fresh model from its authorized host.
         .onDisappear { model.cancelReview() }
     }
-    /// NAT-9: the MP step indicator (选章节 → 选商家 → 定时间) as the booking section header.
-    private var stepHeader: Text {
-        let titles = [ChannelCopy.text("选章节", "Chapter", locale: locale), ChannelCopy.text("选商家", "Store", locale: locale),
-                      ChannelCopy.text("定时间", "Time", locale: locale)]
-        let current = unitID == nil ? 0 : offerID == nil ? 1 : 2
-        return Text(verbatim: "\(current + 1)/\(titles.count) · \(titles[current])")
-            .accessibilityLabel(Text("a11y.value.ofTotal \(current + 1) \(titles.count)") + Text(verbatim: ", \(titles[current])"))
+    /// MP `openReserve`: a chapter with one store starts with that store picked (free-explore/index.js:305).
+    private func onlyStore(_ id: FreeExploreLaunchID?) -> FreeExploreLaunchID? {
+        guard let id, let stores = reserveStores(id), stores.count == 1 else { return nil }
+        return stores[0].offerId
+    }
+    /// The stores of the unit's chapter (MP `chapter.stores`), nil when the unit or chapter is unknown.
+    private func reserveStores(_ id: FreeExploreLaunchID) -> [FreeExploreLaunchCatalog.Item.Store]? {
+        guard let unit = model.order?.bundle?.units.first(where: { $0.id == id }),
+              let item = model.catalog?.items.first(where: { $0.chapterId == unit.chapterId }) else { return nil }
+        return item.stores
+    }
+    /// MP `canReserve`: AVAILABLE and the chapter has at least one store (free-explore-bundle.js:67).
+    private func unitCanReserve(_ unit: FreeExploreLaunchOrder.Bundle.Unit) -> Bool {
+        unit.status == "AVAILABLE" && !(reserveStores(unit.id) ?? []).isEmpty
+    }
+    /// MP `预约 {reserveForm.chapterName}`; the unit fallback 权益 N when the chapter has no name.
+    private func reserveTitle(_ unit: FreeExploreLaunchOrder.Bundle.Unit, in bundle: FreeExploreLaunchOrder.Bundle) -> Text {
+        let number = (bundle.units.firstIndex(where: { $0.id == unit.id }) ?? 0) + 1
+        let name: String = chapterName(unit.chapterId) ?? appLocalized("freeBundle.unit.fallback \(number)", locale: locale)
+        return Text("reserve.title \(name)", tableName: table)
+    }
+    /// MP `confirmReserve` clears the form once the reservation is sent; here once it is confirmed.
+    private func closeFormIfLanded() {
+        if model.state == .confirmed { unitID = nil }
     }
     @ViewBuilder private func readyContent(_ facts: FreeExploreBundlePageReady.Facts) -> some View {
         Section {
@@ -270,6 +288,12 @@ import SwiftUI
                             }
                         }
                         .accessibilityIdentifier("freeBundle.unit.\(unit.id.text)")
+                        // MP free-explore/index.wxml:43 预约 on a reservable unit: opens the 预约 {chapter} form below.
+                        if unitCanReserve(unit) {
+                            Button { unitID = unit.id } label: { text("reserve") }
+                                .disabled(model.busy || unitID == unit.id)
+                                .accessibilityIdentifier("freeBundle.unit.reserve.\(unit.id.text)")
+                        }
                         // MP free-explore/index.wxml:44 更换商家 on RESERVED / AVAILABLE units.
                         if unit.status == "RESERVED" || unit.status == "AVAILABLE", offers(.exitSwap) {
                             Button("freeBundle.action.exitSwap") { bundleAction = .exitSwap }
@@ -325,35 +349,35 @@ import SwiftUI
             } header: {
                 Text("reservations.title", tableName: table)
             }
-            // MP reserve form (after 预约记录): chapter and store pickers (请选择 until chosen), the date, then 确认预约.
-            Section {
-                Picker(selection: $unitID) {
-                    text("choose").tag(FreeExploreLaunchID?.none)
-                    ForEach(bundle.units.filter { $0.status == "AVAILABLE" }, id: \.id) { unit in
-                        Text(verbatim: chapterName(unit.chapterId) ?? unit.id.text).tag(FreeExploreLaunchID?.some(unit.id))
-                    }
-                } label: { text("unit") }
-                if let unit = bundle.units.first(where: { $0.id == unitID }),
-                   let item = model.catalog?.items.first(where: { $0.chapterId == unit.chapterId }) {
+            // MP reserve form (after 预约记录), only after 预约 on a unit: 预约 {chapter} · store · 日期 · 时间 · 确认预约.
+            // mp-journey r3 (ADA 1128 t5-free-explore): no standing chapter picker or step counter (not on the MP page),
+            // and date and time are two compact pickers so neither chip is clipped at 375 pt.
+            if let unitID, let unit = bundle.units.first(where: { $0.id == unitID }), let stores = reserveStores(unitID) {
+                Section {
                     Picker(selection: $offerID) {
                         text("choose").tag(FreeExploreLaunchID?.none)
-                        ForEach(item.stores, id: \.offerId) { store in
+                        ForEach(stores, id: \.offerId) { store in
                             Text(verbatim: store.merchantName ?? store.offerId.text).tag(FreeExploreLaunchID?.some(store.offerId))
                         }
                     } label: { text("offer") }
+                    DatePicker(selection: $date, in: Date()..., displayedComponents: .date) { text("reserve.day") }
+                        .datePickerStyle(.compact)
+                    DatePicker(selection: $date, in: Date()..., displayedComponents: .hourAndMinute) { text("reserve.time") }
+                        .datePickerStyle(.compact)
+                    Button {
+                        guard let offerID else { return }
+                        let millis = date.timeIntervalSince1970 * 1_000
+                        guard millis.isFinite, millis > 0, millis < Double(Int64.max) else { return }
+                        model.prepare(unitID: unitID, offerID: offerID, startAt: Int64(millis))
+                    } label: { text("review") }
+                    .disabled(!model.canReserve || offerID == nil)
+                    .accessibilityIdentifier("freeBundle.reserve.confirm")
+                } header: {
+                    reserveTitle(unit, in: bundle)
+                } footer: {
+                    if !model.canReserve { text("disabled") }
                 }
-                DatePicker(selection: $date, in: Date()...) { text("date") }
-                Button {
-                    guard let unitID, let offerID else { return }
-                    let millis = date.timeIntervalSince1970 * 1_000
-                    guard millis.isFinite, millis > 0, millis < Double(Int64.max) else { return }
-                    model.prepare(unitID: unitID, offerID: offerID, startAt: Int64(millis))
-                } label: { text("review") }
-                .disabled(!model.canReserve || unitID == nil || offerID == nil)
-            } header: {
-                if model.order?.bundle != nil { stepHeader }
-            } footer: {
-                if !model.canReserve { text("disabled") }
+                .accessibilityIdentifier("freeBundle.reserve.form")
             }
             if bundle.exitCases.contains(where: { Self.exitCaseTitle($0.decision) != nil }) {
                 Section {

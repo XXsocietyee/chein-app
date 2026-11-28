@@ -69,7 +69,9 @@ private final class NearbyWriteHTTPFake: HTTPTransport {
         XCTAssertEqual(String(data: try XCTUnwrap(transport.requests.first?.httpBody), encoding: .utf8), "{\"teamId\":502}")
     }
     func testHandleExactDistinctTeamAndApplicantAndBoolean() async throws {
-        let transport = NearbyWriteHTTPFake(); let adapter = try adapter(transport)
+        // Gap #7 (1128 plan): the command route acknowledges only `data.state == APPLIED`; a bare `{"code":200}` is unknown.
+        let transport = NearbyWriteHTTPFake(); transport.response = #"{"code":200,"data":{"requestId":"r","state":"APPLIED","message":"原请求已执行"}}"#
+        let adapter = try adapter(transport)
         let outcome = await adapter.submit(try await review(.handle(team: .init(503), applicant: .init(6001), approved: false)))
         XCTAssertEqual(outcome, .acknowledged(expiry: nil))
         let sent = try XCTUnwrap(transport.requests.first)
@@ -82,6 +84,23 @@ private final class NearbyWriteHTTPFake: HTTPTransport {
         XCTAssertEqual(body["action"] as? String, "handle")
         let requestID = try XCTUnwrap(body["requestId"] as? String)
         XCTAssertNotNil(requestID.range(of: "^[a-f0-9]{32}$", options: .regularExpression))
+    }
+    /// Gap #7 (T-06): `/api/team/command` answers 200 with `data.state`. REJECTED shows the server message and clears the
+    /// journal; UNKNOWN and a receipt-less 200 stay unknown and keep the dispatch lock.
+    func testHandleCommandStateRejectedAndUnknownAreNotSuccess() async throws {
+        let journal = NearbyWriteMemoryJournal(); let transport = NearbyWriteHTTPFake()
+        transport.response = #"{"code":200,"data":{"requestId":"r","state":"REJECTED","errorCode":"TEAM_FULL","message":"队伍已满"}}"#
+        let rejecting = try adapter(transport, journal: journal)
+        let rejected = await rejecting.submit(try await review(.handle(team: .init(503), applicant: .init(6001), approved: true)))
+        XCTAssertEqual(rejected, .rejected(errorCode: "TEAM_FULL", message: "队伍已满")); XCTAssertTrue(journal.records.isEmpty)
+        for payload in [#"{"code":200,"data":{"requestId":"r","state":"UNKNOWN"}}"#, #"{"code":200}"#] {
+            let wire = NearbyWriteHTTPFake(); wire.response = payload; let locks = NearbyWriteMemoryJournal()
+            let pending = try adapter(wire, journal: locks)
+            let outcome = await pending.submit(try await review(.handle(team: .init(503), applicant: .init(6001), approved: false)))
+            XCTAssertEqual(outcome, .unknown); XCTAssertEqual(locks.records.values.first?.phase, .dispatched)
+        }
+        let direct = NearbyTeamService.decodeWrite(.init(status: 200, data: Data(#"{"code":200,"data":true}"#.utf8)), action: .withdraw(.init(501)), synthetic: false)
+        XCTAssertEqual(direct, .acknowledged(expiry: nil))
     }
     func testWrongAccountNamespaceAndEndpointGrantsNeverSend() async throws {
         let review = try await review()

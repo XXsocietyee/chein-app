@@ -123,8 +123,7 @@ struct OrderAmountHero: View {
         VStack(alignment: .leading) {
             Text(label).font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: figure)
-                .font(.largeTitle.bold())
-                .monospacedDigit()
+                .cyText(.dataXL)
                 .foregroundStyle(.primary)
                 .privacySensitive()
             if amount != nil, showsCurrencyCaveat, currencyCode == nil {

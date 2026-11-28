@@ -38,7 +38,7 @@ class W204TicketWalletParity(unittest.TestCase):
             self.assertEqual(self.catalog[key], entry)
 
     def test_full_failure_title_and_empty_hint_do_not_claim_partial_empty(self):
-        self.assertIn('Text("ticketWallet.parity.error.title")', self.view)
+        self.assertIn('titleKey: "ticketWallet.parity.error.title"', self.view)
         empty = self.view.split('if snapshot.tickets.isEmpty {', 1)[1].split('ForEach(', 1)[0]
         # MP empty is「还没有票」with no sub line (PLY-21-11); a partial read still never claims the wallet is empty.
         self.assertIn('snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"', empty)

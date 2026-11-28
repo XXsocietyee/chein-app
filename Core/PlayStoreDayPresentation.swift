@@ -58,7 +58,8 @@ public struct PlayStoreDayNode: Equatable, Identifiable {
         expectedWaitMinutes = raw["expectedWaitMinutes"]?.tolerantInteger ?? raw["expectedWaitMinutes"]?.double.map { Int($0.rounded()) }
         quantityUnavailable = flag("quantityUnavailable")
         // Receipt names (rule/photoDesc) win over list names, like the source merge.
-        rule = text("rule", "ruleInstructions"); photoDescription = text("photoDesc", "photoRequireDesc")
+        // Gap #15 / J-19: operator notes "(运营提示:…)" never reach the player (MP stripOperatorNotes).
+        rule = PlayerRuleText.playerVisible(text("rule", "ruleInstructions")); photoDescription = text("photoDesc", "photoRequireDesc")
         arrived = flag("arrived"); selfReported = flag("selfReported"); done = flag("done"); gameDone = flag("gameDone")
         hasGame = flag("hasGame")
         validationMethod = raw["validationMethod"]?.tolerantInteger ?? raw["vm"]?.tolerantInteger ?? 0

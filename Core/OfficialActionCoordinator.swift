@@ -170,6 +170,12 @@ public enum OfficialActionState: Equatable { case idle, reviewing, checking, sub
                 // and filtered-out parties stay locked: absence cannot prove an outcome.
                 if case .signup(let id) = review.command, let readback, case .event(let event) = readback,
                    event.id == id, event.signed == true { try locks.remove(lock) }
+                // Gap #17: an arrival answer is the server's own verdict (accepted / completed) and the request id makes
+                // it idempotent, so the next mission of the same event may be verified. A party that the inbox shows
+                // with a new status has settled; an absent party stays locked.
+                if case .arrival = review.command, case .arrival = receipt { try locks.remove(lock) }
+                if case .respond(let id, let type, _, _) = review.command, let readback, case .party(let party?) = readback,
+                   party.id == id, party.partyType == type, party.status != review.snapshot.invite?.status { try locks.remove(lock) }
             }
             state = .acknowledged
             // Other participation/party acknowledgments remain locked without independent reconciliation.

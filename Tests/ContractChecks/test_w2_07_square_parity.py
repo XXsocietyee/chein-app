@@ -75,8 +75,13 @@ class W207SquareParity(unittest.TestCase):
     def test_detail_action_row_reuses_reviewed_editors(self):
         detail = read('App/SquareDetailView.swift')
         for exact in ['accessibilityIdentifier("square.detail.like")', 'accessibilityIdentifier("square.detail.comment")',
-                      'accessibilityIdentifier("square.detail.bookmark")', 'editor = .init(purpose: .like, target: .post(post.id), text: "")',
-                      'editor = .init(purpose: .bookmark, target: .post(post.id), text: "")']:
+                      'accessibilityIdentifier("square.detail.bookmark")',
+                      # fix-1128b-social gap #1 (audit 1128-plan M-01b, M-13b): v1 like / bookmark send at once when the
+                      # community writer is issued; the reviewed editors remain the fallback (legacy square, writes off).
+                      'Button { likeTapped(post, actions: actions) }', 'Button { bookmarkTapped(post, actions: actions) }',
+                      'fallback: .init(purpose: .like, target: .post(post.id), text: "")',
+                      'fallback: .init(purpose: .bookmark, target: .post(post.id), text: "", enabled: post.isBookmarked != 1)',
+                      'editor = fallback']:
             self.assertIn(exact, detail)
 
     def test_detail_states(self):

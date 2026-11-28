@@ -11,6 +11,10 @@ public struct OfficialActionProductionApproval {
     public let endpoints: OperationEndpointApproval
     public let commands: [OfficialActionCommand]
     public let reviewedPolicyVersion: String
+    /// Gap #17 (1128 plan, G-10b): the signed-in player's own participation commands on any event / party the server
+    /// shows them: v1 报名 / 完成, v2 到达 (`/events/{id}/arrivals`), inbox 接受 / 拒绝 / 退出 and organizer 接受 / 拒绝.
+    /// Publish, broadcast and merchant invites stay exact-command only. The server checks every target.
+    public let playerTargets: Bool
     public init(market: RegionalMarket, endpoints: OperationEndpointApproval,
                 commands: [OfficialActionCommand], reviewedPolicyVersion: String) throws {
         guard !commands.isEmpty, !reviewedPolicyVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw APIError.invalidConfiguration }
@@ -19,13 +23,53 @@ public struct OfficialActionProductionApproval {
             guard let reads = Self.readPaths(for: command), reads.union([command.path]).isSubset(of: endpoints.paths) else { throw APIError.invalidConfiguration }
         }
         self.market = market; self.endpoints = endpoints; self.commands = commands; self.reviewedPolicyVersion = reviewedPolicyVersion
+        playerTargets = false
     }
+    /// Gap #17: the Release player grant. `endpoints` must carry every `playerTargetPaths` template.
+    public init(playerMarket market: RegionalMarket, endpoints: OperationEndpointApproval, reviewedPolicyVersion: String) throws {
+        guard market == .china, Self.playerTargetPaths.isSubset(of: endpoints.paths),
+              !reviewedPolicyVersion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw APIError.invalidConfiguration }
+        self.market = market; self.endpoints = endpoints; commands = []; self.reviewedPolicyVersion = reviewedPolicyVersion
+        playerTargets = true
+    }
+    /// `ApiOfficialEventController` participation routes (POST) and their read-backs (GET), as templates.
+    public static let playerTargetPaths: Set<String> = [
+        "api/official/events/{}", "api/official/events/{}/signup", "api/official/events/{}/complete",
+        "api/official/events/{}/arrivals", "api/official/v2/party-inbox", "api/official/can-publish",
+        "api/official/v2/parties/{}/ACCEPT", "api/official/v2/parties/{}/DECLINE", "api/official/v2/parties/{}/WITHDRAW",
+        "api/official/v2/organizer-invites/{}/accept", "api/official/v2/organizer-invites/{}/decline"
+    ]
     func matches(_ context: RuntimeDependencyContext) -> Bool {
         market == .china && context.market == market && endpoints.baseURL == context.baseURL &&
         endpoints.namespace == context.session.namespace && endpoints.accountID == context.session.accountID
     }
     func permits(_ command: OfficialActionCommand, context: RuntimeDependencyContext) -> Bool {
-        matches(context) && commands.contains(command) && Self.readPaths(for: command) != nil
+        guard matches(context) else { return false }
+        if commands.contains(command) && Self.readPaths(for: command) != nil { return true }
+        return admitsPlayerTarget(command)
+    }
+    /// The read-backs one command may use under this approval.
+    func approvedReadPaths(for command: OfficialActionCommand) -> Set<String>? {
+        if let exact = Self.readPaths(for: command) { return exact }
+        guard playerTargets, case .arrival(let evidence) = command else { return nil }
+        return ["api/official/events/\(evidence.eventID)"]
+    }
+    private func admitsPlayerTarget(_ command: OfficialActionCommand) -> Bool {
+        // `payload()` is nil for a bodiless command; only a throw means the input is invalid.
+        guard playerTargets else { return false }
+        do { _ = try command.payload() } catch { return false }
+        switch command {
+        case .signup, .complete, .arrival, .respond: break
+        case .publish, .broadcast, .inviteMerchants: return false
+        }
+        guard let reads = approvedReadPaths(for: command) else { return false }
+        return reads.union([command.path]).allSatisfy { endpoints.paths.contains(Self.template($0)) }
+    }
+    /// Numeric segments become `{}`; every other segment (including the party action) stays literal.
+    public static func template(_ path: String) -> String {
+        path.split(separator: "/", omittingEmptySubsequences: false).map { segment -> String in
+            !segment.isEmpty && segment.allSatisfy({ $0.isASCII && $0.isNumber }) ? "{}" : String(segment)
+        }.joined(separator: "/")
     }
     static func readPaths(for command: OfficialActionCommand) -> Set<String>? {
         switch command {
@@ -103,7 +147,9 @@ public enum OfficialActionReadback: Equatable {
 /// Existing synthetic/review-only adapters remain separate from this production path.
 @MainActor public final class OfficialActionProductionFactory: OfficialActionAccess, OfficialActionProtectedAccess {
     private let api: APIConfiguration?
-    private let approval: OfficialActionProductionApproval?
+    /// Gap #17: read on every use, so a coordinator built before sign-in picks up the signed-in player's grant.
+    private let approvalSource: () -> OfficialActionProductionApproval?
+    private var approval: OfficialActionProductionApproval? { approvalSource() }
     private let transport: any HTTPTransport
     private let current: () -> RuntimeDependencyContext?
     private let currentIdentity: () -> OfficialActionIdentity?
@@ -130,7 +176,11 @@ public enum OfficialActionReadback: Equatable {
     }
     public init(api: APIConfiguration?, approval: OfficialActionProductionApproval? = nil, transport: any HTTPTransport,
                 current: @escaping () -> RuntimeDependencyContext?, identity: @escaping () -> OfficialActionIdentity?) {
-        self.api = api; self.approval = approval; self.transport = transport; self.current = current; self.currentIdentity = identity
+        self.api = api; self.approvalSource = { approval }; self.transport = transport; self.current = current; self.currentIdentity = identity
+    }
+    public init(api: APIConfiguration?, approvalSource: @escaping () -> OfficialActionProductionApproval?, transport: any HTTPTransport,
+                current: @escaping () -> RuntimeDependencyContext?, identity: @escaping () -> OfficialActionIdentity?) {
+        self.api = api; self.approvalSource = approvalSource; self.transport = transport; self.current = current; self.currentIdentity = identity
     }
     private func capture(_ command: OfficialActionCommand) throws -> (APIConfiguration, RuntimeDependencyContext, OfficialActionIdentity) {
         guard enabled, let api, let context = current(), let identity, approval?.permits(command, context: context) == true else { throw OfficialActionFailure.disabled }
@@ -138,7 +188,7 @@ public enum OfficialActionReadback: Equatable {
     }
     private func reader(_ command: OfficialActionCommand, api: APIConfiguration, context: RuntimeDependencyContext,
                         identity: OfficialActionIdentity) throws -> OfficialEventService {
-        guard let paths = OfficialActionProductionApproval.readPaths(for: command) else { throw OfficialActionFailure.disabled }
+        guard let paths = approval?.approvedReadPaths(for: command) else { throw OfficialActionFailure.disabled }
         return OfficialEventService(configuration: api, transport: OfficialActionReviewTransport(captured: context, paths: paths,
             transport: transport, current: current, valid: { [weak self] in
                 self?.identity == identity && self?.approval?.permits(command, context: context) == true
@@ -164,7 +214,10 @@ public enum OfficialActionReadback: Equatable {
             let permission = type == "OFFICIAL" ? try await reader.canPublish(token: token) : false
             let invite = try await reader.partyInbox(token: token).first { $0.id == id && $0.partyType == type }
             value = .init(identity: identity, publisher: permission, invite: invite)
-        case .arrival, .inviteMerchants: throw OfficialActionFailure.disabled
+        case .arrival(let evidence):
+            // Gap #17: MP roam `verifyEventArrival` re-reads the event; the mission must still be open.
+            value = .init(identity: identity, event: try await reader.detail(id: evidence.eventID, token: token))
+        case .inviteMerchants: throw OfficialActionFailure.disabled
         }
         guard self.identity == identity, current() == context else { throw OfficialActionFailure.stale }
         return value
@@ -198,7 +251,8 @@ public enum OfficialActionReadback: Equatable {
                 facts = .published(published)
             case .signup(let id), .complete(let id): facts = .event(try await reader.detail(id: id, token: context.session.token))
             case .respond(let id, let type, _, _): facts = .party(try await reader.partyInbox(token: context.session.token).first { $0.id == id && $0.partyType == type })
-            case .arrival, .inviteMerchants: throw OfficialActionFailure.disabled
+            case .arrival(let evidence): facts = .event(try await reader.detail(id: evidence.eventID, token: context.session.token))
+            case .inviteMerchants: throw OfficialActionFailure.disabled
             }
             try authorization.validate()
             guard self.identity == identity, current() == context else { throw OfficialActionFailure.unknown }

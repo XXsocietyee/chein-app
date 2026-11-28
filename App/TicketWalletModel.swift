@@ -54,13 +54,20 @@ typealias TicketWalletLoadKey = TicketWalletReadOwner
 struct TicketWalletIssueView: View {
     let issue: TicketWalletIssue
     var retry: (() -> Void)? = nil
+    /// mp-states r3 (sweep 07:05): an optional MP failure title (票夹没能打开). With a title the reason moves to the
+    /// description, so the wallet shows one ContentUnavailableView (title + reason + 重试), not a header row above it.
+    var titleKey: String? = nil
     /// mp-states r3: the one state pattern — ContentUnavailableView with one bordered 重试.
     var body: some View {
         ContentUnavailableView {
             Label {
-                if case .server(let text) = issue { Text(verbatim: text) }
-                else { Text(LocalizedStringKey(issue.localizationKey)) }
+                if let titleKey {
+                    Text(LocalizedStringKey(titleKey))
+                        .accessibilityIdentifier("ticketWallet.errorTitle")
+                } else { reason }
             } icon: { Image(systemName: issue == .login ? "lock" : "exclamationmark.triangle") }
+        } description: {
+            if titleKey != nil { reason }
         } actions: {
             if let retry {
                 Button("ticketWallet.retry", action: retry)
@@ -68,6 +75,13 @@ struct TicketWalletIssueView: View {
                     .accessibilityIdentifier("ticketWallet.retry")
             }
         }
+    }
+}
+
+extension TicketWalletIssueView {
+    @ViewBuilder var reason: some View {
+        if case .server(let text) = issue { Text(verbatim: text) }
+        else { Text(LocalizedStringKey(issue.localizationKey)) }
     }
 }
 

@@ -78,7 +78,10 @@ struct CityPlayerView: View {
                 }
                 switch reader.state {
                 case .unavailable:
-                    CYEmptyState(systemImage: "building.2", "city.read.unavailable", detail: "city.read.unavailable.hint")
+                    // ADA 1128 (d2-city): the retry lives in the state itself and in pull-to-refresh, not a lone toolbar button.
+                    CYEmptyState(systemImage: "building.2", "city.read.unavailable", detail: "city.read.unavailable.hint",
+                                 actionTitle: reader.isConfigured ? "action.retry" : nil, actionIdentifier: "city.read.retry",
+                                 action: reader.isConfigured ? { refresh() } : nil)
                 case .loading: CYSkeleton(label: "city.read.loading")
                 case .notPublished:
                     CYEmptyState(systemImage: "building.2", "city.read.notPublished")
@@ -173,13 +176,8 @@ struct CityPlayerView: View {
                     )
                 }
             }
-            if reader.isConfigured {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { selection = nil; reader.cancel(); readRequest = UUID() } label: { Label("action.retry", systemImage: "arrow.clockwise") }
-                        .disabled(reader.state == .loading || !visible || scenePhase != .active)
-                }
-            }
         }
+        .refreshable { refresh() }
         .appNavigationTitle("city.read.title")
         .navigationBarTitleDisplayMode(.inline) // the city name below is the page title; one title only
         .accessibilityIdentifier("city.read.screen")
@@ -274,6 +272,11 @@ struct CityPlayerView: View {
                 .accessibilityAddTraits(selected?.pointId == point.pointId ? .isSelected : [])
                 .accessibilityIdentifier("city.read.point.select.\(point.pointId)")
         }
+    }
+    /// Pull-to-refresh and the unavailable state's retry: one re-read through `.task(id: readRequest)`.
+    private func refresh() {
+        guard reader.isConfigured, reader.state != .loading, visible, scenePhase == .active else { return }
+        selection = nil; reader.cancel(); readRequest = UUID()
     }
     private func select(_ id: String, rendered: CityPointMapContext) {
         guard let next = CityPointSelection(pointID: id, rendered: rendered, current: reader.pointMapContext) else { return }

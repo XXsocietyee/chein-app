@@ -258,8 +258,7 @@ struct ClubOpsCustomerRowView: View {
                 if let text = paidText {
                     // CLB-customer-detail-08: MP 累计实付 is data-xl.
                     Text(verbatim: text)
-                        .font(.title3.weight(.semibold))
-                        .monospacedDigit()
+                        .cyText(.numericTitle)
                         .foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
@@ -377,8 +376,7 @@ struct ClubOpsCustomerRecordRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 if let day {
                     Text(day, format: .number)
-                        .font(.title3.weight(.semibold))
-                        .monospacedDigit()
+                        .cyText(.numericTitle)
                 } else {
                     Text(verbatim: "—")
                         .font(.title3.weight(.semibold))

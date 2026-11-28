@@ -183,8 +183,7 @@ import SwiftUI
             }
             LabeledContent {
                 Text(verbatim: String(receipt.applicationID))
-                    .font(.title3.weight(.semibold))
-                    .monospacedDigit()
+                    .cyText(.numericTitle)
                     .foregroundStyle(.primary)
                     .textSelection(.enabled)
             } label: {

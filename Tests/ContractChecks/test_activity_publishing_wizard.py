@@ -22,7 +22,7 @@ STEPS = [
 QUICK_SHA = "2d7c01f1e09c0bcc0104221960717c25ce0e8f76481b835c88a017d798727485"  # design-r2-play: P4 CYStepProgressHeader section + stepsDone (layout-only; was 65a1870d)
 # fix/r8-player-content: re-pinned for R7-PC-D1-1 (pushed menu 我的项目 → makeProjects) only.
 PREFIX_SHA = "4b2db7c182c5350f83898a3fd52af2e64e4efdf6b30e454392b7ef3611dfb07a"  # mp-r3-publish: menu is the MP sheet's three choices (V3-44 removed quick setup); R9-PC-D1-1 makeProjects kept
-SUFFIX_SHA = "41195d4153c76d91c4f9c7e9ff6dd95f94b4aba3a21fca4ed65582f6976bc658"  # ds-consistency r3: wordless ProgressView rows -> CYLoadingState (look only; previous pin: mp-r3-publish collaborator picker)
+SUFFIX_SHA = "ecaa89c66c768f3b3cf031fa6d0915de52d84361dfd06cd16cc34365cc286524"  # fix-1128b-social #26: place picker (MKLocalSearch + tap-to-drop-pin) in the suffix (previous pin: ds-consistency r3 CYLoadingState)
 
 
 def read(path):

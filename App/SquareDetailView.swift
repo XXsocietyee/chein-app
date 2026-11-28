@@ -47,6 +47,11 @@ import SwiftUI
     @State private var legacyCommentTarget: SquareComment?
     @State private var legacyCommentDeleting = false
     @State private var legacyCommentDeleteFailed = false
+    /// fix-1128b-social #1 (MP square/detail index.js:493-540): v1 like / bookmark / comment-like toggle at once and the
+    /// shown state is the server's re-read, not a local guess.
+    @State private var instantBusy = false
+    @State private var instantMessage: String?
+    @State private var instantOwner = UUID()
     @QuestifyReduceMotion private var reduceMotion
     private struct Key: Hashable { let id: Int; let generation: SquareContentGeneration; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, generation: contentGeneration, scope: reader.scope, configured: reader.isConfigured) }
@@ -103,6 +108,11 @@ import SwiftUI
                             if let topicID = post.topicID, topicID > 0 { CYSquareRouteMapCard(topicID: topicID) }
                             if let actions, actions.identity.accountID != nil {
                                 postActions(post, actions: actions)
+                            }
+                            if let instantMessage {
+                                Label(LocalizedStringKey(instantMessage), systemImage: "exclamationmark.circle")
+                                    .font(.footnote).foregroundStyle(CYColor.warningText)
+                                    .accessibilityIdentifier("square.detail.instantMessage")
                             }
                             // The MP detail has no 我的广场 list: the author deletes this post from the ⋯ menu (post-actions 删除).
                             if legacyDeleteFailed {
@@ -209,7 +219,7 @@ import SwiftUI
         }
         .onChange(of: key) { _, _ in relatedTopic = nil }
         .onChange(of: relatedTopicContext?.reader.scope) { _, _ in relatedTopic = nil }
-        .cySheet(item: $editor, onDismiss: { applyFollowReceipt() }) { item in Group {
+        .cySheet(item: $editor, onDismiss: { applyFollowReceipt(); refreshAfterEditor() }) { item in Group {
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
         }.cySheet(detents: [.large]) }
         .navigationDestination(isPresented: $showsAuthorProfile) {
@@ -282,7 +292,7 @@ import SwiftUI
         SquareCloudFeedContext(
             viewerID: actions?.identity.accountID,
             offline: reader.isOfflineExample,
-            onDoubleTapLike: actions == nil ? nil : { post in self.openReviewed(.init(purpose: .like, target: .post(post.id), text: "")) },
+            onDoubleTapLike: actions == nil ? nil : { post in self.doubleTapLike(post) },
             onFollow: actions == nil ? nil : { post in guard post.memberID > 0 else { return }; self.openReviewed(.init(purpose: .toggleFollow, target: .member(post.memberID), text: "")) },
             onRepost: actions == nil ? nil : { post in
                 let card = SquareShareCard.build(id: post.id, audience: post.audience, lifecycle: post.lifecycle, contents: post.contents, images: post.images)
@@ -311,7 +321,7 @@ import SwiftUI
     /// Mini-program `actions`: like, comment and favourite with their counts. Favourite only where it can work.
     private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
         HStack(spacing: 28) {
-            Button { editor = .init(purpose: .like, target: .post(post.id), text: "") } label: {
+            Button { likeTapped(post, actions: actions) } label: {
                 Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)).contentTransition(reduceMotion ? .opacity : .numericText()) } icon: {
                     let heart = Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart")
                     if #available(iOS 18.0, *) {
@@ -323,6 +333,7 @@ import SwiftUI
             }
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.7), value: post.isLiked)
             .tint(post.isLiked == 1 ? .red : .primary)
+            .disabled(instantBusy)
             .accessibilityLabel(Text(post.isLiked == 1 ? LocalizedStringKey("square.unlike") : LocalizedStringKey("square.like")))
             .accessibilityValue(post.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark)).accessibilityAddTraits(post.isLiked == 1 ? .isSelected : []).accessibilityIdentifier("square.detail.like")
             if post.viewerCanComment {
@@ -337,7 +348,7 @@ import SwiftUI
                     .accessibilityLabel(post.commentCount.map { Text("square.xcx.commentsA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
             }
             if post.generation == .communityV1 {
-                Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: ""); editor?.enabled = post.isBookmarked != 1 } label: {
+                Button { bookmarkTapped(post, actions: actions) } label: {
                     let star = Image(systemName: post.isBookmarked == 1 ? "star.fill" : "star")
                     if #available(iOS 18.0, *) {
                         star.symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isBookmarked == 1)
@@ -345,6 +356,7 @@ import SwiftUI
                         star
                     }
                 }
+                    .disabled(instantBusy)
                     .tint(post.isBookmarked == 1 ? .orange : .primary).accessibilityAddTraits(post.isBookmarked == 1 ? .isSelected : []) // C-S2: saved state shows
                     .accessibilityLabel(Text(LocalizedStringKey(post.isBookmarked == 1 ? "square.bookmark.remove" : "square.bookmark.add"))).accessibilityHint(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
             }
@@ -424,11 +436,12 @@ import SwiftUI
                 }
             }
             if post.generation != .unknown {
-                Button("square.report", systemImage: "exclamationmark.bubble") {
+                Button(LocalizedStringKey(postReported(post) ? "social1128.reported" : "square.report"), systemImage: "exclamationmark.bubble") {
                     if post.generation == .legacySquare { editor = .init(purpose: .report, target: .post(post.id), text: "") }
                     else if let target = try? SquareReportTarget(post: post) { reportTarget = .init(target: target) }
                 }
-                .accessibilityLabel(Text("square.report"))
+                .disabled(postReported(post))
+                .accessibilityLabel(Text(LocalizedStringKey(postReported(post) ? "social1128.reported" : "square.report")))
                 .accessibilityIdentifier("squareReport.postEntry")
             }
             if SquareAuthorSafety.showsBlockEntry(authorMemberID: post.memberID, viewerMemberID: actions.identity.accountID) {
@@ -492,7 +505,8 @@ import SwiftUI
                         .font(.caption).foregroundStyle(comment.isLiked == 0 ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
                     if let actions, actions.identity.accountID != nil {
                         // C-S4 (MP comment row): like and 回复 act inline; the ⋯ menu keeps block / delete.
-                        Button { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) } label: { likeLabel }
+                        Button { commentLikeTapped(comment, actions: actions) } label: { likeLabel }
+                            .disabled(instantBusy)
                             .buttonStyle(.borderless)
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
                             .accessibilityLabel(Text(comment.isLiked == 0 ? LocalizedStringKey("square.like") : LocalizedStringKey("square.unlike")))
@@ -513,10 +527,11 @@ import SwiftUI
                     }
                     // Mini-program comment row keeps 举报 visible beside the like count, not inside the overflow.
                     if let actions, actions.identity.accountID != nil, comment.generation != .unknown {
-                        Button { reportComment(comment) } label: { Text("square.report").font(.caption).foregroundStyle(.secondary) }
+                        Button { reportComment(comment) } label: { Text(LocalizedStringKey(commentReported(comment) ? "social1128.reported" : "square.report")).font(.caption).foregroundStyle(.secondary) }
                             .buttonStyle(.borderless)
+                            .disabled(commentReported(comment))
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle()) // C-S5
-                            .accessibilityLabel(Text("square.report"))
+                            .accessibilityLabel(Text(LocalizedStringKey(commentReported(comment) ? "social1128.reported" : "square.report")))
                             .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
                     }
                     // MP A-04 (index.wxml:162-164): the author's own comment shows 删除 inline, right after 举报.
@@ -585,6 +600,85 @@ import SwiftUI
             guard post != nil, commentIssue == nil, !comments.hasMore else { return }
             let row = comments.items.first { $0.id == commentID }
             deletion.resolveUnknown(stillPresent: row.map { $0.lifecycle != "DELETED" } ?? false)
+        }
+    }
+    // MARK: fix-1128b-social #3 已举报 (MP square/detail: a reported post / comment shows 已举报 and cannot be reported again)
+
+    /// True once this viewer's report on the v1 target is submitted or pending (the coordinator's durable lock).
+    private func isReported(_ target: SquareReportTarget?) -> Bool {
+        guard let target, let reportContext, let identity = reportContext.access.identity else { return false }
+        return reportContext.coordinator.isLocked(target: target, identity: identity)
+    }
+    private func postReported(_ post: SquarePost) -> Bool {
+        _ = reportTarget?.id
+        guard post.generation == .communityV1 else { return false }
+        return isReported(try? SquareReportTarget(post: post))
+    }
+    private func commentReported(_ comment: SquareComment) -> Bool {
+        _ = reportTarget?.id
+        guard comment.generation == .communityV1, let post else { return false }
+        return isReported(try? SquareReportTarget(post: post, comment: comment))
+    }
+
+    // MARK: fix-1128b-social #1 immediate v1 toggles
+
+    private func likeTapped(_ post: SquarePost, actions: SocialActionCoordinator) {
+        instantOrReview(.action(.like, enabled: post.isLiked != 1), target: .post(post.id),
+                        fallback: .init(purpose: .like, target: .post(post.id), text: ""), actions: actions)
+    }
+    private func bookmarkTapped(_ post: SquarePost, actions: SocialActionCoordinator) {
+        instantOrReview(.action(.bookmark, enabled: post.isBookmarked != 1), target: .post(post.id),
+                        fallback: .init(purpose: .bookmark, target: .post(post.id), text: "", enabled: post.isBookmarked != 1), actions: actions)
+    }
+    private func commentLikeTapped(_ comment: SquareComment, actions: SocialActionCoordinator) {
+        let target = SocialActionTarget.comment(postID: id, commentID: comment.id)
+        instantOrReview(.communityCommentLike(enabled: comment.isLiked == 0, requestID: UUID().uuidString), target: target,
+                        fallback: .init(purpose: .commentLike, target: target, text: "", enabled: comment.isLiked == 0), actions: actions)
+    }
+    /// MP double-tap likes only (it never unlikes).
+    private func doubleTapLike(_ post: SquarePost) {
+        guard let actions else { return }
+        if contentGeneration == .communityV1, post.isLiked == 1 { return }
+        likeTapped(post, actions: actions)
+    }
+    /// v1 with a live community writer: send now. Otherwise (legacy square, writes off) the reviewed editor opens.
+    private func instantOrReview(_ command: SocialActionCommand, target: SocialActionTarget, fallback: EditorRoute,
+                                 actions: SocialActionCoordinator) {
+        guard contentGeneration == .communityV1, actions.availability(for: command, target: target) == .approved else {
+            editor = fallback
+            return
+        }
+        guard !instantBusy else { return }
+        instantBusy = true
+        instantMessage = nil
+        Task { await runInstant(command, target: target, actions: actions) }
+    }
+    private func runInstant(_ command: SocialActionCommand, target: SocialActionTarget, actions: SocialActionCoordinator) async {
+        let captured = key
+        let outcome = await actions.sendImmediately(command, target: target, ownerID: instantOwner)
+        instantBusy = false
+        guard captured == key else { return }
+        instantMessage = outcome.messageKey
+        if outcome == .confirmed { await refreshAfterWrite(comments: target.commentID != nil) }
+    }
+    /// Server-confirmed state: re-read the post (counts, liked / saved) or the comment thread in place.
+    private func refreshAfterWrite(comments refreshComments: Bool) async {
+        let captured = key, operation = generation
+        if refreshComments {
+            comments = SquareCommentPagination()
+            await loadComments(operation: operation, captured: captured)
+            return
+        }
+        guard let value = try? await reader.squareDetail(route: .init(id: id, generation: contentGeneration)) else { return }
+        guard captured == key, operation == generation else { return }
+        post = value
+    }
+    /// A comment or reply sent from the editor shows in the thread and the post's comment count (MP reloads both).
+    private func refreshAfterEditor() {
+        guard contentGeneration == .communityV1 else { return }
+        Task {
+            await refreshAfterWrite(comments: false)
+            await refreshAfterWrite(comments: true)
         }
     }
     private func reload() async {

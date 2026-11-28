@@ -467,11 +467,41 @@ medal stack night cells, ring numerals and live HUD numbers left: fixed-size art
 | Error / unknown-result states (OWN-OPT-072 request reference, every player page that shows it) | `RequestReferenceRow.swift` | ✓ | Reference shrank to 70 % and cut to one line → wraps up to 3 lines at full size; the Copy button moves under the reference at accessibility sizes (P: stack, never shrink) | Done |
 | `pages/club` post card author meta, post-ref chip | `ClubComponents.swift:437`, `MPGap/Club/ClubGapRemainingViews.swift:24` | ✓ (mp-club owns order) | "Club · time" and the picked post title were one line (truncated at AX sizes) → up to 2 lines | Done |
 | `pages/topic` publisher row | `TopicXcxSections.swift:97` | ✓ (mp-publish owns order) | Publisher name one line beside fixed "posted" → up to 2 lines (outer row already stacks at AX) | Done |
+| Shared status badge (reference tasks, play / journey state chips) | `QuestifyMotionComponents.swift:61` (`QuestifyStatusBadge`) | ✓ | Status words shrank to 75 % on one line → wrap to 2 lines at full size (badge already `fixedSize(vertical:)`). `.minimumScaleFactor` scan: the other 73 player hits are big numerals / ring counts / ticket codes (one number, allowed) | Done |
+
+### Run 30 (2026-11-28)
+(Twin run 29 already took the status badge; this run takes the other body / caption hits.)
+Merged `origin/ui/combined-r7` (ffeef67c7). Sweep **ffeef67c7** (06:48Z) a11y sheets read, en: `a11y-badges-ax5` ring 3/6 +
+Collected / Locked rows stack ✓; `a11y-passport-ax5` Ticket wallet / Earnings / Messages full-width, Stamps 3 of 12 ✓;
+`a11y-roam-ax5` Nearby activities 2 wraps on the light panel, i · Go · map ✓ (runs 28-29 not yet in this build). No open
+coordinator finding. Not done item: `.minimumScaleFactor` on body / caption text (74 player hits read; big numerals, avatar
+monograms, share / ticket art, HUD and ring numbers left as they are).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/publishkit` project schedule start / end | `ProjectEditFlowParity.swift:48` | ✓ (mp-publish owns order) | Date shrank to 70 % in a half-width column → 2 lines, no shrink | Done |
+| Story cast lines (margin speaker name) | `CastViews.swift:83` | ✓ | Caption name shrank to 80 % in the fixed margin → up to 3 lines, full size | Done |
+| `pages/roam` city orientation ETA (预计 12分钟 · 14:32 到达), teams on route | `CityOrientationNavComponents.swift:57`, `CityOrientationRunView.swift:635` | ✓ (mp-roam owns order) | ETA one line shrunk to 80 % → 2 lines; teams-on-route footnote 2 lines + shrink → 3 lines, no shrink. Map panel files untouched (coordinator 02:05) | Done |
+| `pages/roam` city orientation paused tag + stop cleared, platform reminder 已开放 | `CityOrientationNavComponents.swift:69,124`, `NativeMotionReminderViews.swift:254` | ✓ (mp-roam owns order) | Label text in `Color.orange` / `Color.green` (~2.2:1 to 3:1 on white) → `CYColor.warningText` / `successText`. Remaining `Color.green` / `Color.yellow` hits are glyph-only (medal, checkmark; 3:1 graphics rule) | Done |
+
+### Run 31 (2026-11-28)
+Merged `origin/ui/combined-r7`. Sweep index still **ffeef67c7** (read in run 30), so the sheets re-read waits. No open coordinator
+finding. Not done item: Reduce Motion — `withAnimation` / `.animation` with `.spring` / `.bouncy` / `.snappy` (23 player hits without
+"reduce" on the line read with their context).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/roam/index` map home bottom panel (detents) | `NativeR2/MapHome/RoamMapHomePanel.swift` | ✓ (mp-roam owns order) | The only file with a spring and no Reduce Motion read: drag release, VoiceOver adjust and the detent `.animation` used `.snappy` → `settle` = `CYMotion.reduced` (short ease, no overshoot) under Reduce Motion, `.snappy` otherwise. Not the settled `CYMapChrome` / `RoamBrowserView` panel (coordinator 02:05) | Done |
+| Other spring hits (club welcome, free-explore pack, games HUD, night tab bar, section reveal, signature, progress ring, purchase / scan failure nudge, roam kit, onboarding, collectible, object card pile, chat send, live stat roll) | `ClubMemberWelcomeSheet`, `FreeExplorationViews`, `NativeGameHUD`, `CYNightTabBar`, `CYExploreKit`, `CYSignature`, `CYCoverArt`, `CYPurchaseMotion`, `CYRoamKit`, `CYScan`, `CYOnboarding*`, `CYCollectible`, `PlayRoamRound4Views`, `MessageActionComposer`, `RoamLiveSessionView` | ✓ | Audit: each is behind an earlier `reduceMotion` guard / else, renders its final state when Reduce Motion is on (opacity / trim forced to 1), swaps to the grid layout (object card pile), or is a colour fill / numeric roll. `.transition(.move / .slide / .asymmetric)` scan: every hit gated. No change | Done |
+| `pages/club` post card 赞, channel sidebar (current channel) | `ClubCommunityViews.swift:769`, `ClubChannelMessagingView.swift:505` | ✓ (mp-club owns order) | VoiceOver selected-state scan (custom buttons whose selected state shows only by colour / glyph, no `.isSelected`): liked heart and the open channel row now add `.isSelected` (Square like already does, run 4) | Done |
+| `pages/playkit` hangman (active letter cell), `pages/publishkit` wizard step bar, creator studio feedback picker | `PlayKitQuestoViews.swift:208`, `DesignSystem/CYBusinessComponents.swift:1249` (`CYPublishStatusBar`), `CreatorMaintenanceViews.swift:170` | ✓ (mp-journey / mp-publish own order) | Same: the typing cell, the current wizard step and each picked feedback row add `.isSelected`. Other hits are menus with checkmarks (system), rows with their own `accessibilityValue` (step checklist), or merchant (`MerchantRootModeSwitchBannerView`, skipped); `CYMapChrome` left (settled, coordinator 02:05) | Done |
+| Hold-to-start buttons (roam GO pill, city hold) and long-press / context-menu actions | `DesignSystem/CYPlayerKit.swift:788`, `CityKit/CityHoldButton.swift:40` | ✓ | Audit: every player `.onLongPressGesture` has an `accessibilityAction` that commits (VoiceOver / Switch Control get a plain activation; city hold drops to 0 s under Reduce Motion); `.contextMenu` / `.swipeActions` are exposed to VoiceOver by the system as actions. No change | Done |
 
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 7a7d2708a, to see runs 27-29).
-- Next pages without a row: `.minimumScaleFactor` on body / caption text (not big numerals) in player views → wrap instead of shrink;
-  then `.frame(width:)` on text containers at AX5.
+- Re-read the a11y sheets after the next sweep (newer than ffeef67c7, to see runs 28-31).
+- Next pages without a row: VoiceOver — images that carry meaning (`Image(...)` beside no text: status glyphs, verified marks,
+  medal tiers) with neither `accessibilityLabel` nor `accessibilityHidden`, outside the a11y lint's button/image rules.
+  (Run 31: selected traits and long-press alternatives scanned.)
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

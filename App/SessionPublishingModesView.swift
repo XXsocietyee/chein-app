@@ -20,7 +20,7 @@ import SwiftUI
         PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.g6PublishingAIDraftFactory,
                             makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
                             makeActivityTemplate: { activityTemplateCreator() }, makeActivityCover: { session.makeActivityCoverService() },
-                            placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
+                            placeSearch: PublishingMapKitAdapter.playerPublishing, draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
                             openResource: { resource = $0 },
                             makeProfessional: { professionalEditor($0) },
                             makeTemplateAuthoring: { templateAuthoring() },
@@ -41,7 +41,8 @@ import SwiftUI
                     .toolbar {
                         PublisherLifecycleNavigationLink(session: session, resource: destination)
                         if let editor = session.activityEditingController(id: destination.value) {
-                            NavigationLink { ActivityEditingView(owner: editor, makeActivityCover: { session.makeActivityCoverService() }).id(session.publishingSession?.epoch) } label: {
+                            NavigationLink { ActivityEditingView(owner: editor, makeActivityCover: { session.makeActivityCoverService() }).id(session.publishingSession?.epoch)
+                                .background { ActivityEditSavedBroadcast(controller: editor, activityID: destination.value) } } label: {
                                 Text("entry", tableName: "ActivityEditing")
                             }.accessibilityIdentifier("activityEdit.entry")
                         }
@@ -107,7 +108,7 @@ private struct SessionPublishingRootChrome: ViewModifier {
                 CYEmptyState(systemImage: "exclamationmark.arrow.triangle.2.circlepath", "projectRemote.stale", messageIdentifier: "projectRemote.stale")
             }
         } else {
-            ActivityPublishingView(service: session.publishingService, account: session.publishingSession, placeSearch: PublishingMapKitAdapter(),
+            ActivityPublishingView(service: session.publishingService, account: session.publishingSession, placeSearch: PublishingMapKitAdapter.playerPublishing,
                                    draftStore: session.publishingDraftStore,
                                    makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
                                    makeActivityTemplate: { sessionActivityTemplateCreator(session) },

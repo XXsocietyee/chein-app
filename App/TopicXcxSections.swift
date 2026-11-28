@@ -156,8 +156,7 @@ struct TopicXcxStatBar: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(alignment: .firstTextBaseline, spacing: 2) {
                             Text(verbatim: tile.value)
-                                .font(.title3.weight(.semibold))
-                                .monospacedDigit()
+                                .cyText(.numericTitle)
                                 .foregroundStyle(.primary)
                             if let unit = tile.unit {
                                 Text(unit).font(.footnote).foregroundStyle(.primary)
@@ -298,7 +297,7 @@ struct TopicXcxActionBar: View {
             case .locked, .closed:
                 EmptyView()
             case .selfPlay(let price):
-                priceText(price).font(.title3.weight(.semibold)).foregroundStyle(.primary).monospacedDigit()
+                priceText(price).cyText(.numericTitle).foregroundStyle(.primary)
                 Button(action: openSessions) {
                     Text("topicXcx.cta.sessions")
                         .font(.footnote)
@@ -311,7 +310,7 @@ struct TopicXcxActionBar: View {
             case .signUp:
                 if let lowest = lowestTicketPrice {
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        priceText(lowest).font(.title3.weight(.semibold)).monospacedDigit()
+                        priceText(lowest).cyText(.numericTitle)
                         if lowest > 0 { Text("topicXcx.bar.from").font(.footnote) }
                     }
                     .foregroundStyle(.primary)

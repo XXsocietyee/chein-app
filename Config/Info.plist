@@ -14,6 +14,8 @@
     <key>QuestifyWeChatAppID</key><string>$(QUESTIFY_WECHAT_APP_ID)</string>
     <key>QuestifyWeChatUniversalLink</key><string>$(QUESTIFY_WECHAT_UNIVERSAL_LINK)</string>
     <key>QuestifyAppLinkDomain</key><string>$(QUESTIFY_APP_LINK_DOMAIN)</string>
+    <key>QuestifyWithdrawSupportWeChatID</key><string>$(QUESTIFY_WITHDRAW_SUPPORT_WECHAT_ID)</string>
+    <key>CYStampImageOrigins</key><string>$(QUESTIFY_IMAGE_ORIGINS)</string>
     <key>CFBundleURLTypes</key><array>
         <dict><key>CFBundleTypeRole</key><string>Editor</string><key>CFBundleURLName</key><string>weixin</string><key>CFBundleURLSchemes</key><array><string>$(QUESTIFY_WECHAT_APP_ID)</string></array></dict>
         <dict><key>CFBundleTypeRole</key><string>Editor</string><key>CFBundleURLName</key><string>chein</string><key>CFBundleURLSchemes</key><array><string>chein</string></array></dict>

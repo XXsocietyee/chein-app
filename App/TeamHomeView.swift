@@ -365,13 +365,17 @@ private struct TeamHomeRow: View {
         let command = model.recoveryCommand?.targetKey == pending.targetKey ? model.recoveryCommand : nil
         let key = command?.key ?? pending.targetKey
         let fields = command?.fields ?? [:]
+        // Gap #6: the team command was sent with the journal's operation id; the recovery card addresses that request.
+        let requestID = TeamCommandWriter.requestID(for: pending.operationID)
         Button {
+            commandWriter?.adopt(key: key, requestID: requestID)
             let permit = model.captureRun()
             Task { await model.run(permit: permit) { _ = await commandWriter?.query(key: key) } }
         } label: { Text(verbatim: TeamCommandRecoveryCopy.query) }
             .disabled(model.running).accessibilityIdentifier("team.recovery.query")
         Button {
             guard fields["action"] != nil else { return }
+            commandWriter?.adopt(key: key, requestID: requestID)
             let permit = model.captureRun()
             Task { await model.run(permit: permit) {
                 if fields["action"] == "handle", AccountPublishContractLane.isInstalled,
@@ -386,6 +390,7 @@ private struct TeamHomeRow: View {
             .disabled(model.running).accessibilityIdentifier("team.recovery.retry")
         Button {
             guard fields["action"] != nil else { return }
+            commandWriter?.adopt(key: key, requestID: requestID)
             let permit = model.captureRun()
             Task { await model.run(permit: permit) { _ = await commandWriter?.cancel(key: key, fields: fields) } }
         } label: { Text(verbatim: TeamCommandRecoveryCopy.abort) }

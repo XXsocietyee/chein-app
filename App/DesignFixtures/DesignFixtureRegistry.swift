@@ -68,10 +68,10 @@ enum DesignFixtureRegistry {
         case "ia-tabs": return AnyView(IATabsFixture())
         case "ia-explore-create": return AnyView(IAExploreCreateFixture(hasPublishingSession: true))
         case "ia-explore-no-create": return AnyView(IAExploreCreateFixture(hasPublishingSession: false))
-        case "ia-passport": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: iaFixtureText("Night Owl", "夜猫子")), PassportBadge(id: 1, name: iaFixtureText("First Roam", "第一次漫游")), PassportBadge(id: 2, name: iaFixtureText("Market Regular", "菜场常客"))], badgeTotal: 6))
+        case "ia-passport": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: iaFixtureText("Night Owl", "夜猫子")), PassportBadge(id: 1, name: iaFixtureText("First Stamp", "第一枚印章")), PassportBadge(id: 2, name: iaFixtureText("Market Regular", "菜场常客"))], badgeTotal: 6))
         case "ia-passport-no-badges": return AnyView(IAPassportFixture(count: 3, badges: []))
         case "ia-passport-unknown": return AnyView(IAPassportFixture(count: nil))
-        case "ia-passport-ax5": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: iaFixtureText("Night Owl", "夜猫子")), PassportBadge(id: 1, name: iaFixtureText("First Roam", "第一次漫游"))]).environment(\.dynamicTypeSize, .accessibility5))
+        case "ia-passport-ax5": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: iaFixtureText("Night Owl", "夜猫子")), PassportBadge(id: 1, name: iaFixtureText("First Stamp", "第一枚印章"))]).environment(\.dynamicTypeSize, .accessibility5))
         case "ia-deeplinks": return AnyView(IADeepLinksFixture())
         case "welcome": return AnyView(WelcomeFixture())
         case "welcome-menu": return AnyView(WelcomeMenuFixture())
@@ -358,7 +358,7 @@ struct E4SettingsFixture: View {
     var body: some View {
         var view = SettingsView()
         // Same member as d2-me / e4-member, in the UI language (00:10 sweep: "Mia Chen" Lv.7 beside 示例会员 Lv.3).
-        view.designOverride = .init(nickname: iaFixtureText("Synthetic member", "示例会员"), level: 3, query: query)
+        view.designOverride = .init(nickname: iaFixtureText("Lin Yu", "林雨"), level: 3, query: query)
         return view.environmentObject(session).environmentObject(NativeOriginalUnreadBadgeState())
     }
 }

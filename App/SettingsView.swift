@@ -303,6 +303,9 @@ struct SettingsView: View {
                 SettingsSignOutEntry(session: session) { dismiss() }
             }
             .labelStyle(SettingsTileLabelStyle())
+            // mp-mine r3 (ADA e4-settings): MP shezhi is one continuous `sz-menu`; most native entries own a one-row
+            // Section, so the system compact spacing keeps them reading as one Settings list instead of separate cards.
+            .listSectionSpacing(.compact)
             }
             }
             .cySheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.presentationDetents([.large]).presentationDragIndicator(.visible) }

@@ -20,7 +20,7 @@ struct RoamHistoryParityStrip: View {
     }
     private func column(_ value: Text, _ label: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            value.font(.title3.bold()).monospacedDigit()
+            value.cyText(.numericTitle)
                 .foregroundStyle(CYColor.textPrimary).cyWrapText()
             Text(label).cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }

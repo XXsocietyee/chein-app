@@ -115,7 +115,7 @@ enum OfficialDetailID {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .firstTextBaseline) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: Self.collectivePercent(collective.percent)).font(.title.bold()).monospacedDigit()
+                            Text(verbatim: Self.collectivePercent(collective.percent)).cyText(.dataXL)
                             Text("official.detailParity.collective.lit").font(.footnote).foregroundStyle(.secondary)
                         }
                         Spacer()

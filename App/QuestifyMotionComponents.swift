@@ -58,7 +58,8 @@ struct QuestifyStatusBadge: View {
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
-        Label { Text(title).lineLimit(1).minimumScaleFactor(0.75) } icon: { Image(systemName: systemImage) }
+        // a11y-dt r3: the status words wrap to a second line at large sizes instead of shrinking to 75 % and truncating.
+        Label { Text(title).lineLimit(2) } icon: { Image(systemName: systemImage) }
             .font(.caption.weight(.semibold))
             .foregroundStyle(emphasized ? QuestifyPalette.accent : Color.primary)
             .padding(.horizontal, 10)

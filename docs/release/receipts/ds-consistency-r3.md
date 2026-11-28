@@ -1064,6 +1064,101 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 - Number styles: big numbers outside the `.dataXL`/data tokens (`.font(.title.bold())` glyph/percent above, other
   `.largeTitle` counts) → one count style (ADA audit cross-screen section).
 
+## Continue run 33 (2026-11-28, merged combined-r7)
+
+Merge clean (1 file). No new coordinator row for this lane (07:05 sweep: mp-states, mp-activity). Run 32 Not done rows:
+badge detail weight still waits for the byte re-pin (mp-mine / debt-r3); **one count style** worked here.
+
+Big numbers drew in two faces: `.cyText(.dataXL)` / `CYLiveCounter(style: .dataXL)` (largeTitle, bold, rounded,
+monospaced) on passport, balance, city board, medals; raw `.font(.largeTitle.bold|semibold)` + `.monospacedDigit()`
+(default face, mixed weights) on 20 other count sites. All folded into `.cyText(.dataXL)` (copy, MP sections, order,
+`contentTransition` and identifiers unchanged):
+
+| Page (MP → native) · level | Lines |
+|---|---|
+| Me points (`subpackageMember/components/cy/profile`) · B | `MemberHomeHeader:393, 714` |
+| passport stamp/badge placeholder "—" (now same face as the counter beside it) · B | `PassportView:189, 401` |
+| order paid amount · C | `ProfileOrdersView:794`, `OrderCardComponents:126` |
+| invite rewards total · C | `ProfileInviteRewardReviewSection:18` |
+| pass points (`subpackagePass`) · B | `PassMarketViews:286` |
+| bundle units / refund quote / transfer code · C | `BundleWalletView:75`, `BundleRefundQuoteView:66`, `BundleTransferSendView:139, 149` |
+| income month amount · C | `WalletIncomeAnalysisView:123, 128` |
+| template rating · B | `DiscoveryTemplateDetailParitySections:78` |
+| publisher price floor · C | `PublisherLifecycleViews:120` |
+| channel check-in streak · B | `NativeChannelCheckinView:103` |
+| orienteering score · A (number only) | `OrientScoreView:225` |
+| live-session mini HUD time · A (number only) | `ActiveSessionMiniBar:217` |
+| team gathering "n/m" · A (number only) | `PlayExperienceView:1984` |
+| motion reminder steps / walk left · B | `NativeMotionReminderViews:31, 106, 366` |
+| template timer / dice sample preview · C | `TemplateTimerRehearsalView:214`, `TemplateAdditionalSampleBrowserView:197` |
+
+Kept: game HUD numerals in `NativeR2/Games` (`ChanceKits:140`, `NativeGameKitsB:332`, level A, own look); headings
+(`CastViews`, `WelcomeView`, story reader) are display text, not counts.
+
+Gate: new kind **raw count** (`RAW_COUNT`): `.font(.largeTitle…)` with `.monospacedDigit()` on the same or next line,
+outside `App/DesignSystem` and the OWNER RULE 3 effect surfaces; baseline 0. Self-test: before the second batch it
+failed on `BundleTransferSendView`, `NativeMotionReminderViews:106`, `TemplateAdditionalSampleBrowserView:197`.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt, raw count 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Batch 2 — mid-size counts: token `numericTitle`
+No token sat between `numericBody` (row number) and `dataXL` (hero): 18 card prices / stats used `.title3` with three
+weights (semibold 13, bold 4, regular 2). New token **`numericTitle`** = `.title3`, semibold, monospaced digits
+(`CYDesignTokens.swift`, `tools/typography_scale.py`, rule card `docs/design/type-and-chrome.md`). Folded:
+
+| Page (MP → native) · level | Lines |
+|---|---|
+| topic detail / self-play price (`pages/topic/*`) · B | `TopicDetailView:568`, `TopicXcxSections:159, 301, 314`, `TopicSelfPlaySheet:115` |
+| workshop offer price · B | `WorkshopCommerceView:92` |
+| pass plan price (`subpackagePass`) · B | `PassMembershipViews:268` (bold → semibold) |
+| bundle order total · C | `BundleOrderSummarySheet:89` |
+| Me card stats / balance · B | `MemberHomeHeader:338, 430` (balance regular → semibold) |
+| order card amount · C | `ProfileOrdersView:465` |
+| withdrawal application number · C | `BankWithdrawalView:186` |
+| club customer paid total / day · C | `ClubOpsCustomerViews:261, 380` |
+| roam runner / subpage stat · B | `RoamRunnerDetailView:121`, `RoamSubpageParityViews:23` (bold → semibold) |
+| bingo step number · C | `ProjectEditBingoPage:84` |
+| native gallery sample | `NativeGalleryScreens:453` |
+
+Gate `raw count` now also covers `.font(.title3…)`, with `.monospacedDigit()` on the same chain (same line or a
+following `.monospacedDigit()` line, so a title above a number is not flagged). Baseline 0. Kept: play surfaces
+(`PlayExperienceView:1018`, `PlayAreaPopupCloseSurfaces:540`, CityOrientation `.title2` HUD) — level A.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_typography_lint` PASS, `check_a11y_lint` PASS (0 new),
+`check_design_consistency` PASS (raw count 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- Badge detail name weight (run 30 row; needs the `test_object_badge_wall_layout…byte_identical` re-pin).
+- `.title2` counts (`BundleDetailView:58`, `OfficialEventDetailView:118` percent) — decide numericTitle vs dataXL.
+
+## Continue run 34 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane (latest: 07:05 sweep, mp-states / mp-activity). Run 33 Not done:
+badge detail weight still waits for the `test_object_badge_wall_layout…byte_identical` re-pin (mp-mine / debt-r3);
+**`.title2` / `.title` counts: decided.** A stat or price inside a list row or metric tile is `numericTitle`; the one
+section hero figure is `dataXL`. Folded (copy, MP sections, order, a11y labels and identifiers unchanged):
+
+| Page (MP → native) · level | Line | Change |
+|---|---|---|
+| bundle detail price (`subpackagePass` bundle) · B | `App/BundleDetailView.swift:58` | `.title2` semibold digits → `.cyText(.numericTitle)` |
+| official event collective "lit %" · B | `App/OfficialEventDetailView.swift:118` | `.title.bold()` digits → `.cyText(.dataXL)` (section hero) |
+| channel progress "done/required" · B | `App/NativeChannelProgressBoardView.swift:328` | `.title2` semibold digits → `numericTitle` |
+| club stats metric tiles (club admin) · C | `App/ClubStatsOverviewView.swift:218` | same |
+| member score appeal total · C | `App/MemberScoreAppealDetailView.swift:35` | `.title2.bold()` digits → `numericTitle` |
+| game shell record stats (shared `CYRecordStatGrid`) · A | `App/NativeR2/Components/CYRecordStatGrid.swift:40` | `.title2.bold()` digits → `numericTitle` |
+
+Gate `raw count` now covers `.font(.title…)` and `.font(.title2…)` too (largeTitle / title / title2 / title3 with
+`.monospacedDigit()` on the chain), outside `App/DesignSystem` and the effect surfaces. Self-test: with the font
+widened it failed on `CYRecordStatGrid:40` before that fold. Kept: `TicketPassSheet:348` (`.monospaced()` pass code,
+not a count), `PlayKitTimedChallengeView:100` (type-in prompt), CityOrientation / Games HUD numerals (level A).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt, raw count 0, 115 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- Badge detail name weight (needs the `test_object_badge_wall_layout…byte_identical` re-pin).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

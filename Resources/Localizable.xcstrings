@@ -78693,7 +78693,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Join Code"
+            "value": "Enter join code"
           }
         },
         "zh-Hans": {
@@ -80979,6 +80979,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "还没有合适的内容"
+          }
+        }
+      }
+    },
+    "homeFeed.empty.seeActivities": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看活动"
+          }
+        }
+      }
+    },
+    "homeFeed.empty.seeTopics": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See themes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看主题"
           }
         }
       }
@@ -139559,7 +139593,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Walk into the place and tap I'm Here"
+            "value": "Walk into the place and tap “I’m here”"
           }
         },
         "zh-Hans": {
@@ -147422,7 +147456,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The applicant sees Not Approved in My Teams"
+            "value": "The applicant sees “Not approved” under My teams"
           }
         },
         "zh-Hans": {
@@ -237542,7 +237576,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clear Local Cache"
+            "value": "Clear local cache"
           }
         },
         "zh-Hans": {
@@ -237627,7 +237661,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location Settings"
+            "value": "Location settings"
           }
         },
         "zh-Hans": {
@@ -237644,7 +237678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Map & Display"
+            "value": "Map and display"
           }
         },
         "zh-Hans": {
@@ -237661,7 +237695,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Map Style"
+            "value": "Map style"
           }
         },
         "zh-Hans": {
@@ -237695,7 +237729,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share Location Nearby"
+            "value": "Share location nearby"
           }
         },
         "zh-Hans": {
@@ -237729,7 +237763,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Say Hi"
+            "value": "Say hi"
           }
         },
         "zh-Hans": {
@@ -237763,7 +237797,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nearby Walkers"
+            "value": "People walking nearby"
           }
         },
         "zh-Hans": {
@@ -237780,7 +237814,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "More Tools"
+            "value": "More tools"
           }
         },
         "zh-Hans": {
@@ -238684,7 +238718,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow Camera"
+            "value": "Allow camera"
           }
         },
         "zh-Hans": {
@@ -238735,7 +238769,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera Unavailable"
+            "value": "Camera unavailable"
           }
         },
         "zh-Hans": {
@@ -238769,7 +238803,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera Access Is Off"
+            "value": "Camera access is off"
           }
         },
         "zh-Hans": {
@@ -238854,7 +238888,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scanning Paused"
+            "value": "Scanning paused"
           }
         },
         "zh-Hans": {
@@ -238888,7 +238922,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow Camera Access"
+            "value": "Allow camera access"
           }
         },
         "zh-Hans": {
@@ -238939,7 +238973,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera Access Is Restricted"
+            "value": "Camera access is restricted"
           }
         },
         "zh-Hans": {
@@ -238956,7 +238990,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan QR Code"
+            "value": "Scan QR code"
           }
         },
         "zh-Hans": {
@@ -238990,7 +239024,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera Is Unavailable"
+            "value": "Camera is unavailable"
           }
         },
         "zh-Hans": {
@@ -239024,7 +239058,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scanning Isn't Supported"
+            "value": "Scanning isn’t supported"
           }
         },
         "zh-Hans": {
@@ -258188,7 +258222,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Template draft saved. Find it in My Projects → Templates."
+            "value": "Template draft saved. Find it in My projects → Templates."
           }
         },
         "zh-Hans": {
@@ -301234,7 +301268,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save Image"
+            "value": "Save invite image"
           }
         },
         "zh-Hans": {
@@ -330121,7 +330155,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't clear: storage refused the change."
+            "value": "Couldn’t clear the cache. Try again."
           }
         },
         "zh-Hans": {
@@ -346890,7 +346924,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How to Play"
+            "value": "How to play"
           }
         },
         "zh-Hans": {
@@ -346924,7 +346958,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location Access"
+            "value": "Location access"
           }
         },
         "zh-Hans": {
@@ -346941,7 +346975,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Background Location"
+            "value": "Background location"
           }
         },
         "zh-Hans": {
@@ -346958,7 +346992,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrival Alerts"
+            "value": "Arrival alerts"
           }
         },
         "zh-Hans": {
@@ -347009,7 +347043,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not Now"
+            "value": "Not now"
           }
         },
         "zh-Hans": {
@@ -347026,7 +347060,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How to Play"
+            "value": "How to play"
           }
         },
         "zh-Hans": {
@@ -347888,7 +347922,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t open the event list"
+            "value": "Couldn’t open the activity list"
           }
         },
         "zh-Hans": {
@@ -357253,7 +357287,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t update the event list. Try again later."
+            "value": "Couldn’t update the activity list. Try again later."
           }
         },
         "zh-Hans": {
@@ -357270,7 +357304,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn’t update the event list"
+            "value": "Couldn’t update the activity list"
           }
         },
         "zh-Hans": {
@@ -357287,7 +357321,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reload the event list"
+            "value": "Reload the activity list"
           }
         },
         "zh-Hans": {
@@ -357457,7 +357491,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can switch to WeChat Pay under Pay with."
+            "value": "You can switch to WeChat Pay under “Pay with”."
           }
         },
         "zh-Hans": {
@@ -357474,7 +357508,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This order has expired. Rebuild it to pay."
+            "value": "This order has expired. Place a new order to pay."
           }
         },
         "zh-Hans": {
@@ -357491,7 +357525,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rebuild order"
+            "value": "Place a new order"
           }
         },
         "zh-Hans": {
@@ -357525,7 +357559,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session expired, sign in again"
+            "value": "Your session expired. Sign in again."
           }
         },
         "zh-Hans": {
@@ -357644,7 +357678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat Pay can't open on this device yet. Install or update WeChat, then pay from Me › Orders."
+            "value": "WeChat Pay can't open on this device yet. Install or update WeChat, then pay from Me › My orders."
           }
         },
         "zh-Hans": {
@@ -357763,7 +357797,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pay %@ with card"
+            "value": "Pay %@ by card"
           }
         },
         "zh-Hans": {
@@ -357952,6 +357986,278 @@
           "stringUnit": {
             "state": "translated",
             "value": "重试"
+          }
+        }
+      }
+    },
+    "nativeR2.mapHome.routes.exploreMap": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explore the map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去地图看看"
+          }
+        }
+      }
+    },
+    "homeFeed.empty.showActivities": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看活动"
+          }
+        }
+      }
+    },
+    "homeFeed.empty.showTopics": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See themes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看主题"
+          }
+        }
+      }
+    },
+    "ticketWallet.focus.resolvingLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finding the original registration ticket"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在定位原报名凭证"
+          }
+        }
+      }
+    },
+    "club.topic.stats.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the session console."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次管理台加载失败"
+          }
+        }
+      }
+    },
+    "withdrawal.support.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see the support contact."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看客服微信"
+          }
+        }
+      }
+    },
+    "playx.leaderboard.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The ranking couldn't load. Your result is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "榜单加载失败，本局成绩已保留"
+          }
+        }
+      }
+    },
+    "social1128.instant.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to like, save or comment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后才能点赞、收藏或评论"
+          }
+        }
+      }
+    },
+    "social1128.instant.notSent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发送，请重试"
+          }
+        }
+      }
+    },
+    "social1128.instant.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server did not accept this. Pull to refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作未成功，请下拉刷新后重试"
+          }
+        }
+      }
+    },
+    "social1128.instant.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result unknown. Pull to refresh to check."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未确认，请下拉刷新查看"
+          }
+        }
+      }
+    },
+    "social1128.reported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已举报"
+          }
+        }
+      }
+    },
+    "social1128.place.dropped": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinned location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图选点"
+          }
+        }
+      }
+    },
+    "social1128.place.mapHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Map. Tap to drop a pin."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图，轻点放置图钉"
+          }
+        }
+      }
+    },
+    "social1128.place.tapHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search above, or tap the map to drop a pin."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可在上方搜索，或轻点地图放置图钉"
+          }
+        }
+      }
+    },
+    "social1128.place.pickCenter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the centre on the map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在地图上选择中心点"
           }
         }
       }

@@ -16,6 +16,8 @@ struct ProfileReadScreen<Value, Content: View>: View {
     @Environment(\.profileReadShowsRefreshButton) private var showsRefreshButton
     /// Host-provided 登录 used when the screen was built without `onSignIn` (deep-link hosts).
     @Environment(\.profileReadSignIn) private var environmentSignIn
+    /// Gap #28: bumped by the host after a presented write (MP `orderchanged`).
+    @Environment(\.profileReadReloadToken) private var reloadToken
     @State private var value: Value?
     @State private var refreshToast: LocalizedStringKey?
     @State private var isLoading = true
@@ -58,6 +60,7 @@ struct ProfileReadScreen<Value, Content: View>: View {
             }
         }
         .task(id: reader.identity) { loadOwner.activate(); await loadOwner.run { await reload() } }
+        .onChange(of: reloadToken) { _, _ in loadOwner.start { await reload(keepingValue: true) } }
         .onDisappear {
             // Keep the immutable list snapshot while its NavigationLink destination is
             // pushed. Removing that link here can unexpectedly pop native navigation.

@@ -1175,7 +1175,7 @@ final class AppSession: ObservableObject {
             journal: registrationJournal, current: { [weak self] in self?.currentRegistrationProductionSession })
     }()
     func registrationWaitlistService(activityID: Int) -> (any RegistrationWaitlistServing)? {
-        guard case .approved = registrationCreationPolicy(activityID: activityID) else { return nil }
+        guard case .approved = registrationCreationPolicy(activityID: activityID) else { return registrationWaitlistLease(activityID: activityID) }
         return productionRegistrationService
     }
     func registrationCreationPolicy(activityID: Int) -> RegistrationUICreationPolicy {
@@ -1391,12 +1391,12 @@ final class AppSession: ObservableObject {
         cityOriginalRecoveryHosts[key]=host
         return host
     }
-    // w2-19 source pages/play/merchant: store-day reads share the play read approval; every write gate stays off.
-    func playStoreDay(scope: PlaySessionScope, nodeID: Int, registrationID: Int = 0, justScanned: Bool = false) -> PlayStoreDayCoordinator? {
+    // w2-19 source pages/play/merchant: store-day reads share the play read approval. fix-1128b #21: proof/consent gates on.
+    func playStoreDay(scope: PlaySessionScope, nodeID: Int, registrationID: Int = 0, justScanned: Bool = false, evidence: (any PlayStoreDayEvidenceSource)? = nil) -> PlayStoreDayCoordinator? {
         let key = PlayReaderKey(accountID: account?.id, epoch: gate.currentStamp, role: account?.effectiveRole, viewerRevision: compositionViewerRevision, approval: currentPlayReadApprovalKey, scope: scope)
         guard scope.isValid, nodeID > 0, key.approval != nil, let regional = regionalConfiguration, let api = regional.apiConfiguration,
               let factory = playReadDependencyFactory, factory.accepted?.play.contains(.reads) == true else { return nil }
-        let service = PlayStoreDayService(configuration: api, transport: factory.transport, market: regional.market, gates: .disabled, readsEnabled: true,
+        let service = PlayStoreDayService(configuration: api, transport: factory.transport, market: regional.market, gates: .playStoreDay, readsEnabled: true,
             currentSession: { [weak self] in
                 guard let self, self.playStoreDayFence(key), let account = self.account, let token = self.token else { return nil }
                 return try? PlayStoreDaySession(accountID: account.id, epoch: self.gate.currentStamp, token: token)
@@ -1405,7 +1405,7 @@ final class AppSession: ObservableObject {
                 guard let self, self.playStoreDayFence(key) else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.epoch, credential: self.token)
             })
-        return PlayStoreDayCoordinator(nodeID: nodeID, scope: scope, registrationID: registrationID, justScanned: justScanned, service: service)
+        return PlayStoreDayCoordinator(nodeID: nodeID, scope: scope, registrationID: registrationID, justScanned: justScanned, service: service, evidence: evidence)
     }
     /// Same viewer-revision and play-read-issuance ABA fence as the play readers above.
     private func playStoreDayFence(_ key: PlayReaderKey) -> Bool {
@@ -3458,7 +3458,7 @@ final class AppSession: ObservableObject {
         let directory = root.appendingPathComponent("OfficialActionSafety", isDirectory: true)
         do { try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true) } catch { return nil }
         let access = OfficialActionProductionFactory(api: regionalConfiguration?.apiConfiguration,
-            approval: runtimeDependencies.officialActionApproval, transport: runtimeHTTPTransport,
+            approvalSource: { [weak self] in self?.runtimeDependencies.officialActionApproval }, transport: runtimeHTTPTransport,
             current: { [weak self] in self?.currentRuntimeDependencyContext }, identity: { [weak self] in
                 guard let self, let account = self.account, self.currentOfficialContext.isAuthenticated, let storageScope = self.storageScope else { return nil }
                 return OfficialActionIdentity(accountID: account.id, epoch: self.officialEventReader.scope, namespace: storageScope.service)
@@ -4578,7 +4578,7 @@ final class AppSession: ObservableObject {
     lazy var walletCommerceReader = makeWalletCommerceReader()
     /// Public contact approval/transport is not supplied by current deployment composition.
     /// Does not grant wallet reads or any financial command.
-    lazy var withdrawalSupportReader = makeWithdrawalSupportReader()
+    lazy var withdrawalSupportReader = makeBundledWithdrawalSupportReader() // 1128 gap #11: App/WithdrawalSupportBundledSource.swift
     func makeWithdrawalSupportReader(source: WithdrawalSupportReader.Source? = nil,
                                      approval: @escaping () -> WithdrawalSupportApproval? = { nil }) -> WithdrawalSupportReader {
         WithdrawalSupportReader(source: source, approval: approval, session: { [weak self] in self?.walletCommerceScope })
@@ -5133,7 +5133,7 @@ final class AppSession: ObservableObject {
             approvals: { [weak self] context in
                 guard let self, self.currentRuntimeDependencyContext == context else { return [] }
                 return self.runtimeDependencies.socialMemberActionApprovals
-            }, onUnauthorized: { [weak self] captured in
+            }, issue: { [weak self] context, operation, member in self?.issueSocialMemberApproval(context, operation, member) }, community: { [weak self] context in self?.squareCommunityWriteApproval(context) }, onUnauthorized: { [weak self] captured in
                 guard let self, self.currentRuntimeDependencyContext == captured else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
             })
@@ -5172,13 +5172,13 @@ final class AppSession: ObservableObject {
     private var retainedSquareWorkspace: SquareWorkspaceCoordinator?
     func squareWorkspace() -> SquareWorkspaceCoordinator? {
         guard let identity = currentSquareWorkspaceSession else { retainedSquareWorkspace = nil; return nil }
-        if let model = retainedSquareWorkspace, model.session == identity { return model }
-        let model = SquareWorkspaceCoordinator(session: identity, store: squareWorkspaceStore,
-            currentSession: { [weak self] in self?.currentSquareWorkspaceSession },
+        if let model = retainedSquareWorkspace, model.session == identity, model.grants == MPFirstSocialApprovals.workspaceGrants(currentSquareCommunityWriteApproval) { return model }
+        let model = SquareWorkspaceCoordinator(session: identity, store: squareWorkspaceStore, service: squareWorkspaceLiveService(),
+            grants: MPFirstSocialApprovals.workspaceGrants(currentSquareCommunityWriteApproval), currentSession: { [weak self] in self?.currentSquareWorkspaceSession },
             token: { [weak self] in
                 guard let self, self.currentSquareWorkspaceSession == identity else { return nil }
                 return self.token
-            }) // service nil, live/media/legal grants all off.
+            }) // fix-1128b-social #2: live service + grants only when the community writer is issued for this viewer.
         retainedSquareWorkspace = model; return model
     }
     private var currentSquareGovernanceIdentity: SquareGovernanceIdentity? {
@@ -5189,8 +5189,8 @@ final class AppSession: ObservableObject {
     private var retainedSquareReportBaseURL: URL?
     func squareReportContext() -> SquareReportContext? {
         guard let configuration = regionalConfiguration?.apiConfiguration else { return nil }
-        if retainedSquareReports == nil || retainedSquareReportBaseURL != configuration.baseURL {
-            retainedSquareReports = SquareReportCoordinator(service: .init(configuration: configuration, transport: runtimeHTTPTransport))
+        if retainedSquareReports == nil || retainedSquareReportBaseURL != configuration.baseURL || retainedSquareReports?.service.writesEnabled != (currentSquareCommunityWriteApproval != nil) {
+            retainedSquareReports = SquareReportCoordinator(service: squareReportLiveService(configuration))
             retainedSquareReportBaseURL = configuration.baseURL
         }
         guard let coordinator = retainedSquareReports else { return nil }
@@ -5203,7 +5203,7 @@ final class AppSession: ObservableObject {
                 let value = try await self.socialActionAccess.snapshot(target: target, generation: .communityV1)
                 guard self.currentSquareGovernanceIdentity == captured else { throw CancellationError() }; return value
             })
-        return .init(coordinator: coordinator, access: access) // Default policy reads and report writes remain OFF.
+        return .init(coordinator: coordinator, access: access) // fix-1128b-social #3: reads + report write follow the community writer.
     }
     private var retainedSquareGovernance: SquareGovernanceCoordinator?
     func squareGovernance() -> SquareGovernanceCoordinator? {
@@ -5340,7 +5340,7 @@ final class AppSession: ObservableObject {
                     return self.currentTeamSession
                 }
             reader = TeamMembershipWriteComposition.service(configuration: configuration, transport: runtimeHTTPTransport, readEndpoints: approval.endpoints,
-                write: currentRuntimeDependencyContext.flatMap { composition.teamMembershipWriteApproval($0) }, journal: teamJournal, currentSession: coordinatorSession)
+                write: composition.teamWrites(currentRuntimeDependencyContext, transport: runtimeHTTPTransport), journal: teamJournal, currentSession: coordinatorSession)
         } else if let readApproval, let configuration = regionalConfiguration?.apiConfiguration {
             reader = TeamReadOnlyService(configuration: configuration, transport: runtimeHTTPTransport,
                 readApproval: readApproval, currentSession: { [weak self] in self?.currentTeamSession },

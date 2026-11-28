@@ -85,7 +85,8 @@ class PlayMerchantContractChecks(unittest.TestCase):
     def test_session_factory_is_fenced_and_read_only(self):
         session = read('App/AppSession.swift')
         factory = session.split('func playStoreDay(', 1)[1].split('// Journey extras', 1)[0]
-        self.assertIn('gates: .disabled, readsEnabled: true', factory)
+        # fix-1128b #21 (J-11b/J-11c): Release turns the store-day proof/consent gates on (was `.disabled`).
+        self.assertIn('gates: .playStoreDay, readsEnabled: true', factory)
         self.assertEqual(factory.count('self.playStoreDayFence(key)'), 2)
         self.assertIn('key.approval != nil && compositionViewerRevision == key.viewerRevision && currentPlayReadApprovalKey == key.approval', factory)
         self.assertNotIn('execution:', factory)

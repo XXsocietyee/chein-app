@@ -141,6 +141,9 @@ public struct PlayCompletionReview: Equatable {
     public private(set) var hint: PlayHintReceipt?
     public private(set) var ending: PlayEndingDocument?
     public private(set) var leaderboard: PlayCompanionLeaderboard?
+    /// fix-1128b #16 (J-05a/J-09f): the finish ranking read failed. Soft, like the MP board `error`: the finish
+    /// screen keeps its record and shows a retry row; the page phase is not failed.
+    public private(set) var leaderboardUnavailable = false
     public private(set) var lead: PlayLeadProgress?
     public private(set) var clock = PlayRunClock()
     public private(set) var remoteRunSaveFailed = false
@@ -772,12 +775,31 @@ public struct PlayCompletionReview: Equatable {
     public func loadEndingAndLeaderboard() async {
         guard gameplayMode == .cityOrientation, let session = loadedSession, session == currentSession(), phase != .submitting else { return }
         let request = generation
+        leaderboardUnavailable = false
+        // fix-1128b #16: both reads are soft. MP mode 1 has no ending card and its board shows `board.error` in place,
+        // so a refused or failed read never sets a page issue. Sign-out and a changed session still go through `fail`.
         do {
             let ending = try await service.ending(scope: scope, token: session.token); try check(session, request); self.ending = ending
+        } catch {
+            guard continuesAfterSoftRead(error, session: session, generation: request) else { return }
+        }
+        do {
             let board = try await service.leaderboard(scope: scope, token: session.token); try check(session, request)
             guard board.me.id == session.accountID else { throw PlayExperienceError.malformed }; leaderboard = board
             publishLiveActivity() // components r1 C1: the final Live Activity card shows the player's score / rank
-        } catch { fail(error, session: session, generation: request) }
+        } catch {
+            if continuesAfterSoftRead(error, session: session, generation: request) { leaderboardUnavailable = true }
+        }
+    }
+    /// True when a failed optional read leaves the page as it is. Unauthorized, a stale session or a newer generation
+    /// go through `fail` (sign-out / invalidate) and return false.
+    private func continuesAfterSoftRead(_ error: Error, session: PlayExperienceSession, generation request: UInt64) -> Bool {
+        let playError = error as? PlayExperienceError
+        guard generation == request, currentSession() == session, !(error is CancellationError),
+              playError != .unauthorized, playError != .staleSession else {
+            fail(error, session: session, generation: request); return false
+        }
+        return true
     }
     /// mp-journey r3: MP 同行者榜 sheet (`openBoard`, `/api/play/leaderboard`). A failure stays in the sheet (MP
     /// `board.error`) and never fails the page.

@@ -168,6 +168,7 @@ import QuestifyCore
                 ForEach(model.feedback) { item in
                     Button { model.toggle(item) } label: { CreatorFeedbackRow(item: item, selected: model.selected.contains(item.feedbackId)) }
                         .buttonStyle(.plain).disabled(item.ticketId != nil)
+                        .accessibilityAddTraits(model.selected.contains(item.feedbackId) ? .isSelected : [])
                         .accessibilityIdentifier("creatorStudio.feedback.\(item.feedbackId)")
                 }
                 if model.feedbackCursor != nil {

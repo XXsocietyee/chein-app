@@ -45,8 +45,10 @@ struct PassportStampThumbnail: Identifiable, Equatable {
 struct PassportBadge: Identifiable, Equatable {
     let id: Int
     let name: String?
-    init(index: Int, badge: GrowthCenterBadge) { id = index; name = badge.displayName }
-    init(id: Int, name: String?) { self.id = id; self.name = name }
+    /// Server `iconUrl`, drawn by the same `ObjectBadgeTileArtwork` as the badge wall (one badge object, P5/P24).
+    let iconURL: String
+    init(index: Int, badge: GrowthCenterBadge) { id = index; name = badge.displayName; iconURL = badge.iconURL ?? "" }
+    init(id: Int, name: String?, iconURL: String = "") { self.id = id; self.name = name; self.iconURL = iconURL }
 }
 
 /// Loads the stamp count and badges and hosts `PassportOverviewContent` as a Form section next to the identity card.
@@ -186,7 +188,7 @@ private struct PassportRollingCount: View {
                         .font(.headline).monospacedDigit().foregroundStyle(.secondary)
                 }
             } else {
-                Text(verbatim: "—").font(.largeTitle.bold()).foregroundStyle(.secondary)
+                Text(verbatim: "—").cyText(.dataXL).foregroundStyle(.secondary)
             }
         }
     }
@@ -398,7 +400,7 @@ private struct PassportRollingCount: View {
                         }
                     }
                 }
-                else { Text(verbatim: "—").font(.largeTitle.bold()).foregroundStyle(.secondary) }
+                else { Text(verbatim: "—").cyText(.dataXL).foregroundStyle(.secondary) }
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("passport.badges.title"))
@@ -429,9 +431,10 @@ private struct PassportRollingCount: View {
 
     @ViewBuilder private func badgeObject(_ badge: PassportBadge) -> some View {
         let label = VStack(spacing: 4) {
-            ClubBadgeArt(name: badge.name ?? "", seed: "\(badge.id)-\(badge.name ?? "")", category: .achievement,
-                         size: typeSize.isAccessibilitySize ? 64 : 48)
-                .accessibilityHidden(true)
+            // mp-mine r3 (ADA ia-passport P0): the badge wall's artwork (server icon, MP medal fallback), so a badge looks
+            // the same on the passport and the wall and never changes its glyph with the UI language.
+            ObjectBadgeTileArtwork(url: badge.iconURL, locked: false)
+                .frame(width: typeSize.isAccessibilitySize ? 64 : 48, height: typeSize.isAccessibilitySize ? 64 : 48)
             Group { if let name = badge.name { Text(verbatim: name) } else { Text("growth.badge.unnamed") } }
                 .font(.caption).foregroundStyle(.secondary)
                 .multilineTextAlignment(.center).lineLimit(typeSize.isAccessibilitySize ? 4 : 2)

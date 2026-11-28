@@ -67,6 +67,16 @@ extension ReviewedProductionFormMutationRoute {
             return true
         }
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
+        // fix-1128b-social #4/#27: 发布 tab, club 发布活动 and 我的项目 activity 编辑 (POST, MP pages/publish/*).
+        if let publishing = MPFirstSocialApprovals.publishingDecision(relative: relative, method: method, request: request) { return publishing }
+        if let reportRead = MPFirstSocialApprovals.reportReadDecision(relative: relative, method: method, request: request) { return reportRead }
+        if let official = officialParticipationDecision(request, relative: relative, method: method, url: url) {
+            return official
+        }
+        if AppCompositionRoot.registrationWaitlistPaths.contains(relative) {
+            // Gap #8: the player waitlist rides on the registration grant; JSON exactly `{activityId, ticketId}`.
+            return method == "POST" && grant.registration.paths.contains("api/registration/create") && waitlistScopeBody(request)
+        }
         if relative == "api/registration/create" {
             return method == "POST" && grant.registration.paths.contains(relative)
                 && registrationCreateBody(request, paymentsOpen: ReleaseMoneyWriteSwitch.paymentEnabled)
@@ -152,6 +162,11 @@ extension ReviewedProductionFormMutationRoute {
             if covers(relative, grant.friends.endpoint) || covers(relative, grant.admission) || covers(relative, grant.teamPool) { return true }
             // G4/G5 capability reads and the other play-grant reads (parity-a): GET with no body.
             return covers(relative, grant.play) && emptyBody
+        }
+        if ReviewedProductionGateLeases.isBodilessPlayTagWrite(relative) {
+            // fix-1128b #19 (J-09e): tag confirm/revoke are bodiless POSTs (PlayExperienceService `postWithoutBody`);
+            // the server checks the tag owner. `correct` carries JSON and takes the generic POST rule below.
+            return method == "POST" && (request.httpBody?.isEmpty ?? true) && covers(relative, grant.play)
         }
         if relative == "api/user/player-code" { return method == "POST" && covers(relative, grant.play) }
         // `share/revoke` and the personal `publish_precheck` are the mini-program's `data: {}` form posts: an empty body is that call.
@@ -453,6 +468,36 @@ extension ReviewedProductionFormMutationRoute {
         return false
     }
 
+    /// Gap #17: the bodies `OfficialActionService.request` sends for the player participation routes. Nil when `relative`
+    /// is not one of them. Signup / complete / organizer replies carry no body (or `{reason}`), a party reply `{}` or
+    /// `{reason}`, an arrival exactly the `OfficialArrivalEvidence` keys.
+    static func officialParticipationDecision(_ request: URLRequest, relative: String, method: String, url: URL) -> Bool? {
+        let template = OfficialActionProductionApproval.template(relative)
+        guard OfficialActionProductionApproval.playerTargetPaths.contains(template),
+              ["signup", "complete", "arrivals", "ACCEPT", "DECLINE", "WITHDRAW", "accept", "decline"].contains(where: { template.hasSuffix("/" + $0) }) else { return nil }
+        guard method == "POST", url.query == nil, request.httpBodyStream == nil else { return false }
+        let body = request.httpBody ?? Data()
+        if body.isEmpty { return !template.hasSuffix("/arrivals") }
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json", body.count <= 1024,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return false }
+        if template.hasSuffix("/arrivals") {
+            return Set(object.keys) == ["missionCode", "latitude", "longitude", "accuracyM", "sessionId", "requestId"]
+        }
+        if template.hasSuffix("/signup") || template.hasSuffix("/complete") { return false }
+        return object.isEmpty || (Set(object.keys) == ["reason"] && object["reason"] is String)
+    }
+
+    /// `RegistrationWaitlistService` body: exactly two positive JSON integers `activityId` and `ticketId`.
+    static func waitlistScopeBody(_ request: URLRequest) -> Bool {
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json", let body = request.httpBody, body.count <= 128,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any], Set(object.keys) == ["activityId", "ticketId"],
+              let activity = object["activityId"] as? NSNumber, let ticket = object["ticketId"] as? NSNumber,
+              CFGetTypeID(activity as CFTypeRef) != CFBooleanGetTypeID(), CFGetTypeID(ticket as CFTypeRef) != CFBooleanGetTypeID(),
+              activity.intValue > 0, ticket.intValue > 0,
+              activity.doubleValue == Double(activity.intValue), ticket.doubleValue == Double(ticket.intValue) else { return false }
+        return true
+    }
+
     static func teamRequestID(_ request: URLRequest) -> Bool {
         guard let body = request.httpBody,
               let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
@@ -576,6 +621,7 @@ enum ReviewedPlayerReadRoute {
     private var exploreCompletionByContext: [String: ExploreCompletionReadApproval] = [:]
     private var profileOwnedCouponByContext: [String: ProfileOwnedCouponReadAccess] = [:]
     private var profileFavoritesByContext: [String: ProfileFavoritesReadAccess] = [:]
+    private var profileInviteHistoryByContext: [String: ProfileInviteHistoryReadAccess] = [:]
     private var profileFavoriteTopicByContext: [String: ProfileFavoriteTopicReadAccess] = [:]
     private var profileFavoriteDetailByContext: [String: ProfileFavoriteDetailAccess] = [:]
     private var profileFavoriteRemovalByScope: [String: [ProfileFavoriteRemovalAccess]] = [:]
@@ -728,6 +774,7 @@ enum ReviewedPlayerReadRoute {
         // C-F6 MP-first: the author's 到访方式 read/save (fabu/theme-fe-visit.js:40, :87). Not money.
         "api/topic/free-explore/visit-config"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths).union(publisherLifecyclePaths)
+        .union(playFinishAndProfilePaths)
     /// MP-first (owner 2026-11-25, R7-PC-B4-1 / R7-PC-B1-2): pages/topic/pricing preview + confirm (a final-price save that moves
     /// the topic to PRICING for sale review, not a payment) and the publisher reads it needs. Cancel-with-refund stays off.
     static let publisherLifecyclePaths: Set<String> = [
@@ -762,7 +809,10 @@ enum ReviewedPlayerReadRoute {
         // E2E-20261113b (coordinator): the paused-run read restoreRun needs before Start can run.
         "api/play/run-session",
         // Popup parity closure: player & organizer event attendance readback.
-        "api/official/events/{}/attendance", "api/official/events/{}/attendance/manage"
+        "api/official/events/{}/attendance", "api/official/events/{}/attendance/manage",
+        // mp-club r3 J-15: the club topic director's session recap export (`PlayDirectorRecap`, GET `activityId`, no body).
+        // A read; the server checks that the caller directs the activity (BE ApiGameSessionController.java:83).
+        "api/game/session/recap/export"
     ]
     nonisolated static let externalGamePaths: Set<String> = [
         "api/external-game/submissions", "api/external-game/submissions/mine", "api/external-game/submissions/{}",
@@ -825,8 +875,36 @@ enum ReviewedPlayerReadRoute {
         "api/marketing/product/activate",
         "api/coupon/usability"
     ]
+    /// fix-1128b: `.mediaUpload` (#5, play photo upload), `.preference` and `.tags` (#19, preference groups and tag
+    /// confirm/correct/revoke) join the release play grant. `.leader` and `.circle` stay with their own lanes.
     static let playCapabilities: Set<PlayExperienceCapability> = [
-        .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding
+        .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding,
+        .mediaUpload, .preference, .tags
+    ]
+    /// fix-1128b #19: `api/play/tag/{id}/confirm` and `/revoke`, the two bodiless tag writes.
+    static func isBodilessPlayTagWrite(_ relative: String) -> Bool {
+        let key = ChinaReviewedRouteCapability.normalized("/" + relative)
+        return key == "/api/play/tag/{}/confirm" || key == "/api/play/tag/{}/revoke"
+    }
+    /// fix-1128b #5: the device kinds a play node may ask for (MP vm 2 photo, vm 4 scan, GPS arrive, shake).
+    static let playDevices: Set<PlayDeviceKind> = [.photo, .scan, .location, .motion]
+    /// fix-1128b #22: bare hosts (what `PlayKitCameraAssets.approvedURL` compares) of the approved upload-result origins.
+    /// An origin with a non-443 port is dropped because kit artwork only loads from the default https port.
+    static func playArtworkHosts(apiBase: URL, extra: String? = Bundle.main.object(forInfoDictionaryKey: "CYStampImageOrigins") as? String) -> Set<String> {
+        let origins = RetainedImageOrigin.configured(apiBase: apiBase, extra: extra)
+        return Set(origins.compactMap { origin -> String? in
+            guard let url = URL(string: origin), url.port == nil || url.port == 443, let host = url.host, !host.isEmpty else { return nil }
+            return host.lowercased()
+        })
+    }
+    /// fix-1128b #16, #19, #21, #5: the finish ending/ranking reads, the templated preference/tag/人生 OS routes, the
+    /// in-store consent read/write, and the play photo upload. All non-money player routes the MP sends.
+    static let playFinishAndProfilePaths: Set<String> = [
+        "api/play/ending", "api/play/leaderboard",
+        "api/play/preference/{}", "api/play/preference/{}/submit",
+        "api/play/tag/{}/confirm", "api/play/tag/{}/correct", "api/play/tag/{}/revoke", "api/play/os/{}",
+        "api/compliance/consents", "api/compliance/consents/latest",
+        "api/common/uploadOSS"
     ]
     /// Handover 35, WP-06. Same paths as `ChinaReviewedRouteCapability.wp06PartialPagesOwnerGrant`.
     /// Address, invoice, roam, and passport calls stay on their dedicated transports: this set does not
@@ -979,6 +1057,14 @@ enum ReviewedPlayerReadRoute {
     }
 
     // MARK: Channels + friends social writes (owner approval: non-money player/club social writes)
+
+    /// Gap #17: the official participation lease (player / club only; merchant routes stay off).
+    func officialPlayerActions(_ context: RuntimeDependencyContext) -> OfficialActionProductionApproval? {
+        guard socialRole(context),
+              let endpoints = makeEndpoint(context, paths: OfficialActionProductionApproval.playerTargetPaths) else { return nil }
+        return try? OfficialActionProductionApproval(playerMarket: .china, endpoints: endpoints,
+                                                     reviewedPolicyVersion: "mp-official-participation-1128")
+    }
 
     private func socialRole(_ context: RuntimeDependencyContext) -> Bool {
         playerWritesEnabled && context.market == .china && (context.role == "player" || context.role == "club")
@@ -1457,6 +1543,19 @@ enum ReviewedPlayerReadRoute {
         return access
     }
 
+    /// 1128 gap #29 (O-14b; MP scene-member-invite-history/index.js:245): 我的邀请 reads `api/user/invite_list`
+    /// and the first reward-ledger page `api/user/points/list`. One stable access per signed-in context (the composition
+    /// transport re-checks identity with `===`). Read only; 填写邀请人 (P1-15) is a separate write.
+    func profileInviteHistory(_ context: RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? {
+        guard context.market == .china else { return nil }
+        let key = contextKey(context)
+        if let existing = profileInviteHistoryByContext[key], !existing.isRevoked { return existing }
+        guard let endpoints = makeEndpoint(context, paths: ProfileInviteHistoryReadRoute.paths),
+              let access = try? ProfileInviteHistoryReadAccess(context: context, approval: endpoints) else { return nil }
+        profileInviteHistoryByContext[key] = access
+        return access
+    }
+
     func profileFavorites(_ context: RuntimeDependencyContext) -> ProfileFavoritesReadAccess? {
         guard context.market == .china else { return nil }
         let key = contextKey(context)
@@ -1549,10 +1648,12 @@ enum ReviewedPlayerReadRoute {
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, role: context.role,
             sourceRevision: OrderLifecycleSourceContract.revision, approvals: [],
-            // fix/1128-cn-pay P0-2: the device (WeChat SDK) payment follows the payment switch. Order-detail Pay runs
-            // through RegistrationPaySection (`pay/app` → WeChat SDK → one `registration/info` read); the review-sheet
-            // payment stays closed (externalCheckoutApproved false, no payment approval) and is not shown (P1-4).
-            externalCheckoutApproved: false, devicePaymentApproved: ReleaseMoneyWriteSwitch.paymentEnabled,
+            // fix/1128-cn-pay P0-2: order-detail Pay runs through RegistrationPaySection (`pay/app` → WeChat SDK → one
+            // `registration/info` read); the review-sheet payment stays closed (externalCheckoutApproved false, no payment
+            // approval) and is not shown (P1-4). Gap #9 (1128 plan): device payment is approved in Release; the WeChat
+            // SDK path is gated by its own build flag (`WeChatPaymentBuildSettings`) and the pay route by
+            // `ReleaseMoneyWriteSwitch` in the composition firewall. Cancel / cancel-refund are the reviewed order actions.
+            externalCheckoutApproved: false, devicePaymentApproved: true,
             allowsReviewedCancellationAndRefund: true
         )
         var imRoutes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [
@@ -1572,6 +1673,8 @@ enum ReviewedPlayerReadRoute {
         if socialRole(context) { imRoutes[.imUpload] = Set([try? BusinessRuntimeRoute.post("api/common/uploadOSS")].compactMap { $0 }) }
         if socialRole(context) { imRoutes.merge(Self.projectEditorRoutes(baseURL: context.baseURL)) { $0.union($1) } }
         if socialRole(context) { imRoutes.merge(Self.beGapImRoutes()) { $0.union($1) } }
+        // fix-1128b-social #4 (audit H-06a, H-13a): the 发布 tab "+" and club 发布活动 need `publishingService`.
+        if socialRole(context) { imRoutes.merge(MPFirstSocialApprovals.publishingRoutes(baseURL: context.baseURL)) { $0.union($1) } }
         let businessConfiguration = try? BusinessRuntimeConfiguration(
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, routes: imRoutes,
@@ -1581,6 +1684,8 @@ enum ReviewedPlayerReadRoute {
         )
         let rewardPledge = context.market == .china
         return NativeRuntimeDependencies(
+            // Gap #17 (1128 plan, G-10b): official v1 报名 / 完成, v2 到达 and inbox 接受 / 拒绝 for the signed-in player.
+            officialActionApproval: officialPlayerActions(context),
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             weChatPaymentConfiguration: WeChatPaymentBuildSettings.current,
@@ -1607,8 +1712,12 @@ enum ReviewedPlayerReadRoute {
               let endpoints = makeEndpoint(context, paths: Self.playPaths) else { return nil }
         let key = contextKey(context)
         if let existing = playConfigurationByContext[key] { return existing }
+        // fix-1128b #5 (J-06d/J-12b/J-11c): photo, scan, location and shake device kinds are on, so photo nodes, the filter
+        // camera and the in-store photo step can capture → uploadOSS → `api/play/photo`. #22 (J-07 #2/#6/#7): kit artwork
+        // loads from the same upload-result origins the avatar approval uses (API origin + `CYStampImageOrigins`).
         let configuration = RuntimeDependencyConfiguration(market: .china, endpoints: endpoints, play: Self.playCapabilities,
-            publisherReads: true, playReadApprovalID: UUID())
+            publisherReads: true, devices: Self.playDevices, artworkHosts: Self.playArtworkHosts(apiBase: context.baseURL),
+            playReadApprovalID: UUID())
         playConfigurationByContext[key] = configuration
         return configuration
     }

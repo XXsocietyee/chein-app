@@ -389,6 +389,22 @@ Merged `origin/ui/combined-r7` (pbxproj regenerated). Gates: generate_project OK
 | **P2-3d** 关联玩法模板 rows not tappable → MP `scene-play-activity-detail/index.wxml:69` `goTemplateDetail` → `templatedetail?id=&scope=my` → `App/ActivityAssociatedPlaysSection.swift` | Rows are read-only by an earlier privacy decision ("the myinfo grant is not inherited"; `ActivityAssociatedPlaysTests.testAllowedResponseReadsOnlyThreeDisplayFieldsAndKeepsReturnedOrder` pins that no `id`/`imgUrl` is decoded). | **Not done — needs coordinator decision**: MP opens `scope=my` (the organizer's own-template read), which a viewer cannot use; the safe native target would be the public `templatedetail?id=` read, which changes a pinned privacy contract. |
 
 
+## Round 3 continue (30) — sweep 11-28 ~06:48 (build ffeef67c7), mp-home sheets zh-Hans + en; 07:05 states note
+
+Merged `origin/ui/combined-r7` (clean). `sheet-zh-Hans.jpg` / `sheet-en.jpg`: d2-home-offline, d2-home, d2-search-results, d2-search, rep3-activity-detail, wave-today-club read correctly in both languages; no open coordinator item for mp-home. Every `pages/index/index.js` target already has a row. Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `pages/index/index.wxml:246,283` `cy-empty` 暂时没有主题 / 暂时没有活动 → `App/HomeFeedView.swift` `streamSection` (coordinator 07:05, `d2-home-empty`, listed under mp-states; the file is mp-home's) | The empty `ContentUnavailableView` offered no next step. The MP empty has a title only; its next step on this page is the other feed tab. | **Fixed** — one `.bordered` action in the `ContentUnavailableView` `actions:` switches the system picker: 看看活动 / See activities on 主题, 看看主题 / See themes on 活动 (`homeFeed.empty.seeActivities` / `.seeTopics`, en + zh-Hans, id `homeFeed.empty.switchKind`); the query change reloads through the existing `.onChange(of: query)`. Title, icon, keyword hint and `homeFeed.empty` id unchanged (`HomeFeedFlowTests.testEmptyStateIsNotAnError` still holds). |
+
+## Round 3 continue (31) — function audit P2-3b (mp-home)
+
+Merged `origin/ui/combined-r7` (clean; fix/1128-* receipts arrived). No new coordinator item for mp-home since 07:05. Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| **P2-3b** `pages/index/index` city consent 同意 → MP `getHomeCityLocation` → `App/SessionHomeFeedView.swift` `agreeAndLocateHomeCity()` + `HomeCityCentre.nearest(to:)` | 同意 recorded consent but never located the city. | **Fixed** — after `cityConsent.agree` (consent write unchanged), one foreground fix through the existing `session.cityCaptureFix()` (the tap is the permission ask; `RuntimeNativeLocationProvider` asks only when not determined), matched **on the device** to the nearest supported 首页 city within 100 km (great-circle); the coordinate is never sent, so no reverse-geocode route or transport admission is needed. No fix / out of range keeps the label. Test `HomeCityCentreNearestTests` (Shanghai, Hangzhou vs Shanghai, New York → nil). Tap-to-relocate on the city label (`onTapHomeCity`) stays the MP menu pick. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -426,6 +442,11 @@ Merged `origin/ui/combined-r7` (pbxproj regenerated). Gates: generate_project OK
 - Needs a simulator pass (continue 26): searchmap 筛选 sheet order (Find shops → Date → Price → Sort) in en + zh-Hans.
 - Needs a simulator pass (continue 27): `wave-today-club` with the city-camera photo cover; `rep3-activity-list` / `rep3-activity-list-failed` in en + zh-Hans (cards with the cover fallback, status badges, 邀约 link; error + 重试).
 - Needs a simulator pass (continue 28): activity share sheet Share link button under Share image in en + zh-Hans, AX5.
-- Function audit P2-3b (city consent → locate) and P2-3d (关联玩法模板 tap, needs a decision).
+- Function audit P2-3d (关联玩法模板 tap, needs a decision). P2-3b fixed in continue 31.
+- Needs a device pass (continue 31): city consent 同意 asks for location once and sets the 首页 city label (Shanghai / Hangzhou).
 - Needs a simulator pass (continue 28): 首页 map button opens the explorer titled with the 首页 city and 搜索此区域 enabled.
 - Needs a device pass (continue 29): 首页 city rail with location not determined shows no prompt and loads around the chosen area.
+- Needs a simulator pass (continue 30): `d2-home-empty` with the 看看活动 / See activities button in en + zh-Hans, AX5.
+
+## For other lanes
+- mp-states: the 07:05 `d2-home-empty` next-step item is done on `mp/r3-home` (continue 30); `r3-roam-routes-empty` stays yours / mp-roam.

@@ -554,7 +554,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileFavoritesReadAccess = profileFavoritesReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavorites($0) } : { _ in nil })
         self.profileFavoriteTopicReadAccess = profileFavoriteTopicReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavoriteTopic($0) } : { _ in nil })
         self.profileFavoriteDetailAccess = profileFavoriteDetailAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavoriteDetail($0) } : { _ in nil })
-        self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
+        self.profileInviteHistoryReadAccess = { [gates] context in profileInviteHistoryReadAccess(context) ?? (productionGatesEnabled ? gates.profileInviteHistory(context) : nil) } // 1128 gap #29 (O-14b)
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.growthNormalReadApproval = { [gates] context in growthNormalReadApproval(context) ?? (productionGatesEnabled ? gates.growthNormalRead(context) : nil) }
         self.cityPlayerReadApproval = { [gates] context in cityPlayerReadApproval(context) ?? gates.cityGame(context)?.readApproval }
@@ -623,7 +623,7 @@ extension KeychainTokenStore: AppTokenStorage {}
 
     func teamCommandWriter(context: RuntimeDependencyContext, transport: any HTTPTransport) -> TeamCommandWriter? {
         guard let approval = playerWriteGrant(context)?.team, let api = reviewed?.regional.apiConfiguration else { return nil }
-        return try? TeamCommandWriter(approval: approval, configuration: api, transport: transport)
+        return try? TeamCommandWriter(approval: approval, configuration: api, transport: transport, context: context)
     }
     var reviewed: ReviewedAppDeployment? {
         if case .reviewed(let value) = deployment { return value }; return nil
@@ -723,7 +723,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.roamLiveApproval = roamLiveApproval
         return transport
     }
-    func makeSession() -> AppSession { installTemplateAdoption(AppSession(composition: self)) }
+    func makeSession() -> AppSession { installTemplateAdoption(AppSession(composition: self, activityEditingApproval: MPFirstSocialApprovals.activityEditing(self))) } // fix-1128b-social #27
 }
 
 /// Existing CN auth and independently reviewed bounded reads; coupon mutations additionally
@@ -2579,7 +2579,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let path = url.path
         guard path == base || path.hasPrefix(base + "/") else { return false }
         let relative = String(path.dropFirst(base.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state" || relative == "api/media/asset/attribution" || relative == "api/orient/scoring/receipt" || ReviewedProductionGateLeases.creatorEditorReadPaths.contains(relative) || ReviewedProductionGateLeases.isPlayGrantPath(relative) || relative == "api/creator/feedback" || relative == "api/creator/maintenance/tickets" || relative == "api/creator/analytics/post-game-outcome" || relative.hasPrefix("api/external-game/")
+        return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/") || relative == "api/play/theme/state" || relative == "api/media/asset/attribution" || relative == "api/orient/scoring/receipt" || ReviewedProductionGateLeases.creatorEditorReadPaths.contains(relative) || ReviewedProductionGateLeases.isPlayGrantPath(relative) || relative == "api/creator/feedback" || relative == "api/creator/maintenance/tickets" || relative == "api/creator/analytics/post-game-outcome" || relative.hasPrefix("api/external-game/") || relative == "api/community-trust/reports/mine" // fix-1128b-social #3
     }
 
     private func signedInRuntime(_ captured: SessionIdentity) -> RuntimeDependencyContext? {

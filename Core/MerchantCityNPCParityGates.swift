@@ -13,6 +13,9 @@ public struct MerchantCityNPCParityGates: Equatable {
     /// Reform plan v9 W04/W05: theme NPC binding, scoped knowledge and merchant AI drafts stay dormant.
     public var themeNPCBinding = false
     public var merchantAIDrafts = false
+    /// fix-1128b #21 (J-11b/J-11c): the player's in-store (探店日) proof and consent routes. Off unless a
+    /// composition opts in with `playStoreDay`; merchant gates (`mpFirst`) never turn it on.
+    public var storeDayPlayerEndpoints = false
     public init() {}
     public static var disabled: Self { Self() }
     /// Owner 2026-11-25 MP-first rule: the writes the MP merchant pages send, with the server's
@@ -39,6 +42,19 @@ public struct MerchantCityNPCParityGates: Equatable {
         "api/compliance/consents"
     ]
     public func allows(_ path: String, market: RegionalMarket) -> Bool {
-        Self.reviewedEndpoints[market]?.contains(path) == true
+        if Self.reviewedEndpoints[market]?.contains(path) == true { return true }
+        return storeDayPlayerEndpoints && Self.storeDayReviewedEndpoints[market]?.contains(path) == true
+    }
+    /// fix-1128b #21: pages/play/merchant sends these as the signed-in player (requestCheckin, requestArrive,
+    /// requestPhoto, the game answer, `_writeAndReadbackConsent`). No merchant route and no money path.
+    public static var storeDayReviewedEndpoints: [RegionalMarket: Set<String>] { [.china: storeDayChinaEndpoints] }
+    public static let storeDayChinaEndpoints: Set<String> = [
+        "api/play/checkin", "api/play/arrive", "api/play/photo", "api/play/answer", "api/compliance/consents"
+    ]
+    /// fix-1128b #21: the Release store-day page. Proof and consent writes on; the server checks the run and consent.
+    public static var playStoreDay: Self {
+        var gates = Self()
+        gates.storeDayProofWrites = true; gates.storeDayConsentWrites = true; gates.storeDayPlayerEndpoints = true
+        return gates
     }
 }

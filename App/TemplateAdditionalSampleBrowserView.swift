@@ -194,7 +194,7 @@ import Combine
                 } header: { Text("templateSampleCoverage.fixedDice") }
                 if let sample {
                     Section("templateD6.sampleResult") {
-                        Text(verbatim: sample.pips.map(String.init).joined(separator: " + ")).font(.largeTitle).monospacedDigit()
+                        Text(verbatim: sample.pips.map(String.init).joined(separator: " + ")).cyText(.dataXL)
                         LabeledContent("playkit.dice.total", value: String(sample.total)).monospacedDigit()
                         if let action = sample.action { Text(verbatim: action) }
                         else { Text("templateD6.sumOnly").font(.footnote).foregroundStyle(.secondary) }
