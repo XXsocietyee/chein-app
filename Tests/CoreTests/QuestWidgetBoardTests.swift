@@ -38,11 +38,14 @@ final class QuestWidgetBoardTests: XCTestCase {
         let community = QuestWidgetBoard.Community(unread: -1, clubName: nil, clubNewPosts: 3, clubID: nil)
         XCTAssertEqual(community.unread, 0)
         XCTAssertEqual(QuestWidgetBoard.ticket(nil), QuestWidgetBoard.myActivities)
+        // mp-nav r3: without a ticket id the widget opens 票夹 (MP 入场码 lives there), not 官方活动.
+        XCTAssertEqual(QuestWidgetBoard.myActivities, QuestWidgetLinks.wallet)
         XCTAssertEqual(QuestWidgetBoard.club(0), QuestWidgetBoard.clubs)
         XCTAssertEqual(QuestWidgetBoard.ticket(7).absoluteString, "chein://ticket/7")
         XCTAssertNotNil(CheinDeepLink(url: QuestWidgetBoard.ticket(7)))
         for url in [QuestWidgetBoard.myActivities, QuestWidgetBoard.roamHistory, QuestWidgetBoard.messages,
-                    QuestWidgetBoard.clubs, QuestWidgetBoard.club(3)] {
+                    QuestWidgetBoard.clubs, QuestWidgetBoard.club(3), QuestWidgetLinks.passport,
+                    QuestWidgetLinks.stories, QuestWidgetLinks.wallet, QuestPlanLinks.team(42)] {
             XCTAssertNotNil(MiniProgramPageLink(cheinURL: url), url.absoluteString)
         }
     }

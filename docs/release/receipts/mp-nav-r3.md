@@ -509,3 +509,15 @@ Merged `origin/ui/combined-r7` (clean). Sweep index still build 0446d1c4f (mp-na
 | `subpackageRoam/official-route` 分享 (index.js:9 `SHARE_PATH`, :57-60) → App/OfficialRouteViews.swift share card, `PublicContentShareLink.officialRoute(id:)` | image only | same `link:` with `?id=<routeID>` (canonical digits only, as MP onLoad `/^\d{1,18}$/`); AASA already claimed the path | fixed (not compiled here) |
 
 Test: `PublicContentShareLinkTests.testOfficialEventAndRouteSharesCarryTheMiniProgramLinkThatParsesBack`. Level B (detail pages), navigation only, no section/order change.
+
+## Re-scan 11-28 20:xx — widget / Control Center check-in target (merged combined-r7)
+
+Merged `origin/ui/combined-r7` (clean). Sweep index still build 0446d1c4f (mp-nav sheets clean); no coordinator row for mp-nav after 07:45. B receipt read: no new rows. Item 3 (MP-account sync note) still blocked on the backend field. Every MP `onShareAppMessage` page now has a row (journey report/settle carry the referral + topic fallback; growthcenter and the order list share nothing in the MP). Next external entries without a row: widget, Live Activity and Control Center targets, checked one by one against `MiniProgramPageLink` and the MP page each lands on.
+
+| entry → MP page | before | after | status |
+|---|---|---|---|
+| Control Center 签到 / "Check in" (`QuestControlRoute.checkIn`, Core/QuestWidgetControlIntent.swift; description "Open the activities you joined to check in") → MP 入场码 = `subpackageMember/signup/index` (票夹, signup/index.json uses `cy-dot-qr`) | opened `pages/activity/list/index` = 官方活动 (MP nav title 官方活动, a browse list with no ticket or entry code) | `subpackageMember/signup/index`: lands on 票夹 pushed on 首页 through `MPNotificationTapRouter` (same host as the landed wallet link) | fixed |
+| event-countdown widget without a ticket id (`QuestWidgetBoard.ticket(nil)` → `myActivities`, Core/QuestWidgetBoard.swift) | `chein://mp/pages/activity/list/index` (官方活动) | `chein://mp/subpackageMember/signup/index` (= `QuestWidgetLinks.wallet`), where the joined event's pass is | fixed |
+| passport / stories / wallet widget links, Live Activity roam / event, team-invite plan link `pages/team/detail/index?teamId=` (MP onLoad `options.teamId`), club / messages / roam-history board links | all parse (`MiniProgramPageLink` rules :37, :129, :158, :204) | unchanged; parse now pinned for every `QuestWidgetLinks` / `QuestPlanLinks.team` URL | verified |
+
+Test: Tests/CoreTests/QuestWidgetBoardTests.swift (`myActivities == QuestWidgetLinks.wallet`; every widget link parses). Navigation only, no section/order change. Not compiled here.
