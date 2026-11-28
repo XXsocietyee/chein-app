@@ -484,11 +484,20 @@ monograms, share / ticket art, HUD and ring numbers left as they are).
 | `pages/roam` city orientation ETA (预计 12分钟 · 14:32 到达), teams on route | `CityOrientationNavComponents.swift:57`, `CityOrientationRunView.swift:635` | ✓ (mp-roam owns order) | ETA one line shrunk to 80 % → 2 lines; teams-on-route footnote 2 lines + shrink → 3 lines, no shrink. Map panel files untouched (coordinator 02:05) | Done |
 | `pages/roam` city orientation paused tag + stop cleared, platform reminder 已开放 | `CityOrientationNavComponents.swift:69,124`, `NativeMotionReminderViews.swift:254` | ✓ (mp-roam owns order) | Label text in `Color.orange` / `Color.green` (~2.2:1 to 3:1 on white) → `CYColor.warningText` / `successText`. Remaining `Color.green` / `Color.yellow` hits are glyph-only (medal, checkmark; 3:1 graphics rule) | Done |
 
+### Run 31 (2026-11-28)
+Merged `origin/ui/combined-r7`. Sweep index still **ffeef67c7** (read in run 30), so the sheets re-read waits. No open coordinator
+finding. Not done item: Reduce Motion — `withAnimation` / `.animation` with `.spring` / `.bouncy` / `.snappy` (23 player hits without
+"reduce" on the line read with their context).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/roam/index` map home bottom panel (detents) | `NativeR2/MapHome/RoamMapHomePanel.swift` | ✓ (mp-roam owns order) | The only file with a spring and no Reduce Motion read: drag release, VoiceOver adjust and the detent `.animation` used `.snappy` → `settle` = `CYMotion.reduced` (short ease, no overshoot) under Reduce Motion, `.snappy` otherwise. Not the settled `CYMapChrome` / `RoamBrowserView` panel (coordinator 02:05) | Done |
+| Other spring hits (club welcome, free-explore pack, games HUD, night tab bar, section reveal, signature, progress ring, purchase / scan failure nudge, roam kit, onboarding, collectible, object card pile, chat send, live stat roll) | `ClubMemberWelcomeSheet`, `FreeExplorationViews`, `NativeGameHUD`, `CYNightTabBar`, `CYExploreKit`, `CYSignature`, `CYCoverArt`, `CYPurchaseMotion`, `CYRoamKit`, `CYScan`, `CYOnboarding*`, `CYCollectible`, `PlayRoamRound4Views`, `MessageActionComposer`, `RoamLiveSessionView` | ✓ | Audit: each is behind an earlier `reduceMotion` guard / else, renders its final state when Reduce Motion is on (opacity / trim forced to 1), swaps to the grid layout (object card pile), or is a colour fill / numeric roll. `.transition(.move / .slide / .asymmetric)` scan: every hit gated. No change | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than ffeef67c7, to see runs 28-30).
-- Next pages without a row: Reduce Motion — player files that call `withAnimation(.spring / .bouncy / .snappy)` without reading
-  `accessibilityReduceMotion`. (Run 30: `.frame(width:)` on text scanned, only `minWidth` rank numerals and 18-24 pt icon columns, no
-  clipping; `.fixedSize()` was covered in run 11.)
+- Re-read the a11y sheets after the next sweep (newer than ffeef67c7, to see runs 28-31).
+- Next pages without a row: VoiceOver — custom controls built from `Button` + `.buttonStyle(.plain)` that show a selected state
+  (chips, segmented-like rows) without `.accessibilityAddTraits(.isSelected)`.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
