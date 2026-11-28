@@ -184,9 +184,18 @@ enum MPFirstClubWriteRoute {
             if relative == coopPoolApplyPath {
                 guard let message = object["message"] as? String, message.count <= 500 else { return false }
             }
+            // 1128 gap #13: topic-manage-stats carries `activityId` as JSON null or a positive id; the topic-customers
+            // filter is a string (ClubGovernanceRead.fields).
+            if relative == "api/club/crm/topic-manage-stats", !admitsNullableActivity(object) { return false }
+            if relative == "api/club/crm/topic-customers", let filter = object["filter"], !(filter is String) { return false }
             return shape.admits(object)
         }
         return true
+    }
+    /// `activityId` must be present and be JSON null or a positive integer (ClubGovernanceRead.topicStats).
+    static func admitsNullableActivity(_ object: [String: Any]) -> Bool {
+        guard let value = object["activityId"] else { return false }
+        return value is NSNull || positive(value)
     }
 
     /// CLB-r11-checkin-detail-01 (MP checkin-detail/index.js:163): `POST api/registration/cancel-by-owner` with the

@@ -162,6 +162,7 @@
         "FinalThreeDocumentAndSevenDayGoalCompletionViewTests",
         "FinalTwentyBatchMasterCompletionViewTests",
         "Finding4LocalizationTests",
+        "Fix1128bClubReadRouteTests",
         "FogOverlayLayerPixelTests",
         "FreeExploreBundleLaunchModelTests",
         "FreeExploreBundleReadHostTests",
