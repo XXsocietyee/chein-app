@@ -33,6 +33,12 @@ class VerificationCodeContracts(unittest.TestCase):
         self.assertIn('if target.kind == .cityVoucher { await issue() }',code)
         self.assertIn('if now() >= expiry {\n            eraseCode(); phase = .expired',code)
         self.assertIn('guard let expiry else { return }',code)
+        # G-09: a ticket code reissues once in the last 30s and the pass re-reads the registration while it is showing.
+        # At expiry the ticket still clears and does not reissue. A finished pass is OrderPassAvailability.complete.
+        self.assertIn('ticketRefreshWindow: TimeInterval = 30', code)
+        self.assertIn('ticketStatusInterval: TimeInterval = 8', code)
+        self.assertIn('await maintainTicket(expiry)', code)
+        self.assertIn('OrderPassAvailability(detail: detail) == .complete', code)
         fail=code.split('private func fail(')[1]
         self.assertNotIn('await issue()',fail)
     def test_view_clears_on_inactive_disappearance_and_uses_cancellable_tick(self):

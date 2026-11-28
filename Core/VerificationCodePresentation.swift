@@ -174,6 +174,18 @@ public struct VerificationCodeApproval {
     private var generation: UInt64 = 0
     private var active = false
     private var issuing = false
+    /// The expiry a ticket code was already refreshed for. One refresh per code, with a short cooldown so a
+    /// near-expiry replacement cannot reissue on every tick.
+    private var ticketRefreshExpiry: Date?
+    private var lastTicketRefresh: Date?
+    /// Last `api/registration/info` read (issue or status). The pass polls again after `ticketStatusInterval`.
+    private var lastTicketStatusRead: Date?
+    /// Reissue a ticket code this long before the server expiry (MP `_scheduleQrRefresh`). At expiry it still clears.
+    private static let ticketRefreshWindow: TimeInterval = 30
+    /// While the pass is showing, re-read the registration this often so a merchant scan flips the card.
+    private static let ticketStatusInterval: TimeInterval = 8
+    /// Floor between ticket reissues. A replacement that is itself inside the window waits out the cooldown.
+    private static let ticketRefreshCooldown: TimeInterval = 15
     private let service: any VerificationCodeServing
     private let current: () -> RuntimeDependencyContext?
     private let now: () -> Date
@@ -202,12 +214,15 @@ public struct VerificationCodeApproval {
     private func eraseCode() { code = nil; expiry = nil; issuedAt = nil; remainingSeconds = 0 }
     private func clear() {
         generation &+= 1; active = false; owner = nil; issuing = false; checkingOrder = false
-        readback = nil; readbackFailed = false; eraseCode()
+        readback = nil; readbackFailed = false; ticketRefreshExpiry = nil; lastTicketRefresh = nil; lastTicketStatusRead = nil
+        eraseCode()
     }
     public func pause() { clear(); phase = .paused }
     public func invalidate() { clear(); phase = .review }
-    /// View-owned, cancellable one-second task. At expiry the ticket code clears and waits
-    /// for a manual retry. City vouchers reissue only at expiry, never on a failed or uncertain response.
+    /// View-owned, cancellable one-second task. A ticket code reissues once in the last 30 seconds (MP
+    /// `_scheduleQrRefresh`); at expiry it still clears and waits for a manual retry. City vouchers reissue
+    /// only at expiry. A failed or uncertain response never asks again. While a ticket code is showing, the
+    /// registration is re-read every 8 seconds so a merchant scan can flip the card.
     public func tick() async {
         guard active else { return }
         guard current() == owner, service.enabled else { clear(); phase = .stale; return }
@@ -218,7 +233,21 @@ public struct VerificationCodeApproval {
             if target.kind == .cityVoucher { await issue() }
         } else {
             remainingSeconds = max(0, Int(expiry.timeIntervalSince(now()).rounded(.up)))
+            if target.kind == .ticket { await maintainTicket(expiry) }
         }
+    }
+    /// Silent ticket upkeep. The player-facing Check order button stays on `checkOrder()`.
+    private func maintainTicket(_ expiry: Date) async {
+        guard phase == .ready, !issuing else { return }
+        let cooled = lastTicketRefresh.map { now().timeIntervalSince($0) >= Self.ticketRefreshCooldown } ?? true
+        if expiry.timeIntervalSince(now()) <= Self.ticketRefreshWindow, ticketRefreshExpiry != expiry, cooled {
+            lastTicketRefresh = now(); ticketRefreshExpiry = expiry
+            await issue()
+            return
+        }
+        let due = lastTicketStatusRead.map { now().timeIntervalSince($0) >= Self.ticketStatusInterval } ?? true
+        guard due, !checkingOrder else { return }
+        await readOrder(userInitiated: false)
     }
     private func issue() async {
         guard active, !issuing, let owner, current() == owner else { return }
@@ -231,8 +260,10 @@ public struct VerificationCodeApproval {
                 guard isCurrent(stamp) else { return }
                 guard detail.id == target.id else { throw VerificationCodeFailure.invalid }
                 readback = detail
+                lastTicketStatusRead = now()
                 // verificationStatus=1 can still have remaining chapters. Issuance is server-authoritative.
-                guard detail.registrationStatus == 2 else { throw VerificationCodeFailure.unavailable }
+                // A pass with nothing left to use (`OrderPassAvailability.complete`) is not issued again.
+                guard detail.registrationStatus == 2, !Self.passConsumed(detail) else { throw VerificationCodeFailure.unavailable }
             }
             let requestedAt = now()
             let receipt = try await service.issue(target, context: owner)
@@ -243,22 +274,31 @@ public struct VerificationCodeApproval {
         } catch { fail(error, stamp: stamp) }
     }
     /// There is no ticket-code status endpoint. Read the authoritative registration record.
-    public func checkOrder() async {
+    public func checkOrder() async { await readOrder(userInitiated: true) }
+    /// `userInitiated` shows the checking row. The 8-second poll does not, and a failed poll leaves the code up.
+    private func readOrder(userInitiated: Bool) async {
         guard target.kind == .ticket, active, !issuing, !checkingOrder, let owner, current() == owner else { return }
-        let stamp = generation; checkingOrder = true; readbackFailed = false
-        defer { if generation == stamp { checkingOrder = false } }
+        let stamp = generation
+        if userInitiated { checkingOrder = true; readbackFailed = false }
+        lastTicketStatusRead = now()
+        defer { if userInitiated, generation == stamp { checkingOrder = false } }
         do {
             let detail = try await service.order(id: target.id, context: owner)
             guard isCurrent(stamp) else { return }
             guard detail.id == target.id else { throw VerificationCodeFailure.invalid }
             readback = detail
-            // A readback never claims a completed scan. Clear on an ended registration.
-            if detail.registrationStatus != 2 { eraseCode(); phase = .unavailable }
+            // A single verified chapter is not a finished pass. Clear when the registration ended or the
+            // pass has nothing left (`OrderPassAvailability.complete`).
+            if detail.registrationStatus != 2 || Self.passConsumed(detail) { eraseCode(); phase = .unavailable }
         } catch {
             guard isCurrent(stamp) else { return }
             if error as? APIError == .unauthorized || error as? VerificationCodeFailure == .login { fail(error, stamp: stamp) }
-            else { readbackFailed = true }
+            else if userInitiated { readbackFailed = true }
         }
+    }
+    /// Fully used pass: no open chapter. An empty entitlement list counts only when the order pass says so.
+    private static func passConsumed(_ detail: OrderLifecycleDetail) -> Bool {
+        OrderPassAvailability(detail: detail) == .complete
     }
     private func fail(_ error: Error, stamp: UInt64) {
         guard isCurrent(stamp) else { return }

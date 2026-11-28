@@ -16,8 +16,8 @@ import FoundationNetworking
         let type = kind == .ticket ? "topic" : "citynode_\(account)"
         return "{\"code\":\"v1.\(id).\(type).\(expiry).9.\(String(repeating: "A", count: 43))\",\"expiresAt\":\(expiry),\"ttlMs\":300000,\"type\":\"\(type)\",\"poiId\":\(id)}"
     }
-    private func detail(status: Int = 2, verified: Int = 0) throws -> OrderLifecycleDetail {
-        try JSONDecoder().decode(OrderLifecycleDetail.self, from: Data("{\"id\":31,\"registrationStatus\":\(status),\"verificationStatus\":\(verified),\"purchaseKind\":3,\"entitlements\":[{\"id\":1,\"status\":0}]}".utf8))
+    private func detail(status: Int = 2, verified: Int = 0, entitlements: String = #"[{"id":1,"status":0}]"#) throws -> OrderLifecycleDetail {
+        try JSONDecoder().decode(OrderLifecycleDetail.self, from: Data("{\"id\":31,\"registrationStatus\":\(status),\"verificationStatus\":\(verified),\"purchaseKind\":3,\"entitlements\":\(entitlements)}".utf8))
     }
     private func approval(_ context: RuntimeDependencyContext, kinds: Set<VerificationCodeKind> = [.ticket, .cityVoucher], paths: Set<String> = ["api/verify/dyncode/issue", "api/registration/info", "api/verify/citynode/issue"]) throws -> VerificationCodeApproval {
         .init(market: .china, endpoints: try .init(baseURL: context.baseURL, namespace: context.session.namespace, accountID: context.session.accountID, paths: paths), kinds: kinds)
@@ -89,6 +89,51 @@ import FoundationNetworking
         XCTAssertEqual(fixture.issues, 1); XCTAssertEqual(model.phase, .ready); XCTAssertNotNil(model.displayCode)
         XCTAssertEqual(fixture.orderReads, 1)
     }
+    /// G-09: in the last 30s the ticket code reissues once. At expiry it still clears and does not reissue.
+    func testTicketRefreshesOnceBeforeExpiryAndClearsAtExpiry() async throws {
+        let context = try context(), fixture = VerificationCodeTestService(receipt: try receipt(), detail: try detail())
+        var now = Date(timeIntervalSince1970: 1000)
+        let model = VerificationCodeCoordinator(target: .init(kind: .ticket, id: 31), service: fixture, current: { context }, now: { now })
+        await model.present()
+        XCTAssertEqual(fixture.issues, 1)
+        fixture.receipt = try receipt(expiry: 1_600_000)
+        now = Date(timeIntervalSince1970: 1270)
+        await model.tick()
+        XCTAssertEqual(fixture.issues, 2)
+        XCTAssertEqual(model.phase, .ready)
+        XCTAssertNotNil(model.displayCode)
+        await model.tick()
+        XCTAssertEqual(fixture.issues, 2, "the same code is not reissued on the next tick")
+        now = Date(timeIntervalSince1970: 1600)
+        await model.tick()
+        XCTAssertEqual(model.phase, .expired)
+        XCTAssertNil(model.displayCode)
+        XCTAssertEqual(fixture.issues, 2, "expiry still waits for a manual retry")
+    }
+
+    /// G-09: while the code is showing, the registration is re-read. A finished pass clears the code; an open chapter does not.
+    func testTicketStatusPollClearsOnlyAFinishedPass() async throws {
+        let context = try context(), fixture = VerificationCodeTestService(receipt: try receipt(), detail: try detail(verified: 1))
+        var now = Date(timeIntervalSince1970: 1000)
+        let model = VerificationCodeCoordinator(target: .init(kind: .ticket, id: 31), service: fixture, current: { context }, now: { now })
+        await model.present()
+        XCTAssertEqual(fixture.orderReads, 1)
+        now = Date(timeIntervalSince1970: 1007)
+        await model.tick()
+        XCTAssertEqual(fixture.orderReads, 1, "the poll waits out the interval")
+        now = Date(timeIntervalSince1970: 1008)
+        await model.tick()
+        XCTAssertEqual(fixture.orderReads, 2)
+        XCTAssertNotNil(model.displayCode, "a verified chapter with an open entitlement keeps the code")
+        fixture.detail = try detail(verified: 1, entitlements: "[]")
+        now = Date(timeIntervalSince1970: 1016)
+        await model.tick()
+        XCTAssertEqual(model.phase, .unavailable)
+        XCTAssertNil(model.displayCode)
+        XCTAssertNotNil(model.readback)
+        XCTAssertEqual(fixture.issues, 1, "a status read does not reissue")
+    }
+
     func testTicketExpiryClearsAndRequiresManualRetry() async throws {
         let context = try context(), fixture = VerificationCodeTestService(receipt: try receipt(), detail: try detail())
         var now = Date(timeIntervalSince1970: 1000)

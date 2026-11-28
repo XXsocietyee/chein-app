@@ -50,9 +50,12 @@ extension EnvironmentValues {
                     if model.checkingOrder { ProgressView() }
                     if model.readbackFailed { Text("verificationCode.readbackFailed").cyText(.bodyCompact) }
                     if let detail = model.readback {
-                        Label(detail.registrationStatus == 2 ? "verificationCode.order.active" : "verificationCode.order.ended",
-                              systemImage: detail.registrationStatus == 2 ? "checkmark.circle" : "clock")
-                            .foregroundStyle(detail.registrationStatus == 2 ? Color.green : Color.secondary)
+                        // G-09: a finished pass (no chapter left) is not "active" just because registrationStatus is 2.
+                        let consumed = OrderPassAvailability(detail: detail) == .complete
+                        let active = !consumed && detail.registrationStatus == 2
+                        let orderKey: LocalizedStringKey = consumed ? "verificationCode.order.used" : (active ? "verificationCode.order.active" : "verificationCode.order.ended")
+                        Label(orderKey, systemImage: active ? "checkmark.circle" : "clock")
+                            .foregroundStyle(active ? Color.green : Color.secondary)
                             .accessibilityIdentifier("verificationCode.orderState")
                     }
                 }

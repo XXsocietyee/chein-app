@@ -45,16 +45,19 @@ struct ActivityDetailView: View {
     var opensRegistrationOnLoad = false
     var registrationTicketID: Int? = nil
     var registrationTicketName: String? = nil
-    @Environment(\.rootTabSwitch) private var rootTabSwitch
-    /// R8-PC-C1-1: without a tab switch (a pushed deep link) the guest 立即报名 presents sign-in instead of doing nothing.
+    /// G-05: 立即报名 presents sign-in over this activity. After sign-in the registration sheet opens.
     @State private var showsGuestLogin = false
+    @State private var resumeRegistration = false
     var body: some View {
         Group {
             // Sign-in belongs on 立即报名. The detail read itself runs with a nil token.
             if session.account == nil {
-                sessionDetail(guestSignIn: { if rootTabSwitch.isAvailable { rootTabSwitch(.mine) } else { showsGuestLogin = true } })
+                sessionDetail(guestSignIn: {
+                    resumeRegistration = true
+                    showsGuestLogin = true
+                }, onRequestSignIn: { showsGuestLogin = true })
             } else {
-                sessionDetail(guestSignIn: nil)
+                sessionDetail(guestSignIn: nil, onRequestSignIn: { showsGuestLogin = true })
             }
         }
         .cySheet(isPresented: $showsGuestLogin) {
@@ -67,7 +70,7 @@ struct ActivityDetailView: View {
         .cyHideTabBar()
     }
 
-    @ViewBuilder private func sessionDetail(guestSignIn: (() -> Void)?) -> some View {
+    @ViewBuilder private func sessionDetail(guestSignIn: (() -> Void)?, onRequestSignIn: @escaping () -> Void) -> some View {
         let activityIdentity = session.activityPresentationIdentity
         let clubIdentity = session.clubIdentity
         ActivityDetailContentView(id: id, reader: session,
@@ -83,18 +86,20 @@ struct ActivityDetailView: View {
                 }))
             },
             hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess,
-            opensRegistrationOnLoad: guestSignIn == nil && opensRegistrationOnLoad,
+            opensRegistrationOnLoad: guestSignIn == nil && (opensRegistrationOnLoad || resumeRegistration),
             registrationTicketID: registrationTicketID,
             registrationTicketName: registrationTicketName,
             guestSignIn: guestSignIn,
+            onRequestSignIn: onRequestSignIn,
             viewerAccountID: session.account?.id)
             .environment(\.inGameChannelHost, session.inGameChannelHost)
             .id(session.contentDetailRevision)
     }
 }
 
-/// `ActivityDetailFailure.notFound` is 活动不存在 (`activity.detail.missing`). Other failures keep retry.
-private enum ActivityDetailLoadIssue: Equatable { case missing, other }
+/// `ActivityDetailFailure.notFound` is 活动不存在 (`activity.detail.missing`). A 401 asks the player to sign in.
+/// Other failures keep retry.
+private enum ActivityDetailLoadIssue: Equatable { case missing, signIn, other }
 
 @MainActor private struct ActivityDetailContentView: View {
     @Environment(\.rootTabSwitch) private var rootTabSwitch
@@ -114,6 +119,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     var registrationTicketName: String? = nil
     /// Guest 立即报名. Nil for a signed-in reader, which opens the registration sheet instead.
     var guestSignIn: (() -> Void)? = nil
+    /// G-05: a 401 on the detail read presents sign-in over this page instead of the generic failure.
+    var onRequestSignIn: (() -> Void)? = nil
     /// R9-PC-C1-2: signed-in viewer, so the host still sees 取消活动并退款 (disabled) while refunds are money-off.
     var viewerAccountID: Int? = nil
     @State private var openedRegistrationOnLoad = false
@@ -181,6 +188,20 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                             .buttonStyle(.bordered)
                     }
                     .accessibilityIdentifier("activity.detail.missing")
+                } else if issue == .signIn {
+                    ContentUnavailableView {
+                        Label { Text("auth.expired") } icon: { Image(systemName: "person.crop.circle.badge.exclamationmark") }
+                    } actions: {
+                        if let onRequestSignIn {
+                            Button(action: onRequestSignIn) { Text("auth.signIn") }
+                                .buttonStyle(.bordered)
+                                .accessibilityIdentifier("activity.detail.signIn")
+                        }
+                        Button { loads.start { await load() } } label: { Text("parityB.alt.reload") }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("activity.detail.retry")
+                    }
+                    .accessibilityIdentifier("activity.detail.signInState")
                 } else {
                     ContentUnavailableView {
                         Label {
@@ -828,7 +849,11 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         catch let error as ActivityDetailFailure where error == .notFound {
             if generation == operation, !Task.isCancelled { phase = .failed(.missing, retry: nil) }
         }
-        catch { if generation == operation, !Task.isCancelled { phase = .failed(.other, retry: nil) } }
+        catch {
+            if generation == operation, !Task.isCancelled {
+                phase = .failed((error as? APIError) == .unauthorized ? .signIn : .other, retry: nil)
+            }
+        }
     }
 }
 
