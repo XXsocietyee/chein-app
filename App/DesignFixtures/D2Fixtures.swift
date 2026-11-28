@@ -56,10 +56,15 @@ struct D2Fixture: View {
 @MainActor struct D2MeFixture: View {
     @State private var member = MemberHomeFixtureReader(scenario: "ready")
     @State private var growth = GrowthCenterFixtureReader(scenario: .content)
-    @State private var tab: AccountMineTab = AccountMineTab(rawValue: UserDefaults.standard.string(forKey: "d2MeTab") ?? "") ?? .mine
+    @State private var tab: AccountMineTab
     @Environment(\.locale) private var locale
     private let account = try! JSONDecoder().decode(Account.self, from: Data(#"{"id":81,"nickname":"Mia","role":"player","levelId":2}"#.utf8))
     private let tabs: [AccountMineTab] = AccountMineTab.allCases
+    /// `initialTab` lets a fixture open on one MP tab (e4-member opens 关于, where 当前权益 lives).
+    init(initialTab: AccountMineTab? = nil) {
+        let stored = AccountMineTab(rawValue: UserDefaults.standard.string(forKey: "d2MeTab") ?? "")
+        _tab = State(initialValue: initialTab ?? stored ?? .mine)
+    }
     var body: some View {
         NavigationStack {
             Form {
