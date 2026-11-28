@@ -35,7 +35,7 @@ next sweep should add `roam-live` with the guide sheet open and the shop NPC con
 
 - `python3 tools/generate_project.py` ✓ (adds `App/AIGuide/*.swift` and `Resources/Story/*.json` to the target)
 - `python3 tools/check_scaffold.py` ✓
-- `python3 tools/contract_ratchet.py --check`: see the push commit (new must be 0)
+- `python3 tools/contract_ratchet.py --check` ✓ (52 failing = baseline 52, new 0). One pin updated deliberately: `Tests/ContractChecks/test_shop_npc_interruption.py` now expects the voice capture to be injected (commented)
 - `python3 tools/check_design_consistency.py` ✓ (0 new)
 - `python3 -B tools/check_a11y_lint.py` ✓ (0 new)
 - `python3 tools/check_appsession_ratchet.py` ✓ (AppSession.swift unchanged in length; one line edited)

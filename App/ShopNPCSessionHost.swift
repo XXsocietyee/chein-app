@@ -56,6 +56,7 @@ import Observation
                 if value.active { scriptedGuide = makeScriptedGuide?(value.scope); capture = ShopNPCVoiceCaptureFactory.make(for: value.grants) }
             }
         }
-        .onDisappear { scriptedGuide?.retire(); scriptedGuide = nil; capture?.cancel(); capture = nil; coordinator?.invalidate() }
+        .onDisappear { scriptedGuide?.retire(); scriptedGuide = nil; coordinator?.invalidate() }
+        .onDisappear { capture?.cancel(); capture = nil }
     }
 }

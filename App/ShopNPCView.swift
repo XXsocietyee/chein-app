@@ -169,7 +169,8 @@ import SwiftUI
         .navigationTitle("shopNPC.title").navigationBarTitleDisplayMode(.inline).privacySensitive()
         .modifier(AIOutgoingSensitiveConfirmation(findings: $sensitiveFindings, send: confirmedSend, cancel: cancelSensitiveConfirmation))
         .onChange(of: draft) { _, _ in cancelSensitiveConfirmation() }
-        .onDisappear { cancelSensitiveConfirmation(); voice.stop(); invalidate() }
+        .onDisappear { cancelSensitiveConfirmation(); invalidate() }
+        .onDisappear { voice.stop() }
         .onChange(of: coordinator.active) { _, active in if !active { clearTransient() } }
         .onChange(of: coordinator.scope) { _, _ in clearTransient() }
         .onChange(of: coordinator.grants) { _, _ in clearTransient() }
