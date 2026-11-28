@@ -1,6 +1,5 @@
 import XCTest
 @testable import Questify
-@testable import QuestifyCore
 
 /// MP topic-detail director.js:280-291 (`recapMetricView`, first three as tiles, the rest in 完成情况).
 @MainActor final class ClubDirectorRecapMetricTests: XCTestCase {

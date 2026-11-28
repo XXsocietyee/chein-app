@@ -268,7 +268,8 @@ import XCTest
         XCTAssertNil(root.workshopPaidInstallApproval(context))
         XCTAssertNil(root.bundleApprovals.read(context))
         XCTAssertNil(root.makeSession().personalLocationShareScope)
-        XCTAssertFalse(PlayerLaunch.merchantCenterEnabled && (try merchantCenterIsOnInReleaseSource()))
+        let releaseSourceOn = try merchantCenterIsOnInReleaseSource()
+        XCTAssertFalse(PlayerLaunch.merchantCenterEnabled && releaseSourceOn)
     }
 
     func testMerchantCenterStaysFalseOutsideDebug() throws {
