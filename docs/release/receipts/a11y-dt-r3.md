@@ -754,8 +754,21 @@ reply editor (`SocialActionEditorView`) already speaks its counter as "n of N ch
 | `pages/square` publish → selected media (composer workspace) | `SquarePostLocalMediaPresentation.swift:168` (`SquarePostLocalMediaPreview`) | ✓ (choose → reading → preview / failed / expired → remove) | Result lines (image ready, video unavailable, failed, expired) appeared without focus moving, so VoiceOver heard nothing → one announcement per state change, en + zh-Hans | Done |
 | `pages/square` detail → related topic | `SquareRelatedTopicView.swift:63` | ✓ | `.bordered` system button with Label, no fixed sizes — nothing to change | Done |
 
+## Run 47 (2026-11-28, hourly)
+Merged `origin/ui/combined-r7`. Latest sweep is still b954de71c (no a11y-dt row in the 13:15 / 18:30 sections); no open coordinator
+finding for this lane. Level per OWNER RULE 3: square workspace = C (form), public profile = B.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/square/components/cy/post-compose` (workspace form) → 服务器草稿 rows | `SquareWorkspaceView.swift` (server drafts `ForEach`) | ✓ (#id · version → resume → history → withdraw location) | Three default buttons in one `Form` row: one tap (and the VoiceOver double-tap on the row) fired Resume, History and the Withdraw dialog together → each `.borderless` with a 44 pt label frame + `contentShape`, so each is its own target and VoiceOver element | Done |
+| same → 本机草稿 rows | `SquareWorkspaceView.swift` (local drafts) | ✓ (body → pending → resume → discard) | `minHeight: 44` sat outside the borderless buttons (only the text line was tappable) → frame + `contentShape` inside the label | Done |
+| same → 媒体检查 uploaded media rows | `SquareWorkspaceView.swift` (`draft.media`) | ✓ (key → proof state → remove) | Raw storage key was read aloud and repeated as the Remove hint → hidden from VoiceOver; Remove reads "Remove image n" / "移除第 n 张图片" (new key `a11y.label.removeImage`), 44 pt borderless | Done |
+| same → 提及成员 chips | `SquareWorkspaceView.swift` (`policyControls`) | ✓ | "#123 −" was read "number 123 minus" → "Remove mention #123" / "移除提及 #123" (new key `a11y.label.removeMention`); visible chip unchanged | Done |
+| `pages/userinfo` (cy-profile) 好友 / 关注 / 粉丝 counters | `SocialPublicProfileView.swift` (`profileCounter`) | ✓ (mp-mine owns order) | Combined element read the number first ("12, Friends") → label "Friends", value "12", like `LabeledContent` elsewhere | Done |
+| `pages/userinfo` 关于 › 探索作品 + full-screen preview (wx.previewImage) | `SocialPublicProfileView.swift` (portfolio `ForEach`, `SocialProfileImagePreviewPager`) | ✓ (grid → preview → swipe → close) | Thumbnails all read "View full image" → value "n of N"; preview title "2/5" read "slash" and pages were unlabeled → each page is "Image 2 of 5" / "第 2 张，共 5 张" (new key `a11y.label.imagePosition`) and a swipe announces the new position once (same as the club gallery, run 45) | Done |
+
 ## Not done (next run starts here)
-- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): square workspace (`SquareWorkspaceView` sections other than media), square topic pages (`SquareTopic*`), social public profile (`SocialPublicProfileView`).
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): square topic pages (no `SquareTopic*` file exists; find the native view for `pages/topic/catalog`), `SocialPublicProfileView` remaining sections (identity share, incomplete link) and `SocialAccountComponents`.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
