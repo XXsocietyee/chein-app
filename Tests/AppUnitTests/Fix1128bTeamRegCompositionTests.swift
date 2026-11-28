@@ -45,6 +45,54 @@ import FoundationNetworking
         XCTAssertNil(none.approval)
     }
 
+    // MARK: Gap #8 — player waitlist in Release
+
+    func testGap8ReleaseWaitlistLeaseAdmitsTheThreeWaitlistRoutes() async throws {
+        let recorder = Fix1128bRecorder()
+        let composition = shipped(recorder)
+        let player = try playerContext(composition)
+        let approval = try XCTUnwrap(composition.registrationWaitlistApproval(player), "Release must issue the waitlist lease")
+        XCTAssertEqual(approval.paths, ["api/club/event-ops/waitlist/status", "api/club/event-ops/waitlist/join",
+                                        "api/club/event-ops/waitlist/cancel"])
+        XCTAssertNil(composition.registrationWaitlistApproval(try playerContext(composition, role: "merchant")),
+                     "merchant routes stay off")
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let api = try XCTUnwrap(composition.reviewed?.regional.apiConfiguration)
+        let session = try RegistrationWaitlistLeaseSession(accountID: 7, namespace: player.session.namespace, token: "player-token")
+        let service = try RegistrationWaitlistLeaseService(configuration: api, transport: transport, approval: approval,
+                                                           activityID: 5, current: { session })
+        let none = #"{"code":200,"data":{"activityId":5,"ticketId":6,"memberId":7,"state":"NONE","eligibilityState":"ELIGIBLE","waitlistJoinAllowed":true}}"#
+        let joined = #"{"code":200,"data":{"id":11,"activityId":5,"ticketId":6,"memberId":7,"state":"WAITING"}}"#
+        let waiting = #"{"code":200,"data":{"id":11,"activityId":5,"ticketId":6,"memberId":7,"state":"WAITING","eligibilityState":"ELIGIBLE","waitlistJoinAllowed":false}}"#
+        recorder.queue = [none, joined, waiting]
+        let scope = try RegistrationWaitlistScope(activityID: 5, ticketID: 6)
+        let result = try await service.join(scope)
+        XCTAssertEqual(result.state, .waiting)
+        XCTAssertEqual(recorder.paths, ["api/club/event-ops/waitlist/status", "api/club/event-ops/waitlist/join",
+                                        "api/club/event-ops/waitlist/status"])
+        XCTAssertEqual(recorder.bodies[1], ["activityId": 5, "ticketId": 6])
+        // Another activity's scope never sends.
+        do { _ = try await service.status(try RegistrationWaitlistScope(activityID: 99, ticketID: 6)); XCTFail("scoped to one activity") }
+        catch { XCTAssertEqual(recorder.paths.count, 3) }
+    }
+
+    func testGap8FirewallAdmitsOnlyTheExactScopeBody() throws {
+        let base = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
+        func request(_ body: String, type: String = "application/json") -> URLRequest {
+            var value = URLRequest(url: base.appendingPathComponent("api/club/event-ops/waitlist/join"))
+            value.httpMethod = "POST"; value.setValue(type, forHTTPHeaderField: "Content-Type"); value.httpBody = Data(body.utf8)
+            return value
+        }
+        XCTAssertTrue(ReviewedProductionFormMutationRoute.waitlistScopeBody(request(#"{"activityId":5,"ticketId":6}"#)))
+        XCTAssertFalse(ReviewedProductionFormMutationRoute.waitlistScopeBody(request(#"{"activityId":5,"ticketId":6,"memberId":7}"#)))
+        XCTAssertFalse(ReviewedProductionFormMutationRoute.waitlistScopeBody(request(#"{"activityId":"5","ticketId":6}"#)))
+        XCTAssertFalse(ReviewedProductionFormMutationRoute.waitlistScopeBody(request(#"{"activityId":0,"ticketId":6}"#)))
+        XCTAssertFalse(ReviewedProductionFormMutationRoute.waitlistScopeBody(request(#"{"activityId":5,"ticketId":6}"#, type: "text/plain")))
+    }
+
     // MARK: helpers
 
     func shipped(_ recorder: Fix1128bRecorder) -> AppCompositionRoot {
@@ -64,10 +112,16 @@ import FoundationNetworking
 final class Fix1128bRecorder: HTTPTransport {
     var paths: [String] = []
     var methods: [String] = []
+    var bodies: [[String: Int]] = []
     var payload = #"{"code":200,"data":[]}"#
+    /// Answers in order when non-empty, then falls back to `payload`.
+    var queue: [String] = []
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         paths.append(request.url?.path.split(separator: "/").drop(while: { $0 != "api" }).joined(separator: "/") ?? "")
         methods.append(request.httpMethod ?? "")
-        return (Data(payload.utf8), 200)
+        let object = request.httpBody.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] } ?? [:]
+        bodies.append(object.compactMapValues { $0 as? Int })
+        let answer = queue.isEmpty ? payload : queue.removeFirst()
+        return (Data(answer.utf8), 200)
     }
 }

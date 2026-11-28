@@ -67,6 +67,10 @@ extension ReviewedProductionFormMutationRoute {
             return true
         }
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
+        if AppCompositionRoot.registrationWaitlistPaths.contains(relative) {
+            // Gap #8: the player waitlist rides on the registration grant; JSON exactly `{activityId, ticketId}`.
+            return method == "POST" && grant.registration.paths.contains("api/registration/create") && waitlistScopeBody(request)
+        }
         if relative == "api/registration/create" {
             return method == "POST" && grant.registration.paths.contains(relative)
                 && registrationCreateBody(request, paymentsOpen: ReleaseMoneyWriteSwitch.paymentEnabled)
@@ -451,6 +455,17 @@ extension ReviewedProductionFormMutationRoute {
             if let value = object[key] as? String, !value.isEmpty { return true }
         }
         return false
+    }
+
+    /// `RegistrationWaitlistService` body: exactly two positive JSON integers `activityId` and `ticketId`.
+    static func waitlistScopeBody(_ request: URLRequest) -> Bool {
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json", let body = request.httpBody, body.count <= 128,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any], Set(object.keys) == ["activityId", "ticketId"],
+              let activity = object["activityId"] as? NSNumber, let ticket = object["ticketId"] as? NSNumber,
+              CFGetTypeID(activity as CFTypeRef) != CFBooleanGetTypeID(), CFGetTypeID(ticket as CFTypeRef) != CFBooleanGetTypeID(),
+              activity.intValue > 0, ticket.intValue > 0,
+              activity.doubleValue == Double(activity.intValue), ticket.doubleValue == Double(ticket.intValue) else { return false }
+        return true
     }
 
     static func teamRequestID(_ request: URLRequest) -> Bool {

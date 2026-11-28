@@ -1175,7 +1175,7 @@ final class AppSession: ObservableObject {
             journal: registrationJournal, current: { [weak self] in self?.currentRegistrationProductionSession })
     }()
     func registrationWaitlistService(activityID: Int) -> (any RegistrationWaitlistServing)? {
-        guard case .approved = registrationCreationPolicy(activityID: activityID) else { return nil }
+        guard case .approved = registrationCreationPolicy(activityID: activityID) else { return registrationWaitlistLease(activityID: activityID) }
         return productionRegistrationService
     }
     func registrationCreationPolicy(activityID: Int) -> RegistrationUICreationPolicy {
