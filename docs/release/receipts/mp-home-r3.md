@@ -250,7 +250,7 @@ Re-scan of `pages/topic/index/index.wxml` 详情 / 故事 / 路线 against `App/
 | `topic/index.wxml:292-296` story paywall 解锁完整体验 · price · 立即解锁 · 已购？去票夹 | Present (`TopicDetailView.swift:556-576`). | No change. |
 | `topic/index.wxml:357-358` 路线配置中 + 浏览其他主题 | Present (`TopicXcxSections.swift:615-624`). | No change. |
 | `topic/index.wxml:437` station card 到店礼 · gift | Present (`shopGift`, `TopicXcxSections.swift:640-644`). | No change. |
-| `topic/index.wxml:302-316` 评价: when there are no reviews the 还没有评价 card **is** the only write entry; with reviews 写评价 sits trailing in the rating row, above the list. Native always draws a separate bordered 写评价 button above the section content, so the empty state has two write entries. | **Not done** — `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` pins both `topic.reviews.empty` and the `topic.openReview` button in the empty state, and `tools/check_contextual_flows.py` pins the identifier; changing the accessibility tree of the empty card blind (no simulator) could break that UI test. Next run with a simulator: hide the bordered button when `hasConfirmedNoReviews && preview.isEmpty`, move `topic.openReview` onto the empty card, update the UI test. |
+| `topic/index.wxml:302-316` 评价: when there are no reviews the 还没有评价 card **is** the only write entry; with reviews 写评价 sits trailing in the rating row, above the list. Native always draws a separate bordered 写评价 button above the section content, so the empty state has two write entries. | ~~Not done~~ **Fixed** (`fdd82efee`: bordered 写评价 hidden when `hasConfirmedNoReviews && preview.isEmpty`, the empty card is the button; UI test asserts no `topic.openReview`). Original note: `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` pins both `topic.reviews.empty` and the `topic.openReview` button in the empty state, and `tools/check_contextual_flows.py` pins the identifier; changing the accessibility tree of the empty card blind (no simulator) could break that UI test. Next run with a simulator: hide the bordered button when `hasConfirmedNoReviews && preview.isEmpty`, move `topic.openReview` onto the empty card, update the UI test. |
 
 ## Round 3 continue (14) — 23:07 sweep (build b3b03703a), mp-home sheets zh-Hans + en
 
@@ -444,6 +444,21 @@ Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: kept every
 |---|---|---|
 | `subpackageMember/components/cy/scene-play-activity-detail/index.wxml:55-62` `.activity-people` (wrapping row of 64 rpx `cy-avatar`s, no names, each `goUserInfo`, aria-label 查看…主页) → `App/ActivityPeopleSection.swift` | ADA `rep3-activity-detail`: "Registered 24 people" has no visible people; native drew one list row per registrant (avatar + name + chevron) — a long list where the MP shows a compact avatar wrap. | **Fixed** — the 「N 人已报名」 section is one row of a `LazyVGrid(.adaptive(44…56))` of scaled 32 pt avatars (44 pt targets, `.borderless` buttons → the same profile), name as the VoiceOver label + hint 查看主页; read-only registrants stay non-buttons with id `….readOnly`. Identifiers `activity.people.participant.N` unchanged, so `ActivityFlowTests.testPeopleOpenExactProfiles…` and the contract pins still hold. Host row unchanged (MP `activity-host` keeps name + role). |
 | `scene-play-activity-detail` `activity-hero__date` 活动时间 · start – end → `App/E1ActivityDetailParts.swift` (`activity.hero.when %@`) | ADA: zh hero reads 活动时间 · date, en showed the bare date. | **Fixed** — en "When · %@" (catalog + `docs/port/strings/mp-home-r3.json`), same line shape in both languages. |
+
+## Round 3 continue (36) — sweep build 0446d1c4f check
+
+Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: both HEAD hunks were empty, took theirs; JSON valid). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (52/52) · design consistency PASS. Level B (Crafted).
+
+| Screenshot (`docs/sweeps/latest/mp-home`, build 0446d1c4f) | Check | Result |
+|---|---|---|
+| `zh-Hans/en-d2-home` | large title 首页 → banner + dots → greeting (role/city secondary) → 编辑精选 (short subtitle, Beta 试玩 row) | ✓ matches OWNER RULE 2 order; no change |
+| `zh-Hans/en-d2-home-offline` | offline `ContentUnavailableView` under the hero, `.bordered` 重试 | ✓ |
+| `zh-Hans/en-d2-search`, `d2-search-results` | 推荐搜索 / 类别 capsules wrap; scope chips with counts; text rows (P18); 没有更多了 + 重新搜索 | ✓ |
+| `zh-Hans/en-rep3-activity-detail` | `···` + share toolbar, ended hero 已结束 + 活动时间 / When line, P28 icon fact rows | ✓ |
+| `zh-Hans/en-wave-today-club` | full card: photo cover, time/place icon rows, meeting-point map, 查看活动 | ✓ (component fixture, no nav bar by design) |
+| `fix/1128c-ai-showcase` AI card merged at the head of 编辑精选 | owner AI item (12:25), not this lane's; MP order of the other sections unchanged | left to that worker |
+
+Receipt hygiene: the topic 评价 empty-state row (two write entries) was already fixed in `fdd82efee`; marked fixed above. No open coordinator item for mp-home; remaining Not done rows need a simulator/device or the P2-3d decision.
 
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
