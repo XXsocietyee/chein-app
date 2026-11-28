@@ -306,8 +306,16 @@ import UIKit
             .listRowInsets(EdgeInsets())
             .accessibilityIdentifier("profile.avatar.crop")
         } else {
-            Text("profile.avatar.failed")
-            Button("action.cancel", role: .cancel, action: cancel)
+            // mp-states r3: MP pages/crop/index.wxml:25-26 cy-error 图片没能打开; undecodable data, so 取消 (choose again).
+            ContentUnavailableView {
+                Label("pages.crop.openFailed", systemImage: "photo.badge.exclamationmark")
+            } description: {
+                Text("pages.crop.openFailed.reason")
+            } actions: {
+                Button("action.cancel", action: cancel)
+                    .buttonStyle(.bordered)
+            }
+            .accessibilityIdentifier("profile.avatar.cropFailed")
         }
     }
 
