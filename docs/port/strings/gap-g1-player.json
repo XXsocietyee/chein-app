@@ -205,15 +205,15 @@
   },
   "roamTools.title": {
     "zh-Hans": "更多工具",
-    "en": "More Tools"
+    "en": "More tools"
   },
   "roamTools.runners.section": {
     "zh-Hans": "附近正在走的人",
-    "en": "Nearby Walkers"
+    "en": "People walking nearby"
   },
   "roamTools.runners.greet": {
     "zh-Hans": "打个招呼",
-    "en": "Say Hi"
+    "en": "Say hi"
   },
   "roamTools.runners.greeted": {
     "zh-Hans": "已打招呼",
@@ -221,7 +221,7 @@
   },
   "roamTools.map.section": {
     "zh-Hans": "地图与显示",
-    "en": "Map & Display"
+    "en": "Map and display"
   },
   "roamTools.fog": {
     "zh-Hans": "迷雾",
@@ -229,7 +229,7 @@
   },
   "roamTools.mapStyle": {
     "zh-Hans": "地图样式",
-    "en": "Map Style"
+    "en": "Map style"
   },
   "roamTools.reduceMotion": {
     "zh-Hans": "减少动态效果",
@@ -237,7 +237,7 @@
   },
   "roamTools.presenceSharing": {
     "zh-Hans": "附近的人位置分享",
-    "en": "Share Location Nearby"
+    "en": "Share location nearby"
   },
   "roamTools.permissions.section": {
     "zh-Hans": "系统权限",
@@ -245,11 +245,11 @@
   },
   "roamTools.locationSettings": {
     "zh-Hans": "位置权限设置",
-    "en": "Location Settings"
+    "en": "Location settings"
   },
   "roamTools.clearCache": {
     "zh-Hans": "清空本机缓存",
-    "en": "Clear Local Cache"
+    "en": "Clear local cache"
   },
   "roamTools.clearCache.confirmTitle": {
     "zh-Hans": "确认清空本机缓存",
