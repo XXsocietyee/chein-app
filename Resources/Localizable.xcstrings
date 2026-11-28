@@ -239916,6 +239916,23 @@
         }
       }
     },
+    "searchMap.merchantDiscovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find shops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家发现"
+          }
+        }
+      }
+    },
     "searchMap.minimum": {
       "localizations": {
         "en": {
