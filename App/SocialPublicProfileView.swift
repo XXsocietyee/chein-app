@@ -34,6 +34,9 @@ import SwiftUI
     @State private var workImagePreview: SocialProfileImagePreview?
     /// A2-03 (发消息): the IM conversation opened in place; needs a host-provided destination.
     @State private var openedConversationID: Int?
+    /// 1128 gap #10 (M-17c): bumped after a server-confirmed 关注 / 取消关注 so the profile (friends / following /
+    /// followers counts and the relation) is read again, as the MP re-reads after `follow/action`.
+    @State private var relationRevision = 0
     @Environment(\.socialConversationDestination) private var conversationDestination
     @State private var selfEditNavigation = ProfileSelfEditNavigation()
     @StateObject private var identityShareOwner = ProfileIdentitySharePageOwner()
@@ -64,7 +67,7 @@ import SwiftUI
         return { selfEditDiagnostics(selfEditNavigation.ticket, ticket, selfEditContext) }
     }
     private var profileReadRequestKey: String {
-        "profile-\(memberID)-\(selfEditNavigation.refreshID)-\(reader.presentationRevision)"
+        "profile-\(memberID)-\(selfEditNavigation.refreshID)-\(reader.presentationRevision)-\(relationRevision)"
     }
     var body: some View {
         ProfileIdentitySharePageHost(owner: identityShareOwner,
@@ -167,7 +170,8 @@ import SwiftUI
                                                                           : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
                             pillLayout {
                                 // A2-03: MP 关注 toggles in place (处理中… → ✓ 已关注), no editor page.
-                                SocialProfileInlineFollowButton(memberID: profile.id, serverFollowed: profile.isFollowed, coordinator: actions) { title, image in
+                                SocialProfileInlineFollowButton(memberID: profile.id, serverFollowed: profile.isFollowed, coordinator: actions,
+                                                                onConfirmed: bumpRelationRevision) { title, image in
                                     profilePill(title, systemImage: image)
                                 }
                                 if showsStartChat {
@@ -383,6 +387,7 @@ import SwiftUI
                 if context == nil && tab == .mine && selfProjectsAccess?.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) == nil { tab = .posts }
             }
     }
+    private func bumpRelationRevision() { relationRevision &+= 1 }
     /// Pull to refresh (MP pull-down): 帖文 reloads the retained author feed; 我的项目 reloads on the bumped token.
     private func refreshPage() async {
         pullRefreshToken &+= 1
@@ -590,6 +595,8 @@ struct ProfileSelfCouponContext: Hashable {
     let memberID: Int
     let serverFollowed: Bool?
     let coordinator: SocialActionCoordinator
+    /// 1128 gap #10: called once the server confirmed the new relation (receipt + profile re-read).
+    var onConfirmed: @MainActor () -> Void = {}
     @ViewBuilder let label: (Text, String?) -> Label
     @State private var ownerID = UUID()
     @State private var busy = false
@@ -632,6 +639,7 @@ struct ProfileSelfCouponContext: Hashable {
             if case .acknowledged(let receipt) = coordinator.state(target: .member(memberID)) {
                 override = receipt.followed ?? !(review.snapshot.profile?.isFollowed ?? false)
                 succeeded += 1
+                onConfirmed()
             } else {
                 failed = true
             }

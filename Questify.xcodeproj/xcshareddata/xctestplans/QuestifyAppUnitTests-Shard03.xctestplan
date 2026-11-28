@@ -153,6 +153,7 @@
         "FinalTwentyBatchMasterCompletionViewTests",
         "Finding4LocalizationTests",
         "Fix1128bClubReadRouteTests",
+        "Fix1128bMineCompositionTests",
         "FogOverlayLayerPixelTests",
         "G1ProductionGatesEndToEndTests",
         "G6CapabilityGrantTests",

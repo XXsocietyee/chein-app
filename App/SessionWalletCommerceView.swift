@@ -149,7 +149,8 @@ import SwiftUI
             } else { CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "social.changed") }
         }
         .environment(\.bankWithdrawalDestination, nil)
-        .environment(\.withdrawalSupportReader, nil)
+        // 1128 gap #11: 提现 here opens the same bundled support contact as every other entry (no request is sent).
+        .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
         .id(session.walletHistoryViewIdentity)
     }
 }

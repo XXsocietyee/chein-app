@@ -4578,7 +4578,7 @@ final class AppSession: ObservableObject {
     lazy var walletCommerceReader = makeWalletCommerceReader()
     /// Public contact approval/transport is not supplied by current deployment composition.
     /// Does not grant wallet reads or any financial command.
-    lazy var withdrawalSupportReader = makeWithdrawalSupportReader()
+    lazy var withdrawalSupportReader = makeBundledWithdrawalSupportReader() // 1128 gap #11: App/WithdrawalSupportBundledSource.swift
     func makeWithdrawalSupportReader(source: WithdrawalSupportReader.Source? = nil,
                                      approval: @escaping () -> WithdrawalSupportApproval? = { nil }) -> WithdrawalSupportReader {
         WithdrawalSupportReader(source: source, approval: approval, session: { [weak self] in self?.walletCommerceScope })
@@ -5133,7 +5133,7 @@ final class AppSession: ObservableObject {
             approvals: { [weak self] context in
                 guard let self, self.currentRuntimeDependencyContext == context else { return [] }
                 return self.runtimeDependencies.socialMemberActionApprovals
-            }, onUnauthorized: { [weak self] captured in
+            }, issue: { [weak self] context, operation, member in self?.issueSocialMemberApproval(context, operation, member) }, onUnauthorized: { [weak self] captured in
                 guard let self, self.currentRuntimeDependencyContext == captured else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
             })
