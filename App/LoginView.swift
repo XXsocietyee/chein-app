@@ -80,7 +80,8 @@ struct LoginView: View {
     }
 
     @ViewBuilder private func appleSignInSection(_ model: AuthChannelModel) -> some View {
-        if consentGranted && model.coordinator.appleConfigurationVerified {
+        // P27: no disabled Apple button when no sign-in service is behind it (sweep ffeef67c7 login-player).
+        if consentGranted && model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured {
             Section {
                 appleButton(model)
                     .listRowInsets(EdgeInsets())
