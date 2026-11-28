@@ -352,7 +352,7 @@ struct E4SettingsFixture: View {
     var body: some View {
         var view = SettingsView()
         // Same member as d2-me / e4-member, in the UI language (00:10 sweep: "Mia Chen" Lv.7 beside 示例会员 Lv.3).
-        view.designOverride = .init(nickname: iaFixtureText("Synthetic member", "示例会员"), level: 3, query: query)
+        view.designOverride = .init(nickname: iaFixtureText("Lin Yu", "林雨"), level: 3, query: query)
         return view.environmentObject(session).environmentObject(NativeOriginalUnreadBadgeState())
     }
 }
