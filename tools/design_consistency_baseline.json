@@ -223,9 +223,6 @@
     "App/CooperationContextualViews.swift": {
       "manual paging": 2
     },
-    "App/CreatorMaintenanceViews.swift": {
-      "manual paging": 2
-    },
     "App/MapPublicLayerSectionView.swift": {
       "manual paging": 1
     },
@@ -291,9 +288,6 @@
     },
     "App/SquareGovernanceViews.swift": {
       "manual paging": 2
-    },
-    "App/SquareWorkspaceView.swift": {
-      "manual paging": 1
     },
     "App/TemplateAuthoringMineView.swift": {
       "manual paging": 1
