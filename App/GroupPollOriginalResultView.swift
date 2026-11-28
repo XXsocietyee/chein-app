@@ -160,6 +160,7 @@ import SwiftUI
                 }
                 if let count = option.voteCount, let total = poll.totalVoters {
                     Text(verbatim: "\(count) / \(total)")
+                        .accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: count)) \(String(describing: total))"))
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }

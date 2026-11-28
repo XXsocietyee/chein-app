@@ -211,7 +211,7 @@ import SwiftUI
             LabeledContent("nativeR2.city.lobby.status") { Text(LocalizedStringKey(detail.team.status.key)) }
             if let max = detail.team.maxMembers, max > 0 {
                 LabeledContent("nativeR2.city.lobby.members") {
-                    Text(verbatim: "\(detail.members.count)/\(max)").monospacedDigit()
+                    Text(verbatim: "\(detail.members.count)/\(max)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: detail.members.count)) \(String(describing: max))"))
                 }
                 Gauge(value: Double(min(detail.members.count, max)), in: 0...Double(max)) {
                     Text("nativeR2.city.lobby.members")

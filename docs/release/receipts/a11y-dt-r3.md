@@ -630,9 +630,26 @@ Not done item: `TextField` rows with a sibling caption. The scan found mostly ch
 | Character counters on player composers: coop invite note + flow reason, club post composer, square appeal reason, picture-choice name, pass refund reason, host cancel reason, square cloud composer, group poll question, comment length row, legacy DIY name | `CooperationContextualViews:677`, `CooperationFlowEditors:266`, `ClubCommunityViews:1056`, `SquareGovernanceViews:67`, `TemplatePictureChoiceEditor:89`, `PassMarketViews:1231`, `ActivityHostCancelView:329`, `SquareCloudComposerView:110`, `GroupPollViews:142`, `SocialActionViews:53`, `PlayKitLegacyViews:82` | ✓ (owning lanes keep order) | `.accessibilityLabel` with the shared `a11y.value.characters` key: "12 of 100 characters" / "已输入 12 字，最多 100 字". Visible text unchanged; identifiers kept. Level B/C | Done |
 
 
+## Run 38 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7`. Sweep index still build 0446d1c4f, so the sheets re-read waits. Not done item 2: other
+`Text(verbatim:)` "a/b" counts (not characters). Already handled and skipped: `CYStepChecklist` ring (hidden, value on the
+row), `ClubBadgeArtKit` (row label), `CYAlbum` dots (page label), `PlayKitPersonalForms` step, `NativeGameKitsB`, `CameraKits`
+album, `NearbyAndHistoryGapViews`. `ObjectBadgeWallParityViews` counts are strings (em dash when unknown) and stay. Internal
+matrix/compliance section views are diagnostics, out of scope.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Nearby team row, free-explore redeemed + story counts (map and archive), city lobby members, city trail team progress, team orient board, group poll option votes, team re-form invite count, play session progress | `NearbyTeamMapViews:148`, `NativeFreeExploreMapView:399/405/635`, `CityOrientationTeamLobbyView:214`, `CityOrientationNavComponents:86`, `TeamOrientBoardView:210`, `GroupPollOriginalResultView:162`, `TeamReformFlowViews:121`, `PlaySessionView:108` | ✓ (owning lanes keep order) | `.accessibilityLabel` with the shared `a11y.value.ofTotalText` key ("3 of 5" / "3，共 5") instead of "3 slash 5" / "3 斜杠 5". Visible text and identifiers unchanged. Level C | Done |
+
+Localized `Text("\(a) / \(b)")` scan: gallery positions already use `carousel.position`. Two object-card frame counters read "slash":
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Object card rotation frames (collection detail + play reveal) | `ObjectCardViews:188`, `PlayObjectCardRevealView:58` | ✓ | Frame counter gets `a11y.value.ofTotal` ("2 of 8" / "2，共 8"). Level C | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-36).
-- Other `Text(verbatim:)` "a/b" counts that are not characters (selected members, options, steps) outside the run-13 value scan.
+- Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-38).
+- `String(format:)` / string-built "a/b" values passed to `Text(verbatim:)` via a variable: same slash scan.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
