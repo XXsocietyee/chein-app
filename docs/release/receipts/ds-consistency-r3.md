@@ -1283,6 +1283,27 @@ URL, club kit fixtures/cards) is a different object and stays.
   (`WalletCommerceViews.swift:1336`) and `WalletIncomeDayText` (`WalletEarningsParity.swift:4`) print `11/6 18:20` / `11/6`
   in en instead of a localized form; route the en path through `LocaleDisplay.monthDayTime` (zh 11月6日 unchanged).
 
+## Continue run 38 (2026-11-28, merged combined-r7 882fca768)
+
+Merge clean. No new coordinator row for this lane (13:15 sweep: mp-mine / mp-activity / mp-club; K11–K16 to Cursor).
+Run 37 Not done row worked: **ADA §3 Dates, second half** — hand-built English month-day text.
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| 积分明细 points rows (`rows.js shortTimeText`) → `App/WalletCommerceViews.swift` `WalletPointsShortTime` · C; invite history latest earn (`ir-earn`) → `App/ProfileInviteHistoryIssueView.swift` · B | `WalletPointsShortTime.text(_:locale:)` | en `11/6 18:20` → `Nov 6, 6:20 PM` (locale template `MMMdjmm`); zh `11月6日 18:20` unchanged; non-date text verbatim |
+| 收益明细 income day header (`scene-asset-income-detail/index.js:15`) → `App/WalletEarningsParity.swift` `WalletIncomeDayText` · C | `.monthDay` case | en `11/6` → `Nov 6`; zh `11月6日` unchanged; 今天 / 昨天 unchanged |
+| — (shared) | `Core/LocaleDisplay.swift` | new `monthDay(_:locale:)` (zh `M月d日` / en `MMMd`) and `monthDay(month:day:year:hour:minute:locale:)` for server wall-clock parts (fixed UTC, never shifted; nil for an invalid date) |
+
+Test: `Tests/CoreTests/LocaleDisplayTests.swift` `testMonthDayPartsAreLocalizedWithoutShifting` (zh exact, en contains,
+Feb 29, invalid date → nil). The `isEnglish:` parameter is gone (the one caller passes the locale); the second caller
+(invite card) now reads `\.locale` instead of defaulting to Chinese in English.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
+PASS (0 debt, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- none
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
