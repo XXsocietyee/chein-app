@@ -432,6 +432,18 @@ e5b-stamp — keep). Map panel settled (02:05) — not touched.
 
 Gates: generate_project OK · check_scaffold PASS (21210 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here. No new strings.
 
+## Round 3 continue (31) — 本次漫游 states as design fixtures (01:40 "next round" item 3) + sweep 03:49 (build 733bfb368)
+
+Base re-merged with `origin/ui/combined-r7` (clean). No open coordinator finding for mp-roam; the sweep index is still build 733bfb368
+(sheets as in continue 30 — keep). Map panel settled (02:05) — not touched. Every MP roam page already has a row.
+
+| MP page → native | Difference | Fix | Fixture |
+|---|---|---|---|
+| `subpackageRoam/session` (`scene-roam-session`: loading 正在读取本次漫游 → `cy-error 这次漫游无法打开 + 重试` → `cy-empty 找不到这次漫游 + 返回漫游历史` → 本次路线 replay → kv 总距离 / 时长 / 探店 / 到达 / 探索度 → 解锁奖励 → 点亮地点 → 分享足迹卡) → `App/RoamHistoryViews.swift` `RoamHistoryDetailView` | Content, order and MP copy already match (continue 1 + 2, mp-states error title). No `--design-fixture` mounted the page, so the sweep never showed it or its not-found / error states. | New fixtures in `DesignFixtureRegistry` mount the real detail view on `RoamExperienceFixtureReader`: record `ts 1700000000000` (外滩 / The Bund, 外滩源庭院 lit — UI-language names from continue 28), a timestamp with no record (MP 找不到这次漫游 + 返回漫游历史), and the failure scenario (这次漫游无法打开 + 重试). UI test `Fixture_r3_roamSessionTests` (share id / missing id / error id + foreground). | `r3-roam-session`, `r3-roam-session-missing`, `r3-roam-session-error` |
+
+**For the coordinator:** please add `r3-roam-session`, `r3-roam-session-missing`, `r3-roam-session-error` to the mp-roam sweep row
+(with the history, stamp-album and route state fixtures from 28–30). No new strings.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
