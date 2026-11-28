@@ -549,6 +549,11 @@ extension PlayKitScreen {
                 }
             }
         } else if let device {
+            // MP `sc__sub` (C1): the static stop code is matched, not the player's presence; said before the scan.
+            Section {
+                Text("playkit.scan.matchNote").font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("playkit.scan.matchNote")
+            }
             CameraScanInput(model: device, identity: cameraEvidenceIdentity, enabled: enabled, onDirty: { dirty = true }) { code in
                 prepare("SUBMIT_SCAN", ["code": .string(code)])
             }
