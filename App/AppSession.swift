@@ -1187,10 +1187,7 @@ final class AppSession: ObservableObject {
     }
     private let registrationBackend: any RegistrationCoordinatingService
     private var registrationIdentity: ProfileReadIdentity?
-    private lazy var retainedRegistration: RegistrationCoordinator = {
-        let backend: any RegistrationCoordinatingService = productionRegistrationService.map { $0 as any RegistrationCoordinatingService } ?? registrationBackend
-        return RegistrationCoordinator(service: backend)
-    }()
+    private lazy var retainedRegistration: RegistrationCoordinator = RegistrationCoordinator(service: self.registrationStatusBackend)
     var registrationCoordinator: RegistrationCoordinator { synchronizeRegistration();return retainedRegistration }
     private func synchronizeRegistration() {
         let identity=profileReader.identity
@@ -4374,7 +4371,7 @@ final class AppSession: ObservableObject {
             let selfPlayAllowed = self.businessRuntimeFactory.map {
                 $0.configuration.selfPlayExternalCheckoutApproved && $0.configuration.selfPlayPayment && $0.permits(.topicSelfPlayPay)
             } ?? false
-            return selfPlayAllowed || self.orderLifecyclePaymentProviderAllowed
+            return selfPlayAllowed || self.orderLifecyclePaymentProviderAllowed || self.registrationAppPayAllowed
         }, context: { [weak self] in self?.currentRuntimeDependencyContext })
     private let selfPlayOperationGate = TopicSelfPlayOperationGate()
     private var retainedSelfPlayFlows: [String: TopicSelfPlayFlow] = [:]
@@ -5395,6 +5392,8 @@ final class AppSession: ObservableObject {
               configuration.externalCheckoutApproved, configuration.devicePaymentApproved else { return false }
         return configuration.approvals.contains { $0.action == .payment && $0.expiresAt > Date() }
     }
+    var registrationPaymentProvider: (any TopicSelfPlayPaymentProviding)? { ReleaseMoneyWriteSwitch.paymentEnabled && registrationAppPayAllowed ? (runtimeDependencies.selfPlayPayment ?? nativeWeChatPaymentAdapter) : nil }
+    var registrationStatusBackend: any RegistrationCoordinatingService { productionRegistrationService.map { $0 as any RegistrationCoordinatingService } ?? registrationBackend }
     func makeOrderLifecycleDispatcher() -> OrderLifecycleProductionDispatcher? {
         guard let api = regionalConfiguration?.apiConfiguration, let journal = orderLifecycleJournal else { return nil }
         return OrderLifecycleProductionFactory.make(configuration: runtimeDependencies.orderLifecycleConfiguration,
