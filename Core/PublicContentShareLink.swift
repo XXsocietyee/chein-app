@@ -26,10 +26,12 @@ public enum PublicContentShareLink {
         universalLink(path: NativeContentTarget.Kind.template.sourcePath, id: id)
     }
 
-    /// Mini-program `pages/templatedetail/topic-detail/index?id=`.
-    /// Nil while that path is not already parsed. Callers then copy `topicTemplateCopyText`.
+    /// Mini-program `pages/templatedetail/topic-detail/index?id=` (MP topic-detail index.js:317 share path).
+    /// The universal-link parser reads it back as that MP page (PC-A-8-1), so the share is the https link like
+    /// the topic and template shares. Nil for a non-canonical id; callers then copy `topicTemplateCopyText`.
     public static func topicTemplate(id: Int) -> URL? {
-        universalLink(path: "/pages/templatedetail/topic-detail/index", id: id)
+        guard canonicalID(String(id)) != nil else { return nil }
+        return reviewedPage("pages/templatedetail/topic-detail/index", items: [URLQueryItem(name: "id", value: String(id))])
     }
 
     /// Mini-program `subpackageJourney/pages/landing/index?k=r|g|s&t=` plus optional `aid` / `tid`: the link a
@@ -118,9 +120,11 @@ public enum PublicContentShareLink {
     }
 
     /// Mini-program `subpackageA/pages/infomationdetail/infomationdetail?id=` (source spelling).
-    /// Nil while that path is not already parsed. Callers then copy `informationCopyText`.
+    /// MP infomationdetail.js:161 share path; parsed back as that MP page. Nil for a non-canonical id;
+    /// callers then copy `informationCopyText`.
     public static func information(id: Int) -> URL? {
-        universalLink(path: "/subpackageA/pages/infomationdetail/infomationdetail", id: id)
+        guard canonicalID(String(id)) != nil else { return nil }
+        return reviewedPage("subpackageA/pages/infomationdetail/infomationdetail", items: [URLQueryItem(name: "id", value: String(id))])
     }
 
     /// Path text when the information page is not a universal link. Not a URL.

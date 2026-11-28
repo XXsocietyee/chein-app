@@ -75,22 +75,29 @@ final class PublicContentShareLinkTests: XCTestCase {
         XCTAssertNil(PublicContentShareLink.discoveryTemplate(id: -3))
     }
 
-    func testTopicTemplatePathIsNotParsedSoOnlyTheMiniProgramPathIsCopied() throws {
-        XCTAssertNil(PublicContentShareLink.topicTemplate(id: 15))
-        let raw = "https://www.chengyinhub.com/pages/templatedetail/topic-detail/index?id=15"
-        let url = try XCTUnwrap(URL(string: raw))
+    /// Function audit 11-28 row "分享主题模板": the parser already reads this MP page back (PC-A-8-1), so the share is
+    /// the https link (MP topic-detail index.js:317), not the bare path text.
+    func testTopicTemplateSharesTheParsedUniversalLink() throws {
+        let url = try XCTUnwrap(PublicContentShareLink.topicTemplate(id: 15))
+        XCTAssertEqual(url.absoluteString, "https://www.chengyinhub.com/pages/templatedetail/topic-detail/index?id=15")
         XCTAssertNil(CheinDeepLink(url: url))
-        // PC-A-8-1 (parity r1): a verified universal link to the MP template detail opens that template.
         XCTAssertEqual(UniversalLinkParser(verifiedHTTPSOrigins: ["https://www.chengyinhub.com"]).parse(url),
                        .miniProgramPage(try XCTUnwrap(MiniProgramPageLink(path: "pages/templatedetail/topic-detail/index", query: ["id": "15"]))))
         XCTAssertNil(UniversalLinkParser().parse(url))
-        XCTAssertEqual(PublicContentShareLink.topicTemplateCopyText(id: 15), "/pages/templatedetail/topic-detail/index?id=15")
-        let text = try XCTUnwrap(PublicContentShareLink.topicTemplateCopyText(id: 15))
-        XCTAssertFalse(text.contains("http"))
-        XCTAssertFalse(text.contains("chengyinhub"))
-        XCTAssertFalse(text.contains("referral"))
+        XCTAssertNil(PublicContentShareLink.topicTemplateCopyText(id: 15))
         XCTAssertNil(PublicContentShareLink.topicTemplateCopyText(id: 0))
         XCTAssertNil(PublicContentShareLink.topicTemplate(id: 0))
+        XCTAssertNil(PublicContentShareLink.topicTemplate(id: -2))
+    }
+
+    /// MP infomationdetail.js:161 share path: the guide article shares its https link once the parser reads it back.
+    func testInformationSharesTheParsedUniversalLink() throws {
+        let url = try XCTUnwrap(PublicContentShareLink.information(id: 21))
+        XCTAssertEqual(url.absoluteString, "https://www.chengyinhub.com/subpackageA/pages/infomationdetail/infomationdetail?id=21")
+        XCTAssertEqual(UniversalLinkParser(verifiedHTTPSOrigins: ["https://www.chengyinhub.com"]).parse(url),
+                       .miniProgramPage(try XCTUnwrap(MiniProgramPageLink(path: "subpackageA/pages/infomationdetail/infomationdetail", query: ["id": "21"]))))
+        XCTAssertNil(PublicContentShareLink.informationCopyText(id: 21))
+        XCTAssertNil(PublicContentShareLink.information(id: 0))
     }
 
     func testMemberInviteSharePathUsesTheIndexQueryAndNoInventedHost() throws {
