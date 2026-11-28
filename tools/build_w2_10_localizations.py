@@ -24,7 +24,7 @@ PAIRS = {
     'badgeWall.threeD.open': ('View 3D badge', '查看 3D 徽章'),
     'objectCards.denied': ('This identity can’t view it', '当前身份不能查看'),
     'objectCards.emptyAll': ('You have not collected anything yet', '还没有收过东西'),
-    'objectCards.emptyHint': ('Photograph an item at a node you have played; once it passes review it is collected here', '在玩过的节点里拍一件东西，判过就收进这里'),
+    'objectCards.emptyHint': ('Photograph an item at a stop you’ve played. Once it passes review, it’s collected here', '在玩过的节点里拍一件东西，判过就收进这里'),
     'stampAlbum.total %lld': ('Stamps: %lld', '%lld 枚'),
     'stampAlbum.denied': ('This identity can’t view it', '当前身份不能查看'),
     'stampAlbum.openCamera': ('Open stamp camera', '打开集邮相机'),

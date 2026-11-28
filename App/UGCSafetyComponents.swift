@@ -578,6 +578,8 @@ struct UGCSafetyMenuButton: View {
 
     let presentation: UGCReportPresentationTarget
     var compactLabel: Bool = false
+    /// ADA 11-28: on detail pages the toolbar shows the standard "···" more glyph, not a top-level Report flag.
+    var moreGlyph: Bool = false
     var onBlocked: (() -> Void)? = nil
 
     @State private var reportPresented: UGCReportPresentationTarget?
@@ -654,7 +656,9 @@ struct UGCSafetyMenuButton: View {
             .accessibilityLabel(Text("ugc.safety.action.contactSupport", tableName: "UGCSafety"))
             .accessibilityIdentifier("ugc.safety.menu.contactSupport")
         } label: {
-            if compactLabel {
+            if moreGlyph {
+                Image(systemName: "ellipsis.circle")
+            } else if compactLabel {
                 Image(systemName: "shield")
                     .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)

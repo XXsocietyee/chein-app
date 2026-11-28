@@ -55,6 +55,21 @@ final class PlayJournalTests: XCTestCase {
         XCTAssertFalse(PlayCouponToast.shows(receipt: try wire(#"{"nodeId":1}"#), snapshot: shopDay))
     }
 
+    /// MP `_applyAiScore`: a card only when the photo receipt carries `aiScore.score > 0`; no placeholder score.
+    func testAIScoreCardFollowsThePhotoReceipt() throws {
+        func wire(_ text: String) throws -> PlayWireValue { try JSONDecoder().decode(PlayWireValue.self, from: Data(text.utf8)) }
+        let card = try XCTUnwrap(PlayAIScoreCard(receipt: try wire(#"{"nodeId":4,"aiScore":{"score":86.5,"comment":" 构图清楚 ","note":""}}"#)))
+        XCTAssertEqual(card.nodeID, 4)
+        XCTAssertEqual(card.score, 86.5)
+        XCTAssertEqual(card.comment, "构图清楚")
+        XCTAssertNil(card.note)
+        XCTAssertEqual(PlayAIScoreCard(receipt: try wire(#"{"nodeId":4,"aiScore":{"score":"72","note":"仅供参考"}}"#))?.note, "仅供参考")
+        XCTAssertNil(PlayAIScoreCard(receipt: try wire(#"{"nodeId":4,"aiScore":{"score":0}}"#)))
+        XCTAssertNil(PlayAIScoreCard(receipt: try wire(#"{"nodeId":4}"#)))
+        XCTAssertNil(PlayAIScoreCard(receipt: try wire(#"{"aiScore":{"score":90}}"#)))
+        XCTAssertNil(PlayAIScoreCard(receipt: nil))
+    }
+
     func testRouteNoticeAndTimeLineFollowTheMPBanner() throws {
         func result(_ text: String) throws -> PlayNodesResult {
             try JSONDecoder().decode(PlayNodesResult.self, from: Data(text.utf8))

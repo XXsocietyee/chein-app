@@ -1498,6 +1498,7 @@ struct PlayThemeMusicKey: Equatable {
         if let arrival, arrival.offer(for: node.id) != nil {
             Section { PlayArrivalControl(arrival: arrival, nodeID: node.id, context: context) }
         }
+        if let card = model.aiScores[node.id] { PlayAIScoreSection(card: card) }
     }
 
     @ViewBuilder

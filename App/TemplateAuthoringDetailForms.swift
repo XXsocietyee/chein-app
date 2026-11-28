@@ -111,8 +111,19 @@ import SwiftUI
 @MainActor struct TemplateAuthoringRewardStoryFields: View {
     @ObservedObject var model: TemplateAuthoringModel
     @StateObject private var rewards: TemplateRewardKindEditor
+    @Environment(\.rewardCouponSource) private var couponSource
+    @State private var couponName = ""
     init(model: TemplateAuthoringModel) {
         self.model = model; _rewards = StateObject(wrappedValue: .init(model: model))
+    }
+    /// MP `cy-reward-selector` (节点完成奖励 · 完成节点后发放 · 选择优惠券) when the session can list the author's
+    /// coupons; fixtures without a session keep the plain ID field.
+    @ViewBuilder private var couponField: some View {
+        if let couponSource {
+            RewardCouponSelectorRow(source: couponSource, couponID: rewards.coupon(), couponName: $couponName)
+        } else {
+            TemplateAuthoringField("couponId", text: rewards.coupon())
+        }
     }
     var body: some View {
         Section("templateAuthor.reward") {
@@ -121,7 +132,7 @@ import SwiftUI
                 Toggle("templateRewardKinds.coupon", isOn: rewards.toggle(.coupon))
                     .accessibilityIdentifier("templateRewardKinds.coupon")
                 if rewards.isEnabled(.coupon) {
-                    TemplateAuthoringField("couponId", text: rewards.coupon())
+                    couponField
                 }
                 if rewards.isEnabled(.feedback) {
                     Toggle("templateRewardKinds.feedback", isOn: rewards.toggle(.feedback))

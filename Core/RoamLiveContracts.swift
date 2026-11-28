@@ -159,4 +159,10 @@ public struct RoamLiveShopReceipt: Decodable { public let recorded: Bool }
     func shopVisit(sessionID: Int, sourceType: Int, sourceID: Int, fix: RoamDeviceFix) async throws -> RoamLiveShopReceipt
     func presence(sessionID: Int, fix: RoamDeviceFix, explorationPercent: Int) async throws
     func finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int) async throws
+    func finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int, track: [RoamCoordinate]) async throws
+}
+public extension RoamLiveServing {
+    func finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int, track: [RoamCoordinate]) async throws {
+        try await finish(sessionID: sessionID, poiIDs: poiIDs, distanceMeters: distanceMeters)
+    }
 }

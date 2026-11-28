@@ -338,7 +338,8 @@ import Foundation
             while record?.pendingTiles.isEmpty == false { try await flushReveal(token) }
             guard let id = record?.sessionID else { throw RoamLiveFailure.recoveryRequired }
             draft = record!; draft.pendingWrite = .finish; try persist(draft)
-            try await service!.finish(sessionID: id, poiIDs: draft.confirmedPOIIDs, distanceMeters: Int(draft.distanceMeters.rounded()))
+            try await service!.finish(sessionID: id, poiIDs: draft.confirmedPOIIDs, distanceMeters: Int(draft.distanceMeters.rounded()),
+                                      track: track.map(\.coordinate))
             try check(token)
             let fact = try await service!.fact(key: draft.clientSessionKey); try check(token)
             try validate(fact, record: draft); guard fact.state == .finished else { throw RoamLiveFailure.recoveryRequired }

@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Motion & Fitness Needed"
+            "value": "Motion & Fitness access needed"
           }
         },
         "zh-Hans": {
@@ -330,7 +330,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This Round Was Updated"
+            "value": "This round was updated"
           }
         },
         "zh-Hans": {

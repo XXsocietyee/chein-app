@@ -105,7 +105,8 @@ struct TopicDetailView: View {
                             subjectTitle: value.name,
                             authorMemberID: value.ownerMemberID,
                             authorName: value.clubName
-                        )
+                        ),
+                        moreGlyph: true
                     )
                     .accessibilityIdentifier("topic.safety.menu")
                 }
