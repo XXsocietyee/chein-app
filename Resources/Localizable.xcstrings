@@ -310086,7 +310086,92 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "导演台加载失败"
+            "value": "导演台读取失败"
+          }
+        }
+      }
+    },
+    "club.topic.director.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No event session to manage yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有可管理的活动局"
+          }
+        }
+      }
+    },
+    "club.topic.director.emptySub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a session from club management first, then open the director desk."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先从俱乐部管理区开一场，再进入导演台。"
+          }
+        }
+      }
+    },
+    "club.topic.director.network": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network connection failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络连接失败"
+          }
+        }
+      }
+    },
+    "club.topic.director.reconnect": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新连接"
+          }
+        }
+      }
+    },
+    "club.topic.director.failedSub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The director desk can't be opened right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动导演台暂时无法打开"
           }
         }
       }
