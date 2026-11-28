@@ -236,7 +236,7 @@ public struct ClubChannelMessagingView: View {
                         Text(verbatim: rulesFullText)
                     }
                 }
-                .navigationTitle(copy("俱乐部频道公约与安全守则", "Club Channel Rules & Safety EULA"))
+                .navigationTitle(copy("俱乐部频道公约与安全守则", "Club channel rules & safety EULA"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
@@ -247,7 +247,7 @@ public struct ClubChannelMessagingView: View {
                             moderationCoordinator.acceptChannelRules(locale: locale)
                             showRulesSheet = false
                         }
-                        .accessibilityLabel(Text(verbatim: copy("我已阅读并同意频道公约", "Accept Channel Rules & EULA")))
+                        .accessibilityLabel(Text(verbatim: copy("我已阅读并同意频道公约", "Accept the channel rules & EULA")))
                         .accessibilityIdentifier("club.channel.rulesGate.accept")
                     }
                 }
