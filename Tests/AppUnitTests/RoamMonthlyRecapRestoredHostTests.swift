@@ -229,12 +229,19 @@ import UIKit
         XCTAssertEqual(rig.storage.writes, 0)
     }
 
+    private var ownedScenes: [HostedNavigationSceneWindow] = []
     private func mount(_ rig: MonthlyNaturalRig, entry: Entry, includeDestination: Bool = true) -> UIWindow {
         let route: ((String) -> AnyView)? = includeDestination ? { id in
             rig.topics.append(id)
             return AnyView(Text("Original topic " + id).accessibilityIdentifier("monthly.original.topic"))
         } : nil
-        let host = UIHostingController(rootView: NavigationStack {
+        // Wide enough that the 3-kind picker stays segmented ("First places" / "City stamps").
+        let frame = CGRect(x: 0, y: 0, width: 900, height: 1100)
+        let owned = try? HostedNavigationSceneWindow()
+        let window = owned?.window ?? hostedSceneWindow(frame: frame)
+        window.frame = frame
+        if let owned { ownedScenes.append(owned) }
+        hostedMount(window, root: NavigationStack {
             switch entry {
             case .hub, .hubHistory:
                 RoamExperienceHubView(reader: rig.history, toolsReader: rig.tools, anniversaryRouteDestination: route)
@@ -242,11 +249,12 @@ import UIKit
                 RoamHomePassportView(reader: rig.history, toolsReader: rig.tools, anniversaryRouteDestination: route)
             }
         }.environment(\.locale, Locale(identifier: "en_US")).environment(\.scenePhase, .active))
-        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
-        window.rootViewController = host; window.makeKeyAndVisible()
-        host.loadViewIfNeeded(); host.view.layoutIfNeeded(); return window
+        return window
     }
-    private func close(_ window: UIWindow) { window.isHidden = true; window.rootViewController = nil }
+    private func close(_ window: UIWindow) {
+        if let index = ownedScenes.firstIndex(where: { $0.window === window }) { ownedScenes.remove(at: index).retire(); return }
+        window.isHidden = true; window.rootViewController = nil
+    }
     private func open(_ entry: Entry, in window: UIWindow) async throws {
         switch entry {
         case .hub, .passport: try await tap("roam.tools.recap.open", in: window)
@@ -262,6 +270,7 @@ import UIKit
     private func waitFor(_ message: String, _ condition: () -> Bool) async throws {
         for _ in 0..<150 {
             if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
             try await Task.sleep(nanoseconds: 20_000_000)
         }
         XCTFail(message); throw APIError.notConfigured
@@ -269,7 +278,9 @@ import UIKit
     private func reveal(_ id: String, in window: UIWindow) async throws {
         for _ in 0..<35 {
             if find(id, in: window) != nil { return }
-            scroll(window); try await Task.sleep(nanoseconds: 40_000_000)
+            scroll(window)
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 40_000_000)
         }
         XCTFail("Original control not found: " + id + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
@@ -312,10 +323,20 @@ import UIKit
         }
         return visit(window)
     }
+    /// The passport tab picker is also a segmented control (2 segments). The kind picker has 3.
     private func segmented(in view: UIView) -> UISegmentedControl? {
-        if let value = view as? UISegmentedControl { return value }
-        for child in view.subviews { if let value = segmented(in: child) { return value } }
-        return nil
+        var fallback: UISegmentedControl?
+        func visit(_ view: UIView) -> UISegmentedControl? {
+            if let value = view as? UISegmentedControl {
+                if value.numberOfSegments >= 3 { return value }
+                if fallback == nil { fallback = value }
+            }
+            for child in view.subviews {
+                if let found = visit(child) { return found }
+            }
+            return nil
+        }
+        return visit(view) ?? fallback
     }
     private func navigations(_ controller: UIViewController?) -> [UINavigationController] {
         guard let controller else { return [] }

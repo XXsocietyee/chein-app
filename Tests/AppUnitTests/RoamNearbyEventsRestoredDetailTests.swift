@@ -181,23 +181,34 @@ import UIKit
         XCTAssertNil(find("roam.home.peek.card.activity-71", in: window)); XCTAssertEqual(rig.wire.requests.count, 3)
     }
 
+    private var ownedScenes: [HostedNavigationSceneWindow] = []
     private func mount(_ rig: NearbyEntryRig) -> UIWindow {
-        let host = UIHostingController(rootView: NearbyEntryHarness(rig: rig))
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
-        window.rootViewController = host; window.makeKeyAndVisible()
-        host.loadViewIfNeeded(); host.view.layoutIfNeeded(); return window
+        let owned = try? HostedNavigationSceneWindow()
+        let window = owned?.window ?? hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
+        if let owned { ownedScenes.append(owned) }
+        hostedMount(window, root: NearbyEntryHarness(rig: rig))
+        return window
     }
-    private func close(_ window: UIWindow) { window.isHidden = true; window.rootViewController = nil }
+    private func close(_ window: UIWindow) {
+        if let index = ownedScenes.firstIndex(where: { $0.window === window }) { ownedScenes.remove(at: index).retire(); return }
+        window.isHidden = true; window.rootViewController = nil
+    }
     private func waitFor(_ message: String, _ condition: () -> Bool) async throws {
-        for _ in 0..<150 { if condition() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
+        for _ in 0..<150 {
+            if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
         XCTFail(message); throw APIError.notConfigured
     }
     private func reveal(_ id: String, in window: UIWindow, byLabel: Bool = false) async throws {
         for _ in 0..<35 {
             if find(id, in: window, byLabel: byLabel) != nil { return }
-            scroll(window); try await Task.sleep(nanoseconds: 40_000_000)
+            scroll(window)
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 40_000_000)
         }
-        XCTFail("Original control missing: " + id); throw APIError.notConfigured
+        XCTFail("Original control missing: " + id + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func scroll(_ view: UIView) {
         if let scroll = view as? UIScrollView {

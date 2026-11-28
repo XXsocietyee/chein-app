@@ -186,7 +186,11 @@ import UIKit
         window.isHidden = true; window.rootViewController = nil
     }
     private func waitFor(_ condition: () -> Bool) async throws {
-        for _ in 0..<150 { if condition() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
+        for _ in 0..<150 {
+            if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
         XCTFail("Original tile read/control did not settle" + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func tap(_ id: String, in window: UIWindow) async throws {
@@ -221,8 +225,9 @@ import UIKit
     @ObservedObject var state: TileIntentHostState
     var body: some View {
         let _ = state.revision
-        NavigationStack {
-            if state.open { RoamTileMemoryView(reader: state.rig.reader) }
+        // The open flag stays outside the stack. Swapping the stack's root deinits the page mid-update.
+        Group {
+            if state.open { NavigationStack { RoamTileMemoryView(reader: state.rig.reader) } }
             else { Text("Original tile page closed") }
         }.environment(\.scenePhase, state.phase).environment(\.locale, Locale(identifier: "en_US"))
     }

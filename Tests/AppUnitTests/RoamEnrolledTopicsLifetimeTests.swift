@@ -135,13 +135,19 @@ import UIKit
         window.isHidden = true; window.rootViewController = nil
     }
     private func waitFor(_ condition: () -> Bool) async throws {
-        for _ in 0..<150 { if condition() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
+        for _ in 0..<150 {
+            if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
         XCTFail("Original enrolled-topic control/read state did not settle" + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func tap(_ id: String, in window: UIWindow) async throws {
         for _ in 0..<35 {
             if find(id, in: window) != nil { break }
-            scroll(window); try await Task.sleep(nanoseconds: 40_000_000)
+            scroll(window)
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 40_000_000)
         }
         let target = try XCTUnwrap(find(id, in: window))
         if let control = target as? UIControl { control.sendActions(for: .touchUpInside) }

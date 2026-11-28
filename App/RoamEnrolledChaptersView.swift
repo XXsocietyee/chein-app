@@ -130,8 +130,20 @@ import SwiftUI
         false
         #endif
     }
-    private var isForeground: Bool { scenePhase == .active || fixtureForeground }
+    private var isForeground: Bool { scenePhase != .background || fixtureForeground }
     var body: some View {
+        // Destination sits on the group. Hiding the list behind the push swaps the List body;
+        // a destination attached to that List is deinited mid-push.
+        Group { chapterList }
+            .navigationDestination(item: $target) { selection in
+                if model.mayRemainOpen(selection) {
+                    TicketWalletDetailView(id: selection.registrationID, reader: tickets)
+                } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.chapters.changed") }
+            }
+            .accessibilityIdentifier("roam.chapters.list")
+            .privacySensitive()
+    }
+    private var chapterList: some View {
         let retry = viewModel.readAction(), refresh = viewModel.refreshAction()
         List {
             if viewModel.isVisible {
@@ -169,17 +181,12 @@ import SwiftUI
             .onAppear { viewModel.appear(foreground: isForeground) }
             .onDisappear { viewModel.disappear(preservingSnapshot: target != nil) }
             .onChange(of: scenePhase) { _, phase in
+                // A push reports inactive. Only background retires the list.
+                guard phase != .inactive else { return }
                 viewModel.setForeground(phase == .active || fixtureForeground, preservingSnapshot: target != nil)
             }
             .onChange(of: model.owner) { _, _ in target = nil }
             .refreshable { await refresh() }
-            .navigationDestination(item: $target) { selection in
-                if model.mayRemainOpen(selection) {
-                    TicketWalletDetailView(id: selection.registrationID, reader: tickets)
-                } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.chapters.changed") }
-            }
-            .accessibilityIdentifier("roam.chapters.list")
-            .privacySensitive()
     }
 }
 struct RoamEnrolledChapterRow: View {
