@@ -573,3 +573,11 @@ Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, owner Q9, co
 Merged `origin/ui/combined-r7` 51f0d6476 (clean). Brief re-read: no coordinator finding for mp-nav after the 17:30 `ia-tabs` P2 (fixed); sweep index still build b954de71c (mp-nav sheets reviewed last run; en login subtitle fixed). No `cursor-k50-p*` lane-layout receipt on any branch. B receipt (196510b72): no new rows. Open rows in file order: only (1) "漫游护照与工具" hub sheet (A half, kept by owner Q9, coordinator).
 
 **Half done.** Run stopped.
+
+## Run 11-28 ~19:3x UTC (half-hourly, A lane) — merged combined-r7 021045941
+
+Merged `origin/ui/combined-r7` 021045941 (clean). Brief re-read: no coordinator finding for mp-nav after the 17:30 `ia-tabs` P2 (fixed); sweep index still build b954de71c (mp-nav sheets reviewed at 18:4x). No `cursor-k50-p*` lane-layout receipt on any branch (only `k50-r01/03/04/08/09/10`, none naming mp-nav). B receipt (196510b72): no new rows.
+
+New principle P43 (notification rows, handoff `a6c51df60`) checked against the area ("Next round" item 1): the MP player app has no 消息 → 通知 list page. System notices arrive as conversations in `subpackageB/pages/im/list` (tabs 收件箱 / 发件箱, rows already carry unread badges and land on the conversation), and the only `notify/index` in `app.json` is the club-owner page (`pages/club/notify`, mp-club). OWNER RULE: no section the MP does not have, so no new notification list is built here. Left for the coordinator: whether P43 should reshape the inbox's system-conversation rows (type badge + object cover) or wait for a backend notification feed.
+
+Open rows in file order: only (1) "漫游护照与工具" hub sheet (A half, kept by owner Q9, coordinator). **Half done.** Run stopped.
