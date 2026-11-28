@@ -137,6 +137,11 @@ public enum ActivityDetailPageModel {
         return trimmed.isEmpty ? unknownDisplay : trimmed
     }
 
+    /// G-05: a 401 on the activity read offers sign-in over this page. Every other error keeps retry.
+    public static func readFailedBecauseSignedOut(_ error: Error) -> Bool {
+        (error as? APIError) == .unauthorized
+    }
+
     public static func phase(loading: Bool, failed: Bool, access: ActivityDetailAccess?) -> ActivityDetailPagePhase {
         if loading { return .loading }
         if failed { return .error }
