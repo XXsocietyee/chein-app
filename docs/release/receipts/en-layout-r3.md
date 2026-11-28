@@ -362,6 +362,14 @@ Merged `origin/ui/combined-r7` (3dcab5af8, clean). Sweep index still build 3348a
 | 121 | Template adoption place binding (`pages/templatedetail/*` → `TemplateAdoptionViews.swift:121-136`), play stop detail (`pages/play/*` → `PlayNodeDetailView.swift:149`), external game result (`ExternalGameImportView.swift:562`) | Creator jargon "node" on player screens: "Bind a node", "Bind to which node", "Node External Game", " · Node done" | "Choose a stop", "Choose a stop for this place", "First give a stop in your chapters a place in this city, then save", "Stop mini-game", " · Stop cleared" (row 117 wording) | Done |
 | 122 | Share composer (`CYShareComposer.swift:174`), roam nearby photo credits (`RoamNearbyParityExtras.swift:393`), roam growth titles (`Core/CityMonopolyContracts.swift:975,977`) | "Background colour", "Photo sources and licences", "Crowd Favourite", "Neighbour" | "Background color", "Photo sources and licenses", "Crowd Favorite", "Neighbor" | Done |
 
+### Run 32b (11-28, twin)
+Merged `origin/ui/combined-r7` (882fca768). Sweep build 0446d1c4f: checked `mp-club/sheet-en.jpg` and `mp-home/sheet-en.jpg`. The club hero with baked-in Chinese is K15 (`cursor/1128-l10n-art`); the empty band above Enrollment roster / Find clubs is mp-club's P2.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 123 | `pages/club/*` 成员 (MP order unchanged) → `App/ClubKit/ClubRosterCardKit.swift:65-80` (`en-d4-members`) | Members summary read "Owner 1 · Admins 1 · Members 1": noun before the number, and "Owner" while the rows say "Creator" | en → "Creator: 1 · Admins: 1 · Members: 1" (`tools/build_design_r1_localizations.py` → `Resources/DesignR1Club.xcstrings`; pin in `Tests/AppUnitTests/DesignR1ClubKitTests.swift:114`); zh unchanged | Done |
+| 124 | `pages/index/index` 编辑精选 (MP order unchanged) → `App/HomeFeedView.swift` `homeFeed.editorsPicksFootnote` (`en-d2-home`) | "Check each page for entry rules" — vague translation of 参加条件以详情为准 | en → "See each topic for how to join"; zh unchanged | Done |
+
 ## Not done
 
 | Item | Why |
