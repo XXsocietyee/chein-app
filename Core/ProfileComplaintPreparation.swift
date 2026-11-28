@@ -78,10 +78,12 @@ public struct ProfileComplaintReview: Equatable {
     public let reason: String
 }
 public enum ProfileComplaintReadIssue: String, Equatable {
-    case failed, signIn, unavailable
+    /// `denied` = MP complaint `readAccess: 'denied'` (HTTP / business 403): 当前身份不能发起投诉 · 重试.
+    case failed, signIn, unavailable, denied
     public var titleKey: String { "profile.complaint.read." + rawValue }
     public init(_ error: Error) {
         if error as? APIError == .unauthorized { self = .signIn }
+        else if error as? APIError == .httpStatus(403) || error as? APIError == .businessCode(403) { self = .denied }
         else if error as? APIError == .notConfigured { self = .unavailable }
         else { self = .failed }
     }
@@ -153,7 +155,7 @@ public enum ProfileComplaintReadIssue: String, Equatable {
             let failure = ProfileComplaintReadIssue(error)
             isNetworkFailure = ProfileComplaintTopicLoadFailureCopy.isNetworkError(error)
             issue = failure
-            if failure == .signIn || failure == .unavailable {
+            if failure == .signIn || failure == .unavailable || failure == .denied {
                 topics = nil; draft = .init(); review = nil
             }
         }

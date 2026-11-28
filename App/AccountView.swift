@@ -26,6 +26,7 @@ import SwiftUI
     }
     private var activeMineTab: AccountMineTab { mineTabs.contains(mineTab) ? mineTab : .mine }
     @State private var memberRefreshToken = 0
+    @State private var assetsLedgerCount: Int?
     @State private var settingsGuideHandoff = SettingsGuideHandoff()
     @State private var showsTickets=false
     @State private var showsTicketPass=false
@@ -71,6 +72,8 @@ import SwiftUI
                         .accessibilityIdentifier("account.mine.tabs")
                         .sensoryFeedback(.selection, trigger: mineTab)
                 }
+                // MP loadUsageCounts (1121 N5): the 账户余额 ledger count, re-read on every pull.
+                .modifier(MemberAssetsLedgerCountTask(reader: session.walletHistoryReader, refreshToken: memberRefreshToken, count: $assetsLedgerCount))
                 switch activeMineTab {
                 case .mine: mineTabSections
                 case .posts: postsTabSections
@@ -214,13 +217,10 @@ import SwiftUI
         Section("wallet.assets") {
             // mp-mine r3: MP 我的 → 我的资产 is a row on the 我的 tab for every host (the Passport circle row is gone).
             // MP pc-asset: 账户余额 with the balance (P-49: unknown reads ¥0, never "—") → earnings/wallet.
-            NavigationLink { SessionWalletCommerceView().id(session.walletCommerceScope).cyPushedChrome()                     } label: {
-                LabeledContent {
-                    Text(verbatim: MemberBalanceDisplay.text(aboutSnapshot?.balanceText ?? "0", locale: locale)).monospacedDigit()
-                } label: {
-                    Label { Text("member.card.balance", tableName: "MemberProfile") } icon: { Image(systemName: "wallet.pass") }
-                }
-            }.accessibilityIdentifier("account.wallet")
+            // MP 1121 N5: the card folds away only for a known ¥0.00 with no ledger rows.
+            if !MemberAssetsBalanceRow.folds(balanceText: aboutSnapshot?.balanceText, ledgerCount: assetsLedgerCount) {
+                MemberAssetsBalanceRow(balanceText: aboutSnapshot?.balanceText, walletScope: session.walletCommerceScope)
+            }
             ModSettlementAccountLink(makeReader: { session.makeModSettlementReader() })
             MPPassAssetsLink() // 通行证与礼品 under assets; hidden until its binding is injected, and for merchants
         }
@@ -498,6 +498,56 @@ enum AccountMineTab: String, CaseIterable, Hashable {
             }
             .accessibilityIdentifier("account.merchantApplication")
             }
+        }
+    }
+}
+
+/// MP `profile/index.wxml` `pc-asset` (1121 N5): 账户余额 shows unless the balance is a known 0.00 AND the income ledger
+/// (`/api/user/balance/list`, `loadUsageCounts`) is known to be empty. An unread balance or a failed ledger read keeps the
+/// row ("没拉到照常出"), and an unknown balance reads ¥0 (P-49).
+@MainActor struct MemberAssetsBalanceRow: View {
+    let balanceText: String?
+    let walletScope: WalletCommerceScope?
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        NavigationLink { SessionWalletCommerceView().id(walletScope).cyPushedChrome() } label: {
+            LabeledContent {
+                Text(verbatim: MemberBalanceDisplay.text(balanceText ?? "0", locale: locale)).monospacedDigit()
+            } label: {
+                Label { Text("member.card.balance", tableName: "MemberProfile") } icon: { Image(systemName: "wallet.pass") }
+            }
+        }
+        .accessibilityIdentifier("account.wallet")
+    }
+
+    static func folds(balanceText: String?, ledgerCount: Int?) -> Bool {
+        guard let balanceText, ledgerCount == 0 else { return false }
+        let trimmed = balanceText.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: "")
+        guard let value = Decimal(string: trimmed, locale: Locale(identifier: "en_US_POSIX")) else { return false }
+        return value == .zero
+    }
+}
+
+/// Reads the 余额流水 count once per refresh token (MP `pageNum 1`); any failure leaves it unknown (nil), so the row stays.
+@MainActor struct MemberAssetsLedgerCountTask: ViewModifier {
+    let reader: WalletCommerceReader
+    let refreshToken: Int
+    @Binding var count: Int?
+
+    func body(content: Content) -> some View {
+        content.task(id: refreshToken) { await load() }
+    }
+
+    private func load() async {
+        let wallet = reader
+        do {
+            let page = try await wallet.read { (service: WalletCommerceService, token: String) in
+                try await service.ledger(.income(.all), page: 1, pageSize: 20, token: token)
+            }
+            count = page.total ?? page.rows.count
+        } catch {
+            count = nil
         }
     }
 }

@@ -6,7 +6,7 @@ public enum APIError: Error, Equatable {
 }
 
 /// No production default: callers must explicitly supply an approved endpoint.
-public struct APIConfiguration {
+public struct APIConfiguration: Sendable {
     public let baseURL: URL
     public init(baseURL: URL) throws {
         guard let parts = URLComponents(url: baseURL, resolvingAgainstBaseURL: false),

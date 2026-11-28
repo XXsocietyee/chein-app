@@ -581,11 +581,40 @@ Not done item: VoiceOver grouping on player cards (scripted scan: `*Card` / `*Ro
 | `pages/play` free explore offline / expired archive | `FreeExplorationViews.swift` (`FreeExplorationArchiveCards` locked place) | ✓ (mp-journey owns order) | Locked place name + lock chip were two stops → one combined card ("Name, Locked"). Level A | Done |
 | `subpackageMember` order detail 开始 / 结束 time, `pages/activity/baoming` amount rows | `ProfileOrdersView.swift` (`ProfileOrderTicketTimeRow`), `RegistrationSheetView.swift` (`RegistrationAmountRow`) | ✓ (mp-mine / mp-activity own order) | Audit: both are `LabeledContent`, which VoiceOver already reads as one label + value; the amount keeps its `.amount` identifier for tests. No change. Level C | Done |
 
+### Run 36 (11-28)
+Merged `origin/ui/combined-r7`. Sweep index still **0446d1c4f** (read in run 33), so the sheets re-read waits. No open coordinator
+finding. Not done item: VoiceOver grouping, rest of the run-35 scan.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/team` list row | `TeamHomeView.swift` (`TeamHomeRow`) | ✓ (mp-activity owns order) | Audit: the row is a `NavigationLink` label, already one element. The two "·" separators are now hidden from VoiceOver. Level C | Done |
+| `pages/activity/baoming` 出行人 / 票种 choice rows | `RegistrationSheetView.swift` (`RegistrationChoiceRow`) | ✓ (mp-activity owns order) | Audit: `LabeledContent`, chevron already hidden; reads as one label + value. No change. Level C | Done |
+| creator own-shelf card facts | `TemplateOwnShelfCardSection.swift` | ✓ (mp-publish owns order) | Audit: not combined. `TemplateOwnShelfFlowTests:125` reads the value text by its identifier and expects the label "0 min". No change. Level C | Done |
+| "·" separator texts in player HStacks (free explore bundle, club payout receiver, notification log, journey share card, roam place card, pass card) | `FreeExploreBundleLaunchView:274`, `ClubPayoutReceiverView:516`, `NativeNotificationDeliveryLogView:38`, `JourneyReportViews:1386-1387`, `RoamMapHomePlaceCard:49,53`, `PassMembershipViews:525` | ✓ (layout untouched) | A bare "·" `Text` was its own VoiceOver stop in rows that are not combined → `.accessibilityHidden(true)`. `CYFogEngine` / `CYRoamKit` (shared kit, ds-consistency) left | Done |
+| UGC report menu (举报) on club posts / comments / discussion, merchant reviews, detail toolbars | `UGCSafetyComponents.swift:576` (`UGCSafetyMenuButton`) | ✓ (owning lanes keep order) | Audit of all 11 call sites: every inline use (club post, two comment lists, discussion, merchant review) passes `compactLabel` (44 pt shield, menu label "Report or block"); the default text label is only used in `ToolbarItem`s, which the system sizes. No change. Level C | Done |
+| cooperation flow partner review (评分) | `CooperationFlowEditors.swift:541` | ✓ (mp-publish owns order) | Stepper read only "Rating": the `accessibilityLabel` replaced "4 / 5" and the score was lost → `.accessibilityValue` "4 of 5" / "4/5分" (shared `a11y.value.ofTotal`). Roam goals target stepper (`RoamPassportPrivateToolsViews:826`) reads "14 exploration days", fine. Level C | Done |
+| creator editor number rows (尝试次数 limit, stepper rows) | `EditorKitFields.swift` (`EditorStepper`, `EditorNumberRow`), `EditorKitCards.swift:93` | ✓ (mp-publish owns order) | Combined stepper read only "3, 3 times" with no field name → new optional `fieldLabel`: label = the row's field ("Attempt limit"), value = "3 times"; both callers pass it. Without `fieldLabel` nothing changes. Level C | Done |
+| remaining player steppers (RPG skill bonus, chapter supply max, reward discard, mod Q&A attempts) | `PlayRPGComponents:164`, `TopicCreatorToolsView:312`, `PlayRuntimeGapViews:387`, `ModInstallationQaEditorView:87` | ✓ | Audit: each label names the field with its value ("Skill bonus +2", "Give up X: 1 of 3"). No change. Level C | Done |
+
+
+### Run 37 (11-28)
+Merged `origin/ui/combined-r7` (e9296b463). Sweep index still **0446d1c4f**, so the sheets re-read waits. No open coordinator
+finding. Not done item: `Toggle` rows with a caption. Scripted scan of every player `Toggle` (Merchant / Fixture / Diagnostics
+skipped): a caption inside the Toggle label is already read once with the switch (wallet cart, editor switch rows, IM invite
+switch, cast sheet). Six captions sat as a sibling `Text` right under the switch and were a separate VoiceOver stop:
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/roam` record share (显示地点) | `RoamHistoryShareView.swift:150` | ✓ (mp-roam owns order) | Caption is now the switch's `accessibilityHint` and hidden as its own stop; look unchanged. Level B | Done |
+| catalog / stamp share card (显示地点) | `CatalogShareCardView.swift:50` | ✓ (mp-roam owns order) | Same: hint on the switch, caption hidden. Level B | Done |
+| `pages/publishkit` branch step 结束节点 | `TemplateBranchCompositionFields.swift:65` | ✓ (mp-publish owns order) | Same; the "choice hint" in the else branch is not about the switch and stays a stop. Level C | Done |
+| `pages/publishkit` module switch (启用模块 + provider line) | `TemplateCreatorConfigurationView.swift:14` | ✓ (mp-publish owns order) | Same. Level C | Done |
+| `pages/publishkit` initial attributes 启用 | `ProjectInitialAttributesEditor.swift:128` | ✓ (mp-publish owns order) | Same. The per-row "flag / integer" caption explains the whole row's fields, not the 可见 switch, so it stays a stop. Level C | Done |
+
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-35).
-- VoiceOver grouping, rest of the run-35 scan: `TeamHomeRow` (NavigationLink label, likely fine), `RegistrationChoiceRow`
-  (check UI-test identifiers before combining), `TemplateOwnShelfCard`.
-- Then: `UGCSafetyMenuButton` default (text 举报 label) inline uses and `Toggle` / `Stepper` rows with caption labels.
+- Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-36).
+- `Picker` / `Stepper` rows with a sibling caption (same pattern as the run-37 Toggle fix).
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

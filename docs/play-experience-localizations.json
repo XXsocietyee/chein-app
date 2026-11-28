@@ -1946,5 +1946,53 @@
   "playx.node.untitled": {
     "en": "Untitled stop",
     "zh-Hans": "未命名节点"
+  },
+  "playx.director.broadcast.to": {
+    "en": "To",
+    "zh-Hans": "发给"
+  },
+  "playx.director.broadcast.allPlayers": {
+    "en": "All players on site",
+    "zh-Hans": "全部在场玩家"
+  },
+  "playx.director.broadcast.pending": {
+    "en": "Choose who gets it",
+    "zh-Hans": "定向范围待选择"
+  },
+  "playx.director.broadcast.scope": {
+    "en": "Scope",
+    "zh-Hans": "范围"
+  },
+  "playx.director.broadcast.scope.all": {
+    "en": "All",
+    "zh-Hans": "全部"
+  },
+  "playx.director.broadcast.scope.team": {
+    "en": "Team",
+    "zh-Hans": "队伍"
+  },
+  "playx.director.broadcast.scope.role": {
+    "en": "Role",
+    "zh-Hans": "角色"
+  },
+  "playx.director.broadcast.selected": {
+    "en": "Selected",
+    "zh-Hans": "已选"
+  },
+  "playx.director.broadcast.pick": {
+    "en": "Select",
+    "zh-Hans": "选择"
+  },
+  "playx.director.broadcast.content": {
+    "en": "Message *",
+    "zh-Hans": "内容 *"
+  },
+  "playx.director.broadcast.placeholder": {
+    "en": "Write something, e.g. stop 3 has a queue, go to stop 4 first",
+    "zh-Hans": "写点什么，比如：第 3 站临时排队，先去第 4 站"
+  },
+  "playx.director.broadcast.send": {
+    "en": "Send",
+    "zh-Hans": "发送"
   }
 }

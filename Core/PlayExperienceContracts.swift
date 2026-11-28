@@ -392,6 +392,8 @@ public struct PlayCompanionLeaderboard: Equatable {
 public struct PlayLeadProgress: Equatable {
     public struct Member: Equatable, Identifiable {
         public let id: Int; public let name: String?; public let done: Int?; public let arrived: Bool; public let isLeader: Bool
+        /// mp-journey-b r3: MP 集合屏 `item.avatar` (an image only when set; dimmed until the member arrives).
+        public var avatar: String? = nil
     }
     public let exists: Bool
     public let isLeader: Bool
@@ -426,7 +428,8 @@ public struct PlayLeadProgress: Equatable {
         arrived = raw["arrived"].integer; meArrived = raw["meArrived"].bool == true || raw["meArrived"].integer == 1
         members = try (raw["members"].array ?? []).map { item in
             guard let id = item["memberId"].integer, id > 0 else { throw PlayExperienceError.malformed }
-            return Member(id: id, name: item["nickname"].text, done: item["done"].integer, arrived: item["arrived"].bool == true, isLeader: item["isLeader"].bool == true)
+            return Member(id: id, name: item["nickname"].text, done: item["done"].integer, arrived: item["arrived"].bool == true, isLeader: item["isLeader"].bool == true,
+                          avatar: item["avatar"].text.flatMap { $0.isEmpty ? nil : $0 })
         }
         guard Set(members.map(\.id)).count == members.count else { throw PlayExperienceError.malformed }
         currentChapterID = raw["currentChapterId"].integer.flatMap { $0 > 0 ? $0 : nil }

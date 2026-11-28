@@ -437,7 +437,7 @@ private struct PassportRollingCount: View {
                 .frame(width: typeSize.isAccessibilitySize ? 64 : 48, height: typeSize.isAccessibilitySize ? 64 : 48)
             Group { if let name = badge.name { Text(verbatim: name) } else { Text("growth.badge.unnamed") } }
                 .font(.caption).foregroundStyle(.secondary)
-                .multilineTextAlignment(.center).lineLimit(typeSize.isAccessibilitySize ? 4 : 2)
+                .multilineTextAlignment(.center).lineLimit(typeSize.isAccessibilitySize ? 4 : 2, reservesSpace: true)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(width: typeSize.isAccessibilitySize ? 112 : 80)

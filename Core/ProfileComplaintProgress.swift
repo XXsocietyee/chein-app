@@ -77,6 +77,8 @@ public enum ProfileComplaintTopicLoadFailureCopy: Equatable, Sendable {
             return signInSubtitle
         case .unavailable:
             return "当前配置暂未启用此读取服务"
+        case .denied:
+            return "当前身份不能发起投诉"
         }
     }
 }

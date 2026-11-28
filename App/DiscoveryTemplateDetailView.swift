@@ -27,7 +27,7 @@ struct DiscoveryTemplateDetailView: View {
     private(set) var readonly = false
     func readonlyLink(_ value: Bool) -> DiscoveryTemplateDetailView { var copy = self; copy.readonly = value; return copy }
     private struct Adoption: Identifiable, Hashable {
-        let id = UUID()
+        nonisolated let id = UUID()
         let source: DiscoveryPlayTemplate
         let key: RequestKey
         nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
