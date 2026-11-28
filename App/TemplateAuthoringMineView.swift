@@ -42,6 +42,8 @@ import SwiftUI
     /// MP `mytemplate` writes `scope=MERCHANT` only for the merchant theme. A player page omits it.
     /// A kept link query with `scope=MERCHANT` selects the same shelf; any other value does not.
     private var shelfOperationScope: String? {
+        // K12: the merchant template shelf is a merchant-center entry. Release always uses the player shelf.
+        guard PlayerLaunch.merchantCenterEnabled else { return nil }
         if linkQuery["scope"] == "MERCHANT" { return "MERCHANT" }
         return (themeDomain == .merchant || roleTheme == .merchant) ? "MERCHANT" : nil
     }
