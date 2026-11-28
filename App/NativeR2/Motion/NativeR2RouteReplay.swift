@@ -37,6 +37,7 @@ struct NativeR2RouteLeg: Identifiable {
     let totalSeconds: Int
     let walkedMeters: Double
     var tint: Color = .accentColor
+    @Environment(\.locale) private var locale
     @State private var draw = NativeR2DrawOn()
     @State private var camera: MapCameraPosition = .automatic
     @State private var shownLegs = 0
@@ -171,7 +172,7 @@ struct NativeR2RouteLeg: Identifiable {
             .accessibilityElement(children: .combine)
             VStack(alignment: .leading, spacing: 2) {
                 Text("nativeR2.motion.distance").font(.caption).foregroundStyle(.secondary)
-                Text(verbatim: CityOrientationFormat.distance(shownMeters))
+                Text(verbatim: CityOrientationFormat.distance(shownMeters, locale: locale))
                     .font(.title2.bold())
                     .monospacedDigit()
                     .nativeR2RollingNumber(shownMeters)
@@ -202,7 +203,7 @@ struct NativeR2RouteLeg: Identifiable {
             List {
                 Section {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: CityOrientationFormat.distance(totalMeters))
+                        Text(verbatim: CityOrientationFormat.distance(totalMeters, locale: locale))
                             .font(.largeTitle.bold())
                             .monospacedDigit()
                         Text("nativeR2.motion.result.sentence \(legs.count)")
@@ -231,7 +232,7 @@ struct NativeR2RouteLeg: Identifiable {
                                     .foregroundStyle(leg.order - 1 == currentLeg ? tint : Color.secondary)
                             }
                         }
-                        .badge(Text(verbatim: CityOrientationFormat.distance(leg.meters)))
+                        .badge(Text(verbatim: CityOrientationFormat.distance(leg.meters, locale: locale)))
                         .accessibilityIdentifier("nativeR2.motion.leg.\(leg.order)")
                     }
                 }

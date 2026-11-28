@@ -338,7 +338,7 @@ extension EnvironmentValues {
                     ForEach(roster.sessionMoney) { money in
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack(spacing: CYSpacing.xs) {
-                                if let label = money.label { Text(verbatim: label).lineLimit(1) } else { Text("club.enroll.money.session") }
+                                if let label = money.label { Text(verbatim: label).lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1) } else { Text("club.enroll.money.session") }
                                 if money.cancelled { Text("club.enroll.money.cancelled").font(.caption).foregroundStyle(.secondary) }
                             }
                             Text("club.enroll.money.line \(ClubMoneyText.twoDecimals(money.paidText)) \(ClubMoneyText.twoDecimals(money.refundedText)) \(ClubMoneyText.twoDecimals(money.netText))")

@@ -55,7 +55,7 @@ import QuestifyCore
                     NavigationStack {
                         TopicLocationTodosSheet(model: model, nodes: nodes, replace: replaceAction)
                             .toolbar {
-                                ToolbarItem(placement: .cancellationAction) {
+                                ToolbarItem(placement: .confirmationAction) {
                                     Button(W8Text.t("完成", "Done")) { open = false }
                                         .disabled(model.busySlot != nil)
                                         .accessibilityIdentifier("locationTodos.done")

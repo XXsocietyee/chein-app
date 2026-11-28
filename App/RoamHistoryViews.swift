@@ -32,7 +32,7 @@ import SwiftUI
                         Label("roam.history.denied", systemImage: "lock")
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("roam.experience.history.denied")
-                    } else { RoamExperienceIssue(error: error, retry: load) }
+                    } else { RoamExperienceIssue(error: error, retry: load, failureTitle: "roam.history.loadFailed") }
                 }
                 // MP history-loading: 正在读取漫游记录… in words (P10), not a bare spinner.
                 else if !loaded { ProgressView { Text("roamSub.w208.history.loading") }.frame(maxWidth: .infinity) }

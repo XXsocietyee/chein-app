@@ -245,13 +245,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No matching places, merchants or activities in the loaded layers."
+            "value": "Nothing nearby yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已读取图层中暂无符合当前筛选的地点、商家或活动。"
+            "value": "附近暂无节点"
           }
         }
       }

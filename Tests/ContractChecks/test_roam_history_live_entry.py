@@ -80,7 +80,7 @@ class RoamHistoryLiveEntryContracts(unittest.TestCase):
     def test_prior_record_detail_navigation_statistics_and_share_remain(self):
         # ROAM-r11-10: trip rows draw the real-basemap thumb, which falls back to the schematic sketch
         # without coordinates (MP subpackageRoam/components/cy/route-thumb/index.js:1-8).
-        for token in ['RoamHistoryDetailView(reader: reader, timestamp: record.ts, hero: hero)', 'RoamHistorySummary(records)', 'RoamRouteThumbView(record: record)', 'RoamExperienceIssue(error: error, retry: load)']:
+        for token in ['RoamHistoryDetailView(reader: reader, timestamp: record.ts, hero: hero)', 'RoamHistorySummary(records)', 'RoamRouteThumbView(record: record)', 'RoamExperienceIssue(error: error, retry: load, failureTitle: "roam.history.loadFailed")']:  # mp-roam r3: MP cy-error title 漫游记录加载失败
             self.assertIn(token, self.history)
         thumb = (ROOT / 'App/RoamRouteThumbView.swift').read_text(encoding='utf-8')
         self.assertIn('RoamRouteSketchView(record: record)', thumb)
