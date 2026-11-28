@@ -284,7 +284,7 @@ enum NativeWebhookSheet: String, Identifiable {
     @ObservedObject var model: NativeWebhookViewModel
     var body: some View {
         if let text = model.issueText {
-            Section { Label(text, systemImage: "exclamationmark.circle").foregroundStyle(.orange).accessibilityIdentifier("webhook.issue") }
+            Section { Label(text, systemImage: "exclamationmark.circle").foregroundStyle(CYColor.warningText).accessibilityIdentifier("webhook.issue") }
         }
         if let notice = model.coordinator?.notice {
             Section {

@@ -64,7 +64,7 @@ private func nativeAttributeText(_ key: String) -> String {
                 }
                 if coordinator.binding.isLocked {
                     Label(nativeAttributeText("nativeAttribute.frozen"), systemImage: "lock.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                 }
                 if coordinator.busy {
                     ProgressView { Text(verbatim: nativeAttributeText("nativeAttribute.loading")) }
@@ -77,7 +77,7 @@ private func nativeAttributeText(_ key: String) -> String {
                 }
                 if coordinator.phase == .confirmed && coordinator.projectResult == nil {
                     Label(nativeAttributeText("nativeAttribute.confirmed"), systemImage: "checkmark.circle")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(CYColor.successText)
                 }
             }
             // Local file inspection only (Qmod import): no coordinator, service or transport is passed in,

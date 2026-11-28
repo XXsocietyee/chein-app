@@ -42,7 +42,7 @@ import SwiftUI
                         }
                     }
                     if controller.phase == .loading || controller.phase == .submitting { ProgressView { Text(verbatim: creatorString("workshopCreator.loading")) }.frame(maxWidth: .infinity) }
-                    if let issue = controller.issue { Label(creatorString(issueKey(issue)), systemImage: "exclamationmark.triangle").foregroundStyle(.orange).accessibilityIdentifier("workshopPending.issue") }
+                    if let issue = controller.issue { Label(creatorString(issueKey(issue)), systemImage: "exclamationmark.triangle").foregroundStyle(CYColor.warningText).accessibilityIdentifier("workshopPending.issue") }
                     if let pending = controller.pending {
                         Section(creatorString("workshopPending.saved")) {
                             Text(verbatim: pending.requestId).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)

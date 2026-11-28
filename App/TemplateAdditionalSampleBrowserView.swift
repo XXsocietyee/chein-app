@@ -120,7 +120,7 @@ import Combine
                     .disabled(!controller.canBrowse).accessibilityIdentifier("templateCoin.openSample")
             }
             Section { Text("templateSampleCoverage.scope").font(.footnote).foregroundStyle(.secondary) }
-            if controller.unavailable { Section { Label("templateSampleCoverage.unavailable", systemImage: "exclamationmark.triangle").foregroundStyle(.orange) } }
+            if controller.unavailable { Section { Label("templateSampleCoverage.unavailable", systemImage: "exclamationmark.triangle").foregroundStyle(CYColor.warningText) } }
             ForEach(TemplateAdditionalSamplePreview.Choice.allCases) { choice in
                 Section(LocalizedStringKey(choice.labelKey)) {
                     if choice == .pricePair { Text("templateSampleCoverage.nameOnly").font(.footnote).foregroundStyle(.secondary) }

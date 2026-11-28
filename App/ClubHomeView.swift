@@ -335,7 +335,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             }
         case .pending:
             Label("club.membership.pending", systemImage: "clock")
-                .labelStyle(.titleAndIcon).font(.subheadline).foregroundStyle(.orange)
+                .labelStyle(.titleAndIcon).font(.subheadline).foregroundStyle(CYColor.warningText)
         case .joined:
             Label("club.membership.joined", systemImage: "checkmark")
                 .labelStyle(.titleAndIcon).font(.subheadline).foregroundStyle(.secondary)

@@ -29,9 +29,12 @@ import SwiftUI
     let accountReader: any SocialAccountReading
     let access: ProfileSelfProjectsAccess
     let isCurrent: @MainActor () -> Bool
+    /// 11-28: the host page's pull to refresh bumps this (MP pull-down only; no refresh row).
+    var refreshTrigger: Int = 0
     var body: some View {
         if let context = access.context(memberID: memberID, accountReader: accountReader, isCurrent: isCurrent()) {
-            ProfileSelfProjectsSection(context: context, accountReader: accountReader, access: access, isCurrent: isCurrent)
+            ProfileSelfProjectsSection(context: context, accountReader: accountReader, access: access, isCurrent: isCurrent,
+                refreshTrigger: refreshTrigger)
                 .id(context)
         }
     }
@@ -49,10 +52,12 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     private let detail: (CreatorContentDestination) -> AnyView
+    private let refreshTrigger: Int
     init(context: ProfileSelfProjectsContext, accountReader: any SocialAccountReading,
-         access: ProfileSelfProjectsAccess, isCurrent: @escaping @MainActor () -> Bool) {
+         access: ProfileSelfProjectsAccess, isCurrent: @escaping @MainActor () -> Bool, refreshTrigger: Int = 0) {
         _reader = State(initialValue: .init(context: context, accountReader: accountReader,
             projectsReader: access.reader, isCurrent: isCurrent)); detail = access.detail
+        self.refreshTrigger = refreshTrigger
     }
     var body: some View {
         Group {
@@ -87,8 +92,6 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                                 .accessibilityIdentifier("profile.selfProjects.project.\(project.id)")
                         }
                     }
-                    Button("profile.selfProjects.refresh") { Task { await load() } }.disabled(model.isLoading)
-                        .accessibilityIdentifier("profile.selfProjects.refresh")
                     NavigationLink {
                         ProfileSelfProjectsBrowser(reader: reader, detail: detail)
                     } label: { Label("profile.selfProjects.all", systemImage: "square.stack") }
@@ -101,6 +104,10 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
         }
         .task { await load() }
         .refreshable { await load() }
+        .onChange(of: refreshTrigger) { _, _ in
+            guard !model.isLoading else { return }
+            Task { await load() }
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await load() } } else { model.suspend() }
         }

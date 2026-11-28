@@ -288,6 +288,8 @@ struct JourneyLandingView: View {
     @Environment(\.dismiss) private var backFromMissing
     /// MP missing link: navigateBack (the sheet / push closes).
     private func missingBack() { backFromMissing() }
+    static func claimLanded(_ was: Bool, _ now: Bool) -> Bool { !was && now }
+    static func claimRefused(_ was: String?, _ now: String?) -> Bool { now != nil && now != was }
     let phase: JourneyLandingPhase
     let onRetry: () -> Void
     let onSelectMode: (String) -> Void
@@ -373,6 +375,9 @@ struct JourneyLandingView: View {
                             .controlSize(.large)
                             .disabled(content.busy || content.claimDone)
                             .accessibilityIdentifier("journeyLanding.primary")
+                            // Next round (motion): success when the claim lands, warning with the MP inline error.
+                            .cyHaptic(.success, trigger: content.claimDone, where: Self.claimLanded)
+                            .cyHaptic(.warning, trigger: content.actionError, where: Self.claimRefused)
                         }
                     }
                     if let error = content.actionError { MPInlineError(text: Text(verbatim: error)) }
@@ -621,6 +626,10 @@ struct JourneySeatsView: View {
         .cyDomainScreen(.player)
     }
 
+    static func inviteIssued(_ was: URL?, _ now: URL?) -> Bool { was == nil && now != nil }
+    static func invitationWithdrawn(_ was: Int, _ now: Int) -> Bool { now < was }
+    static func seatActionRefused(_ was: String?, _ now: String?) -> Bool { now != nil && now != was }
+
     private func ready(_ content: JourneySeatsContent) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
@@ -735,6 +744,10 @@ struct JourneySeatsView: View {
         } message: {
             Text("mp.seats.holdCaption")
         }
+        // Next round (motion): success when the server issues the invite link, success when a 撤回 lands, warning with the MP inline error.
+        .cyHaptic(.success, trigger: content.inviteShareURL, where: Self.inviteIssued)
+        .cyHaptic(.success, trigger: content.invited.count, where: Self.invitationWithdrawn)
+        .cyHaptic(.warning, trigger: content.actionError, where: Self.seatActionRefused)
         .cySheet(isPresented: $inviteShown) { JourneyInviteSheet(content: content) }
         .cySheet(item: $transferSeat) { seat in
             if let onTransfer {
