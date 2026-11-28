@@ -137,6 +137,8 @@ import SwiftUI
                                     }
                                 } label: {
                                     Image(systemName: "ellipsis.circle")
+                                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                                        .contentShape(Rectangle())
                                         .accessibilityLabel(Text("friendMeta.rename", tableName: "NativeFriendMetadata"))
                                 }
                                 .buttonStyle(.borderless)

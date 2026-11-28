@@ -46,6 +46,9 @@ public struct PlayToolsAndLeadSheetView: View {
     /// mp-journey r3: MP 游玩工具 本局用时 · 当前得分 (`sessStats`, mode 1 with an orient `routeState.sessionId`; both open
     /// 本局成绩), pushed right before 同行者榜. Nil hides the row.
     public var scoreDestination: (() -> AnyView)? = nil
+    /// mp-journey r3: MP 游玩工具 入场码 (`wx:if="{{regId && !isPreview && !isMock}}"`, `openTicketFromTools` →
+    /// `scene-qr-ticket`). The run's ticket registration id; nil or 0 hides the row.
+    public var entryCodeRegistrationID: Int? = nil
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -77,8 +80,10 @@ public struct PlayToolsAndLeadSheetView: View {
         scoreDestination: (() -> AnyView)? = nil,
         rights: PlayToolsRights? = nil,
         onRights: @escaping () -> Void = {},
-        freeTrackPerkOnly: Bool? = nil
+        freeTrackPerkOnly: Bool? = nil,
+        entryCodeRegistrationID: Int? = nil
     ) {
+        self.entryCodeRegistrationID = entryCodeRegistrationID
         self.freeTrackPerkOnly = freeTrackPerkOnly
         self.rights = rights
         self.onRights = onRights
@@ -109,6 +114,11 @@ public struct PlayToolsAndLeadSheetView: View {
         self.onClose = onClose
         self.showsContentRows = showsContentRows
         self.evidenceCards = evidenceCards
+    }
+
+    private var entryRegistration: Int? {
+        guard let id = entryCodeRegistrationID, id > 0 else { return nil }
+        return id
     }
 
     public var body: some View {
@@ -168,7 +178,7 @@ public struct PlayToolsAndLeadSheetView: View {
                 }
                 // mp-journey r3: MP 游玩工具 lists 入场码 then 旅程手记 after 本局读数 / 扫码到达 / 切换章节 / 队伍位置,
                 // just above the preferences.
-                if showsContentRows || journalRows != nil || rights != nil {
+                if showsContentRows || journalRows != nil || rights != nil || entryRegistration != nil {
                     Section {
                         if let rights {
                             Button(action: onRights) {
@@ -180,7 +190,14 @@ public struct PlayToolsAndLeadSheetView: View {
                             }
                             .accessibilityIdentifier("playTools.rights")
                         }
-                        if showsContentRows {
+                        if let entryRegistration {
+                            NavigationLink {
+                                PlayEntryCodeDestination(registrationID: entryRegistration)
+                            } label: {
+                                Label("playTools.entryCode", systemImage: "ticket")
+                            }
+                            .accessibilityIdentifier("playTools.entryCode")
+                        } else if showsContentRows {
                             Button("playTools.entryCode", action: onOpenEntryCode)
                                 .accessibilityIdentifier("playTools.entryCode")
                         }
