@@ -257,11 +257,11 @@ struct RegistrationSheetView: View {
                     ProgressView { Text("registration.form.loadingParticipants") }
                         .frame(maxWidth: .infinity)
                 } else if flow.participantsState == .unavailable {
+                    // MP baoming.wxml:286 cy-inline-error 参与人信息加载失败 + 重试: one state, retry inside.
                     Section {
-                        Label("profile.participants.loadFailed", systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.secondary)
-                        Button("action.retry") { Task { await flow.loadParticipants() } }
-                            .accessibilityIdentifier("registration.participantSheet.retry")
+                        CYEmptyState(systemImage: "exclamationmark.triangle", "profile.participants.loadFailed",
+                                     actionTitle: "action.retry", actionIdentifier: "registration.participantSheet.retry",
+                                     kind: .failure) { Task { await flow.loadParticipants() } }
                     }
                 }
                 ForEach(flow.participants, id: \.id) { row in
