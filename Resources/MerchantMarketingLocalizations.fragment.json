@@ -73,7 +73,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Feature isn't available right"
+          "value": "This feature isn't available right now"
         }
       },
       "zh-Hans": {
@@ -124,7 +124,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Current merchant role doesn't grant permission"
+          "value": "Your current merchant role does not grant this permission"
         }
       },
       "zh-Hans": {
@@ -158,7 +158,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Review the selected answer and acknowledge effects"
+          "value": "Review the selected answer and acknowledge its effects"
         }
       },
       "zh-Hans": {
@@ -209,7 +209,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The safety record couldn't be saved. Nothing submitted."
+          "value": "The safety record could not be saved. Nothing was submitted."
         }
       },
       "zh-Hans": {
@@ -226,7 +226,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Something went"
+          "value": "Something went wrong"
         }
       },
       "zh-Hans": {
@@ -668,7 +668,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Repeat visit"
+          "value": "Repeat visit rate"
         }
       },
       "zh-Hans": {
@@ -753,7 +753,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Business"
+          "value": "Business interpretation"
         }
       },
       "zh-Hans": {
@@ -872,7 +872,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Active"
+          "value": "Active entitlements"
         }
       },
       "zh-Hans": {

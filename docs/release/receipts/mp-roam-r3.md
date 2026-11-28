@@ -703,6 +703,12 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - Seen, not changed: `zh-Hans-e5b-stamp.jpg` 留于 reads `2026-01-02 12:00` (en: `Jan 2, 2026 at 12:00 PM`). This is the app-wide `LocaleDisplay.civil` Chinese rule (MP `yyyy-MM-dd HH:mm`, pinned in `LocaleDisplayTests` / `LocaleDisplayR2Tests`, 72 callers), not roam code. **For en-layout / ds-consistency:** if zh should read `2026年1月2日 12:00` (as the 16:53 badge-wall note asked), change `civil` once for every screen.
 - A-half open rows unchanged (P2-7 POI tap, citystamp coordinator, P21 mini bar: compiled pass; P1-22: owner value). **A half done** — stopped per the 15:45 collision rule.
 
+## Round 3 continue (57) — fast-forward to `ui/combined-r7` (51f0d6476); A half still done
+
+- Fast-forwarded onto `origin/ui/combined-r7` (77 commits). Brief unchanged since the 18:30 sweep; sweep still b954de71c (no new roam frames).
+- New Cursor receipts `cursor-k50-r04/r09/r10`: roam entries are K50-R crash-proofing (force-unwrap removals in `RoamLiveSessionController`, `RoamLiveService`, `RoamService`; justified `!` sites), no `lane-layout` rows. Still no `cursor-k50-p*` receipts.
+- A-half open rows unchanged (P2-7 POI tap, citystamp coordinator, P21 mini bar: compiled pass; P1-22: owner value). **A half done** — stopped per the 15:45 collision rule.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).

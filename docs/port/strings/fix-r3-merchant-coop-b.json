@@ -821,7 +821,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Start merchant"
+          "value": "Start merchant onboarding"
         }
       },
       "zh-Hans": {
@@ -855,7 +855,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Profit share"
+          "value": "Profit share details"
         }
       },
       "zh-Hans": {
@@ -906,7 +906,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Tick every item on checklist first"
+          "value": "Tick every item on the checklist first"
         }
       },
       "zh-Hans": {
@@ -1212,7 +1212,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Play original"
+          "value": "Play original recording"
         }
       },
       "zh-Hans": {
@@ -1433,7 +1433,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Original amount"
+          "value": "Original amount due"
         }
       },
       "zh-Hans": {

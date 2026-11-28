@@ -4,7 +4,7 @@ The planning audit's root cause: the player services existed, but the Release co
 
 The shipped US build does not use a US-market deployment. `shippedComposition` pins a US build on the reviewed host to the China backend (`market: CN`, `https://www.chengyinhub.com/prod-api/`) and then calls `reviewedDeployment`. The CN and US columns below are that shared deployment. A literal `reviewedDeployment(market: US)` is not the release path; its player leases stay off.
 
-Counts on that shared deployment: **54 on**, **26 off by design**, **10 was off by mistake** (now on). The literal US-market deployment is one more off-by-design row, so the table's off-by-design total is **27**.
+Counts on that shared deployment: **55 on**, **25 off by design**, **10 was off by mistake** (now on). The literal US-market deployment is one more off-by-design row, so the table's off-by-design total is **26**.
 
 Money switches were not flipped. `PlayerLaunch.merchantCenterEnabled` stays `false` in Release. Security and account-deletion gates were not touched. Injected approvals still win. A deployment with `productionGatesEnabled == false` still issues none of the new reads.
 
@@ -98,7 +98,7 @@ Proof: `Tests/AppUnitTests/ReleasePlayerServiceAuditTests.swift`.
 | Nearby merchant location | off | off | off by design | Unchanged. `nearbyLocation` stays false (`api/merchant/nearby`). |
 | Private home | off | off | off by design | Unchanged. |
 | Owner refund beyond the money switch | off | off | off by design | Unchanged. Still follows `ReleaseMoneyWriteSwitch.refund`. |
-| City board | off | off | off by design | Unchanged. `QuestifyCityGameRegion` is empty; no region was invented. |
+| City board | on | on | on | Points-only City Monopoly read. `cityPlayerReadApproval` is on, route `/api/city-game/points`. |
 | Own media status writes | off | off | off by design | Unchanged. The new list lease keeps `allowsStatus` false. |
 | Owner draft save and delete | off | off | off by design | Unchanged. The new lease is list and restore only. |
 | Shop NPC reply playback | off | off | off by design | Unchanged. Reply audio stays off. |

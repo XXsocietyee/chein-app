@@ -40,7 +40,7 @@
     "zh-Hans": "我的互动模板"
   },
   "merchant.operations.template": {
-    "en": "Interaction",
+    "en": "Interaction template",
     "zh-Hans": "互动模板"
   },
   "merchant.operations.name": {
@@ -176,11 +176,11 @@
     "zh-Hans": "现场拍照"
   },
   "merchant.operations.method.3": {
-    "en": "Multiple-choice",
+    "en": "Multiple-choice question",
     "zh-Hans": "选项问答"
   },
   "merchant.operations.method.4": {
-    "en": "Posted QR",
+    "en": "Posted QR code",
     "zh-Hans": "张贴码"
   },
   "merchant.operations.method.5": {
@@ -220,7 +220,7 @@
     "zh-Hans": "正确选项"
   },
   "merchant.operations.feedback": {
-    "en": "Completion",
+    "en": "Completion feedback",
     "zh-Hans": "完成反馈"
   },
   "merchant.operations.reviewDraft": {
@@ -284,7 +284,7 @@
     "zh-Hans": "节点认领"
   },
   "merchant.operations.placement": {
-    "en": "Location",
+    "en": "Location placement",
     "zh-Hans": "据点投放"
   },
   "merchant.operations.node.online": {
@@ -340,7 +340,7 @@
     "zh-Hans": "上次生成失败"
   },
   "merchant.operations.avatar.pending": {
-    "en": "Generation",
+    "en": "Generation pending",
     "zh-Hans": "等待生成"
   },
   "merchant.operations.avatar.ready": {
@@ -372,7 +372,7 @@
     "zh-Hans": "暂无可展示图片"
   },
   "merchant.operations.syntheticArtwork": {
-    "en": "Example placeholder",
+    "en": "Example placeholder image",
     "zh-Hans": "示例占位图"
   },
   "merchant.operations.discardTitle": {
@@ -408,7 +408,7 @@
     "zh-Hans": "请重新登录后查看门店记录。"
   },
   "merchant.operations.invalidDraft": {
-    "en": "Review draft fields before continuing.",
+    "en": "Review the draft fields before continuing.",
     "zh-Hans": "请先检查草稿字段。"
   },
   "merchant.operations.exampleSaved": {
@@ -424,7 +424,7 @@
     "zh-Hans": "示例结果未确认，保存已锁定；再次读取不能证明之前的操作失败。"
   },
   "merchant.operations.conflict": {
-    "en": "This content changed while you reviewing. Reload before making another draft.",
+    "en": "This content changed while you were reviewing. Reload before making another draft.",
     "zh-Hans": "查看期间内容已更新，请刷新后再编辑。"
   },
   "merchant.operations.confirmExampleBody": {
@@ -528,7 +528,7 @@
     "zh-Hans": "形象名称不能超过 20 个 UTF-16 单元。"
   },
   "merchant.operations.characterAvatarRequired": {
-    "en": "A previously uploaded char avatar is required. Uploading isn't available right.",
+    "en": "A previously uploaded character avatar is required. Uploading isn't available right now.",
     "zh-Hans": "需要已上传的形象头像，上传暂不可用。"
   },
   "merchant.operations.greetingLimit": {
@@ -600,7 +600,7 @@
     "zh-Hans": "保存这些更改。故事标题和正文分别提交，可能出现部分完成的情况。"
   },
   "merchant.operations.derivativeBenefits": {
-    "en": "Derivative",
+    "en": "Derivative benefits",
     "zh-Hans": "衍生权益"
   },
   "merchant.operations.benefitsHint": {

@@ -122,7 +122,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No payment required period"
+          "value": "No payment required for this period"
         }
       }
     }
@@ -202,7 +202,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Confirmed"
+          "value": "Reconciliation confirmed"
         }
       }
     }
@@ -218,7 +218,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Awaiting"
+          "value": "Awaiting reconciliation"
         }
       }
     }
@@ -250,7 +250,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Invoice not"
+          "value": "Invoice not issued"
         }
       }
     }
@@ -330,7 +330,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reconciliation"
+          "value": "Reconciliation confirmed"
         }
       }
     }

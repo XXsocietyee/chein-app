@@ -188,7 +188,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request completed, but current settings couldn't be loaded. Refresh try again."
+            "value": "The original request completed, but current settings couldn't be loaded. Refresh to try again."
           }
         }
       }
@@ -348,7 +348,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Effective after %@"
+            "value": "Effective after inheritance: %@"
           }
         }
       }
@@ -380,7 +380,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This level permanently muted"
+            "value": "This level is permanently muted"
           }
         }
       }
@@ -556,7 +556,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Temporary"
+            "value": "Temporary permission"
           }
         }
       }
@@ -620,7 +620,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not supported on device"
+            "value": "Not supported on this device"
           }
         }
       }
@@ -1148,7 +1148,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original receipt is checked before retrying. The original request is sent only if result remains unknown permission still valid."
+            "value": "The original receipt is checked before retrying. The original request is sent only if the result remains unknown and permission is still valid."
           }
         }
       }
@@ -1164,7 +1164,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check and retry original request"
+            "value": "Check and retry the original request"
           }
         }
       }
@@ -1276,7 +1276,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The parent permanent mute is still effective. Change it in corresponding override settings."
+            "value": "The parent permanent mute is still effective. Change it in the corresponding override settings."
           }
         }
       }
@@ -1356,7 +1356,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time"
+            "value": "Time zone"
           }
         }
       }
@@ -1484,7 +1484,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lock-screen message"
+            "value": "Lock-screen message preview"
           }
         }
       }
@@ -1500,7 +1500,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inherit parent"
+            "value": "Inherit parent setting"
           }
         }
       }
@@ -2390,7 +2390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -2422,7 +2422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -2710,7 +2710,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time"
+            "value": "Time zone"
           }
         },
         "zh-Hans": {
