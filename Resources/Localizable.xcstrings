@@ -358618,6 +358618,23 @@
           }
         }
       }
+    },
+    "projectEdit.validation.castClueChapter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A “What you know” line in Cast unlocks in a chapter that has been removed. Choose another chapter."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色「你知道的」里有一条解锁的章节已经不在了，重新选一章。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

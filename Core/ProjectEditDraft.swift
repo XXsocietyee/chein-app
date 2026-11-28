@@ -316,6 +316,8 @@ public enum ProjectEditValidation {
         if let start, let end { need(end >= start, "dateOrder", "dateOrder") }
         if draft.product == .freeExplore { need(dateTime(draft.recruitDeadline, endOfDay: true) != nil, "deadline", "deadline") }
         need(!draft.chapters.isEmpty, "chapters", "chapters")
+        // MP story-cast.js memberIssues: a cast clue must unlock in a chapter the topic still has.
+        need(!ProjectEditCastClues.hasStaleClue(draft), "castClueChapter", "castClueChapter")
         for (ci, chapter) in draft.chapters.enumerated() {
             let standaloneStory = chapter.preserved["opening"] == .bool(true) || chapter.preserved["ending"]?.object != nil
             if draft.product == .city && !standaloneStory { need(chapter.hasRealStory, "story\(ci)", "story") }
