@@ -1,6 +1,6 @@
 # K50-R8 mini-program analytics equivalents
 
-Branch `cursor/1128-k50-r08`. Base `origin/ui/combined-r7`. The private hengyin tree was not read. Every event name below is already a string in this repo (`Core/AnalyticsEventClient.swift` allow-list, `Core/PlayGameStage.swift`, or `docs/release/receipts/ui-cur-analytics.md`). No other name was added.
+Branch `cursor/1128-k50-r08`. Base `origin/ui/combined-r7` (`b954de71c`, merged before push). The private hengyin tree was not read. Every event name below is already a string in this repo (`Core/AnalyticsEventClient.swift` allow-list, `Core/PlayGameStage.swift`, or `docs/release/receipts/ui-cur-analytics.md`). No other name was added.
 
 Counts: **matched 21**, **added 9**, **not-found-in-repo 28**.
 
