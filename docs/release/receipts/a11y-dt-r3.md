@@ -668,9 +668,20 @@ wallet rows, club detail header + join at AX5.
 | `pages/club/detail` 本团贡献榜 · 本周 rows | `ClubDetailR8Mounts.swift:460` (`rowBody`) | ✓ | Rank reads "No. 1" / "第 1 名" (existing `mp.report.rank`) instead of a bare number; at AX sizes the trailing score moves under the meta line (name and meta keep the width, meta wraps). Level B | Done |
 | `subpackageMember/signup` order detail 权益 rows | `TicketWalletDetailView.swift:393` (`TicketWalletEntitlementRow`) | ✓ | Audit: AnyLayout stack at AX sizes, status glyph labelled, row combined. No change | Done |
 
+## Run 40 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7`. **Sweep c4e43841a (15:31Z) read:** `en/zh-Hans-a11y-badges-ax5`, `-passport-ax5`, `-roam-ax5`.
+Badge ring + Collected/Locked rows wrap cleanly; passport action capsules wrap to two lines at AX5 (no truncation), stamp count
+speaks "3 of 12"; Roam title + i · Go · map controls and the light "Nearby activities 2" panel fit at AX5 ✓. No open coordinator
+finding for this lane. Not done pages: club posts feed rows, club events tab rows.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/club/detail` 帖文 feed post card (cy-post-card) | `ClubCommunityViews.swift:731` (`ClubCommunityPostTile`) | ✓ (mp-club owns order) | Author + 关注 Follow button were one HStack that squeezes the name at AX sizes → `AnyLayout` stack, Follow moves under the author. Audit (no change): action bar already stacks at AX sizes, every icon action 44 pt with a spoken name, like/comment counts as values, cross-club count row combined. Level B | Done |
+| `pages/club/detail` 活动 tab summary | `ClubDetailEventsSection.swift:40` | ✓ | Bare `ProgressView()` (VoiceOver "in progress" only) → spinner with the loading words `cy.state.loading` (P10). 当前/已结束 counts are system `LabeledContent` (stacks at AX) ✓. Level B | Done |
+| `pages/club/detail` 活动 cards (`.ev-*`) + calendar list | `ClubActivityListContent.swift:83` (`ClubActivityCard`) | ✓ (cover → status → name → time → 距开始 → address → category → stats kept visually) | 距开始 mm:ss line used system `.orange` text (~2:1) → `CYColor.warningText`; label + timer stack at AX sizes; VoiceOver reads the activity name first (`.accessibilitySortPriority(1)`). Stats already `ViewThatFits` H → V. Level B | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-38).
-- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club posts feed rows at AX5, club events tab rows.
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): club members list rows at AX5, club channels list rows, club enrollment roster rows.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
@@ -683,3 +694,4 @@ wallet rows, club detail header + join at AX5.
 - i18n-r3: `ClubComponents.swift:357` video play glyph `.accessibilityLabel(Text(verbatim: "Play"))` is English-only.
 - i18n-r3: `MPGap/Club/ClubGapRound4Views.swift` accessibility label `"删除凭证图片 \(index + 1)"` is a Chinese literal key (no en).
 - mp-roam: `cyMapPanelColor` is now `CYColor.bgElevated` (ds-consistency, kept in run 19); re-check any map panel content you own that assumed a black panel (white text / white strokes).
+- mp-mine / en-layout: passport stamp + badge counts read "3 共 12" in zh-Hans (`passport.stamps.ofTotal` = "共 %lld" after the big number); consider "3 / 12" or "已集 3 · 共 12" so the pair reads as one phrase (VoiceOver already says "3，共 12").
