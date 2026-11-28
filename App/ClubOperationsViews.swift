@@ -216,7 +216,10 @@ struct ClubOperationsWorkspaceView: View {
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("club.ops.loading")
                 } else {
-                    ProgressView().accessibilityIdentifier("club.ops.loading")
+                    // mp-states r3 (MP scene-club-edit wxml:3): the edit read shows 正在读取俱乐部资料 in words.
+                    ProgressView { Text("club.ops.edit.loading") }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("club.ops.loading")
                 }
             }
             // CLB-create-03 (MP create wxml:16-28): guest → 登录; a failed check → 重新检查.
@@ -260,6 +263,21 @@ struct ClubOperationsWorkspaceView: View {
                         .buttonStyle(.bordered)
                         .accessibilityIdentifier("clubCreate.checkFailed.back")
                 }
+            } else if let errorKey, target != .create, snapshot == nil, errorKey == "club.ops.readFailed" {
+                // mp-states r3 (MP scene-club-edit wxml:6): a failed edit read is one 编辑资料没能打开 state,
+                // the server sentence (or the local fallback) as its description and 重新加载 inside.
+                ContentUnavailableView {
+                    Label("club.ops.edit.loadFailed", systemImage: "exclamationmark.triangle")
+                } description: {
+                    if let serverMessage { Text(verbatim: serverMessage).accessibilityIdentifier("club.ops.error") }
+                    else { Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error") }
+                } actions: {
+                    if !loading, identity != nil {
+                        Button("club.ops.edit.reload") { Task { await load() } }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("club.ops.recheck")
+                    }
+                }
             } else if let errorKey {
                 Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")
                 if !loading, identity != nil {
@@ -267,7 +285,9 @@ struct ClubOperationsWorkspaceView: View {
                         .accessibilityIdentifier("club.ops.recheck")
                 }
             }
-            if let serverMessage { Text(verbatim: serverMessage).textSelection(.enabled) }
+            if let serverMessage, !(target != .create && snapshot == nil && errorKey == "club.ops.readFailed") {
+                Text(verbatim: serverMessage).textSelection(.enabled)
+            }
             if let snapshot, !(target == .create && isCreateOutcomeUnknown) { content(snapshot) }
             if target == .create, case .outcomeUnknown = state, !loading, scenePhase == .active, let identity, access.identity == identity, access.isConfigured, case .outcomeUnknown = coordinator.state(target: .create), case .received = coordinator.readback(target: .create) {
                 let page = ClubCreatePageModel.interpret(signedIn: true, configured: true, loading: false, gate: ClubCreationGate(access: access), snapshot: nil, readback: coordinator.readback(target: .create), onPlayerFirstEntry: false)
