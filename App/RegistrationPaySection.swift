@@ -96,6 +96,9 @@ extension EnvironmentValues {
     @Environment(\.stripePayContext) private var stripePay
     /// Owner check 11-28 05:35: the WeChat SDK hand-off for APP pay params. Nil keeps the status chip only.
     @Environment(\.registrationAppPay) private var appPay
+    /// fix-1128-alipay (P0-4 / P32): the sheet's "Pay with" choice and the Alipay hand-off. Nil keeps WeChat Pay.
+    @Environment(\.registrationPayMethodChoice) private var payMethodChoice
+    @Environment(\.registrationAlipayPay) private var alipayPay
 
     let registrationID: Int
     let payableAmount: Decimal?
@@ -113,6 +116,7 @@ extension EnvironmentValues {
 
     @StateObject private var viewModel = RegistrationPayViewModel()
     @State private var readiness: RegistrationPaymentReadiness?
+    @State private var payStepMethod: RegistrationPayMethod?
 
     init(registrationID: Int,
          payableAmount: Decimal?,
@@ -173,7 +177,14 @@ extension EnvironmentValues {
                         RegistrationStripePayRows(context: stripePay, registrationID: registrationID,
                                                   paymentChannels: payChannels, consented: consented,
                                                   readiness: readiness)
+                    } else if canTapPay, chosenPayMethod == .alipay, let alipayPay {
+                        RegistrationPayStepMethodRow(selection: payStepMethodBinding, enabled: !alipayPay.isWaiting())
+                        RegistrationAlipayPayRows(context: alipayPay, registrationID: registrationID,
+                                                  amountText: amountText, onExpiredRebuild: onExpiredRebuild)
                     } else if canTapPay {
+                        if alipayOffered {
+                            RegistrationPayStepMethodRow(selection: payStepMethodBinding, enabled: true)
+                        }
                         CYPillButton(verbatim: payButtonTitle, style: .primary) {
                             Task {
                                 await viewModel.model.pay(
@@ -213,6 +224,21 @@ extension EnvironmentValues {
         }
     }
 
+    /// fix-1128-alipay: Alipay is a choice for this CNY order (backend `APP_ALIPAY` + the app can open Alipay).
+    private var alipayOffered: Bool {
+        RegistrationAlipayBridge.offered(alipayPay, paymentChannels: payChannels)
+    }
+
+    private var chosenPayMethod: RegistrationPayMethod {
+        RegistrationPayMethod.effective(selection: payStepMethod ?? payMethodChoice ?? payMethod, market: .china,
+                                        applePayAvailable: false, alipayOffered: alipayOffered,
+                                        paymentChannels: payChannels)
+    }
+
+    private var payStepMethodBinding: Binding<RegistrationPayMethod> {
+        Binding(get: { chosenPayMethod }, set: { payStepMethod = $0 })
+    }
+
     /// US launch r1: a USD quote listing `APPLE_PAY` / `APP_STRIPE` in the US market. China quotes never match.
     private func usesStripe(_ context: StripePayContext) -> Bool {
         StripePayEligibility.applies(market: context.market, currency: payCurrency, paymentChannels: payChannels)
@@ -233,7 +259,8 @@ extension EnvironmentValues {
 
     /// P32: the button is the payment method plus the total; without a method or a known amount it stays 立即支付.
     private var payButtonTitle: String {
-        guard let payMethod,
+        // fix-1128-alipay: with Alipay offered, the WeChat button follows the pay step's own choice.
+        guard let payMethod = alipayOffered ? chosenPayMethod : payMethod,
               let total = RegistrationUIMoney.display(payableAmount, locale: locale,
                                                       currencyCode: payCurrency ?? RegistrationUIMoney.yuanCurrencyCode) else {
             return c.t("立即支付", "Pay now")
