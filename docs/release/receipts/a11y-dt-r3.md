@@ -654,9 +654,11 @@ Variable-built "a/b" strings shown through `Text(verbatim:)`. New shared helper 
 |---|---|---|---|---|
 | Orient lobby team rows (classic + city), city run control-points cell, city game actions tile, business progress counter, journey rank board score | `OrientLobbyTeamsView:73`, `CityOrientationTeamLobbyView:117`, `CityOrientationRunView:475`, `CityGamePanel:221`, `CYBusinessComponents:848`, `JourneyReportViews:342` | ✓ (owning lanes keep order) | `.accessibilityLabel(CYFractionSpeech.label(…))`: "3 of 6" / "3，共 6". Visible text unchanged. Level C | Done |
 
+| `pages/member/index` cy-profile tabs 项目/帖文/成就/关于 | `AccountView.swift:66` | ✓ (mp-mine owns order) | Audit: system `Picker` + `.cyAdaptiveSegmented()` (stacks at large type), labelled container, identifier, `.sensoryFeedback(.selection)`. No change | Done |
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-38).
-- Next pages in the area without a row: VoiceOver order of the Roam map sheet header (title, count, chevron) and the Me tab bar (项目/推文/成就/关于) traits at AX5.
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`): club detail header and join button at AX5, ticket wallet rows VoiceOver order.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
