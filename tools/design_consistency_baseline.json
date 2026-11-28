@@ -82,6 +82,9 @@
     "App/NativeChannelHistoryView.swift": {
       "list style": "chat transcript (Messages-style plain list anchored to the bottom above the composer), not a settings-style list page"
     },
+    "App/NativeGallery/NativeGalleryScreens.swift": {
+      "locale money": "DEBUG native component gallery: static Chinese sample prices showing the zh look; not a player screen, never localized"
+    },
     "App/NativeR2/FreeExplore/NativeFreeExploreMapView.swift": {
       "hidden nav": "full-screen free-explore map"
     },

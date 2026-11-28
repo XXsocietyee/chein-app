@@ -360,15 +360,18 @@ import SwiftUI
         }
         // Child route owns only the original flow/peer identity; it does not require retained detail data.
         .navigationDestination(isPresented: childBinding) {
-            if flow.isCurrent, let child = model.child {
-                switch child {
-                case .metadata(let metadata, let nickname): NativeFriendMetadataView(flow: metadata, nickname: nickname)
-                case .removal(let removal): NativeFriendRemovalView(flow: removal)
-                case .profile(let profile):
-                    if let publicProfile { publicProfile(profile.memberID, { model.owns(profile) }).id(profile.id) }
-                case .conversation(let id): conversation(id)
+            Group {
+                if flow.isCurrent, let child = model.child {
+                    switch child {
+                    case .metadata(let metadata, let nickname): NativeFriendMetadataView(flow: metadata, nickname: nickname)
+                    case .removal(let removal): NativeFriendRemovalView(flow: removal)
+                    case .profile(let profile):
+                        if let publicProfile { publicProfile(profile.memberID, { model.owns(profile) }).id(profile.id) }
+                    case .conversation(let id): conversation(id)
+                    }
                 }
             }
+            .cyPushedChrome()
         }
         .animation(nil, value: model.routeGeneration)
     }

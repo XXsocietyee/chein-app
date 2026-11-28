@@ -184,12 +184,16 @@ DARK_BACKING = 'dark backing'
 # (black in light mode) text on top loses contrast (roam fog chips over the light map).
 DARK_BACKING_PATTERN = re.compile(r'\.background\(\s*Color\.black\.opacity\(')
 MATERIAL_BACKGROUND = re.compile(r'\.background\(\s*\.(?:ultraThin|thin|regular|thick|ultraThick|bar)Material\b')
+LOCALE_MONEY = 'locale money'
+# One money label: `LocaleDisplay.money` reads `¥12.00` in Chinese and `CN¥12.00` elsewhere. The wallet's currency
+# table without a locale, or a literal `¥` drawn as text, puts a bare `¥` in English next to `CN¥` on other screens.
+LOCALE_MONEY_PATTERN = re.compile(r'WalletCurrencySymbol\.symbol\((?![^()]*locale:)[^()]*\)|Text\((?:verbatim:\s*)?"[+\-\u2212]?¥')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
-         ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, DUPLICATE_TYPE, UNDECLARED_STATE)
+         ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -390,6 +394,8 @@ def scan_file(rel, text):
             hits.append((number, ALL_CAPS, code.strip()))
         if FIXED_SURFACE_PATTERN.search(code):
             hits.append((number, FIXED_SURFACE, code.strip()))
+        if LOCALE_MONEY_PATTERN.search(code):
+            hits.append((number, LOCALE_MONEY, code.strip()))
         if not colour_exempt and STATUS_CAPSULE_SHAPE.search(code) and STATUS_CAPSULE_TINT.search(code) and 'strokeBorder' not in code:
             hits.append((number, STATUS_CAPSULE, code.strip()))
         if not design_system and rel != APP_ROOT and DS_TAB_BAR.search(code):

@@ -551,7 +551,7 @@
  },
  {
   "key": "topicXcx.clubHost %@",
-  "en": "%@ | Host club",
+  "en": "Hosted by %@",
   "zh-Hans": "%@ | 承接俱乐部"
  },
  {
@@ -633,21 +633,6 @@
   "key": "topicXcx.section.lineup",
   "en": "Participating brands",
   "zh-Hans": "参与品牌"
- },
- {
-  "key": "topicXcx.include.chapters %lld",
-  "en": "%lld chapters",
-  "zh-Hans": "%lld 个章节"
- },
- {
-  "key": "topicXcx.include.stops %lld",
-  "en": "%lld stops",
-  "zh-Hans": "%lld 个站点"
- },
- {
-  "key": "topicXcx.include.plays %lld",
-  "en": "%lld games",
-  "zh-Hans": "%lld 个玩法"
  },
  {
   "key": "topicXcx.include.audioMinutes %lld",
@@ -1020,13 +1005,8 @@
   "zh-Hans": "%@分钟"
  },
  {
-  "key": "topicXcx.moreMerchants %lld",
-  "en": "%lld shops in total",
-  "zh-Hans": "等 %lld 家"
- },
- {
   "key": "topicXcx.coverHint",
-  "en": "Scroll down for games, sessions and sign-up",
+  "en": "Scroll down for plays, sessions and sign-up",
   "zh-Hans": "往下滑动看玩法、场次和报名"
  }
 ]
