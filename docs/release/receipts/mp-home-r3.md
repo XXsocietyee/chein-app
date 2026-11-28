@@ -505,6 +505,15 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 |---|---|---|
 | `pages/index/index.wxml` (no 继续探索 card, #29 "wxml 未渲染") → `App/SessionHomeFeedView.swift` | Plan audit H-02a: 首页 still ran the signed-in `registration/my-joined` + paused-run reads on every load, on every journey-reader scope change and on every pop back to the root, although `HomeFeedView` draws no continuation card — two reads per home load for nothing. | **Fixed** — the `.task(id: playerJourneyReader.scope)` and the two `.onChange` reloads are removed; no MP section changes. The today-ticket wallet read stays: it feeds the widget (`QuestWidgetBoardPublisher.nextTicket`). The unreachable continuation plumbing is left in place for a later Swift-compiler cleanup. |
 
+## Round 3 continue (42) — coordinator sweep 11-28 15:50 (build c4e43841a, `sheet-en.jpg`)
+
+Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (46/46) · design consistency PASS. Level B (Crafted).
+
+| MP page → native | Difference | Result |
+|---|---|---|
+| `pages/index/index` cy-empty `offline` → `App/HomeFeedView.swift` `feedDownState` (`en-d2-home-offline.jpg`) | Retry was a small tinted `.bordered` pill; it is the page's one action. | **Fixed** — `.borderedProminent`, `.controlSize(.regular)`; id `homeFeed.retry.feed` kept. |
+| `pages/index/index.wxml:22-31` `v3-hero-action` (poster + `v3-hero-copy` title **inside** the slide; `home-action-banner.js` "横幅标题就是动作") → `App/HomeSearchTabParityViews.swift` `HomeActionBannerSlide`, `Core/HomeSearchTabParity.swift` `ActionBanner.actionTitle(locale:)` (`en-d2-home.jpg`) | The title sat under the black card like a stray caption; no action inside the hero (P34). | **Fixed** — the card now holds the poster (16:10 stage) and, on the stage's black under the art (no scrim), the white headline title + one white capsule action (去报名 / Browse, 去申请 / Apply, 去玩 / Play, 查看 / Open, `arrow.right`). `ViewThatFits` stacks title over action at large Dynamic Type. The whole card stays one button (MP slide tap); the capsule is its label (hidden from VoiceOver, the label stays the title); ids unchanged. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -560,6 +569,7 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 - Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
 
 - Needs a simulator pass (continue 41): signed-in 首页 load and pop-to-root send no `registration/my-joined` read; the home widget still shows the next ticket.
+- Needs a simulator pass (continue 42): `d2-home` hero card with title + action inside (en + zh-Hans, AX5 stacks); `d2-home-offline` prominent Retry.
 
 ## For other lanes
 - mp-states: the 07:05 `d2-home-empty` next-step item is done on `mp/r3-home` (continue 30); `r3-roam-routes-empty` stays yours / mp-roam.
