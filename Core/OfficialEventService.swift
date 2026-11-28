@@ -12,6 +12,8 @@ public enum OfficialReadFailure: Error, Equatable {
 public struct OfficialEventService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    /// Event lists, roam tasks, and detail use one in-flight body. Status stays outside the join.
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
@@ -31,9 +33,7 @@ public struct OfficialEventService {
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
-        try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
-        try Task.checkCancellation()
+        let (data, status) = try await send(request)
         let envelope = try? JSONDecoder().decode(Status.self, from: data)
         if status == 401 || envelope?.code == 401 { throw APIError.unauthorized }
         return CloudB3RawBody(body: data, status: status)
@@ -95,9 +95,7 @@ public struct OfficialEventService {
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
-        try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
-        try Task.checkCancellation()
+        let (data, status) = try await send(request)
         let envelope = try? JSONDecoder().decode(Status.self, from: data)
         if status == 401 || envelope?.code == 401 { throw APIError.unauthorized }
         // This exact source phrase is a normal permission state, not a retryable load error.
@@ -120,6 +118,16 @@ public struct OfficialEventService {
         }
         do { return try JSONDecoder().decode(Envelope<T>.self, from: data).data }
         catch { throw APIError.malformedResponse }
+    }
+    /// Status stays outside the join, so a finished read is dropped and the next call sends again.
+    private func send(_ request: URLRequest) async throws -> (Data, Int) {
+        try Task.checkCancellation()
+        let response = try await reads.join(InFlightReadKey.request(request)) {
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        return (response.data, response.status)
     }
     private struct Status: Decodable { let code: Int?; let msg: String? }
     private struct Envelope<T: Decodable>: Decodable { let data: T }

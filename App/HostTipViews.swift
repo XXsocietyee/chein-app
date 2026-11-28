@@ -294,10 +294,11 @@ struct HostTipPlayerScreen: View {
                 banner = .pending
                 return
             }
-            if fact.paymentSucceeded { banner = .paymentClosed }
-            else if fact.unavailable { banner = .unavailable }
-            else if fact.payable { banner = paymentsOpen ? .paymentClosed : .paymentClosed }
-            else { banner = .unavailable }
+            switch HostTipPreparePresentation.banner(fact: fact, paymentsOpen: paymentsOpen) {
+            case .unavailable: banner = .unavailable
+            case .paymentClosed: banner = .paymentClosed
+            case .pending: banner = .pending
+            }
             await reload()
         } catch HostTipRefusal.invalidRequest {
             banner = .invalid

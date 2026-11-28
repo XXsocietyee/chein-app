@@ -2106,5 +2106,57 @@
   "playx.director.incident.confirmReject": {
     "en": "Reject",
     "zh-Hans": "确认驳回"
+  },
+  "playx.director.role.members": {
+    "en": "Choose a member",
+    "zh-Hans": "选择成员"
+  },
+  "playx.director.role.assign": {
+    "en": "Assign a role",
+    "zh-Hans": "分配角色"
+  },
+  "playx.director.role.takeover": {
+    "en": "Role takeover",
+    "zh-Hans": "角色接管"
+  },
+  "playx.director.role.noTargets": {
+    "en": "No teammate is waiting for a role",
+    "zh-Hans": "同队没有待分配成员"
+  },
+  "playx.director.role.takeoverTo": {
+    "en": "Hand over to",
+    "zh-Hans": "接管给"
+  },
+  "playx.director.role.reasonPlaceholder": {
+    "en": "Why are you taking over? This goes into the audit log",
+    "zh-Hans": "写明为什么要接管，会进审计记录"
+  },
+  "playx.director.role.cancelTakeover": {
+    "en": "Cancel takeover",
+    "zh-Hans": "取消接管"
+  },
+  "playx.director.role.memberFallback": {
+    "en": "Chein player",
+    "zh-Hans": "城瘾用户"
+  },
+  "playx.director.role.unassigned": {
+    "en": "Not assigned",
+    "zh-Hans": "待分配"
+  },
+  "playx.director.role.confirm": {
+    "en": "Confirm role",
+    "zh-Hans": "确认分配"
+  },
+  "playx.director.role.confirmTakeover": {
+    "en": "Confirm takeover",
+    "zh-Hans": "确认接管"
+  },
+  "playx.director.role.title": {
+    "en": "Role assignment",
+    "zh-Hans": "角色分配"
+  },
+  "playx.director.role.titleMember %@": {
+    "en": "Role assignment · %@",
+    "zh-Hans": "角色分配 · %@"
   }
 }

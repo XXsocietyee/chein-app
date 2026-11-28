@@ -75,7 +75,10 @@ class SocialAccountSourceTests(unittest.TestCase):
   # Fixture isolation below is unchanged.
   self.assertEqual(len(keys),125)
   for key,entry in keys.items():
-   for language in ['en','zh-Hans']:self.assertTrue(entry['localizations'][language]['stringUnit']['value'].strip(),key)
+   # en-layout r3: count strings vary by plural (social.guideTemplates.playedTimes); read the `other` form.
+   for language in ['en','zh-Hans']:
+    unit=entry['localizations'][language].get('stringUnit') or entry['localizations'][language]['variations']['plural']['other']['stringUnit']
+    self.assertTrue(unit['value'].strip(),key)
   fixture=self.read('App/SocialAccountFixtureSupport.swift'); self.assertTrue(fixture.startswith('#if DEBUG'))
   self.assertNotIn('URLSession',fixture);self.assertNotIn('AppSession(',fixture)
   self.assertIn('destination == .roam ? .roam : .home',self.read('App/QuestifyApp.swift'))

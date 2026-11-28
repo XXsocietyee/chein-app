@@ -471,8 +471,9 @@ import UIKit
         } description: {
             if offline { Text("cy.kit.offline.body") }
         } actions: {
+            // Sweep 15:50: the page's one action reads as the primary (.borderedProminent, regular size).
             Button("homeFeed.retry", action: action)
-                .buttonStyle(.bordered)
+                .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
                 .accessibilityIdentifier("homeFeed.retry.feed")
         }

@@ -228,9 +228,21 @@
     "playerJourney.parity.countdown %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Route starts in %lld days"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Route starts in %lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Route starts in %lld days"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {

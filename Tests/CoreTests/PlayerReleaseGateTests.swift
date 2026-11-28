@@ -69,6 +69,7 @@ final class PlayerReleaseGateTests: XCTestCase {
         "pages/merchant/workbench",
         "pages/topic/merchantapply/index",
         "pages/topic/merchantinfo/merchantinfo",
+        "pages/topic/settlement/index",
     ]
 
     /// Player-facing pages that must stay open, including the public merchant home and player money pages.

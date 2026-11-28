@@ -5,6 +5,8 @@ import Foundation
 public struct AccountCollectionService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    /// Favorite topics and posts share one in-flight body. Coupon reads stay outside the join.
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
@@ -32,7 +34,7 @@ public struct AccountCollectionService {
     public func coupons(keyword: String? = nil, token: String) async throws -> [AccountCollectionCoupon] {
         var fields: [String: String] = [:]
         if let keyword, !keyword.isEmpty { fields["keyword"] = keyword }
-        let data = try await post("api/coupon/myrecvlist", fields: fields, token: token)
+        let data = try await post("api/coupon/myrecvlist", fields: fields, token: token, joins: false)
         return try decode(CouponsEnvelope.self, data).data
     }
     /// No safe metadata-detail endpoint is present in the source. Reread the owned collection
@@ -44,12 +46,23 @@ public struct AccountCollectionService {
         guard matches.count == 1, let match = matches.first else { throw AccountCollectionReadFailure.unavailable }
         return match
     }
-    private func post(_ path: String, fields: [String: String], token: String) async throws -> Data {
+    private func post(_ path: String, fields: [String: String], token: String, joins: Bool = true) async throws -> Data {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         try Task.checkCancellation()
         let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
-        let (data, status) = try await transport.send(request)
+        let response: InFlightHTTPBody
+        if joins {
+            let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields, token: token)
+            response = try await reads.join(key) {
+                let (data, status) = try await self.transport.send(request)
+                return InFlightHTTPBody(data: data, status: status)
+            }
+        } else {
+            let (data, status) = try await transport.send(request)
+            response = InFlightHTTPBody(data: data, status: status)
+        }
         try Task.checkCancellation()
+        let (data, status) = (response.data, response.status)
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else {
             if let envelope = try? JSONDecoder().decode(StatusEnvelope.self, from: data), let message = envelope.message {

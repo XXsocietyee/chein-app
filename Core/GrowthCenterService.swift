@@ -8,6 +8,8 @@ public struct GrowthCenterService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let leaderboardContract: GrowthLeaderboardReadContract
+    /// Center, progress, completed and the board share one in-flight body per key. A finished read is not kept.
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport,
                 leaderboardContract: GrowthLeaderboardReadContract = .legacy) {
         self.configuration = configuration; self.transport = transport
@@ -78,8 +80,12 @@ public struct GrowthCenterService {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = Data("{}".utf8)
         }
-        let (data, status) = try await transport.send(request)
+        let response = try await reads.join(InFlightReadKey.request(request)) {
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
         try Task.checkCancellation()
+        let (data, status) = (response.data, response.status)
         let envelope = try? JSONDecoder().decode(Status.self, from: data)
         if status == 401 || envelope?.code == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }

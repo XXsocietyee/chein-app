@@ -527,6 +527,8 @@ import SwiftUI
             zeroSyncCommand = nil
             zeroSyncError = message
             await model.refresh()
+        case .notedUnknown(let message):
+            zeroSyncError = message
         case .unknown:
             zeroSyncError = appLocalized("playx.backpack.zeroUnknown", locale: locale)
         }

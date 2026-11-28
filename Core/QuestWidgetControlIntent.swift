@@ -22,7 +22,7 @@ public enum QuestControlRoute: String, AppEnum {
     public var pagePath: String {
         switch self {
         case .roam: return "pages/roam/index"
-        case .checkIn: return "pages/activity/list/index"
+        case .checkIn: return "subpackageMember/signup/index"
         }
     }
 }
