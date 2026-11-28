@@ -20,6 +20,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var phase
     @Environment(\.locale) private var locale
     @Environment(\.orderTeamCreate) private var orderTeamCreate
+    @Environment(\.orderActivityDestination) private var orderActivityDestination
     @Environment(\.dynamicTypeSize) private var typeSize
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     init(id: Int, coordinator: OrderLifecycleCoordinator) {
@@ -178,6 +179,7 @@ import SwiftUI
             }
             timeline(detail)
             refund(detail)
+            reorder(detail)
             actions(detail)
             Section {
                 NavigationLink { OrderPassPreviewView(orderID: id, coordinator: coordinator) } label: {
@@ -290,6 +292,17 @@ import SwiftUI
                 if let amount = detail.refundApplication?.amount { LabeledContent("orderLifecycle.refund.amount") { AmountLabel(amount: amount) } }
                 Text("orderLifecycle.refund.caution").font(.footnote).foregroundStyle(.secondary)
             }
+        }
+    }
+    /// Planning audit G-04: refunded / cancelled activity orders link back to the activity's sessions (no rebooking).
+    @ViewBuilder private func reorder(_ detail: OrderLifecycleDetail) -> some View {
+        if let activityID = detail.reorderActivityID, let destination = orderActivityDestination {
+            Section {
+                NavigationLink { destination(activityID) } label: {
+                    Label("mpr3.order.reorder.open", systemImage: "calendar.badge.plus")
+                }
+                .accessibilityIdentifier("orderLifecycle.reorder")
+            } footer: { Text("mpr3.order.reorder.footer") }
         }
     }
     private func actions(_ detail: OrderLifecycleDetail) -> some View {

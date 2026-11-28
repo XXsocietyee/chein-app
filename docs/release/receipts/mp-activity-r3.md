@@ -322,12 +322,19 @@ Merged `origin/ui/combined-r7` (70917c058, clean). No sweep newer than 07:26 (33
 
 Gates: generate_project ok; scaffold PASS; a11y 0 new; design consistency PASS; contract ratchet 52/52 new 0; square contract suites OK (`test_square_upload_backend_limits` errors on a missing `flutter_source` module with or without this change). No simulator here: recheck `d2-square` in the next sweep.
 
+## Round 3 continue (2026-11-28, thirty-fifth session — planning audit "Next after the 30")
+Merged `origin/ui/combined-r7` (clean). Gates: scaffold, a11y (0 new), design consistency PASS; ratchet 52/52 new 0. No sweep since 07:26 (3348aa51f); the 07:45 P32 finding was closed in the thirty-third session. Not done rows are blocked or documented keeps, and G-01 (detail re-read after the registration sheet closes) is already in `ActivityDetailView.swift:293`, so this session takes G-04 from the planning audit.
+
+| MP page | Native view | Change | Level / optimization |
+|---|---|---|---|
+| `subpackageMember/components/scene-member-participation-detail` after 取消并退款 (MP js:637-646 toasts and goes back; owner S14: refund + new purchase only, no rebooking) | `App/OrderLifecycleView.swift` `reorder(_:)`; `Core/OrderLifecycleTeamContext.swift` `reorderActivityID`; env `orderActivityDestination` (`App/OrderTeamCreateEntry.swift`, provided in `App/QuestifyApp.swift` → `ActivityDetailView`); `Tests/CoreTests/OrderLifecycleTests.swift` `testReorderLinkOnlyAfterRefundOrCancelOfAnActivityOrder` | **added** G-04: a refunded or cancelled activity order (ownerType 2) shows one row 查看场次，重新购买 / See sessions and buy again → the activity detail with its ticket list, footer 门票不支持改期，请为想去的场次重新购买。 Hidden while the refund is still in progress, for paid orders, route orders and in fixtures (no destination) | C · Utility; one `NavigationLink` row with SF Symbol + footer, strings in fragment `mp-activity-r3-orders.json` (en + zh-Hans) |
+
 ## Not done
 - P1-8 needs a device check: backend `api/comment/add` must return the inserted row (`id`, `memberId`, `ownerType`, `ownerId`, `replyId`, `rating`, `contents`) or the writer reports 结果未知.
 - P2-1 checked, not changed here: (a) US readiness — `RegistrationStripePaySection.swift:118-122` waits on `payment-readiness.ready`, which the backend computes from WeChat only (audit row 507, owner **backend**; the app-side Stripe rows also sit with `fix/1128-us-pay`); (b) host tip `payable` → 支付已关闭 is `HostTipViews.swift:283-300` (audit row 529, owner **mp-club**); (c) pass detail price facts + 购买暂未开放 note is `PassMarketViews.swift:814-832` (audit row 525, owner **mp-mine**; MP shows prices, purchases deferred by `MPCommerceGate`). Listed under For other lanes.
 - Owner correction 11-28 04:45: Alipay adapter exists in Core (gated off); still open — the App-side SDK bridge driver + AppSession wiring + URL-scheme route once the SDK, app id and backend `alipay.trade.app.pay` exist; then flip `RegistrationPayMethod.alipayReady` and route the Alipay choice to it (US checkout verified: registration → Stripe, others gated off).
 - Payment moment: no simulator here, so the slide / shake is unseen until a sweep shows `t5-baoming-paid` (fixture from the cn-pay worker).
-- P32 still open on pass / bundle buy (purchases gated off by `MPCommerceGate`, no pay step to label) and order-detail Pay (`OrderLifecycleView` has no method choice; keeps 立即支付).
+- P32 still open on pass / bundle buy (purchases gated off by `MPCommerceGate`, no pay step to label). (Order-detail re-pay now has the Pay with row via `OrderRepaySection`, from `fix/1128b-team-reg`.)
 - Owner check 05:35: no simulator here, so `t5-baoming-paying` / `t5-baoming-paid` are unseen until the next coordinator sweep; backend `/api/registration/pay/app` APP-param shape is the backend lane's check.
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

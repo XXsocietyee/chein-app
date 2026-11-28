@@ -14,13 +14,23 @@ struct CYThemeLook: Equatable, Hashable {
     var style: Style
     var palette: Palette = .black
     var neon: Neon = .yellowCyan
+    /// SURVIVAL `params.climate` / `params.volatility` (fix/1128c-ai-weather): the story weather timeline
+    /// (`StoryClimate`) drawn by `PlaySceneWeather`. Nil for the other styles.
+    var climate: String? = nil
+    var volatility: String? = nil
 
     /// Mirrors `theme-look.normalizeLook`: unknown style → nil (legacy), unknown palette/neon → default.
-    init?(style raw: String?, palette: String? = nil, neon: String? = nil) {
+    init?(style raw: String?, palette: String? = nil, neon: String? = nil, climate: String? = nil, volatility: String? = nil) {
         guard let raw, let style = Style(rawValue: raw.uppercased()) else { return nil }
         self.style = style
         self.palette = palette.flatMap { Palette(rawValue: $0.uppercased()) } ?? .black
         self.neon = neon.flatMap { Neon(rawValue: $0.uppercased()) } ?? .yellowCyan
+        if style == .survival { self.climate = climate; self.volatility = volatility }
+    }
+
+    /// The author's story weather, or nil when this look has none.
+    var storyClimate: StoryClimate? {
+        StoryClimate(style: style.rawValue, climate: climate, volatility: volatility)
     }
     init(style: Style, palette: Palette = .black, neon: Neon = .yellowCyan) {
         self.style = style; self.palette = palette; self.neon = neon

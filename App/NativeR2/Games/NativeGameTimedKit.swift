@@ -333,7 +333,21 @@ import SwiftUI
         resultSection(outcome: stopwatchOutcome,
                       value: PlayTimedDisplayLocalization.seconds(Double(stopped) / 1000, locale: locale),
                       target: PlayTimedDisplayLocalization.seconds(seconds, locale: locale),
-                      delta: (diff >= 0 ? "+" : "−") + PlayTimedDisplayLocalization.seconds(Double(abs(diff)) / 1000, locale: locale))
+                      delta: (diff >= 0 ? "+" : "−") + PlayTimedDisplayLocalization.seconds(Double(abs(diff)) / 1000, locale: locale),
+                      caption: stopwatchTriesLeftCaption)
+    }
+
+    /// MP `sw__cap` 还有 N 次机会 under a missed stop, only while chances remain (`wx:if left > 0`).
+    /// N is the server's count (cap − attempts), the same value as the HUD 还能错 pill.
+    private var stopwatchTriesLeftCaption: String? {
+        guard stopwatchOutcome == false, let left = Self.triesLeft(segment: segment), left > 0 else { return nil }
+        return appLocalized("playkit.stopwatch.triesLeft \(left)", locale: locale)
+    }
+
+    /// Server tries left for a capped kit (`maxTries` / `maxAttempts` minus `attempts` / `tries`); nil when uncapped.
+    static func triesLeft(segment: PlayWireValue) -> Int? {
+        guard let cap = segment["maxTries"].integer ?? segment["maxAttempts"].integer, cap > 0 else { return nil }
+        return max(0, cap - (segment["attempts"].integer ?? segment["tries"].integer ?? 0))
     }
 
     /// Local pre-review readout only; the server still grades. Unknown tolerance claims no verdict.

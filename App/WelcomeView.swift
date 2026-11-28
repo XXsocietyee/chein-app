@@ -184,7 +184,7 @@ struct WelcomeView: View {
             .sensoryFeedback(.selection, trigger: consentTaps)
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 16) { agreementLink; privacyLink }
-                VStack(alignment: .leading, spacing: 6) { agreementLink; privacyLink }
+                VStack(alignment: .leading, spacing: 0) { agreementLink; privacyLink }
             }
             .font(.footnote)
             .buttonStyle(.borderless)
@@ -193,12 +193,12 @@ struct WelcomeView: View {
     }
 
     private var agreementLink: some View {
-        Button { destination = .legal(.userAgreement) } label: { Text("authEntry.gate.openAgreement", tableName: "AuthEntry") }
+        Button { destination = .legal(.userAgreement) } label: { Text("authEntry.gate.openAgreement", tableName: "AuthEntry").frame(minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle()) }
             .accessibilityIdentifier("welcome.consent.agreement")
     }
 
     private var privacyLink: some View {
-        Button { destination = .legal(.privacyPolicy) } label: { Text("authEntry.gate.openPrivacyGuide", tableName: "AuthEntry") }
+        Button { destination = .legal(.privacyPolicy) } label: { Text("authEntry.gate.openPrivacyGuide", tableName: "AuthEntry").frame(minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle()) }
             .accessibilityIdentifier("welcome.consent.privacyGuide")
     }
 
