@@ -208,6 +208,9 @@ delay or locale-dependent path, so this reads as a capture-timing flake in the s
 - **mp-mine:** 我的 · 邀请好友 page (`AccountView` → `PlayerCodeAndJoinSection`) lacks the MP `scene-share-invite` copy block (邀请好友一起探索城市 / 分享城瘾给你的好友…) and the 分享链接 button (`ShareLink`) under the code; mp-states only fixed the code's loading / failure / unavailable states.
 - **mp-club:** 俱乐部 · 主题详情 (`pages/club/topic-detail`) has three MP sections with no native screen: 主题设置 (wxml:474-476), 报名名单 (wxml:581-594) and 报名趋势 (wxml:633-635), each with its own loading / denied / 获取失败 · 重试 state.
 
+- **mp-roam (live roam finish, run 11-28 15:40):** MP `pages/roam/index.wxml:926-935` finish errors — `settleErr` cy-error 探索记录尚未确认，暂未结束 / 漫游结果需要确认 · 结果未保存，请重试 · 确认漫游结果 / 重新提交, and `eventErr` 活动进度还没确认 / 这次没能计入活动进度 · 重新上报 — have no native string; the native finish only shows `roam.experience.settlementIncomplete` as a chip (`App/RoamRecoveryView.swift:39`). Not taken here: live roam is with `fix/1128b-maps` / mp-roam.
+- **mp-activity (registration sheet, run 11-28 15:40):** MP `pages/activity/baoming/baoming.wxml:317` submit failure cy-inline-error 这次报名还没完成 · submitError · 重新提交 (暂不可报名 for a quote refusal) has no native string. Not taken here: `RegistrationSheetView` is under `fix/1128-cn-pay` / mp-activity and is compile-time sensitive.
+
 ## Gates
 
 Every push ran, on the merged head: `python3 tools/generate_project.py` (no project diff), `python3 tools/check_scaffold.py`
