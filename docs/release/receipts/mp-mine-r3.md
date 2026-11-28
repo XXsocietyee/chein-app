@@ -348,3 +348,13 @@ Merged `origin/ui/combined-r7` (clean). Screens checked: `docs/sweeps/latest/mp-
 | `en-*`: amounts read `CN¥0.00` / `CN¥168.00` | 20:25: zh shows ¥ | — | Kept. That is the en-US system currency format for CNY. zh shows ¥ (`zh-Hans-*`). |
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, missing string keys 0, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 17 (half-hourly re-arm, sweep 00:10 UTC build 283dd3b52)
+
+Branch already contains combined-r7. That build has continue 15 (··· on the identity row) but not continue 16 (en **Awards** tab), so the en tab row still shows the menu fallback there. No mp-mine rows in the 23:50 / 00:20 coordinator sweeps. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `en-d2-me.jpg`, `zh-Hans-d2-me.jpg`.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `en-d2-me.jpg`, `zh-Hans-d2-me.jpg`: Me card [开始探索][票夹] now equal width ✓ and ··· on the identity row ✓; but 票夹 / Ticket wallet has no glyph and its text sits right of centre (an empty icon gap) | MP `pc-ticket`: coupon icon + 票夹, same size and colour as the primary | `App/MemberHomeHeader.swift` `ticketsButton` | **Fixed.** The label is an explicit `HStack { Image("ticket"), Text }` centred in the full-width frame instead of a system `Label`. Same key, id and action. Needs a simulator look. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
