@@ -87,7 +87,7 @@ enum SearchMapFixtureKeywords {
         if scenario == .empty || query.keyword == "missing" { return GlobalSearchResults(rows: []) }
         let kinds = GlobalSearchKind.allCases.filter { (isAuthenticated || $0 != .club) && (scenario != .partial || $0 != .merchant) }
         let sourceID = scenario == .categoryDelayed ? (query.categoryID ?? 70) : 71
-        let rows = kinds.map { kind in GlobalSearchRow(kind: kind, sourceID: sourceID, title: SearchMapFixtureLanguage.rowTitle(kind), detail: SearchMapFixtureLanguage.rowDetail(query.keyword)) }
+        let rows = kinds.map { kind in GlobalSearchRow(kind: kind, sourceID: sourceID, title: SearchMapFixtureLanguage.rowTitle(kind), detail: SearchMapFixtureLanguage.rowDetail(query.keyword, kind: kind)) }
         return GlobalSearchResults(rows: rows, failedKinds: scenario == .partial ? [.merchant] : [], gatedKinds: isAuthenticated ? [] : [.club])
     }
     func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults {
@@ -277,9 +277,17 @@ enum SearchMapFixtureLanguage {
         case .merchant: return "示例商家"
         }
     }
-    static func rowDetail(_ keyword: String) -> String {
-        if isChinese { return isDesignFixture ? "老城 · \(keyword)" : "离线示例 · \(keyword)" }
-        return isDesignFixture ? "Old Town · \(keyword)" : "Offline \(keyword)"
+    /// mp-home r3 (continue 38, ADA `d2-search-results`): every design-fixture row read "Old Town · <query>". MP
+    /// `utils/discover-search.js` `decorateItem` builds the line per type (topic / activity = addressName, club = city,
+    /// shop = cityRole ‖ address), so the fixture now shows one such value per kind. UI-test runs keep the pinned text.
+    static func rowDetail(_ keyword: String, kind: GlobalSearchKind) -> String {
+        guard isDesignFixture else { return isChinese ? "离线示例 · \(keyword)" : "Offline \(keyword)" }
+        switch kind {
+        case .topic: return isChinese ? "河坊街 · 老城区" : "Hefang Street · Old Town"
+        case .activity: return isChinese ? "灯笼广场" : "Lantern Square"
+        case .club: return isChinese ? "杭州" : "Hangzhou"
+        case .merchant: return isChinese ? "城市驿站 · 河坊街 88 号" : "City stop · 88 Hefang Street"
+        }
     }
     /// mp-home r3 (continue 32, sweep 07:26 `d2-search`): the 类别 card held one capsule, so the MP category grid
     /// read as a stray chip. The design fixture shows a full MP-like category row in the UI language (icons follow

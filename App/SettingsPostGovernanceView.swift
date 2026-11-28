@@ -203,6 +203,11 @@ struct PostGovernanceRow: Identifiable, Equatable {
                     .submitLabel(.done)
                     .accessibilityIdentifier("settings.postGov.reason")
                 HStack {
+                    // MP pg-count: {{reason.length}}/{{reasonMax}} under the textarea.
+                    Text(verbatim: "\(reason.count)/\(Self.reasonMax)")
+                        .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                        .accessibilityLabel(Text("a11y.value.characters \(Int(reason.count)) \(Int(Self.reasonMax))"))
+                        .accessibilityIdentifier("settings.postGov.count")
                     Spacer()
                     Button("action.cancel") { editingID = nil; reason = "" }.buttonStyle(.borderless).disabled(submitting)
                         .accessibilityIdentifier("settings.postGov.cancel")
