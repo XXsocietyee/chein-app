@@ -192,6 +192,8 @@ struct RegistrationFixtureHostView: View {
             }
         }
         .environment(\.registrationHidesFixtureNotice, hidesFixtureNotice)
+        // Design fixtures run offline: the 活动信息 cover uses a bundled MP cover, like the activity-detail hero fixture.
+        .environment(\.e1ActivityHeroFixtureCover, MPAsset.BannerCover.feNight)
         // Same detent as the real presentation (`ActivityDetailView` → `SessionRegistrationSheet`, `.large`).
         .cySheet(detents: [.large]) }
     }

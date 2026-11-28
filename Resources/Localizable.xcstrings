@@ -81255,13 +81255,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Home is unavailable"
+            "value": "Home can’t open right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "首页暂不可用"
+            "value": "首页无法打开"
           }
         }
       }
