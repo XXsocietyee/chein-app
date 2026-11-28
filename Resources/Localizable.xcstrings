@@ -357989,6 +357989,40 @@
           }
         }
       }
+    },
+    "club.topic.stats.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the session console."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次管理台加载失败"
+          }
+        }
+      }
+    },
+    "withdrawal.support.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see the support contact."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看客服微信"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

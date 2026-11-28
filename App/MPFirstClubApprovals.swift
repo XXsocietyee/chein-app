@@ -120,13 +120,17 @@ enum MPFirstClubWriteRoute {
         "api/club/crm/checkin/detail",
         // CLB-r11-detail-05 (MP detail/index.js:3813-3847 applyCoopPool): 申请带队, intent only, not money.
         coopPoolApplyPath,
-        // 1128-plan C-08 / C-09 / C-07a / C-19 (MP topic-detail/index.js:309,980,1048, topic-story/index.js:285,
-        // event-ops, enroll/index.js:373): director stats, 商家 / 报名参与者 sheets, 查看答案, the occurrence browser and
-        // 报名名册. Owner reads only, each on its ClubGovernanceRead.fields body (readShapes).
+        // 1128 gap #13 (C-08; MP topic-detail/index.js:309,980,1048): the director console reads. Without
+        // topic-manage-stats the console, 场次管理 and 核销 were hidden for every owner.
         "api/club/crm/topic-manage-stats", "api/club/recruit/overview", "api/club/crm/topic-customers",
-        "api/club/topic-node-answer", "api/club/event-ops/series/occurrences", topicRegistrationsPath
+        // 1128 gap #14 (C-09; MP topic-story/index.js:285): 查看答案. topic-registrations is admitted by
+        // `acceptsTopicRegistrations` before the "registration" substring guard.
+        "api/club/topic-node-answer",
+        // 1128 gap #18 (C-07a; MP event-ops): the occurrence browser (locked / editable / cancelled).
+        "api/club/event-ops/series/occurrences"
     ]
-    /// 1128-plan C-19: the one "registration" path this firewall admits, the owner roster read `{clubId, topicId}`.
+    /// 1128 gap #14 (C-19; MP pages/club/enroll/index.js:373): the 报名名册 read `{clubId, topicId}`. Its path contains
+    /// "registration", so it is matched exactly before the substring guard; no other registration path passes here.
     static let topicRegistrationsPath = "api/club/topic-registrations"
     static let coopPoolApplyPath = "api/coop/pool/apply"
     /// P1-12: the one settlement path this firewall admits, an owner read `{clubId}` (ClubGovernanceRead.settlement).
@@ -152,6 +156,7 @@ enum MPFirstClubWriteRoute {
     static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
         if acceptsOwnerRefund(request, baseURL: baseURL, token: token) { return true }
         if acceptsClubScan(request, baseURL: baseURL, token: token) { return true }
+        if acceptsTopicRegistrations(request, baseURL: baseURL, token: token) { return true }
         guard let token, AuthRequestBuilder.isValidToken(token),
               request.httpMethod == "POST", request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
@@ -184,6 +189,8 @@ enum MPFirstClubWriteRoute {
             if relative == coopPoolApplyPath {
                 guard let message = object["message"] as? String, message.count <= 500 else { return false }
             }
+            if relative == "api/club/crm/topic-manage-stats", !admitsNullableActivity(object) { return false }
+            if relative == "api/club/crm/topic-customers", let filter = object["filter"], !(filter is String) { return false }
             return shape.admits(object)
         }
         return true
@@ -209,6 +216,22 @@ enum MPFirstClubWriteRoute {
         let id = String(text.dropFirst(prefix.count).dropLast(suffix.count))
         guard id.count <= 16, id.allSatisfy(\.isASCII), id.allSatisfy(\.isNumber), let value = Int(id) else { return false }
         return value > 0
+    }
+
+    /// 1128 gap #14 (C-19): `POST api/club/topic-registrations` JSON `{clubId, topicId}` (ClubGovernanceRead.registrations,
+    /// BE ApiClubController.java:1889), two positive ids and nothing else. Read only; registration create stays refused.
+    static func acceptsTopicRegistrations(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              let url = request.url, url.fragment == nil, url.user == nil, url.password == nil, url.query == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false), parts.query == nil,
+              MPFirstMerchantWriteRoute.relativePath(parts.path, base: baseURL.path) == topicRegistrationsPath,
+              let body = request.httpBody, body.count < 1024,
+              let object = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any] else { return false }
+        return ReadShape(ids: ["clubId", "topicId"]).admits(object)
     }
 
     /// CLB-r11-detail-04: club 扫码核销. MP pages/club/detail/index.js:971-1010 (`onClubScan` → `resolveVerificationScan`
@@ -288,14 +311,19 @@ enum MPFirstClubWriteRoute {
         "api/club/crm/checkin/detail": .init(ids: ["clubId", "registrationId"]),
         // CLB-r11-detail-05: MP detail/index.js:3813-3847 body `{topicId, clubId, message}` (ClubCoopPoolApplyClient).
         "api/coop/pool/apply": .init(ids: ["topicId", "clubId"], required: ["message"]),
-        // 1128-plan C-08 / C-09 / C-07a / C-19: ClubGovernanceRead.fields bodies (topicStats sends activityId or null).
-        "api/club/crm/topic-manage-stats": .init(ids: ["clubId", "topicId"], optional: ["activityId"]),
+        // 1128 gaps #13 / #14 / #18: ClubGovernanceRead.fields bodies. topic-manage-stats always carries `activityId`
+        // (a session id or JSON null), so it is checked by `admitsNullableActivity` below.
+        "api/club/crm/topic-manage-stats": .init(ids: ["clubId", "topicId"], required: ["activityId"]),
         "api/club/recruit/overview": .init(ids: ["clubId", "topicId"]),
-        "api/club/crm/topic-customers": .init(ids: ["clubId", "topicId"], required: ["filter"]),
+        "api/club/crm/topic-customers": .init(ids: ["clubId", "topicId"], optional: ["filter"]),
         "api/club/topic-node-answer": .init(ids: ["clubId", "topicId", "nodeId"]),
-        "api/club/event-ops/series/occurrences": .init(ids: ["clubId", "seriesId"]),
-        "api/club/topic-registrations": .init(ids: ["clubId", "topicId"])
+        "api/club/event-ops/series/occurrences": .init(ids: ["clubId", "seriesId"])
     ]
+    /// `activityId` must be JSON null or a positive integer (ClubGovernanceRead.topicStats).
+    static func admitsNullableActivity(_ object: [String: Any]) -> Bool {
+        guard let value = object["activityId"] else { return false }
+        return value is NSNull || positive(value)
+    }
     static func positive(_ value: Any?) -> Bool {
         guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return false }
         let double = number.doubleValue

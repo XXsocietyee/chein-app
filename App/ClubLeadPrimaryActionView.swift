@@ -168,6 +168,8 @@ extension ClubLeadPrimaryAction {
         }
         return .init(isCurrent: valid, destination: { [weak self] action, context in
             guard let self, valid(context) else { return nil }
+            // 1128 gap #30 (C-15): no 邀请商家 / 邀请进度 destination while merchant is out of the release.
+            if !PlayerLaunch.merchantCenterEnabled, action == .merchants || action == .sentInvitations { return nil }
             switch action {
             case .publish:
                 return AnyView(SessionClubProjectLaunchView(session: self, club: club))

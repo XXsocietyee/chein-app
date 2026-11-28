@@ -42,6 +42,25 @@ public struct SocialMemberActionApproval: Equatable {
     }
 }
 
+/// Issues one exact member-action approval for the live context, operation and member, or nil.
+public typealias SocialMemberActionIssuer = @MainActor (RuntimeDependencyContext, SocialMemberActionOperation, Int) -> SocialMemberActionApproval?
+
+/// 1128 gap #10 (M-17c/d): the Release issuer. A signed-in China player gets a short-lived approval for exactly one
+/// member and one operation (`api/user/follow/action` or `api/im/start`, plus the profile / conversation re-reads).
+/// The composition firewall still checks every request; the server decides follow and chat permission.
+public enum SocialMemberActionReleaseIssuer {
+    public static let lifetime: TimeInterval = 600
+    @MainActor public static func approval(_ context: RuntimeDependencyContext, operation: SocialMemberActionOperation,
+                                           memberID: Int, now: Date = Date()) -> SocialMemberActionApproval? {
+        guard context.market == .china, memberID > 0, context.session.accountID > 0, memberID != context.session.accountID,
+              let endpoint = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+                                                            accountID: context.session.accountID, paths: operation.paths) else { return nil }
+        let identity = SocialAccountIdentity(accountID: context.session.accountID, epoch: context.session.epoch, role: context.role)
+        return try? SocialMemberActionApproval(endpoint: endpoint, identity: identity, market: .china, operation: operation,
+                                               memberID: memberID, expiresAt: now.addingTimeInterval(lifetime))
+    }
+}
+
 @MainActor public enum SocialMemberActionFactory {
     /// The normal composition uses this same path. Tests inject only the transport and
     /// session source; there is no synthetic receipt or alternate successful writer.
@@ -50,10 +69,11 @@ public struct SocialMemberActionApproval: Equatable {
                             reader: any SquareReading, accountReader: any SocialAccountReading,
                             current: @escaping () -> RuntimeDependencyContext?,
                             now: @escaping () -> Date = Date.init,
-                            isCurrent: @escaping () -> Bool = { true }) -> any SocialActionAccess {
+                            isCurrent: @escaping () -> Bool = { true },
+                            issue: SocialMemberActionIssuer? = nil) -> any SocialActionAccess {
         SocialMemberActionAccess(configuration: configuration, approvals: approvals, transport: transport,
             journal: journal, fallback: SocialDisabledActionAccess(reader: reader, accountReader: accountReader),
-            current: current, now: now, isCurrent: isCurrent)
+            current: current, now: now, isCurrent: isCurrent, issue: issue)
     }
 }
 
@@ -66,19 +86,30 @@ public struct SocialMemberActionApproval: Equatable {
     private let current: () -> RuntimeDependencyContext?
     private let now: () -> Date
     private let isCurrent: () -> Bool
+    /// 1128 gap #10: the Release composition issues one exact approval per (operation, member) on demand.
+    private let issue: SocialMemberActionIssuer?
     var identity: SocialAccountIdentity {
         isCurrent() ? fallback.identity : .init(accountID: nil, epoch: fallback.identity.epoch, role: nil)
     }
     var availability: SocialActionAvailability {
-        approvals.contains { valid($0) } ? .approved : .disabled
+        if approvals.contains(where: { valid($0) }) { return .approved }
+        guard issue != nil, isCurrent(), configuration != nil, current() != nil else { return .disabled }
+        return .approved
     }
     init(configuration: APIConfiguration?, approvals: [SocialMemberActionApproval], transport: any HTTPTransport,
          journal: any OperationPendingJournal, fallback: SocialDisabledActionAccess,
          current: @escaping () -> RuntimeDependencyContext?, now: @escaping () -> Date,
-         isCurrent: @escaping () -> Bool) {
+         isCurrent: @escaping () -> Bool, issue: SocialMemberActionIssuer? = nil) {
         self.configuration = configuration; self.approvals = approvals; self.transport = transport
         self.journal = journal; self.fallback = fallback; self.current = current; self.now = now
-        self.isCurrent = isCurrent
+        self.isCurrent = isCurrent; self.issue = issue
+    }
+    /// An issued approval counts only when it is valid for the live context, exactly like a configured one.
+    private func issued(_ operation: SocialMemberActionOperation, member: Int) -> SocialMemberActionApproval? {
+        guard let issue, isCurrent(), let context = current(),
+              let approval = issue(context, operation, member), approval.operation == operation,
+              approval.memberID == member, valid(approval) else { return nil }
+        return approval
     }
     private func valid(_ approval: SocialMemberActionApproval) -> Bool {
         guard isCurrent(), let configuration, let context = current() else { return false }
@@ -87,6 +118,7 @@ public struct SocialMemberActionApproval: Equatable {
     private func approval(_ command: SocialActionCommand, target: SocialActionTarget) -> SocialMemberActionApproval? {
         guard let operation = SocialMemberActionOperation(command), let member = target.memberID else { return nil }
         let matches = approvals.filter { $0.operation == operation && $0.memberID == member && valid($0) }
+        if matches.isEmpty { return issued(operation, member: member) }
         // Ambiguous deployment configuration is not authorization.
         return matches.count == 1 ? matches[0] : nil
     }
@@ -133,7 +165,8 @@ public struct SocialMemberActionApproval: Equatable {
     func snapshot(target: SocialActionTarget, generation: SquareContentGeneration?) async throws -> SocialActionSnapshot {
         guard isCurrent() else { throw SocialActionBlock.cancelled }
         guard let member = target.memberID,
-              let grant = approvals.first(where: { $0.memberID == member && valid($0) }), let context = current() else {
+              let grant = approvals.first(where: { $0.memberID == member && valid($0) }) ?? issued(.follow, member: member),
+              let context = current() else {
             do {
                 let value = try await fallback.snapshot(target: target, generation: generation)
                 guard isCurrent() else { throw SocialActionBlock.cancelled }
