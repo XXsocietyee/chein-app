@@ -509,3 +509,12 @@ Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts and pbxproj tak
 Not done: `CharacterCardReadbackView` byte pin unchanged (needs the pin owner).
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 30 (11-28, half-hourly run): ADA audit rows for mp-mine
+
+Branch was up to date with `origin/ui/combined-r7`. The twin run's continue 29 already closed P1-14 / P1-15 / P1-16 / P2-5a; this run's duplicate commits were dropped. P2-5b (Apple full name) stays Not done: Sign-in-with-Apple code belongs to `fix/1128-apple-delete` right now. This run takes the mp-mine rows of `origin/audit/1128-ada:docs/audits/1128-ada.md`.
+
+| ADA row | MP | Native file | Level | Fixed now |
+|---|---|---|---|---|
+| e4-member (关于 → 当前权益): a player sees merchant capabilities (Publish coupons, In-store redemption) as locked rows | `subpackageMember/components/cy/profile/index.js:65-78` `buildBenefits`: 发布路线 · 到店核销 · 分支/条件玩法 · 博弈机制 · 开放门店为城市节点 · 勋章设计 · 建群 · 我的收益 (no 发布优惠券) | `Core/MemberHome.swift` `MemberBenefit`, `App/MemberHomeHeader.swift` `MemberBenefitsSection` | C | **Fixed.** The app-only 发布优惠券 row is gone (MP order is now exact; key `member.benefit.publishCoupons` removed). New `MemberBenefit.isMerchantCapability` (到店核销, 开放门店为城市节点): a player in Release does not see these rows while locked (`PlayerLaunch.merchantCenterEnabled` false); DEBUG / TEST keep the MP list, so the sweep still shows them. `MemberHomeTests` updated (the role-info case now unlocks only 发布路线). |
+| e4-wallet-balance: the hero label "余额流水 / Balance ledger" repeats the nav title; EN reasons wrap because the amount column is wide | MP 我的资产 label 账户余额 (`cy/profile/index.wxml:230`) | `App/WalletCommerceViews.swift` `balanceHero`, `ledgerRow` | C | **Fixed.** Hero label is the new key `wallet.balanceHero` (账户余额 / Account balance); the title stays 余额流水. The amount column is `.fixedSize(horizontal:)` in the row layout (not at AX sizes, where the row already stacks), so the reason takes the rest of the width. Not changed: zh dates stay the server text through `LocaleDisplay.civil` (shared Core helper, decided in continue 26). |

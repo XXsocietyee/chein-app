@@ -565,7 +565,8 @@ import SwiftUI
                         .accessibilityIdentifier("member.benefits.retry")
                 }.accessibilityIdentifier("member.benefits.failed")
             case .ready(let snapshot):
-                ForEach(snapshot.rows) { row in
+                // MP buildBenefits order. Lane G: a player in Release does not see locked merchant-only rows (ADA e4-member).
+                ForEach(snapshot.rows.filter { !$0.isMerchantCapability || $0.unlocked || PlayerLaunch.merchantCenterEnabled }) { row in
                     if row.opensEarnings, let earningsDestination {
                         NavigationLink(isActive: owner.earningsBinding(snapshot)) {
                             if let offered = owner.navigation(for: snapshot) {
@@ -616,7 +617,6 @@ struct MemberBenefitRow: View {
                 default: Text("member.benefit.unlimited", tableName: "MemberProfile")
                 }
             }
-        case .publishCoupons: Text("member.benefit.publishCoupons", tableName: "MemberProfile")
         case .redeemCoupons: Text("member.benefit.redeemCoupons", tableName: "MemberProfile")
         case .branching: Text("member.benefit.branching", tableName: "MemberProfile")
         case .gameMechanics: Text("member.benefit.gameMechanics", tableName: "MemberProfile")
