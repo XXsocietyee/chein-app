@@ -132,4 +132,12 @@ Left out, because the code does not use them:
 | Customer Support / 客户支持 | Play feedback `/api/play/feedback/submit` (`Core/JourneyLoopSource.swift`) and profile complaints. |
 | Other Data Types / 其他数据类型 | Resident ID number (`idCard`) for China real-name publisher registration (`Core/PublisherIdentityRegistration.swift`). |
 
-Required-reason APIs are unchanged and re-verified against source: User Defaults `CA92.1`; File Timestamp `C617.1` (own container: `App/IMVoiceDevice.swift`, `App/MerchantNPCVoiceDevice.swift`, the `Core/*Journal.swift` `attributesOfItem` checks) and `3B52.1` (user-picked documents); System Boot Time `35F9.1` (`ProcessInfo.processInfo.systemUptime` for in-app elapsed time). No disk-space or active-keyboard API. The Live Activity extension uses none of these APIs.
+Required-reason APIs are unchanged and re-verified against source: User Defaults `CA92.1` and `1C8F.1` (the app-group widget store; the English "left out" row above is stale); File Timestamp `C617.1` (own container: `App/IMVoiceDevice.swift`, `App/MerchantNPCVoiceDevice.swift`, the `Core/*Journal.swift` `attributesOfItem` checks) and `3B52.1` (user-picked documents); System Boot Time `35F9.1` (`ProcessInfo.processInfo.systemUptime` for in-app elapsed time). No disk-space or active-keyboard API. The Live Activity extension uses none of these APIs.
+
+## K50-R2 (2026-11-28)
+
+`Resources/PrivacyInfo.xcprivacy` declares one more collected type, linked, not tracking, App Functionality only. Evidence is pinned in `Tests/ContractChecks/test_privacy_manifest_contract.py`.
+
+| Apple type | Evidence |
+|---|---|
+| Product Interaction / 产品交互 | Allow-listed events posted to `api/analytics/events/batch` (`Core/AnalyticsEventClient.swift`). `actorScope` is `member:<account id>`. `anonymousId` is empty. Not used for tracking. |

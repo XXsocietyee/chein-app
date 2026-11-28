@@ -75,6 +75,7 @@ class UGC12CompletenessContractTests(unittest.TestCase):
             "App/DiscoveryTemplateDetailView.swift": "UGCSafetyMenuButton",
             "App/PublicMerchantReviewsView.swift": "UGCBlockedFilterContainer",
             "App/WorkshopPurchasedLibraryView.swift": "UGCSafetyMenuButton",
+            "App/RoamNearbyParityExtras.swift": "UGCReviewSafetyFooter",
         }
         for path, token in checks.items():
             self.assertIn(token, self.read(path), f"{path} missing {token}")

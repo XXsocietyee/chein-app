@@ -80,6 +80,7 @@ enum RoamPlaceSources {
 
 struct RoamPlaceReview: Identifiable, Equatable {
     let id: String
+    let memberID: Int?
     let name: String?
     let timeText: String?
     let stars: Int?
@@ -304,29 +305,46 @@ struct RoamPlaceExtrasSection: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         ForEach(extras.reviews) { review in
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                HStack {
-                                    Text(verbatim: review.name ?? c.t("玩家", "Player")).cyText(.label)
-                                    Spacer()
-                                    if let time = review.timeText { Text(verbatim: time).cyText(.caption).foregroundStyle(CYColor.textTertiary) }
-                                }
-                                if let stars = review.stars {
-                                    Label { Text(verbatim: String(stars)) } icon: { Image(systemName: "star.fill") }
-                                        .cyText(.caption).foregroundStyle(CYNight.lantern)
-                                        .accessibilityLabel(Text(verbatim: c.t("\(stars) 星", "\(stars) stars")))
-                                }
-                                Text(verbatim: review.text).cyText(.bodyCompact).lineLimit(4)
+                            UGCBlockedFilterContainer(memberID: review.memberID, authorName: review.name) {
+                                placeReviewCard(review)
                             }
-                            .frame(width: reviewCardWidth, alignment: .leading)
-                            .padding(CYSpacing.md)
-                            .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                            .accessibilityElement(children: .combine)
                         }
                     }
                 }
             }
         }
         .accessibilityIdentifier("roam.place.reviews")
+    }
+
+    /// Place reviews are `api/comment/list` rows (owner type 4). Report uses the existing comment route; block hides the author.
+    private func placeReviewCard(_ review: RoamPlaceReview) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                HStack {
+                    Text(verbatim: review.name ?? c.t("玩家", "Player")).cyText(.label)
+                    Spacer()
+                    if let time = review.timeText { Text(verbatim: time).cyText(.caption).foregroundStyle(CYColor.textTertiary) }
+                }
+                if let stars = review.stars {
+                    Label { Text(verbatim: String(stars)) } icon: { Image(systemName: "star.fill") }
+                        .cyText(.caption).foregroundStyle(CYNight.lantern)
+                        .accessibilityLabel(Text(verbatim: c.t("\(stars) 星", "\(stars) stars")))
+                }
+                Text(verbatim: review.text).cyText(.bodyCompact).lineLimit(4)
+            }
+            .accessibilityElement(children: .combine)
+            if let commentID = Int(review.id), commentID > 0 {
+                UGCReviewSafetyFooter(
+                    target: .comment(id: commentID),
+                    subjectTitle: review.text,
+                    authorMemberID: review.memberID,
+                    authorName: review.name
+                )
+            }
+        }
+        .frame(width: reviewCardWidth, alignment: .leading)
+        .padding(CYSpacing.md)
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
     }
 
     private var compose: some View {
