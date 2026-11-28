@@ -177,6 +177,15 @@ Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON 
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration parity suite 10 OK.
 
+## Round 3 continue (2026-11-28, eighteenth session — sweep 00:10 build 283dd3b52, coordinator 00:20)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side added no keys, kept theirs; JSON ok). Sheet `en-t5-baoming` re-read. The 00:20 thumbnail item (grey cover) is the seventeenth-session fix, which this build predates.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` bottom bar consent (wxml:325-328) + confirm modal | `App/RegistrationSheetView.swift` `checkoutBar`, `confirmationTitle`, `confirmationButtons` | screenshot `en-t5-baoming`: the consent toggle read 「Demo only: confirm the contact-sharing step」 in the offline fixture, and the confirm dialog said 「Confirm demo registration?」/「Create demo registration」. All three now use the MP copy in every mode (同意将姓名、手机号提供给主办方，用于报名核验 / 确认报名？ / 确认报名); the fixture is still marked by its own top notice where a test needs it | one consent label, one confirm dialog, no demo wording in the rendered sheet |
+| `subpackageMember/market/passes/index` 在售 card foot (wxml:34-36 `mk-card__foot`: 含 N 个作品 · seats and price on one row) | `App/PassMarketViews.swift` `PassProductCardView` | screenshot `en-t5-pass-market`: the first card put 「¥168.00 / 1,200 points」 on its own line under 「Includes 3 works · 2 people」 while the second card kept the price trailing, so the two rows read differently (`ViewThatFits` dropped to the stacked form whenever the one-line foot was wider than the card). The foot is now always one row as in the MP: cover line wraps on the left, price fixed on the right; stacked only at accessibility Dynamic Type sizes | consistent card rhythm in both languages; price never truncates |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration contract suites OK.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

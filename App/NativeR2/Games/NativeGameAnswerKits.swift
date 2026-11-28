@@ -7,17 +7,38 @@ extension PlayKitScreen {
 
     // MARK: qa
 
+    /// MP `playkit-qa` order: title (header) → question picture → 看不清？查看资料图 → audio → lead → answer block
+    /// (field / letter pool / options / shot lead) → feedback (result section) → revealed answer.
     @ViewBuilder var nativeQA: some View {
         let mode = (raw["mode"].text ?? "TYPE").uppercased()
-        if raw["imageUrl"].text?.isEmpty == false || raw["audioUrl"].text?.isEmpty == false {
+        let reference = PlayKitReferenceImage.source(in: raw)
+        if raw["imageUrl"].text?.isEmpty == false || raw["audioUrl"].text?.isEmpty == false || reference != nil {
             Section {
-                artwork(raw["imageUrl"].text)
+                if raw["imageUrl"].text?.isEmpty == false { artwork(raw["imageUrl"].text) }
+                if let reference {
+                    PlayKitReferenceButton(source: reference, alt: PlayKitReferenceImage.alt(in: raw),
+                        approvedHosts: approvedArtworkHosts, nodeID: model.state?.nodeID, kit: kind.rawValue)
+                }
                 PlatformAudioHost(rawURL: raw["audioUrl"].text, scope: mediaScope, makeModel: makeAudio)
+            }
+        }
+        if mode != "SHOT", let lead = nativeQALead {
+            Section {
+                Text(verbatim: lead).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("playkit.qa.lead")
             }
         }
         if mode == "SHOT" {
             Section {
-                if let note = raw["shotNote"].text { Text(verbatim: note) }
+                if let shotLead = nativeQAShotLead {
+                    Text(verbatim: shotLead)
+                        .font(shotLead == projection.title ? .title2.bold() : .body)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("playkit.qa.shotLead")
+                }
+                if let note = raw["shotNote"].text, !note.isEmpty {
+                    Text(verbatim: note).font(.footnote).foregroundStyle(.secondary)
+                }
                 photoInput { url in nativePrepare("SUBMIT_QA", ["imageUrl": .string(url)]) }
             }
         } else if mode == "PICK" {
@@ -36,7 +57,7 @@ extension PlayKitScreen {
                     ForEach(Array(projection.options.enumerated()), id: \.element.id) { index, option in
                         let marker = PlayKitImageOption.letter(at: index)
                         nativeChoiceRow(id: option.id, label: PlayKitImageOption.stripDuplicateKey(option.label, key: marker),
-                                        marker: marker, multi: multi)
+                                        marker: marker, multi: multi, tag: nativeQATag(option.id))
                     }
                 } footer: {
                     if multi { Text("playkit.qa.multiHint") }
@@ -50,19 +71,49 @@ extension PlayKitScreen {
             }
         } else {
             Section {
-                TextField("playkit.qa.answer", text: textBinding())
+                TextField("playkit.qa.placeholder", text: textBinding())
                     .keyboardType(.default)
                     .submitLabel(.done)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .disabled(!enabled)
                     .onSubmit { nativeQATypedSubmit() }
+                    .accessibilityLabel(Text("playkit.qa.answer"))
                     .accessibilityIdentifier("playkit.qa.field")
                 if let howTo = raw["howTo"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !howTo.isEmpty {
                     PlayKitHowToButton(text: howTo, identifier: "playkit.qa.howTo")
                 }
             }
         }
+    }
+
+    /// MP `lead` (前置步骤): drawn above the answer block, never in shot mode (the shot lead is that line).
+    var nativeQALead: String? {
+        guard let lead = raw["lead"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !lead.isEmpty else { return nil }
+        return lead
+    }
+
+    /// MP `shotLead = seg.lead || seg.title`: the one big line of a photo question.
+    var nativeQAShotLead: String? {
+        if let lead = nativeQALead { return lead }
+        return projection.title.isEmpty ? nil : projection.title
+    }
+
+    /// MP: in shot mode the title is not printed twice when the shot lead falls back to it.
+    var nativeQAHidesHeaderTitle: Bool {
+        kind == .qa && (raw["mode"].text ?? "").uppercased() == "SHOT" && nativeQAShotLead == projection.title
+    }
+
+    /// MP option tags after the question is finished: 正确答案 (server-revealed `answerId(s)`) and 你的选择
+    /// (`lastOptionId(s)`); none while judging is off or nothing was revealed.
+    func nativeQATag(_ id: String) -> LocalizedStringKey? {
+        guard projection.complete else { return nil }
+        let revealed = raw["judge"].bool != false
+        let answers = (raw["answerIds"].array ?? []).compactMap(\.text) + [raw["answerId"].text ?? ""]
+        if revealed, answers.contains(id) { return "playkit.qa.tag.answer" }
+        let chosen = (raw["lastOptionIds"].array ?? []).compactMap(\.text) + [raw["lastOptionId"].text ?? ""]
+        if chosen.contains(id) { return "playkit.qa.tag.chosen" }
+        return nil
     }
 
     var nativeQASubmit: NativeGameSubmit? {
@@ -86,13 +137,15 @@ extension PlayKitScreen {
     }
 
     /// A Settings-style selectable row: label on the left, checkmark on the right.
-    func nativeChoiceRow(id: String, label: String, marker: String? = nil, multi: Bool = false) -> some View {
+    func nativeChoiceRow(id: String, label: String, marker: String? = nil, multi: Bool = false,
+                         tag: LocalizedStringKey? = nil) -> some View {
         let on = selected.contains(id)
         return Button { nativeToggle(id, multi: multi) } label: {
             HStack(spacing: 12) {
                 if let marker { Text(verbatim: marker).foregroundStyle(.secondary).monospaced() }
                 Text(verbatim: label).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
+                if let tag { Text(tag).font(.footnote).foregroundStyle(.secondary) }
                 if on { Image(systemName: "checkmark").fontWeight(.semibold).foregroundStyle(.tint).accessibilityHidden(true) }
             }
             .contentShape(Rectangle())
@@ -302,6 +355,8 @@ extension PlayKitScreen {
 
     // MARK: pricepair
 
+    /// MP `playkit-pricepair`: title (shell) → two-column posters (picture, judged mark 就是它 / 不是 / 正确答案 on it, name
+    /// under it, note only once revealed) → 确认选择 on the bottom bar until the round is revealed.
     @ViewBuilder var nativePricePair: some View {
         // Recomputed from the current accepted state; never from a local pick or a cached receipt.
         let result = model.isCurrent && !["stale", "disabled"].contains(model.phase) ? PlayKitPricePairResult(segment: raw) : nil
@@ -309,38 +364,41 @@ extension PlayKitScreen {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 ForEach(projection.options) { option in nativePriceOption(option, result: result) }
             }
-        } footer: {
-            if let result, !result.passed {
-                Text(result.finished ? "playkit.pricePair.ended" : "playkit.pricePair.retry")
-                    .accessibilityIdentifier("playkit.pricePair.roundStatus")
-            }
         }
     }
 
     @ViewBuilder func nativePriceOption(_ option: PlayKitOption, result: PlayKitPricePairResult?) -> some View {
         let on = selected.contains(option.id)
+        let revealed = result?.finished == true
+        let mark: (key: LocalizedStringKey, right: Bool)? = {
+            guard let result else { return nil }
+            if result.lastPickID == option.id { return (result.passed ? "playkit.pricePair.lastCorrect" : "playkit.pricePair.lastIncorrect", result.passed) }
+            if result.finished, result.answerID == option.id { return ("playkit.pricePair.revealedAnswer", true) }
+            return nil
+        }()
         let button = Button { nativeToggle(option.id, multi: false) } label: {
             VStack(alignment: .leading, spacing: 6) {
                 artwork(option.raw["imageUrl"].text)
+                    .overlay(alignment: .topTrailing) {
+                        if let mark {
+                            Label(mark.key, systemImage: mark.right ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 8).padding(.vertical, 4)
+                                .background(.regularMaterial, in: .capsule)
+                                .foregroundStyle(mark.right ? Color.green : Color.red)
+                                .padding(6)
+                                .accessibilityIdentifier(mark.right && result?.lastPickID != option.id
+                                    ? "playkit.pricePair.answer." + option.id : "playkit.pricePair.lastPick." + option.id)
+                        }
+                    }
                 Text(verbatim: option.label).font(.headline)
-                if let note = option.raw["note"].text { Text(verbatim: note).font(.footnote) }
-                if let result, result.lastPickID == option.id {
-                    Label(result.passed ? "playkit.pricePair.lastCorrect" : "playkit.pricePair.lastIncorrect",
-                          systemImage: result.passed ? "checkmark.circle" : "xmark.circle")
-                        .font(.footnote)
-                        .accessibilityIdentifier("playkit.pricePair.lastPick." + option.id)
-                }
-                if let result, result.answerID == option.id {
-                    Label("playkit.pricePair.revealedAnswer", systemImage: "checkmark.circle.fill")
-                        .font(.footnote)
-                        .accessibilityIdentifier("playkit.pricePair.answer." + option.id)
-                }
+                if revealed, let note = option.raw["note"].text, !note.isEmpty { Text(verbatim: note).font(.footnote) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .disabled(!enabled)
+        .disabled(!enabled || revealed)
         .accessibilityLabel(Text(verbatim: option.label))
-        .accessibilityValue(Text(on ? "playkit.pricePair.currentChoice" : "playkit.select"))
+        .accessibilityValue(mark.map { Text($0.key) } ?? Text(on ? "playkit.pricePair.currentChoice" : "playkit.select"))
         .accessibilityAddTraits(on ? .isSelected : [])
         if on { button.buttonStyle(.borderedProminent) } else { button.buttonStyle(.bordered) }
     }
@@ -467,8 +525,9 @@ extension PlayKitScreen {
                 let key = question["key"].text ?? ""
                 let value = answers[key] ?? ""
                 let shown = PlayKitOption.read(question["options"], idKey: "key").first { $0.id == value }?.label ?? value
+                // MP `pf__row-answer`: an unanswered row stays blank until it is written in (no placeholder dash).
                 LabeledContent {
-                    Text(verbatim: shown.isEmpty ? "—" : shown)
+                    Text(verbatim: shown)
                 } label: {
                     Text(verbatim: question["label"].text ?? key)
                 }
@@ -479,6 +538,14 @@ extension PlayKitScreen {
             if !done && step == total - 1 && total > 0 { Text("playkit.profile.lockNotice") }
         }
         .accessibilityIdentifier("playkit.profile.summary")
+        // MP `pf__progress`: 上一题 sits between the register card and the question (step / total is the shell HUD).
+        if !done, step > 0 {
+            Section {
+                Button { profileStep = step - 1 } label: { Label("playkit.profile.previous", systemImage: "chevron.backward") }
+                    .disabled(!enabled)
+                    .accessibilityIdentifier("playkit.profile.previous")
+            }
+        }
         if !done, questions.indices.contains(step) { nativeProfileQuestion(questions[step]) }
         if avatarEnabled && ((!done && step == questions.count) || (done && !avatarURL.isEmpty)) {
             Section {
@@ -497,12 +564,6 @@ extension PlayKitScreen {
                 Label("playkit.profile.seal", systemImage: "checkmark.seal.fill")
                     .accessibilityLabel(Text("playkit.profile.sealLabel"))
                     .accessibilityIdentifier("playkit.profile.seal")
-            }
-        } else if step > 0 {
-            Section {
-                Button { profileStep = step - 1 } label: { Label("playkit.profile.previous", systemImage: "chevron.backward") }
-                    .disabled(!enabled)
-                    .accessibilityIdentifier("playkit.profile.previous")
             }
         }
     }
@@ -535,7 +596,14 @@ extension PlayKitScreen {
         } header: {
             Text(verbatim: question["label"].text ?? key)
         } footer: {
-            Text("playkit.profile.required")
+            HStack {
+                Text("playkit.profile.required")
+                Spacer()
+                // MP `pf__count`: n / max under a written answer (not for a pick).
+                if question["kind"].text != "pick" {
+                    Text(verbatim: "\((answers[key] ?? "").utf16.count) / \(limit)").monospacedDigit()
+                }
+            }
         }
         .id(key)
         .accessibilityIdentifier("playkit.profile.question." + key)

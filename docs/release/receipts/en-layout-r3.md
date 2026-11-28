@@ -159,6 +159,15 @@ Merged `origin/ui/combined-r7` (clean, 793c3190b). No newer sweep than 23:37Z; w
 | 57 | `pages/play/*` compass / shout kits → `NativeR2/Games/NativeGameSensorKit.swift:192,226`; music corner → `NativeR2/Games/ChoiceKits.swift:125` | "Aligned. Hold for 2 s more", "Keep it loud for 3 s in a row" (bare "s" after a number); "Healing music corner" (literal 治愈) | en → "Aligned. Hold steady for %@ more sec", "Stay loud for %@ sec straight", "Relaxing music corner" (catalog + `mp-journey-r3.json`) | Done |
 | 58 | `pages/publish/*` quick publish / modes → `PublishingModesViews.swift` (`publishModes.quick.loadFailed`, `.readFailed`); 九宫格 completion → `ProjectEditView` (`projectEdit.completion.serverConditions`); publisher pricing → `publisherPricing.marginNote` | Read as translations: "The draft allowance didn't load. The network isn't connected. Try again.", "Edit the nine cells in S order", "Whatever the final price exceeds the cost floor by is…" | en → "Couldn’t load your draft allowance. Check your connection and try again." / "Couldn’t load the list. …" / "Edit the nine cells along an S-shaped path. Cell labels don’t change when a cell lights up." / "Anything the final price adds above the cost floor is the organizer’s gross margin. …"; zh unchanged | Done |
 
+### Run 15 (2026-11-28, half-hourly)
+
+Merged `origin/ui/combined-r7` (clean, 283dd3b52). Sweep 00:10Z has no en-layout sheet in my area beyond rows already done; worked from code on `pages/templatedetail/*` and `pages/publishkit/*`.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 59 | `pages/templatedetail/templatedetail.wxml` → `DiscoveryTemplateDetailView.swift`, `DiscoveryTemplateDetailParitySections.swift`, `TopicTemplateUseSection.swift` (MP sections unchanged) | 主题模板 was "route template" in 7 strings and "topic template" in 4 (share, loading, open-failed, list-failed); notice "can’t start a group directly"; "Adoption conditions", "Categories and settings" (reads as app Settings); "This play could not be opened" | All → "route template" (`u10.template.shareTopic`, `discovery.topicsFailed`, `.topicTemplate.openFailed`, `.topicPreview.loading`); "This is a play template — you can’t host a session from it directly"; "Requirements to use"; "Categories and use cases"; "Couldn’t open this play" (catalog + `tools/add_u10_screens_localizations.py`); zh unchanged | Done |
+| 60 | `pages/publishkit/index` → `TemplateAuthoringView.swift` | 玩法 was "play" in the create title but "gameplay"/"game" in edit title, save, advanced, preview; "Additional configuration families" | en → "Edit play template", "Save play", "Advanced play settings", "Preview this play", "You can try this play on the route.", "More modules" (catalog + `fix-r9-account-publish.json`); zh unchanged | Done |
+
 ## Not done
 
 | Item | Why |
@@ -167,7 +176,7 @@ Merged `origin/ui/combined-r7` (clean, 793c3190b). No newer sweep than 23:37Z; w
 
 
 ## Next pages (no row yet)
-Re-check rows 23, 37–41, 46, 56–57 in the next sweep. Then `pages/templatedetail/*` and `pages/publishkit/*` (no en sheet yet: work from code). Catalog-wide: ~50 `publish*`/`projectEdit*` en values use straight apostrophes (not a layout problem; leave unless a screen is touched).
+Re-check rows 23, 37–41, 46, 56–57 in the next sweep. `pages/templatedetail/*` and `pages/publishkit/index` done from code (rows 59–60); next: `pages/publishkit/components/*` sub-editors and `pages/topic/*` (player). Catalog-wide: ~50 `publish*`/`projectEdit*` en values use straight apostrophes (not a layout problem; leave unless a screen is touched).
 
 ## For other lanes
 - mp-mine: balance ledger shows "¥" while the Me balance tile shows "CN¥" in English (row 44); public profile role line "— City explorer" shows a dash placeholder (`en-e4-member`).

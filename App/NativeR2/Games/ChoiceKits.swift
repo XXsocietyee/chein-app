@@ -10,48 +10,51 @@ import UIKit
 @MainActor struct ChoiceBranchKit: View {
     let context: GamesBKitContext
     var cast: CastStoryContext? = nil
-    @State private var confirming = false
     private var raw: PlayWireValue { context.segment }
     private var pick: Binding<String> {
         Binding(get: { context.selection.wrappedValue.first ?? "" },
                 set: { context.selection.wrappedValue = $0.isEmpty ? [] : [$0]; context.markDirty() })
     }
-    private var picked: PlayKitOption? { context.projection.options.first { $0.id == pick.wrappedValue } }
-    private static func subtitle(_ option: PlayKitOption) -> String? {
-        for key in ["desc", "subtitle", "hint", "sub"] {
-            if let text = option.raw[key].text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty { return text }
-        }
-        return nil
-    }
+    /// MP `playkit-branch`: step title → story body → numbered option lines (pick, can change) → 确认选择 on the bottom
+    /// bar (`nativeKitSubmitB`); a single option (a feedback step's 继续) confirms on tap; the end step shows 结局.
     var body: some View {
         Section {
             if let echo = CastBranchEcho(branch: raw) {
                 CastBranchEchoLabel(echo: echo, config: cast?.config)
             }
-            if let title = raw["currentStep"]["title"].text {
+            if let title = raw["currentStep"]["title"].text, !title.isEmpty {
                 Text(verbatim: title).font(.headline).accessibilityAddTraits(.isHeader)
             }
-            if let body = raw["currentStep"]["body"].text {
+            if let body = raw["currentStep"]["body"].text, !body.isEmpty {
                 Text(verbatim: body).font(.body)
             }
         }
         let options = context.projection.options
-        if options.isEmpty, !context.projection.complete {
+        let ended = context.projection.complete || raw["currentStep"]["terminal"].bool == true
+        if options.isEmpty, !ended {
             ContentUnavailableView("playkit.branch.waiting", systemImage: "arrow.triangle.branch")
                 .accessibilityIdentifier("playkit.branch.waiting")
         }
-        if !options.isEmpty {
+        if !ended, options.count == 1, let only = options.first {
+            Section {
+                Button {
+                    pick.wrappedValue = only.id
+                    context.submit("CHOOSE", ["optionId": .string(only.id)])
+                } label: {
+                    Label { Text(verbatim: only.label) } icon: { Text(verbatim: "1").monospacedDigit() }
+                }
+                .disabled(!context.enabled)
+                .accessibilityLabel(Text(verbatim: only.label))
+                .accessibilityIdentifier("playkit.branch.option." + only.id)
+            }
+        } else if !ended, options.count > 1 {
             Section {
                 Picker(selection: pick) {
                     ForEach(Array(options.enumerated()), id: \.element.id) { index, option in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: "\(index + 1) · \(option.label)")
-                            if let sub = Self.subtitle(option) {
-                                Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary)
-                            }
-                        }
-                        .accessibilityIdentifier("playkit.branch.option." + option.id)
-                        .tag(option.id)
+                        Text(verbatim: "\(index + 1) · \(option.label)")
+                            .accessibilityLabel(Text(verbatim: option.label))
+                            .accessibilityIdentifier("playkit.branch.option." + option.id)
+                            .tag(option.id)
                     }
                 } label: {
                     Text("nativeR2.gamesB.branch.choose")
@@ -59,32 +62,14 @@ import UIKit
                 .pickerStyle(.inline)
                 .labelsHidden()
                 .disabled(!context.enabled)
-            } footer: {
-                Text("nativeR2.gamesB.branch.noWrong")
-            }
-            Section {
-                Button {
-                    confirming = true
-                } label: {
-                    Text("nativeR2.gamesB.branch.confirm").frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(!context.enabled || picked == nil)
-                .accessibilityIdentifier("playkit.submit.branch")
-            }
-            .confirmationDialog("nativeR2.gamesB.branch.confirmTitle", isPresented: $confirming, titleVisibility: .visible) {
-                Button("nativeR2.gamesB.branch.confirm") {
-                    guard let option = picked else { return }
-                    context.submit("CHOOSE", ["optionId": .string(option.id)])
-                }
-                Button("playkit.cancel", role: .cancel) {}
-            } message: {
-                Text(verbatim: picked?.label ?? "")
             }
         }
-        if context.projection.complete {
-            Section { Label("playkit.branch.ended", systemImage: "book.closed") }
+        if ended {
+            Section {
+                Label("playkit.branch.endMark", systemImage: "book.closed")
+                    .font(.headline)
+                    .accessibilityIdentifier("playkit.branch.ended")
+            }
         }
     }
 }
