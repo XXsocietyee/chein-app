@@ -53,6 +53,19 @@ import XCTest
         XCTAssertTrue(MPFirstMerchantWriteRoute.accepts(download, baseURL: base, token: token))
     }
 
+    func testRefusesPredictSettleWhileTheMerchantCenterIsOff() {
+        let settle = post("api/merchant/predict/settle")
+        XCTAssertFalse(MPFirstMerchantWriteRoute.accepts(settle, baseURL: base, token: token, merchantCenterEnabled: false))
+        XCTAssertTrue(MPFirstMerchantWriteRoute.accepts(settle, baseURL: base, token: token, merchantCenterEnabled: true))
+        for path in ["api/team/quit", "api/team/disband"] {
+            var request = post(path)
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = Data(#"{"teamId":7}"#.utf8)
+            XCTAssertTrue(ReviewedTeamMembershipWriteRoute.accepts(request, baseURL: base, token: token), path)
+        }
+    }
+
     func testRefusesAnythingElse() {
         XCTAssertFalse(MPFirstMerchantWriteRoute.accepts(post("api/merchant/operators/invite", method: "GET"), baseURL: base, token: token))
         XCTAssertFalse(MPFirstMerchantWriteRoute.accepts(post("api/merchant/operators/invite", token: "other-token-123456"), baseURL: base, token: token))
