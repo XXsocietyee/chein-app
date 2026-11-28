@@ -57,6 +57,9 @@ struct PlayThemeMusicKey: Equatable {
     @State private var settledChapters: Set<Int>?
     @State private var showRouteMap = false
     @State private var confirmEnd = false
+    /// fix/1128c: the play guide (游玩提示) sheet and its journal for this visit.
+    @State private var guideShown = false
+    @State private var guideJournal = AIGuideJournal()
     @State private var presentedMode: PlayGameplayMode?
     @State private var presentationMount = PlayExperiencePresentationMount()
     /// Run-complete medal screen (mini-program medal-screen); shown once per session when the run completes.
@@ -72,6 +75,8 @@ struct PlayThemeMusicKey: Equatable {
     @State private var showEmergencyHelp = false
     /// PLAY-6a: MP 游玩工具 preferences sheet (pages/play/index.wxml 游玩工具).
     @State private var showPlayTools = false
+    /// MP `playContact` (联系主办 / 联系商家) for the 游玩工具 row; nil hides it.
+    @State private var playContact: PlayContact?
     @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
     @StateObject private var musicLifetime = PlayBackgroundMusicLifetime()
     @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
@@ -183,9 +188,22 @@ struct PlayThemeMusicKey: Equatable {
                 .cyPushedChrome(domain: screenDomain)
         }
     }
+    private func openGuide() { guideShown = true }
+    /// The stop the play guide talks about: the current task stop of the live snapshot.
+    private var guideStop: PlayNode? {
+        guard let snapshot = model.snapshot, let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID else { return nil }
+        return snapshot.visibleNodes.first(where: { $0.id == id })
+    }
+    private var guideContext: AIGuideContext {
+        AIGuideContext(surface: .play, place: nil, stop: guideStop?.name, nodeKind: guideStop?.npc == nil ? nil : "shop",
+                       weather: AIGuideWeatherMapping.weather(nil))
+    }
     private var presentationLayer: some View {
         navigationLayer
         .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                AIGuideToolbarButton(surface: .play, journal: guideJournal, open: openGuide)
+            }
             if castModel?.config != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     CastRosterButton { showingCastRoster = true }
@@ -222,6 +240,14 @@ struct PlayThemeMusicKey: Equatable {
                 .cyDomainSheet(detents: [.half, .full])
         }
         .sheet(isPresented: $showPlayTools) { playToolsSheet }
+        .sheet(isPresented: $guideShown) { AIGuideSheet(context: guideContext, journal: guideJournal) }
+        .modifier(PlayGuideJournalFeed(journal: guideJournal, stop: guideStop?.name, greeting: guideStop?.npc?.greeting))
+        .modifier(PlayContactReader(
+            currentNodeID: model.snapshot.flatMap { PlayTaskSummaryPresentation(snapshot: $0).currentNodeID },
+            active: model.hasCurrentMediaSnapshot && model.snapshot != nil,
+            finished: model.snapshot?.availability == .completed,
+            contact: $playContact
+        ))
         .cySheet(isPresented: $showChapterPicker) {
             if let snapshot = model.snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
@@ -537,7 +563,7 @@ struct PlayThemeMusicKey: Equatable {
                 TeamPoolRunStatusSection(model: runTeamPool)
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
-            if let entryCode { PlayEntryCodeSection(context: entryCode) }
+            // MP D1: 入场码 opens only from the 游玩工具 row (`openTicketFromTools`), not from the page.
             if let cityGameModel {
                 Section { CityGamePanel(model: cityGameModel, read: cityGameModel.read, boardLayout: true) }
                     .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
@@ -698,10 +724,8 @@ struct PlayThemeMusicKey: Equatable {
                             .accessibilityIdentifier("play.teamBackpack.open")
                     }
                 }
-                // 联系主办 / 联系商家 (`GET api/play/contact`); no phone, no row.
+                // 联系主办 / 联系商家 is the MP 游玩工具 row (read by `PlayContactReader` on this page).
                 if model.hasCurrentMediaSnapshot, let snapshot = model.snapshot {
-                    PlayContactSection(currentNodeID: PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
-                                       finished: snapshot.availability == .completed)
                     // 已完成章节 from `GET api/play/history` that the live route no longer lists.
                     PlayCompletedHistorySection(routeSessionID: snapshot.route?.sessionID,
                                                 liveChapterIDs: Set(snapshot.result.chapters.map(\.id)))
@@ -766,7 +790,9 @@ struct PlayThemeMusicKey: Equatable {
             teamLead: model.lead,
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
             boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
-            scoreDestination: orientScoreDestination
+            scoreDestination: orientScoreDestination,
+            entryCodeRegistrationID: entryCode?.registrationID,
+            contact: playContact
         )
     }
     /// mp-journey r3: MP `_orientSessionId` (mode 1 and `routeState.sessionId`) opens 本局成绩; natively that is the

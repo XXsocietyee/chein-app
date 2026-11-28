@@ -15,6 +15,8 @@ import SwiftUI
     let revisionIdentity: String
     let currentRevisionIdentity: (() -> String)?
     let publish: (NativeGameSubmit?) -> Void
+    /// MP `readfail` / `micdenied`: reports a failed read (true = permission denied or no sensor) without a review.
+    let reportFailure: ((Bool) -> Void)?
     @State private var stage: PlayKitSensorStageModel
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -23,11 +25,12 @@ import SwiftUI
          onDirty: @escaping () -> Void, requestReview: @escaping PlayKitReviewRequest,
          revisionIdentity: String = "", currentRevisionIdentity: (() -> String)? = nil,
          makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil,
+         reportFailure: ((Bool) -> Void)? = nil,
          publish: @escaping (NativeGameSubmit?) -> Void) {
         self.kind = kind; self.segment = segment; self.enabled = enabled; self.active = active
         self.onDirty = onDirty; self.requestReview = requestReview
         self.revisionIdentity = revisionIdentity; self.currentRevisionIdentity = currentRevisionIdentity
-        self.publish = publish
+        self.publish = publish; self.reportFailure = reportFailure
         // Empty by default. Having a device implementation is not acceptance of a backend
         // contract, a privacy declaration or a sensor grant.
         _stage = State(initialValue: PlayKitSensorStageModel(kind: kind, segment: segment,
@@ -61,6 +64,14 @@ import SwiftUI
                     }
                 }
             }
+            if showsSkip {
+                Section {
+                    Button("playkit.sensor.skip") {
+                        requestReview(PlayKitSensorStation.skipAction, ["game": .string(kind.rawValue)], {})
+                    }
+                    .accessibilityIdentifier("playkit.sensor.skip")
+                }
+            }
             if [.authorizing, .calibrating, .running, .ready].contains(stage.phase) {
                 Section {
                     Button("playkit.sensor.stop", role: .cancel) { stage.interrupt(.interrupted) }
@@ -69,6 +80,14 @@ import SwiftUI
             }
         }
         .accessibilityIdentifier("playkit.sensor." + kind.rawValue)
+        .modifier(NativeSensorFailureReport(kind: kind, issue: stage.issue, report: reportFailure))
+    }
+
+    /// MP `bl__skip` / `cp__skip`: 跳过这一站 only when the server says `canSkip` (two failed reads, the author
+    /// switch or a leader release), never while a run is open or once skipped.
+    private var showsSkip: Bool {
+        PlayKitSensorStation.offersSkip(segment) && enabled && active
+            && (stage.phase == .idle || stage.phase == .interrupted)
     }
 
     // MARK: Sections
@@ -125,11 +144,7 @@ import SwiftUI
             if stage.phase == .authorizing {
                 CYLoadingState()
             } else if stage.phase == .calibrating {
-                ProgressView {
-                    Text(LocalizedStringKey(kind == .ballShake ? "playkit.ball.calibration" : "playkit.audio.calibration"))
-                }
-                .frame(maxWidth: .infinity)
-                .accessibilityLabel(Text("playkit.sensor.calibrating"))
+                NativeSensorCalibrationView(kind: kind, startedAt: stage.calibrationStartedAt ?? Date(), seconds: stage.calibrationSeconds)
             }
             board
         } header: {
@@ -325,6 +340,8 @@ import SwiftUI
     }
 
     private var primaryAction: NativeGameSubmit? {
+        // MP: once skipped the start button is gone (`wx:elif="{{!skipped}}"`).
+        guard segment["skipped"].bool != true else { return nil }
         switch stage.phase {
         case .measured:
             return NativeGameSubmit(title: Text("playkit.review"), enabled: enabled && active && stage.payload != nil,
@@ -448,5 +465,72 @@ import SwiftUI
             Color.clear.frame(maxHeight: .infinity)
         }
         .accessibilityHidden(true)
+    }
+}
+
+
+/// MP `cy-play-calibrate` (play-stage, before ballshake / quiethold / shout): the kit's label
+/// (拿成你打算玩的姿势 / 先听一下这儿有多吵), a bar that fills over the calibration window, then
+/// 别动，量一下这儿的底子. One alert-style VoiceOver element, as the MP `aria-label`.
+@MainActor struct NativeSensorCalibrationView: View {
+    let kind: PlayKitScreenKind
+    let startedAt: Date
+    let seconds: TimeInterval
+
+    private var labelKey: LocalizedStringKey {
+        LocalizedStringKey(kind == .ballShake ? "playkit.calibrate.ball" : "playkit.calibrate.audio")
+    }
+
+    var body: some View {
+        VStack(spacing: CYSpacing.sm) {
+            Text(labelKey)
+                .font(.headline)
+                .multilineTextAlignment(.center)
+            ProgressView(timerInterval: startedAt...startedAt.addingTimeInterval(seconds), countsDown: false) {
+                EmptyView()
+            } currentValueLabel: {
+                EmptyView()
+            }
+            .tint(.primary)
+            .frame(maxWidth: 220)
+            Text("playkit.calibrate.sub")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, CYSpacing.sm)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(labelKey))
+        .accessibilityValue(Text("playkit.calibrate.sub"))
+        .accessibilityIdentifier("playkit.sensor.calibrating")
+    }
+}
+
+/// MP `readfail` / `micdenied` (`playkit-view.js` P-23, round 11 i1): every failed read is reported once to
+/// the server, which counts it toward the skip threshold. A denied permission or a missing sensor counts in
+/// full (`denied: true`); a user stop or a background interruption is not a failure.
+@MainActor struct NativeSensorFailureReport: ViewModifier {
+    let kind: PlayKitScreenKind
+    let issue: PlayKitSensorError?
+    let report: ((Bool) -> Void)?
+
+    func body(content: Content) -> some View {
+        content.onChange(of: issue) { (old: PlayKitSensorError?, next: PlayKitSensorError?) in changed(old, next) }
+    }
+
+    private func changed(_ old: PlayKitSensorError?, _ next: PlayKitSensorError?) {
+        guard let report, let next, next != old, let denied = Self.denied(kind: kind, issue: next) else { return }
+        report(denied)
+    }
+
+    /// nil = not a reportable failure.
+    static func denied(kind: PlayKitScreenKind, issue: PlayKitSensorError) -> Bool? {
+        switch issue {
+        case .permissionDenied: return kind != .ballShake
+        case .sensorUnavailable: return kind == .compass
+        case .missingSamples: return false
+        case .interrupted, .configurationUnavailable: return nil
+        }
     }
 }

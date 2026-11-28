@@ -115,6 +115,8 @@ struct SquarePostContent: View {
                     }
                     if !post.createTime.isEmpty { SquareXcxRelativeTime(createTime: post.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
                 }
+                // a11y-dt r3: name, verified mark and time are one VoiceOver stop ("Mia, Verified, 5 min ago").
+                .accessibilityElement(children: .combine)
                 Spacer(minLength: 0)
                 if let onFollow {
                     Button("fixr3.square.follow", action: onFollow)
@@ -129,6 +131,7 @@ struct SquarePostContent: View {
                     if let badge = post.noticeBadge { Text(verbatim: badge).bold() }
                 }
                 .font(.caption).foregroundStyle(.secondary)
+                .accessibilityElement(children: .combine)
             }
             if let contents = post.contents, !contents.isEmpty { Text(verbatim: contents).lineLimit(compact ? 3 : nil).textSelection(.enabled) }
             SquareCloudStravaSection(post: post)
@@ -170,7 +173,8 @@ struct SquareAuthorAvatar: View {
     var size: CGFloat = 40
     var body: some View {
         Group {
-            if let url = QuestifyCardArtwork.safeURL(source) {
+            if let memoji = fixtureMemoji { memoji.resizable().scaledToFill() }
+            else if let url = QuestifyCardArtwork.safeURL(source) {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() } else { fallback }
                 }
@@ -179,6 +183,20 @@ struct SquareAuthorAvatar: View {
         .frame(width: size, height: size)
         .clipShape(Circle())
         .accessibilityHidden(true)
+    }
+    /// Design fixtures only (`d2-square`): bundled MP memoji instead of a remote avatar; production sources never match.
+    static let fixtureMemojiPrefix = "fixture-memoji:"
+    private var fixtureMemoji: Image? {
+        #if DEBUG
+        switch source {
+        case Self.fixtureMemojiPrefix + "1": return MPAsset.AvatarDefault.memoji1
+        case Self.fixtureMemojiPrefix + "2": return MPAsset.AvatarDefault.memoji2
+        case Self.fixtureMemojiPrefix + "3": return MPAsset.AvatarDefault.memoji3
+        default: return nil
+        }
+        #else
+        return nil
+        #endif
     }
     private var fallback: some View {
         // MP `/images/d_profile.png` is the avatar default on square posts and comments.

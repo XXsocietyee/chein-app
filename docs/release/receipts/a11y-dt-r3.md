@@ -538,10 +538,54 @@ List-row buttons and the story-flow editor left). Run 33's four rows kept as pus
 | `pages/roam` official tasks stale retry | `RoamOfficialTasksView.swift:242` | ✓ (mp-roam owns order) | Retry → 44 pt tall hit area. Level B | Done |
 | Welcome consent links (用户协议 / 隐私指引) | `WelcomeView.swift:195,200` | ✓ (mp-nav owns order) | Both links → 44 pt tall; stacked fallback spacing 6 → 0 (the frames already separate them). Level A | Done |
 
+### Run 34 (2026-11-28)
+Merged `origin/ui/combined-r7` (0446d1c4f). The sweep index is still build 3348aa51f, so re-reading the a11y sheets waits. No new
+coordinator finding for this lane. Not done item: 44 pt targets, third part. I read all 58 player `.controlSize(.small)` hits. 47 are
+`.bordered` / `.borderedProminent`: the visible bezel is the control, and a 44 pt frame would change the look, so they stay as they
+are (the system small size, mostly club admin, Level C). The rest are spinners or toggles. None are borderless or plain. I also
+scanned every non-toolbar `Menu` label with caption, footnote or icon-only content (9 hits): the home "More ways to play" menu and
+the editor ⋯ already reach 44 pt, the club leaderboard sort is a full List row, and the form `Label` menus are List rows. One real gap:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/publishkit` project editor pending materials (编辑 / 安排章节 / 移除 / 新建章节) | `ProjectEditPendingPresentation.swift:24-55` | ✓ (mp-publish owns order) | One List row held three borderless body-text actions, so each could only be tapped on its ~22 pt text line, and at AX5 "Remove" ran off the edge. Each label is now 44 pt tall (also New chapter) inside `CYAdaptiveButtonRow`, which stacks the actions vertically at accessibility sizes. Identifiers and copy are unchanged; the pending-material contract tests pass. Level C | Done |
+
+### Run 34b (2026-11-28, twin of run 34)
+Same scan; the twin's row kept as pushed. Three icon-only menus it did not list were still under 44 pt:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/club` community post ⋯ (置顶 / 删除 / 举报) | `ClubCommunityViews.swift:814` | ✓ (mp-club owns order) | Icon-only ⋯ was 44 tall but ~20 wide, frame sat outside the `Menu` → 44 × 44 inside the label + `contentShape`. Level B | Done |
+| Club posts / discussion / reviews safety shield (举报 / 屏蔽 / 联系客服) | `UGCSafetyComponents.swift:661` (`compactLabel`) | ✓ | Compact shield menu was 20 × 20 → 44 × 44 + `contentShape`, glyph size unchanged. Level B | Done |
+| `pages/member` friend groups ⋯ (重命名 / 删除) | `NativeFriendMetadataView.swift:138` | ✓ (mp-mine owns order) | Borderless ⋯ glyph in a List row (~22 pt) → 44 × 44 + `contentShape`. Level C | Done |
+
+Next item (VoiceOver grouping on player cards), started:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/square` post card / detail header (`components/cy/post-card`) | `SquareComponents.swift:106-120,128-135` | ✓ (mp-activity owns order) | Author name, verified mark and relative time were three VoiceOver stops, and level / author / notice badges were three more. Each group is now one element (`.combine`); Follow and the avatar menu stay separate buttons. Level B | Done |
+
+### Run 35 (2026-11-28)
+Merged `origin/ui/combined-r7`. Sweep **0446d1c4f** (13:03Z, contains runs 28-32, not 33-34) a11y sheets read (`sheet-en.jpg`):
+badge ring "3 of 6" + Collected / Locked rows wrap at AX5, passport Ticket wallet / Earnings / Messages stack and wrap, stamps
+"3 of 12", Roam "Nearby activities 2" wraps on the light panel, i · Go · map fit ✓. No open coordinator finding.
+Not done item: VoiceOver grouping on player cards (scripted scan: `*Card` / `*Row` / `*Tile` views with 3+ `Text`, no
+`accessibilityElement`, no controls; 48 hits, internal `*SectionView` audit rows and club admin skipped, unused structs dropped).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/square` list card | `SquareXcxPostCard.swift` | ✓ (mp-activity owns order) | Audit: the card is the label of a `NavigationLink` (`SquareBrowserView.swift:92`), so VoiceOver already reads it as one element. No change. Level B | Done |
+| `pages/club` post tile / author | `ClubCommunityViews.swift:697`, `ClubPostAuthorProfile.swift` | ✓ (mp-club owns order) | Audit: count row combined, like / comments / repost / share are labelled 44 pt buttons, avatar hidden beside the name. No change. Level B | Done |
+| `subpackageMember` ticket detail 权益 rows | `TicketWalletDetailView.swift` (`TicketWalletEntitlementRow`) | ✓ (mp-mine owns order) | Chapter, status, redeemed time and invalid reason were up to four VoiceOver stops per List row → one combined row (no controls inside; row identifier kept on the parent). Level B | Done |
+| `pages/topic` reviews (评价) | `TopicReviewsContent.swift:93` | ✓ (mp-publish owns order) | Rating read "4 slash 5" → "4 of 5" / "4/5分" via the shared `a11y.value.ofTotal` key. Header not combined: `TopicFlowTests` queries `topic.reviews.rating.1` as its own element. Level B | Done |
+| `pages/play` free explore offline / expired archive | `FreeExplorationViews.swift` (`FreeExplorationArchiveCards` locked place) | ✓ (mp-journey owns order) | Locked place name + lock chip were two stops → one combined card ("Name, Locked"). Level A | Done |
+| `subpackageMember` order detail 开始 / 结束 time, `pages/activity/baoming` amount rows | `ProfileOrdersView.swift` (`ProfileOrderTicketTimeRow`), `RegistrationSheetView.swift` (`RegistrationAmountRow`) | ✓ (mp-mine / mp-activity own order) | Audit: both are `LabeledContent`, which VoiceOver already reads as one label + value; the amount keeps its `.amount` identifier for tests. No change. Level C | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-33).
-- Next pages without a row: 44 pt targets, third part — `.controlSize(.small)` borderless / plain buttons and
-  `Menu` labels with caption text on player screens (run 33 closed the padding-only footnote buttons and `.mini`).
+- Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-35).
+- VoiceOver grouping, rest of the run-35 scan: `TeamHomeRow` (NavigationLink label, likely fine), `RegistrationChoiceRow`
+  (check UI-test identifiers before combining), `TemplateOwnShelfCard`.
+- Then: `UGCSafetyMenuButton` default (text 举报 label) inline uses and `Toggle` / `Stepper` rows with caption labels.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

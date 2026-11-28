@@ -37,6 +37,7 @@ enum DesignFixtureRegistry {
         case "d2-search-offline": return AnyView(D2Fixture(screen: .searchOffline))
         case "d2-square": return AnyView(D2Fixture(screen: .square))
         case "d2-square-empty": return AnyView(D2Fixture(screen: .squareEmpty))
+        case "d2-square-failed": return AnyView(D2Fixture(screen: .squareFailed))
         case "d2-play": return AnyView(D2Fixture(screen: .play))
         case "d2-city": return AnyView(D2Fixture(screen: .city))
         case "d2-npc": return AnyView(D2Fixture(screen: .npc))

@@ -250,7 +250,7 @@ Re-scan of `pages/topic/index/index.wxml` 详情 / 故事 / 路线 against `App/
 | `topic/index.wxml:292-296` story paywall 解锁完整体验 · price · 立即解锁 · 已购？去票夹 | Present (`TopicDetailView.swift:556-576`). | No change. |
 | `topic/index.wxml:357-358` 路线配置中 + 浏览其他主题 | Present (`TopicXcxSections.swift:615-624`). | No change. |
 | `topic/index.wxml:437` station card 到店礼 · gift | Present (`shopGift`, `TopicXcxSections.swift:640-644`). | No change. |
-| `topic/index.wxml:302-316` 评价: when there are no reviews the 还没有评价 card **is** the only write entry; with reviews 写评价 sits trailing in the rating row, above the list. Native always draws a separate bordered 写评价 button above the section content, so the empty state has two write entries. | **Not done** — `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` pins both `topic.reviews.empty` and the `topic.openReview` button in the empty state, and `tools/check_contextual_flows.py` pins the identifier; changing the accessibility tree of the empty card blind (no simulator) could break that UI test. Next run with a simulator: hide the bordered button when `hasConfirmedNoReviews && preview.isEmpty`, move `topic.openReview` onto the empty card, update the UI test. |
+| `topic/index.wxml:302-316` 评价: when there are no reviews the 还没有评价 card **is** the only write entry; with reviews 写评价 sits trailing in the rating row, above the list. Native always draws a separate bordered 写评价 button above the section content, so the empty state has two write entries. | ~~Not done~~ **Fixed** (`fdd82efee`: bordered 写评价 hidden when `hasConfirmedNoReviews && preview.isEmpty`, the empty card is the button; UI test asserts no `topic.openReview`). Original note: `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` pins both `topic.reviews.empty` and the `topic.openReview` button in the empty state, and `tools/check_contextual_flows.py` pins the identifier; changing the accessibility tree of the empty card blind (no simulator) could break that UI test. Next run with a simulator: hide the bordered button when `hasConfirmedNoReviews && preview.isEmpty`, move `topic.openReview` onto the empty card, update the UI test. |
 
 ## Round 3 continue (14) — 23:07 sweep (build b3b03703a), mp-home sheets zh-Hans + en
 
@@ -436,6 +436,38 @@ Merged `origin/ui/combined-r7` (clean; incl. fix/1128b-social, fix/1128b-team-re
 |---|---|---|
 | `subpackageMember/components/cy/scene-play-activity-detail` `activity-hero__date` (活动时间 · start – end) → `App/E1ActivityDetailParts.swift` `E1ActivityHero`, new `App/ActivityAddToCalendar.swift` | P28: the time row has no calendar action (continue-20 Not done). MP keeps the time in the hero, so the action goes there, not into activity-meta (no MP section added or moved). | **Fixed** — a small `.bordered` 添加到日历 / Add to Calendar (`calendar.badge.plus`, id `activity.detail.addToCalendar`, hint key `activity.calendar.add.hint`, en + zh-Hans) under the hero date line, **upcoming activities only** (ended / live / undated show nothing — no dead control). Tap opens the system `EKEventEditViewController` in a sheet prefilled with name, start, end (start + 1 h when the end is missing or not after the start) and 地点 (addressName, else address). iOS 17+ runs the editor out of process, so no calendar permission and no Info.plist key; nothing is saved unless the player taps Add. Test `ActivityCalendarDraftTests` (range + place, 1 h default, ended / undated → nil). |
 
+## Round 3 continue (35) — ADA `rep3-activity-detail` people + date line
+
+Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: kept every key of both sides, ours only adds keys). Sweep still build 3348aa51f; no open coordinator item for mp-home. Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `subpackageMember/components/cy/scene-play-activity-detail/index.wxml:55-62` `.activity-people` (wrapping row of 64 rpx `cy-avatar`s, no names, each `goUserInfo`, aria-label 查看…主页) → `App/ActivityPeopleSection.swift` | ADA `rep3-activity-detail`: "Registered 24 people" has no visible people; native drew one list row per registrant (avatar + name + chevron) — a long list where the MP shows a compact avatar wrap. | **Fixed** — the 「N 人已报名」 section is one row of a `LazyVGrid(.adaptive(44…56))` of scaled 32 pt avatars (44 pt targets, `.borderless` buttons → the same profile), name as the VoiceOver label + hint 查看主页; read-only registrants stay non-buttons with id `….readOnly`. Identifiers `activity.people.participant.N` unchanged, so `ActivityFlowTests.testPeopleOpenExactProfiles…` and the contract pins still hold. Host row unchanged (MP `activity-host` keeps name + role). |
+| `scene-play-activity-detail` `activity-hero__date` 活动时间 · start – end → `App/E1ActivityDetailParts.swift` (`activity.hero.when %@`) | ADA: zh hero reads 活动时间 · date, en showed the bare date. | **Fixed** — en "When · %@" (catalog + `docs/port/strings/mp-home-r3.json`), same line shape in both languages. |
+
+## Round 3 continue (36) — sweep build 0446d1c4f check
+
+Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: both HEAD hunks were empty, took theirs; JSON valid). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (52/52) · design consistency PASS. Level B (Crafted).
+
+| Screenshot (`docs/sweeps/latest/mp-home`, build 0446d1c4f) | Check | Result |
+|---|---|---|
+| `zh-Hans/en-d2-home` | large title 首页 → banner + dots → greeting (role/city secondary) → 编辑精选 (short subtitle, Beta 试玩 row) | ✓ matches OWNER RULE 2 order; no change |
+| `zh-Hans/en-d2-home-offline` | offline `ContentUnavailableView` under the hero, `.bordered` 重试 | ✓ |
+| `zh-Hans/en-d2-search`, `d2-search-results` | 推荐搜索 / 类别 capsules wrap; scope chips with counts; text rows (P18); 没有更多了 + 重新搜索 | ✓ |
+| `zh-Hans/en-rep3-activity-detail` | `···` + share toolbar, ended hero 已结束 + 活动时间 / When line, P28 icon fact rows | ✓ |
+| `zh-Hans/en-wave-today-club` | full card: photo cover, time/place icon rows, meeting-point map, 查看活动 | ✓ (component fixture, no nav bar by design) |
+| `fix/1128c-ai-showcase` AI card merged at the head of 编辑精选 | owner AI item (12:25), not this lane's; MP order of the other sections unchanged | left to that worker |
+
+Receipt hygiene: the topic 评价 empty-state row (two write entries) was already fixed in `fdd82efee`; marked fixed above. No open coordinator item for mp-home; remaining Not done rows need a simulator/device or the P2-3d decision.
+## Round 3 continue (37) — activity detail 集合点 map snippet (level B, P28)
+
+Rebased onto continue 36 (same merge of `origin/ui/combined-r7`). Sweep build 0446d1c4f (`sheet-zh-Hans.jpg`, `sheet-en.jpg`): no open coordinator item for mp-home; all `pages/index` targets already have rows, so this run re-scanned `zh-Hans-rep3-activity-detail.jpg`. Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `scene-play-activity-detail/index.wxml:34` 集合点 row (`hasLocation` → `openLocation`) → `App/ActivityDetailView.swift` `ActivityDetailMetaSection` | OWNER RULE 3 level B asks for a map snippet for every place (P28, as on the 首页 Today card); the detail showed 集合点 as text only. MP content unchanged: still one 集合点 fact with the same Maps target, no new section. | **Fixed** — when the activity has valid coordinates, the shared static `HomeTodayMeetingPointMap` (one marker, `interactionModes: []`, no hit testing, labelled + hinted, tap → Apple Maps) sits right under the 集合点 row (id `activity.detail.meetingPointMap`); no coordinates → no snippet. `rep3-activity-detail` fixture now carries the 灯笼广场 coordinate. Contract pins updated (`test_activity_design_structure`, `test_activity_registration_parity_w2_06`, `test_accessibility_hardening_wave`). |
+| `search2/index.wxml` / `search2/result/index.wxml` vs `d2-search(-results)` | Re-checked: 推荐搜索, 类别, 在地图上找, result chips, 没有更多了 + 重新搜索 all in MP order. | No change. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -481,6 +513,8 @@ Merged `origin/ui/combined-r7` (clean; incl. fix/1128b-social, fix/1128b-team-re
 - Needs a simulator pass (continue 30): `d2-home-empty` with the 看看活动 / See activities button in en + zh-Hans, AX5.
 - Needs a simulator pass (continue 33): `d2-home` greeting 今天去哪？ / role label in secondary, short 编辑精选 subtitle; activity / topic detail "···" menu, en + zh-Hans.
 - Needs a simulator pass (continue 34): `rep3-activity-detail` with an upcoming fixture date shows Add to Calendar under the hero date (en + zh-Hans, AX5); device pass: the system editor opens prefilled and Cancel/Add both close the sheet.
+- Needs a simulator pass (continue 35): `rep3-activity-detail` 「N 人已报名」 avatar wrap (en + zh-Hans, AX5: avatars grow, still wrap) and the en "When · …" hero line; UI test `testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack`.
+- Needs a simulator pass (continue 37): `rep3-activity-detail` map snippet under 集合点 (en + zh-Hans, light/dark, AX5: height scales, capped 220 pt); tap opens Maps.
 - Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
 
 ## For other lanes

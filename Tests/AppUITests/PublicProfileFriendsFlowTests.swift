@@ -9,7 +9,7 @@ final class PublicProfileFriendsFlowTests: XCTestCase {
         app.launchArguments = ["--uitesting-profile-self-growth", "--profile-self-growth-scenario", "content",
                                "--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
-        XCTAssertTrue(app.staticTexts["Synthetic growth owner"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Mia"].waitForExistence(timeout: 10))
         let picker = app.buttons["social.profile.tabs"]; if picker.exists { picker.tap() }
         let tab = app.buttons["Awards"]; if tab.waitForExistence(timeout: 3) { tab.tap() } else { app.staticTexts["Awards"].tap() }
         let friends = app.descendants(matching: .any)["social.profile.friends"]

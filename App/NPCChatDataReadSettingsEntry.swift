@@ -23,7 +23,7 @@ struct NPCChatDataReadPresentation: Identifiable {
 
     var body: some View {
         let renderedIdentity = session.npcChatDataReadIdentity
-        Section {
+        SettingsEntrySection {
             // Mini-program settings row 「AI 对话记录」 (OFF-AI-DEL-01): option sheet -> view, export (copy) and delete.
             Button {
                 guard scene == .active, session.npcChatDataReadIdentity == renderedIdentity else { return }
@@ -76,12 +76,10 @@ struct NPCChatDataReadPresentation: Identifiable {
                 confirmsClear = false
                 Task {
                     switch await popupActions.clearNPCChatLogs?() {
-                    case .deleted:
-                        toastTone = .success
-                        toastMessage = LocalizedStringKey(MemberPopupCopy.text(
-                            "已清除对话记录",
-                            "Chat records cleared",
-                            locale: locale))
+                    case .deleted(let count):
+                        // MP ai-chat-records onConfirmClear: 已清除 N 条对话 / 没有需要清除的对话.
+                        toastTone = count > 0 ? .success : .info
+                        toastMessage = LocalizedStringKey(Self.clearedMessage(count: count, locale: locale))
                     case .unknown:
                         toastTone = .warning
                         toastMessage = LocalizedStringKey(MemberPopupCopy.text(
@@ -103,8 +101,20 @@ struct NPCChatDataReadPresentation: Identifiable {
         .cyToast(message: $toastMessage, tone: toastTone)
         .onChange(of: session.npcChatDataReadIdentity) { _, _ in retire() }
         .onDisappear { retire() }
+        // fix/1128c: the Release read lease is issued before the row can be tapped, so a tap never changes identity.
+        .task { session.ensureReleaseNPCChatDataApproval() }
+        .onChange(of: scene) { _, phase in if phase == .active { session.ensureReleaseNPCChatDataApproval() } }
     }
     private func retire() { showsOptions = false; confirmsClear = false; presentation?.coordinator.invalidate(); presentation = nil }
+
+    /// MP `ai-chat-records` clear toast: the server-confirmed count, or 没有需要清除的对话 for a confirmed zero.
+    static func clearedMessage(count: Int, locale: Locale) -> String {
+        guard count > 0 else {
+            return MemberPopupCopy.text("没有需要清除的对话", "No chat records to clear", locale: locale)
+        }
+        let english = count == 1 ? "Cleared 1 chat record" : "Cleared \(count) chat records"
+        return MemberPopupCopy.text("已清除 \(count) 条对话", english, locale: locale)
+    }
 }
 /// The visible sheet independently observes identity; its hidden Settings parent is not the privacy fence.
 @MainActor struct NPCChatDataReadVisit: View {

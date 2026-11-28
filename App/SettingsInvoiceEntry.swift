@@ -6,7 +6,7 @@ import SwiftUI
     @ObservedObject var session: AppSession
     var body: some View {
         if let invoice = session.makeInvoiceLaunchPresentation() {
-            Section {
+            SettingsEntrySection {
                 NavigationLink {
                     InvoiceLaunchSessionHistory(session: session, model: invoice)
                 } label: {
@@ -18,7 +18,7 @@ import SwiftUI
                 orderCenterLink
             }
         } else {
-            Section { orderCenterLink }
+            SettingsEntrySection { orderCenterLink }
         }
     }
     /// G2 order center lookup, shown only when the player grant carries `api/order-center/detail`.

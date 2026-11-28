@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This action was cancelled before sending."
+            "value": "This action was canceled before sending."
           }
         },
         "zh-Hans": {

@@ -366,7 +366,8 @@ struct TeamMemberRow: View {
                     Section {
                         Button("team.invite.copy") { copyInvitationCode(code) }
                             .accessibilityIdentifier("team.invite.copy")
-                        ShareLink(item: code) {
+                        ShareLink(item: PublicContentShareLink.teamInvite(code: code)?.absoluteString ?? code,
+                                  preview: SharePreview(team.title)) {
                             Label(CoreLoopCopy(locale: locale).t("分享邀请码", "Share invite code"), systemImage: "square.and.arrow.up")
                         }
                         .accessibilityIdentifier("team.invite.share")

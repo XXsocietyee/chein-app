@@ -25,7 +25,7 @@ import SwiftUI
     }
     var body: some View {
         if session.account != nil {
-            Section {
+            SettingsEntrySection {
                 NavigationLink {
                     Self.destination(session: session)
                 } label: {

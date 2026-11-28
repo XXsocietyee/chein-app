@@ -143,7 +143,7 @@ public enum TeamMeetingHandshakePresentation {
             title = W8Text.t("已完成当面核验", "In-person verification complete")
             subtitle = W8Text.t("服务端已确认本次组队见面", "The server confirmed this team meet-up")
         case .cancelled:
-            title = W8Text.t("见面已取消", "Meet-up cancelled")
+            title = W8Text.t("见面已取消", "Meet-up canceled")
             subtitle = W8Text.t("任一方取消或撤回后本次见面终止，后续迟到响应不再生效", "The meet-up ends once either side cancels or withdraws, and later responses no longer apply")
         case .expired:
             title = W8Text.t("见面已过期", "Meet-up expired")
