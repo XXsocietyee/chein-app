@@ -591,6 +591,16 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
+## Round 3 continue (45) — ADA audit `e5b-stamp` (P1): the sweep shows the real stamp-collected moment
+
+Base re-merged with `origin/ui/combined-r7` (clean). No new coordinator finding for mp-roam since 07:45; the latest sweep is still build 3348aa51f.
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| ADA `e5b-stamp` (P1: "generic pin glyph, not the stamp"; "Lantern Gate is not in the album"; coral/purple colours used nowhere else; no visible celebration) | `subpackageRoam/citystamp` ③ 换票 (wxml:68–135: 出发 · place · time / 签号 → 留签人 / 留于 → the stamp photo → 留给你的一句 (scratch) → 保存到相册 · 收下，出发) → `App/RoamSubpageParityViews.swift` `RoamStampSlipView`; fixture `App/DesignFixtures/RoamStampCollectedFixture.swift`, `DesignFixtureRegistry.swift` | `e5b-stamp` mounted `CYCelebrationMoment(kind: .stamp)`, a DesignSystem demo that no player screen uses (no production caller), so the sweep judged a screen players never see. The real moment (MP 换票 slip, with the continue-41 burst and success haptic) had no fixture. | `e5b-stamp` now mounts the real slip, collected: new optional `revealedAtStart` (opens torn + revealed on appear, so the burst and `.success` haptic play once, Reduce Motion → no burst) and `sampleArt` (bundled MP art instead of the remote photo) on `RoamStampSlipView` / `RoamStampSlipPhotoView`, both default off so the two live call sites are unchanged. The fixture uses stamp 902 with the same caption (老街霓虹 / Old street neon) and art (`MPAsset.BannerCover.cityCamera`) as the `e2-stamp-album` tile, on the grouped ground, inline title 城市贴纸 like the flow. MP actions kept as the MP has them (保存到相册 + 收下，出发); the ADA "See my stamps" / Share additions are not in the MP 换票 step, so not added (OWNER RULE). No new strings. | A · celebration / `e5b-stamp` |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet **new 0**. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
@@ -608,4 +618,4 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - Entry peek `.login`: 401 part done in continue (16); the no-deployment `.login` fixture state stays (not reachable by players).
 - Live map bottom strip P-32: done in continue (21) for the map home (shipping tab root); the legacy `RoamBrowserView` live cover (flag off) gets no feed.
 - No Swift build ran here; integrator compiles.
-- For ds-consistency: `e5b-stamp` (`CYCelebrationMoment` .stamp) draws a generic `mappin.and.ellipse` glyph; P24/P30 want the stamp's own art. Not mounted by roam screens.
+- For ds-consistency: `CYCelebrationMoment` `.stamp` (generic `mappin.and.ellipse`, hard-coded coral ink) has no production caller; `e5b-stamp` now shows the roam slip instead (continue 45). Remove the `.stamp` kind or give it the stamp art if a screen starts using it.
