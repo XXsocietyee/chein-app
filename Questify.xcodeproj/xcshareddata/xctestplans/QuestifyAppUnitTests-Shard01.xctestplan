@@ -122,6 +122,7 @@
         "ClubStatsOverviewReadTests",
         "ClubStoryNavigationTests",
         "ClubTerminalSessionFlowTests",
+        "ClubTopicDirectorLoadStateTests",
         "ClubTopicMerchantContentTests",
         "ClubTopicSettingsReturnTests",
         "ClubWelcomeNoteOriginalHostTests",

@@ -51,7 +51,7 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `ARRIVE_ACCURACY_INVALID` | `backendError.code.ARRIVE_ACCURACY_INVALID` | Locate again. This is not a cheating verdict. | 请重新定位。这不是作弊判定。 |
 | `ARRIVE_ACCURACY_LOW` | `backendError.code.ARRIVE_ACCURACY_LOW` | Move into the open and locate again. A weak signal does not widen the stop's area. | 请到开阔处重新定位。信号差不会放宽这一站的范围。 |
 | `ARRIVE_ACCURACY_MISSING` | `backendError.code.ARRIVE_ACCURACY_MISSING` | Locate again so the reading includes its accuracy. This is not a cheating verdict. | 请重新定位，让读数带上精度。这不是作弊判定。 |
-| `ARRIVE_COORD_NOT_CONFIGURED` | `backendError.code.ARRIVE_COORD_NOT_CONFIGURED` | Trying again will not help. The organiser needs to fix this stop. | 重试不会成功，需要组织者修正这一站。 |
+| `ARRIVE_COORD_NOT_CONFIGURED` | `backendError.code.ARRIVE_COORD_NOT_CONFIGURED` | Trying again will not help. The organizer needs to fix this stop. | 重试不会成功，需要组织者修正这一站。 |
 | `ARRIVE_FIRST` | `backendError.code.ARRIVE_FIRST` | Record your arrival at this stop before answering. | 先记录到达这一站，再作答。 |
 | `ARRIVE_GUARD_SPEED` | `backendError.code.ARRIVE_GUARD_SPEED` | Sending again would be refused the same way. Check this on the stop again on site. | 再次发送也会被同样拒绝，请在现场重新核验。 |
 | `ARRIVE_GUARD_THROTTLE` | `backendError.code.ARRIVE_GUARD_THROTTLE` | Wait a moment, then locate again. | 请稍等片刻再重新定位。 |
@@ -68,7 +68,7 @@ The same pairs are in `Resources/BackendErrorCatalog.xcstrings` and `Core/Backen
 | `CITY_ORDERED_RESET_REQUIRED` | `backendError.code.CITY_ORDERED_RESET_REQUIRED` | The map needs to be reloaded. | 地图需要重新加载。 |
 | `CITY_QUERY_TOO_BROAD` | `backendError.code.CITY_QUERY_TOO_BROAD` | That map area is too large. Zoom in and try again. | 地图范围太大，请放大后再试。 |
 | `CITY_SNAPSHOT_CHANGED` | `backendError.code.CITY_SNAPSHOT_CHANGED` | The map changed. Refresh and try again. | 地图已变化，请刷新后再试。 |
-| `CONFIG_INVALID` | `backendError.code.CONFIG_INVALID` | This stop isn't set up. Ask the organiser to fix it. | 这一站尚未配置，请联系组织者修正。 |
+| `CONFIG_INVALID` | `backendError.code.CONFIG_INVALID` | This stop isn't set up. Ask the organizer to fix it. | 这一站尚未配置，请联系组织者修正。 |
 | `DIRECTORY_CHANGED` | `backendError.code.DIRECTORY_CHANGED` | The friend list changed. Refresh and try again. | 好友列表已变化，请刷新后再试。 |
 | `DIRECTORY_GROUP_NOT_FOUND` | `backendError.code.DIRECTORY_GROUP_NOT_FOUND` | That friend group was not found. | 未找到该好友分组。 |
 | `EVENT_UNKNOWN` | `backendError.code.EVENT_UNKNOWN` | That event isn't supported. Choose a listed event and try again. | 事件不合法，请选择已列出的事件后再试。 |

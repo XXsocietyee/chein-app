@@ -118,6 +118,7 @@
         "ClubSettlementDetailTests",
         "ClubStatsOverviewReadTests",
         "ClubStoryNavigationTests",
+        "ClubTopicDirectorLoadStateTests",
         "ClubTopicMerchantContentTests",
         "ClubTopicSettingsReturnTests",
         "CodeR3OpsTests",
