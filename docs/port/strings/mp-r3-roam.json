@@ -1346,5 +1346,56 @@
         }
       }
     }
+  },
+  "roam.live.addressSearch.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter an address"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "输入地址"
+        }
+      }
+    }
+  },
+  "roam.live.addressSearch.prompt": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Street, number or shop name"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "路名、门牌号或店名"
+        }
+      }
+    }
+  },
+  "roam.live.addressSearch.none": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Nothing found nearby"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这附近没有搜到"
+        }
+      }
+    }
   }
 }

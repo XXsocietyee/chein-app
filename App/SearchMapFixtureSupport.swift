@@ -85,10 +85,10 @@ enum SearchMapFixtureKeywords {
             try Task.checkCancellation()
         }
         if scenario == .empty || query.keyword == "missing" { return GlobalSearchResults(rows: []) }
-        let kinds = GlobalSearchKind.allCases.filter { (isAuthenticated || $0 != .club) && (scenario != .partial || $0 != .merchant) }
+        let kinds = GlobalSearchKind.allCases.filter { scenario != .partial || $0 != .merchant }
         let sourceID = scenario == .categoryDelayed ? (query.categoryID ?? 70) : 71
         let rows = kinds.map { kind in GlobalSearchRow(kind: kind, sourceID: sourceID, title: SearchMapFixtureLanguage.rowTitle(kind), detail: SearchMapFixtureLanguage.rowDetail(query.keyword, kind: kind)) }
-        return GlobalSearchResults(rows: rows, failedKinds: scenario == .partial ? [.merchant] : [], gatedKinds: isAuthenticated ? [] : [.club])
+        return GlobalSearchResults(rows: rows, failedKinds: scenario == .partial ? [.merchant] : [], gatedKinds: [])
     }
     func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults {
         try check(); searches += 1

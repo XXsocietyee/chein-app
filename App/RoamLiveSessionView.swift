@@ -71,6 +71,9 @@ import QuestifyCore
     @AppStorage(RoamFogPreference.storageKey) private var fogOff = false
     @AppStorage(FreeMapKind.storageKey) private var mapKindRaw = FreeMapKind.black.rawValue
     @State private var showTools = false
+    /// MP `cy-map-address-search` (输入地址) on the live map; a pick moves the camera (MP `onSearchPick`).
+    @State private var addressSearchShown = false
+    @State private var mapCamera: MapCameraPosition = .userLocation(fallback: .automatic)
     /// ROAM-9a: MP `_runners` (pages/roam/index.js:2827-2842); a failed read keeps the previous rows.
     @Environment(\.playRoamGapService) private var roamGap
     @State private var runners: [RoamNearbyRunner] = []
@@ -136,6 +139,11 @@ import QuestifyCore
         .modifier(RoamLiveMapWeather(latitude: weatherPoint?.latitude, longitude: weatherPoint?.longitude))
         .environment(\.aiGuideJournal, guideJournal)
         .toolbar {
+            // MP 输入地址 (pages/roam/index.wxml:297): the one search entry on the live map.
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { addressSearchShown = true } label: { Label("roam.live.addressSearch.title", systemImage: "magnifyingglass") }
+                    .accessibilityIdentifier("roam.live.addressSearch")
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 AIGuideToolbarButton(surface: .roam, journal: guideJournal, open: openGuide)
             }
@@ -178,6 +186,9 @@ import QuestifyCore
             if let discoverDestinations { RoamFirstDiscoverySheet(place: place, destinations: discoverDestinations) }
         }
         .sheet(isPresented: $guideShown) { AIGuideSheet(context: guideContext, journal: guideJournal) }
+        .sheet(isPresented: $addressSearchShown) {
+            RoamLiveAddressSearchSheet(places: owner.places, onPick: pickAddress)
+        }
         .sheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled, ownExplorePercent: owner.explorationPercent,
                                       fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding,
@@ -277,6 +288,18 @@ import QuestifyCore
             RoamLiveFogHost(fog: liveFog) { liveMarkerMap }
         }
     }
+    /// MP `onSearchPick`: move the map to the picked place and select its pin (the 地点卡 facts open in 附近).
+    private func pickAddress(_ place: RoamPlace) {
+        guard let point = place.coordinate else { return }
+        let center = CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)
+        let region = MKCoordinateRegion(center: center, latitudinalMeters: 600, longitudinalMeters: 600)
+        if reduceMotion {
+            mapCamera = .region(region)
+        } else {
+            withAnimation(.easeInOut(duration: 0.35)) { mapCamera = .region(region) }
+        }
+        mapPick = .place(place.id)
+    }
     /// Gap #24: this walk's revealed cells (Core `RoamLiveFogProjection`); nil while none, or when 迷雾 is switched off.
     private var liveFog: FogPresentation? {
         guard !fogOff, let projection = RoamLiveFogProjection.make(record: owner.record, owner: owner.record?.clientSessionKey) else { return nil }
@@ -286,7 +309,7 @@ import QuestifyCore
             // ROAM-r11-3: the session's nearby places as markers tinted by node level (普通 / 精选 / 官方合作 / 主题路线),
             // independent of the fog flag. Tapping one opens the 附近 list. MP pages/roam/index.wxml:301-433,
             // index.js:2575 (`buildNodeLevelMarkerStyle`), node-level-style.js.
-            Map(initialPosition: .userLocation(fallback: .automatic), selection: $mapPick) {
+            Map(position: $mapCamera, selection: $mapPick) {
                 UserAnnotation()
                 ForEach(owner.places.filter { $0.coordinate != nil }) { place in
                     if let point = place.coordinate, let photo = RoamLivePhotoPin.url(for: place) {

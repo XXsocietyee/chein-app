@@ -164,10 +164,17 @@ struct ActiveSessionMiniBar: View {
 struct ActiveSessionRunToggle: View {
     let entry: ActiveSessionStore.Entry
     let prominent: Bool
+    /// Full-width `.bordered` under the HUD's 回到游戏 primary (one primary per screen, P3).
+    var secondary: Bool = false
 
     var body: some View {
         if let pauses = entry.content.runToggle(kind: entry.kind) {
-            if prominent {
+            if prominent && secondary {
+                Button { toggle(pauses) } label: { label(pauses).frame(maxWidth: .infinity) }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("activeSession.hud.toggle")
+            } else if prominent {
                 Button { toggle(pauses) } label: { label(pauses).frame(maxWidth: .infinity) }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
@@ -190,10 +197,32 @@ struct ActiveSessionRunToggle: View {
     }
 }
 
+/// Plan audit H-02b: the HUD's primary — pushes the running game's own screen inside the expanded cover, so the player
+/// gets back into the game from any tab (Apple Music: the now-playing sheet leads back to the album).
+struct ActiveSessionOpenGameLink: View {
+    let destination: AnyView
+
+    var body: some View {
+        NavigationLink {
+            destination
+        } label: {
+            Label("activeSession.play.open", systemImage: "gamecontroller.fill")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .accessibilityHint(Text("activeSession.play.open.hint"))
+        .accessibilityIdentifier("activeSession.hud.openGame")
+    }
+}
+
 /// The expanded HUD for a game / city run whose own screen is elsewhere in the stack: the play HUD's 下一站 card,
 /// the clock as the hero value (P1), one primary (pause / resume, P3). A roam expands into its own live screen instead.
 struct ActiveSessionPlayHUD: View {
     let entry: ActiveSessionStore.Entry
+    /// Plan audit H-02b: the run's own game screen (`SessionPlayRuntimeView`), when its coordinator is still alive.
+    /// Nil → the HUD keeps only pause / resume (nothing to go back into).
+    var gameDestination: AnyView? = nil
     @Environment(\.locale) private var locale
 
     var body: some View {
@@ -221,7 +250,12 @@ struct ActiveSessionPlayHUD: View {
                 if let stop = nextStop {
                     PlayHUDNextStopCard(stop: stop)
                 }
-                ActiveSessionRunToggle(entry: entry, prominent: true)
+                if let gameDestination {
+                    ActiveSessionOpenGameLink(destination: gameDestination)
+                    ActiveSessionRunToggle(entry: entry, prominent: true, secondary: true)
+                } else {
+                    ActiveSessionRunToggle(entry: entry, prominent: true)
+                }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.lg)
@@ -246,6 +280,8 @@ struct ActiveSessionMiniBarHost: ViewModifier {
     let isTabBarHidden: Bool
     /// The roam's own full-screen live screen (shared controller), used as its expanded HUD.
     let roamHUD: () -> AnyView
+    /// Plan audit H-02b: the game screen for a play entry's key (nil when its run is no longer attached).
+    var playScreen: (String) -> AnyView? = { _ in nil }
     @State private var store = ActiveSessionStore.shared
     @State private var expanded: ActiveSessionStore.Entry?
     @QuestifyReduceMotion private var reduceMotion
@@ -264,7 +300,7 @@ struct ActiveSessionMiniBarHost: ViewModifier {
             }
             .animation(reduceMotion ? nil : .smooth, value: store.visibleEntry?.kind)
             .fullScreenCover(item: $expanded) { entry in
-                ActiveSessionExpandedHUD(entry: entry, roamHUD: roamHUD) { present(nil) }
+                ActiveSessionExpandedHUD(entry: entry, roamHUD: roamHUD, playScreen: playScreen) { present(nil) }
                     .modifier(ActiveSessionZoomDestination(namespace: zoom, enabled: !reduceMotion))
             }
             .onChange(of: store.current?.key) { _, key in
@@ -289,6 +325,7 @@ extension ActiveSessionStore.Entry: Identifiable {
 struct ActiveSessionExpandedHUD: View {
     let entry: ActiveSessionStore.Entry
     let roamHUD: () -> AnyView
+    let playScreen: (String) -> AnyView?
     let onCollapse: () -> Void
     @State private var store = ActiveSessionStore.shared
     @QuestifyReduceMotion private var reduceMotion
@@ -300,7 +337,7 @@ struct ActiveSessionExpandedHUD: View {
                 if entry.kind == .roam {
                     roamHUD()
                 } else {
-                    ActiveSessionPlayHUD(entry: store.entries[entry.kind] ?? entry)
+                    ActiveSessionPlayHUD(entry: store.entries[entry.kind] ?? entry, gameDestination: playScreen(entry.key))
                         // iOS 17 / Reduce Motion have no interactive zoom dismiss: a downward swipe collapses here.
                         // Not on the roam screen, where vertical drags belong to the map and its sheet.
                         .simultaneousGesture(

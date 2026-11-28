@@ -147,17 +147,36 @@ struct CYPayButton: View {
     var body: some View {
         Button(action: action) {
             ZStack {
-                HStack(spacing: CYSpacing.sm) {
-                    if let systemImage { Image(systemName: systemImage).font(.body.weight(.semibold)) }
-                    Text(verbatim: title)
-                    if let amount {
-                        Text(verbatim: amount)
-                            .monospacedDigit()
-                            .contentTransition(.numericText())
+                // One line when the title and amount fit. At AX-XXXL they stack so the title wraps
+                // instead of shrinking to 0.8.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: CYSpacing.sm) {
+                        payIcon
+                        Text(verbatim: title).lineLimit(1)
+                        if let amount {
+                            Text(verbatim: amount)
+                                .monospacedDigit()
+                                .lineLimit(1)
+                                .contentTransition(.numericText())
+                        }
+                    }
+                    .fixedSize(horizontal: true, vertical: false)
+                    VStack(spacing: CYSpacing.xxs) {
+                        HStack(spacing: CYSpacing.sm) {
+                            payIcon
+                            Text(verbatim: title)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.center)
+                        }
+                        if let amount {
+                            Text(verbatim: amount)
+                                .monospacedDigit()
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                                .contentTransition(.numericText())
+                        }
                     }
                 }
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
                 .opacity(processing ? 0 : 1)
                 if processing {
                     ProgressView().tint(palette.actionPrimaryFg).transition(.opacity)
@@ -175,6 +194,12 @@ struct CYPayButton: View {
         .cyAnimation(value: processing)
         .accessibilityLabel(Text(verbatim: amount.map { "\(title) \($0)" } ?? title))
         .accessibilityValue(Text(verbatim: processing ? processingLabel : ""))
+    }
+
+    @ViewBuilder private var payIcon: some View {
+        if let systemImage {
+            Image(systemName: systemImage).font(.body.weight(.semibold)).accessibilityHidden(true)
+        }
     }
 }
 
