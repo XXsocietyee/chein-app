@@ -321418,13 +321418,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Accept"
+            "value": "Keep this sign"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "收下"
+            "value": "收下这张签"
           }
         }
       }
@@ -321475,7 +321475,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "存到相册"
+            "value": "保存到相册"
           }
         }
       }
@@ -354122,6 +354122,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ · %2$lld 格"
+          }
+        }
+      }
+    },
+    "playkit.daily.signerDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stop's host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一站的发起人"
+          }
+        }
+      }
+    },
+    "playkit.daily.leftAtDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When this stop opened"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一站开场"
+          }
+        }
+      }
+    },
+    "playkit.daily.photoBy %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taken by %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 拍的"
+          }
+        }
+      }
+    },
+    "playkit.daily.photoByThem": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Their photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TA 拍的"
+          }
+        }
+      }
+    },
+    "playkit.daily.photoLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo taken by the previous visitor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一个人拍的照片"
+          }
+        }
+      }
+    },
+    "playkit.daily.scratchHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scratch to reveal today's line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刮开今日签文"
+          }
+        }
+      }
+    },
+    "playkit.daily.saving": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成中…"
           }
         }
       }
