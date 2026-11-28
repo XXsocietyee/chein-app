@@ -237490,7 +237490,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clear Local Cache"
+            "value": "Clear local cache"
           }
         },
         "zh-Hans": {
@@ -237575,7 +237575,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location Settings"
+            "value": "Location settings"
           }
         },
         "zh-Hans": {
@@ -237592,7 +237592,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Map & Display"
+            "value": "Map and display"
           }
         },
         "zh-Hans": {
@@ -237609,7 +237609,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Map Style"
+            "value": "Map style"
           }
         },
         "zh-Hans": {
@@ -237643,7 +237643,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share Location Nearby"
+            "value": "Share location nearby"
           }
         },
         "zh-Hans": {
@@ -237677,7 +237677,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Say Hi"
+            "value": "Say hi"
           }
         },
         "zh-Hans": {
@@ -237711,7 +237711,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nearby Walkers"
+            "value": "People walking nearby"
           }
         },
         "zh-Hans": {
@@ -237728,7 +237728,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "More Tools"
+            "value": "More tools"
           }
         },
         "zh-Hans": {
@@ -238632,7 +238632,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow Camera"
+            "value": "Allow camera"
           }
         },
         "zh-Hans": {
@@ -238683,7 +238683,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera Unavailable"
+            "value": "Camera unavailable"
           }
         },
         "zh-Hans": {
@@ -238717,7 +238717,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera Access Is Off"
+            "value": "Camera access is off"
           }
         },
         "zh-Hans": {
@@ -238802,7 +238802,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scanning Paused"
+            "value": "Scanning paused"
           }
         },
         "zh-Hans": {
@@ -238836,7 +238836,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow Camera Access"
+            "value": "Allow camera access"
           }
         },
         "zh-Hans": {
@@ -238887,7 +238887,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera Access Is Restricted"
+            "value": "Camera access is restricted"
           }
         },
         "zh-Hans": {
@@ -238904,7 +238904,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan QR Code"
+            "value": "Scan QR code"
           }
         },
         "zh-Hans": {
@@ -238938,7 +238938,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera Is Unavailable"
+            "value": "Camera is unavailable"
           }
         },
         "zh-Hans": {
@@ -238972,7 +238972,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scanning Isn't Supported"
+            "value": "Scanning isn’t supported"
           }
         },
         "zh-Hans": {
@@ -330019,7 +330019,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't clear: storage refused the change."
+            "value": "Couldn’t clear the cache. Try again."
           }
         },
         "zh-Hans": {
@@ -346788,7 +346788,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How to Play"
+            "value": "How to play"
           }
         },
         "zh-Hans": {
@@ -346822,7 +346822,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location Access"
+            "value": "Location access"
           }
         },
         "zh-Hans": {
@@ -346839,7 +346839,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Background Location"
+            "value": "Background location"
           }
         },
         "zh-Hans": {
@@ -346856,7 +346856,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrival Alerts"
+            "value": "Arrival alerts"
           }
         },
         "zh-Hans": {
@@ -346907,7 +346907,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not Now"
+            "value": "Not now"
           }
         },
         "zh-Hans": {
@@ -346924,7 +346924,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How to Play"
+            "value": "How to play"
           }
         },
         "zh-Hans": {
