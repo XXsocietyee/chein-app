@@ -17,7 +17,7 @@ public struct ShopNPCScope: Equatable {
     }
     public var valid: Bool { !sessionID.isEmpty && !accountID.isEmpty && !roleID.isEmpty }
 }
-public struct ShopNPCGrants: Equatable {
+public struct ShopNPCGrants: Equatable, Sendable {
     public var server = false
     public var provider = false
     public var legal = false

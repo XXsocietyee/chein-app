@@ -105,12 +105,14 @@ public enum QuestWidgetBoard {
 
     // MARK: Links (reviewed `chein://` intake only, like `QuestWidgetLinks`)
 
-    public static let myActivities = URL(string: "chein://mp/pages/activity/list/index")!
+    /// 票夹 (`subpackageMember/signup/index`): the activities I joined, where the MP shows the 入场码 (dot-qr).
+    /// Was `pages/activity/list/index` = 官方活动, a browse list without the player's tickets (mp-nav r3).
+    public static let myActivities = URL(string: "chein://mp/subpackageMember/signup/index")!
     public static let roamHistory = URL(string: "chein://mp/subpackageRoam/history/index")!
     public static let messages = URL(string: "chein://mp/subpackageB/pages/im/list/index")!
     public static let clubs = URL(string: "chein://mp/pages/talent/list/index")!
 
-    /// The ticket pass (`CheinDeepLink.ticket`), or the activity list without a ticket.
+    /// The ticket pass (`CheinDeepLink.ticket`), or 票夹 without a ticket.
     public static func ticket(_ id: Int?) -> URL {
         guard let id, id > 0, let url = URL(string: "chein://ticket/\(id)") else { return myActivities }
         return url

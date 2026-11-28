@@ -102,6 +102,20 @@ final class PublicContentShareLinkTests: XCTestCase {
         XCTAssertNil(PublicContentShareLink.activity(id: 0))
     }
 
+    func testOfficialEventAndRouteSharesCarryTheMiniProgramLinkThatParsesBack() throws {
+        // mp-nav r3: MP official-detail index.js:651 and official-route index.js:57-60 share paths.
+        let parser = UniversalLinkParser(verifiedHTTPSOrigins: ["https://www.chengyinhub.com"])
+        let event = try XCTUnwrap(PublicContentShareLink.officialEvent(id: 7))
+        XCTAssertEqual(event.absoluteString, "https://www.chengyinhub.com/pages/activity/official-detail/index?id=7")
+        XCTAssertNotNil(parser.parse(event))
+        let route = try XCTUnwrap(PublicContentShareLink.officialRoute(id: "12"))
+        XCTAssertEqual(route.absoluteString, "https://www.chengyinhub.com/subpackageRoam/official-route/index?id=12")
+        XCTAssertNotNil(parser.parse(route))
+        XCTAssertNil(PublicContentShareLink.officialEvent(id: 0))
+        XCTAssertNil(PublicContentShareLink.officialRoute(id: "012"))
+        XCTAssertNil(PublicContentShareLink.officialRoute(id: "abc"))
+    }
+
     func testMemberInviteSharePathUsesTheIndexQueryAndNoInventedHost() throws {
         let link = try XCTUnwrap(MemberInviteShareLink(userID: "42"))
         XCTAssertEqual(link.path, "/pages/index/index?inviter=42")

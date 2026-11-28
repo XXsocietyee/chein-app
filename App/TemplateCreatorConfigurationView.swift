@@ -12,7 +12,8 @@ import Combine
         Form {
             Section {
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled(family.rawValue) }, set: { model.draft.advanced.setCreatorEnabled(family, $0) }))
-                Text(LocalizedStringKey(family.providerKey)).font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityHint(Text(LocalizedStringKey(family.providerKey)))
+                Text(LocalizedStringKey(family.providerKey)).font(.footnote).foregroundStyle(.secondary).accessibilityHidden(true)
             }
             if model.draft.advanced.enabled(family.rawValue) {
                 if family == .check {
