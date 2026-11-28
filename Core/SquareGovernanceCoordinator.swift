@@ -67,6 +67,13 @@ import Foundation
         case .deleteOwnComment(let id): return "delete:\(snapshot.comments.first(where: { $0.id == id })?.generation.rawValue ?? "unknown"):\(id)"
         }
     }
+    /// Read-only: an appeal for this disposition was dispatched from this account (journal claimed) and
+    /// the snapshot still offers an appeal, so its outcome is not confirmed yet (mini-program
+    /// `post-governance` `pendingUnknown`). The journal never unlocks, so the row cannot be appealed again here.
+    public func appealOutcomeUnconfirmed(enforcementID: Int, snapshot: SquareGovernanceSnapshot) -> Bool {
+        guard snapshot.identity.valid, snapshot.enforcements.contains(where: { $0.id == enforcementID && $0.canRequestReview }) else { return false }
+        return journal.contains("appeal:\(enforcementID)", identity: snapshot.identity)
+    }
     public func prepare(_ action: SquareGovernanceAction, snapshot: SquareGovernanceSnapshot, access: any SquareGovernanceAccess, now: Date = Date()) throws -> SquareGovernanceReview {
         guard !inFlight else { throw SquareGovernanceFailure.busy }
         try check(snapshot.identity, access: access); try Self.validate(action, snapshot: snapshot)
