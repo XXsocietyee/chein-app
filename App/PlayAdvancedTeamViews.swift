@@ -10,7 +10,7 @@ import SwiftUI
         TimelineView(.periodic(from: .now, by: 1)) { _ in
         VStack(alignment: .leading, spacing: 16) {
             if let team = model.teamProjection {
-                LabeledContent("advancedTeam.progress") { Text("\(team.completedUnits) / \(team.requiredTurns)").monospacedDigit() }
+                LabeledContent("advancedTeam.progress") { Text("\(team.completedUnits) / \(team.requiredTurns)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(team.completedUnits)) \(Int(team.requiredTurns))")).monospacedDigit() }
                 if let turn = team.turn { PlayAdvancedTurnBlock(turn: turn, isLeader: team.isLeader) }
                 else { LabeledContent("advancedTeam.turnIndex") { Text(verbatim: String(team.turnIndex + 1)) } }
                 LabeledContent("advancedTeam.myRole") {

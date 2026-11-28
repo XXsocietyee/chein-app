@@ -75,6 +75,9 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   0.5 / 1)` (or `Rectangle().frame(height: 1)`). 98 call sites use the system `Divider()` (right
                   thickness on every display scale, follows the separator colour in light and dark): use it.
                   Vertical timeline connectors (`frame(width:)`) and clear spacers are not dividers
+  all caps        `.textCase(.uppercase)` anywhere in App/ (design system included): one text case on every player
+                  surface, sentence case in English like the system's own headers and the run-16 eyebrows; the
+                  en string carries its own capitals (zh is unaffected either way)
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
 fixtures included; there is no Swift compiler in the lanes' cloud sessions):
@@ -155,12 +158,15 @@ BUSY_SWAP_EXEMPT = re.compile(r'\bToolbarItem\b|\bLabeledContent\b')
 HAND_DIVIDER = 'hand divider'
 # One separator: the system `Divider()`, never a drawn 0.5 / 1 pt rectangle.
 HAND_DIVIDER_PATTERN = re.compile(r'\bRectangle\(\)(?:\s*\.fill\((?!\s*\.clear\b)[^)]*(?:\([^)]*\))?[^)]*\))?\s*\.frame\(height:\s*(?:0?\.5|1(?:\.0)?)\s*\)')
+ALL_CAPS = 'all caps'
+# One text case: sentence case from the strings; no view forces English to ALL CAPS.
+ALL_CAPS_PATTERN = re.compile(r'\.textCase\(\s*\.uppercase\s*\)')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
-         DUPLICATE_TYPE, UNDECLARED_STATE)
+         ALL_CAPS, DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -353,6 +359,8 @@ def scan_file(rel, text):
             hits.append((number, LINE_SPACING, code.strip()))
         if not colour_exempt and HAND_DIVIDER_PATTERN.search(code):
             hits.append((number, HAND_DIVIDER, code.strip()))
+        if ALL_CAPS_PATTERN.search(code):
+            hits.append((number, ALL_CAPS, code.strip()))
         if not colour_exempt and STATUS_CAPSULE_SHAPE.search(code) and STATUS_CAPSULE_TINT.search(code) and 'strokeBorder' not in code:
             hits.append((number, STATUS_CAPSULE, code.strip()))
         if not design_system and rel != APP_ROOT and DS_TAB_BAR.search(code):

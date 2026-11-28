@@ -22,12 +22,17 @@ import QuestifyCore
         let fixtureReader = ClubFixtureReader(scenario: scenario)
         fixtureReader.designCopy = true
         _reader = StateObject(wrappedValue: fixtureReader)
+        let writer = D4ClubActionWriter(identity: fixtureReader.clubIdentity)
+        _actionCoordinator = State(initialValue: ClubActionCoordinator(writer: writer, reader: fixtureReader))
     }
+    /// mp-club r3 (23:20 sweep): the visitor's declined request shows the MP 重新申请 capsule on 概览 (detail wxml:1033-1038).
+    @State private var actionCoordinator: ClubActionCoordinator
     private static let community = try? ClubCommunityFixture.context(identity: ClubReadIdentity(accountID: 701, epoch: 0), clubID: 81, designCopy: true)
     var body: some View {
         NavigationStack {
             switch screen {
             case .directory: ClubDirectoryView(reader: reader)
+            case .detail(owner: false): ClubDetailView(id: 81, reader: reader, actionCoordinator: actionCoordinator, community: Self.community)
             case .detail: ClubDetailView(id: 81, reader: reader, community: Self.community)
             // mp-club r3 (18:15 sweep): the 帖文 tab reads the club's posts like the MP, not the "not in this version" state.
             case .tab(let tab): ClubDetailView(id: 81, reader: reader, community: Self.community, requestedTab: tab)
@@ -90,6 +95,17 @@ private struct D4JoinStage: View {
             try? await Task.sleep(for: .milliseconds(500)); state = .working
             try? await Task.sleep(for: .milliseconds(1100)); state = .done
         }
+    }
+}
+
+/// Synthetic membership writer for the d4 visitor: configured so the 概览 capsule renders; nothing is ever sent.
+@MainActor private final class D4ClubActionWriter: ClubActionWriting {
+    let isConfigured = true
+    let viewerIsMerchant = false
+    let identity: ClubReadIdentity?
+    init(identity: ClubReadIdentity) { self.identity = identity }
+    func perform(_ action: ClubAction, clubID: Int, expectedIdentity: ClubReadIdentity, joinMessage: String) async throws -> ClubActionReceipt {
+        throw ClubActionWriteError.notSent(.notConfigured)
     }
 }
 

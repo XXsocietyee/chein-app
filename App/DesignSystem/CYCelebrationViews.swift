@@ -549,7 +549,6 @@ struct CYBadgeUnlockCover: View {
         return VStack(spacing: CYSpacing.sm) {
             Text(verbatim: copy.badgeEyebrow)
                 .cyText(.label)
-                .textCase(.uppercase)
                 .foregroundStyle(CYNight.lantern)
             Text(verbatim: CYUnknown.text(payload.name))
                 .font(nameFont)
@@ -613,7 +612,6 @@ struct CYRoamSummaryView: View {
         VStack(spacing: CYSpacing.xl) {
             Text(verbatim: copy.walkTitle)
                 .cyText(.label)
-                .textCase(.uppercase)
                 .foregroundStyle(palette.textSecondary)
                 .accessibilityAddTraits(.isHeader)
                 .padding(.top, CYSpacing.xxl)
