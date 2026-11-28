@@ -1496,6 +1496,27 @@ PASS (manual paging 25 baselined, 114 allowed), `contract_ratchet --check` 46 fa
   more-flag). Capsule / goals / anniversary, Topic / Activity / stamp album, favorites, post / square governance and
   `TemplateAuthoringMineView` stay as listed in run 43 (tests or append-only reads first).
 
+## Continue run 45 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane; no K50 `lane-layout` rows posted (`cursor-k50-p*.md` absent).
+
+Run 44 Not done row worked:
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| Club channel 接龙 (chain) entries → `App/NativeChannelChainView.swift:107` · C | `d7.chain.showMore` | plain `Button` → `CYLoadMoreRow(isLoading: flow.busy)`, still disabled during a review; `read(more:)` guards `!busy` / `review == nil`, failure clears `page` so `hasMore` row goes away (`Core/NativeChannelChain.swift:318,344`) |
+| Theme play records → `App/PlayThemeRecordsView.swift:23` · B | `playx.themeRecords.more` | plain `Button` → `CYLoadMoreRow(isLoading: model.busy)` while no error; on `.historyFailed` the explicit 重新加载 button stays (same identifier, so `PlayThemeRecordsFlowTests.testEmptyAndFailureStates` holds) — an error never auto-retries |
+| Notification delivery log → `App/NativeNotificationDeliveryLogView.swift:48` · C | `d7.deliveryLog.next` | **kept**: "next" *replaces* the page (`read` resets `storedPage`, no append), so an auto-load on appear would chain through every page on a short list. Stays a manual "Next page" button; baselined on purpose |
+
+Checker: manual paging 25 → **23** baselined (`--update`, ratchet down only).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (manual paging 23 baselined, 114 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
+
+### Not done (next run)
+- manual paging debt (23): `NativeChannelMessageContextView` checked: 更早/更晚 re-anchor the context (new anchor, no append) → keep manual. Next:
+  `MessagingHistoryView`, `CooperationContextualViews` (merchant coop: out of scope unless player), `MapPublicLayerSectionView`
+  (`nextPage` — check append vs replace like the delivery log). Others stay as listed in run 43.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
