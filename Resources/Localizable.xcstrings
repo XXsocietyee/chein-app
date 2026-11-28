@@ -198350,6 +198350,23 @@
         }
       }
     },
+    "profile.complaint.read.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account can’t file complaints"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能发起投诉"
+          }
+        }
+      }
+    },
     "profile.complaint.read.network": {
       "extractionState": "manual",
       "localizations": {
@@ -346804,6 +346821,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "可投诉活动加载失败"
+          }
+        }
+      }
+    },
+    "profile.complaint.state.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account can’t file complaints"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能发起投诉"
           }
         }
       }
