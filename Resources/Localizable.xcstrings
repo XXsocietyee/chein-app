@@ -178455,13 +178455,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not quite. Think again."
+            "value": "Not quite. Look at the clue again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不对，再想想"
+            "value": "还不对，再看看题面"
           }
         }
       }
@@ -180399,13 +180399,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last pick: correct"
+            "value": "That's it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次选择：正确"
+            "value": "就是它"
           }
         }
       }
@@ -180416,13 +180416,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last pick: wrong"
+            "value": "Not this one"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次选择：错误"
+            "value": "不是"
           }
         }
       }
@@ -180450,13 +180450,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revealed answer"
+            "value": "Correct answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "揭晓的正确图"
+            "value": "正确答案"
           }
         }
       }
@@ -352220,6 +352220,142 @@
           "stringUnit": {
             "state": "translated",
             "value": "重试"
+          }
+        }
+      }
+    },
+    "playkit.qa.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type your answer here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在这里作答"
+          }
+        }
+      }
+    },
+    "playkit.qa.tag.answer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确答案"
+          }
+        }
+      }
+    },
+    "playkit.qa.tag.chosen": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的选择"
+          }
+        }
+      }
+    },
+    "playkit.hangman.howToDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One letter or character per box. Pinyin without tone marks; type V for ü."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一格填一个字或字母；拼音不写声调，ü 用 V 代替。"
+          }
+        }
+      }
+    },
+    "playkit.profile.kicker": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birth registration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出生登记"
+          }
+        }
+      }
+    },
+    "playkit.branch.endMark": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The end"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结局"
+          }
+        }
+      }
+    },
+    "playkit.branch.confirmPick": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认选择"
+          }
+        }
+      }
+    },
+    "playkit.hidden.progress %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Found %1$lld of %2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已找到 %1$lld / %2$lld"
           }
         }
       }
