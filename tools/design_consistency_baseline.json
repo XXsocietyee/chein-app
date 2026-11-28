@@ -13,6 +13,9 @@
     "App/CityKit/CityTokens.swift": {
       "font design": "procedural coin art: the sparkle glyph is part of the drawn token, sized with the coin, not text"
     },
+    "App/CityPlayerView.swift": {
+      "refresh no pull": "城市 board toolbar item is the read-failure retry (action.retry) that also cancels the place selection; the MP city page has no onPullDownRefresh"
+    },
     "App/DesignSystem/CYAlbum.swift": {
       "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
     },
@@ -61,6 +64,12 @@
     "App/FogOverlayLayer.swift": {
       "raw colour": "full-screen map fog layer: colour components come from the fog engine"
     },
+    "App/GroupPollOriginalResultView.swift": {
+      "refresh no pull": "IM poll result is an in-chat card (MP im poll has no onPullDownRefresh); reload re-reads the original result only"
+    },
+    "App/GroupPollViews.swift": {
+      "refresh no pull": "IM poll: refresh clears the chosen option and runs the poll owner command (.refresh); a pull gesture would drop an unsent vote; MP im poll has no onPullDownRefresh"
+    },
     "App/HomeFeedView.swift": {
       "list style": "首页 is a shelf feed (App Store-style horizontal rails that run to the screen edge, no cell chrome); .grouped is the full-width variant of the grouped system list"
     },
@@ -96,6 +105,9 @@
     },
     "App/NearbyTeamMapViews.swift": {
       "raw segmented": "Toolbar control (地图 / 列表, two short titles) sized with .fixedSize() in the navigation bar; the adaptive ViewThatFits/menu swap is for in-content pickers."
+    },
+    "App/ParticipantManagementDetailView.swift": {
+      "refresh no pull": "常用参与人 detail: refresh is disabled while a delete awaits confirmation / runs; a pull gesture cannot carry that guard; MP page has no onPullDownRefresh"
     },
     "App/PlayHUD.swift": {
       "button style": "game HUD circle controls over the live play surface"
