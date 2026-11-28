@@ -74,17 +74,61 @@ extension EnvironmentValues {
                     .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("club.topic.director.loading")
             }
-        } else if model.phase == "failed" {
+        } else if let state = Self.loadState(phase: model.phase, issue: model.issue) {
+            // CLB-r3-director-states (MP topic-detail wxml:163-171, director.js:378-385 classifyLoadError):
+            // NOT_FOUND → 还没有可管理的活动局; transport → 网络连接失败 + 重新连接; any other refusal → 导演台读取失败
+            // with the server sentence + 重新加载. A refused read used to render nothing.
             Section {
-                ContentUnavailableView {
-                    Label("club.topic.director.failed", systemImage: "exclamationmark.triangle")
-                } actions: {
-                    // CLB-G13d (MP wxml:163): 导演台读取失败 → 重新加载.
-                    Button("action.reload") { Task { await model.load() } }
-                        .buttonStyle(.bordered)
-                        .accessibilityIdentifier("club.topic.director.retry")
+                switch state {
+                case .empty(let message):
+                    ContentUnavailableView {
+                        Label("club.topic.director.empty", systemImage: "flag.checkered")
+                    } description: {
+                        if let message { Text(verbatim: message) } else { Text("club.topic.director.emptySub") }
+                    }
+                    .accessibilityIdentifier("club.topic.director.empty")
+                case .network:
+                    ContentUnavailableView {
+                        Label("club.topic.director.network", systemImage: "wifi.exclamationmark")
+                    } actions: {
+                        Button("club.topic.director.reconnect") { Task { await model.load() } }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("club.topic.director.retry")
+                    }
+                case .failed(let message):
+                    ContentUnavailableView {
+                        Label("club.topic.director.failed", systemImage: "exclamationmark.triangle")
+                    } description: {
+                        if let message { Text(verbatim: message) } else { Text("club.topic.director.failedSub") }
+                    } actions: {
+                        Button("action.reload") { Task { await model.load() } }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("club.topic.director.retry")
+                    }
                 }
             }
+        }
+    }
+
+    enum LoadState: Equatable {
+        case empty(String?)
+        case network
+        case failed(String?)
+    }
+
+    /// MP `classifyLoadError` on the native coordinator: only reached while there is no projection.
+    static func loadState(phase: String, issue: PlayExperienceError?) -> LoadState? {
+        switch phase {
+        case "rejected":
+            if case .rejected(let code, let message)? = issue {
+                let text = message.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+                return code == 404 ? .empty(text) : .failed(text)
+            }
+            return .failed(nil)
+        case "failed":
+            return issue == .unknownResult ? .network : .failed(nil)
+        default:
+            return nil
         }
     }
 

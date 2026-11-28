@@ -43,10 +43,11 @@ struct WalletFormatting {
             + (currency ?? appLocalized("wallet.currencyUnknown", locale: locale))
     }
 
-    /// mp-mine r3 (20:25 sweep): MP money reads ¥128.50, not "128.50 CNY". Returns nil when the
-    /// currency has no one-glyph symbol, so callers keep the code suffix.
+    /// mp-mine r3 (20:25 sweep): MP money reads ¥128.50, not "128.50 CNY"; English reads CN¥128.50 like every
+    /// other money label (ds-consistency r3). Returns nil when the currency has no drawn symbol, so callers keep
+    /// the code suffix.
     func symbolMoney(_ formatted: String, currency: String?) -> String? {
-        guard let symbol = WalletCurrencySymbol.symbol(currency), symbol.count == 1 else { return nil }
+        guard let symbol = WalletCurrencySymbol.symbol(currency, locale: locale), WalletCurrencySymbol.isGlyph(symbol) else { return nil }
         if let first = formatted.first, first == "+" || first == "-" || first == "\u{2212}" {
             return String(first) + symbol + String(formatted.dropFirst())
         }

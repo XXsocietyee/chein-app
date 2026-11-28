@@ -859,6 +859,7 @@ struct ClubGovernanceReadView: View {
                         squareReader: profile.squareReader, actions: profile.actions,
                         isCurrent: { current(target) })
                         .id(target.id)
+                        .cyPushedChrome()
                 } else { Color.clear }
             }
             // This destination remains active while the leaderboard is covered.

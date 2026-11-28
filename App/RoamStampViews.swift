@@ -342,14 +342,21 @@ private struct RoamStampAlbumCover: View {
     let loaded: Bool
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var sentence: String {
         if let total, total > 0 { return ChannelCopy.text("已集齐 \(total) 枚城市印章", "\(total) city stamps collected", locale: locale) }
         if loaded { return ChannelCopy.text("还没有印章，去城市里盖第一枚吧", "No stamps yet. Go collect the first one.", locale: locale) }
         return ChannelCopy.text("正在翻开集章册", "Opening the album", locale: locale)
     }
     var body: some View {
-        HStack(alignment: .center, spacing: CYSpacing.lg) {
+        // a11y-dt r3: at accessibility sizes the ring sits above the title so the display title keeps the full width;
+        // the ring is VoiceOver-hidden because the sentence below already says the same thing.
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.lg))
+        layout {
             CYAlbumProgressRing(value: total ?? 0, total: total, size: 88, accessibilityLabel: Text(verbatim: sentence))
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text("roam.experience.album")
                     .cyText(.display).foregroundStyle(palette.textPrimary)

@@ -1195,7 +1195,29 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "%1$lld/%2$lld people"
+          "value": "%1$lld/%#@person@"
+        },
+        "substitutions": {
+          "person": {
+            "argNum": 2,
+            "formatSpecifier": "lld",
+            "variations": {
+              "plural": {
+                "one": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg person"
+                  }
+                },
+                "other": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg people"
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "zh-Hans": {

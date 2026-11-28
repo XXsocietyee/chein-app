@@ -518,7 +518,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
     }
 
     private func grabber(total: CGFloat) -> some View {
-        Capsule().fill(Color(uiColor: .tertiaryLabel)).frame(width: 40, height: 5)
+        Capsule().fill(panelFollowsAppearance ? AnyShapeStyle(HierarchicalShapeStyle.tertiary) : AnyShapeStyle(Color.white.opacity(0.5))).frame(width: 40, height: 5)
             .frame(maxWidth: .infinity, minHeight: grabberHeight)
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 4)

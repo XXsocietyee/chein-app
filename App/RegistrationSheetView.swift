@@ -602,7 +602,7 @@ struct RegistrationSheetView: View {
         // MP baoming.wxml:329 cy-btn label while `!canPay`: 请先勾选信息共享同意 / 请选择参与人信息 / 报名已截止.
         if blocked {
             switch flow.confirmationBlock {
-            case .missingConsent?: return copy.t("请先勾选信息共享同意", "Tick the sharing consent first")
+            case .missingConsent?: return copy.t("请先勾选信息共享同意", "Turn on sharing consent first")
             case .invalidForm?: return copy.t("请选择参与人信息", "Choose a participant")
             case .signupClosed?: return copy.t("报名已截止", "Registration is closed")
             default: return nil
@@ -712,23 +712,16 @@ struct RegistrationSheetView: View {
                 CYPillButton("registration.form.reloadParticipants", style: .secondary) { Task { await flow.loadParticipants() } }
                     .accessibilityIdentifier("registration.form.reloadParticipants")
             } else if flow.participantProjectionIsCurrent, !flow.participants.isEmpty {
-                Picker("registration.form.savedParticipant", selection: Binding<Int?>(
-                    get: { flow.selectedParticipantID },
-                    set: { if let id = $0 { flow.selectParticipant(id: id) } else { flow.useManualEntry() } }
-                )) {
-                    Text("registration.form.manualEntry").tag(Optional<Int>.none)
-                    ForEach(flow.participants) { participant in
-                        Text(verbatim: participant.fullName).tag(Optional(participant.id))
-                    }
-                }.accessibilityIdentifier("registration.form.participantPicker")
+                // MP baoming.wxml:31-46: one 参与人信息 row opens the participant popup (native `.sheet`).
                 Button {
                     focusedField = nil
                     showingParticipantSheet = true
                 } label: {
-                    Text(verbatim: PlayCloseCopy.text("选择参与人信息", "Choose a saved participant…", locale))
+                    RegistrationChoiceRow(title: "registration.form.savedParticipant", value: participantRowValue,
+                                          detail: selectedParticipantRow?.mobilePhone)
                 }
                 .disabled(!flow.canEdit)
-                .accessibilityIdentifier("registration.form.openParticipantSheet")
+                .accessibilityIdentifier("registration.form.participantPicker")
             }
             if let participantReader, let participantCoordinator,
                participantReader.identity != nil, participantReader.identity == participantCoordinator.identity {
@@ -736,24 +729,41 @@ struct RegistrationSheetView: View {
                     Button { focusedField = nil; showingAddParticipant = true } label: {
                         Text("participant.recovery.inspect", tableName: "ProfileParticipantRecovery")
                     }.disabled(!flow.canEdit).accessibilityIdentifier("registration.form.inspectParticipant")
-                } else if participantReader.isConfigured, participantCoordinator.canPrepare {
+                } else if participantReader.isConfigured, participantCoordinator.canPrepare, flow.participants.isEmpty {
                     CYPillButton("participant.form.add", style: .secondary) { focusedField = nil; showingAddParticipant = true }
                         .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.addParticipant")
                 }
             }
-            TextField("registration.form.name", text: Binding(get: { flow.draft.realName }, set: flow.setName))
-                .textContentType(.name).textInputAutocapitalization(.words)
-                .focused($focusedField, equals: .name).submitLabel(.next)
-                .onSubmit { focusedField = .phone }
-                .accessibilityIdentifier("registration.form.name")
-            // US launch r1: +86 / +1 picker; the draft keeps the server value (China bare digits, US E.164).
-            PhoneCountryField("registration.form.phone", wire: Binding(get: { flow.draft.phone }, set: flow.setPhone),
-                              identifier: "registration.form.phone", focus: $focusedField, equals: .phone)
-            if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
-                Text("registration.form.phoneHint").cyText(.meta).foregroundStyle(CYColor.dangerText)
+            // MP baoming.wxml:48-56: a selected participant is shown as the row itself (name + phone), no inline fields.
+            if selectedParticipantRow == nil {
+                TextField("registration.form.name", text: Binding(get: { flow.draft.realName }, set: flow.setName))
+                    .textContentType(.name).textInputAutocapitalization(.words)
+                    .focused($focusedField, equals: .name).submitLabel(.next)
+                    .onSubmit { focusedField = .phone }
+                    .accessibilityIdentifier("registration.form.name")
+                // US launch r1: +86 / +1 picker; the draft keeps the server value (China bare digits, US E.164).
+                PhoneCountryField("registration.form.phone", wire: Binding(get: { flow.draft.phone }, set: flow.setPhone),
+                                  identifier: "registration.form.phone", focus: $focusedField, equals: .phone)
+                if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
+                    Text("registration.form.phoneHint").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                }
             }
         } header: { E1IconHeader(systemImage: "person.crop.circle", title: CoreLoopCopy(locale: locale).t("参与人信息", "Participant")) }
         .disabled(!flow.canEdit)
+    }
+    /// The saved participant the draft still holds (name and phone unchanged); nil while the player types their own.
+    private var selectedParticipantRow: ProfileParticipant? {
+        guard flow.participantProjectionIsCurrent, let id = flow.selectedParticipantID,
+              let row = flow.participants.first(where: { $0.id == id }),
+              row.fullName == flow.draft.realName, row.mobilePhone == flow.draft.phone else { return nil }
+        return row
+    }
+    /// Saved participant name while the draft still holds it; 手动填写 once the player typed their own.
+    private var participantRowValue: String {
+        if let row = selectedParticipantRow {
+            return row.fullName
+        }
+        return appLocalized("registration.form.manualEntry", locale: locale)
     }
     /// R7-PC-C2-1: MP baoming.wxml:155-161 (儿童年龄, sent as `childAge` with quote/create, js:1876),
     /// 206-212 + js:760-764 (商家暂停营业) and js:1871-1876 (通行证 row).
@@ -810,22 +820,15 @@ struct RegistrationSheetView: View {
             if flow.activity.tickets.isEmpty {
                 Text("registration.form.noTickets").foregroundStyle(.secondary)
             } else {
-                Picker("registration.form.ticket", selection: Binding<Int?>(
-                    get: { flow.selectedTicketID },
-                    set: { if flow.selectTicket(id: $0) { Task { await flow.requestQuote() } } }
-                )) {
-                    ForEach(flow.activity.tickets) { ticket in
-                        Text(verbatim: ticket.name).tag(Optional(ticket.id))
-                    }
-                }.disabled(!flow.canEdit).accessibilityIdentifier("registration.form.ticketPicker")
+                // MP baoming.wxml ticket row: one tappable row opens the ticket popup (native `.sheet`).
                 Button {
                     focusedField = nil
                     showingTicketSheet = true
                 } label: {
-                    Text(verbatim: PlayCloseCopy.text("选择票种", "Choose a ticket…", locale))
+                    RegistrationChoiceRow(title: "registration.form.ticket", value: flow.selectedTicket?.name ?? "")
                 }
                 .disabled(!flow.canEdit)
-                .accessibilityIdentifier("registration.form.openTicketSheet")
+                .accessibilityIdentifier("registration.form.ticketPicker")
                 if let ticket = flow.selectedTicket {
                     RegistrationAmountRow(key: "registration.form.ticketPrice", amount: ticket.price)
                     if let description = ticket.description, !description.isEmpty { Text(verbatim: description) }
@@ -1476,3 +1479,34 @@ private struct RegistrationPlayerSheetHeader: ViewModifier {
     }
 }
 
+/// One list row for a choice made in a sheet: title leading, current value trailing, disclosure chevron.
+private struct RegistrationChoiceRow: View {
+    let title: LocalizedStringKey
+    let value: String
+    var detail: String? = nil
+
+    var body: some View {
+        LabeledContent {
+            HStack(spacing: 6) {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(verbatim: value)
+                        .foregroundStyle(.secondary)
+                    if let detail, !detail.isEmpty {
+                        Text(verbatim: detail)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                }
+                .multilineTextAlignment(.trailing)
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+        } label: {
+            Text(title).foregroundStyle(.primary)
+        }
+        .contentShape(Rectangle())
+    }
+}

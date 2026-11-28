@@ -56,10 +56,15 @@ struct D2Fixture: View {
 @MainActor struct D2MeFixture: View {
     @State private var member = MemberHomeFixtureReader(scenario: "ready")
     @State private var growth = GrowthCenterFixtureReader(scenario: .content)
-    @State private var tab: AccountMineTab = AccountMineTab(rawValue: UserDefaults.standard.string(forKey: "d2MeTab") ?? "") ?? .mine
+    @State private var tab: AccountMineTab
     @Environment(\.locale) private var locale
     private let account = try! JSONDecoder().decode(Account.self, from: Data(#"{"id":81,"nickname":"Mia","role":"player","levelId":2}"#.utf8))
     private let tabs: [AccountMineTab] = AccountMineTab.allCases
+    /// `initialTab` lets a fixture open on one MP tab (e4-member opens 关于, where 当前权益 lives).
+    init(initialTab: AccountMineTab? = nil) {
+        let stored = AccountMineTab(rawValue: UserDefaults.standard.string(forKey: "d2MeTab") ?? "")
+        _tab = State(initialValue: initialTab ?? stored ?? .mine)
+    }
     var body: some View {
         NavigationStack {
             Form {
@@ -86,12 +91,22 @@ struct D2Fixture: View {
                         .accessibilityIdentifier("account.mine.posts.empty")
                     }
                 case .mine:
+                    // mp-mine r3: MP TAB · 项目 for a player with no orders / projects / bounties:
+                    // 我的项目 (header + 管理全部, no preview) → 我的资产 (账户余额) → 通行证与礼品, as AccountView draws on Passport.
+                    Section("profile.selfProjects.title") {
+                        Button {} label: { Label("profile.selfProjects.all", systemImage: "square.stack") }
+                            .accessibilityIdentifier("profile.selfProjects.all")
+                    }
                     Section("wallet.assets") {
                         LabeledContent {
                             Text(verbatim: MemberBalanceDisplay.text("0", locale: locale)).monospacedDigit()
                         } label: {
                             Label { Text("member.card.balance", tableName: "MemberProfile") } icon: { Image(systemName: "wallet.pass") }
                         }
+                        Button {} label: {
+                            CYListRow("mp.account.passes", trailing: .none) { CYRowIcon(systemImage: "ticket") }
+                        }
+                        .accessibilityIdentifier("account.mp.passes")
                     }
                 case .achievements:
                     MemberAchievementMetricsSection(growth: growth, onOpenPoints: {}, onOpenPointsHelp: {}) {
