@@ -672,6 +672,8 @@ struct TemplateAuthoringField: View {
     }
     /// Design hand-off r1 CF-47 / CF-48: the unit is a suffix, not part of the label; 积分 is the only currency.
     static let limits: [String: Int] = ["description": 30, "kicker": 32]
+    /// MP temp/index.wxml placeholders where they differ from the label (玩法看点: 一句话介绍这个玩法的看点).
+    static let prompts: [String: String] = ["description": "templateAuthor.prompt.description"]
     static let units: [String: EditorUnit] = [
         "xp": .points, "seconds": .seconds, "holdSeconds": .seconds, "durationSeconds": .seconds,
         "targetSeconds": .seconds, "audioDuration": .seconds, "bearing": .degrees, "tolerance": .degrees
@@ -682,7 +684,9 @@ struct TemplateAuthoringField: View {
         } else {
             // Native r2: a system TextField row (the label is the system placeholder). The MP length limit still
             // clamps input; no drawn counter or field box.
-            TextField(LocalizedStringKey("templateAuthor.field." + key), text: limitedText, axis: multiline ? .vertical : .horizontal)
+            TextField(text: limitedText, prompt: Self.prompts[key].map { Text(LocalizedStringKey($0)) }, axis: multiline ? .vertical : .horizontal) {
+                Text(LocalizedStringKey("templateAuthor.field." + key))
+            }
                 .lineLimit(multiline ? 3...10 : 1...3)
                 .textInputAutocapitalization(.sentences)
                 .submitLabel(multiline ? .return : .next)

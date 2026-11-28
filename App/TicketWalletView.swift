@@ -403,6 +403,7 @@ private struct TicketWalletRow: View {
                 TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
                     .font(.headline).foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilitySortPriority(1)
                 if ticket.clearedFlag == nil { completionCaption }
                 if let date = ticket.participateDate, !date.isEmpty {
                     QuestifyMetadataLine(label: "ticketWallet.participateDate", value: Self.participateDateText(date), systemImage: "calendar")
@@ -437,6 +438,16 @@ private struct TicketWalletRow: View {
         }
         .padding(.vertical, 6)
         .opacity(dimmed ? 0.6 : 1)
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(dimmedStatusText)
+    }
+    /// a11y-dt r3: the dimmed card (cancelled / expired) is only a visual cue; VoiceOver hears the status as the value.
+    private var dimmedStatusText: Text {
+        switch ticket.status {
+        case .cancelled: return Text("ticketWallet.status.cancelled")
+        case .expired: return Text("ticketWallet.status.expired")
+        default: return Text(verbatim: "")
+        }
     }
     /// Completed shows 已通关. Absent hides that line. A non-boolean shows an em dash.
     @ViewBuilder private var completionCaption: some View {

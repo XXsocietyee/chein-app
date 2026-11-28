@@ -100,12 +100,16 @@ struct MemberReportProgressTimeView: View {
                 if flow.busy && flow.records.isEmpty { CYLoadingState() }
                 if let failure = flow.failure, flow.records.isEmpty {
                     let message = LocalizedStringKey("report.error." + String(describing: failure))
+                    // mp-states r3: MP report-mine cy-state-shell kind data 举报记录加载失败 · 重试; the reason is the description.
                     ContentUnavailableView {
-                        Label { Text(message, tableName: "MemberReportProgress").accessibilityIdentifier("report.progress.error") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        Label { memberReportProgressText("report.error.title") } icon: { Image(systemName: "exclamationmark.triangle") }
+                    } description: {
+                        Text(message, tableName: "MemberReportProgress")
                     } actions: {
                         Button { load(rendered) } label: { memberReportProgressText("report.retry") }
                             .buttonStyle(.bordered)
                     }
+                    .accessibilityIdentifier("report.progress.error")
                 }
             } else if session.account == nil {
                 // PLY-28-4: signed out → mini-program login gate with a way to sign in.
@@ -116,7 +120,15 @@ struct MemberReportProgressTimeView: View {
                         .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("report.progress.signIn.action")
                 }
-            } else { memberReportProgressText("report.error.disabled") }
+            } else {
+                // mp-states r3: reader unavailable while signed in — one state view, not a bare list line.
+                ContentUnavailableView {
+                    Label { memberReportProgressText("report.unavailable.title") } icon: { Image(systemName: "lock") }
+                } description: {
+                    memberReportProgressText("report.error.disabled")
+                }
+                .accessibilityIdentifier("report.progress.unavailable")
+            }
         }
         .listStyle(.insetGrouped)
         .cyPushedChrome(domain: .player)

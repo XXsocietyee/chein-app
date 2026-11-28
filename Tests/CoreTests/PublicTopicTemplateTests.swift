@@ -223,4 +223,46 @@ final class PublicTopicTemplateTests: XCTestCase {
             XCTAssertFalse(String(describing: other).contains("通关纪念"))
         }
     }
+    @MainActor
+    func testOwnerKeepsThirtyTwoIdleCoordinatorsAndDropsTheOldest() {
+        let owner = PublicTemplateDetailOwner()
+        let read: @MainActor (Int) async throws -> PublicTopicTemplateDetail = { _ in throw APIError.invalidRequest }
+        let first = owner.coordinator(id: 1, read: read)
+        var held: [PublicTopicTemplateCoordinator] = []
+        for id in 2...33 { held.append(owner.coordinator(id: id, read: read)) }
+        XCTAssertTrue(owner.coordinator(id: 33, read: read) === held.last)
+        XCTAssertFalse(owner.coordinator(id: 1, read: read) === first)
+    }
+    @MainActor
+    func testOwnerKeepsATouchedCoordinatorWhenALaterOneArrives() {
+        let owner = PublicTemplateDetailOwner()
+        let read: @MainActor (Int) async throws -> PublicTopicTemplateDetail = { _ in throw APIError.invalidRequest }
+        var held: [Int: PublicTopicTemplateCoordinator] = [:]
+        for id in 1...32 { held[id] = owner.coordinator(id: id, read: read) }
+        XCTAssertTrue(owner.coordinator(id: 1, read: read) === held[1])
+        _ = owner.coordinator(id: 33, read: read)
+        XCTAssertTrue(owner.coordinator(id: 1, read: read) === held[1])
+        XCTAssertFalse(owner.coordinator(id: 2, read: read) === held[2])
+    }
+    @MainActor
+    func testOwnerDoesNotDropACoordinatorThatIsStillLoading() async throws {
+        let owner = PublicTemplateDetailOwner()
+        let payload = try decode(PublicTopicTemplateFixtures.content())
+        var continuation: CheckedContinuation<PublicTopicTemplateDetail, Error>?
+        let started = expectation(description: "load started")
+        let loading = owner.coordinator(id: 1) { _ in
+            try await withCheckedThrowingContinuation { continuation = $0; started.fulfill() }
+        }
+        let task = Task { await loading.load() }
+        await fulfillment(of: [started], timeout: 2)
+        var held: [PublicTopicTemplateCoordinator] = []
+        for id in 2...33 {
+            held.append(owner.coordinator(id: id) { _ in throw APIError.invalidRequest })
+        }
+        XCTAssertTrue(loading.isLoading)
+        XCTAssertTrue(owner.coordinator(id: 1) { _ in throw APIError.invalidRequest } === loading)
+        XCTAssertFalse(owner.coordinator(id: 2) { _ in throw APIError.invalidRequest } === held[0])
+        continuation?.resume(returning: payload)
+        await task.value
+    }
 }

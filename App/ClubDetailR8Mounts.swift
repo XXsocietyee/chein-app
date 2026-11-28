@@ -462,6 +462,7 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
             Text(row.rank, format: .number).font(.headline).monospacedDigit()
                 .foregroundStyle(row.rank <= 3 ? Color.accentColor : Color.secondary)
                 .frame(minWidth: 24)
+                .accessibilityLabel(Text("mp.report.rank \(row.rank)"))
             ClubMPAvatar(url: row.avatar.flatMap(URL.init(string:)), name: row.nickname, size: .sm)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 4) {
@@ -472,9 +473,14 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
                 }
                 Text(verbatim: appLocalized("clubR8.lb.meta \(row.clearCount) \(mileageText(row)) \(durationText(row))", locale: locale))
                     .font(.subheadline).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                // a11y-dt r3: at accessibility sizes the score moves under the meta line so the name keeps the width.
+                if typeSize.isAccessibilitySize { Text(verbatim: primaryText(row)).monospacedDigit() }
             }
-            Spacer(minLength: 8)
-            Text(verbatim: primaryText(row)).monospacedDigit()
+            if !typeSize.isAccessibilitySize {
+                Spacer(minLength: 8)
+                Text(verbatim: primaryText(row)).monospacedDigit()
+            }
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)

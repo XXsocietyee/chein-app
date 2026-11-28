@@ -36,6 +36,7 @@ public struct ProjectInitialState {
     private var attributeRows: [ProjectEditJSON]?
     private var carryEdited = false
     private var carryAdded = false
+    private var bindingEnabled = false
     public var hp = Resource(enabled: false, initial: "10", maximum: "10")
     public var luck = Resource(enabled: false, initial: "3", maximum: "3")
     private var originalHP = Resource(enabled: false, initial: "10", maximum: "10")
@@ -113,6 +114,24 @@ public struct ProjectInitialState {
         }
         guard changed else { return }
         attributeRows = next; carryEdited = true
+    }
+    /// The rules the 启用的注册属性 card reads (MP `attribute-binding-editor` `rules`), with this sheet's staged rows.
+    public var bindingRules: [String: ProjectEditJSON] {
+        var rules = root
+        if let attributeRows { rules["attributes"] = .array(attributeRows) }
+        return rules
+    }
+    public var bindingEnabledKeys: [String] { ProjectAttributeBinding.enabledKeys(root) }
+    /// MP `onAttributeBindingConfirm`: takes the confirmed rules (`ProjectAttributeBinding.confirm`) — new
+    /// `attributes`, `attributeBinding`, no frozen copies — staged until 完成 like every other edit here.
+    public mutating func bind(_ confirmed: [String: ProjectEditJSON]) {
+        guard !readOnly, confirmed["attributeBinding"]?.object != nil else { return }
+        var next = root
+        for key in ["attributeBinding", "attributeDefinition", "attributeSnapshot"] { next[key] = confirmed[key] }
+        root = next
+        attributeRows = confirmed["attributes"]?.array ?? []
+        carryEdited = true
+        bindingEnabled = confirmed["stateEnabled"] == .bool(true) && !(attributeRows ?? []).isEmpty
     }
     static let counterPattern = "^counter\\.[a-z][a-z0-9_]{0,47}$"
     /// MP `confirmCarryPicker` limit: `journeyRules.attributes` holds at most 32 rows.
@@ -215,7 +234,7 @@ public struct ProjectInitialState {
         if carryEdited, let attributeRows { next["attributes"] = .array(attributeRows) }
         let hasAttributes = next["attributes"]?.array?.isEmpty == false
         next["stateEnabled"] = .bool(thoughtReplacement != nil ? root["stateEnabled"] == .bool(true) :
-            hp.enabled || luck.enabled || (carryAdded && hasAttributes) || (root["stateEnabled"] == .bool(true) && hasAttributes))
+            hp.enabled || luck.enabled || ((carryAdded || bindingEnabled) && hasAttributes) || (root["stateEnabled"] == .bool(true) && hasAttributes))
         next["recovery"] = .object(try recovery(values: values))
         if let thoughtReplacement { next["thoughts"] = thoughtReplacement.isEmpty ? nil : .array(thoughtReplacement) }
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]

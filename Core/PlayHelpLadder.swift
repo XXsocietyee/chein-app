@@ -12,17 +12,27 @@ public enum PlayHelpReply: Equatable {
     case refused(code: Int, reason: String?, message: String?)
     case unauthorized
     case unknown
+    /// A sentence arrived, and the write is not a proven 4xx refusal. The same request id is still the retry.
+    case retryable(message: String)
 
     /// Mini-program `definitive`: only a 4xx business code proves the server did not apply the request.
+    /// A non-empty `msg` on any other outcome is kept so the panel can show it beside the same-id retry.
     static func classify(data: Data, status: Int) -> PlayHelpReply {
         let envelope = try? JSONDecoder().decode(PlayWireValue.self, from: data)
         let code = envelope?["code"].tolerantInteger
+        let raw = envelope?["msg"].text
         if status == 401 || code == 401 { return .unauthorized }
-        guard (200..<300).contains(status), let envelope, let code else { return .unknown }
+        guard (200..<300).contains(status), let envelope, let code else {
+            if let sentence = PlayerGapReply.sentence(raw) { return .retryable(message: sentence) }
+            return .unknown
+        }
         if code == 200 { return .ok(envelope["data"]) }
-        guard (400..<500).contains(code) else { return .unknown }
+        guard (400..<500).contains(code) else {
+            if let sentence = PlayerGapReply.sentence(raw) { return .retryable(message: sentence) }
+            return .unknown
+        }
         let reason = envelope["reasonCode"].text ?? envelope["data"]["reason"].text ?? envelope["data"]["reasonCode"].text
-        return .refused(code: code, reason: reason, message: envelope["msg"].text)
+        return .refused(code: code, reason: reason, message: raw)
     }
 }
 
@@ -84,6 +94,8 @@ public struct PlayHelpRow: Equatable, Identifiable {
     public enum Problem: Equatable {
         /// Sent, no definitive answer. The only action is to resend the same id.
         case pending
+        /// Same as pending, with the server sentence to show beside the resend.
+        case pendingNote(String)
         case insufficient
         case refused(String?)
     }
@@ -99,7 +111,12 @@ public struct PlayHelpRow: Equatable, Identifiable {
     public internal(set) var balanceAfter: Int?
     public internal(set) var problem: Problem?
     public var id: Int { level }
-    public var pending: Bool { problem == .pending }
+    public var pending: Bool {
+        switch problem {
+        case .pending, .pendingNote: return true
+        default: return false
+        }
+    }
     public var tappable: Bool { pending || state == .review || state == .free || state == .cost }
     /// First unlocks confirm; a re-view or a resend of the same request does not.
     public var needsConfirmation: Bool { !pending && (state == .free || state == .cost) }
@@ -219,6 +236,7 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
     public enum Notice: Equatable {
         case storageUnavailable
         case pending
+        case pendingNote(String)
         case refused(String?)
     }
     public private(set) var projection = PlayHelpProjection.disabled
@@ -333,6 +351,8 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
         case .unauthorized:
             patch(level) { $0.problem = .pending }
             client.onUnauthorized()
+        case .retryable(let message):
+            patch(level) { $0.problem = .pendingNote(message) }
         case .unknown:
             patch(level) { $0.problem = .pending }
         }
@@ -364,6 +384,8 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
         case .unauthorized:
             skipPending = true; notice = .pending
             client.onUnauthorized()
+        case .retryable(let message):
+            skipPending = true; notice = .pendingNote(message)
         case .ok, .unknown:
             skipPending = true; notice = .pending
         }
