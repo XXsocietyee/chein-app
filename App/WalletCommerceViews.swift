@@ -540,11 +540,13 @@ extension EnvironmentValues {
                 Text(points ? "u9cde.points.earned" : "wallet.inflow").tag("income")
                 Text(points ? "u9cde.points.used" : "wallet.outflow").tag("expense")
             }.cyAdaptiveSegmented()
+            .sensoryFeedback(.selection, trigger: direction)
             }
             // MP points-history has no 积分任务 row; 如何获取积分 lives on 我的 → 成就 (MemberAchievementMetricsSection).
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
-                    if income || points {
+                    if income || points || kind == .balance {
+                        // mp-mine r3: 余额流水 uses the one empty pattern too (OWNER RULE 2), same key and id.
                         ContentUnavailableView(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points, incomeFilter: incomeFilter)), systemImage: "tray")
                             .accessibilityIdentifier("wallet.ledger.empty")
                     } else {
@@ -843,6 +845,7 @@ enum WalletIncomeSegment: Hashable {
                     Text("g6.revenue.tab").tag(true)
                 }
                 .cyAdaptiveSegmented().padding(.horizontal).padding(.top)
+                .sensoryFeedback(.selection, trigger: showsAllocations)
                 .accessibilityIdentifier("wallet.income.revenueTabs")
             }
             ZStack(alignment: .top) {
@@ -910,6 +913,7 @@ enum WalletIncomeSegment: Hashable {
             }
         }
         .cyAdaptiveSegmented()
+        .sensoryFeedback(.selection, trigger: segment)
         .padding()
         .accessibilityIdentifier("wallet.income.filter")
         .onChange(of: segment) { _, next in selectSegment(next) }
@@ -1287,7 +1291,7 @@ enum WalletCurrencySymbol {
     /// `CN¥` in other languages (Me balance, orders, coop and topic prices already read `CN¥12.00` in English).
     static func symbol(_ currency: String?, locale: Locale) -> String? {
         guard let base = symbol(currency) else { return nil }
-        guard base == "¥", !LocaleDisplay.isChinese(locale) else { return base }
+        guard base == symbol("CNY"), !LocaleDisplay.isChinese(locale) else { return base }
         return LocaleDisplay.currencySymbol(currencyCode: "CNY", locale: locale)
     }
 

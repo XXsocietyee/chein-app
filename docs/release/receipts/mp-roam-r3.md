@@ -386,6 +386,37 @@ Gates: generate_project OK · check_scaffold PASS (21152 keys) · a11y lint 0 ne
 
 No new strings. Fixtures: e2-stamp-album (tab), shipping citystamp flow (fixture receipt path `fixtureReceipt` also fires `.success`).
 
+## Round 3 continue (28) — 漫游记录 states as design fixtures (01:40 "next round" item 3) + sweep 02:10 (build 41374363f)
+
+No open coordinator finding for mp-roam (sweep index still build 41374363f, sheets as in continue 27; map panel settled — not touched).
+Every MP roam page already has a row, so this run adds the missing state fixtures for `subpackageRoam/history`.
+
+| MP page → native | Difference | Fix | Fixture |
+|---|---|---|---|
+| `subpackageRoam/history` (`scene-roam-history` `cy-error load-failure title="漫游记录加载失败" retry="重试"`) → `App/RoamHistoryViews.swift` `RoamHistoryView` | Error state used the generic 加载失败，请重试。 title. | `RoamExperienceIssue(failureTitle: "roam.history.loadFailed")` — new key en "Couldn't load your roam history" / zh 漫游记录加载失败; retry stays 重试. Contract pin `test_roam_history_live_entry` updated (MP title). | `r3-roam-history-error` |
+| same page, content + empty states | No `--design-fixture` mounted the history page (only the `--roam-subpage-fixture` host), so the sweep never showed it; the fixture rows read "Sample district" / "Sample record…" in both languages and the 示例内容 note sat above the list. | New fixtures `r3-roam-history` (records + 那年今日 / 月度回顾 tools), `r3-roam-history-empty` (MP 还没有漫游记录 + 出发第一次漫游). Under `--design-fixture` the history rows carry place names in the UI language (外滩 / The Bund, 老街夜走 / Old street evening walk, 外滩源庭院) and `RoamExperienceNotice` hides (same rule as the stamp album, continue 25); UI tests without the flag keep their pins. UI test `Fixture_r3_roamHistoryTests` checks all three resolve (record / empty / error ids). | `r3-roam-history`, `r3-roam-history-empty` |
+
+**For the coordinator:** please add `r3-roam-history`, `r3-roam-history-empty`, `r3-roam-history-error` to the mp-roam sweep row.
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
+## Round 3 continue (29) — 集邮册 states follow the MP (01:40 "next round" item 3) + sweep 03:04 (build ad55acd94)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings conflict: both sides' keys kept). No open coordinator finding for mp-roam
+(sweep 03:04 `mp-roam/sheet-en.jpg`, `sheet-zh-Hans.jpg`: d2-roam / d6-roam same inline title + light map, e2-stamp-album art + 还没收到 cell,
+e5b-stamp — keep). Map panel settled (02:05) — not touched.
+
+| MP page → native | Difference | Fix | Fixture |
+|---|---|---|---|
+| `subpackageRoam/components/cy/scene-roam-stamp-album` 我的 `cy-error load-failure title="集邮册无法打开" retry="重试"` → `App/NativeR2/FreeExplore/NativeStampAlbumView.swift` `content(read:)` | Whole-page error used the generic 加载失败，请重试。 | Title = existing key `stampAlbum.openFailed` (集邮册无法打开 / Couldn't open the stamp album); retry stays 重试 (`action.retry`), `ContentUnavailableView` + `.bordered`. | `r3-roam-stamp-album-error` (new) |
+| same component, 收到的 tab (`title="收到的邮票无法打开"` with no rows; `album-more--error` 这一页没读到 · 点此重试 below rows; `album-empty` 还没有收到的邮票) → `App/RoamReceivedStampMetadataView.swift` | Error used the generic title in both cases; empty read 还没有收到交换的城市签. | `RoamExperienceIssue(failureTitle:)` = `roam.receivedStamp.openFailed` when no rows, `stampAlbum.continuationRetry` below rows (both existing keys). `roam.receivedMetadata.empty` value → 还没有收到的邮票 / No received stamps yet (MP copy). | inline 收到的 tab (needs a received reader; not in a fixture) |
+| same component, 我的 empty (`还没有邮票` + 打开集邮相机) | Already MP (`roam.experience.albumEmpty` + `stampAlbum.openCamera`). | Sweep alias so the roam row shows it. | `r3-roam-stamp-album-empty` (= `d4-stamps-empty`) |
+
+UI test `Fixture_r3_roamStampAlbumStatesTests` (empty id; error id + MP title + app stays foreground).
+**For the coordinator:** please add `r3-roam-stamp-album-empty`, `r3-roam-stamp-album-error` (and the 28 history trio) to the mp-roam sweep row.
+
+Gates: generate_project OK · check_scaffold PASS (21174 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

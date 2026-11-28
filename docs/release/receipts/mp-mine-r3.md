@@ -403,3 +403,26 @@ Merged `origin/ui/combined-r7` (clean, 57 files). That build predates continue 2
 | 我的 tabs 项目 / 帖文 / 成就 / 关于 (`d2-me`) and public profile tabs (`e4-self-medals`) | Next round 2: a selection change gets `.sensoryFeedback(.selection)`. MP `cy-tabs` bind:change. | `App/AccountView.swift`, `App/SocialPublicProfileView.swift`, `App/DesignFixtures/D2Fixtures.swift` | **Fixed.** `.sensoryFeedback(.selection, trigger:)` on each segmented tab picker. The haptic is system-provided, so it needs no Reduce Motion fallback. Order, keys and ids are unchanged. |
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 22 (hourly re-arm, sweep 02:10 UTC build 41374363f)
+
+Merged `origin/ui/combined-r7` (clean, 67 files). The sweep build is the same as in continue 21, and the 02:05 / 02:20 coordinator notes have no mp-mine rows. The blocked Not done rows are unchanged, so this run continues "Next round" item 2 (motion and feedback) on the 积分明细 / wallet ledgers.
+
+| Page | Principle → MP | Native file | Fixed now |
+|---|---|---|---|
+| `subpackageMember/points-history` 全部 / 获得 / 使用 chips (`e4-wallet-points`), 余额流水 全部 / 收入 / 支出 (`e4-wallet-balance`) | Next round 2: a filter change gets `.sensoryFeedback(.selection)`. MP `cy-tabs variant="chip"` bind:change="onFilter". P23 already met: balance on top, month groups, reason · time, signed delta + after-balance trailing. | `App/WalletCommerceViews.swift` `WalletLedgerView` | **Fixed.** `.sensoryFeedback(.selection, trigger: direction)` on the direction picker. |
+| `subpackageMember/income-detail` 收益 / 分佣 tabs and 全部 / 创作 / 品牌 filter (`e4-wallet-income`) | same | `App/WalletCommerceViews.swift` (revenue tabs, `WalletIncomeSegment` filter) | **Fixed.** `.sensoryFeedback(.selection, trigger:)` on both pickers. Keys, ids and order are unchanged. The haptic is system-provided, so it needs no Reduce Motion fallback. |
+| `subpackageMember/market/pass` tabs and the pass detail 自己用 / 送朋友 switch | same; MP `cy-tabs` bind:change | `App/PassMarketViews.swift` | **Fixed.** `.sensoryFeedback(.selection, trigger: tab)` and `trigger: state.forGift`. Keys and ids are unchanged. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 23 (half-hourly re-arm, sweep 03:04 UTC build ad55acd94)
+
+Merged `origin/ui/combined-r7` (already up to date). No mp-mine rows in the 03:15 coordinator note. Screens checked: `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg`, `sheet-en.jpg`. Every earlier fix shows there (equal [开始探索][票夹] with glyph, four tabs, 我的项目 / 我的资产, badge groups, ¥ amounts in zh), and there are no new visual issues. The blocked Not done rows are unchanged, so this run works "Next round" item 3 (all states, with a design fixture for each).
+
+| Page | MP states (`subpackageMember/signup/index.wxml`) | Native file | Fixed now |
+|---|---|---|---|
+| 票夹 / Ticket wallet (`e4-tickets`) | empty 还没有票 + 去探索 (wxml:51); error 票夹没能打开 + 重试 (wxml:44); no-permission 登录后查看票夹 + 登录 (wxml:48); loading 正在加载我的票 (wxml:40) | `App/TicketWalletFixtureSupport.swift`, `App/DesignFixtures/DesignFixtureRegistry.swift` | **Fixed (fixtures).** `TicketWalletView` already draws all four states. Only `e4-tickets` (content) was a design fixture, so the sweep never showed them. New ids `e4-tickets-empty`, `e4-tickets-error` and `e4-tickets-guest` mount the real view on the existing synthetic reader scenarios. They wire `onExplore` / `onSignIn` so the one MP action renders. With no argument, `TicketWalletFixtureHostView()` keeps the UI-test launch argument path unchanged. Coordinator: please add these ids to the mp-mine sweep. |
+| 余额流水 / Balance ledger (`e4-wallet-balance`) | App ledger (MP has no standalone page; balance sits under 我的资产, profile wxml:226). States: empty, error + 重试 | `App/WalletCommerceFixtureHost.swift`, `App/DesignFixtures/DesignFixtureRegistry.swift`, `App/WalletCommerceViews.swift` `WalletLedgerView` | **Fixed.** New fixtures `e4-wallet-balance-empty` (`--wallet-ledger-empty`) and `e4-wallet-balance-error` (the first read fails with `--wallet-ledger-recover`, and 重试 recovers). They are passed through a new `stateArguments` on the host, and the launch line is unchanged. The balance empty state was a bare text row; it now uses the same `ContentUnavailableView` (tray) as the income and points ledgers, with the same key and id. `.assetPoints` keeps its text row (`WalletCommerceFlowTests` reads it as static text). No points-empty fixture: `.points` reads `api/user/points/list`, which the empty flag does not cover. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.

@@ -5,6 +5,7 @@ import SwiftUI
     let topicID: Int
     let topicName: String
     let reader: any TopicThemeRecordsReading
+    @Environment(\.locale) private var locale
     @State private var rows: [TopicThemeRecord] = []
     @State private var nextBefore: Int?
     @State private var hasMore = false
@@ -37,7 +38,7 @@ import SwiftUI
                         case .playing: Text("topicXcx.records.playing").font(.headline)
                         }
                         if let scene = row.sceneName { Text(verbatim: scene).font(.subheadline) }
-                        if let ended = row.endedAt { Text(verbatim: ended).font(.subheadline).foregroundStyle(.secondary) }
+                        if let ended = row.endedAt { Text(verbatim: LocaleDisplay.civil(ended, locale: locale)).font(.subheadline).foregroundStyle(.secondary) }
                         else { Text("topicXcx.records.playing").font(.subheadline).foregroundStyle(.secondary) }
                         if let summary = row.summary { Text(verbatim: summary).font(.subheadline).lineLimit(2) }
                     }

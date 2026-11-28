@@ -4543,7 +4543,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Summary before publishing"
+            "value": "Review before publishing"
           }
         },
         "zh-Hans": {
@@ -57528,7 +57528,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Featured examples could not be loaded."
+            "value": "Couldn’t load featured examples"
           }
         },
         "zh-Hans": {
@@ -57544,7 +57544,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading featured examples"
+            "value": "Loading featured examples…"
           }
         },
         "zh-Hans": {
@@ -57560,7 +57560,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry examples"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -82499,6 +82499,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "会话"
+          }
+        }
+      }
+    },
+    "im.full.currentOriginal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View the current original"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看当前原单"
           }
         }
       }
@@ -216348,7 +216365,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn a stretch you have played"
+            "value": "Turn a route you’ve explored"
           }
         },
         "zh-Hans": {
@@ -221698,6 +221715,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看信息共享告知"
+          }
+        }
+      }
+    },
+    "registration.waitlist.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t read the waitlist status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候补状态读取失败"
           }
         }
       }
@@ -276503,7 +276537,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participating Merchants"
+            "value": "Participating shops"
           }
         },
         "zh-Hans": {
@@ -276520,7 +276554,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stop Progress"
+            "value": "Stop progress"
           }
         },
         "zh-Hans": {
@@ -276537,7 +276571,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nearby Teams"
+            "value": "Nearby teams"
           }
         },
         "zh-Hans": {
@@ -276554,7 +276588,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View All Teams"
+            "value": "View all teams"
           }
         },
         "zh-Hans": {
@@ -277592,7 +277626,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "In play"
+            "value": "In progress"
           }
         },
         "zh-Hans": {
@@ -300469,7 +300503,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participating Merchants"
+            "value": "Participating shops"
           }
         },
         "zh-Hans": {
@@ -304629,7 +304663,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Organizer details didn't load"
+            "value": "Couldn’t load organizer details"
           }
         },
         "zh-Hans": {
@@ -351279,6 +351313,23 @@
         }
       }
     },
+    "playkit.window.afterRemind": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "until it opens · I'll remind you"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后开播 · 到点提醒我"
+          }
+        }
+      }
+    },
     "roam.official.pausedReason %@": {
       "extractionState": "manual",
       "localizations": {
@@ -354986,6 +355037,614 @@
           "stringUnit": {
             "state": "translated",
             "value": "完成反馈"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clues and items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "线索与物品"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.count %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld entry"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld entries"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 项"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.group.clue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clues"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "线索"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.group.item": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "物品"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.group.tag": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标签"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.add.clue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add clue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加线索"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.add.item": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add item"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加物品"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.add.tag": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add tag"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加标签"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.addAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.usedIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用在"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.deleteTitle %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete “%@”?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除「%@」？"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.blockedTitle %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can’t delete “%@”"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不能删除「%@」"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.blockedMessage %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used in %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用在%@。"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.saveFirst": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this as a topic to add clues and items here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存为主题后，才能在这里添加线索与物品。"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有读取成功，请再试一次。"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.readOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic can’t be changed right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个主题现在不能修改。"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.saveFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t save. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有保存成功，请再试一次。"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.deleteFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t delete. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有删除成功，请再试一次。"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.deleteUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network problem. The delete wasn’t confirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络异常，删除结果未确认"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.tooLong": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Names can be up to 24 characters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名字最多 24 个字。"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.taken.clue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There’s already a clue with this name."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有同名的线索。"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.taken.item": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There’s already an item with this name."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有同名的物品。"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.taken.tag": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There’s already a tag with this name."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有同名的标签。"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.place.completionReward": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic completion reward"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题通关奖励"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.place.themeGrant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic grant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题发放"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.place.chapterGrant %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter %lld grant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 章发放"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.place.chapterEgg %lld %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter %lld easter egg “%@”"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 章彩蛋「%@」"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.place.chapterEggUnnamed %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter %lld easter egg"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 章彩蛋"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.place.ration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配给"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.place.facility %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facility condition “%@”"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设施条件「%@」"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.place.facilityUnnamed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facility condition"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设施条件"
+          }
+        }
+      }
+    },
+    "mpPublish.keys.deleting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除中"
+          }
+        }
+      }
+    },
+    "roam.history.loadFailed": {
+      "comment": "MP scene-roam-history cy-error title (漫游记录加载失败).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your roam history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游记录加载失败"
           }
         }
       }

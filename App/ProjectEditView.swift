@@ -1068,6 +1068,8 @@ import SwiftUI
             Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
                 .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)
         }
+        // MP topic-detail-sheet.wxml:264-268: 线索与物品 closes the sheet (saved topic only, else the MP note).
+        ProjectEditTopicKeysRow(model: model)
     }
     /// The 主题详情 sheet (MP cy-sheet variant=full): inline title = the topic name, 完成 top-right.
     private func topicDetailSheet(anchor: String?) -> some View {

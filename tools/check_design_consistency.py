@@ -86,6 +86,9 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   `List` (outside App/DesignSystem): List draws its disclosure chevron beside every link in the row,
                   so stray chevrons sit between the grid's tiles. Make the cell a `Button` that sets the selection of
                   one `.navigationDestination(item:)` (grids in a `ScrollView` are fine)
+  refresh no pull a toolbar refresh button (`"arrow.clockwise"` inside a `.toolbar` / `ToolbarItem`) in a file with a
+                  `List` / `Form` / `ScrollView` and no `.refreshable`: 24 sibling pages pair the button with
+                  pull-to-refresh (the MP `onPullDownRefresh`); add `.refreshable { await load() }` on the scroll
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
 fixtures included; there is no Swift compiler in the lanes' cloud sessions):
@@ -140,7 +143,12 @@ LEADING_ACTION = 'leading action'
 LEADING_PLACEMENT = re.compile(r'placement:\s*\.(?:topBarLeading|navigationBarLeading)\b')
 DONE_LEADING = 'done leading'
 DONE_LEADING_PLACEMENT = re.compile(r'placement:\s*\.(?:cancellationAction|topBarLeading|navigationBarLeading)\b')
-DONE_BUTTON = re.compile(r'Button\((?:String\(localized:\s*LocalizedStringResource\()?"[A-Za-z0-9_.]*\.done"')
+DONE_BUTTON = re.compile(r'Button\((?:String\(localized:\s*LocalizedStringResource\()?"[A-Za-z0-9_.]*\.done"'
+                         # also a Done label through a helper / label closure: `Button(loc("x.done"))`,
+                         # `Button { … } label: { Text("done", tableName: …) }`, `Button(W8Text.t("完成", "Done"))`
+                         r'|Button\([A-Za-z0-9_.]+\("(?:[A-Za-z0-9_.]*\.)?done"'
+                         r'|Button\s*\{.*label:\s*\{\s*Text\("(?:[A-Za-z0-9_.]*\.)?done"'
+                         r'|Button\([A-Za-z0-9_.]+\("完成",\s*"Done"\)\)')
 LEADING_ACTION_CONTENT = re.compile(r'\bShareLink\(|"arrow\.counterclockwise"|"square\.and\.arrow\.up"')
 RAW_RADIUS = 'raw radius'
 # One radius scale (CYRadius: inner/sm 8, card 12, bubble 18, hero 20, sheet 24): a literal non-zero corner radius.
@@ -148,6 +156,11 @@ RAW_RADIUS_PATTERN = re.compile(r'\bcornerRadius:\s*(?!0(?:\.0+)?\b)\d')
 LINE_SPACING = 'line spacing'
 # One reading leading: `.cyText(.body)` applies it (scaled); a literal `.lineSpacing(N)` is a per-page value.
 LINE_SPACING_PATTERN = re.compile(r'\.lineSpacing\(\s*\d')
+# Coordinator 11-28: an untyped `{ old, new in … }` condition on a haptic modifier inside a long view body made the
+# compiler give up ("unable to type-check this expression in reasonable time") four times in one night. New haptic
+# conditions go through a typed ViewModifier or a named static func (`where: Self.rose`, `condition: Self.signedIn`).
+UNTYPED_HAPTIC = 'untyped haptic'
+UNTYPED_HAPTIC_PATTERN = re.compile(r'\.(?:cyHaptic|sensoryFeedback)\([^)]*\)\s*\{\s*\w+\s*,\s*\w+\s+in\b|\.(?:cyHaptic|sensoryFeedback)\([^{]*(?:where|condition):\s*\{\s*\w+\s*,\s*\w+\s+in\b')
 STATUS_CAPSULE = 'status capsule'
 # One status word (CYStatusChip, no capsule): a capsule filled with a soft tint (opacity 0.05–0.29) is a per-page chip.
 STATUS_CAPSULE_SHAPE = re.compile(r'\bCapsule\s*\(|in:\s*\.capsule\b')
@@ -191,12 +204,19 @@ LOCALE_MONEY = 'locale money'
 # English; show it through `LocaleDisplay.yuanAmounts(in:locale:)` (idempotent) or a locale-aware money helper.
 LOCALE_MONEY_PATTERN = re.compile(r'WalletCurrencySymbol\.symbol\((?![^()]*locale:)[^()]*\)|Text\((?:verbatim:\s*)?"[+\-\u2212]?¥'
                                   r'|Text\((?:verbatim:\s*)?[A-Za-z_.]*(?:priceText|amountText|PriceText|AmountText)\)')
+REFRESH_NO_PULL = 'refresh no pull'
+# One refresh pattern: 24 player pages pair the toolbar `arrow.clockwise` refresh with `.refreshable` on the scroll
+# (the MP `onPullDownRefresh`); a page with only the toolbar button cannot be pulled down like its siblings.
+REFRESH_GLYPH = re.compile(r'"arrow\.clockwise"')
+REFRESH_TOOLBAR = re.compile(r'\bToolbarItem\b|\.toolbar\s*\{')
+REFRESH_SCROLL = re.compile(r'\b(?:List|Form)\s*[({]|\bScrollView\b')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
-         ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, DUPLICATE_TYPE, UNDECLARED_STATE)
+         ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, DUPLICATE_TYPE, UNDECLARED_STATE,
+         UNTYPED_HAPTIC)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -391,6 +411,8 @@ def scan_file(rel, text):
             hits.append((number, RAW_RADIUS, code.strip()))
         if not colour_exempt and LINE_SPACING_PATTERN.search(code):
             hits.append((number, LINE_SPACING, code.strip()))
+        if UNTYPED_HAPTIC_PATTERN.search(code):
+            hits.append((number, UNTYPED_HAPTIC, code.strip()))
         if not colour_exempt and HAND_DIVIDER_PATTERN.search(code):
             hits.append((number, HAND_DIVIDER, code.strip()))
         if ALL_CAPS_PATTERN.search(code):
@@ -459,6 +481,10 @@ def scan_file(rel, text):
                             break
             if link:
                 hits.append((link[0], GRID_LINK, link[1].strip()))
+        if not any('.refreshable' in c for _, c in lines) and any(REFRESH_SCROLL.search(c) for _, c in lines):
+            for index, (number, code) in enumerate(lines):
+                if REFRESH_GLYPH.search(code) and any(REFRESH_TOOLBAR.search(c) for _, c in lines[max(0, index - 8):index + 1]):
+                    hits.append((number, REFRESH_NO_PULL, code.strip()))
         for index, (number, code) in enumerate(lines):
             if SEARCH_GLYPH.search(code) and any('TextField(' in c for _, c in lines[index:index + 4]):
                 hits.append((number, CUSTOM_SEARCH, code.strip()))

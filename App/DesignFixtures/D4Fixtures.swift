@@ -121,6 +121,9 @@ private struct D4JoinStage: View {
                                          blockedUsersStore: D4MemoryBlockedStore())
             } else { ProgressView() }
         }
+        // mp-club r3 pass 27 (sweep ad55acd94, d4-channels): same inline title as the production host `ClubChannelMessagingHostView`.
+        .navigationTitle(Self.tt("\(club?.name ?? "") · Channels", "\(club?.name ?? "") · 频道"))
+        .navigationBarTitleDisplayMode(.inline)
         .task { club = try? await reader.clubDetail(id: 81) }
     }
     // mp-club r3 (19:50 sweep): channel data follows the UI language (fixture data, `tt(en, zh)`); the en UI test pins stay English.
@@ -183,7 +186,7 @@ private final class D4MemoryBlockedStore: ChannelBlockedUsersStoring, @unchecked
 
 /// Club enrollment / governance workspace / operations through the existing synthetic access fixtures (labelled, DEBUG only).
 @MainActor struct D4ClubOpsFixture: View {
-    enum Screen { case enroll, governance, operations(create: Bool), operationsFacts(unknown: Bool) }
+    enum Screen { case enroll, governance, operations(create: Bool), operationsFacts(unknown: Bool), eventOps(emptySeries: Bool) }
     let screen: Screen
     @State private var access = ClubGovernanceFixtureAccess()
     @State private var opsAccess = ClubOperationsFixtureAccess(scenario: .owner)
@@ -203,13 +206,23 @@ private final class D4MemoryBlockedStore: ChannelBlockedUsersStoring, @unchecked
                     // Edit facts over `ClubEditPage`: known counts, or an owner body that omits them (em dash).
                     ClubOperationsWorkspaceView(target: .club(81), identity: opsAccess.identity, access: opsAccess, coordinator: ops)
                         .environment(\.clubEditDetailBody, { _ in Data((unknown ? ClubEditFixtureData.missingQuota : ClubEditFixtureData.owner).utf8) })
+                case .eventOps:
+                    // mp-club r3 pass 26: pages/club/event-ops hub with the inline 日期清单 series rows (or 还没有系列场次).
+                    ClubOpsEventView(scope: .init(clubID: 81, topicID: 91, activityID: 101), identity: access.identity, access: access, coordinator: governance)
                 }
             } else { ProgressView() }
         }
         .task {
             // mp-club r3 (20:25 sweep): the enroll roster's topic name follows the UI language, like the other club fixtures.
-            if case .enroll = screen, Locale.preferredLanguages.first?.hasPrefix("zh") == true {
+            let chinese = Locale.preferredLanguages.first?.hasPrefix("zh") == true
+            if case .enroll = screen, chinese {
                 access.overrideValue[.topics] = ClubGovernanceFixtures.json(#"[{"id":91,"name":"示例主题","signupCount":8}]"#)
+            }
+            if case .eventOps(let emptySeries) = screen {
+                let topicName = chinese ? "示例主题" : "Sample topic"
+                access.overrideValue[.eventTopics] = ClubGovernanceFixtures.json("[{\"id\":91,\"name\":\"\(topicName)\",\"signupCount\":8}]")
+                access.overrideValue[.topics] = access.overrideValue[.eventTopics]
+                if emptySeries { access.overrideValue[.series] = .array([]) }
             }
             governance = ClubGovernanceCoordinator(access: access)
             ops = ClubOperationsCoordinator(access: opsAccess)
