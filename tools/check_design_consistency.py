@@ -233,7 +233,9 @@ HEADER_OPEN = re.compile(r'\bheader:\s*\{')
 HEADER_FONT_PATTERN = re.compile(
     r'\.cyText\(\s*\.(?:sectionTitle|cardTitle|headline|largeTitle|title\w*|display\w*)\b'
     r'|\.font\(\s*\.(?:headline|largeTitle|title\w*)\b'
-    r'|\.(?:bold|fontWeight)\(\s*(?:\.(?:bold|semibold|heavy|black))?\s*\)')
+    r'|\.(?:bold|fontWeight)\(\s*(?:\.(?:bold|semibold|heavy|black))?\s*\)'
+    # `CYSectionHeader` is the `.headline` header for scroll pages; inside a List/Form `header:` it must be system text.
+    r'|\bCYSectionHeader\(')
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
@@ -413,6 +415,65 @@ def header_font_hits(lines):
     return out
 
 
+HEADER_CALL = re.compile(r'\bheader:\s*\{\s*([A-Z]\w*)\s*\(')
+STRUCT_VIEW = re.compile(r'\bstruct\s+([A-Z]\w*)\s*:\s*View\b')
+_WRAPPER_INDEX = None
+
+
+def _struct_bodies(lines):
+    """`struct Name: View { … }` bodies (brace-balanced) in one file: name -> [(number, code)]."""
+    out = {}
+    for index, (number, code) in enumerate(lines):
+        match = STRUCT_VIEW.search(code)
+        if not match:
+            continue
+        depth, started, body = 0, False, []
+        for later_number, later in lines[index:index + 80]:
+            body.append((later_number, later))
+            for ch in later:
+                if ch == '{':
+                    depth, started = depth + 1, True
+                elif ch == '}':
+                    depth -= 1
+            if started and depth <= 0:
+                break
+        out.setdefault(match.group(1), body)
+    return out
+
+
+def _wrapper_index():
+    """Every player-file View struct body, so a header closure that calls a wrapper is checked across files."""
+    global _WRAPPER_INDEX
+    if _WRAPPER_INDEX is None:
+        _WRAPPER_INDEX = {}
+        for rel, path in player_files():
+            if rel.startswith('App/DesignSystem/'):
+                continue
+            text = path.read_text(encoding='utf-8', errors='replace')
+            for name, body in _struct_bodies(list(code_lines(text))).items():
+                _WRAPPER_INDEX.setdefault(name, (rel, body))
+    return _WRAPPER_INDEX
+
+
+def header_wrapper_font_hits(lines):
+    """`header: { Wrapper(…) }`: the wrapper View's own body must not set a heading font either (reported at its call)."""
+    out = []
+    local = _struct_bodies(lines)
+    for index, (number, code) in enumerate(lines):
+        match = HEADER_CALL.search(code)
+        if not match:
+            continue
+        name = match.group(1)
+        body = local.get(name) or _wrapper_index().get(name, (None, None))[1]
+        if not body:
+            continue
+        for body_number, body_code in body:
+            if HEADER_FONT_PATTERN.search(body_code):
+                out.append((number, HEADER_FONT, f'{name} (line {body_number}): {body_code.strip()}'))
+                break
+    return out
+
+
 def scan_file(rel, text):
     hits = []
     lines = list(code_lines(text))
@@ -543,6 +604,7 @@ def scan_file(rel, text):
                 hits.append((number, TITLE_MODE, code.strip()))
     if not design_system:
         hits.extend(header_font_hits(lines))
+        hits.extend(header_wrapper_font_hits(lines))
     if is_root:
         has_large = any(ROOT_HEADER_PATTERN.search(c) or LARGE_PATTERN.search(c) for _, c in lines)
         if not has_large:

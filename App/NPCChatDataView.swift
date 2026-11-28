@@ -168,7 +168,8 @@ struct NPCChatDataPresentation: Identifiable {
                             CYRowIcon(systemImage: "text.bubble")
                         }
                     } header: {
-                        CYSectionHeader("npcData.policy")
+                        Text("npcData.policy")
+                            .accessibilityAddTraits(.isHeader)
                     }
                     .textCase(nil)
                     .accessibilityIdentifier("npcData.policy")
@@ -186,7 +187,8 @@ struct NPCChatDataPresentation: Identifiable {
                             }.accessibilityIdentifier("npcData.record." + record.id)
                         }
                     } header: {
-                        CYSectionHeader("npcData.records")
+                        Text("npcData.records")
+                            .accessibilityAddTraits(.isHeader)
                     }
                     .textCase(nil)
                 }
@@ -399,8 +401,6 @@ private struct NPCChatSectionTitle: View {
     init(_ key: LocalizedStringKey) { self.key = key }
     var body: some View {
         Text(key)
-            .cyText(.sectionTitle)
-            .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .accessibilityAddTraits(.isHeader)
     }

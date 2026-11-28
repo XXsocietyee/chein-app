@@ -926,6 +926,30 @@ baseline 52, **new 0**.
 - Shared header components outside `header:` closures (`E1IconHeader`-like wrappers in page files) are not seen by
   `header font`; scan for `View` structs used only as section headers and fold them into the system header.
 
+## Continue run 30 (2026-11-28, after merging combined-r7 135f87720)
+
+Merge clean. No new coordinator row for this lane (05:35 / 05:50 sweeps: mp-mine, mp-club, mp-roam, mp-journey only).
+Run 29 Not done row worked: header wrappers outside the `header:` closure.
+
+| Page (MP → native) | Before | Change |
+|---|---|---|
+| AI chat record detail (`NPCChatDataView:358/367/379`) | private `NPCChatSectionTitle` set `.cyText(.sectionTitle)` + primary colour in three Form headers (问题 / 回复 / 来源时间) | plain system header text (`.textCase(nil)`, `.isHeader` kept) |
+| AI chat records list (`NPCChatDataView:171/189`), co-op finance topics (`CoopFinanceProfitView:136`), MOD creator income (`ModCreatorIncomeViews:81/196/235`), MOD rehearsal (`ModInstallationSavedRehearsalView:137/159`), MOD action receipt (`ModInstallationNativeActionReceiptView:70`), H5 session (`H5DeclaredSessionView:22`) | `CYSectionHeader` (the `.headline` header meant for scroll pages) inside List/Form `header:` closures: 10 headers bigger and darker than every other list header | `Text(title).accessibilityAddTraits(.isHeader)`, same copy and keys; the list header now matches the rest of the app |
+
+Gate `header font` extended (`tools/check_design_consistency.py`): (1) `header: { Wrapper(…) }` resolves `Wrapper`'s
+`struct …: View` body (same file first, then any player file) and fails when it sets a heading font; (2)
+`CYSectionHeader(` inside a `header:` closure fails. Baseline stays 0. Self-tests: the pre-fix `NPCChatDataView` fails
+at 358/367/379 ("NPCChatSectionTitle (line 402): .cyText(.sectionTitle)"); the pre-fix `H5DeclaredSessionView` fails at 22.
+Other wrappers checked and clean: `DiscoverySectionHeader`, `NativeChannelSectionTitle`, `TemplateXbSectionTitle`,
+`ClubOpsCustomerHeading`, `ChannelNotifyHeading`, `ClubStoryChapterHeader`, `E1IconHeader`.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt, header font 0, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- Scroll pages that mix `CYSectionHeader` with hand-built `Text(...).cyText(.sectionTitle)` section titles on the same
+  page: pick `CYSectionHeader` everywhere (next scan).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
