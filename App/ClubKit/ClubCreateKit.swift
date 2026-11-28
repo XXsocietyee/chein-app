@@ -129,7 +129,7 @@ struct ClubR1FieldError: View {
             Image(systemName: "exclamationmark.circle.fill")
         }
         .font(.footnote)
-        .foregroundStyle(.red)
+        .foregroundStyle(CYColor.dangerText)
         .accessibilityElement(children: .combine)
     }
 }

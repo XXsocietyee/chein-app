@@ -93,7 +93,7 @@ import SwiftUI
                     .accessibilityIdentifier("templateChoiceRows.reorderUnavailable")
             }
             if let issue = model.optionMediaIssue {
-                Text(LocalizedStringKey(issue)).font(.footnote).foregroundStyle(.red)
+                Text(LocalizedStringKey(issue)).font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("templateAuthor.optionMedia.limit")
             }
             // Screens r4 · Figma 238:16749 (CF-46 / CF-60): one row per option, the correct-answer circle in

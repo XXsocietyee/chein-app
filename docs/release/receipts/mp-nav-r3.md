@@ -380,3 +380,11 @@ Next edge without a row: MP share paths (`onShareAppMessage` / `onShareTimeline`
 | `/pages/index/index`, `/pages/roam/index`, `/pages/talent/list/index` (tab roots as default share) | not in AASA | left out: a web link to a tab root is the site home, not an app page | n/a |
 
 For coordinator/owner: universal links route nothing yet — `AppSession.nativeEntryLinkPolicy` is built with `verifiedHTTPSOrigins: []` (App/AppSession.swift:7092) until the associated domain is approved and the AASA is hosted. No code change here.
+
+## Re-scan 11-28 09:xx — MP invite card links (merged combined-r7 at 94bd848c4)
+
+Merged `origin/ui/combined-r7` (xcstrings: theirs + our extra keys). Sweep still build 7a7d2708a (already checked at 08:xx; mp-nav sheets read correctly). No new coordinator row for mp-nav; item 3 (MP-account sync note) still blocked on the backend field. Next edge without a row: the MP invite share card.
+
+| MP edge → native | before | after | status |
+|---|---|---|---|
+| MP invite card `/pages/index/index?inviter=<uid>` (cy/profile index.js:2413, myinvite.js:25; older cards `?id=`; home QR `?scene=`) → MP home onLoad keeps the inviter, binds `POST /api/user/setInviter` after sign-in (index.js:37, 318, retryPendingInviter) | `pages/index/index` takes no query, so the link / notification `page` / `chein://mp/pages/index/index?inviter=` became a route error sheet and the inviter was lost | `NativeNavigationContract.homeReferral` (Core/NativeNavigationCompletion.swift): same keys as `/door` (`scene`, `inviter`, `id`, numeric inviter) → `.door(DoorIntent)`; `chein://mp` uses the same reader (App/MPParityDeepLinkEntry.swift). `receiveNativeIntent(.door)` queues the inviter (existing `DoorReferralQueue`, binding stays behind its own switch); an inviter-only link lands on the 首页 tab (`HomeLanding` `.door` without scene → `.tab(.home)`) instead of an extra sheet, like MP; a door scene keeps the door sheet (scan → topic / play / home). Unit test `DoorReferralTests.testMiniProgramHomeInviteCardIsDoorIntent`. Not compiled here | fixed |

@@ -110,7 +110,7 @@ import SwiftUI
                     .onChange(of: photoItems) { _, items in uploadPhotos(items) }
                     if uploadingPhotos { ProgressView("merchantApply.pic.uploading") }
                     if let photoUploadFailure {
-                        Text(verbatim: photoUploadFailure).foregroundStyle(.red)
+                        Text(verbatim: photoUploadFailure).foregroundStyle(CYColor.dangerText)
                     }
                 } header: {
                     Text("context.review.photos")

@@ -106,7 +106,7 @@ import SwiftUI
                             }
                             // The MP detail has no 我的广场 list: the author deletes this post from the ⋯ menu (post-actions 删除).
                             if legacyDeleteFailed {
-                                Label("square.xcx.delete.failed", systemImage: "exclamationmark.triangle").foregroundStyle(.red)
+                                Label("square.xcx.delete.failed", systemImage: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText)
                                     .accessibilityIdentifier("square.delete.postFailed")
                             }
                             // Round 4 flow (MP square/detail goUserInfoClcik): the author's page opens from the avatar menu
@@ -127,7 +127,7 @@ import SwiftUI
                     Section("square.comments") {
                         if legacyCommentDeleteFailed {
                             // MP toast 删除失败，请重试 stays visible in the thread it belongs to.
-                            Label("square.xcx.delete.failed", systemImage: "exclamationmark.triangle").foregroundStyle(.red)
+                            Label("square.xcx.delete.failed", systemImage: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("square.delete.legacyCommentFailed")
                         }
                         if let commentIssue {

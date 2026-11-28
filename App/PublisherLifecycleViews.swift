@@ -104,7 +104,7 @@ import SwiftUI
                     pricingField(text("publisherPricing.totalLeadCostForThisGroup"), value: $cost, keyboard: .decimalPad)
                     pricingField(text("publisherPricing.groupSize"), value: $team, keyboard: .numberPad)
                     if (Int(team) ?? 0) <= 0 {
-                        Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).font(.footnote).foregroundStyle(.red)
+                        Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).font(.footnote).foregroundStyle(CYColor.dangerText)
                     }
                     Button { beginLoad() } label: { Text(verbatim: text("publisherPricing.recalculateFloor")) }
                         .buttonStyle(.bordered)
@@ -127,7 +127,7 @@ import SwiftUI
                     TextField(text("publisherPricing.finalPrice"), text: $price).keyboardType(.decimalPad).accessibilityIdentifier("publisher.finalPrice")
                     // R11-PC-B-2: MP selfPriceError under the final price (pages/topic/pricing/index.wxml:69; index.js:169), 无人带 only.
                     if let error = selfPriceErrorText(preview) {
-                        Text(verbatim: error).font(.footnote).foregroundStyle(.red)
+                        Text(verbatim: error).font(.footnote).foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("publisher.selfPriceError")
                     }
                     let floorValue = TopicPricingXcx.initialPrice(floor: preview.minimum)

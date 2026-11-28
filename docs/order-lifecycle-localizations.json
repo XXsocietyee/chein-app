@@ -486,7 +486,7 @@
   },
   {
     "key": "orderLifecycle.explanation.refundPolicy",
-    "en": "Check the current server refund policy and deadline.",
+    "en": "Check the latest refund policy and deadline.",
     "zh-Hans": "请查看服务端最新退款规则及截止时间。"
   },
   {

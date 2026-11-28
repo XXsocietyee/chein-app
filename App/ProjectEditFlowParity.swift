@@ -189,7 +189,7 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("projectNodeNPC.greeting")
                 } header: { Text("projectNodeNPC.greeting") } footer: { Text("projectNodeNPC.optional") }
                 if saveFailed {
-                    Section { Label("projectNodeNPC.saveFailed", systemImage: "exclamationmark.circle").foregroundStyle(.red) }
+                    Section { Label("projectNodeNPC.saveFailed", systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) }
                 }
             }
         }

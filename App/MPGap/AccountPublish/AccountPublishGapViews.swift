@@ -373,7 +373,7 @@ public struct TeamJoinGapManualCodeSection: View {
             // Validation in the section footer (native r2 inputs rule).
             if let errorText, !errorText.isEmpty {
                 Text(verbatim: errorText)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
             }
         }
     }

@@ -104,6 +104,13 @@ fixtures included; there is no Swift compiler in the lanes' cloud sessions):
                    (`var` / `let` / `inout` / enum `case`) in that type, its extensions or the module's globals
                    (a lane used `governanceMemberCount = $0` without `@State private var governanceMemberCount`).
                    Heuristic text scan: string literals are blanked first.
+  effect on clean page  a call to the restored effect kit (OWNER RULE 3, 11-28): `CYBurst(` / `CYConfettiBurst(` /
+                  `CYStarBloom(` / `CYFogLayer(` / `CYEdgeGlow(` / `CYCelebrationMoment(` / `CYJoinReward(` /
+                  `CYGlassCarousel(` / `CYGlassSliver(` / `CYCarouselBackdrop(`, `.cyFoil(` / `.cyFoilSheen(` /
+                  `.cyEdgeGlow(` / `.cyUnlockCelebration(` outside the distinctive surfaces: games, story flow,
+                  payment, maps and celebration moments (EFFECT_SURFACE_DIRS / EFFECT_SURFACE_NAME) and the kit files
+                  that host them (EFFECT_KIT_FILES). Home, search, lists, settings, Me, wallet, club admin, inbox,
+                  forms and details stay clean: remove the call there
   header font     a List/Form `header: { … }` closure outside App/DesignSystem that sets a heading style
                   (`.cyText(.sectionTitle / .cardTitle / .headline / .title…)`, `.font(.headline / .title… /
                   .largeTitle)`, `.bold()`, `.fontWeight(.bold / .semibold …)`): one section shouts next to its
@@ -233,12 +240,39 @@ HEADER_OPEN = re.compile(r'\bheader:\s*\{')
 HEADER_FONT_PATTERN = re.compile(
     r'\.cyText\(\s*\.(?:sectionTitle|cardTitle|headline|largeTitle|title\w*|display\w*)\b'
     r'|\.font\(\s*\.(?:headline|largeTitle|title\w*)\b'
-    r'|\.(?:bold|fontWeight)\(\s*(?:\.(?:bold|semibold|heavy|black))?\s*\)')
+    r'|\.(?:bold|fontWeight)\(\s*(?:\.(?:bold|semibold|heavy|black))?\s*\)'
+    # `CYSectionHeader` is the `.headline` header for scroll pages; inside a List/Form `header:` it must be system text.
+    r'|\bCYSectionHeader\(')
+EFFECT_ON_CLEAN = 'effect on clean page'
+# OWNER RULE 3 (11-28): the 11-26 no-op effects are restored, but only for games, story flow, payment, maps and
+# celebration moments. Every other page stays clean (system components, no glow / foil / particles / glass).
+EFFECT_PATTERN = re.compile(
+    r'(?<![\w.])(?:CYBurst|CYConfettiBurst|CYStarBloom|CYFogLayer|CYEdgeGlow|CYCelebrationMoment|CYJoinReward|'
+    r'CYGlassCarousel|CYGlassSliver|CYCarouselBackdrop)\s*[(<]'
+    r'|\.(?:cyFoil|cyFoilSheen|cyEdgeGlow|cyUnlockCelebration)\s*\(')
+EFFECT_SURFACE_DIRS = ('App/NativeR2/Games/', 'App/NativeR2/Story/', 'App/NativeR2/FreeExplore/',
+                       'App/NativeR2/CityOrientation/', 'App/NativeR2/MapHome/', 'App/NativeR2/Motion/')
+# Page files of the distinctive surfaces, by name: play / game / chapter / story, payment, journey and roam maps,
+# celebration and reward moments.
+EFFECT_SURFACE_NAME = re.compile(
+    r'^App/(?:[^/]+/)*(?:Play(?!er)\w*|\w*Game\w*|\w*Chapter\w*|\w*Story\w*|\w*Pay(?!out)\w*|\w*Checkout\w*|'
+    r'JourneyReport\w*|FreeExplor\w*|RoamLive\w*|RoamFinish\w*|RoamFog\w*|CityRoam\w*|RoamCreatedStamp\w*|'
+    r'RoamStampCamera\w*|\w*StampCapture\w*|\w*Celebration\w*|\w*Reward\w*)\.swift$')
+# The kit itself: definitions and the celebration / album / medal hosts that compose them.
+EFFECT_KIT_FILES = tuple('App/DesignSystem/' + n + '.swift' for n in (
+    'CYBurst', 'CYEdgeGlow', 'CYFoil', 'CYRoamKit', 'CYSignature', 'CYStarBloom', 'CYGlassCarousel', 'CYAlbum',
+    'CYCollectible', 'CYBadgeCraft', 'CYCelebrationViews', 'CYCelebrationEngine', 'CYJoinReward', 'CYNightGlass'))
+
+
+def effect_surface(rel):
+    return rel in EFFECT_KIT_FILES or rel.startswith(EFFECT_SURFACE_DIRS) or bool(EFFECT_SURFACE_NAME.match(rel))
+
+
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
          ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, SECTION_SPACING, DUPLICATE_TYPE,
-         UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT)
+         UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT, EFFECT_ON_CLEAN)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -413,6 +447,65 @@ def header_font_hits(lines):
     return out
 
 
+HEADER_CALL = re.compile(r'\bheader:\s*\{\s*([A-Z]\w*)\s*\(')
+STRUCT_VIEW = re.compile(r'\bstruct\s+([A-Z]\w*)\s*:\s*View\b')
+_WRAPPER_INDEX = None
+
+
+def _struct_bodies(lines):
+    """`struct Name: View { … }` bodies (brace-balanced) in one file: name -> [(number, code)]."""
+    out = {}
+    for index, (number, code) in enumerate(lines):
+        match = STRUCT_VIEW.search(code)
+        if not match:
+            continue
+        depth, started, body = 0, False, []
+        for later_number, later in lines[index:index + 80]:
+            body.append((later_number, later))
+            for ch in later:
+                if ch == '{':
+                    depth, started = depth + 1, True
+                elif ch == '}':
+                    depth -= 1
+            if started and depth <= 0:
+                break
+        out.setdefault(match.group(1), body)
+    return out
+
+
+def _wrapper_index():
+    """Every player-file View struct body, so a header closure that calls a wrapper is checked across files."""
+    global _WRAPPER_INDEX
+    if _WRAPPER_INDEX is None:
+        _WRAPPER_INDEX = {}
+        for rel, path in player_files():
+            if rel.startswith('App/DesignSystem/'):
+                continue
+            text = path.read_text(encoding='utf-8', errors='replace')
+            for name, body in _struct_bodies(list(code_lines(text))).items():
+                _WRAPPER_INDEX.setdefault(name, (rel, body))
+    return _WRAPPER_INDEX
+
+
+def header_wrapper_font_hits(lines):
+    """`header: { Wrapper(…) }`: the wrapper View's own body must not set a heading font either (reported at its call)."""
+    out = []
+    local = _struct_bodies(lines)
+    for index, (number, code) in enumerate(lines):
+        match = HEADER_CALL.search(code)
+        if not match:
+            continue
+        name = match.group(1)
+        body = local.get(name) or _wrapper_index().get(name, (None, None))[1]
+        if not body:
+            continue
+        for body_number, body_code in body:
+            if HEADER_FONT_PATTERN.search(body_code):
+                out.append((number, HEADER_FONT, f'{name} (line {body_number}): {body_code.strip()}'))
+                break
+    return out
+
+
 def scan_file(rel, text):
     hits = []
     lines = list(code_lines(text))
@@ -420,6 +513,7 @@ def scan_file(rel, text):
     colour_exempt = rel.startswith(COLOUR_EXEMPT_PREFIXES)
     design_system = rel.startswith('App/DesignSystem/')
     is_root = rel in TAB_ROOTS
+    clean_effects_ok = effect_surface(rel)
     # `.system(size: x)` where `x` is an `@ScaledMetric` scales with Dynamic Type: that is the approved pattern.
     scaled = set(SCALED_METRIC.findall(text))
     prev_code = ''
@@ -460,6 +554,8 @@ def scan_file(rel, text):
             hits.append((number, LINE_SPACING, code.strip()))
         if not colour_exempt and SECTION_SPACING_PATTERN.search(code):
             hits.append((number, SECTION_SPACING, code.strip()))
+        if not clean_effects_ok and EFFECT_PATTERN.search(code):
+            hits.append((number, EFFECT_ON_CLEAN, code.strip()))
         if UNTYPED_HAPTIC_PATTERN.search(code):
             hits.append((number, UNTYPED_HAPTIC, code.strip()))
         if not colour_exempt and HAND_DIVIDER_PATTERN.search(code):
@@ -543,6 +639,7 @@ def scan_file(rel, text):
                 hits.append((number, TITLE_MODE, code.strip()))
     if not design_system:
         hits.extend(header_font_hits(lines))
+        hits.extend(header_wrapper_font_hits(lines))
     if is_root:
         has_large = any(ROOT_HEADER_PATTERN.search(c) or LARGE_PATTERN.search(c) for _, c in lines)
         if not has_large:

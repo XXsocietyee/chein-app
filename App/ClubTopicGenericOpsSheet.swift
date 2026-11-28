@@ -86,9 +86,9 @@ struct ClubTopicGenericOpsSelection: Identifiable, Equatable {
             ForEach(ledger, id: \.self) { row in
                 ledgerText(row).textSelection(.enabled)
             }
-            if let failure { failureText(failure).foregroundStyle(.red) }
-            if let serverMessage { Text(verbatim: serverMessage).foregroundStyle(.red) }
-            if let notice { Text(notice).foregroundStyle(.red) }
+            if let failure { failureText(failure).foregroundStyle(CYColor.dangerText) }
+            if let serverMessage { Text(verbatim: serverMessage).foregroundStyle(CYColor.dangerText) }
+            if let notice { Text(notice).foregroundStyle(CYColor.dangerText) }
         }
     }
 

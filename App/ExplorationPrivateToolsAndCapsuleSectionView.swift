@@ -179,7 +179,7 @@ public struct ExplorationPrivateToolsAndCapsuleSectionView: View {
             if !snapshot.allCompliant {
                 Text(verbatim: "告警：检测到私人漫游工具缺少账户隔离、未静默远端写操作或双语词表不完整。")
                     .cyText(.label)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("explorationPrivateTools.warningBanner")
             }
         } header: {

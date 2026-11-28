@@ -23,6 +23,10 @@ extension HomeLanding {
         case .content(let content):
             guard content.kind == .topic else { return nil }
             self.init(target: .topic(content.id))
+        case .door(let door):
+            // mp-nav r3: an invite card without a door scene opens 首页 (MP home onLoad); the inviter was queued on receive.
+            guard door.scene == nil, door.inviter != nil else { return nil }
+            self.init(target: .tab(.home))
         default:
             return nil
         }
@@ -64,9 +68,20 @@ extension AppSession {
     /// `chein://mp/<page>?<query>`. True when the URL was a chein mp link and was handled (valid or not).
     func receiveMiniProgramPageURL(_ url: URL) -> Bool {
         guard url.scheme?.lowercased() == CheinDeepLink.scheme, url.host?.lowercased() == "mp" else { return false }
+        if let door = Self.homeReferral(url) { receiveNativeIntent(.door(door)); return true }
         if let link = MiniProgramPageLink(cheinURL: url) { receiveNativeIntent(.miniProgramPage(link)) }
         else { receiveNativeIntent(.routeError(.unsupported)) }
         return true
+    }
+
+    /// `chein://mp/pages/index/index?inviter=` / `?id=` / `?scene=`: the MP invite card form (see `NativeNavigationContract.homeReferral`).
+    static func homeReferral(_ url: URL) -> DoorIntent? {
+        guard let c = URLComponents(url: url, resolvingAgainstBaseURL: false), c.path == "/pages/index/index" else { return nil }
+        let items: [URLQueryItem] = c.queryItems ?? []
+        guard Set(items.map(\.name)).count == items.count else { return nil }
+        var query: [String: String] = [:]
+        for item in items { query[item.name] = item.value ?? "" }
+        return NativeNavigationContract.homeReferral(query)
     }
 
     /// Universal links. A reviewed path on a verified origin (`nativeEntryLinkPolicy`, empty until the domains are

@@ -158,7 +158,7 @@ public struct CYInlineError: View {
             Image(systemName: "exclamationmark.circle")
         }
         .font(.footnote)
-        .foregroundStyle(.red)
+        .foregroundStyle(CYColor.dangerText)
     }
 
     @ViewBuilder

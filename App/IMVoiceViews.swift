@@ -273,7 +273,7 @@ import SwiftUI
             }
             if failed {
                 Label("d7.imVoice.playFailed", systemImage: "exclamationmark.circle")
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

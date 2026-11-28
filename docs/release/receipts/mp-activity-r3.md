@@ -257,8 +257,6 @@ Merged `origin/ui/combined-r7` (13a6690eb, clean). Open coordinator finding for 
 | owner correction 11-28 04:45 (CN: WeChat Pay + Alipay) | new `Core/AlipaySDKPaymentAdapter.swift` (+ `Tests/CoreTests/AlipaySDKPaymentAdapterTests.swift`) | **added** `AlipaySDKPaymentDriving` (protocol: `payOrder:fromScheme:callback:` + `processOrderWithPaymentResult` for the `<scheme>://safepay` return) and `AlipaySDKPaymentAdapter: TopicSelfPlayPaymentProviding` beside the WeChat adapter: backend `orderString` → SDK → `resultStatus` (9000 returned, 6001 cancelled, 8000/6004 unknown, else failed); one pending order, context change ends the wait, 120 s timeout; a provider answer never means paid (order-status poll stays the truth). Default gate off and no SDK linked, so nothing renders. Stub tests: gate, unlinked, scheme/order hand-off, mapping, blank order, callback route | fails closed; mirrors `WeChatSDKPaymentAdapter` |
 | owner correction 11-28 04:45 (US: Stripe first, Apple Pay then card) | `App/RegistrationPaySection.swift:211` `usesStripe` → `App/RegistrationStripePaySection.swift` `RegistrationStripePayRows`; `App/MPParityKit.swift:12` `MPCommerceGate.purchasesEnabled = false` | **verified, no change**: registration is the only live US checkout; a USD quote in the US market with `APPLE_PAY` / `APP_STRIPE` goes through `StripePayEligibility.applies` → Apple Pay button first (when the device can pay), then 使用银行卡支付 / Pay with card (Stripe Checkout), both ending in the order-status poll. Pass market, tickets and bundles have no pay step yet (purchases gated off by `MPCommerceGate`), so nothing routes around Stripe | — |
 
-<<<<<<< HEAD
-=======
 ## Round 3 continue (2026-11-28, twenty-eighth session — owner check 05:35 P0, China payment)
 Merged `origin/ui/combined-r7` (pbxproj regenerated). Open item for this lane: OWNER CHECK 11-28 05:35 **P0 — China payment does not complete**.
 
@@ -271,9 +269,18 @@ Merged `origin/ui/combined-r7` (pbxproj regenerated). Open item for this lane: O
 
 Gates: generate_project ok; scaffold PASS (incl. AppSession ratchet); a11y 0 new; design consistency PASS (untyped haptic 0); contract ratchet 52/52 new 0; registration pay contract suites OK.
 
->>>>>>> origin/ui/combined-r7
+## Round 3 continue (2026-11-28, twenty-ninth session — note 05:50 P32 checkout)
+Merged `origin/ui/combined-r7` (135f87720; pbxproj regenerated). Sweep `mp-activity/en-t5-baoming.jpg` is build 7a7d2708a, older than the Pay with row and the footnote fix, so no new visual finding. Open item: note 05:50 "mp-activity applies P32 to every pay step".
+
+| MP page | Native view | Change | Optimization |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` bottom bar (wxml:325-329) + 订单支付 after submit | `App/RegistrationSheetView.swift` `submitLabelText`, `selectedPayMethod`; `App/RegistrationPaySection.swift` `payButtonTitle` (+ `payMethod:` param, nil keeps 立即支付 on order detail); `Core/RegistrationPayMethod.swift` `payTitle(amount:)`, `effective(_:market:applePayAvailable:)` (+ 2 tests in `RegistrationPayMethodTests`) | P32 **applied**: with a priced quote the bottom button reads the method and the total — 微信支付 ¥12.50 / Pay ¥12.50 with WeChat Pay (Alipay / Apple Pay / card the same way once offered) instead of 付款 / Pay; the in-app pay button after submit reads the same instead of 立即支付. Unknown amount falls back to the old label. US checkout keeps the Stripe rows (Apple Pay button, then card) | button = method, total in the label, MP order unchanged (费用明细 → 支付方式 → consent → button) |
+
+Gates: generate_project ok; scaffold PASS; a11y 0 new; design consistency PASS (untyped haptic 0); contract ratchet 52/52 new 0.
+
 ## Not done
 - Owner correction 11-28 04:45: Alipay adapter exists in Core (gated off); still open — the App-side SDK bridge driver + AppSession wiring + URL-scheme route once the SDK, app id and backend `alipay.trade.app.pay` exist; then flip `RegistrationPayMethod.alipayReady` and route the Alipay choice to it (US checkout verified: registration → Stripe, others gated off).
+- P32 still open on pass / bundle buy (purchases gated off by `MPCommerceGate`, no pay step to label) and order-detail Pay (`OrderLifecycleView` has no method choice; keeps 立即支付).
 - Owner check 05:35: no simulator here, so `t5-baoming-paying` / `t5-baoming-paid` are unseen until the next coordinator sweep; backend `/api/registration/pay/app` APP-param shape is the backend lane's check.
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

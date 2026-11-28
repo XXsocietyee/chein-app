@@ -134,7 +134,8 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
                     .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                 }
             } header: {
-                CYSectionHeader(LocalizedStringKey(stringLiteral: text("identity")))
+                Text(LocalizedStringKey(stringLiteral: text("identity")))
+                    .accessibilityAddTraits(.isHeader)
             }
             Section {
                 ForEach(snapshot.saved.fields.keys.sorted(), id: \.self) { key in
@@ -156,7 +157,8 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             } header: {
-                CYSectionHeader(LocalizedStringKey(stringLiteral: text("savedFields")))
+                Text(LocalizedStringKey(stringLiteral: text("savedFields")))
+                    .accessibilityAddTraits(.isHeader)
             }
             Section {
                 CYPillButton(verbatim: text("start"), systemImage: "play.fill") { rehearsal.start() }

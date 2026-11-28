@@ -59,7 +59,7 @@ import SwiftUI
                         TextEditor(text: $coordinator.draft).cyText(.body).frame(minHeight: 120).accessibilityIdentifier("ncm47.edit.draft")
                             .disabled(!canConfirmEditRecall || !canEdit)
                         if coordinator.draft.unicodeScalars.count > 2000 {
-                            Text("d7.channelMessage.tooLong").font(.footnote).foregroundStyle(.red)
+                            Text("d7.channelMessage.tooLong").font(.footnote).foregroundStyle(CYColor.dangerText)
                         }
                     }
                     Section {
@@ -80,7 +80,7 @@ import SwiftUI
                             .lineLimit(1...4)
                             .disabled(!canConfirmEditRecall || !canRecall)
                         if !reason.isEmpty && !validRecallReason {
-                            Text("d7.channelMessage.reasonLength").font(.footnote).foregroundStyle(.red)
+                            Text("d7.channelMessage.reasonLength").font(.footnote).foregroundStyle(CYColor.dangerText)
                         }
                     } header: { Text("message.recallConfirm", tableName: "NativeChannelMessage") }
                     Section {

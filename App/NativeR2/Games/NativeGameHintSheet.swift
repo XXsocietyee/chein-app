@@ -37,7 +37,7 @@ import SwiftUI
                 if let notice = model.notice {
                     Section {
                         Label { noticeText(notice) } icon: { Image(systemName: "exclamationmark.triangle") }
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("playHelp.notice")
                     }
                 }
@@ -137,7 +137,7 @@ import SwiftUI
                     .accessibilityIdentifier("playHelp.charged.\(row.level)")
                 }
                 if let problem = row.problem {
-                    problemText(problem).font(.footnote).foregroundStyle(.red)
+                    problemText(problem).font(.footnote).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("playHelp.problem.\(row.level)")
                 }
             }
@@ -198,7 +198,7 @@ import SwiftUI
                 LabeledContent {
                     if model.skipPending { Text("playHelp.keepChecking") }
                 } label: {
-                    Text("playHelp.skip").foregroundStyle(.red)
+                    Text("playHelp.skip").foregroundStyle(CYColor.dangerText)
                 }
             }
             .disabled(model.busy)

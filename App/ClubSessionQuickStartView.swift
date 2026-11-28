@@ -183,7 +183,7 @@ import SwiftUI
             if model.phase == .loading { sessionLoading }
             if model.phase == .failed {
                 Label("club.sessionStart.failed", systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.sessionStart.failed")
             }
             if model.phase == .topicUnavailable {

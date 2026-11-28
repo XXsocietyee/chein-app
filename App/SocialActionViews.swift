@@ -55,7 +55,7 @@ public enum SocialEditorPurpose: String, Identifiable {
                             .accessibilityIdentifier("social.editor.commentLength")
                         if commentTooLong {
                             Text("tooLong", tableName: "SocialCommentLength")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("social.editor.commentTooLong")
                         }
                     }
@@ -287,7 +287,7 @@ private struct SocialActionStateView: View {
             case .notSent: Label("social.notSent", systemImage: "paperplane").foregroundStyle(.secondary).accessibilityIdentifier("social.state.notSent")
             case .rejected:
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Label("social.rejected", systemImage: "xmark.circle").foregroundStyle(.red).accessibilityIdentifier("social.state.rejected")
+                    Label("social.rejected", systemImage: "xmark.circle").foregroundStyle(CYColor.dangerText).accessibilityIdentifier("social.state.rejected")
                     if let row = RequestReferenceRow(pathFragment: "/api/") { row }
                 }
             case .outcomeUnknown:

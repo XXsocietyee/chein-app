@@ -7393,40 +7393,6 @@
         }
       }
     },
-    "auth.channels.smsDailyLimit": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You've reached today's limit for verification codes. Try again tomorrow."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今日验证码发送次数已达上限，请明天再试。"
-          }
-        }
-      }
-    },
-    "auth.channels.smsRegionUnavailable": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Codes can't be sent to this number's region yet. Try another number or sign in with Apple."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂不支持向该地区号码发送验证码，请换一个号码或使用其他方式登录。"
-          }
-        }
-      }
-    },
     "auth.channels.rateLimited": {
       "extractionState": "manual",
       "localizations": {
@@ -159838,7 +159804,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check the current server refund policy and deadline."
+            "value": "Check the latest refund policy and deadline."
           }
         },
         "zh-Hans": {
@@ -206827,7 +206793,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recruitment deadline"
+            "value": "Merchant sign-up deadline"
           }
         },
         "zh-Hans": {
@@ -209625,7 +209591,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sale end"
+            "value": "Ticket sales end"
           }
         },
         "zh-Hans": {
@@ -209673,7 +209639,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sale start"
+            "value": "Ticket sales start"
           }
         },
         "zh-Hans": {
@@ -210313,7 +210279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free exploration needs a recruitment deadline."
+            "value": "Free exploration needs a merchant sign-up deadline."
           }
         },
         "zh-Hans": {
@@ -282345,23 +282311,6 @@
         }
       }
     },
-    "wallet.balanceHero": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Account balance"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "账户余额"
-          }
-        }
-      }
-    },
     "wallet.balanceLedger": {
       "localizations": {
         "en": {
@@ -295258,7 +295207,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Parent-child ticket"
+            "value": "Family ticket"
           }
         },
         "zh-Hans": {
@@ -297692,7 +297641,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资料没有保存成功"
+            "value": "资料没有保存"
           }
         }
       }
@@ -350508,7 +350457,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Youngest child (age)"
+            "value": "Minimum child age"
           }
         },
         "zh-Hans": {
@@ -350525,7 +350474,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Oldest child (age)"
+            "value": "Maximum child age"
           }
         },
         "zh-Hans": {
@@ -355064,7 +355013,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld of 9 set"
+            "value": "%lld of 9 cells set"
           }
         },
         "zh-Hans": {
@@ -356767,6 +356716,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "二维码暂时不可用"
+          }
+        }
+      }
+    },
+    "participant.form.saveRejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participant info wasn't saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与人信息没有保存"
+          }
+        }
+      }
+    },
+    "participant.form.retrySave": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try saving again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试保存"
+          }
+        }
+      }
+    },
+    "auth.channels.smsDailyLimit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've reached today's limit for verification codes. Try again tomorrow."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日验证码发送次数已达上限，请明天再试。"
+          }
+        }
+      }
+    },
+    "auth.channels.smsRegionUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codes can't be sent to this number's region yet. Try another number or sign in with Apple."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持向该地区号码发送验证码，请换一个号码或使用其他方式登录。"
+          }
+        }
+      }
+    },
+    "wallet.balanceHero": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account balance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户余额"
           }
         }
       }
