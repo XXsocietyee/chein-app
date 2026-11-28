@@ -8204,6 +8204,40 @@
         }
       }
     },
+    "auth.wechat.linkedMiniProgram": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in with your mini-program account"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已使用小程序账号登录"
+          }
+        }
+      }
+    },
+    "auth.wechat.linkedMiniProgram.dismiss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
     "auth.wechat.signIn": {
       "extractionState": "manual",
       "localizations": {

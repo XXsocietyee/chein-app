@@ -3443,7 +3443,7 @@ final class AppSession: ObservableObject {
         ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll()
         self.gate.invalidate()
         sessionDefaults.set(false,forKey:self.restoreBlockedKey)
-        self.commitAuthenticatedSession(token: result.token, account: result.account);self.errorKey=nil
+        if result.linkedMiniProgram { noteLinkedMiniProgramAccount() }; self.commitAuthenticatedSession(token: result.token, account: result.account);self.errorKey=nil
         self.participantCoordinator.synchronizeSession();self.synchronizeRegistration()
         self.clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()
@@ -7637,7 +7637,7 @@ final class AppSession: ObservableObject {
         // silently restore a logged-out account at the next cold start.
         sessionDefaults.set(true,forKey:restoreBlockedKey)
         storedRoles?.clear()
-        roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey=nil
+        clearLinkedMiniProgramAccountNote(); roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey=nil
         participantCoordinator.synchronizeSession();synchronizeRegistration()
         clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()
@@ -7702,7 +7702,7 @@ final class AppSession: ObservableObject {
         gate.invalidate()
         sessionDefaults.set(true,forKey:restoreBlockedKey)
         storedRoles?.clear()
-        roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey="auth.expired"
+        clearLinkedMiniProgramAccountNote(); roamArea=nil;searchMapSelection.select(nil);token=nil;account=nil;isWorking=false;errorKey="auth.expired"
         participantCoordinator.synchronizeSession();synchronizeRegistration()
         clubActionCoordinator.synchronizeSession()
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()

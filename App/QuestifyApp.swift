@@ -544,6 +544,7 @@ struct SessionRootView: View {
                     .sessionOfflineBanner(reachability: reachability, session: session)
             }
         }
+        .linkedMiniProgramAccountNote(session: session)
         .onAppear { reachability.start() }
         return chain6(chain5(chain4(chain3(chain2(chain1(chain0(base)))))))
     }
