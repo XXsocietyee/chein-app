@@ -78693,7 +78693,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Join Code"
+            "value": "Enter join code"
           }
         },
         "zh-Hans": {
@@ -139559,7 +139559,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Walk into the place and tap I'm Here"
+            "value": "Walk into the place and tap “I’m here”"
           }
         },
         "zh-Hans": {
@@ -147422,7 +147422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The applicant sees Not Approved in My Teams"
+            "value": "The applicant sees “Not approved” under My teams"
           }
         },
         "zh-Hans": {
@@ -301132,7 +301132,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save Image"
+            "value": "Save invite image"
           }
         },
         "zh-Hans": {
