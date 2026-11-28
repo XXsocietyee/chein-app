@@ -50,8 +50,7 @@ import UIKit
             Text(LocalizedStringKey("playkit.sensor.phase." + stage.phase.rawValue))
                 .cyText(.cardTitle).accessibilityIdentifier("playkit.sensor.phase")
             if stage.phase == .calibrating {
-                CYSkeleton(label: "playkit.sensor.calibrating")
-                Text(LocalizedStringKey(kind == .ballShake ? "playkit.ball.calibration" : "playkit.audio.calibration"))
+                NativeSensorCalibrationView(kind: kind, startedAt: stage.calibrationStartedAt ?? Date(), seconds: stage.calibrationSeconds)
             }
             if stage.phase == .measured {
                 CYPillButton("playkit.review") {
@@ -223,6 +222,8 @@ import UIKit
     let kind: PlayKitScreenKind
     let provider: any PlayKitSensorProviding
     var phase = Phase.idle
+    /// MP `cy-play-calibrate`: when the calibration window opened, so the bar can fill over its length.
+    var calibrationStartedAt: Date?
     var issue: PlayKitSensorError?
     var isActive = true
     var attempt = UUID()
@@ -251,6 +252,8 @@ import UIKit
         let goal = segment["goal"].integer ?? 0
         return .init(goal: goal > 0 ? goal : 30, limitSeconds: segment["timed"].bool == true ? (segment["seconds"].double ?? 0) : 0)
     }
+    /// MP `calibrate-ms`: ballshake 1200, quiethold / shout 2000 (the Core runs wait the same windows).
+    var calibrationSeconds: TimeInterval { kind == .ballShake ? 1.2 : 2 }
     var sensorKind: PlayKitSensorKind { kind == .ballShake ? .acceleration : kind == .compass ? .heading : .soundPeak }
     var supported: Bool { provider.supported.contains(sensorKind) }
     var submitAction: String {
@@ -315,6 +318,7 @@ import UIKit
                     case .shout: self.shout.calibrate()
                     default: break
                     }
+                    self.calibrationStartedAt = Date()
                     self.phase = .calibrating
                 }
                 self.continuity = .init(kind: self.sensorKind, now: ProcessInfo.processInfo.systemUptime)

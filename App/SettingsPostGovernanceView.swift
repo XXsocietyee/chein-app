@@ -9,7 +9,7 @@ import SwiftUI
     @State private var presented = false
     var body: some View {
         if let coordinator = session.squareGovernance() {
-            Section {
+            SettingsEntrySection {
                 Button { presented = true } label: {
                     Label { Text("mpd.postGov.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcShieldAlert) }
                 }

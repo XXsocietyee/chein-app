@@ -590,3 +590,15 @@ Rebased onto the twin run's continue 34 (pass cards). No new mp-mine rows in the
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 
 Not done: e4-settings row regroup (needs row-only entry APIs + simulator check), `CharacterCardReadbackView` byte pin.
+
+## Continue 36 (11-28, hourly run): e4-settings row regroup (ADA)
+
+Merged `origin/ui/combined-r7` (clean). No new mp-mine rows in the brief (the 12:25 AI items go to `fix/1128c-*`). Sweep still build 3348aa51f; screen checked: `docs/sweeps/latest/mp-mine/zh-Hans-e4-settings.jpg` — every row (城瘾玩法, 位置共享管理, AI 对话记录, 投诉建议 …) is its own card.
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `pages/shezhi/shezhi.wxml:9-36` one continuous `sz-menu` | `App/SettingsView.swift` (new `SettingsEntrySection` + `\.settingsGroupedRows`), entries in `SettingsPrivacyLocationView.swift`, `NPCChatDataReadSettingsEntry.swift`, `AccountComplianceViews.swift`, `SettingsPostGovernanceView.swift`, `MemberScoreAppealListView.swift`, `SettingsInvoiceEntry.swift`, `ProfileSettingsFavoritesRoute.swift` | ✓ (same rows, MP order) | C | **Fixed (closes the continue 31–35 Not done "row regroup").** Entries now draw `SettingsEntrySection`: their own Section by default (other hosts and unit tests unchanged), only their rows when the Settings page groups them. Settings groups like iOS Settings: 城瘾玩法 · 我的收藏 · 邀请与收益; 隐私与定位 · 位置共享管理 · AI 对话记录 · 营销消息与优惠券 · 帖文处置与申诉; 投诉建议 · 我的申诉 · 我的举报 · 发票 / 订单查询. Row order, identifiers, tints, sheets and destinations unchanged. Legal / 注销 / 关于 (`SettingsSupportSections`) and the app-only rows keep their sections. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**. `tools/check_personal_location_share.py` has 3 failures before and after this change (not ours).
+
+Not done: `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `e4-settings` (zh-Hans + en) to confirm the grouped sections render as one list per group.

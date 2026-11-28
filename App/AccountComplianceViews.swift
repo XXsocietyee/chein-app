@@ -219,7 +219,7 @@ import SwiftUI
     var legalReader: any SettingsLegalReading = SettingsBundledLegalReader()
     var body: some View {
         if let coordinator {
-        Section {
+        SettingsEntrySection {
             NavigationLink {
                 AccountComplianceSheet(coordinator: coordinator, destination: .marketing,
                     market: market, legalReader: legalReader, showsCloseButton: false)

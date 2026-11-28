@@ -42,6 +42,8 @@ public struct ClubLeadProgressSnapshot: Equatable {
     /// Mini's month/day display summary, not an absolute cross-year timestamp.
     public let invitationTimeText: String?
     public let nodes: [ClubLeadProgressNode]
+    /// MP `buildLeadTimeline` summary: 带队进度 · <current station>.
+    public var currentStationKey: String? { stage.cursor.map { "club.leadProgress.station.\($0)" } }
     public init(context: ClubLeadProgressContext, topics: ClubGovernanceSnapshot, invitations: CoopFlowJSON, projects: CreatorContentProjectPage) throws {
         guard context.canRead else { throw ClubGovernanceFailure.targetChanged }
         let feedback = try ClubInvitationFeedbackSnapshot(context: context.feedback, topics: topics, invitations: invitations)
@@ -66,7 +68,8 @@ public struct ClubLeadProgressSnapshot: Equatable {
         self.stage = stage; topicCount = rows.count; sentCount = sent.count; pendingCount = pending.count
         hasPartialProjects = projects.isTruncated
         invitationTimeText = sent.compactMap(\.createdAt).map { String($0.dropFirst(5).prefix(11)) }.filter { !$0.isEmpty }.sorted().last
-        nodes = stage.cursor.map { cursor in
+        // MP detail wxml:411 (第十轮 f3 第 4 项): no timeline before the first topic is published.
+        nodes = stage == .publish ? [] : stage.cursor.map { cursor in
             (0..<4).map { index in
                 ClubLeadProgressNode(id: index, state: index < cursor ? .done : (index == cursor ? (stage == .accepted ? .done : .doing) : .todo))
             }
