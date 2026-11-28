@@ -21,8 +21,12 @@ extension HomeLanding {
             guard !link.page.contains("merchant"), let route = MPParityRoute(link: link) else { return nil }
             self.init(target: .page(route))
         case .content(let content):
-            guard content.kind == .topic else { return nil }
-            self.init(target: .topic(content.id))
+            if content.kind == .topic {
+                self.init(target: .topic(content.id))
+                return
+            }
+            guard let route = MPParityRoute(miniProgramPath: content.inboundPage, query: content.inboundQuery) else { return nil }
+            self.init(target: .page(route))
         case .door(let door):
             // mp-nav r3: an invite card without a door scene opens 首页 (MP home onLoad); the inviter was queued on receive.
             guard door.scene == nil, door.inviter != nil else { return nil }

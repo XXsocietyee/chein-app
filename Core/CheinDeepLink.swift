@@ -19,6 +19,21 @@ public enum CheinDeepLink: Equatable, Sendable {
     case seat(token: String, activityID: Int?, topicID: Int?)
 
     public static let scheme = "chein"
+    /// Spoken product name. It is not a registered URL type; intake rewrites it to `chein` before parsing.
+    public static let aliasScheme = "chengyin"
+
+    public static func isPlayerScheme(_ scheme: String?) -> Bool {
+        let value = scheme?.lowercased() ?? ""
+        return value == Self.scheme || value == Self.aliasScheme
+    }
+
+    /// `chengyin://…` uses the same grammar as `chein://…`. Every other URL is returned unchanged.
+    public static func canonicalURL(_ url: URL) -> URL {
+        guard url.scheme?.lowercased() == aliasScheme,
+              var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return url }
+        components.scheme = scheme
+        return components.url ?? url
+    }
 
     public init?(url: URL) {
         let byteCount = url.absoluteString.utf8.count

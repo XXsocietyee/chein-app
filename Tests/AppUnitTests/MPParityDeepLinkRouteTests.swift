@@ -15,6 +15,8 @@ import XCTest
             // 537bfd65a group-code takes activityId or topicId; c9cbcd24b the public merchant home takes id or poiId.
             "pages/club/group-code/index": ["activityId": "7"],
             "pages/merchant/profile/index": ["id": "7"],
+            // poi-detail accepts exactly one of poiId or id. An empty query is not a route.
+            "subpackageRoam/poi-detail/index": ["poiId": "7"],
         ]
         // Every other required key gets a value too (parity r1: clubId, memberId, orderNo, topicId, reportId…).
         for (page, rule) in MiniProgramPageLink.reviewedPages where samples[page] == nil && !rule.required.isEmpty {
@@ -99,5 +101,42 @@ import XCTest
         guard case .miniProgramPage(let roam) = push.intent(userInfo: ["page": "pages/roam/index"]) else { return XCTFail("roam page") }
         XCTAssertEqual(roam.page, "pages/roam/index"); XCTAssertTrue(roam.query.isEmpty)
         XCTAssertNil(push.intent(userInfo: ["type": "ROAM_RECALL", "page": ""]))
+    }
+
+    func testContentKindsLandOnTheirPages() throws {
+        let topic = try XCTUnwrap(NativeContentTarget(kind: .topic, id: 7))
+        XCTAssertEqual(HomeLanding(intent: .content(topic))?.target, .topic(7))
+        let pages: [(NativeContentTarget.Kind, String)] = [
+            (.activity, "pages/activity/detail/index"),
+            (.club, "pages/club/detail/index"),
+            (.template, "pages/templatedetail/templatedetail"),
+            (.post, "pages/square/detail/index"),
+            (.poi, "subpackageRoam/poi-detail/index"),
+            (.roamSession, "subpackageRoam/session/index"),
+        ]
+        for (kind, page) in pages {
+            let target = try XCTUnwrap(NativeContentTarget(kind: kind, id: 12))
+            XCTAssertEqual(
+                HomeLanding(intent: .content(target))?.target,
+                .page(.screen(page: page, query: ["id": "12"])),
+                page
+            )
+        }
+    }
+
+    func testHiddenMerchantLinkLandsOnTheHomeTab() throws {
+        let coop = try XCTUnwrap(MiniProgramPageLink(path: "pages/coop/list/index", query: [:]))
+        let gated = PlayerLaunch.gate(.miniProgramPage(coop), enabled: false)
+        XCTAssertEqual(HomeLanding(intent: gated)?.target, .tab(.home))
+        let profile = try XCTUnwrap(MiniProgramPageLink(path: "pages/merchant/profile/index", query: ["id": "7"]))
+        XCTAssertEqual(PlayerLaunch.gate(.miniProgramPage(profile), enabled: false), .miniProgramPage(profile))
+    }
+
+    func testMoneySwitchesStayOff() {
+        XCTAssertFalse(MPCommerceGate.purchasesEnabled)
+        XCTAssertFalse(MPCommerceGate.claimsEnabled)
+        XCTAssertFalse(MPCommerceGate.payoutEnabled)
+        XCTAssertTrue(MPCommerceGate.seatClaimsEnabled)
+        XCTAssertTrue(MPCommerceGate.journeyGiftClaimsEnabled)
     }
 }
