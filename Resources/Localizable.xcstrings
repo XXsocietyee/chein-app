@@ -80755,13 +80755,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your precise location is sent to Chein once to set your home city, then located automatically. It is not used to rank nearby results."
+            "value": "Uses your current location once to set your home city. You can locate again from the city menu. It is not used to rank nearby results."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "精确位置会发送给城瘾以确定首页城市，之后自动定位，不用于附近排序。"
+            "value": "用一次当前位置确定首页城市，之后可在城市菜单里重新定位，不用于附近排序。"
           }
         }
       }
@@ -366041,6 +366041,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "例如 欢迎来到老城茶馆"
+          }
+        }
+      }
+    },
+    "homeCityConsent.privacy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your location is matched to a city on this iPhone and is never uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置只在本机匹配城市，不会上传。"
           }
         }
       }

@@ -2,7 +2,8 @@ import SwiftUI
 
 /// Mini-program `v3-locprompt` (pages/index): a non-blocking card at the top of the feed asking consent for the one-time
 /// home-city location read. Layout only: the host owns recording consent and the location request; with no handlers the
-/// card is not shown (capability absent => hidden).
+/// card is not shown (capability absent => hidden). P40 priming: symbol + title, one sentence of what happens, a privacy
+/// line, one `.borderedProminent` 同意定位 and a quiet 暂不定位.
 struct HomeCityLocationConsentCard: View {
     let onAgree: () -> Void
     let onDecline: () -> Void
@@ -15,6 +16,11 @@ struct HomeCityLocationConsentCard: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                Label("homeCityConsent.privacy", systemImage: "lock.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("homeCityConsent.privacy")
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: CYSpacing.md) { buttons }
                     VStack(spacing: CYSpacing.sm) { buttons }
@@ -32,7 +38,7 @@ struct HomeCityLocationConsentCard: View {
         Button(action: onDecline) {
             Text("homeCityConsent.decline").frame(maxWidth: .infinity)
         }
-            .buttonStyle(.bordered)
+            .buttonStyle(.borderless)
             .controlSize(.large)
             .accessibilityIdentifier("homeCityConsent.decline")
         Button(action: onAgree) {
