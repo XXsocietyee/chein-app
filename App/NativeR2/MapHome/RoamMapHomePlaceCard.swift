@@ -117,14 +117,28 @@ import QuestifyCore
             }
         }
         .confirmationDialog("nativeR2.mapHome.card.navigate.confirm", isPresented: $confirmingDirections, titleVisibility: .visible) {
-            Button("nativeR2.mapHome.card.navigate.open") {
-                let destination = mapDestination
-                Task { await externalMaps?.openReviewedDestination(destination) }
-            }
-            Button("nativeR2.mapHome.card.copyAddress") { externalMaps?.copySelectedAddress() }
+            directionsActions
         }
         .accessibilityIdentifier("roam.detail")
         .task(id: pin.id) { await loadRating() }
+    }
+
+    /// P1-21 (MP `wx.openLocation` app choice): Apple Maps, then AMap / Baidu Maps when installed, then copy address.
+    @ViewBuilder private var directionsActions: some View {
+        let apps: [PlatformMapApp] = externalMaps?.apps ?? [.apple]
+        if apps.count > 1 {
+            ForEach(apps, id: \.self) { app in
+                Button(app.titleKey) { openDirections(in: app) }
+            }
+        } else {
+            Button("nativeR2.mapHome.card.navigate.open") { openDirections(in: .apple) }
+        }
+        Button("nativeR2.mapHome.card.copyAddress") { externalMaps?.copySelectedAddress() }
+    }
+
+    private func openDirections(in app: PlatformMapApp) {
+        let destination = mapDestination
+        Task { await externalMaps?.openReviewedDestination(destination, in: app) }
     }
 
     /// MP `_loadRating`: only server POIs (shareKind poi) are read; the card stays usable whatever happens.

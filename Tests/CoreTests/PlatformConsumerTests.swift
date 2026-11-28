@@ -95,6 +95,27 @@ import XCTest
         fake.result = true; await model.openReviewedDestination(value); XCTAssertEqual(model.state, .opened)
         model.invalidate(); XCTAssertNil(model.selected)
     }
+    /// P1-21 (MP `wx.openLocation` app choice): installed apps are offered and the chosen one opens.
+    func testMapAppChoiceOpensChosenAppWithGCJWalkingLink() async throws {
+        let fake = SyntheticPlatformMapAdapter()
+        fake.installed = [.apple, .amap, .baidu]
+        fake.result = true
+        let model = PlatformExternalMaps(opener: fake, copier: fake, enabled: true)
+        XCTAssertEqual(model.apps, [.apple, .amap, .baidu])
+        let value = PlatformMapDestination(name: "西湖", latitude: 30.25, longitude: 120.15)
+        model.select(value); await model.openReviewedDestination(value, in: .amap)
+        XCTAssertEqual(model.state, .opened); XCTAssertEqual(fake.openedApps, [.amap])
+        XCTAssertEqual(PlatformExternalMaps(opener: fake, copier: fake).apps, [])
+        let amap = try XCTUnwrap(value.launchURL(in: .amap)).absoluteString
+        XCTAssertTrue(amap.hasPrefix("iosamap://path?"))
+        XCTAssertTrue(amap.contains("dlat=30.25")); XCTAssertTrue(amap.contains("dlon=120.15"))
+        XCTAssertTrue(amap.contains("dev=0")); XCTAssertTrue(amap.contains("t=2"))
+        let baidu = try XCTUnwrap(value.launchURL(in: .baidu)).absoluteString
+        XCTAssertTrue(baidu.hasPrefix("baidumap://map/direction?"))
+        XCTAssertTrue(baidu.contains("coord_type=gcj02")); XCTAssertTrue(baidu.contains("mode=walking"))
+        XCTAssertNil(value.launchURL(in: .apple))
+        XCTAssertNil(PlatformMapDestination(name: "Missing", latitude: 0, longitude: 120).launchURL(in: .amap))
+    }
     func testMapDefaultOffAndBadCoordinates() async {
         let fake = SyntheticPlatformMapAdapter(), value = PlatformMapDestination(name: "Place", latitude: 31, longitude: 121)
         let model = PlatformExternalMaps(opener: fake, copier: fake)
