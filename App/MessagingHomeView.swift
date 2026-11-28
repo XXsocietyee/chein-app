@@ -10,11 +10,14 @@ struct MessagingHomeView: View {
     var expanded: IMExpandedNavigationContext? = nil
     var squareDestination: ((@escaping () -> Void) -> AnyView)? = nil
     var predictionEntry: (() -> AnyView)? = nil
+    /// mp-nav r3 (MP im/list index.js:345-349 onEmptyCta): the session inbox leaves for the 俱乐部 帖文 feed (switchTab);
+    /// when set it replaces the pushed `squareDestination`.
+    var emptyFeedAction: (() -> Void)? = nil
     /// R7-PC-D8-3 (MP im/list/index.wxml:1,30-33): the merchant account reads its inbox in merchant chrome.
     var merchantChrome = false
     private let identity: MessagingReadIdentity?
     @Environment(\.imCoopInviteStrip) private var coopInviteStrip
-    init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil,squareDestination:((@escaping () -> Void) -> AnyView)?=nil,predictionEntry:(() -> AnyView)?=nil,merchantChrome:Bool=false) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;self.squareDestination=squareDestination;self.predictionEntry=predictionEntry;self.merchantChrome=merchantChrome;identity=reader.identity }
+    init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil,squareDestination:((@escaping () -> Void) -> AnyView)?=nil,emptyFeedAction:(() -> Void)?=nil,predictionEntry:(() -> AnyView)?=nil,merchantChrome:Bool=false) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;self.squareDestination=squareDestination;self.emptyFeedAction=emptyFeedAction;self.predictionEntry=predictionEntry;self.merchantChrome=merchantChrome;identity=reader.identity }
     /// R7-PC-D8-1 MP-first (subpackageB/pages/im/list/index.js:268-281, index.wxml:11): one tab row, 收件箱 / 发件箱.
     /// 收件箱 = received invites + every conversation; 发件箱 = only the invites I sent (no conversations).
     @State private var box: MessagingBox = .inbox
@@ -35,7 +38,7 @@ struct MessagingHomeView: View {
             switch box {
             case .inbox:
                 if let coopInviteStrip { coopInviteStrip().environment(\.imCoopInviteDirection, .received).padding(.horizontal) }
-                MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
+                MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination,emptyFeedAction:emptyFeedAction).id(identity)
             case .outbox:
                 // R10-PC-D-N16: outbox is a system List (MP subpackageB/pages/im/list/index.wxml:78-91, 103-108).
                 List {
@@ -63,6 +66,7 @@ private struct MessagingConversationListView: View {
     var senderForConversation: ((Int)->MessageActionCoordinator?)? = nil
     var expanded: IMExpandedNavigationContext? = nil
     var squareDestination: ((@escaping () -> Void) -> AnyView)? = nil
+    var emptyFeedAction: (() -> Void)? = nil
     @State private var showsSquare = false
     @State private var newConversation: Int?
     @State private var rowAction: IMConversationRowActionPresentation?
@@ -251,7 +255,7 @@ private struct MessagingConversationListView: View {
             // P032: only a successfully loaded, genuinely empty direct-message list
             // offers Square. Search misses, errors and missing grants do not.
             if tab == .direct || tab == .all, query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-               squareDestination != nil {
+               squareDestination != nil || emptyFeedAction != nil {
                 Button("im.inbox.emptySquare", systemImage: "person.2") {
                     guard query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                           listModel.appearance != nil, !showsSquare,
@@ -260,6 +264,7 @@ private struct MessagingConversationListView: View {
                           let conversations = listModel.value,
                           currentTab != .channels, currentTab.rows(conversations).isEmpty,
                           IMInboxSummary(conversations: conversations).rows(for: .direct).isEmpty else { return }
+                    if let emptyFeedAction { emptyFeedAction(); return }
                     showsSquare = true
                 }
                 .buttonStyle(.borderedProminent)

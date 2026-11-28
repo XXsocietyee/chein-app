@@ -27,10 +27,11 @@ import SwiftUI
     @StateObject private var inviteReminder = IMInviteReminderController()
     @State private var showsFriends = false
     @State private var showsReportResults = false
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
         MessagingHomeView(reader: readerOwner.reader(for: session), mediaReader: session.socialMessageMediaReader,
             senderForConversation: { session.messageSender(for: $0) }, expanded: session.imExpandedNavigation,
-            squareDestination: { close in AnyView(SessionSquareBrowserView(session: session, onClose: nil, onSignIn: close, embedsNavigationStack: false).id(session.squareReader.scope).cyPushedChrome()) },
+            emptyFeedAction: openDiscoverFeed,
             predictionEntry: { AnyView(SessionMerchantPredictionEntry(session: session)) },
             merchantChrome: session.account?.role == "merchant")
             .id(session.messagingViewIdentity)
@@ -58,6 +59,16 @@ import SwiftUI
             }
             .navigationDestination(isPresented: $showsFriends) { NativeFriendSessionDestination(session: session) }
             .navigationDestination(isPresented: $showsReportResults) { NativeChannelReportRecoveryEntry(session: session) }
+    }
+}
+
+extension SessionMessagingHome {
+    /// MP im/list onEmptyCta (index.js:345-349, 2026-10-29): 去发现找人 = `switchTab` to `pages/talent/list/index` on the
+    /// 帖文 feed. Pop the inbox, then hand the same page link to the entry path (俱乐部 tab → 帖文 top tab).
+    func openDiscoverFeed() {
+        guard let link = MiniProgramPageLink(path: "pages/talent/list/index", query: ["tab": "feed"]) else { return }
+        dismiss()
+        session.receiveNativeIntent(.miniProgramPage(link))
     }
 }
 
