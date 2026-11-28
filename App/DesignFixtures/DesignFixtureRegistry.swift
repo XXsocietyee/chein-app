@@ -366,9 +366,12 @@ struct E4LoginFixture: View {
     let error: String?
     let working: Bool
     @StateObject private var session = AppSession()
+    /// Sweep 17:30 (zh): the state fixture showed only phone sign-in; render the shipped channel set like `login-player`.
+    @State private var channels = LoginFixture.approvedChannels()
     var body: some View {
         var view = LoginView(intent: .player)
-        view.designOverride = .init(showsPassword: false, username: "", errorKey: error, working: working)
+        view.designOverride = .init(showsPassword: false, username: "", errorKey: error, working: working,
+                                    authChannels: channels)
         return view.environmentObject(session)
     }
 }
