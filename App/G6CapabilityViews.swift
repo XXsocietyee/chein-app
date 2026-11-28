@@ -354,7 +354,8 @@ private struct G6Avatar: View {
         coordinator?.setAnalyticsSessionID(id)
     }
 
-    func attach(_ g6: G6Capabilities, walking: Bool, sessionID: Int = 0, analytics: AnalyticsEventClient? = nil) async {
+    func attach(_ g6: G6Capabilities, walking: Bool, sessionID: Int = 0, analytics: AnalyticsEventClient? = nil,
+                journal: AIGuideJournal? = nil) async {
         guard !attached else { return }
         attached = true
         analyticsClient = analytics
@@ -377,9 +378,14 @@ private struct G6Avatar: View {
             showBubble: { [weak self] line in
                 guard let self else { return false }
                 self.bubble = line
+                // fix/1128c: the guide keeps the reviewed line after the bubble fades.
+                if let line { journal?.record(.hint, text: line) }
                 return true
             },
-            showFinishLine: { [weak self] line in self?.finishLine = line },
+            showFinishLine: { [weak self] line in
+                self?.finishLine = line
+                journal?.record(.hint, text: line)
+            },
             analytics: { [weak self] name, session in
                 guard let self, let client = self.analyticsClient else { return }
                 MiniProgramAnalytics.track(client, name, bizType: "roam", bizID: MiniProgramAnalytics.bizID(session), pagePath: "/pages/roam/index")
@@ -415,6 +421,8 @@ struct G6RoamNPCPromptModifier: ViewModifier {
     let finished: Bool
     let uniqueTiles: Int?
     var sessionID: Int = 0
+    /// fix/1128c: the live screen's guide journal (nil keeps the prompt layer exactly as before).
+    var journal: AIGuideJournal? = nil
     @Environment(\.g6Capabilities) private var g6
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -438,7 +446,7 @@ struct G6RoamNPCPromptModifier: ViewModifier {
                 }
             }
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: model.bubble)
-            .task { await model.attach(g6, walking: walking, sessionID: sessionID, analytics: analytics) }
+            .task { await model.attach(g6, walking: walking, sessionID: sessionID, analytics: analytics, journal: journal) }
             .onChange(of: sessionID) { _, id in model.setAnalyticsSessionID(id) }
             .onChange(of: walking) { _, now in if now { model.dispatch(.sessionStarted) } }
             .onChange(of: finished) { _, now in if now { model.dispatch(.sessionFinished) } }

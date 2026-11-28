@@ -125,11 +125,7 @@ import SwiftUI
             if stage.phase == .authorizing {
                 CYLoadingState()
             } else if stage.phase == .calibrating {
-                ProgressView {
-                    Text(LocalizedStringKey(kind == .ballShake ? "playkit.ball.calibration" : "playkit.audio.calibration"))
-                }
-                .frame(maxWidth: .infinity)
-                .accessibilityLabel(Text("playkit.sensor.calibrating"))
+                NativeSensorCalibrationView(kind: kind, startedAt: stage.calibrationStartedAt ?? Date(), seconds: stage.calibrationSeconds)
             }
             board
         } header: {
@@ -448,5 +444,44 @@ import SwiftUI
             Color.clear.frame(maxHeight: .infinity)
         }
         .accessibilityHidden(true)
+    }
+}
+
+
+/// MP `cy-play-calibrate` (play-stage, before ballshake / quiethold / shout): the kit's label
+/// (拿成你打算玩的姿势 / 先听一下这儿有多吵), a bar that fills over the calibration window, then
+/// 别动，量一下这儿的底子. One alert-style VoiceOver element, as the MP `aria-label`.
+@MainActor struct NativeSensorCalibrationView: View {
+    let kind: PlayKitScreenKind
+    let startedAt: Date
+    let seconds: TimeInterval
+
+    private var labelKey: LocalizedStringKey {
+        LocalizedStringKey(kind == .ballShake ? "playkit.calibrate.ball" : "playkit.calibrate.audio")
+    }
+
+    var body: some View {
+        VStack(spacing: CYSpacing.sm) {
+            Text(labelKey)
+                .font(.headline)
+                .multilineTextAlignment(.center)
+            ProgressView(timerInterval: startedAt...startedAt.addingTimeInterval(seconds), countsDown: false) {
+                EmptyView()
+            } currentValueLabel: {
+                EmptyView()
+            }
+            .tint(.primary)
+            .frame(maxWidth: 220)
+            Text("playkit.calibrate.sub")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, CYSpacing.sm)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(labelKey))
+        .accessibilityValue(Text("playkit.calibrate.sub"))
+        .accessibilityIdentifier("playkit.sensor.calibrating")
     }
 }

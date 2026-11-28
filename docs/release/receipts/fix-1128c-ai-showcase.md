@@ -76,9 +76,13 @@ facts parser.
   `sand` kind. No type of that branch is named here, so both branches compile alone. **After both merge**, add in
   `AIExperienceRootEnvironment.body`:
   `.environment(\.aiWeatherFacts, { WeatherContextBoard.shared.current?.guideFacts })`.
-- **fix/1128c-ai-npc-guide** (fetched 11-28: inventory only, no code yet; it plans `App/AIGuide/*`,
-  `App/AINPCReleaseComposition.swift`, `Core/StoryContent.swift`). No name collides (`grep` for `AIShowcase*`,
-  `AICreation*`, `AISafety*`, `AIExperience*`, `AITemplateFill*` was empty before this branch). **After both merge**, its
+- **fix/1128c-ai-npc-guide** (fetched again at the end of this run: `App/AIGuide/*` (`AIGuideSheet`, `AIGuideModel`,
+  `AIVoiceOut`, …), `App/AINPCReleaseComposition.swift`, `Core/StoryContent.swift` + `Resources/Story/StoryGuide.json`,
+  and a `tools/generate_project.py` glob for `App/AIGuide`). None of its type names collides with this branch
+  (`AIShowcase*`, `AICreation*`, `AISafety*`, `AIExperience*`, `AITemplateFill*`); this branch does not touch the
+  generator. Both branches append keys to `Resources/Localizable.xcstrings`: on a textual conflict, take either side
+  and re-run both `tools/add_*_localizations.py` scripts. `todaySuggestion(for:)` can return its `StoryGuidePrompt`
+  text. **After both merge**, its
   guide object conforms to `AIExperienceLinking` and is installed with `.environment(\.aiExperienceLink, …)` in
   `AIExperienceRootEnvironment`. Until then "Start AI guide" opens 漫游 and the NPC row is hidden (no dead control).
 - The new files live directly in `App/` and `Core/` (the generator globs only listed subfolders), so
@@ -98,10 +102,18 @@ Changed: `App/HomeFeedView.swift`, `App/SessionHomeFeedView.swift`, `App/Publish
 
 Pinned tests updated deliberately (each with a comment): `Tests/CoreTests/UGCContentSafetyServiceTests.swift` (DTO
 body), `Tests/CoreTests/PublishingAuxiliaryTests.swift` (marker cleared), `Tests/ContractChecks/test_project_edit_review_availability.py`
-and `Tests/ContractChecks/test_project_cloud_draft_intent.py` (下一步 / 提交草稿 go through `precheckThenReview`).
+`Tests/ContractChecks/test_project_cloud_draft_intent.py` (下一步 / 提交草稿 go through `precheckThenReview`) and
+`Tests/ContractChecks/test_activity_publishing_wizard.py` (slice hashes).
 
 ## Gates
-GATES_PLACEHOLDER
+Run on the final tree:
+- `python3 tools/generate_project.py` → 916 app-unit classes in 4 shards.
+- `python3 tools/check_scaffold.py` → PASS (5359 Swift files, 21470 bilingual keys).
+- `python3 tools/contract_ratchet.py --check` → 52 failing, baseline 52, **new 0**. Two more pins were updated
+  deliberately with comments: `test_activity_publishing_wizard` QUICK/PREFIX slice hashes (Create with AI section,
+  auto-open + undo) and `test_project_edit_review_availability` mutation (`.disabled(!model.canReview` prefix).
+- `python3 tools/check_design_consistency.py` → PASS (all kinds 0, incl. effect on clean page, raw radius, custom sheet).
+- `python3 tools/check_a11y_lint.py` → PASS (0 new).
 
 ## Not verified here
 No Swift compiler or simulator in this environment: the Swift sources were checked by reading only (declared
