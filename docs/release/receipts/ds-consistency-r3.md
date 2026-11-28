@@ -946,9 +946,18 @@ Other wrappers checked and clean: `DiscoverySectionHeader`, `NativeChannelSectio
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
 (0 debt, header font 0, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
+### Batch 2 — scroll-page section titles
+Scanned every player file that uses `CYSectionHeader` for a hand-built `.cyText(.sectionTitle)` title on the same page:
+4 hits, none a section title (dice check result line `PlayRPGComponents:130`, MOD content title `ModInstallationView:540`,
+role title `JourneyRoleViewSection:128`, pack art name `FreeExplorationViews:39`): no change. Header-named wrapper
+structs with their own font: `MPSectionHeader` (`MPParityKit.swift`, `.meta` secondary + padding, a second list-header
+look) had **0 call sites** → deleted. `E3SectionTitle` is used only by `DesignFixtures/E3Fixtures.swift` (left).
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS,
+`contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
 ### Not done (next run)
-- Scroll pages that mix `CYSectionHeader` with hand-built `Text(...).cyText(.sectionTitle)` section titles on the same
-  page: pick `CYSectionHeader` everywhere (next scan).
+- Page-hero headers (`ActivityDetailHeader`, `ClubDetailHeader`, `TeamPageHeader`: `.title2.bold()`) vs
+  `cyPageTitle`: check they share one hero title style.
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
