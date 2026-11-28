@@ -147,7 +147,8 @@ struct RegistrationSheetView: View {
                                 requiresFreshQuote: false,
                                 channel: RegistrationAppPayResolver.inAppChannel,
                                 onExpiredRebuild: { Task { await flow.requestQuote() } },
-                                payMethod: selectedPayMethod
+                                payMethod: selectedPayMethod,
+                                onSettled: { Task { await flow.readDurableStatus() } }
                             )
                         }
                         recoveredOrderSection
@@ -604,7 +605,8 @@ struct RegistrationSheetView: View {
         case .soldOut: return copy.t("该票种已售罄", "This ticket is sold out")
         case .signupClosed: return copy.t("报名已截止", "Registration is closed")
         case .quoteUnavailable: return copy.t("正在核对价格…", "Checking the price…")
-        case .paymentRequired: return copy.t("这笔报名需要付款，当前只开放免费报名", "This sign-up needs payment. Only a free sign-up is open")
+        // fix/1128-cn-pay P0-1: shown only while the payment switch is off.
+        case .paymentRequired: return copy.t("暂不支持在线支付，请稍后再试", "Online payment isn't available right now. Try again later.")
         case .intentAlreadySubmitted: return copy.t("已提交报名", "Already submitted")
         // R7-PC-C2-1: MP baoming.js:1717 toast('请选择儿童年龄').
         case .childAgeRequired: return copy.t("请选择儿童年龄", "Choose the child's age")
@@ -1307,7 +1309,10 @@ private struct RegistrationOperationSections: View {
                     onExpiredRebuild: { Task { await flow.requestQuote() } },
                     // P32: the CN in-app button is WeChat Pay (the only offered method until Alipay is ready).
                     payMethod: RegistrationPayMethod.effective(nil, market: RegionalLaunchConfiguration.storefrontMarket,
-                                                               applePayAvailable: ApplePayStripeAuthorizer.canMakePayments)
+                                                               applePayAvailable: ApplePayStripeAuthorizer.canMakePayments),
+                    // fix/1128-cn-pay P0-2/P1-2: the create's APP params open WeChat; a paid read refreshes the status.
+                    initialPayParams: result.payParams,
+                    onSettled: { Task { await flow.readKnownStatus() } }
                 )
             }
         }

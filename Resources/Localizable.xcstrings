@@ -356753,6 +356753,40 @@
           }
         }
       }
+    },
+    "registration.pay.payWith": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay with"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付方式"
+          }
+        }
+      }
+    },
+    "registration.pay.weChatNotReady": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WeChat Pay can't open on this device yet. Install or update WeChat, then pay from Me › Orders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备暂时无法打开微信支付。请安装或更新微信后，在「我的 › 订单」中支付。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

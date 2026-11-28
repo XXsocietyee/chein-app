@@ -4362,7 +4362,6 @@ final class AppSession: ObservableObject {
         })
     }
     private let nativeWeChatPaymentDriver = WeChatNativePaymentDriver()
-    // fix/1128-cn-pay P0-2: the APP-pay identity comes from build settings (Info.plist) when the runtime has none.
     private lazy var nativeWeChatPaymentAdapter = WeChatSDKPaymentAdapter(driver: nativeWeChatPaymentDriver,
         configuration: runtimeDependencies.weChatPaymentConfiguration ?? WeChatPaymentBuildSettings.current,
         allowed: { [weak self] in

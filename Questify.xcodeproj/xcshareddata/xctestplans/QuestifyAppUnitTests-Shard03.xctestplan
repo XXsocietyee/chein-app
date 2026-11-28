@@ -496,6 +496,7 @@
         "ReformWorkPackagesW02ToW20SectionViewTests",
         "ReformWorldHostWorkbenchViewTests",
         "RegionalEndpointAllowlistSectionViewTests",
+        "RegistrationPayLeaseTests",
         "RegistrationWaitlistOrderVisitTests",
         "ReleaseArchiveChecklistSectionViewTests",
         "ReleasePreflightDiagnosticsViewTests",
