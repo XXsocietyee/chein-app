@@ -164,7 +164,7 @@ extension PlayKitScreen {
                 Text(fallback).font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("playkit.eyebrow." + kind.rawValue)
             }
-            if !projection.title.isEmpty {
+            if !projection.title.isEmpty, !nativeQAHidesHeaderTitle {
                 Text(verbatim: projection.title).font(.title2.bold())
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
@@ -174,7 +174,7 @@ extension PlayKitScreen {
                     Text(verbatim: value).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
             }
-            if let source = PlayKitReferenceImage.source(in: raw) {
+            if kind != .qa, let source = PlayKitReferenceImage.source(in: raw) {
                 PlayKitReferenceButton(source: source, alt: PlayKitReferenceImage.alt(in: raw),
                     approvedHosts: approvedArtworkHosts, nodeID: model.state?.nodeID, kit: kind.rawValue)
             }
@@ -199,6 +199,7 @@ extension PlayKitScreen {
         switch kind {
         case .compass, .musicCorner: return ["lead", "prompt", "sub"]
         case .quietHold: return ["lead", "prompt", "hint"]
+        case .qa: return ["prompt", "hint", "sub"]
         default: return ["lead", "prompt", "hint", "sub"]
         }
     }
@@ -375,6 +376,20 @@ extension PlayKitScreen {
                 Text(verbatim: projection.options.first { $0.id == answer }?.label ?? answer)
             } label: {
                 Text("playkit.qa.revealedAnswer")
+            }
+        }
+        if kind == .qa, projection.complete, (raw["answerId"].text ?? "").isEmpty,
+           let answerText = raw["answerText"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !answerText.isEmpty {
+            LabeledContent {
+                Text(verbatim: answerText)
+            } label: {
+                Text("playkit.qa.revealedAnswer")
+            }
+            .accessibilityIdentifier("playkit.qa.answerText")
+        }
+        if kind == .qa, projection.complete || (raw["attempts"].integer ?? 0) > 0 {
+            ForEach((raw["lastFeedbackImages"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }, id: \.self) { url in
+                artwork(url)
             }
         }
         if kind == .typeIn, let result = projection.typeInResultKey {

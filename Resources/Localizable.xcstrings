@@ -178285,13 +178285,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not quite. Think again."
+            "value": "Not quite. Look at the clue again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不对，再想想"
+            "value": "还不对，再看看题面"
           }
         }
       }
@@ -351540,6 +351540,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "留下这句"
+          }
+        }
+      }
+    },
+    "playkit.qa.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type your answer here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在这里作答"
+          }
+        }
+      }
+    },
+    "playkit.qa.tag.answer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确答案"
+          }
+        }
+      }
+    },
+    "playkit.qa.tag.chosen": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的选择"
+          }
+        }
+      }
+    },
+    "playkit.hangman.howToDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One letter or character per box. Pinyin without tone marks; type V for ü."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一格填一个字或字母；拼音不写声调，ü 用 V 代替。"
           }
         }
       }
