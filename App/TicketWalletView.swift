@@ -121,7 +121,6 @@ import SwiftUI
             }
             .listStyle(.insetGrouped)
             .cyDomainScreen(.player)
-            .listSectionSpacing(20)
             .cyPageTitle("ticketWallet.title")
             .cyHideTabBar()
             .toolbar {

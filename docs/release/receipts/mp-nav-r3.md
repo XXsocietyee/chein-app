@@ -316,3 +316,14 @@ All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScre
 - mp-states / coordinator: the 消息 inbox preview is always "打开会话查看消息" (`MessagingPreview`, App/MessagingComponents.swift:300; `MessagingConversation` drops `lastMsgText` because recalled text may survive in it). MP `fmtPreview` shows the last message text / [图片] / [系统卡片]. Showing it needs a recall-safe server field first; left as is (privacy decision).
 
 - en-layout: `onboarding-1` (en) header and centre disc show 城瘾; LoginView `brandMark` and SettingsAboutView `appName` use `Text(verbatim: "城瘾")` (en should read Chein).
+
+## Re-scan 11-28 05:xx (merged combined-r7 733bfb368; sweep 03:49 mp-nav sheets clean, no coordinator row)
+
+Next edge without a row: sign-in from club pages landed by a share card / link (MP `pages/club/detail/index?id=&postId=` share path, club/detail index.js:3502; talent/list index.js:590).
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| landed `pages/club/detail/index` (share card, link, notification) → 申请加入 / members / activity sign-in prompts → App/MPReviewedPageScreen.swift:891 `ClubDetailView` | `onSignIn: {}`: the signed-out 登录 action did nothing (same dead-button defect fixed for Square at 18:10) | `onSignIn: { signIn() }` = clear entry + 我的 tab sign-in, like every other landed page | fixed (not compiled here) |
+| landed `pages/talent/list/index` → App/MPReviewedPageScreen.swift:87 `ClubHomeView`; owned-club fallback (`ownedClubs`, :909 `ClubOwnedView`) | same `onSignIn: {}` | same `{ signIn() }` | fixed (not compiled here) |
+
+Sections / order unchanged; navigation only.

@@ -328,6 +328,15 @@ No open coordinator item for mp-home (03:15: "no new findings"); the sweep build
 | `pages/search2/result/index.wxml:15-16` `cy-tabs variant="chip"` → `App/GlobalSearchView.swift` `resultScopeChips` | Motion/feedback: switching 全部 / 主题 / 活动 … gave no feedback. `.sensoryFeedback(.selection, trigger: searchModel.scope)` on the chip row, as a segmented control ticks. | **Fixed** (`d2-search-results`; haptics need a device). |
 | `pages/index/index` greeting row city picker (`onTapHomeCity` menu) → `App/HomeFeedView.swift` | Motion/feedback: choosing a city gives no haptic. | **Not done, by contract** — `test_native_design_motion.test_content_animation_is_local_and_not_a_refresh_success` forbids `sensoryFeedback` in `HomeFeedView.swift`; left as is. |
 
+## Round 3 continue (23) — 04:00 sweep (build 733bfb368), "Next round" item 3 (all states)
+
+Merged `origin/ui/combined-r7` (clean). Sweep `mp-home/sheet-zh-Hans.jpg` / `sheet-en.jpg` (build 733bfb368): no new coordinator finding for mp-home; d2-home / d2-home-offline / d2-search / d2-search-results / wave-today-club / rep3-activity-detail read correctly in both languages (search field is the system `.searchable`, 类别 capsules one line, result rows text-only, activity hero with cover).
+
+| MP page → native view | MP state | Difference | Fixed / not |
+|---|---|---|---|
+| `pages/search2/result/index.wxml:23` `cy-empty` 没有找到 → `App/GlobalSearchView.swift` results branch (`globalSearch.empty`) | empty result list | State existed but no design fixture showed it, so the sweep never checked it. | **Added** fixture `d2-search-empty` (`SearchMapFixtureReader(.empty)` + the localized keyword) in `App/DesignFixtures/D2Fixtures.swift` / `DesignFixtureRegistry.swift`; UI test `Tests/AppUITests/Fixture_d2_search_emptyTests.swift` (en + zh-Hans screenshot, no raw keys). |
+| `pages/search2/result/index.wxml:23` `cy-error` 没能完成搜索 + 重试 → `GlobalSearchView` `SearchMapIssue("globalSearch.failed")` | request failed | Same: no fixture. | **Added** fixture `d2-search-failed` (`SearchMapFixtureReader(.failure)`) + `Fixture_d2_search_failedTests.swift`. Coordinator: please add both ids to the mp-home sweep row. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -357,3 +366,4 @@ No open coordinator item for mp-home (03:15: "no new findings"); the sweep build
 - Needs a simulator pass (continue 21): `d2-search-results` rows with plain kind / area lines (one leading edge) in en + zh-Hans, AX5.
 - Needs a simulator pass (continue 21): `wave-today-club` meta line time-only in en + zh-Hans.
 - Needs a device pass (continue 22): selection haptics on the search result-scope chips.
+- Needs a simulator pass (continue 23): `d2-search-empty` (没有找到 / no results) and `d2-search-failed` (没能完成搜索 + 重试) in en + zh-Hans.

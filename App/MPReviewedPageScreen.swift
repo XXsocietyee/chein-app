@@ -84,7 +84,7 @@ import SwiftUI
                     .cyPushedChrome()
             } else { unavailable }
         case "pages/talent/list/index":
-            ClubHomeView(reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
+            ClubHomeView(reader: session, onSignIn: { signIn() }, actionCoordinator: session.clubActionCoordinator,
                          management: session.clubManagementContext, community: session.clubCommunityContext,
                          publicRoster: session.clubPublicRosterReader,
                          topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
@@ -888,7 +888,7 @@ import SwiftUI
     @Environment(\.clubBadgeHostFactory) private var badgeHost
 
     private func clubDetail(_ id: Int, tab: ClubDetailTab?, postID: Int? = nil, autoScan: Bool = false) -> some View {
-        ClubDetailView(id: id, reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
+        ClubDetailView(id: id, reader: session, onSignIn: { signIn() }, actionCoordinator: session.clubActionCoordinator,
                        management: session.clubManagementContext, community: session.clubCommunityContext,
                        publicRoster: session.clubPublicRosterReader, requestedTab: tab, focusPostID: postID, autoScan: autoScan)
     }
@@ -906,7 +906,7 @@ import SwiftUI
     }
 
     private var ownedClubs: some View {
-        ClubOwnedView(reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
+        ClubOwnedView(reader: session, onSignIn: { signIn() }, actionCoordinator: session.clubActionCoordinator,
                       management: session.clubManagementContext, community: session.clubCommunityContext,
                       publicRoster: session.clubPublicRosterReader)
     }
