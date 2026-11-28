@@ -428,7 +428,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reply (up to 2,000 UTF-16 units)"
+            "value": "Reply (up to 2,000 characters)"
           }
         }
       }
@@ -1052,7 +1052,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The reply must not exceed 2,000 UTF-16 units."
+            "value": "Keep the reply to 2,000 characters or fewer."
           }
         }
       }
