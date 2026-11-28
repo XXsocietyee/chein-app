@@ -170,6 +170,16 @@ enum SquarePostLocalMediaPresentationState: Equatable {
     @Environment(\.locale) private var locale
     private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     private func text(_ chinese: String, _ english: String) -> String { self.chinese ? chinese : english }
+    /// The result line appears without focus moving, so VoiceOver hears it once.
+    private func announcement(for state: SquarePostLocalMediaPresentationState) -> String? {
+        switch state {
+        case .imagePreview: return text("图片已就绪，仅本地预览", "Image ready, local preview only")
+        case .videoUnavailable: return text("视频暂不可用", "Video unavailable")
+        case .failed: return text("无法读取或不支持此媒体", "This media could not be read or is unsupported")
+        case .expired: return text("上次选择已失效，请重新选择", "Previous selection expired. Choose again.")
+        default: return nil
+        }
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
             if let thumbnail = model.thumbnail {
@@ -206,6 +216,9 @@ enum SquarePostLocalMediaPresentationState: Equatable {
         }
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityIdentifier("squarePostLocalMedia.state")
+        .onChange(of: model.state) { _, next in
+            if let message = announcement(for: next) { AccessibilityNotification.Announcement(message).post() }
+        }
         .cySheet(isPresented: Binding(get: { model.previewRequest != nil }, set: { if !$0 { model.closePreview() } })) { Group {
             if let request = model.previewRequest {
                 NavigationStack {

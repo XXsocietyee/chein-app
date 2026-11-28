@@ -751,9 +751,11 @@ reply editor (`SocialActionEditorView`) already speaks its counter as "n of N ch
 | `pages/square` publish → 草稿箱 | `SquareCloudComposerView.swift:264` (drafts list) | ✓ (drafts → pick / delete → undo) | Every row read only "Continue this draft" (label override hid nickname, date, summary) → content is the label, "Continue this draft" is the hint; nickname + date stack under each other when they do not fit (AX sizes) | Done |
 | `pages/square` publish → place / activity chips | `SquareCloudComposerView.swift:141` (`chip`) | ✓ | Clear buttons all read "Clear" → "Clear: <place / activity name>" | Done |
 | `pages/report-mine` (举报进度 list) | `SquareReportProgressView.swift:48` | ✓ (filter chips → rows 对象 · 原因 + 阶段 / 编号 · 时间 / ETA → 加载更多 → 已经到底了) | Row head kept the stage beside target · reason at AX sizes (both columns squeezed to a few characters) → stage moves under them at accessibility sizes (`AnyLayout`, same as `SquareXcxPostCard`) | Done |
+| `pages/square` publish → selected media (composer workspace) | `SquarePostLocalMediaPresentation.swift:168` (`SquarePostLocalMediaPreview`) | ✓ (choose → reading → preview / failed / expired → remove) | Result lines (image ready, video unavailable, failed, expired) appeared without focus moving, so VoiceOver heard nothing → one announcement per state change, en + zh-Hans | Done |
+| `pages/square` detail → related topic | `SquareRelatedTopicView.swift:63` | ✓ | `.bordered` system button with Label, no fixed sizes — nothing to change | Done |
 
 ## Not done (next run starts here)
-- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): square composer media (`SquarePostLocalMediaInspector` / `Picker` / `Presentation`), `SquareRelatedTopicView`.
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): square workspace (`SquareWorkspaceView` sections other than media), square topic pages (`SquareTopic*`), social public profile (`SocialPublicProfileView`).
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
