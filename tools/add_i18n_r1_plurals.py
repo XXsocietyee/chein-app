@@ -64,6 +64,9 @@ UNPINNED = {
     'official.summary.upcoming %lld', 'official.detailParity.duration.days %lld', 'official.detailParity.duration.hours %lld',
     # Square counts: `docs/parity/w2-07-localizations.json` rows carry `en_one`, and build_w2_07 writes the variations.
     'square.xcx.commentsA11y %lld', 'square.xcx.likesA11y %lld', 'square.xcx.play.completedNodes %lld',
+    # Builders that write `en_one` themselves (build_roam_private_tools_localizations, add_im_messaging_localizations).
+    'roam.capsule.daysLeft %lld', 'roam.export.rows %lld', 'roam.goals.unit.routes %lld', 'roam.goals.unit.days %lld',
+    'im.card.pointCount %lld', 'social.guideTemplates.playedTimes %lld', 'playerJourney.parity.countdown %lld',
 }
 # Families a contract check reads by prefix (Tests/ContractChecks/test_activity_registration_parity_w2_06.py).
 PINNED_PREFIXES = ('activityParity.', 'registrationParity.')
