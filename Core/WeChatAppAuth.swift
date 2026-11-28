@@ -54,6 +54,13 @@ public protocol WeChatAppAuthorizing: AnyObject {
     func start(_ request: WeChatAppAuthorizationRequest,
                callback: @escaping (String?, WeChatAppAuthorizationOutcome) -> Void)
     func cancel(attemptID: UUID)
+    /// WeChat is installed and new enough to authorize. The login screen shows the WeChat button only then
+    /// (round 3 sweep 04:50: "shown only when WeChat is installed").
+    var isAppAvailable: Bool { get }
+}
+
+extension WeChatAppAuthorizing {
+    public var isAppAvailable: Bool { true }
 }
 
 @MainActor
@@ -111,7 +118,7 @@ public final class WeChatAppAuthCoordinator {
     public var canStart: Bool { !isWorking && phase != .signedIn && gate().permitsAuthorization && context().permitsLogin && adapter != nil && service != nil }
     /// The channel exists in this build (gate open, SDK and exchange wired). When false the login screen hides the row:
     /// players never see an unavailable sign-in method (round 3 sweep 19:15, OWNER RULE 2: no dead controls).
-    public var isOffered: Bool { gate().permitsAuthorization && adapter != nil && service != nil }
+    public var isOffered: Bool { gate().permitsAuthorization && adapter?.isAppAvailable == true && service != nil }
     private let adapter: (any WeChatAppAuthorizing)?
     private let service: (any WeChatAppExchanging)?
     private let gate: () -> WeChatAppAuthGate

@@ -890,6 +890,49 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         XCTAssertThrowsError(try ProjectEditRuntimeStats.setEnabled(true, .hp, in: schemaTwo))
     }
 
+    func testCustomValuesFollowTheRuntimeValuesCard() throws {
+        // MP openValueEditor: a new row is counter.*, 0 至 100, 开局 0, visible.
+        let base = try ProjectEditRuntimeStats.setEnabled(true, .hp, in: try draft(with: ["schemaVersion": .number(1)]))
+        XCTAssertTrue(ProjectEditRuntimeValues.values(in: base).isEmpty)
+        var row = ProjectEditRuntimeValues.newValue(in: base, now: Date(timeIntervalSince1970: 1_000))
+        XCTAssertTrue(row.key.hasPrefix("counter.value_"))
+        XCTAssertEqual(row.min, 0)
+        XCTAssertEqual(row.max, 100)
+        // MP values.attribute: 名称 1–24, range -10000…10000 with min ≤ max.
+        XCTAssertThrowsError(try ProjectEditRuntimeValues.save(row, link: false, in: base))
+        row.label = "体力"
+        row.min = 5
+        row.max = 4
+        XCTAssertThrowsError(try ProjectEditRuntimeValues.save(row, link: false, in: base))
+        row.max = 50
+        // MP saveValueEditor: a new row keeps the editor's 开局值 (0 here, so 开局值越界 shows).
+        let saved = try ProjectEditRuntimeValues.save(row, link: true, in: base)
+        let values = ProjectEditRuntimeValues.values(in: saved)
+        XCTAssertEqual(values.map(\.label), ["体力"])
+        XCTAssertTrue(values[0].invalidInitial)
+        XCTAssertEqual(try journeyRules(saved)["stateEnabled"], .bool(true))
+        // MP addValueLink: link_1, PER_POINT onto sys.hp.
+        XCTAssertTrue(ProjectEditRuntimeValues.linked(row.key, in: saved))
+        let link = try XCTUnwrap(try journeyRules(saved)["statLinks"]?.array?.first?.object)
+        XCTAssertEqual(link["id"], .string("link_1"))
+        XCTAssertEqual(link["targetKey"], .string("sys.hp"))
+        XCTAssertEqual(link["trigger"], .string("PER_POINT"))
+        // MP removeValue: refused while referenced (its own link counts), allowed after the link is off.
+        XCTAssertThrowsError(try ProjectEditRuntimeValues.remove(row.key, in: saved)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeValues.Refusal, .referenced([.link("link_1")]))
+        }
+        let unlinked = try ProjectEditRuntimeValues.save(row, link: false, in: saved)
+        XCTAssertFalse(ProjectEditRuntimeValues.linked(row.key, in: unlinked))
+        let removed = try ProjectEditRuntimeValues.remove(row.key, in: unlinked)
+        XCTAssertTrue(ProjectEditRuntimeValues.values(in: removed).isEmpty)
+        XCTAssertEqual(try journeyRules(removed)["stateEnabled"], .bool(true))
+        // MP addValueLink: 请先启用生命值 when HP is off.
+        let hpOff = try ProjectEditRuntimeStats.setEnabled(false, .hp, in: base)
+        XCTAssertThrowsError(try ProjectEditRuntimeValues.save(row, link: true, in: hpOff)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeValues.Refusal, .copy(ProjectEditRuntimeValues.Copy.needsHP))
+        }
+    }
+
     func testActionCountAndConsumeOnNoEffectFollowTheRuntimeValuesCard() throws {
         let base = try draft(with: ["schemaVersion": .number(1)])
         XCTAssertNil(ProjectEditThemeRules.actionLimit(in: base))
