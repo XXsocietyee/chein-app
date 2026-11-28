@@ -371,3 +371,14 @@ Merged `origin/ui/combined-r7` (clean, 78 commits). That build has continue 16 (
 | `zh-Hans-e4-wallet-balance.jpg`: dates `2026-11-06 18:20:00` | — | — | Kept: `LocaleDisplay.civil` leaves zh server dates as given (owner-approved, see continue 14). |
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 19 (half-hourly re-arm, sweep 01:10 UTC build 907570051)
+
+Merged `origin/ui/combined-r7` (clean, 48 commits). The 01:20 coordinator sweep lists mp-mine as fixed (Me card: two equal buttons, ··· top-trailing). That build predates continue 18, so the d2-me 项目 tab still shows only 我的资产 there. Every `pages/member/*` and `subpackageMember/*` page now has a receipt row. The four without one (`cy-frames`, `cy-illus`, `cy/timeline`, `roleBadge`) are shared drawing primitives, not pages. Screens checked: `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg`, `sheet-en.jpg`.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `*-e4-member.jpg`: a second 我的 / Me root that shows the card with one full-width 票夹 (no glyph), no [开始探索], no tabs, and 当前权益 right under the card. This is the layout the 14:13 check removed. | MP `cy/profile`: card → [开始探索][票夹] → tabs 项目/推文/成就/关于; 当前权益 is in 关于 (wxml ~533) | `App/DesignFixtures/DesignFixtureRegistry.swift`, `App/DesignFixtures/D2Fixtures.swift` | **Fixed (fixture).** `e4-member` now mounts `D2MeFixture(initialTab: .about)`, the same MP structure as d2-me, opened on 关于 so 当前权益 is still the shot's subject. `MemberHomeFixtureHost` is unchanged for `MemberHomeFlowTests` (`--uitesting-member-parity`). |
+| same: the single 票夹 button has no glyph | MP `pc-ticket`: icon + 票夹 | `App/MemberHomeHeader.swift` (single-button branch, used when 开始探索 has no destination) | **Fixed.** That branch now calls the shared `ticketsButton(…, fixedLabel: false)`: same glyph, centring, key, id and a11y control as the paired button. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
