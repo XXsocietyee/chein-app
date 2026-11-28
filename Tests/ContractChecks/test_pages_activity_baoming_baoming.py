@@ -87,7 +87,9 @@ class ActivityBaomingPageReadyTests(unittest.TestCase):
         self.assertEqual(len(identifiers), len(set(identifiers)))
         for identifier in identifiers:
             # US launch r1: the phone row is the shared PhoneCountryField, which takes its identifier as an argument.
-            self.assertTrue(f'accessibilityIdentifier("{identifier}")' in view or f'identifier: "{identifier}"' in view, identifier)
+            # mp-states r3: the participant read failure is one CYEmptyState, whose retry takes `actionIdentifier:`.
+            self.assertTrue(f'accessibilityIdentifier("{identifier}")' in view or f'identifier: "{identifier}"' in view
+                            or f'actionIdentifier: "{identifier}"' in view, identifier)
         paired = {row['accessibilityIdentifier'] for row in doc['strings'] if 'accessibilityIdentifier' in row}
         self.assertTrue(paired)
         self.assertTrue(paired <= set(identifiers))
