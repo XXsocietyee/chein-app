@@ -44,7 +44,7 @@ struct E5bBadgeWallFixture: View {
                      tt("Ten Spots", "十处打卡"), tt("Club Founder", "俱乐部创始人"), tt("Rainy Day Walker", "雨天漫步者")]
         let hints = [tt("Check in at 10 spots", "在 10 个地点打卡"), tt("Create a club", "创建一个俱乐部"),
                      tt("Finish a roam on a rainy day", "在雨天完成一次漫游")]
-        let json = #"[{"badgeCode":"A","badgeName":"\#(names[0])","category":"EXPLORE","unlocked":true,"unlockTime":"2026-10-01 10:00:00"},{"badgeCode":"B","badgeName":"\#(names[1])","category":"EXPLORE","unlocked":true},{"badgeCode":"C","badgeName":"\#(names[2])","category":"FOOD","unlocked":true},{"badgeCode":"D","badgeName":"\#(names[3])","category":"EXPLORE","unlockHint":"\#(hints[0])","unlocked":false},{"badgeCode":"E","badgeName":"\#(names[4])","category":"SOCIAL","unlockHint":"\#(hints[1])","unlocked":false},{"badgeCode":"F","badgeName":"\#(names[5])","category":"EXPLORE","unlockHint":"\#(hints[2])","unlocked":false}]"#
+        let json = #"[{"badgeCode":"A","badgeName":"\#(names[0])","category":"EXPLORE","unlocked":true,"unlockTime":"2026-10-01 10:00:00"},{"badgeCode":"B","badgeName":"\#(names[1])","category":"EXPLORE","unlocked":true,"unlockTime":"2026-09-12 16:30:00"},{"badgeCode":"C","badgeName":"\#(names[2])","category":"FOOD","unlocked":true,"unlockTime":"2026-08-03 09:15:00"},{"badgeCode":"D","badgeName":"\#(names[3])","category":"EXPLORE","unlockHint":"\#(hints[0])","unlocked":false},{"badgeCode":"E","badgeName":"\#(names[4])","category":"SOCIAL","unlockHint":"\#(hints[1])","unlocked":false},{"badgeCode":"F","badgeName":"\#(names[5])","category":"EXPLORE","unlockHint":"\#(hints[2])","unlocked":false}]"#
         let list = (try? JSONDecoder().decode([ProfileIdentityBadge].self, from: Data(json.utf8))) ?? []
         badges = list.map { .identity($0) }
     }
@@ -157,7 +157,7 @@ struct A11yPassportAX5Fixture: View {
     var body: some View {
         IAPassportFixture(count: 3, badges: [
             PassportBadge(id: 0, name: iaFixtureText("Night Owl", "夜猫子")),
-            PassportBadge(id: 1, name: iaFixtureText("First Roam", "第一次漫游"))
+            PassportBadge(id: 1, name: iaFixtureText("First Stamp", "第一枚印章"))
         ], badgeTotal: 6)
             .environment(\.dynamicTypeSize, .accessibility5)
     }
