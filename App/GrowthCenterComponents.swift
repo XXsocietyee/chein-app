@@ -23,6 +23,7 @@ struct GrowthCenterIssueView: View {
     var failedTitle: LocalizedStringKey? = nil
     var deniedTitle: LocalizedStringKey? = nil
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.rootSignIn) private var rootSignIn
     var body: some View {
         Group {
             if issue == .network {
@@ -32,12 +33,12 @@ struct GrowthCenterIssueView: View {
                              actionIdentifier: "growth.retry",
                              kind: .offline,
                              action: retry)
-            } else if issue == .login, rootTabSwitch.isAvailable {
-                // GROWTH-3: MP access gate — 登录 opens 我的 instead of a dead-end line.
+            } else if issue == .login, let signIn = rootSignIn.signedOutAction(fallback: rootTabSwitch) {
+                // GROWTH-3: MP access gate — 登录 instead of a dead-end line (mp-states r3: the sign-in sheet over this page).
                 CYEmptyState(systemImage: "lock", issueTitle,
                              messageIdentifier: "growth.issue",
                              actionTitle: "auth.signIn", actionIdentifier: "growthCenter.signIn",
-                             action: { rootTabSwitch(.mine) })
+                             action: signIn)
             } else if issue == .login || issue == .notConfigured {
                 Label {
                     Text(issue == .login ? issueTitle : LocalizedStringKey(issue.localizationKey))
