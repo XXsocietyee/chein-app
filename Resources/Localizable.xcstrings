@@ -276299,6 +276299,35 @@
         }
       }
     },
+    "topic.source.perkCapacity %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ticket on sale this round"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld tickets on sale this round"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本期可售 %lld 张"
+          }
+        }
+      }
+    },
     "topic.source.refundRule %@": {
       "extractionState": "manual",
       "localizations": {
