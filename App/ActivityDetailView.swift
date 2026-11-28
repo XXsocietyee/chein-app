@@ -247,6 +247,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             }
         }
         .task(id:id) { await loads.run { await load() } }
+        .onReceive(NotificationCenter.default.publisher(for: .cyActivityEditSaved), perform: reloadAfterEdit)
         .onAppear { gateIsVisible = true; gatePresentationID = UUID(); if startsWithMoreInfoOpen { showsMoreInfo = true } }
         .onDisappear { loads.cancel(); generation += 1; if phase.isLoading { phase = .idle } }
         .onDisappear { gateIsVisible = false; gatePresentationID = UUID() }
@@ -288,7 +289,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 .themeDomain(.player)
                 .cySheet()
         }
-        .cySheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
+        // Gap #28 (G-01a): a closed registration sheet re-reads the detail, so the footer and counts follow the new ticket.
+        .cySheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false; loads.start { await load() } }) {
             Group {
             if let access,case .allowed(let detail)=access {
                 SessionRegistrationSheet(activity:detail)
@@ -783,6 +785,11 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             }
         }
     } }
+    /// fix-1128b-social #27: the editor's server-acknowledged save re-reads this activity.
+    private func reloadAfterEdit(_ note: Notification) {
+        guard (note.userInfo?["id"] as? Int) == id else { return }
+        loads.start { await load() }
+    }
     @MainActor private func load() async {
         generation += 1
         let operation=generation
