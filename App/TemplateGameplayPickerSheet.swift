@@ -1,10 +1,10 @@
 import SwiftUI
 
-/// Screens r4 · Figma 237:71933 `GameplayPickerSheet` (CF-51, SR2-19; section 237:71932, detents `.fraction(0.62)` /
-/// `.large`). The gameplay editor's 完成方式 is picked here: category chips, a two-column grid of preview tiles with the
-/// name under each, the picked type's description in the footer. Tapping a tile selects it (neutral 1.5 pt border +
-/// filled check, `.selection`); the **one** confirm is 完成 in the header (no bottom bar, no second black capsule).
-/// While advanced games are on, every type moves into the collapsed unavailable group with the reason once.
+/// Screens r4 · Figma 237:71933 `GameplayPickerSheet` (CF-51, SR2-19; detents `.fraction(0.62)` / `.large`), laid out
+/// as the MP 选择玩法 sheet (`publish/temp/index.wxml:1656-1680`, mp-publish H-11): category tabs in MP group order,
+/// the rows of one category (icon · name · description · check), the picked type's description in the footer.
+/// Tapping a row selects it (`.selection`); the **one** confirm is 完成 in the header. While the sheet is locked every
+/// row stays in place, dimmed, with the reason as its description (MP `g.reason`).
 struct TemplateGameplayPickerSheet: View {
     let current: TemplateAuthoringMethod
     var locked: Bool = false
@@ -52,7 +52,16 @@ struct TemplateGameplayPickerSheet: View {
         }
     }
 
-    private var choices: [EditorGameplayChoice] { methodChoices + inferenceChoices }
+    /// MP `node-game-catalog.js` group order: 问答类 → 推理类 → 互动类 → 挑战类 (each group keeps its own order).
+    private var choices: [EditorGameplayChoice] {
+        methodChoices(in: "config.gameplay.category.quiz") + inferenceChoices
+            + methodChoices(in: "config.gameplay.category.interact") + methodChoices(in: "config.gameplay.category.challenge")
+    }
+
+    private func methodChoices(in categoryKey: String) -> [EditorGameplayChoice] {
+        let methods: [TemplateAuthoringMethod] = TemplateAuthoringMethod.allCases.filter { Self.categoryKey($0) == categoryKey }
+        return methods.map { methodChoice($0) }
+    }
 
     /// MP node-game-catalog.js:118 — 排序 / 连线 / 分类 under 推理 (Core `TemplateAuthoringGameplayCatalog.inference`).
     private var inferenceChoices: [EditorGameplayChoice] {
@@ -79,17 +88,15 @@ struct TemplateGameplayPickerSheet: View {
         }
     }
 
-    private var methodChoices: [EditorGameplayChoice] {
-        TemplateAuthoringMethod.allCases.map { method in
-            EditorGameplayChoice(
-                id: String(method.rawValue),
-                title: appLocalized(String.LocalizationValue(stringLiteral: method.labelKey), locale: locale),
-                summary: ConfigR4Text.string("config.gameplay.summary.\(method.rawValue)", locale: locale),
-                systemImage: Self.symbol(method),
-                category: ConfigR4Text.string(Self.categoryKey(method), locale: locale),
-                unavailableReason: locked ? ConfigR4Text.string("config.gameplay.locked", locale: locale) : nil
-            )
-        }
+    private func methodChoice(_ method: TemplateAuthoringMethod) -> EditorGameplayChoice {
+        return EditorGameplayChoice(
+            id: String(method.rawValue),
+            title: appLocalized(String.LocalizationValue(stringLiteral: method.labelKey), locale: locale),
+            summary: ConfigR4Text.string("config.gameplay.summary.\(method.rawValue)", locale: locale),
+            systemImage: Self.symbol(method),
+            category: ConfigR4Text.string(Self.categoryKey(method), locale: locale),
+            unavailableReason: locked ? ConfigR4Text.string("config.gameplay.locked", locale: locale) : nil
+        )
     }
 
     /// One monochrome SF Symbol per gameplay (CF-56: gameplay identity is always the same glyph).

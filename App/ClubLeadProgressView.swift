@@ -179,13 +179,14 @@ enum ClubOwnerStageNow {
                     }
                     if !snapshot.nodes.isEmpty {
                         Section {
-                            DisclosureGroup("club.leadProgress.timeline", isExpanded: $expanded) {
+                            DisclosureGroup(isExpanded: $expanded) {
                                 ForEach(snapshot.nodes) { node in
                                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                         Label {
                                             VStack(alignment: .leading, spacing: 2) {
                                                 Text(LocalizedStringKey(node.titleKey))
-                                                Text(LocalizedStringKey(node.stateKey)).font(.subheadline).foregroundStyle(.secondary)
+                                                nodeDescription(node.id, snapshot).font(.subheadline).foregroundStyle(.secondary)
+                                                Text(LocalizedStringKey(node.stateKey)).font(.footnote).foregroundStyle(.secondary)
                                             }
                                         } icon: {
                                             Image(systemName: node.state == .done ? "checkmark.circle" : node.state == .doing ? "record.circle" : "circle")
@@ -196,6 +197,8 @@ enum ClubOwnerStageNow {
                                     }.accessibilityElement(children: .combine)
                                         .accessibilityIdentifier("club.leadProgress.node.\(node.id)")
                                 }
+                            } label: {
+                                timelineSummary(snapshot)
                             }.accessibilityIdentifier("club.leadProgress.toggle")
                         }
                     }
@@ -229,6 +232,21 @@ enum ClubOwnerStageNow {
             Text(verbatim: String(count)).monospacedDigit()
         } label: {
             Label(title, systemImage: symbol)
+        }
+    }
+    /// MP `buildLeadTimeline` summary 「带队进度 · 当前站」 on the collapsed row.
+    private func timelineSummary(_ snapshot: ClubLeadProgressSnapshot) -> Text {
+        guard let key = snapshot.currentStationKey else { return Text("club.leadProgress.timeline") }
+        let station = String(localized: String.LocalizationValue(key))
+        return Text("club.leadProgress.summary \(station)")
+    }
+    /// MP `buildLeadTimeline` descs, one per station (pages/club/detail/index.js:1569-1574).
+    private func nodeDescription(_ id: Int, _ snapshot: ClubLeadProgressSnapshot) -> Text {
+        switch id {
+        case 0: return snapshot.topicCount > 0 ? Text("club.leadProgress.desc.published \(snapshot.topicCount)") : Text("club.leadProgress.desc.publishFirst")
+        case 1: return snapshot.sentCount > 0 ? Text("club.leadProgress.desc.sent \(snapshot.sentCount)") : Text("club.leadProgress.desc.chooseTopic")
+        case 2: return snapshot.pendingCount > 0 ? Text("club.leadProgress.desc.waiting \(snapshot.pendingCount)") : Text("club.leadProgress.desc.waitHere")
+        default: return Text("club.leadProgress.desc.accepted")
         }
     }
     private func reload(_ scope: ClubLeadProgressContext) {

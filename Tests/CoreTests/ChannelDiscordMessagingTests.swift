@@ -586,7 +586,7 @@ final class ChannelDiscordMessagingTests: XCTestCase {
         XCTAssertTrue(ChannelMessageBurstGrouper.formatDivider(.today(clock: "08:30"), locale: en).hasPrefix("Today 8:30"))
         XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today(clock: "08:30")), "今天 08:30")
         XCTAssertTrue(ChannelMessageBurstGrouper.formatDivider(.date(month: 11, day: 7, clock: "09:00"), locale: en).hasPrefix("Nov 7, 9:00"))
-        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.date(month: 11, day: 7, clock: "09:00"), locale: zh), "11-07 09:00")
+        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.date(month: 11, day: 7, clock: "09:00"), locale: zh), "11月7日 09:00") // mp-club r3 pass 39: locale date, not raw MM-dd
     }
 
     func testClubRecordDecodesMyJoinReviewReasonAndTrimsBlank() throws {
