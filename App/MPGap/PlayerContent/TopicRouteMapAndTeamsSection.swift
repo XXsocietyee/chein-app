@@ -42,7 +42,7 @@ public struct TopicRouteMapAndTeamsSection: View {
             if totalCount > 0 {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     LabeledContent {
-                        Text("\(completedCount)/\(totalCount)")
+                        Text("\(completedCount)/\(totalCount)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(completedCount)) \(Int(totalCount))"))
                             .monospacedDigit()
                     } label: {
                         Text("topicRoute.progress.title")

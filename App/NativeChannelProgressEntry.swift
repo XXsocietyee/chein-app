@@ -147,7 +147,7 @@ struct NativeChannelProgressEntryIdentity: Hashable {
                             LabeledContent { Text(verbatim: String(members.completed)) } label: { Text("completed", tableName: "NativeChannelProgress") }
                             if let percent = members.avgPercent { LabeledContent { Text(verbatim: "\(percent)%") } label: { Text("average", tableName: "NativeChannelProgress") } }
                             ForEach(Array((overview.teams ?? []).enumerated()), id: \.offset) { index, team in
-                                LabeledContent { Text(verbatim: "\(team.done)/\(team.required)") } label: {
+                                LabeledContent { Text(verbatim: "\(team.done)/\(team.required)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(team.done)) \(Int(team.required))")) } label: {
                                     Text("d7.channelProgress.teamNumber \(index + 1)", tableName: "NativeChannelProgress")
                                 }
                             }
