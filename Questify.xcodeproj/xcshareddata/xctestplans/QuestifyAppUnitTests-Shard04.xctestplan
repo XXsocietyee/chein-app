@@ -325,6 +325,7 @@
         "NativeEnrollmentAppTests",
         "NativeFriendRemovalPresentationTests",
         "NativeFriendRequestReviewHostingTests",
+        "NativeGameStopwatchTriesLeftTests",
         "NativeHomeReturnCompositionTests",
         "NativeHomeReturnForegroundLocationTests",
         "NativeHomeReturnKeychainJournalTests",
