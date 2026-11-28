@@ -211,6 +211,7 @@ import SwiftUI
     }
     @ViewBuilder private var recurrenceRows: some View {
         if !topicFacts.isEmpty { topicPicker }
+        if let fact = topicFacts.first(where: { $0.id == pickedTopicID }) { topicFactRows(fact) }
         recurrenceAddLink {
             Label {
                 VStack(alignment: .leading) {
@@ -249,6 +250,38 @@ import SwiftUI
         }
         .pickerStyle(.menu)
         .accessibilityIdentifier("clubOpsEvent.recurrence.topicPicker")
+    }
+    /// MP event-ops wxml:197-198 under the 主题 dropdown: C-17 「票价 ¥X · 集合点 …」 (read-only, what the player
+    /// sees at checkout) and C-02 the no-online-payment warning for a priced topic.
+    @ViewBuilder private func topicFactRows(_ fact: ClubOpsEventTopicFact) -> some View {
+        if fact.hasSessionFacts {
+            topicFactsText(fact)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("clubOpsEvent.recurrence.topicFacts")
+        }
+        if !fact.paymentNotice.isEmpty {
+            Label("club.eventOps.paymentNotice", systemImage: "exclamationmark.triangle")
+                .font(.subheadline)
+                .foregroundStyle(CYColor.warningText)
+                .accessibilityIdentifier("clubOpsEvent.recurrence.paymentNotice")
+        }
+    }
+    private func topicFactsText(_ fact: ClubOpsEventTopicFact) -> Text {
+        var parts: [Text] = []
+        switch fact.priceFact {
+        case .paid(let amount): parts.append(Text("clubOpsEvent.topic.price \(amount)", tableName: "ClubOpsEvent"))
+        case .free: parts.append(Text("clubOpsEvent.topic.free", tableName: "ClubOpsEvent"))
+        case nil: break
+        }
+        if let point = fact.meetingPoint {
+            parts.append(Text("clubOpsEvent.topic.meetingPoint \(point)", tableName: "ClubOpsEvent"))
+        }
+        var result = Text(verbatim: "")
+        for (index, part) in parts.enumerated() {
+            result = index == 0 ? part : result + Text(verbatim: " · ") + part
+        }
+        return result
     }
     /// CU-C-34 (MP event-ops js:62-74 topicDropdownLabel): 「名称 · 起止日期 · 自有/合作」, 日期未定 without dates.
     private func topicLabel(_ fact: ClubOpsEventTopicFact) -> Text {
