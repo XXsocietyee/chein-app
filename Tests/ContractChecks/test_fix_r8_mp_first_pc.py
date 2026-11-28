@@ -37,7 +37,7 @@ class MPFirstPlayerContentPins(unittest.TestCase):
         self.assertNotIn('pricing: endpoints', core)
         self.assertNotIn('cancellationRefunds: endpoints', core)
         # fix-1128b #5/#22: devices and artwork hosts now sit between publisherReads and the read approval id.
-        self.assertIn('publisherReads: true, devices: Self.playDevices, artworkHosts: Self.playArtworkHosts(apiBase: context.baseURL),', read('App/ReviewedPlayerWriteLeases.swift'))
+        self.assertIn('publisherReads: true, devices: Self.playDevices, sensors: Self.playSensors,\n            artworkHosts: Self.playArtworkHosts(apiBase: context.baseURL),', read('App/ReviewedPlayerWriteLeases.swift'))  # K13 adds sensors (deliberate)
         self.assertIn('playReadApprovalID: UUID())', read('App/ReviewedPlayerWriteLeases.swift'))
 
     def test_topic_favorite_is_mounted(self):
