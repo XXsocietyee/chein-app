@@ -130,6 +130,7 @@ import UIKit
     @Environment(\.displayScale) private var displayScale
     @Environment(\.locale) private var locale
     @Environment(\.openURL) private var openURL
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var raw: PlayWireValue { context.segment }
     private var lines: [String] { (raw["lines"].array ?? []).compactMap(\.text).filter { !$0.isEmpty } }
     private func text(_ key: String) -> String? {
@@ -239,7 +240,7 @@ import UIKit
                     coverLabel: appLocalized("playkit.daily.lineForYou", locale: locale),
                     threshold: 0.45,
                     revealed: isRevealed,
-                    onReveal: { _ in withAnimation(CYMotion.release) { stage = max(stage, 1) } }
+                    onReveal: { _ in withAnimation(CYMotion.resolve(CYMotion.release, reduceMotion: reduceMotion)) { stage = max(stage, 1) } }
                 ) { poem }
             } else {
                 poem

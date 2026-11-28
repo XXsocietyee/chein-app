@@ -500,6 +500,15 @@ struct PlayThemeMusicKey: Equatable {
                     CYSkeleton().accessibilityIdentifier("playx.loading")
                 }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                if native, model.snapshot == nil, model.available, model.issue != nil, model.phase != .loading {
+                    // All states: the city run's first-load failure gets the same 刷新 action as the legacy error card.
+                    Button { Task { await model.load() } } label: {
+                        Label("playx.refresh", systemImage: "arrow.clockwise")
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(model.phase == .submitting)
+                    .accessibilityIdentifier("playx.city.retry")
+                }
                 if PlayContentCompatibility.isUnsupportedRejection(model.issue) {
                     // The server refused to open this run for this build; nothing was skipped or started.
                     Text("playCompat.refused.next", tableName: "PlayFullStory").font(CYTypography.caption)
@@ -839,7 +848,12 @@ struct PlayThemeMusicKey: Equatable {
     }
     @ViewBuilder private var cityRunPanel: some View {
         VStack(spacing: 0) {
-            CityOrientationRunMetricsRow(model: model, walkedMeters: cityLocation.walkedMeters, nextStopMeters: cityNextStopMeters) { cityRunPrimary }
+            CityOrientationRunMetricsRow(model: model, walkedMeters: cityLocation.walkedMeters, nextStopMeters: cityNextStopMeters) {
+                // Next round (motion): start / resume taps land with a medium impact, pause with a light one; a restored
+                // paused record (idle → paused) stays silent.
+                cityRunPrimary
+                    .modifier(PlayClockHaptics(running: model.clock.phase == .running, paused: model.clock.phase == .paused))
+            }
             NavigationStack {
                 List {
                     if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
@@ -2366,4 +2380,21 @@ private struct PlayTaskRightSection: View {
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("playx.right")
     }
+}
+
+
+/// Start / resume taps land with a medium impact, pause with a light one; typed and split out so the play body
+/// type-checks in time. A restored paused record (idle → paused) stays silent because `running` never rose.
+private struct PlayClockHaptics: ViewModifier {
+    let running: Bool
+    let paused: Bool
+    @State private var wasRunning = false
+    func body(content: Content) -> some View {
+        content
+            .cyHaptic(.impactMedium, trigger: running, where: Self.rose)
+            .cyHaptic(.impactLight, trigger: paused, where: pausedFromRun)
+            .onChange(of: running) { _, now in if now { wasRunning = true } }
+    }
+    private static func rose(_ old: Bool, _ new: Bool) -> Bool { !old && new }
+    private func pausedFromRun(_ old: Bool, _ new: Bool) -> Bool { !old && new && wasRunning }
 }

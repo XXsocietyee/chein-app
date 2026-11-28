@@ -82503,6 +82503,23 @@
         }
       }
     },
+    "im.full.currentOriginal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View the current original"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看当前原单"
+          }
+        }
+      }
+    },
     "im.full.details": {
       "extractionState": "manual",
       "localizations": {
@@ -221698,6 +221715,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看信息共享告知"
+          }
+        }
+      }
+    },
+    "registration.waitlist.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t read the waitlist status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "候补状态读取失败"
           }
         }
       }
