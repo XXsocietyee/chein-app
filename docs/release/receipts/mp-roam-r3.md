@@ -631,7 +631,7 @@ Pages in the area with no row until now, read this run: `components/roam-photo` 
 | MP `subpackageRoam/official-route/index.js` `SHARE_PATH` + `onShareAppMessage` / `onShareTimeline` (title = route name, else 城瘾官方线路; path `?id=`) | `subpackageRoam/official-route` → shipping `App/NativeR2/MapHome/RoamMapHomeRoutes.swift` `RoamMapHomeRouteCard` | The legacy `OfficialRouteDetailView` had a share card, but the route card players reach from the map home had no share at all, and no https link existed for the route page. | `Core/PublicContentShareLink.officialRoute(id:)` (MP path, kept only when `UniversalLinkParser` reads it back as the same `MiniProgramPageLink`); the route card's toolbar gets a system `ShareLink` (subject + preview = route name, fallback `officialRoute.share.fallbackTitle` 城瘾官方线路 / Chein official route) once the route is loaded. Test `PublicContentShareLinkTests.testOfficialRouteShareIsTheMiniProgramRoutePageThatParsesBack`. | B · `r3-roam-routes` → route card |
 | A row "team-recovery per-command rows on my-teams / nearby" | `subpackageRoam/my-teams`, `nearby` | — | Done (B lane, `817059d4c`). | — |
 
-Gates: see commit. No Swift build here.
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, **new 0**. No Swift build here.
 
 ## Not done / next
 
