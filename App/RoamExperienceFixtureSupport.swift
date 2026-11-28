@@ -22,7 +22,14 @@ import SwiftUI
     func history() throws -> [RoamHistoryRecord] {
         try check()
         if scenario == .historyCorrupt { throw RoamExperienceFailure.historyUnreadable }
-        return try decode([RoamHistoryRecord].self, scenario == .empty ? "[]" : RoamExperienceSyntheticFixtures.history)
+        var json = scenario == .empty ? "[]" : RoamExperienceSyntheticFixtures.history
+        // mp-roam r3: design fixtures (`r3-roam-history*`) show real place names in the UI language; UI tests keep the pins.
+        if ProcessInfo.processInfo.arguments.contains("--design-fixture") {
+            json = json.replacingOccurrences(of: "Sample record with missing stats", with: Self.prefersChinese ? "老街夜走" : "Old street evening walk")
+            json = json.replacingOccurrences(of: "Sample district", with: Self.prefersChinese ? "外滩" : "The Bund")
+            json = json.replacingOccurrences(of: "Sample courtyard", with: Self.prefersChinese ? "外滩源庭院" : "Bund Origin courtyard")
+        }
+        return try decode([RoamHistoryRecord].self, json)
     }
     func sessionFact(_ query: RoamRecoveryQuery) async throws -> RoamSessionFact {
         try check()

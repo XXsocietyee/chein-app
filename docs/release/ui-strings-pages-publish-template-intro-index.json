@@ -10,15 +10,15 @@
       "zh-Hans": "未命名示例"
     },
     "creatorIntro.loading": {
-      "en": "Loading featured examples",
+      "en": "Loading featured examples…",
       "zh-Hans": "正在加载精选示例"
     },
     "creatorIntro.failed": {
-      "en": "Featured examples could not be loaded.",
+      "en": "Couldn’t load featured examples",
       "zh-Hans": "精选示例暂未加载"
     },
     "creatorIntro.retry": {
-      "en": "Retry examples",
+      "en": "Try again",
       "zh-Hans": "重试示例"
     },
     "creatorIntro.empty": {
@@ -38,7 +38,7 @@
       "zh-Hans": "跳过"
     },
     "publishParity.intro.lead": {
-      "en": "Turn a stretch you have played",
+      "en": "Turn a route you’ve explored",
       "zh-Hans": "把你玩过的一段路"
     },
     "publishParity.intro.tail": {

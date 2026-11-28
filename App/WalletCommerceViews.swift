@@ -1291,7 +1291,7 @@ enum WalletCurrencySymbol {
     /// `CN¥` in other languages (Me balance, orders, coop and topic prices already read `CN¥12.00` in English).
     static func symbol(_ currency: String?, locale: Locale) -> String? {
         guard let base = symbol(currency) else { return nil }
-        guard base == "¥", !LocaleDisplay.isChinese(locale) else { return base }
+        guard base == symbol("CNY"), !LocaleDisplay.isChinese(locale) else { return base }
         return LocaleDisplay.currencySymbol(currencyCode: "CNY", locale: locale)
     }
 

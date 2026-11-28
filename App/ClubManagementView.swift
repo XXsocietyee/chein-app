@@ -23,6 +23,7 @@ struct ClubManagementView: View {
     @State private var detailHostVisible = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var state: ClubManagementState = .idle
     @State private var loading = false
     @State private var stale = false
@@ -172,7 +173,7 @@ struct ClubManagementView: View {
         .cyPageTitle(joinRequestsOnly ? "club.management.requests" : "club.management.title")
         .refreshable { await refresh() }
         // CLB-join-requests-05 (fix-r3-club-b), MC-21: a handled card slides out when the readback replaces the list.
-        .animation(.easeOut(duration: 0.16), value: snapshot?.requests.map(\.id))
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: snapshot?.requests.map(\.id))
         .navigationDestination(item: $selection) { selected in detail(selected) }
         .task(id: readContext) {
             guard screenContext != readContext || snapshot == nil && state == .idle else { return }
