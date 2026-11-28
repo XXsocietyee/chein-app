@@ -170,7 +170,8 @@ struct SquareAuthorAvatar: View {
     var size: CGFloat = 40
     var body: some View {
         Group {
-            if let url = QuestifyCardArtwork.safeURL(source) {
+            if let memoji = fixtureMemoji { memoji.resizable().scaledToFill() }
+            else if let url = QuestifyCardArtwork.safeURL(source) {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() } else { fallback }
                 }
@@ -179,6 +180,20 @@ struct SquareAuthorAvatar: View {
         .frame(width: size, height: size)
         .clipShape(Circle())
         .accessibilityHidden(true)
+    }
+    /// Design fixtures only (`d2-square`): bundled MP memoji instead of a remote avatar; production sources never match.
+    static let fixtureMemojiPrefix = "fixture-memoji:"
+    private var fixtureMemoji: Image? {
+        #if DEBUG
+        switch source {
+        case Self.fixtureMemojiPrefix + "1": return MPAsset.AvatarDefault.memoji1
+        case Self.fixtureMemojiPrefix + "2": return MPAsset.AvatarDefault.memoji2
+        case Self.fixtureMemojiPrefix + "3": return MPAsset.AvatarDefault.memoji3
+        default: return nil
+        }
+        #else
+        return nil
+        #endif
     }
     private var fallback: some View {
         // MP `/images/d_profile.png` is the avatar default on square posts and comments.
