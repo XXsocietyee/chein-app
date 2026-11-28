@@ -389,6 +389,14 @@ Merged `origin/ui/combined-r7`. Level B (club posts/channels). App-only club wor
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 52/52 new 0 (pin `test_channel_names_not_cut_to_one_line` now expects the centred wrap), design consistency PASS.
 
+## Pass 40: coordinator sweep 13:15 UTC (build 0446d1c4f, `docs/sweeps/latest/mp-club/en-d4-enroll.jpg`, `en-d4-directory.jpg`)
+Merged `origin/ui/combined-r7` (xcstrings: both sides' keys kept). Club hero art with baked-in Chinese goes to Cursor K15 (`cursor/1128-l10n-art`), not taken here.
+| MP page | Native view | Before (shot) | Fix |
+|---|---|---|---|
+| `pages/club/enroll` (level C) | `App/ClubEnrollmentView.swift` | MP order unchanged (sub line → refreshing → stale error → teams). A ~70 pt empty band sat above the sub line, and another between it and the first team | **Fixed.** `.listSectionSpacing(.compact)` + `.contentMargins(.top, CYSpacing.sm, for: .scrollContent)`: the sub line starts under the title and the team follows it directly |
+| `pages/club/list` 找俱乐部 (level B) | `App/ClubDirectoryView.swift` | Empty band above the first row (the discover section always declared a header, empty when it was the only section); rows: 48 pt thumbnail clipped on its left edge and the wrapped meta line centred/indented ("   3 members · Offline") because a List squeezes a `Label` icon into its fixed icon column | **Fixed.** Discover section has no header when it is the only section (`discoverRows` helper); list `.contentMargins(.top, CYSpacing.sm)`. `ClubDirectoryCard` uses a plain HStack (thumbnail + leading VStack, `.multilineTextAlignment(.leading)`); ids, P25 trailing Join/Apply and the AX stacking unchanged. Same card fixes 我的俱乐部 (`ClubOwnedView`) |
+| P2-4 rest | `/api/club/name-check` | — | Still **Not done** (backend route unconfirmed) |
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.
