@@ -13,7 +13,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Growth contains fields outside the original contract. Check the original configuration; no fields are deleted automatically."
+            "value": "Growth contains fields outside the original contract. Check the original setup; no fields are deleted automatically."
           }
         }
       }

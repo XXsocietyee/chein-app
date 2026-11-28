@@ -321,34 +321,28 @@ import XCTest
         XCTAssertTrue(drop?.toastMessage(locale: Locale(identifier: "zh-Hans")).contains("双倍积分卡") == true)
     }
 
-    // MARK: - ShopNPCHTTP Dialogue Validation
+    // MARK: - Shop NPC live path (the unserved /api/ai/npc/dialogue method is gone)
 
-    func testShopNPCDialogueRejectsBlankAndRateLimits() async throws {
-        struct RateLimitTransport: ShopNPCHTTPTransport {
+    func testShopNPCTextUsesShopChatAndRateLimits() async throws {
+        final class RateLimitTransport: ShopNPCHTTPTransport {
+            var paths: [String] = []
             func perform(_ request: ShopNPCHTTPRequest) async throws -> ShopNPCHTTPResponse {
-                ShopNPCHTTPResponse(status: 429, body: Data())
+                paths.append(request.path)
+                return ShopNPCHTTPResponse(status: 429, body: Data())
             }
         }
-        let client = ShopNPCHTTPClient(transport: RateLimitTransport())
+        let http = RateLimitTransport()
+        let client = ShopNPCHTTPClient(transport: http)
         let nodeID = try XCTUnwrap(ShopNPCNodeID(20))
         let scope = ShopNPCScope(sessionID: "sess-1", accountID: "1", roleID: "player", accessRevision: 1, nodeID: nodeID)
-
         do {
-            _ = try await client.dialogue(topicID: 10, activityID: 1, npcID: 40, utterance: "   ", routeActionID: "act-1", scope: scope)
-            XCTFail("Expected invalid")
-        } catch let err as ShopNPCFailure {
-            XCTAssertEqual(err, .invalid)
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
-
-        do {
-            _ = try await client.dialogue(topicID: 10, activityID: 1, npcID: 40, utterance: "茶馆主人还在吗？", routeActionID: "act-1", scope: scope)
+            _ = try await client.text("茶馆主人还在吗？", requestID: UUID(), scope: scope)
             XCTFail("Expected rateLimited")
         } catch let err as ShopNPCFailure {
             XCTAssertEqual(err, .rateLimited)
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
+        XCTAssertEqual(http.paths, ["/api/ai/npc/shop-chat"])
     }
 }

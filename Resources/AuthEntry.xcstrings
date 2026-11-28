@@ -422,7 +422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Privacy protection"
+            "value": "Privacy"
           }
         },
         "zh-Hans": {
@@ -470,7 +470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agreement status on this device"
+            "value": "Agreement status on device"
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The privacy protection guidelines are not available yet."
+            "value": "Privacy guide isn't ready."
           }
         },
         "zh-Hans": {
@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Privacy protection"
+            "value": "Privacy"
           }
         },
         "zh-Hans": {

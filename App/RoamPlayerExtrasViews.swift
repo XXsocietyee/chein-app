@@ -76,6 +76,29 @@ struct RoamShareRevokeRow: View {
     }
 }
 
+private struct RoamFinishedRecordsArchiveKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (RoamSettledSessionArchive) async -> Void)? = nil
+}
+
+extension EnvironmentValues {
+    /// Posts `api/roam/session/records` after a finish that still holds in-memory tile times. Nil does nothing.
+    var roamFinishedRecordsArchive: (@MainActor (RoamSettledSessionArchive) async -> Void)? {
+        get { self[RoamFinishedRecordsArchiveKey.self] }
+        set { self[RoamFinishedRecordsArchiveKey.self] = newValue }
+    }
+}
+
+enum RoamFinishedRecordsUpload {
+    /// The live screen calls this with the controller's in-memory archive. A missing client leaves the walk finished.
+    @MainActor static func install(on session: AppSession) -> @MainActor (RoamSettledSessionArchive) async -> Void {
+        { [weak session] bundle in
+            guard let session, let client = session.playerCapabilityClient() else { return }
+            let tiles = bundle.records.map { RoamPlayerExtrasService.TileRecord(tile: $0.tile, collectedAt: $0.collectedAt) }
+            _ = await RoamSessionArchive.flush(tiles, sessionID: bundle.sessionID, clientSessionKey: bundle.clientSessionKey, client: client)
+        }
+    }
+}
+
 /// Finished-session archive (`_archiveFinishedRecords`): batches of ≤ 200 tiles; a batch leaves the pending
 /// list only when the server confirms it. Returns the tiles still pending.
 enum RoamSessionArchive {

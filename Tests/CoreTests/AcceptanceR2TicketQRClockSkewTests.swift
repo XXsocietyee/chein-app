@@ -71,11 +71,12 @@ import FoundationNetworking
         XCTAssertEqual(model.phase, .ready)
         XCTAssertNotNil(model.displayCode)
         XCTAssertEqual(model.remainingSeconds, 300)
-        now = deviceNow.addingTimeInterval(299); await model.tick()
-        XCTAssertEqual(model.phase, .ready); XCTAssertEqual(model.remainingSeconds, 1); XCTAssertNotNil(model.displayCode)
+        // 31s left is still outside the 30s silent-renew lead, so the skewed code is the one on screen.
+        now = deviceNow.addingTimeInterval(269); await model.tick()
+        XCTAssertEqual(model.phase, .ready); XCTAssertEqual(model.remainingSeconds, 31); XCTAssertNotNil(model.displayCode)
         now = deviceNow.addingTimeInterval(300); await model.tick()
         XCTAssertEqual(model.phase, .expired); XCTAssertNil(model.displayCode)
-        XCTAssertEqual(service.issues, 1, "Ticket expiry still needs a manual retry")
+        XCTAssertEqual(service.issues, 1, "A clock jump past expiry does not mint another code")
     }
 }
 

@@ -33,6 +33,11 @@ class VerificationCodeContracts(unittest.TestCase):
         self.assertIn('if target.kind == .cityVoucher { await issue() }',code)
         self.assertIn('if now() >= expiry {\n            eraseCode(); phase = .expired',code)
         self.assertIn('guard let expiry else { return }',code)
+        # MP signup V-02: tickets renew 30s early and retry after 5s. A dead code does not loop.
+        self.assertIn('public static let leadSeconds: TimeInterval = 30', code)
+        self.assertIn('public static let retrySeconds: TimeInterval = 5', code)
+        self.assertIn('private func renewTicket(keeping previousExpiry: Date)', code)
+        self.assertIn('TicketEntryCodeRefresh.leadSeconds', self.read('App/TicketPassSheet.swift'))
         fail=code.split('private func fail(')[1]
         self.assertNotIn('await issue()',fail)
     def test_view_clears_on_inactive_disappearance_and_uses_cancellable_tick(self):

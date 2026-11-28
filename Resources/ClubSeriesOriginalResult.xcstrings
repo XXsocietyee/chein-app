@@ -13,7 +13,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original creation result"
+            "value": "Creation result"
           }
         }
       }
@@ -93,7 +93,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No verifiable original creation receipt is available. The outcome remains unknown."
+            "value": "No verifiable original creation receipt is available. Outcome remains unknown."
           }
         }
       }

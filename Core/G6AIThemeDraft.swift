@@ -37,14 +37,18 @@ public enum G6AIThemeDraft {
         return text
     }
 
-    /// An ISO instant ending in `Z` with a `T` separator that parses.
+    /// A UTC instant: a `T` separator and a trailing `Z`. Offsets (`+08:00`, `+00:00`) and a space separator are refused.
     public static func instant(_ value: Any?) -> Date? {
-        guard let text = value as? String, text.hasSuffix("Z"), text.contains("T") else { return nil }
+        guard let text = value as? String, text.hasSuffix("Z"), !text.contains("+"),
+              let separator = text.firstIndex(of: "T"), text.distance(from: text.startIndex, to: separator) >= 8,
+              !text[text.index(after: separator)...].dropLast().contains("-") else { return nil }
         let fractional = ISO8601DateFormatter()
         fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        fractional.timeZone = TimeZone(secondsFromGMT: 0)
         if let date = fractional.date(from: text) { return date }
         let plain = ISO8601DateFormatter()
         plain.formatOptions = [.withInternetDateTime]
+        plain.timeZone = TimeZone(secondsFromGMT: 0)
         return plain.date(from: text)
     }
 

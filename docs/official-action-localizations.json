@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Decline invitation"
+            "value": "Decline invite"
           }
         },
         "zh-Hans": {
@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw from invitation"
+            "value": "Withdraw invite"
           }
         },
         "zh-Hans": {
@@ -150,7 +150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review the exact information before submitting"
+            "value": "Review the exact info before submitting"
           }
         },
         "zh-Hans": {
@@ -182,7 +182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reviewed target and information"
+            "value": "Reviewed target and info"
           }
         },
         "zh-Hans": {
@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm submission"
+            "value": "Confirm entry"
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submitting isn't available right now"
+            "value": "Submitting isn't available"
           }
         },
         "zh-Hans": {
@@ -390,7 +390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completion not confirmed yet"
+            "value": "Completion not confirmed"
           }
         },
         "zh-Hans": {
@@ -422,7 +422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh to see the latest participation and reward details"
+            "value": "Refresh to see the latest participation reward details"
           }
         },
         "zh-Hans": {
@@ -454,7 +454,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The outcome is unknown. Do not repeat this request"
+            "value": "The outcome is unknown. Do not repeat request"
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This action is unavailable for the current account or state"
+            "value": "This action is unavailable for the current account state"
           }
         },
         "zh-Hans": {
@@ -566,7 +566,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Supporting text"
+            "value": "Supporting"
           }
         },
         "zh-Hans": {
@@ -662,7 +662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reward configuration"
+            "value": "Reward setup"
           }
         },
         "zh-Hans": {
@@ -726,7 +726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Experience points"
+            "value": "Experience"
           }
         },
         "zh-Hans": {
@@ -870,7 +870,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Respond to invitation"
+            "value": "Respond to invite"
           }
         },
         "zh-Hans": {
@@ -902,7 +902,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participation"
+            "value": "Joining"
           }
         },
         "zh-Hans": {
@@ -950,7 +950,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only selected merchants will be included. Notifications are best effort"
+            "value": "Only selected merchants will be included. Alerts are best effort"
           }
         },
         "zh-Hans": {
@@ -1014,7 +1014,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Merchants"
+            "value": "Shops"
           }
         },
         "zh-Hans": {
@@ -1046,7 +1046,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Subscription message"
+            "value": "Subscription"
           }
         },
         "zh-Hans": {
@@ -1126,7 +1126,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Challenge"
+            "value": "Quest"
           }
         },
         "zh-Hans": {

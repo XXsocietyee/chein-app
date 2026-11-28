@@ -5,7 +5,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Gameplay categories"
+          "value": "Gameplay groups"
         }
       },
       "zh-Hans": {
@@ -192,7 +192,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No gameplay categories available."
+          "value": "No gameplay groups available."
         }
       },
       "zh-Hans": {
@@ -226,7 +226,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Available gameplay categories"
+          "value": "Available gameplay groups"
         }
       },
       "zh-Hans": {

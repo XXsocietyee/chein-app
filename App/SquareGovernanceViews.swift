@@ -126,7 +126,7 @@ import SwiftUI
                 VStack(alignment: .leading) {
                     Text(record.type); Text(record.rule); Text(record.status)
                     if let status = record.appealStatus { Text(status) }
-                    else if record.canRequestReview {
+                    else if record.canRequestReview, context.coordinator.service.allows(.appeal(enforcementID: record.id, reason: "review")) {
                         Button("square.gov.appeal") { reason = ""; appeal = record }.disabled(loading).accessibilityIdentifier("square.gov.appeal.\(record.id)")
                     }
                 }
@@ -143,10 +143,10 @@ import SwiftUI
                 VStack(alignment: .leading) {
                     Text("#\(comment.postID) / #\(comment.id)")
                     Text(comment.approvalState ?? "UNKNOWN")
-                    if comment.canApprove(snapshot.identity) {
+                    if comment.canApprove(snapshot.identity), context.coordinator.service.allows(.approveComment(postID: comment.postID, commentID: comment.id)) {
                         Button("square.gov.approveComment") { prepare(.approveComment(postID: comment.postID, commentID: comment.id)) }.disabled(loading).accessibilityIdentifier("square.gov.approve.\(comment.id)")
                     }
-                    if comment.canDelete(snapshot.identity) {
+                    if comment.canDelete(snapshot.identity), context.coordinator.service.allows(.deleteOwnComment(commentID: comment.id)) {
                         Button("square.gov.deleteComment", role: .destructive) { prepare(.deleteOwnComment(commentID: comment.id)) }.disabled(loading).accessibilityIdentifier("square.gov.delete.\(comment.id)")
                     }
                     if !comment.canApprove(snapshot.identity) && !comment.canDelete(snapshot.identity) { Text("square.gov.unknownLocked") }

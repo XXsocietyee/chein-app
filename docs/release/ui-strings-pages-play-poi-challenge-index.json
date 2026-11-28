@@ -2,62 +2,282 @@
   "page": "pages/play/poi-challenge/index",
   "screen": "App/PlayKitTimedChallengeView.swift",
   "strings": [
-    {"key": "playkit.kind.reaction", "en": "Reaction challenge", "zh-Hans": "反应挑战"},
-    {"key": "playkit.kind.countdown", "en": "Countdown", "zh-Hans": "倒计时"},
-    {"key": "playkit.kind.stopwatch", "en": "Blind stopwatch", "zh-Hans": "盲停秒表"},
-    {"key": "playkit.kind.typeIn", "en": "Typing challenge", "zh-Hans": "限时打字"},
-    {"key": "playkit.challenge.interrupted", "en": "The attempt was interrupted. Start again to measure a fresh attempt.", "zh-Hans": "本次尝试已中断，请重新开始计量。"},
-    {"key": "playkit.challenge.expired", "en": "This attempt reached its time limit", "zh-Hans": "本次尝试已到达时限"},
-    {"key": "playkit.challenge.abort", "en": "Discard this attempt", "zh-Hans": "放弃本次尝试"},
-    {"key": "playkit.challenge.target", "en": "Target time", "zh-Hans": "目标时间"},
-    {"key": "playkit.challenge.clock", "en": "Challenge clock", "zh-Hans": "挑战计时"},
-    {"key": "playkit.challenge.start", "en": "Review and start", "zh-Hans": "核对并开始"},
-    {"key": "playkit.challenge.authority", "en": "The start must be confirmed first. Your device's measurements alone don't earn a result or reward.", "zh-Hans": "需先确认开局。设备测量本身不代表通过或获得奖励。"},
-    {"key": "playkit.challenge.measurementOnly", "en": "This is your device's measurement. Submit it to get the result.", "zh-Hans": "这是设备测量值，提交后判定结果。"},
-    {"key": "playkit.stopwatch.tolerance", "en": "Allowed tolerance", "zh-Hans": "允许误差"},
-    {"key": "playkit.stopwatch.hidden", "en": "Elapsed time hidden. Tap stop when you think the target time has arrived.", "zh-Hans": "计时读数已隐藏，请在你认为到达目标时间时停止。"},
-    {"key": "playkit.stopwatch.stop", "en": "Stop the clock", "zh-Hans": "停止计时"},
-    {"key": "playkit.type.caseSensitive", "en": "Match letter case exactly", "zh-Hans": "请保持英文字母大小写一致"},
-    {"key": "playkit.type.caseInsensitive", "en": "Letter case is ignored by the task", "zh-Hans": "本题不区分英文字母大小写"},
-    {"key": "playkit.type.input", "en": "Type the target text", "zh-Hans": "输入目标文字"},
-    {"key": "playkit.type.finish", "en": "Finish typing", "zh-Hans": "完成输入"},
-    {"key": "playkit.type.retry", "en": "The last attempt did not pass. You can try again.", "zh-Hans": "上次尝试未通过，可以再试一次。"},
-    {"key": "playkit.type.finishedNotPassed", "en": "This round has ended without passing.", "zh-Hans": "本轮已结束，未通过。"},
-    {"key": "playkit.attempts", "en": "Attempts recorded", "zh-Hans": "已记录的尝试"},
-    {"key": "playkit.attemptLimit", "en": "Attempt limit", "zh-Hans": "最多尝试次数"},
-    {"key": "playkit.result.passed", "en": "Result: passed", "zh-Hans": "判定：已通过"},
-    {"key": "playkit.review", "en": "Review submission", "zh-Hans": "核对提交"},
-    {"key": "playkit.configurationInvalid", "en": "The task configuration is incomplete. Refresh or return to the task.", "zh-Hans": "任务配置不完整，请刷新或返回任务。"},
-    {"key": "playkit.reaction.round", "en": "Rounds measured", "zh-Hans": "已测轮数"},
-    {"key": "playkit.reaction.goal", "en": "Target reaction time", "zh-Hans": "目标反应时间"},
-    {"key": "playkit.reaction.tap", "en": "Tap now", "zh-Hans": "现在点击"},
-    {"key": "playkit.reaction.wait", "en": "Wait for the cue", "zh-Hans": "等待提示"},
-    {"key": "playkit.reaction.early", "en": "Too early. This round did not count.", "zh-Hans": "抢跑了，本轮不计入成绩。"},
-    {"key": "playkit.reaction.next", "en": "Try the next round", "zh-Hans": "开始下一轮"},
-    {"key": "playkit.timed.loading", "en": "Loading the challenge", "zh-Hans": "正在加载挑战"},
-    {"key": "playkit.timed.empty", "en": "No timed challenge on this stop", "zh-Hans": "这个据点没有限时挑战"},
-    {"key": "playkit.timed.error", "en": "The challenge could not be loaded", "zh-Hans": "挑战暂时无法加载"},
-    {"key": "playkit.timed.unknown", "en": "—", "zh-Hans": "—"},
-    {"key": "playkit.timed.ready", "en": "Timed challenge", "zh-Hans": "限时挑战"}
+    {
+      "key": "playkit.kind.reaction",
+      "en": "Reaction quest",
+      "zh-Hans": "反应挑战"
+    },
+    {
+      "key": "playkit.kind.countdown",
+      "en": "Countdown",
+      "zh-Hans": "倒计时"
+    },
+    {
+      "key": "playkit.kind.stopwatch",
+      "en": "Blind stopwatch",
+      "zh-Hans": "盲停秒表"
+    },
+    {
+      "key": "playkit.kind.typeIn",
+      "en": "Typing challenge",
+      "zh-Hans": "限时打字"
+    },
+    {
+      "key": "playkit.challenge.interrupted",
+      "en": "The attempt was interrupted. Start again to measure a fresh attempt.",
+      "zh-Hans": "本次尝试已中断，请重新开始计量。"
+    },
+    {
+      "key": "playkit.challenge.expired",
+      "en": "This attempt reached its time limit",
+      "zh-Hans": "本次尝试已到达时限"
+    },
+    {
+      "key": "playkit.challenge.abort",
+      "en": "Discard this attempt",
+      "zh-Hans": "放弃本次尝试"
+    },
+    {
+      "key": "playkit.challenge.target",
+      "en": "Target time",
+      "zh-Hans": "目标时间"
+    },
+    {
+      "key": "playkit.challenge.clock",
+      "en": "Challenge clock",
+      "zh-Hans": "挑战计时"
+    },
+    {
+      "key": "playkit.challenge.start",
+      "en": "Review and start",
+      "zh-Hans": "核对并开始"
+    },
+    {
+      "key": "playkit.challenge.authority",
+      "en": "The start must be confirmed first. Your device's measurements alone don't earn a result or reward.",
+      "zh-Hans": "需先确认开局。设备测量本身不代表通过或获得奖励。"
+    },
+    {
+      "key": "playkit.challenge.measurementOnly",
+      "en": "This is your device's measurement. Submit it to get the result.",
+      "zh-Hans": "这是设备测量值，提交后判定结果。"
+    },
+    {
+      "key": "playkit.stopwatch.tolerance",
+      "en": "Allowed tolerance",
+      "zh-Hans": "允许误差"
+    },
+    {
+      "key": "playkit.stopwatch.hidden",
+      "en": "Elapsed time hidden. Tap stop when you think the target time has arrived.",
+      "zh-Hans": "计时读数已隐藏，请在你认为到达目标时间时停止。"
+    },
+    {
+      "key": "playkit.stopwatch.stop",
+      "en": "Stop the clock",
+      "zh-Hans": "停止计时"
+    },
+    {
+      "key": "playkit.type.caseSensitive",
+      "en": "Match letter case exactly",
+      "zh-Hans": "请保持英文字母大小写一致"
+    },
+    {
+      "key": "playkit.type.caseInsensitive",
+      "en": "Letter case is ignored by the task",
+      "zh-Hans": "本题不区分英文字母大小写"
+    },
+    {
+      "key": "playkit.type.input",
+      "en": "Type the target text",
+      "zh-Hans": "输入目标文字"
+    },
+    {
+      "key": "playkit.type.finish",
+      "en": "Finish typing",
+      "zh-Hans": "完成输入"
+    },
+    {
+      "key": "playkit.type.retry",
+      "en": "The last attempt did not pass. You can try again.",
+      "zh-Hans": "上次尝试未通过，可以再试一次。"
+    },
+    {
+      "key": "playkit.type.finishedNotPassed",
+      "en": "This round has ended without passing.",
+      "zh-Hans": "本轮已结束，未通过。"
+    },
+    {
+      "key": "playkit.attempts",
+      "en": "Attempts recorded",
+      "zh-Hans": "已记录的尝试"
+    },
+    {
+      "key": "playkit.attemptLimit",
+      "en": "Attempt limit",
+      "zh-Hans": "最多尝试次数"
+    },
+    {
+      "key": "playkit.result.passed",
+      "en": "Result: passed",
+      "zh-Hans": "判定：已通过"
+    },
+    {
+      "key": "playkit.review",
+      "en": "Review submission",
+      "zh-Hans": "核对提交"
+    },
+    {
+      "key": "playkit.configurationInvalid",
+      "en": "The task configuration is incomplete. Refresh or return to the task.",
+      "zh-Hans": "任务配置不完整，请刷新或返回任务。"
+    },
+    {
+      "key": "playkit.reaction.round",
+      "en": "Rounds measured",
+      "zh-Hans": "已测轮数"
+    },
+    {
+      "key": "playkit.reaction.goal",
+      "en": "Target reaction time",
+      "zh-Hans": "目标反应时间"
+    },
+    {
+      "key": "playkit.reaction.tap",
+      "en": "Tap now",
+      "zh-Hans": "现在点击"
+    },
+    {
+      "key": "playkit.reaction.wait",
+      "en": "Wait for the cue",
+      "zh-Hans": "等待提示"
+    },
+    {
+      "key": "playkit.reaction.early",
+      "en": "Too early. This round did not count.",
+      "zh-Hans": "抢跑了，本轮不计入成绩。"
+    },
+    {
+      "key": "playkit.reaction.next",
+      "en": "Try the next round",
+      "zh-Hans": "开始下一轮"
+    },
+    {
+      "key": "playkit.timed.loading",
+      "en": "Loading the challenge",
+      "zh-Hans": "正在加载挑战"
+    },
+    {
+      "key": "playkit.timed.empty",
+      "en": "No timed challenge on this stop",
+      "zh-Hans": "这个据点没有限时挑战"
+    },
+    {
+      "key": "playkit.timed.error",
+      "en": "The challenge could not be loaded",
+      "zh-Hans": "挑战暂时无法加载"
+    },
+    {
+      "key": "playkit.timed.unknown",
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    {
+      "key": "playkit.timed.ready",
+      "en": "Timed challenge",
+      "zh-Hans": "限时挑战"
+    }
   ],
   "accessibilityIdentifiers": [
-    {"id": "playkit.challenge.start", "en": "Review and start", "zh-Hans": "核对并开始"},
-    {"id": "playkit.challenge.measure", "en": "Stop the clock", "zh-Hans": "停止计时"},
-    {"id": "playkit.type.finish", "en": "Finish typing", "zh-Hans": "完成输入"},
-    {"id": "playkit.challenge.submit", "en": "Review submission", "zh-Hans": "核对提交"},
-    {"id": "playkit.reaction.target", "en": "Tap now", "zh-Hans": "现在点击"},
-    {"id": "playkit.type.result", "en": "Result: passed", "zh-Hans": "判定：已通过"},
-    {"id": "playkit.timed.loading", "en": "Loading the challenge", "zh-Hans": "正在加载挑战"},
-    {"id": "playkit.timed.empty", "en": "No timed challenge on this stop", "zh-Hans": "这个据点没有限时挑战"},
-    {"id": "playkit.timed.error", "en": "The challenge could not be loaded", "zh-Hans": "挑战暂时无法加载"},
-    {"id": "playkit.timed.unknown", "en": "—", "zh-Hans": "—"},
-    {"id": "playkit.timed.ready", "en": "Timed challenge", "zh-Hans": "限时挑战"},
-    {"id": "playkit.timed.target", "en": "Target time", "zh-Hans": "目标时间"},
-    {"id": "playkit.timed.tolerance", "en": "Allowed tolerance", "zh-Hans": "允许误差"},
-    {"id": "playkit.timed.rounds", "en": "Rounds measured", "zh-Hans": "已测轮数"},
-    {"id": "playkit.timed.goal", "en": "Target reaction time", "zh-Hans": "目标反应时间"},
-    {"id": "playkit.timed.attempts", "en": "Attempts recorded", "zh-Hans": "已记录的尝试"},
-    {"id": "playkit.timed.attemptLimit", "en": "Attempt limit", "zh-Hans": "最多尝试次数"},
-    {"id": "playkit.timed.typeTarget", "en": "Type the target text", "zh-Hans": "输入目标文字"}
+    {
+      "id": "playkit.challenge.start",
+      "en": "Review and start",
+      "zh-Hans": "核对并开始"
+    },
+    {
+      "id": "playkit.challenge.measure",
+      "en": "Stop the clock",
+      "zh-Hans": "停止计时"
+    },
+    {
+      "id": "playkit.type.finish",
+      "en": "Finish typing",
+      "zh-Hans": "完成输入"
+    },
+    {
+      "id": "playkit.challenge.submit",
+      "en": "Review submission",
+      "zh-Hans": "核对提交"
+    },
+    {
+      "id": "playkit.reaction.target",
+      "en": "Tap now",
+      "zh-Hans": "现在点击"
+    },
+    {
+      "id": "playkit.type.result",
+      "en": "Result: passed",
+      "zh-Hans": "判定：已通过"
+    },
+    {
+      "id": "playkit.timed.loading",
+      "en": "Loading the challenge",
+      "zh-Hans": "正在加载挑战"
+    },
+    {
+      "id": "playkit.timed.empty",
+      "en": "No timed challenge on this stop",
+      "zh-Hans": "这个据点没有限时挑战"
+    },
+    {
+      "id": "playkit.timed.error",
+      "en": "The challenge could not be loaded",
+      "zh-Hans": "挑战暂时无法加载"
+    },
+    {
+      "id": "playkit.timed.unknown",
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    {
+      "id": "playkit.timed.ready",
+      "en": "Timed challenge",
+      "zh-Hans": "限时挑战"
+    },
+    {
+      "id": "playkit.timed.target",
+      "en": "Target time",
+      "zh-Hans": "目标时间"
+    },
+    {
+      "id": "playkit.timed.tolerance",
+      "en": "Allowed tolerance",
+      "zh-Hans": "允许误差"
+    },
+    {
+      "id": "playkit.timed.rounds",
+      "en": "Rounds measured",
+      "zh-Hans": "已测轮数"
+    },
+    {
+      "id": "playkit.timed.goal",
+      "en": "Target reaction time",
+      "zh-Hans": "目标反应时间"
+    },
+    {
+      "id": "playkit.timed.attempts",
+      "en": "Attempts recorded",
+      "zh-Hans": "已记录的尝试"
+    },
+    {
+      "id": "playkit.timed.attemptLimit",
+      "en": "Attempt limit",
+      "zh-Hans": "最多尝试次数"
+    },
+    {
+      "id": "playkit.timed.typeTarget",
+      "en": "Type the target text",
+      "zh-Hans": "输入目标文字"
+    }
   ]
 }

@@ -140,6 +140,13 @@ import FoundationNetworking
         XCTAssertEqual(RoamStampSlip.titleKey(kind: "sticker"), "roamSub.w208.stamp.title.sticker")
         XCTAssertEqual(RoamStampSlip.titleKey(kind: nil), "roamSub.w208.stamp.title.sign")
         XCTAssertEqual(RoamStampSlip.dateLabel(Date(timeIntervalSince1970: 1760857200), calendar: utc), "10.19")
+        let en = Locale(identifier: "en_US"), zh = Locale(identifier: "zh_Hans_CN")
+        XCTAssertEqual(RoamStampSlip.dateLabel(Date(timeIntervalSince1970: 1760857200), locale: zh, calendar: utc), "10.19")
+        XCTAssertEqual(RoamStampSlip.dateLabel(Date(timeIntervalSince1970: 1760857200), locale: en, calendar: utc), "Oct 19")
+        let left = RoamStampSlip(try JSONDecoder().decode(RoamStampExchangeReceipt.self, from: Data(#"{"exchanged":true,"stamp":{"id":9,"picUrl":"","checkState":1,"createTime":"2026-01-02T12:00:00"}}"#.utf8)))
+        XCTAssertEqual(left.leftAtText(locale: zh), "2026-01-02 12:00")
+        XCTAssertNotEqual(left.leftAtText(locale: en), "2026-01-02 12:00", "English re-renders the server wall time")
+        XCTAssertTrue(left.leftAtText(locale: en)?.hasPrefix("Jan 2, 2026") == true)
     }
 
     func testMerchantChargeTypeDecodes() throws {

@@ -12,7 +12,7 @@
     "zh-Hans": "3D 珐琅"
   },
   "templateAuthor.preference.title": {
-    "en": "Preference results",
+    "en": "Preference",
     "zh-Hans": "偏好结果"
   },
   "templateAuthor.preference.partial": {
@@ -36,7 +36,7 @@
     "zh-Hans": "此标签可撤回。"
   },
   "templateAuthor.preference.unsupported": {
-    "en": "This configuration cannot be previewed. The original is retained unchanged.",
+    "en": "This configuration can't be previewed. The original is retained unchanged.",
     "zh-Hans": "此配置暂不能预览，原文已完整保留。"
   }
 }

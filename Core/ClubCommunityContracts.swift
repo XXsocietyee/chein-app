@@ -205,7 +205,10 @@ public struct ClubCommunityReview: Equatable, Identifiable {
             guard !key.isEmpty else { throw ClubCommunityFailure.invalid }
             return ["id": postID, "pinned": pinned, "version": evidence.post!.version, "requestId": key]
         case .delete, .report: return ["id": postID]
-        case .toggleLike, .repost: return ["postId": postID]
+        case .toggleLike:
+            // Backend postLike (P1-023): a `liked` target is idempotent. A bare toggle flips again on retry.
+            return ["postId": postID, "liked": !(evidence.post?.liked ?? false)]
+        case .repost: return ["postId": postID]
         case let .comment(content):
             guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw ClubCommunityFailure.invalid }
             return ["postId": postID, "content": content]

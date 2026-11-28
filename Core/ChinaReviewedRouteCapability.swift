@@ -540,6 +540,9 @@ public enum ChinaReviewedRouteCapability {
         "/api/club/post",
         "/api/club/post/operation",
         "/api/club/post/operation/comment",
+        // P2-4: create-page name check. POST api/club/name-check {name} is live on us/r3-functional
+        // (ApiClubController.nameCheck). Kept outside marks so callSiteCount stays 996.
+        "/api/club/name-check",
         "/api/club/roles",
         "/api/club/workbench",
         "/api/coop",

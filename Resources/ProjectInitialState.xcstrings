@@ -726,7 +726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The starting value is outside the current range. Change it before you tap Done."
+            "value": "Start value is out of range. Change it, then tap Done."
           }
         },
         "zh-Hans": {
@@ -742,7 +742,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starting values come from the registered definitions. Change them in the theme settings."
+            "value": "Start values come from registered definitions. Change them in theme settings."
           }
         },
         "zh-Hans": {

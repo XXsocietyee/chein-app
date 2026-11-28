@@ -3,40 +3,176 @@
   "screen": "App/GrowthLeaderboardView.swift",
   "unknownDisplay": "—",
   "strings": [
-    {"key": "growth.board.title", "en": "Leaderboard", "zh-Hans": "完整排行榜"},
-    {"key": "growth.offlineExample", "en": "Example content", "zh-Hans": "示例内容"},
-    {"key": "growth.board.metric", "en": "Ranking measure", "zh-Hans": "排行指标"},
-    {"key": "growth.metric.point", "en": "Points", "zh-Hans": "积分榜"},
-    {"key": "growth.metric.exp", "en": "Growth", "zh-Hans": "成长榜"},
-    {"key": "growth.board.period", "en": "Ranking period", "zh-Hans": "排行周期"},
-    {"key": "growth.period.week", "en": "This week", "zh-Hans": "周榜"},
-    {"key": "growth.period.total", "en": "All time", "zh-Hans": "总榜"},
-    {"key": "growth.signInRequired", "en": "Sign in to see your growth and rankings", "zh-Hans": "登录后查看成长与排名"},
-    {"key": "growth.notConfigured", "en": "Growth isn't available right now", "zh-Hans": "成长功能暂不可用"},
-    {"key": "growth.loading", "en": "Loading growth…", "zh-Hans": "正在加载成长信息…"},
-    {"key": "growth.unavailable", "en": "This growth information is temporarily unavailable", "zh-Hans": "这部分成长信息暂不可用"},
-    {"key": "growth.network", "en": "Check your connection and try again", "zh-Hans": "请检查网络后重试"},
-    {"key": "growth.failed", "en": "Growth information could not be loaded", "zh-Hans": "成长信息加载失败"},
-    {"key": "growth.denied", "en": "This account cannot view growth records. Check its access and refresh.", "zh-Hans": "当前账号无法查看成长记录，请确认当前账号的查看权限"},
-    {"key": "growth.retry", "en": "Try again", "zh-Hans": "重新加载"},
-    {"key": "growth.myRank", "en": "My ranking", "zh-Hans": "我的排名"},
-    {"key": "growth.me", "en": "Me", "zh-Hans": "我"},
-    {"key": "growth.board.empty", "en": "No rankings yet", "zh-Hans": "暂无排行榜数据"},
-    {"key": "growth.board.emptyHint", "en": "Rankings appear when the service has ranking data.", "zh-Hans": "有可排名数据后将在这里展示。"},
-    {"key": "growthExplore.openHome", "en": "Go explore", "zh-Hans": "去探索"},
-    {"key": "growth.board.leaders", "en": "Rankings", "zh-Hans": "排行榜"},
-    {"key": "growth.explorer", "en": "Explorer", "zh-Hans": "探索者"},
-    {"key": "growth.unranked", "en": "Not ranked yet", "zh-Hans": "暂无排名"},
-    {"key": "growth.unknown", "en": "—", "zh-Hans": "—"},
-    {"key": "growth.unknownValue", "en": "Unknown", "zh-Hans": "未知"},
-    {"key": "growth.unit.point", "en": "Points", "zh-Hans": "积分"},
-    {"key": "growth.unit.exp", "en": "EXP", "zh-Hans": "EXP"},
-    {"key": "growth.board.meTag", "en": "Me", "zh-Hans": "我"},
-    {"key": "growth.board.podium.first", "en": "First place", "zh-Hans": "第一名"},
-    {"key": "growth.board.podium.second", "en": "Second place", "zh-Hans": "第二名"},
-    {"key": "growth.board.podium.third", "en": "Third place", "zh-Hans": "第三名"},
-    {"key": "growth.refresh", "en": "Refresh", "zh-Hans": "刷新"},
-    {"key": "growthNormalEntry.leaderboard.hold", "en": "Anonymous rankings aren't available right now. Your personal growth records are shown separately.", "zh-Hans": "匿名排行暂不可用，个人成长记录单独展示。"}
+    {
+      "key": "growth.board.title",
+      "en": "Leaderboard",
+      "zh-Hans": "完整排行榜"
+    },
+    {
+      "key": "growth.offlineExample",
+      "en": "Example content",
+      "zh-Hans": "示例内容"
+    },
+    {
+      "key": "growth.board.metric",
+      "en": "Ranking measure",
+      "zh-Hans": "排行指标"
+    },
+    {
+      "key": "growth.metric.point",
+      "en": "Points",
+      "zh-Hans": "积分榜"
+    },
+    {
+      "key": "growth.metric.exp",
+      "en": "Growth",
+      "zh-Hans": "成长榜"
+    },
+    {
+      "key": "growth.board.period",
+      "en": "Ranking period",
+      "zh-Hans": "排行周期"
+    },
+    {
+      "key": "growth.period.week",
+      "en": "Week",
+      "zh-Hans": "周榜"
+    },
+    {
+      "key": "growth.period.total",
+      "en": "All time",
+      "zh-Hans": "总榜"
+    },
+    {
+      "key": "growth.signInRequired",
+      "en": "Sign in to see your growth and rankings",
+      "zh-Hans": "登录后查看成长与排名"
+    },
+    {
+      "key": "growth.notConfigured",
+      "en": "Growth isn't available right now",
+      "zh-Hans": "成长功能暂不可用"
+    },
+    {
+      "key": "growth.loading",
+      "en": "Loading growth…",
+      "zh-Hans": "正在加载成长信息…"
+    },
+    {
+      "key": "growth.unavailable",
+      "en": "This growth info is temporarily unavailable",
+      "zh-Hans": "这部分成长信息暂不可用"
+    },
+    {
+      "key": "growth.network",
+      "en": "Check your connection and try again",
+      "zh-Hans": "请检查网络后重试"
+    },
+    {
+      "key": "growth.failed",
+      "en": "Growth info couldn't be loaded",
+      "zh-Hans": "成长信息加载失败"
+    },
+    {
+      "key": "growth.denied",
+      "en": "This account cannot view growth records. Check its access and refresh.",
+      "zh-Hans": "当前账号无法查看成长记录，请确认当前账号的查看权限"
+    },
+    {
+      "key": "growth.retry",
+      "en": "Try again",
+      "zh-Hans": "重新加载"
+    },
+    {
+      "key": "growth.myRank",
+      "en": "My ranking",
+      "zh-Hans": "我的排名"
+    },
+    {
+      "key": "growth.me",
+      "en": "Me",
+      "zh-Hans": "我"
+    },
+    {
+      "key": "growth.board.empty",
+      "en": "No rankings yet",
+      "zh-Hans": "暂无排行榜数据"
+    },
+    {
+      "key": "growth.board.emptyHint",
+      "en": "Rankings appear when the service has ranking data.",
+      "zh-Hans": "有可排名数据后将在这里展示。"
+    },
+    {
+      "key": "growthExplore.openHome",
+      "en": "Go explore",
+      "zh-Hans": "去探索"
+    },
+    {
+      "key": "growth.board.leaders",
+      "en": "Rankings",
+      "zh-Hans": "排行榜"
+    },
+    {
+      "key": "growth.explorer",
+      "en": "Explorer",
+      "zh-Hans": "探索者"
+    },
+    {
+      "key": "growth.unranked",
+      "en": "Not ranked yet",
+      "zh-Hans": "暂无排名"
+    },
+    {
+      "key": "growth.unknown",
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    {
+      "key": "growth.unknownValue",
+      "en": "Unknown",
+      "zh-Hans": "未知"
+    },
+    {
+      "key": "growth.unit.point",
+      "en": "Points",
+      "zh-Hans": "积分"
+    },
+    {
+      "key": "growth.unit.exp",
+      "en": "EXP",
+      "zh-Hans": "EXP"
+    },
+    {
+      "key": "growth.board.meTag",
+      "en": "Me",
+      "zh-Hans": "我"
+    },
+    {
+      "key": "growth.board.podium.first",
+      "en": "First place",
+      "zh-Hans": "第一名"
+    },
+    {
+      "key": "growth.board.podium.second",
+      "en": "Second place",
+      "zh-Hans": "第二名"
+    },
+    {
+      "key": "growth.board.podium.third",
+      "en": "Third place",
+      "zh-Hans": "第三名"
+    },
+    {
+      "key": "growth.refresh",
+      "en": "Refresh",
+      "zh-Hans": "刷新"
+    },
+    {
+      "key": "growthNormalEntry.leaderboard.hold",
+      "en": "Anonymous rankings aren't available right now. Personal growth records shown separately.",
+      "zh-Hans": "匿名排行暂不可用，个人成长记录单独展示。"
+    }
   ],
   "accessibilityIdentifiers": [
     "growth.board.metric",

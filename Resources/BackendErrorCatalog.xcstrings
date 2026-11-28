@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That request is too large."
+            "value": "Request too large."
           }
         },
         "zh-Hans": {
@@ -182,7 +182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That request isn't in a supported format."
+            "value": "That request isn't in supported format."
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service is unavailable right now. Please try again."
+            "value": "The service is unavailable right now. Try again."
           }
         },
         "zh-Hans": {
@@ -598,7 +598,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This chapter is already redeemed. Continue to the next stop."
+            "value": "This chapter is already redeemed. Continue to next stop."
           }
         },
         "zh-Hans": {
@@ -1030,7 +1030,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reservations are temporarily unavailable."
+            "value": "Bookings temporarily unavailable."
           }
         },
         "zh-Hans": {
@@ -1062,7 +1062,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request used the fixed safe exit."
+            "value": "The original request used fixed safe exit."
           }
         },
         "zh-Hans": {
@@ -1334,7 +1334,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result is still unknown. Check the original request before trying again."
+            "value": "The result is still unknown. Check original request before trying again."
           }
         },
         "zh-Hans": {
@@ -1622,7 +1622,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result is still unknown. Check the original request before trying again."
+            "value": "The result is still unknown. Check original request before trying again."
           }
         },
         "zh-Hans": {
@@ -1654,7 +1654,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reservations are temporarily unavailable."
+            "value": "Bookings temporarily unavailable."
           }
         },
         "zh-Hans": {
@@ -1878,7 +1878,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The leader releases this chapter before anyone can continue."
+            "value": "Leader releases chapter before anyone can continue."
           }
         },
         "zh-Hans": {
@@ -1990,7 +1990,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign-in is unavailable right now. Please try again."
+            "value": "Sign-in is unavailable right now. Try again."
           }
         },
         "zh-Hans": {
@@ -2262,7 +2262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The webhook result is still unknown. Check the original delivery before trying again."
+            "value": "The webhook result is still unknown. Check original delivery before trying again."
           }
         },
         "zh-Hans": {
@@ -2486,7 +2486,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is only available for free exploration."
+            "value": "Only available free."
           }
         },
         "zh-Hans": {
@@ -2518,7 +2518,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There isn't enough coupon stock, so redemption did not finish."
+            "value": "Not enough coupons. Redeem failed."
           }
         },
         "zh-Hans": {
@@ -2534,7 +2534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A parameter is not valid."
+            "value": "Bad parameter."
           }
         },
         "zh-Hans": {
@@ -2566,7 +2566,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location accuracy is too low."
+            "value": "Location accuracy too low."
           }
         },
         "zh-Hans": {
@@ -2582,7 +2582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This has expired."
+            "value": "Has expired."
           }
         },
         "zh-Hans": {
@@ -2614,7 +2614,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That place was not found."
+            "value": "Place wasn't found."
           }
         },
         "zh-Hans": {
@@ -2630,7 +2630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can't redeem at this place."
+            "value": "You can't redeem at place."
           }
         },
         "zh-Hans": {
@@ -2646,7 +2646,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can't access this right now. Please sign in again."
+            "value": "Can't access this resource."
           }
         },
         "zh-Hans": {
@@ -2662,7 +2662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That redemption code is not valid."
+            "value": "Bad code."
           }
         },
         "zh-Hans": {
@@ -2678,7 +2678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That redemption code format is not valid."
+            "value": "Bad code format."
           }
         },
         "zh-Hans": {
@@ -2694,7 +2694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That format is not valid."
+            "value": "Bad format."
           }
         },
         "zh-Hans": {
@@ -2710,7 +2710,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check in at the store first, or this coupon was already redeemed."
+            "value": "Check in at the store first, or coupon already redeemed."
           }
         },
         "zh-Hans": {
@@ -2742,7 +2742,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The redemption code is empty."
+            "value": "No code"
           }
         },
         "zh-Hans": {
@@ -2758,7 +2758,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The signature does not match."
+            "value": "Sign doesn't match."
           }
         },
         "zh-Hans": {
@@ -2774,7 +2774,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This order has expired."
+            "value": "Order has expired."
           }
         },
         "zh-Hans": {
@@ -2790,7 +2790,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign-in could not be verified. Please sign in again."
+            "value": "Sign-in failed."
           }
         },
         "zh-Hans": {
@@ -2838,7 +2838,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That notice was not found."
+            "value": "Notice wasn't found."
           }
         },
         "zh-Hans": {
@@ -2854,7 +2854,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That is not a place redemption code."
+            "value": "Not a place code."
           }
         },
         "zh-Hans": {

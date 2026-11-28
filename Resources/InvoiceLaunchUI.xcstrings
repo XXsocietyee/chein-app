@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund check in progress"
+            "value": "Refund check progress"
           }
         },
         "zh-Hans": {
@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Individual"
+            "value": "Solo"
           }
         },
         "zh-Hans": {
@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apply for an invoice"
+            "value": "Apply for invoice"
           }
         },
         "zh-Hans": {
@@ -422,7 +422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load the invoice application"
+            "value": "Couldn't load the invoice request"
           }
         },
         "zh-Hans": {
@@ -470,7 +470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit invoice title"
+            "value": "Edit invoice"
           }
         },
         "zh-Hans": {
@@ -566,7 +566,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invoice information"
+            "value": "Invoice info"
           }
         },
         "zh-Hans": {
@@ -598,7 +598,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invoice number"
+            "value": "Invoice"
           }
         },
         "zh-Hans": {
@@ -854,7 +854,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invoice is being issued"
+            "value": "Invoice being issued"
           }
         },
         "zh-Hans": {
@@ -994,7 +994,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Select all from this issuer"
+            "value": "Select all from issuer"
           }
         },
         "zh-Hans": {
@@ -1074,7 +1074,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fields marked * are required"
+            "value": "Fields marked * required"
           }
         },
         "zh-Hans": {
@@ -1106,7 +1106,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Try"
           }
         },
         "zh-Hans": {
@@ -1234,7 +1234,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submit application"
+            "value": "Submit request"
           }
         },
         "zh-Hans": {
@@ -1250,7 +1250,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter the full tax ID: 15 to 20 digits or capital letters. A masked ID can't be used."
+            "value": "Enter full tax ID: 15 20 digits capital letters. Masked ID can't used."
           }
         },
         "zh-Hans": {
@@ -1346,7 +1346,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Don't change titles until it's confirmed"
+            "value": "Don't change titles until it's"
           }
         },
         "zh-Hans": {
@@ -1522,7 +1522,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw application"
+            "value": "Withdraw request"
           }
         },
         "zh-Hans": {
@@ -1538,7 +1538,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw invoice application"
+            "value": "Withdraw invoice request"
           }
         },
         "zh-Hans": {
@@ -1570,7 +1570,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Application not submitted"
+            "value": "Request not submitted"
           }
         },
         "zh-Hans": {
@@ -1618,7 +1618,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdrawal didn't finish"
+            "value": "Cash-out didn't finish"
           }
         },
         "zh-Hans": {
@@ -1634,7 +1634,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The withdrawal is not confirmed yet"
+            "value": "Cash-out isn't confirmed yet"
           }
         },
         "zh-Hans": {
@@ -1666,7 +1666,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The deletion is not confirmed yet"
+            "value": "Deletion isn't confirmed yet"
           }
         },
         "zh-Hans": {
@@ -1778,7 +1778,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This title no longer exists"
+            "value": "Title no longer exists"
           }
         },
         "zh-Hans": {

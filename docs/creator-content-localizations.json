@@ -12,7 +12,7 @@
     "zh-Hans": "示例内容"
   },
   "creatorContent.retry": {
-    "en": "Try again",
+    "en": "Try",
     "zh-Hans": "重试"
   },
   "creatorContent.loading": {
@@ -84,7 +84,7 @@
     "zh-Hans": "未说明驳回原因"
   },
   "creatorContent.reapplyBlocked": {
-    "en": "The current service does not accept repeat applications after rejection.",
+    "en": "Current service doesn't accept repeat requests after rejection.",
     "zh-Hans": "当前服务不支持驳回后重新申请。"
   },
   "creatorContent.signInRequired": {
@@ -112,7 +112,7 @@
     "zh-Hans": "尚未申请"
   },
   "creatorContent.status.pending": {
-    "en": "Application under review",
+    "en": "Request under review",
     "zh-Hans": "申请审核中"
   },
   "creatorContent.status.approved": {
@@ -136,15 +136,15 @@
     "zh-Hans": "主题"
   },
   "creatorContent.filter.activity": {
-    "en": "Activities",
+    "en": "Events",
     "zh-Hans": "活动"
   },
   "creatorContent.filter.template": {
-    "en": "Templates",
+    "en": "Forms",
     "zh-Hans": "模板"
   },
   "creatorContent.filter.member": {
-    "en": "Individual",
+    "en": "Solo",
     "zh-Hans": "个人"
   },
   "creatorContent.filter.club": {

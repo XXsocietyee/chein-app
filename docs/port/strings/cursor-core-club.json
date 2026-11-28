@@ -4,99 +4,239 @@
     "clubOps.topic.unavailable": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "This activity can't be opened" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "活动无法打开" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This activity can't opened"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动无法打开"
+          }
+        }
       }
     },
     "clubOps.topic.invalid": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "This link is no longer valid" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "链接已失效" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link no longer valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "链接已失效"
+          }
+        }
       }
     },
     "clubOps.topic.back": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Back" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "返回" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
       }
     },
     "clubOps.topic.retry": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Reload" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重新加载" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载"
+          }
+        }
       }
     },
     "clubOps.series.failed": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Couldn't load the series list" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "系列列表加载失败" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the series list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系列列表加载失败"
+          }
+        }
       }
     },
     "clubOps.series.retry": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Retry" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重试" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        }
       }
     },
     "clubOps.eventTopics.failed": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Couldn't load topics that can start" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "可开场主题加载失败" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load topics that can start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可开场主题加载失败"
+          }
+        }
       }
     },
     "clubOps.eventTopics.retry": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Retry" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "重试" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        }
       }
     },
     "clubOps.eventOps.unavailable": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Event operations are temporarily unavailable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "活动运营暂时不可用" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event operations temporarily"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动运营暂时不可用"
+          }
+        }
       }
     },
     "clubOps.settlement.unavailable": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Settlement data is temporarily unavailable" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "结算数据暂不可用" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payout data temporarily unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算数据暂不可用"
+          }
+        }
       }
     },
     "clubOps.notify.network": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Network connection failed" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "网络连接失败" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network connection failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络连接失败"
+          }
+        }
       }
     },
     "club.memberGovernance.denied": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Only the owner and co-owner can govern members" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "仅主理人与联合主理人可进行成员治理" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the owner and co-owner can govern members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅主理人与联合主理人可进行成员治理"
+          }
+        }
       }
     },
     "club.schedule.error.weeklyHorizon": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "That many weekly dates do not fit in 90 days" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "首次日期起 90 天内最多可排 N 期" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That many weekly dates do not fit in 90 days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首次日期起 90 天内最多可排 N 期"
+          }
+        }
       }
     },
     "clubOps.customer.refused": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "This customer can't be opened" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "无法打开这位顾客" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This customer can't be opened"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法打开这位顾客"
+          }
+        }
       }
     }
   },

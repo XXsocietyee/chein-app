@@ -37,4 +37,12 @@ public struct Account: Decodable, Equatable {
 public struct LoginResult {
     public let token: String
     public let account: Account
+    /// Presentation only. `POST /api/login/wechat/app` sets this when the server matched the mini-program
+    /// account. Phone and Apple sign-in leave it false. It never authorizes a session by itself.
+    public let linkedMiniProgram: Bool
+    public init(token: String, account: Account, linkedMiniProgram: Bool = false) {
+        self.token = token
+        self.account = account
+        self.linkedMiniProgram = linkedMiniProgram
+    }
 }
