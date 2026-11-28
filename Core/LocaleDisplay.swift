@@ -262,6 +262,14 @@ public enum LocaleDisplay {
         distance(meters: kilometers * 1000, locale: locale)
     }
 
+    /// A walked total already in kilometres. Chinese keeps `1.5 km` (the string the history rows
+    /// already printed, including the locale's decimal separator). Other locales use the road unit (`0.9 mi`).
+    public static func walkedKilometers(_ kilometers: Double, locale: Locale) -> String {
+        let china = String(format: "%.1f km", locale: locale, kilometers)
+        if isChinese(locale) { return china }
+        return distance(kilometers: kilometers, locale: locale) ?? china
+    }
+
     /// Search/filter radius: always a whole number in the locale's large road unit (`3 km` / `2 mi`).
     public static func radius(meters: Double, locale: Locale) -> String? {
         guard meters.isFinite, meters >= 0 else { return nil }

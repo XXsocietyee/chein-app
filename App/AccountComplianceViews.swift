@@ -710,7 +710,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     }
     private var roam: some View {
         Section {
-            NavigationLink { SettingsLegalDocumentView(type: .privacyPolicy, market: market, reader: legalReader) } label: { Text("compliance.readPrivacy") }
+            NavigationLink { SettingsLegalDocumentView(type: .privacyPolicy, market: UserMarketMemory.legalDocumentMarket(deployment: market), reader: legalReader) } label: { Text("compliance.readPrivacy") }
             Text("compliance.roamExplanation")
             // E2E-20261112 F3: offer Agree while the latest server row is not a current AGREE.
             if model.state.roamConsent == .notAgreed {

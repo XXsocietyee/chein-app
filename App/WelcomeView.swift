@@ -258,7 +258,7 @@ struct WelcomeView: View {
 
     private func legalSheet(_ type: SettingsLegalType) -> some View {
         NavigationStack {
-            SettingsLegalDocumentView(type: type, market: session.operationalMarket, reader: session.legalReader)
+            SettingsLegalDocumentView(type: type, market: UserMarketMemory.legalDocumentMarket(deployment: session.operationalMarket), reader: session.legalReader)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("action.close") { destination = nil }
