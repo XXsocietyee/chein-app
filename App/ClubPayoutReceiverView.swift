@@ -513,7 +513,7 @@ struct ClubPayoutReceiverLink: View {
                     Text("directLedger.redemption \(String(row.redemptionID))", tableName: "PayoutReceiver").font(.headline)
                     HStack(spacing: 4) {
                         Text(verbatim: row.timeText)
-                        Text(verbatim: "·")
+                        Text(verbatim: "·").accessibilityHidden(true)
                         Text(LocalizedStringKey(row.statusKey), tableName: "PayoutReceiver")
                     }.font(.subheadline).foregroundStyle(.secondary)
                     if let claim = row.claimNumber { Text("directLedger.claim \(claim)", tableName: "PayoutReceiver").font(.subheadline) }

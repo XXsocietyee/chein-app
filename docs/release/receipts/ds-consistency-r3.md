@@ -1307,6 +1307,43 @@ PASS (0 debt, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, 
   is `yyyy-MM-dd` / `M月d日`. Route through `LocaleDisplay.day` / `monthDay` and re-pin
   `Tests/CoreTests/RoamSubpageParityTests.swift:17` with a one-line reason (display only).
 
+## Continue run 39 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane (latest: 13:15 sweep, K11–K16 to Cursor, B lanes for mp areas).
+Run 38 Not done row worked: **漫游 history run card date.** Checked first: the visible card date
+(`RoamRunCardDateText`, `RoamSubpageParityViews.swift:58`) is already `.dateTime.month().day().weekday()` in the
+locale; `RoamRunCardPresentation.dateShort` (MP `M/D/YY`) only fed the VoiceOver label, so VoiceOver read `10/19/25`
+in both languages while the card showed 10月19日 / Oct 19.
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| `subpackageRoam/history` RunCard aria-label → `App/RoamHistoryViews.swift:109` · B | `App/RoamHistoryViews+Port.swift` `portRunCardAccessibilityLabel(locale:)` | spoken `10/19/25 West Lake, 2.5 km` → zh `10月19日 …` / en `Oct 19 …` via `LocaleDisplay.monthDay` (view `\.locale`) |
+
+`RoamRunCardPresentation.dateShort` stays as the pinned MP projection (`RoamSubpageParityTests:17`, no other caller),
+so no test re-pin was needed.
+
+### Batch 2 — one owner role word (ADA audit §3 **Role / level**: "Owner vs Creator")
+MP club pages never say 创建者: the owner is 主理人 everywhere (`pages/club/detail/index.wxml:233` Facts 主理人,
+`:222`, `:255`; `pages/club/apply`, `create`, `enroll`). The app had 主理人 / Owner on the strip and ops screens
+(`club.strip.owner`, `club.ops.owner`) but 创建者 / Creator on the role pill and the roster card.
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| club detail role pill / members list / action panel / club card (`ClubDetailView:819`, `ClubMembersView:270`, `ClubActionPanel:253`, `ClubComponents:97`) · C | `Resources/Localizable.xcstrings` `club.role.creator` | 创建者 / Creator → 主理人 / Owner |
+| club roster card (`ClubRosterCardKit:69,78`) · B | `Resources/DesignR1Club.xcstrings` `r1club.roster.members.roles` (+ generator `tools/build_design_r1_localizations.py:63`) | zh 创建者 %ld → 主理人 %ld (en was already Owner) |
+
+Pin: `Tests/AppUnitTests/DesignR1ClubKitTests.swift:114` zh expectation follows (copy only). Level label: already one
+shape (`Lv.N` on Me header `MemberHomeHeader:239` and public profile `SocialPublicProfileView:146`); no "Level 3 ·"
+string remains in the catalogs (checked), so nothing to change there.
+
+Gates (both batches): `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new),
+`check_design_consistency` PASS (0 debt, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- ADA §3 **Background**: grouped grey on most pushes but white on the stamp album and channel chat. Check the stamp
+  album root (`systemGroupedBackground` for a list/grid page) and keep `systemBackground` only for chat bodies;
+  consider a checker kind if more than one page differs.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

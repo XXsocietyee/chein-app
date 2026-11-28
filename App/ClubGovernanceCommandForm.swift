@@ -152,7 +152,161 @@ import SwiftUI
         let _ = bindRolePicker()
         let _ = bindSeriesLeadPicker()
         let _ = bindNotificationAudience()
+        commandFormOuter
+    }
+
+    private var commandFormBase: some View {
         Form {
+            commandOperationFields
+            commandFailureBlock
+            commandBusyBlock
+            commandReviewBlock
+            commandReceiptBlock
+        }
+        .background {
+            if route.operation == .hostApply {
+                let context = hostMaterialsContext
+                if let attachment = hostMaterials.attachment {
+                    ClubHostApplicationMaterialsLifetime { hostMaterials.depart(context, attachment: attachment) }
+                        .frame(width: 0, height: 0).id(attachment)
+                }
+                if let value = hostMaterials.presentation {
+                    ClubHostApplicationMaterialsOwner(model: hostMaterials, value: value,
+                        allowed: { hostMaterialsAllowed }, changed: { dirty = true }).id(value.id)
+                }
+            }
+        }
+        .onAppear { activateHostMaterials(appearing: true) }
+        .onDisappear { hostMaterials.hide() }
+        .onChange(of: hostMaterialsContext) { _, _ in activateHostMaterials() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { activateHostMaterials() } else { hostMaterials.retire() }
+        }
+        .navigationTitle(ClubOpsEventFormCopy.title(route)).navigationBarTitleDisplayMode(.inline)
+        // mp-club r3 C-07b (MP event-ops wxml:278-281 `cy-modal compact`): a centered confirm with the MP title, one
+        // content line and 再想想 / 取消本场 (danger), no top bar and no swipe-away, so a system alert, not a sheet.
+        .alert(Text("clubOpsEvent.cancel.confirmTitle", tableName: "ClubOpsEvent"),
+               isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
+            Button(role: .cancel) { cancelConfirmReview = nil } label: { Text("clubOpsEvent.cancel.keep", tableName: "ClubOpsEvent") }
+            Button(role: .destructive) {
+                guard let pending = cancelConfirmReview, pending.id == review?.id else { cancelConfirmReview = nil; return }
+                cancelConfirmReview = nil; Task { await confirm(pending) }
+            } label: { Text("clubOpsEvent.cancel.confirmAction", tableName: "ClubOpsEvent") }
+        } message: {
+            Text("clubOpsEvent.cancel.confirmBody", tableName: "ClubOpsEvent")
+        }
+    }
+
+    private var commandFormSheets: some View {
+        commandFormBase
+        .cySheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
+            if let kind = ClubGovernanceConsequence(route.operation) {
+                kind.sheet(locale: locale, name: consequenceObjectName, alternative: transferInsteadAction) {
+                    guard let pending = consequenceReview, pending.id == review?.id else { consequenceReview = nil; return }
+                    consequenceReview = nil; consequenceAccepted = pending.id; Task { await confirm(pending) }
+                }
+
+            }
+        }
+        .toolbar { ToolbarItem(placement: .cancellationAction) {
+            // CLB-apply-09: 关闭 stays in the bar on every step; 上一步 sits in the bottom actions.
+            Button {
+                if dirty || busy || locked { showDiscard = true } else { dismiss() }
+            } label: {
+                Text("club.gov.close")
+            }
+        } }
+        .interactiveDismissDisabled(dirty || busy || locked)
+        .confirmationDialog(Text(verbatim: appLocalized("club.gov.discardTitle", locale: locale)), isPresented: $showDiscard, titleVisibility: .visible) {
+            Button(role: .destructive) {
+                showDiscard = false; retirePresentation(); coordinator.cancelReview(); dismiss()
+            } label: { Text(verbatim: appLocalized("club.gov.discard", locale: locale)) }
+            Button(role: .cancel) { showDiscard = false } label: { Text("action.cancel") }
+        } message: {
+            Text(verbatim: locked ? appLocalized("club.gov.unknown", locale: locale) : appLocalized("club.gov.discardBody", locale: locale))
+        }
+        .cySheet(item: $scheduleSession) { session in Group {
+            NavigationStack {
+                ClubSeriesScheduleEditor(session: session, canApply: { canApplySchedule(session) }, apply: { selection in
+                    guard canApplySchedule(session), let next = try? selection.applying(to: draft, now: Date()) else { return false }
+                    draft = next; dirty = true; review = nil; failure = nil; coordinator.cancelReview(); scheduleSession = nil
+                    return true
+                })
+            }
+        }.cySheet(detents: [.large])
+        }
+        .onChange(of: access.authorizationGeneration) { _, _ in scheduleSession = nil }
+        // CLB-governance-12 (MP governance js:584-605): after the transfer is acknowledged, leave the form after 1.5 s
+        // so the governance page re-reads under the new owner.
+        .task(id: route.operation == .transferOwner && receipt != nil) {
+            guard route.operation == .transferOwner, receipt != nil else { return }
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            guard !Task.isCancelled, receipt != nil else { return }
+            dismiss()
+        }
+        // CLB-r11-edit-01 (MP edit/index.js:23-30 onDissolved): 俱乐部已解散, then after 0.5 s leave the form and the
+        // edit page (navigateBack).
+    }
+
+    private var commandFormLifecycle: some View {
+        commandFormSheets
+        .task(id: route.operation == .dissolve && receipt != nil) {
+            guard route.operation == .dissolve, receipt != nil else { return }
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            guard !Task.isCancelled, receipt != nil else { return }
+            if let dissolvedReturn { dissolvedReturn.leave() } else { dismiss() }
+        }
+        .onChange(of: identity) { _, _ in scheduleSession = nil; retirePresentation(); review = nil; receipt = nil; groupCode = nil; coordinator.cancelReview(); draft = .init(operation: route.operation, scope: route.scope); failure = .staleReview; dismiss() }
+        .task(id: rolePickerContext) {
+            guard route.operation == .assignRole, let permit = rolePicker.activate(rolePickerContext) else { return }
+            await rolePicker.load(permit, access: access)
+        }
+        .task(id: seriesLeadContext) {
+            guard route.operation == .createSeries, let permit = seriesLeadPicker.activate(seriesLeadContext) else { return }
+            await seriesLeadPicker.load(permit, access: access)
+        }
+        .onAppear { audienceVisible = true }
+        .onChange(of: presentationContext) { _, _ in retirePresentation(); coordinator.cancelReview() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { notificationAudience.leave(audienceContext) }
+        }
+    }
+
+    private var commandFormOuter: some View {
+        commandFormLifecycle
+        .task(id: AudienceTrigger(context: audienceContext, visible: audienceVisible, active: scenePhase == .active)) {
+            guard route.operation == .sendNotification, audienceIsCurrent,
+                  let permit = notificationAudience.activate(audienceContext) else { return }
+            let expected = audienceContext
+            await notificationAudience.load(permit, access: access, isCurrent: { audienceIsCurrent && audienceContext == expected })
+        }
+        .onChange(of: access.authorizationGeneration) { _, _ in
+            groupCode = nil
+            if route.operation == .issueGroupCode { receipt = nil }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                groupCode = nil
+                if route.operation == .issueGroupCode { receipt = nil }
+            }
+        }
+        // CLB-notify-05 (fix-r3-club-b round 4): MP notify onShow re-reads the campaign silently (index.js:293-326), so
+        // counts left at 处理中 catch up on return from the status page or the background. A failed read keeps the
+        // numbers already shown; nothing is announced either way.
+        .task(id: "\(notifyCampaignID ?? 0)|\(scenePhase == .active)") {
+            guard scenePhase == .active else { return }
+            await refreshCampaign(silent: true)
+        }
+        .onChange(of: notifyCampaignID) { _, _ in campaignRefresh = nil; campaignRefreshNotice = nil }
+        // CLB-group-code-02 (fix-r3-club-b): MP issues the code as the page opens (index.js:93-135).
+        .task {
+            guard route.operation == .issueGroupCode, groupCodeCanIssue, review == nil, receipt == nil, groupCode == nil, failure == nil else { return }
+            await submitDirectly()
+        }
+        .onDisappear { groupCode = nil; if route.operation == .issueGroupCode { receipt = nil }; audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; retirePresentation(); coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
+    }
+
+    @ViewBuilder private var commandOperationFields: some View {
             // The internal draft/gate notes and the raw target IDs are no longer shown: users never chose them.
             if ClubOpsGovernanceFormNotes.applies(route.operation) { Section { ClubOpsGovernanceFormNotes(operation: route.operation, seed: route.seed) } }
             if route.operation == .hostApply {
@@ -227,6 +381,9 @@ import SwiftUI
                         .disabled(busy || locked || review != nil)
                 }
             }
+    }
+
+    @ViewBuilder private var commandFailureBlock: some View {
             if let failure, route.operation == .issueGroupCode, ClubGroupCodePort.classify(failure) == .noPermission {
                 // Mini isPermissionDenial: terminal state with an exit, not a retry.
                 Section {
@@ -299,6 +456,9 @@ import SwiftUI
                     }
                 }
             } else if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
+    }
+
+    @ViewBuilder private var commandBusyBlock: some View {
             if busy, route.operation == .issueGroupCode, groupCode == nil {
                 // CLB-r8-group-code-01 (fix-r8-club): MP sheet state loading shows a 生成中 placeholder in the code slot.
                 // CLB-r10-nat-group-code-02: one system `ProgressView("生成中")`.
@@ -310,6 +470,9 @@ import SwiftUI
                     .frame(maxWidth: .infinity)
                 }
             } else if busy { ProgressView() }
+    }
+
+    @ViewBuilder private var commandReviewBlock: some View {
             if let review, !(Self.directOperations.contains(route.operation) && consequenceReview?.id == review.id) {
                 Section {
                     // mp-club r3 (MP notify wxml:55-64): the notify review is the preview card (N 人) only; 受众/标题/内容
@@ -399,6 +562,9 @@ import SwiftUI
                 Button(LocalizedStringKey(route.operation == .sendNotification ? "clubR3b.notify.preview" : "club.gov.review")) { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")
                 }
             }
+    }
+
+    @ViewBuilder private var commandReceiptBlock: some View {
             if route.operation == .createSeries {
                 ClubSeriesOriginalResultSection(scope: route.scope, identity: identity, access: access,
                     coordinator: coordinator, formID: route.id)
@@ -463,137 +629,8 @@ import SwiftUI
                 }
                 if route.operation == .hostApply { Section { ClubCreateMyClubLink(identity: identity) } }
             }
-        }
-        .background {
-            if route.operation == .hostApply {
-                let context = hostMaterialsContext
-                if let attachment = hostMaterials.attachment {
-                    ClubHostApplicationMaterialsLifetime { hostMaterials.depart(context, attachment: attachment) }
-                        .frame(width: 0, height: 0).id(attachment)
-                }
-                if let value = hostMaterials.presentation {
-                    ClubHostApplicationMaterialsOwner(model: hostMaterials, value: value,
-                        allowed: { hostMaterialsAllowed }, changed: { dirty = true }).id(value.id)
-                }
-            }
-        }
-        .onAppear { activateHostMaterials(appearing: true) }
-        .onDisappear { hostMaterials.hide() }
-        .onChange(of: hostMaterialsContext) { _, _ in activateHostMaterials() }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active { activateHostMaterials() } else { hostMaterials.retire() }
-        }
-        .navigationTitle(ClubOpsEventFormCopy.title(route)).navigationBarTitleDisplayMode(.inline)
-        // mp-club r3 C-07b (MP event-ops wxml:278-281 `cy-modal compact`): a centered confirm with the MP title, one
-        // content line and 再想想 / 取消本场 (danger), no top bar and no swipe-away, so a system alert, not a sheet.
-        .alert(Text("clubOpsEvent.cancel.confirmTitle", tableName: "ClubOpsEvent"),
-               isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
-            Button(role: .cancel) { cancelConfirmReview = nil } label: { Text("clubOpsEvent.cancel.keep", tableName: "ClubOpsEvent") }
-            Button(role: .destructive) {
-                guard let pending = cancelConfirmReview, pending.id == review?.id else { cancelConfirmReview = nil; return }
-                cancelConfirmReview = nil; Task { await confirm(pending) }
-            } label: { Text("clubOpsEvent.cancel.confirmAction", tableName: "ClubOpsEvent") }
-        } message: {
-            Text("clubOpsEvent.cancel.confirmBody", tableName: "ClubOpsEvent")
-        }
-        .cySheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
-            if let kind = ClubGovernanceConsequence(route.operation) {
-                kind.sheet(locale: locale, name: consequenceObjectName, alternative: transferInsteadAction) {
-                    guard let pending = consequenceReview, pending.id == review?.id else { consequenceReview = nil; return }
-                    consequenceReview = nil; consequenceAccepted = pending.id; Task { await confirm(pending) }
-                }
-
-            }
-        }
-        .toolbar { ToolbarItem(placement: .cancellationAction) {
-            // CLB-apply-09: 关闭 stays in the bar on every step; 上一步 sits in the bottom actions.
-            Button {
-                if dirty || busy || locked { showDiscard = true } else { dismiss() }
-            } label: {
-                Text("club.gov.close")
-            }
-        } }
-        .interactiveDismissDisabled(dirty || busy || locked)
-        .confirmationDialog(Text(verbatim: appLocalized("club.gov.discardTitle", locale: locale)), isPresented: $showDiscard, titleVisibility: .visible) {
-            Button(role: .destructive) {
-                showDiscard = false; retirePresentation(); coordinator.cancelReview(); dismiss()
-            } label: { Text(verbatim: appLocalized("club.gov.discard", locale: locale)) }
-            Button(role: .cancel) { showDiscard = false } label: { Text("action.cancel") }
-        } message: {
-            Text(verbatim: locked ? appLocalized("club.gov.unknown", locale: locale) : appLocalized("club.gov.discardBody", locale: locale))
-        }
-        .cySheet(item: $scheduleSession) { session in Group {
-            NavigationStack {
-                ClubSeriesScheduleEditor(session: session, canApply: { canApplySchedule(session) }, apply: { selection in
-                    guard canApplySchedule(session), let next = try? selection.applying(to: draft, now: Date()) else { return false }
-                    draft = next; dirty = true; review = nil; failure = nil; coordinator.cancelReview(); scheduleSession = nil
-                    return true
-                })
-            }
-        }.cySheet(detents: [.large])
-        }
-        .onChange(of: access.authorizationGeneration) { _, _ in scheduleSession = nil }
-        // CLB-governance-12 (MP governance js:584-605): after the transfer is acknowledged, leave the form after 1.5 s
-        // so the governance page re-reads under the new owner.
-        .task(id: route.operation == .transferOwner && receipt != nil) {
-            guard route.operation == .transferOwner, receipt != nil else { return }
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
-            guard !Task.isCancelled, receipt != nil else { return }
-            dismiss()
-        }
-        // CLB-r11-edit-01 (MP edit/index.js:23-30 onDissolved): 俱乐部已解散, then after 0.5 s leave the form and the
-        // edit page (navigateBack).
-        .task(id: route.operation == .dissolve && receipt != nil) {
-            guard route.operation == .dissolve, receipt != nil else { return }
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            guard !Task.isCancelled, receipt != nil else { return }
-            if let dissolvedReturn { dissolvedReturn.leave() } else { dismiss() }
-        }
-        .onChange(of: identity) { _, _ in scheduleSession = nil; retirePresentation(); review = nil; receipt = nil; groupCode = nil; coordinator.cancelReview(); draft = .init(operation: route.operation, scope: route.scope); failure = .staleReview; dismiss() }
-        .task(id: rolePickerContext) {
-            guard route.operation == .assignRole, let permit = rolePicker.activate(rolePickerContext) else { return }
-            await rolePicker.load(permit, access: access)
-        }
-        .task(id: seriesLeadContext) {
-            guard route.operation == .createSeries, let permit = seriesLeadPicker.activate(seriesLeadContext) else { return }
-            await seriesLeadPicker.load(permit, access: access)
-        }
-        .onAppear { audienceVisible = true }
-        .onChange(of: presentationContext) { _, _ in retirePresentation(); coordinator.cancelReview() }
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active { notificationAudience.leave(audienceContext) }
-        }
-        .task(id: AudienceTrigger(context: audienceContext, visible: audienceVisible, active: scenePhase == .active)) {
-            guard route.operation == .sendNotification, audienceIsCurrent,
-                  let permit = notificationAudience.activate(audienceContext) else { return }
-            let expected = audienceContext
-            await notificationAudience.load(permit, access: access, isCurrent: { audienceIsCurrent && audienceContext == expected })
-        }
-        .onChange(of: access.authorizationGeneration) { _, _ in
-            groupCode = nil
-            if route.operation == .issueGroupCode { receipt = nil }
-        }
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active {
-                groupCode = nil
-                if route.operation == .issueGroupCode { receipt = nil }
-            }
-        }
-        // CLB-notify-05 (fix-r3-club-b round 4): MP notify onShow re-reads the campaign silently (index.js:293-326), so
-        // counts left at 处理中 catch up on return from the status page or the background. A failed read keeps the
-        // numbers already shown; nothing is announced either way.
-        .task(id: "\(notifyCampaignID ?? 0)|\(scenePhase == .active)") {
-            guard scenePhase == .active else { return }
-            await refreshCampaign(silent: true)
-        }
-        .onChange(of: notifyCampaignID) { _, _ in campaignRefresh = nil; campaignRefreshNotice = nil }
-        // CLB-group-code-02 (fix-r3-club-b): MP issues the code as the page opens (index.js:93-135).
-        .task {
-            guard route.operation == .issueGroupCode, groupCodeCanIssue, review == nil, receipt == nil, groupCode == nil, failure == nil else { return }
-            await submitDirectly()
-        }
-        .onDisappear { groupCode = nil; if route.operation == .issueGroupCode { receipt = nil }; audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; retirePresentation(); coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
     }
+
     private var hostMaterialsContext: ClubHostApplicationMaterials.Context {
         ClubHostApplicationMaterials.context(formID: route.id, scope: route.scope, identity: identity, access: access)
     }

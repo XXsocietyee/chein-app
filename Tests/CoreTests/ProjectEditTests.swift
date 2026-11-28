@@ -800,6 +800,54 @@ final class ProjectEditNodeArrivalTests: XCTestCase {
     }
 }
 
+/// MP runtime-structure-editor.wxml kind endings (运行结局) via theme-runtime-structure.js validate / saveStructure.
+final class ProjectEditRunEndingsTests: XCTestCase {
+    func testAddFallbackSaveAndRemoveFollowTheMiniProgram() throws {
+        let draft = try endingsDraft(plans: [])
+        XCTAssertNil(ProjectEditRunEndings.issueKey(in: draft))
+        var rows = try ProjectEditRunEndings.adding(to: [])
+        rows = try ProjectEditRunEndings.adding(to: rows)
+        XCTAssertEqual(rows.map(\.id), ["ending_1", "ending_2"])
+        XCTAssertEqual(rows.map(\.fallback), [true, false])
+        XCTAssertThrowsError(try ProjectEditRunEndings.save(rows, in: draft)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeActsError, .refused(ProjectEditRunEndings.Copy.fields))
+        }
+        rows[0].title = "Safe escape"; rows[1].title = "Caught"
+        rows = ProjectEditRunEndings.choosingFallback("ending_2", in: rows)
+        XCTAssertEqual(rows.map(\.fallback), [false, true])
+        let saved = try ProjectEditRunEndings.save(rows, in: draft)
+        XCTAssertEqual(ProjectEditRunEndings.rows(in: saved), rows)
+        XCTAssertNil(ProjectEditRunEndings.issueKey(in: saved))
+        let removed = try ProjectEditRunEndings.removing("ending_1", from: rows, in: saved)
+        XCTAssertEqual(removed.map(\.id), ["ending_2"])
+        XCTAssertEqual(try ProjectEditRunEndings.adding(to: removed).last?.id, "ending_1")
+    }
+    func testPlanEndingIsCheckedAndProtectedFromDelete() throws {
+        let plan: [String: ProjectEditJSON] = ["endingKey": .string("ending_1")]
+        let draft = try endingsDraft(plans: [plan])
+        XCTAssertEqual(ProjectEditRunEndings.issueKey(in: draft), ProjectEditRunEndings.Copy.planEnding)
+        let rows = [ProjectEditRunEndings.Row(id: "ending_1", title: "Safe escape", fallback: true)]
+        let saved = try ProjectEditRunEndings.save(rows, in: draft)
+        XCTAssertNil(ProjectEditRunEndings.issueKey(in: saved))
+        XCTAssertThrowsError(try ProjectEditRunEndings.removing("ending_1", from: rows, in: saved)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeActsError, .refused(ProjectEditRunEndings.Copy.inUse))
+        }
+        let twoDefaults = rows + [ProjectEditRunEndings.Row(id: "ending_2", title: "Caught", fallback: true)]
+        XCTAssertEqual(ProjectEditRunEndings.issueKey(twoDefaults, in: saved), ProjectEditRunEndings.Copy.fallbackCount)
+        let badID = [ProjectEditRunEndings.Row(id: "Ending 1", title: "Safe escape", fallback: true)]
+        XCTAssertEqual(ProjectEditRunEndings.issueKey(badID, in: saved), ProjectEditRunEndings.Copy.invalidID)
+    }
+    private func endingsDraft(plans: [[String: ProjectEditJSON]]) throws -> ProjectEditDraft {
+        var draft = ProjectEditSyntheticFixtures.draft()
+        let game: [String: ProjectEditJSON] = ["runtimeScope": .string("TEAM"), "worldMode": .string("WORLD_SHARED"),
+                                               "plans": .array(plans.map(ProjectEditJSON.object))]
+        let theme: [String: ProjectEditJSON] = ["schemaVersion": .number(1), "capacity": .number(0), "gameplayRuntime": .object(game)]
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        draft.preserved["themeRuntimeConfig"] = .string(String(decoding: try encoder.encode(theme), as: UTF8.self))
+        return draft
+    }
+}
+
 /// MP theme-runtime-survival.js toggleThemeReplay / toggleThemeTeamTrail.
 final class ProjectEditThemeRulesTests: XCTestCase {
     func testReplayDefaultsOffAndIsRefusedForTeamRuntime() throws {

@@ -527,6 +527,9 @@ import SwiftUI
                 }
             }
         }
+        // mp-home r3 (continue 38, ADA d2-search-results zh): the last chip was cut flat at the row inset ("商"), so
+        // the row did not read as scrollable. Chips now run on to the screen edge, like the 首页 city rail.
+        .scrollClipDisabled()
         // Next round (motion): switching the result scope ticks like a segmented control.
         .sensoryFeedback(.selection, trigger: searchModel.scope)
         .accessibilityIdentifier("searchMap.resultScopes")

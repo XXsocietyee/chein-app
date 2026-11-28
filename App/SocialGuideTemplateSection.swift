@@ -34,7 +34,7 @@ enum SocialGuideTemplateRows {
     }
     struct Destination: Identifiable, Hashable {
         enum Target: Equatable { case detail(Int), catalog }
-        let id = UUID()
+        nonisolated let id = UUID()
         let key: ReaderKey
         let target: Target
         nonisolated static func == (lhs: Destination, rhs: Destination) -> Bool { lhs.id == rhs.id }

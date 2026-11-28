@@ -360,15 +360,14 @@ extension KeychainTokenStore: AppTokenStorage {}
     var nativeChannelTextReceiptApproval: @MainActor (RuntimeDependencyContext) -> NativeChannelTextApproval? = { _ in nil }
     var nativeChannelTextSendApproval: @MainActor (RuntimeDependencyContext) -> NativeChannelTextApproval? = { _ in nil }
     var profileFavoriteRemovalAccesses: @MainActor (RuntimeDependencyContext, UUID) -> [ProfileFavoriteRemovalAccess] = { _, _ in [] }
-    /// 我的 当前权益 (`api/role/info`). No reviewed lease exists yet, so the read stays dormant.
+    /// 我的 当前权益 (`api/role/info`). Issued when the reviewed production gate bundle is on.
     var memberRoleInfoReadApproval: @MainActor (RuntimeDependencyContext) -> MemberRoleInfoReadApproval? = { _ in nil }
-    /// 设置 → 隐私与定位 → 我的待审媒体 (GET list only). Dormant until a reviewed lease exists.
+    /// 设置 → 隐私与定位 → 我的待审媒体 (GET list only). Issued when the reviewed production gate bundle is on. Status stays off.
     var ownMediaReadApproval: @MainActor (RuntimeDependencyContext) -> OwnMediaReadApproval? = { _ in nil }
     let ownMediaImagePreviewSelection = OwnMediaImagePreviewSourceSelection()
     let ownMediaApprovedLinkSelection = OwnMediaApprovedLinkSourceSelection()
     let ownMediaAudioPreviewSelection = OwnMediaAudioPreviewSourceSelection()
     let ownMediaModelPreviewSelection = OwnMediaModelPreviewSourceSelection()
-    /// 公共地图图层读取 (`POST /api/map/public-layers`). Dormant until a reviewed lease exists.
     var mapPublicLayerReadApproval: @MainActor (RuntimeDependencyContext) -> MapPublicLayerReadApproval? = { _ in nil }
     /// 俱乐部动态读取 (`api/club/post/list`, `feed`, `comment/list`, `history`). Dormant until a reviewed lease exists.
     var clubCommunityReadApproval: @MainActor (RuntimeDependencyContext) -> ClubCommunityReadApproval? = { _ in nil }
@@ -549,13 +548,13 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileOwnedCoupon($0) } : { _ in nil })
         self.roamAlbumMetadataReadAccess = { [gates] context in roamAlbumMetadataReadAccess(context) ?? (productionGatesEnabled ? gates.roamAlbumMetadata(context) : nil) }
         self.roamTileMemoryReadAccess = { [gates] context in roamTileMemoryReadAccess(context) ?? (productionGatesEnabled ? gates.roamTileMemory(context) : nil) }
-        self.profilePublicInfoReadAccess = profilePublicInfoReadAccess
-        self.profileGuideReadAccess = profileGuideReadAccess
+        self.profilePublicInfoReadAccess = { [gates] context in profilePublicInfoReadAccess(context) ?? (productionGatesEnabled ? gates.playerReads.publicInfo(context) : nil) }
+        self.profileGuideReadAccess = { [gates] context in profileGuideReadAccess(context) ?? (productionGatesEnabled ? gates.playerReads.guide(context) : nil) }
         self.profileFavoritesReadAccess = profileFavoritesReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavorites($0) } : { _ in nil })
         self.profileFavoriteTopicReadAccess = profileFavoriteTopicReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavoriteTopic($0) } : { _ in nil })
         self.profileFavoriteDetailAccess = profileFavoriteDetailAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavoriteDetail($0) } : { _ in nil })
         self.profileInviteHistoryReadAccess = { [gates] context in profileInviteHistoryReadAccess(context) ?? (productionGatesEnabled ? gates.profileInviteHistory(context) : nil) } // 1128 gap #29 (O-14b)
-        self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
+        self.profileWeeklyPointsReadApproval = { [gates] context in profileWeeklyPointsReadApproval(context) ?? (productionGatesEnabled ? gates.playerReads.weeklyPoints(context) : nil) }
         self.growthNormalReadApproval = { [gates] context in growthNormalReadApproval(context) ?? (productionGatesEnabled ? gates.growthNormalRead(context) : nil) }
         self.cityPlayerReadApproval = { [gates] context in cityPlayerReadApproval(context) ?? gates.cityGame(context)?.readApproval }
         self.teamReadApproval = { [gates] context in
@@ -573,14 +572,15 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.workshopPaidInstallApproval = workshopPaidInstallApproval
         self.workshopPurchasedReadApproval = workshopPurchasedReadApproval
         self.workshopOwnedReadApproval = workshopOwnedReadApproval
-        self.ownerDraftReadApproval = ownerDraftReadApproval
-        self.manualMapReadApproval = manualMapReadApproval
-        self.mapPublicLayerReadApproval = mapPublicLayerReadApproval
+        self.ownerDraftReadApproval = { [gates] context in ownerDraftReadApproval(context) ?? (productionGatesEnabled ? gates.playerReads.ownerDrafts(context) : nil) }
+        self.manualMapReadApproval = { [gates, deployment] context in manualMapReadApproval(context) ?? (productionGatesEnabled && ReleasePlayerReadGrant.allows(deployment, .manualMap) ? gates.playerReads.manualMap(context) : nil) }
+        self.mapPublicLayerReadApproval = { [gates, deployment] context in mapPublicLayerReadApproval(context) ?? (productionGatesEnabled && ReleasePlayerReadGrant.allowsMapLayers(deployment) ? gates.playerReads.publicLayers(context) : nil) }
         self.ownedOrderReadApproval = ownedOrderReadApproval ?? (productionGatesEnabled ? { [gates] in gates.ownedOrder($0) } : { _ in nil })
         if productionGatesEnabled {
             self.profileFavoriteRemovalAccesses = { [gates] context, scope in
                 gates.profileFavoriteRemoval(context, scope: scope)
             }
+            self.memberRoleInfoReadApproval = { [gates] context in gates.playerReads.memberRole(context) }; self.ownMediaReadApproval = { [gates] context in gates.playerReads.ownMediaList(context) }
             self.roamPrivateToolsWriteAccess = { [gates] context in
                 gates.roamPrivateToolsWrite(context)
             }
