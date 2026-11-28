@@ -12,7 +12,7 @@
     "im.preview.fileAuthorization": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "File authorization" } },
+        "en": { "stringUnit": { "state": "translated", "value": "File approval" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "文件授权" } }
       }
     },
@@ -26,7 +26,7 @@
     "im.preview.videoAuthorization": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Video authorization" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Video approval" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "视频授权" } }
       }
     },
@@ -47,7 +47,7 @@
     "im.preview.voiceAuthorization": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Voice authorization" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Voice approval" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "语音授权" } }
       }
     },

@@ -822,7 +822,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Community publication controls"
+            "value": "Community publication"
           }
         },
         "zh-Hans": {
@@ -1318,7 +1318,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dangerous activity"
+            "value": "Dangerous"
           }
         },
         "zh-Hans": {

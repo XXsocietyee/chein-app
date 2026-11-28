@@ -25,7 +25,7 @@
       "zh-Hans": "相机权限未开启，请在设置中开启后重试。"
     },
     "media.stamp.capture": {
-      "en": "Take photo",
+      "en": "Take",
       "zh-Hans": "拍照"
     },
     "media.stamp.capturedPreview": {
@@ -137,7 +137,7 @@
       "zh-Hans": "这一站"
     },
     "roam.createdStamp.filed": {
-      "en": "Added to your album",
+      "en": "Added album",
       "zh-Hans": "已入册"
     }
   },

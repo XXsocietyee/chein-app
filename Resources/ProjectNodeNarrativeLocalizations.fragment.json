@@ -39,7 +39,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This node cannot be edited here because its current draft is unavailable or a legacy narrative value has an unsupported format. Existing values are kept."
+            "value": "This node can't be edited here because current draft unavailable legacy narrative value has unsupported format. Existing values kept."
           }
         },
         "zh-Hans": {

@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose a ready-made look"
+            "value": "Pick a look"
           }
         },
         "zh-Hans": {
@@ -390,7 +390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Separately consent"
+            "value": "Consent"
           }
         },
         "zh-Hans": {
@@ -662,7 +662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your store role does not have this permission."
+            "value": "No permission for this."
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account does not have permission to view this."
+            "value": "No permission to view this."
           }
         },
         "zh-Hans": {
@@ -806,7 +806,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Character details could not be opened"
+            "value": "Couldn't open character details"
           }
         },
         "zh-Hans": {
@@ -1126,7 +1126,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose a ready-made look"
+            "value": "Pick a look"
           }
         },
         "zh-Hans": {
@@ -1702,7 +1702,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Three-sentence recording progress"
+            "value": "3-sentence progress"
           }
         },
         "zh-Hans": {
@@ -1766,7 +1766,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All three sentences recorded"
+            "value": "All 3 recorded"
           }
         },
         "zh-Hans": {
@@ -1782,7 +1782,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording isn't available right now."
+            "value": "Recording isn't ready."
           }
         },
         "zh-Hans": {
@@ -1910,7 +1910,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The separate consent could not be recorded. Please try again."
+            "value": "Consent wasn't saved. Try again."
           }
         },
         "zh-Hans": {
@@ -1958,7 +1958,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The voice status cannot be confirmed right now."
+            "value": "Voice status isn't confirmed."
           }
         },
         "zh-Hans": {

@@ -20,7 +20,7 @@
     "zh-Hans": "在地图上找"
   },
   "searchMap.nearby": {
-    "en": "Nearby on the map",
+    "en": "Nearby",
     "zh-Hans": "附近"
   },
   "searchMap.loading": {
@@ -32,7 +32,7 @@
     "zh-Hans": "示例内容"
   },
   "searchMap.notConfigured": {
-    "en": "Search isn't available right now",
+    "en": "Search isn't available",
     "zh-Hans": "搜索暂不可用"
   },
   "searchMap.history": {
@@ -44,7 +44,7 @@
     "zh-Hans": "清空"
   },
   "searchMap.categories": {
-    "en": "Categories",
+    "en": "Groups",
     "zh-Hans": "类别"
   },
   "searchMap.category": {
@@ -64,7 +64,7 @@
     "zh-Hans": "主题"
   },
   "searchMap.kind.activity": {
-    "en": "Activities",
+    "en": "Events",
     "zh-Hans": "活动"
   },
   "searchMap.kind.club": {
@@ -116,7 +116,7 @@
     "zh-Hans": "请重新登录后继续"
   },
   "searchMap.failed": {
-    "en": "Results could not be loaded",
+    "en": "Results couldn't be loaded",
     "zh-Hans": "结果未能加载"
   },
   "searchMap.invalidInput": {
@@ -336,7 +336,7 @@
     "zh-Hans": "公交"
   },
   "searchMap.straightLine": {
-    "en": "Straight-line preview",
+    "en": "Straight-line",
     "zh-Hans": "直线预览"
   },
   "searchMap.roadRoute": {
@@ -352,11 +352,11 @@
     "zh-Hans": "虚线仅为地理连线，并非可步行或驾车的道路路线，暂无用时或转弯指引"
   },
   "searchMap.transitNotice": {
-    "en": "Transit transfers and step-by-step guidance are not available here.",
+    "en": "Transit transfers and step-by-step guidance aren't available here.",
     "zh-Hans": "此处暂不提供公交换乘及分步指引"
   },
   "searchMap.routeBoundary": {
-    "en": "Live route planning, location tracking and external navigation aren't available right now.",
+    "en": "Live route planning, location tracking and external navigation aren't available right.",
     "zh-Hans": "实时路线规划、位置跟踪及外部导航暂不可用"
   },
   "searchMap.routeFailed": {
@@ -372,7 +372,7 @@
     "zh-Hans": "示例：切换账号"
   },
   "searchMap.validation.0": {
-    "en": "No validation required",
+    "en": "No validation",
     "zh-Hans": "无需验证"
   },
   "searchMap.validation.1": {
@@ -384,7 +384,7 @@
     "zh-Hans": "拍照打卡"
   },
   "searchMap.validation.3": {
-    "en": "Multiple-choice answer",
+    "en": "Multiple-choice",
     "zh-Hans": "选项问答"
   },
   "searchMap.validation.4": {
@@ -396,7 +396,7 @@
     "zh-Hans": "GPS 到达"
   },
   "searchMap.validation.6": {
-    "en": "Preference questions",
+    "en": "Preference",
     "zh-Hans": "偏好题组"
   },
   "searchMap.validation.7": {
@@ -456,7 +456,7 @@
     "zh-Hans": "探索标签"
   },
   "searchMap.w208.merchantDiscovery": {
-    "en": "Merchant discovery",
+    "en": "Shop discovery",
     "zh-Hans": "商家发现"
   },
   "searchMap.w208.merchantNodeFallback": {
@@ -528,7 +528,7 @@
     "zh-Hans": "地图图层"
   },
   "searchMap.recommended": {
-    "en": "Suggested searches",
+    "en": "Suggested",
     "zh-Hans": "推荐搜索"
   },
   "searchMap.resultKinds": {
@@ -576,7 +576,7 @@
     "zh-Hans": "检查网络后再试一次"
   },
   "searchMap.templates": {
-    "en": "Templates",
+    "en": "Forms",
     "zh-Hans": "模板"
   },
   "searchMap.kind.topicTemplate": {

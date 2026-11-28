@@ -230,7 +230,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading newer messages isn't available right now."
+            "value": "Loading newer messages isn't available."
           }
         },
         "zh-Hans": {
@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't confirm the messages were marked as read. Try again."
+            "value": "Couldn't confirm messages marked read."
           }
         },
         "zh-Hans": {
@@ -342,7 +342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original moderation details"
+            "value": "Original review"
           }
         },
         "zh-Hans": {
@@ -470,7 +470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original duration (seconds)"
+            "value": "Original duration"
           }
         },
         "zh-Hans": {
@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation code"
+            "value": "Invite code"
           }
         },
         "zh-Hans": {
@@ -662,7 +662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm original request"
+            "value": "Confirm original"
           }
         },
         "zh-Hans": {
@@ -806,7 +806,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open the independently authorized space directory"
+            "value": "Open independently authorized space directory"
           }
         },
         "zh-Hans": {
@@ -854,7 +854,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current invitation information is unavailable. An original pending request remains protected; no result is inferred."
+            "value": "Current invitation info is unavailable. An original pending request remains protected; no result is inferred."
           }
         },
         "zh-Hans": {

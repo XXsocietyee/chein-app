@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue with WeChat"
+            "value": "Continue WeChat"
           }
         },
         "zh-Hans": {
@@ -24,7 +24,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat sign-in isn't available right now."
+            "value": "WeChat sign-in isn't available."
           }
         },
         "zh-Hans": {
@@ -58,7 +58,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat sign-in isn't available right now."
+            "value": "WeChat sign-in isn't available."
           }
         },
         "zh-Hans": {
@@ -126,7 +126,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat authorization could not start"
+            "value": "WeChat authorization couldn't start"
           }
         },
         "zh-Hans": {
@@ -160,7 +160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat did not return a valid authorization code"
+            "value": "WeChat didn't return a valid approval code"
           }
         },
         "zh-Hans": {
@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The sign-in response could not be verified"
+            "value": "Sign-in response couldn't verified"
           }
         },
         "zh-Hans": {
@@ -245,7 +245,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The sign-in request was not accepted"
+            "value": "The sign-in request wasn't accepted"
           }
         },
         "zh-Hans": {

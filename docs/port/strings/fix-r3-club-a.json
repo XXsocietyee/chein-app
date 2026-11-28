@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contribution board unlocks once you’re approved"
+            "value": "Contribution board unlocks once you’re"
           }
         },
         "zh-Hans": {
@@ -58,7 +58,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settlement"
+            "value": "Payout"
           }
         },
         "zh-Hans": {
@@ -92,7 +92,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Players can check in at the store"
+            "value": "Players can check in at store"
           }
         },
         "zh-Hans": {
@@ -228,7 +228,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "State the facts and report to the platform"
+            "value": "State the facts and report to platform"
           }
         },
         "zh-Hans": {
@@ -432,7 +432,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "spots"
+            "value": "ct"
           }
         },
         "zh-Hans": {
@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What should we call you"
+            "value": "What should call"
           }
         },
         "zh-Hans": {
@@ -874,7 +874,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't get the answer"
+            "value": "Couldn't get answer"
           }
         },
         "zh-Hans": {
@@ -976,7 +976,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't confirm you can create a club"
+            "value": "Couldn't confirm can create"
           }
         },
         "zh-Hans": {
@@ -1231,7 +1231,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write a comment…"
+            "value": "Comment…"
           }
         },
         "zh-Hans": {
@@ -1401,7 +1401,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for the host to approve"
+            "value": "Waiting for the host approve"
           }
         },
         "zh-Hans": {

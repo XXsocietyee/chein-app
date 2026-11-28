@@ -42,7 +42,7 @@
       "zh-Hans": "重试读取状态"
     },
     "roam.locationSettings.authorization": {
-      "en": "Location authorization",
+      "en": "Location approval",
       "zh-Hans": "定位授权"
     },
     "roam.locationSettings.authorization.notDetermined": {
@@ -54,7 +54,7 @@
       "zh-Hans": "已拒绝"
     },
     "roam.locationSettings.authorization.restricted": {
-      "en": "Restricted by the system",
+      "en": "Restricted by system",
       "zh-Hans": "受系统限制"
     },
     "roam.locationSettings.authorization.whenInUse": {

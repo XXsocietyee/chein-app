@@ -24,7 +24,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open the ledger from the merchant workbench."
+            "value": "Open the ledger merchant workbench."
           }
         },
         "zh-Hans": {
@@ -75,7 +75,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite as replacement"
+            "value": "Invite"
           }
         },
         "zh-Hans": {
@@ -92,7 +92,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Find a merchant partner"
+            "value": "Find merchant partner"
           }
         },
         "zh-Hans": {
@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Good afternoon"
+            "value": "Good"
           }
         },
         "zh-Hans": {
@@ -228,7 +228,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Players follow the route to check in at your store"
+            "value": "Players follow the route to check store"
           }
         },
         "zh-Hans": {
@@ -313,7 +313,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grow your business"
+            "value": "Grow business"
           }
         },
         "zh-Hans": {
@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-ins"
+            "value": "Check-in"
           }
         },
         "zh-Hans": {
@@ -381,7 +381,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redemptions"
+            "value": "Redeems"
           }
         },
         "zh-Hans": {
@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": " check-ins"
+            "value": " x"
           }
         },
         "zh-Hans": {
@@ -551,7 +551,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": " orders"
+            "value": " #"
           }
         },
         "zh-Hans": {
@@ -568,7 +568,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": " visitors"
+            "value": " pax"
           }
         },
         "zh-Hans": {

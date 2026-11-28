@@ -58,7 +58,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This stop is already complete. There is nothing to submit."
+            "value": "This stop is done. Nothing to submit."
           }
         },
         "zh-Hans": {
