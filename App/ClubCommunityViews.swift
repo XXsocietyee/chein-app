@@ -824,14 +824,20 @@ struct ClubCommunityPostTile: View {
             }
             tileActions {
                 if let openDetail {
-                    Button(action: openDetail) { Text("club.community.detail") }
-                        .frame(minHeight: CYSpacing.minTouchTarget)
+                    Button(action: openDetail) {
+                        Text("club.community.detail")
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                    }
                         .accessibilityIdentifier("club.community.detail.\(post.id)")
                 }
                 // CLB-detail-17: MP shows 历史 only for an edited post (version > 0).
                 if post.version > 0 {
-                    Button(action: openHistory) { Text("club.community.history") }
-                        .frame(minHeight: CYSpacing.minTouchTarget)
+                    Button(action: openHistory) {
+                        Text("club.community.history")
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                    }
                         .accessibilityIdentifier("club.community.history.\(post.id)")
                 }
                 if post.authorMemberID != identity.accountID {
@@ -1230,6 +1236,7 @@ struct ClubCommunityReviewView: View {
     var onSettled: ((ClubCommunityOperation) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     private var isDestructiveOperation: Bool {
         switch review.operation {
@@ -1244,13 +1251,14 @@ struct ClubCommunityReviewView: View {
                 Section {
                     Text(LocalizedStringKey("club.community." + review.operation.labelKey))
                         .font(.headline)
+                        .accessibilityAddTraits(.isHeader)
 
                     // X10 (parity r1): name the post / comment by its words, never by internal ids.
                     if let target = review.evidence.comment?.content ?? review.evidence.post?.content,
                        !target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Text(verbatim: target)
                             .foregroundStyle(.secondary)
-                            .lineLimit(3)
+                            .lineLimit(typeSize.isAccessibilitySize ? 8 : 3)
                     }
 
                     switch review.operation {
@@ -1380,8 +1388,12 @@ struct ClubCommunityCommentsView: View {
                             let moderator = evidence?.owner == true || evidence?.administrator == true || post.viewerCanManage
                             if identity.isSignedIn {
                                 let canDelete = comment.memberID == identity.accountID || moderator
-                                Button(canDelete ? "club.community.deleteComment" : "club.community.reportComment", role: canDelete ? .destructive : nil) {
+                                Button(role: canDelete ? .destructive : nil) {
                                     Task { await model.prepare(canDelete ? .deleteComment : .reportComment, clubID: clubID, post: post, comment: comment) }
+                                } label: {
+                                    Text(LocalizedStringKey(canDelete ? "club.community.deleteComment" : "club.community.reportComment"))
+                                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                                        .contentShape(Rectangle())
                                 }
                                 .font(.subheadline)
                                 .disabled(model.busy || model.context.coordinator?.permitsInjectedWrites != true)
@@ -1510,12 +1522,14 @@ private struct ClubCommunityReferenceCover: View {
                 }
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityLabel(Text("club.community.image") + Text(verbatim: " \(index + 1)"))
+                .accessibilityAddTraits(.isImage)
             if !trimmed.isEmpty {
                 Text(verbatim: trimmed)
                     .font(.footnote)
                     .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
+                    .accessibilityHidden(true)
             }
         }
     }
