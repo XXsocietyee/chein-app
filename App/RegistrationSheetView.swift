@@ -1217,7 +1217,7 @@ private struct RegistrationOperationSections: View {
             if let conflict = flow.createConflictMessage {
                 Section {
                     Label(conflict, systemImage: "arrow.clockwise.circle")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("registration.form.createConflict")
                 }
             }

@@ -330,7 +330,7 @@ struct OfficialOrganizerConsoleView: View {
                 Label("activityR3.official.organizer.checkUnknown", systemImage: "questionmark.circle")
                     .foregroundStyle(.secondary)
             } else if model.check.pass {
-                Label(c.t("发布检查已通过", "Publish check passed"), systemImage: "checkmark.seal").foregroundStyle(.green)
+                Label(c.t("发布检查已通过", "Publish check passed"), systemImage: "checkmark.seal").foregroundStyle(CYColor.successText)
             } else {
                 Text("activityR3.official.organizer.checkFailed").font(.subheadline)
             }

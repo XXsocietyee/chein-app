@@ -116,7 +116,7 @@ struct TemplateLocationTodosSection: View {
                                 Text(verbatim: [row.what, row.how].filter { !$0.isEmpty }.joined(separator: " · "))
                                     .font(.footnote).foregroundStyle(.secondary)
                             }
-                            if !row.issueText.isEmpty { Text(verbatim: row.issueText).font(.footnote).foregroundStyle(.orange) }
+                            if !row.issueText.isEmpty { Text(verbatim: row.issueText).font(.footnote).foregroundStyle(CYColor.warningText) }
                             if let error = rowError[row.slotKey] { Text(verbatim: error).font(.footnote).foregroundStyle(.red) }
                             Button(PlayerCapabilityCopy.text("选节点绑定", "Bind a node", locale)) {
                                 if bindableNodes.isEmpty { rowError[row.slotKey] = PlayerCapabilityCopy.text("先在章节里给节点设置这座城市的地点并保存", "First set a place in this city for a node in your chapters, then save", locale) }

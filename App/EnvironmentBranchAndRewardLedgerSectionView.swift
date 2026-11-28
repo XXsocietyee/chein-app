@@ -241,7 +241,7 @@ public struct RewardLedgerHostSectionView: View {
                     if let revOf = row.reversalOf {
                         Text(verbatim: "冲正原记录: \(revOf)")
                             .cyText(.caption)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                     } else if let pairedRev = row.pairedReversalEntryID {
                         Text(verbatim: "已被追加冲正: \(pairedRev)")
                             .cyText(.caption)

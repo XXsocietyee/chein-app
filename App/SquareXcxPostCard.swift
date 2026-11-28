@@ -16,7 +16,7 @@ struct SquareXcxPostCard: View {
         VStack(alignment: .leading, spacing: 10) {
             head
             if let lifecycle = facts.lifecycle {
-                Text(LocalizedStringKey("square.xcx.lifecycle." + lifecycle.rawValue)).font(.caption).foregroundStyle(.orange)
+                Text(LocalizedStringKey("square.xcx.lifecycle." + lifecycle.rawValue)).font(.caption).foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("square.card.lifecycle")
             }
             if let contents = post.contents, !contents.isEmpty {
@@ -167,7 +167,7 @@ struct SquareXcxRelativeTime: View {
     private func card(_ item: SquareUpcomingBannerItem) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text("square.xcx.upcoming.kicker").fontWeight(.semibold).foregroundStyle(.orange)
+                Text("square.xcx.upcoming.kicker").fontWeight(.semibold).foregroundStyle(CYColor.warningText)
                 switch item.countdown(now: Date()) {
                 case .days(let n): Text("square.xcx.upcoming.days \(n)")
                 case .hours(let n): Text("square.xcx.upcoming.hours \(n)")

@@ -185,7 +185,7 @@ enum PublishClarityText {
                 line("fact.onSale", value: value, id: "onSale")
                 if awaitingReview == .yes {
                     Text("fact.commercialReview", tableName: PublishClarityText.table)
-                        .font(.subheadline).foregroundStyle(.orange)
+                        .font(.subheadline).foregroundStyle(CYColor.warningText)
                 }
                 if value == .no { reasonText(blockReason, fallback: nil) }
                 if let nextStep, !nextStep.isEmpty {
