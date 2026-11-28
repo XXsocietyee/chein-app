@@ -118,7 +118,7 @@ struct TeamReformSheetHost: View {
                         .accessibilityIdentifier("teamReform.invite.friend.\(friend.friendId)")
                 }
             } header: { Text("teamReform.invite.choose") } footer: {
-                Text(verbatim: "\(batch.selected.count) / \(batch.maximum)").accessibilityIdentifier("teamReform.invite.count")
+                Text(verbatim: "\(batch.selected.count) / \(batch.maximum)").accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: batch.selected.count)) \(String(describing: batch.maximum))")).accessibilityIdentifier("teamReform.invite.count")
             }
             if flow.issue == .overLimit { Label { Text("teamReform.invite.overLimit") } icon: { Image(systemName: "exclamationmark.circle").foregroundStyle(.orange) } }
             if let reviewed = flow.reviewed {

@@ -146,6 +146,7 @@ struct NearbyTeamListRow: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     NearbyTeamFaces(count: NearbyTeamPresentation.faceCount(real: team.memberAvatars.count, members: team.joinedCount))
                     Text(verbatim: "\(team.joinedCount)/\(team.maxMembers)").cyText(.numericBody).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: team.joinedCount)) \(String(describing: team.maxMembers))"))
                         .contentTransition(.numericText(value: Double(team.joinedCount)))
                 }
                 Image(systemName: expanded ? "chevron.up" : "chevron.down").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)

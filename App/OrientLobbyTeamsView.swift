@@ -70,7 +70,7 @@ import SwiftUI
                 Group {
                     if let leader = team.leaderName, !leader.isEmpty { Text("orientLobby.leader \(leader)") } else { Text("orientLobby.leaderUnknown") }
                 }
-                Text(verbatim: membersText(team)).monospacedDigit()
+                Text(verbatim: membersText(team)).monospacedDigit().accessibilityLabel(CYFractionSpeech.label(membersText(team)))
             }
             .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             Text("orientLobby.apply").cyText(.meta, weight: .semibold).foregroundStyle(.tint)

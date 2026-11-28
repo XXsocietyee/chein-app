@@ -396,13 +396,13 @@ import SwiftUI
                 ProgressView(value: Double(done), total: Double(max(total, 1))) {
                     Text("nativeR2.freeExplore.map.progress")
                 } currentValueLabel: {
-                    Text(verbatim: "\(done)/\(total)").monospacedDigit()
+                    Text(verbatim: "\(done)/\(total)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: done)) \(String(describing: total))"))
                 }
                 .accessibilityIdentifier("playFree.redeemed.count")
             }
             if !facts.isPerkOnly, let unlocked = facts.storyUnlocked, let total = facts.storyTotal {
                 LabeledContent("nativeR2.freeExplore.map.storyUnlocked") {
-                    Text(verbatim: "\(unlocked)/\(total)").monospacedDigit()
+                    Text(verbatim: "\(unlocked)/\(total)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: unlocked)) \(String(describing: total))"))
                 }
                 .accessibilityIdentifier("playFree.story.unlocked.count")
             }
@@ -632,7 +632,7 @@ import SwiftUI
             Section {
                 if let unlocked = archive.storyUnlocked, let total = archive.storyTotal {
                     LabeledContent("nativeR2.freeExplore.map.storyUnlocked") {
-                        Text(verbatim: "\(unlocked)/\(total)").monospacedDigit()
+                        Text(verbatim: "\(unlocked)/\(total)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: unlocked)) \(String(describing: total))"))
                     }
                 }
                 ForEach(archive.places) { place in

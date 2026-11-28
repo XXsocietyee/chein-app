@@ -77,6 +77,8 @@ import SwiftUI
     let original: ProjectInitialStateController.Presentation
     @State private var buffer: ProjectInitialState
     @State private var invalid = false
+    @State private var pickingCarry = false
+    @Environment(\.topicPlaySetupSource) private var source
     init(controller: ProjectInitialStateController, original: ProjectInitialStateController.Presentation) {
         self.controller = controller; self.original = original; model = controller.model
         _buffer = State(initialValue: original.initial)
@@ -88,14 +90,20 @@ import SwiftUI
                 if !controller.isCurrent(original) { Text("projectStarter.stale") }
                 else if buffer.readOnly { Text("projectInitialState.unsupported", tableName: "ProjectInitialState") }
                 else {
-                    if !buffer.carry.isEmpty {
-                        ProjectInitialStateCarrySection(rows: buffer.carry, locked: buffer.carryLocked) { key in
+                    if !buffer.carry.isEmpty || carryStore != nil {
+                        ProjectInitialStateCarrySection(rows: buffer.carry, locked: buffer.carryLocked,
+                                                        add: carryStore == nil ? nil : { pickingCarry = true }) { key in
                             buffer.removeCarry(key); invalid = false
                         }
                     }
                     ForEach(ProjectInitialState.Kind.allCases.filter { resource($0).wrappedValue.enabled }, id: \.self) { kind in
                         ProjectInitialStateResourceSection(kind: kind, resource: resource(kind),
                             remove: { buffer.setEnabled(false, kind: kind); invalid = false }, edited: { invalid = false })
+                    }
+                    ForEach(buffer.counters) { row in
+                        ProjectInitialStateCounterSection(row: row, locked: buffer.carryLocked) { value in
+                            buffer.setCounterInitial(row.key, value: value); invalid = false
+                        }
                     }
                     Section {
                         ForEach(ProjectInitialState.Kind.allCases, id: \.self) { kind in
@@ -131,7 +139,26 @@ import SwiftUI
                 }
             }
             .scrollDismissesKeyboard(.interactively)
+            .sheet(isPresented: $pickingCarry) {
+                if let carryStore {
+                    ProjectInitialStateCarryPicker(store: carryStore, taken: Set(buffer.carry.map { $0.key })) { picks in
+                        let added = buffer.addCarry(picks)
+                        if added { invalid = false }
+                        return added
+                    }
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                }
+            }
         }
+    }
+
+    /// MP `openCarryPicker` reads the topic's keys; a topic that is not saved yet, a bound registry or a
+    /// session without the creator service has no 添加 row (the MP row is hidden when locked).
+    private var carryStore: (() -> ProjectEditTopicKeysStore)? {
+        guard !buffer.carryLocked, let topicID = model.coordinator.publicationTopicID, topicID > 0,
+              let source, let service = source.make() else { return nil }
+        return { ProjectEditTopicKeysStore(service: service, topicID: Int64(topicID)) }
     }
 }
 
@@ -182,6 +209,43 @@ private struct ProjectInitialStateResourceSection: View {
     }
 }
 
+/// MP `fabu/index.wxml:1941-1945`: one card per `counter.*` value — name, `min 至 max`, 开局 stepper, and the
+/// red 开局值超出当前范围 line. A bound registry owns the value, so the stepper is read-only there.
+private struct ProjectInitialStateCounterSection: View {
+    let row: ProjectInitialState.CounterRow
+    let locked: Bool
+    let change: (Int) -> Void
+    private var start: Binding<Int> {
+        Binding<Int>(get: { max(row.minimum, min(row.initial ?? row.minimum, row.maximum)) },
+                     set: { (value: Int) in change(value) })
+    }
+    var body: some View {
+        Section {
+            LabeledContent {
+                Text("projectInitialState.counterRange \(row.minimum) \(row.maximum)", tableName: "ProjectInitialState")
+                    .monospacedDigit()
+            } label: {
+                Text(verbatim: row.label).font(.headline)
+            }
+            Stepper(value: start, in: row.minimum...max(row.minimum, row.maximum)) {
+                LabeledContent {
+                    Text(start.wrappedValue, format: .number).monospacedDigit()
+                } label: {
+                    Text("projectInitialState.counterStart \(row.label)", tableName: "ProjectInitialState")
+                }
+            }
+            .disabled(locked)
+            .accessibilityIdentifier("projectInitialState.counter." + row.key)
+        } footer: {
+            if row.invalid {
+                Text("projectInitialState.counterInvalid", tableName: "ProjectInitialState").foregroundStyle(CYColor.dangerText)
+            } else if locked {
+                Text("projectInitialState.counterBound", tableName: "ProjectInitialState")
+            }
+        }
+    }
+}
+
 /// MP `fabu/index.wxml:1946-1955` 添加初始状态 choices (`story-initial-state.js` OPTIONS).
 private struct ProjectInitialStateOptionRow: View {
     let kind: ProjectInitialState.Kind
@@ -205,6 +269,7 @@ private struct ProjectInitialStateOptionRow: View {
 private struct ProjectInitialStateCarrySection: View {
     let rows: [ProjectInitialState.CarryRow]
     let locked: Bool
+    let add: (() -> Void)?
     let remove: (String) -> Void
     var body: some View {
         Section {
@@ -225,6 +290,13 @@ private struct ProjectInitialStateCarrySection: View {
                         .accessibilityIdentifier("projectInitialState.carry.remove." + row.key)
                     }
                 }
+            }
+            if !locked, let add {
+                Button(action: add) {
+                    Label { Text("projectInitialState.add", tableName: "ProjectInitialState") } icon: { Image(systemName: "plus") }
+                }
+                .accessibilityLabel(Text("projectInitialState.carryAdd", tableName: "ProjectInitialState"))
+                .accessibilityIdentifier("projectInitialState.carry.add")
             }
         } header: {
             Text("projectInitialState.carryHeader", tableName: "ProjectInitialState")
