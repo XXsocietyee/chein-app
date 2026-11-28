@@ -284,8 +284,12 @@ public struct ClubChannelMessagingView: View {
                 .controlSize(.small)
                 .accessibilityIdentifier("club.channel.moderation.retryButton")
             }
-            Button(copy("关闭", "Dismiss")) {
+            Button {
                 moderationCoordinator.clearBanner()
+            } label: {
+                Text(copy("关闭", "Dismiss"))
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
             .font(.footnote)
