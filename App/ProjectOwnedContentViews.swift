@@ -22,6 +22,8 @@ import SwiftUI
             canEditActivity: canEditActivity, merchantScopeAccess: merchantScopeAccess)
         selection = .init(project: project, scope: scope, decision: decision, merchantScopeAccess: merchantScopeAccess)
     }
+    /// fix-1128b-social #27: the row menu's 编辑 sets a prepared selection.
+    func show(_ value: Selection) { selection = value }
     func close(_ original: Selection) {
         guard selection?.id == original.id, selection?.scope == original.scope else { return }
         selection = nil
@@ -65,6 +67,7 @@ import SwiftUI
         .environment(\.myProjectTopicCancel, publisherHost == nil ? nil : { id in
             cancellingTopic = try? PublishedResource(kind: .topic, value: id)
         })
+        .environment(\.myProjectActivityEdit, activityEditEntry)
         .navigationDestination(item: $cancellingTopic) { resource in
             if let publisherHost { publisherHost(resource) }
         }
@@ -103,6 +106,13 @@ import SwiftUI
         }
         .onChange(of: reader.scope) { original, _ in navigation.retire(scope: original) }
         .onChange(of: liveAccess) { _, access in if access.isBrowseOnly { navigation.retire(scope: reader.scope) } }
+    }
+    /// fix-1128b-social #27: 编辑 in the activity row menu when the session can build an editor with live grants.
+    private var activityEditEntry: ((CreatorContentProject) -> Void)? {
+        guard makeActivityEditor != nil, activityGrants.read != nil, activityGrants.update != nil, !liveAccess.isBrowseOnly else { return nil }
+        return { project in
+            navigation.openActivityEditor(project, scope: reader.scope, reader: reader, merchantScopeAccess: liveAccess)
+        }
     }
     private var liveAccess: MyProjectMerchantScopeAccess {
         MyProjectMerchantScopeExclusiveAdapter.access(entryScope: entryScope, canManageProjects: canManageProjects)

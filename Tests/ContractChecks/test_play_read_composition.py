@@ -20,7 +20,7 @@ class PlayReadCompositionContracts(unittest.TestCase):
         # The query exception is the typed-route OR; play read is one closed matcher among them.
         self.assertIn('url.query == nil || ProjectExactReadRoute(request: request, baseURL: api.baseURL) != nil || admitsPlayerWriteQuery(request, baseURL: api.baseURL) || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil', root)
         self.assertIn('guard deployment?.playerWritesEnabled == true, deployment?.regional.market == .china', root)
-        self.assertIn('return relative.hasPrefix("api/v1/community/") || relative == "api/community-trust/reports/mine" || relative.hasPrefix("api/friend/")', root)
+        self.assertIn('return relative.hasPrefix("api/v1/community/") || relative.hasPrefix("api/friend/")', root)
         self.assertIn('PlayReadRoute(request: request, baseURL: api.baseURL)', root)
 
     def test_root_and_current_runtime_are_independent_and_fail_closed(self):
