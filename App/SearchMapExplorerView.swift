@@ -393,8 +393,15 @@ import SwiftUI
             Button { openLayerActivity(row, rendered: renderedContext) } label: {
                 SearchMapActivityCard(item: row, offline: reader.isOfflineExample)
             }.buttonStyle(.plain).accessibilityIdentifier("searchMap.selected.activity.\(row.id)")
+            // MP pages/searchmap `smap-sel-cta`: 查看活动详情 (primary), then 查看关联主题 (ghost) when linked.
+            Button { openLayerActivity(row, rendered: renderedContext) } label: {
+                Text("searchMap.w208.viewActivity").frame(maxWidth: .infinity)
+            }.buttonStyle(.borderedProminent).controlSize(.large)
+                .accessibilityIdentifier("searchMap.selected.viewActivity.\(row.id)")
             if let topic = row.linkedTopicID {
-                Button { openLayerActivity(row, rendered: renderedContext, relatedTopic: true) } label: { Text("searchMap.relatedTopic") }.frame(minHeight: 44)
+                Button { openLayerActivity(row, rendered: renderedContext, relatedTopic: true) } label: {
+                    Text("searchMap.relatedTopic").frame(maxWidth: .infinity)
+                }.buttonStyle(.bordered).controlSize(.large)
                     .accessibilityIdentifier("searchMap.selected.topic.\(topic)")
             }
         } else if let node = visibleCityResults?.nodes.first(where: { "city-\($0.id)" == id }) {

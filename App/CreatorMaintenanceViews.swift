@@ -245,10 +245,10 @@ struct CreatorTicketStageChip: View {
     let stage: CreatorMaintenanceTicket.Stage?
     var body: some View {
         switch stage {
-        case .reported?: Text("creatorStudio.stage.reported").font(.footnote).foregroundStyle(.orange)
+        case .reported?: Text("creatorStudio.stage.reported").font(.footnote).foregroundStyle(CYColor.warningText)
         case .fixDrafted?: Text("creatorStudio.stage.fixDrafted").font(.footnote).foregroundStyle(.tint)
         case .fixPublished?: Text("creatorStudio.stage.fixPublished").font(.footnote).foregroundStyle(.tint)
-        case .retested?: Text("creatorStudio.stage.retested").font(.footnote).foregroundStyle(.green)
+        case .retested?: Text("creatorStudio.stage.retested").font(.footnote).foregroundStyle(CYColor.successText)
         case .closed?: Text("creatorStudio.stage.closed").font(.footnote).foregroundStyle(.secondary)
         case nil: Text("creatorStudio.stage.unknown").font(.footnote).foregroundStyle(.secondary)
         }
@@ -267,7 +267,7 @@ struct CreatorTicketStageChip: View {
             Form {
                 if let pending = model.pendingOpen {
                     Section {
-                        Label("creatorStudio.write.unknown", systemImage: "questionmark.circle").foregroundStyle(.orange)
+                        Label("creatorStudio.write.unknown", systemImage: "questionmark.circle").foregroundStyle(CYColor.warningText)
                         Text(verbatim: pending.request.title).font(.headline)
                     }
                 } else {
@@ -433,7 +433,7 @@ struct CreatorTicketCloseChoice: Identifiable {
                     TextField(resolution == .fixed ? "creatorStudio.close.reasonOptional" : "creatorStudio.close.reasonRequired", text: $reason, axis: .vertical)
                         .lineLimit(2...5).disabled(pending != nil).accessibilityIdentifier("creatorStudio.close.reasonField")
                 }
-                if unknown { Section { Label("creatorStudio.write.unknown", systemImage: "questionmark.circle").foregroundStyle(.orange) } }
+                if unknown { Section { Label("creatorStudio.write.unknown", systemImage: "questionmark.circle").foregroundStyle(CYColor.warningText) } }
                 if let issue { Section { CreatorStudioWriteIssueText(failure: issue).foregroundStyle(.red) } }
             }
             .navigationTitle(resolution == .fixed ? "creatorStudio.close.fixed" : "creatorStudio.close.noChange").navigationBarTitleDisplayMode(.inline)

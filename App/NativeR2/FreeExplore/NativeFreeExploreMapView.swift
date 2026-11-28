@@ -363,7 +363,7 @@ import SwiftUI
         } else if FreeExplorationPresentation(snapshot: snapshot)?.isFullyRedeemed == true {
             Section {
                 Label("nativeR2.freeExplore.map.allDone", systemImage: "checkmark.seal.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(CYColor.successText)
             }
         }
     }

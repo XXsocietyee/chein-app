@@ -41,7 +41,7 @@ import SwiftUI
             } else if let issue = flow.issue, !(flow.pendingCommand != nil && issue == "blacklist.unknown") {
                 Section {
                     Label(localized(issue), systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("blacklist.issue")
                 }
             }

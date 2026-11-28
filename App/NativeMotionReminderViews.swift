@@ -48,7 +48,7 @@ import SwiftUI
                 Text("playkit.sensor.skipped").font(.footnote).foregroundStyle(.secondary)
             } else if (segment["failedReads"].integer ?? 0) > 0, todaySteps <= 0, segment["reached"].bool != true {
                 Label("playkit.steps.readError", systemImage: "exclamationmark.triangle")
-                    .font(.footnote).foregroundStyle(.orange)
+                    .font(.footnote).foregroundStyle(CYColor.warningText)
             }
             Text("nativePlatform.steps.title").font(.footnote).foregroundStyle(.secondary)
             if let enrollment = runtime?.enrollment {

@@ -140,10 +140,10 @@ import SwiftUI
                 .foregroundStyle(.secondary)
         } else if poll.isOpen() {
             Label("poll.open", systemImage: "circle")
-                .foregroundStyle(.green)
+                .foregroundStyle(CYColor.successText)
         } else {
             Label("poll.deadlinePassed", systemImage: "clock")
-                .foregroundStyle(.orange)
+                .foregroundStyle(CYColor.warningText)
         }
     }
 

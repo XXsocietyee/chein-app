@@ -50104,7 +50104,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Coupon codes aren't available right now. No request was sent."
+            "value": "Coupon codes aren't available right now."
           }
         },
         "zh-Hans": {
@@ -50172,7 +50172,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fetch again"
+            "value": "Get a new code"
           }
         },
         "zh-Hans": {
@@ -132463,13 +132463,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load earlier messages"
+            "value": "Earlier messages didn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "更早的消息加载失败"
+            "value": "更早消息没有加载"
           }
         }
       }
@@ -239912,6 +239912,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "商家信息"
+          }
+        }
+      }
+    },
+    "searchMap.merchantDiscovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find shops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家发现"
           }
         }
       }
@@ -351138,7 +351155,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "队伍没能读到"
+            "value": "队伍获取失败"
           }
         }
       }
@@ -356601,240 +356618,104 @@
         }
       }
     },
-    "auth.alipay.signIn": {
+    "playerGap.playerCode.loading": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue with Alipay"
+            "value": "Loading your invite code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "支付宝登录"
+            "value": "正在加载邀请二维码"
           }
         }
       }
     },
-    "auth.alipay.working": {
+    "playerGap.playerCode.loadingHint": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for Alipay sign-in"
+            "value": "Friends can scan it once it loads"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在等待支付宝登录"
+            "value": "加载完成后即可扫码邀请好友"
           }
         }
       }
     },
-    "auth.alipay.notConfigured": {
+    "playerGap.playerCode.failed": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alipay sign-in isn't available right now."
+            "value": "Couldn't load your personal code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "支付宝登录暂不可用"
+            "value": "个人码加载失败"
           }
         }
       }
     },
-    "auth.alipay.unavailable": {
+    "playerGap.playerCode.failedHint": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alipay is unavailable on this device"
+            "value": "Check your connection, then generate it again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此设备无法使用支付宝"
+            "value": "请检查网络后重新生成。"
           }
         }
       }
     },
-    "auth.alipay.launchFailed": {
+    "playerGap.playerCode.retry": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alipay authorization could not start"
+            "value": "Generate again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法启动支付宝授权"
+            "value": "重新生成"
           }
         }
       }
     },
-    "auth.alipay.timedOut": {
+    "playerGap.playerCode.unavailable": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alipay sign-in timed out. Try again"
+            "value": "The code isn't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "支付宝登录超时，请重试"
-          }
-        }
-      }
-    },
-    "auth.alipay.invalidCode": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alipay did not return a valid authorization code"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支付宝未返回有效授权码"
-          }
-        }
-      }
-    },
-    "auth.alipay.invalidResponse": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The sign-in response could not be verified"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法验证登录响应"
-          }
-        }
-      }
-    },
-    "auth.alipay.staleSession": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your sign-in session changed. Start again"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "登录会话已更改，请重新开始"
-          }
-        }
-      }
-    },
-    "auth.alipay.rateLimited": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Too many attempts. Try again later"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "尝试次数过多，请稍后重试"
-          }
-        }
-      }
-    },
-    "auth.alipay.unauthorized": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The sign-in request was not accepted"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "登录请求未获接受"
-          }
-        }
-      }
-    },
-    "auth.alipay.rejected": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alipay sign-in was rejected"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "支付宝登录被拒绝"
-          }
-        }
-      }
-    },
-    "auth.alipay.network": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not complete sign-in. Try again"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法完成登录，请重试"
-          }
-        }
-      }
-    },
-    "auth.alipay.storage": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Could not securely save your sign-in"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法安全保存登录信息"
+            "value": "二维码暂时不可用"
           }
         }
       }

@@ -429,7 +429,7 @@ import SwiftUI
                     // CLB-G15 (MP event-ops wxml:200): the series-create receipt's windowWarning, the server's own sentence.
                     if route.operation == .createSeries, let warning = receipt["windowWarning"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !warning.isEmpty {
                         Label { Text(verbatim: warning) } icon: { Image(systemName: "exclamationmark.triangle") }
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("clubOpsEvent.series.windowWarning")
                     }
                     // CLB-apply-11 (MP apply/index.js:415, wxml:177): 主理人 comes from the submitted draft, not a status read.
