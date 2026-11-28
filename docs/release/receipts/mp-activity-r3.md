@@ -440,6 +440,7 @@ Merged `origin/ui/combined-r7` (5375df502, clean). Sweep b954de71c (18:12) `mp-a
 - backend: `payment-readiness` should report Stripe readiness for USD quotes (audit 507). mp-club: host tip `payable` has no pay step (audit 529). mp-mine: pass detail buy (audit 525).
 
 ## Gates
+- Forty-seventh session: `generate_project` ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 46 failing / baseline 46 / **new 0**
 - Forty-sixth session: `generate_project` ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 46 failing / baseline 46 / **new 0**
 - Forty-fourth session: `generate_project` ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 46 failing / baseline 46 / **new 0**
 - Forty-third session: `generate_project` ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 46 failing / baseline 46 / **new 0**
