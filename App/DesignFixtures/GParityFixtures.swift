@@ -144,7 +144,7 @@ enum GParityReplies {
     }
     static func playerCode(joined: Bool) -> [String: T.Reply] {
         ["api/registration/join_info": T.ok(joined ? #"{"id":31,"title":"西湖春日徒步 · 第二场"}"# : "null"),
-         // Only an http(s) `data.qr` counts; the fixture never loads a remote image, so both states keep the button.
+         // Only an http(s) `data.qr` counts; the fixture never loads a remote image, so both states show the MP 个人码加载失败 · 重新生成 state.
          "api/user/player-code": T.ok(#"{"qr":"data:image/png;base64,xx"}"#)]
     }
     static func cityFavorites(empty: Bool) -> [String: T.Reply] {
