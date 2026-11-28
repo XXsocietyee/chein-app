@@ -71,6 +71,11 @@ import SwiftUI
         .init(readerID: ObjectIdentifier(reader), scope: reader.scope, isAuthenticated: reader.isAuthenticated,
               isConfigured: reader.isConfigured, query: filter)
     }
+    /// Design fixtures (`d2-search`, `d2-search-results`) render the real page: the 示例内容 note is hidden there,
+    /// while `isOfflineExample` still keeps every write offline (same rule as Square).
+    private var showsOfflineExampleNote: Bool {
+        reader.isOfflineExample && (reader as? any SearchMapOfflineNoteHiding)?.hidesOfflineExampleNote != true
+    }
     /// Mini-program `pages/search2`: search field with 筛选, then 搜索历史, 推荐搜索 and 类别, then the map entry.
     /// Results replace the suggestions in place (the mini-program pushes `search2/result`).
     var body: some View {
@@ -90,7 +95,7 @@ import SwiftUI
                         .accessibilityIdentifier("searchMap.emptySearchNotice")
                 }
                 if historyFailure { Text("searchMap.historyUnavailable").font(.footnote).foregroundStyle(.secondary) }
-                if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(.footnote).foregroundStyle(.secondary) }
+                if showsOfflineExampleNote { Label("searchMap.offline", systemImage: "wifi.slash").font(.footnote).foregroundStyle(.secondary) }
             }
             // The primary action appears once a keyword or category can search. An empty Search key
             // shows the prompt and does not start a request.
@@ -581,3 +586,6 @@ extension View {
         }
     }
 }
+
+/// mp-home r3 (00:10 sweep d2-search / d2-search-results): demo wording must not appear in a rendered fixture.
+@MainActor protocol SearchMapOfflineNoteHiding { var hidesOfflineExampleNote: Bool { get } }

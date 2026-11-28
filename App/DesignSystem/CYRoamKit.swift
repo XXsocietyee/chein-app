@@ -362,7 +362,7 @@ struct CYRoamNearbySheet<Peek: View, Content: View>: View {
             let height = min(max(detent.height(in: total, peekHeight: peekLine) - drag, lowest * 0.9), total * 0.96)
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
-                    Capsule().fill(.tertiary).frame(width: 40, height: 5).padding(.top, CYSpacing.sm)
+                    Capsule().fill(Color(uiColor: .tertiaryLabel)).frame(width: 40, height: 5).padding(.top, CYSpacing.sm)
                     peek.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.sm).frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(minHeight: 44)
@@ -397,7 +397,7 @@ struct CYRoamNearbySheet<Peek: View, Content: View>: View {
             .background(alignment: .top) {
                 UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28, style: .continuous)
                     .fill(cyMapPanelColor)
-                    .shadow(color: .black.opacity(0.18), radius: 18, y: -4)
+                    .shadow(color: .black.opacity(0.4), radius: 18, y: -4)
                     .ignoresSafeArea(edges: .bottom)
             }
             .frame(maxHeight: .infinity, alignment: .bottom)

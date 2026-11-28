@@ -30,7 +30,7 @@ S = {
     'u10.template.tab.details': ('Details', '详情'),
     'u10.template.tab.capabilities': ('Capabilities', '能力'),
     'u10.template.share': ('Share play', '分享玩法'),
-    'u10.template.shareTopic': ('Share topic template', '分享主题模板'),
+    'u10.template.shareTopic': ('Share route template', '分享主题模板'),
     'u10.template.cap.way': ('Method', '方式'),
     'u10.template.cap.scene': ('Scene', '场景'),
     'u10.template.cap.from': ('Source', '来源'),

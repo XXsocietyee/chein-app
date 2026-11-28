@@ -785,6 +785,32 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         XCTAssertNil(ProjectEditThemeRules.modeReason(.sharedWorld, in: hosted, inputs: nil))
     }
 
+    /// MP theme-runtime-survival.js openSurvivalEditor / toggleSurvivalCardField / removeSurvivalRow / saveSurvivalEditor.
+    func testResultCardSavesCustomizesAndResetsLikeTheMiniProgram() throws {
+        let empty = try draft(with: ["schemaVersion": .number(1)])
+        XCTAssertFalse(ProjectEditThemeRules.cardCustomized(in: empty))
+        XCTAssertEqual(try ProjectEditThemeRules.saveCard([:], reset: false, in: empty), empty)
+        var row = ProjectEditThemeRules.toggleCardField(.ending, in: [:])
+        row = ProjectEditThemeRules.toggleCardField(.hp, in: row)
+        XCTAssertEqual(ProjectEditThemeRules.cardFields(row), ["ending", "hp"])
+        row = ProjectEditThemeRules.toggleCardField(.ending, in: row)
+        XCTAssertEqual(ProjectEditThemeRules.cardFields(row), ["hp"])
+        let bad = ProjectEditThemeRules.settingCardCover("http://example.invalid/a.jpg", in: row)
+        XCTAssertThrowsError(try ProjectEditThemeRules.saveCard(bad, reset: false, in: empty)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeActsError, .refused("mpPublish.rules.card.coverInvalid"))
+        }
+        let saved = try ProjectEditThemeRules.saveCard(ProjectEditThemeRules.settingCardCover("https://example.invalid/a.jpg", in: row), reset: false, in: empty)
+        XCTAssertTrue(ProjectEditThemeRules.cardCustomized(in: saved))
+        XCTAssertEqual(ProjectEditThemeRules.cardCover(ProjectEditThemeRules.card(in: saved)), "https://example.invalid/a.jpg")
+        XCTAssertEqual(try ProjectEditThemeRules.saveCard(ProjectEditThemeRules.card(in: saved), reset: false, in: saved), saved)
+        let reset = try ProjectEditThemeRules.saveCard([:], reset: true, in: saved)
+        XCTAssertFalse(ProjectEditThemeRules.cardCustomized(in: reset))
+        XCTAssertNil(try theme(reset)["card"])
+        let customName = try draft(with: ["schemaVersion": .number(1), "hpName": .string("体力")])
+        XCTAssertEqual(ProjectEditThemeRules.cardCustomName(.hp, in: customName), "体力")
+        XCTAssertNil(ProjectEditThemeRules.cardCustomName(.luck, in: customName))
+    }
+
     func testTradeAndVoteOnlyApplyToASharedTeamWorld() throws {
         let solo = try draft(with: ["schemaVersion": .number(1), "gameplayRuntime": .object(["runtimeScope": .string("TEAM")])])
         XCTAssertFalse(ProjectEditThemeRules.worldShared(in: solo))

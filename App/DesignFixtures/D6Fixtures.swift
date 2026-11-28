@@ -19,8 +19,13 @@ struct D6MapFixture: View {
             content
         }
         .themeDomain(.player)
-        .preferredColorScheme(kind == .roam ? nil : .dark)
-        .background(kind == .roam ? Color.clear : Color.black)
+        .preferredColorScheme(followsSystem ? nil : .dark)
+        .background(followsSystem ? Color.clear : Color.black)
+    }
+
+    /// Play maps follow the system appearance (one map style across d2-play / d6-play, sweep 11-27 23:50).
+    private var followsSystem: Bool {
+        kind == .roam || kind == .play || kind == .playLoading
     }
 
     @ViewBuilder private var content: some View {
@@ -64,10 +69,10 @@ struct D6MapFixture: View {
                     }
                     Text(verbatim: t("Find the Lantern Gate", "找到灯笼门"))
                         .cyText(.display)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                     Text(verbatim: t("Follow the river and look for red lanterns above a stone arch.",
                                      "沿着河走，找到石拱门上方的红灯笼。"))
-                        .cyText(.body).foregroundStyle(Color.white.opacity(0.7))
+                        .cyText(.body).foregroundStyle(.secondary)
                     CYPillButton(LocalizedStringKey(t("I've arrived", "我到了")), action: {})
                     CYSectionHeader(LocalizedStringKey(t("Next stops", "接下来")))
                     CYListRow(LocalizedStringKey(t("Tea House", "茶馆")), meta: LocalizedStringKey(t("Locked until task 2", "完成任务 2 后解锁")), trailing: .none, card: true) { CYRowIcon(systemImage: "lock") }
