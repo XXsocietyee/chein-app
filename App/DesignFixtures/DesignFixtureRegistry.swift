@@ -256,8 +256,11 @@ enum E4Fixtures {
         // mp-mine r3 (01:10 sweep): the 我的 root in MP structure, on 关于 (当前权益), not a card + benefits without tabs.
         case "e4-member": return wrap(D2MeFixture(initialTab: .about))
         case "e4-participants": return wrap(ParticipantFixtureHostView())
-        case "e4-self-projects": return wrap(ProfileSelfProjectsFixtureHost(scenario: "content"))
-        case "e4-self-growth": return wrap(ProfileSelfGrowthFixtureHost(scenario: "content"))
+        case "e4-self-projects": return wrap(ProfileSelfProjectsFixtureHost(scenario: "content", showsTestControls: false))
+        case "e4-self-projects-error": return wrap(ProfileSelfProjectsFixtureHost(scenario: "failure", showsTestControls: false))
+        case "e4-self-growth": return wrap(ProfileSelfGrowthFixtureHost(scenario: "content", showsTestControls: false))
+        case "e4-self-growth-zero": return wrap(ProfileSelfGrowthFixtureHost(scenario: "zero", showsTestControls: false))
+        case "e4-self-growth-error": return wrap(ProfileSelfGrowthFixtureHost(scenario: "failure", showsTestControls: false))
         case "e4-self-medals": return wrap(ProfileSelfMedalsFixtureHost(scenario: "content", showsTestControls: false))
         case "e4-template-mine": return wrap(TemplateAuthoringFixtureHostView())
         case "e4-wallet-income": return wrap(WalletCommerceFixtureHost(designPage: "income"))
