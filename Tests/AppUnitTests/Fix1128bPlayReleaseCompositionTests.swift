@@ -123,6 +123,36 @@ import XCTest
         XCTAssertNotNil(consentLatest.httpBody)
     }
 
+    /// mp-journey r3 (plan audit J-09a / J-10b): the Release play lease admits the MP hint ladder and the points hint
+    /// unlock (form fields session scope, nodeId, level match `PlayExperienceService.hint`; pinned in PlayModeLifecycleTests).
+    func testReleasePlayLeaseAdmitsPuzzleHintAndHintUnlock() throws {
+        let built = composition(Fix1128bRecorder())
+        let player = try playerContext(built)
+        let configuration = try XCTUnwrap(built.sessionDependencies(player).configuration)
+        XCTAssertTrue(configuration.play.contains(.hints))
+        for path in ["api/play/puzzle/hint", "api/play/hint/unlock"] {
+            XCTAssertTrue(configuration.endpoints.paths.contains(path), path)
+            XCTAssertTrue(ReviewedProductionGateLeases.isPlayGrantPath(path), path)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+        }
+        let grant = try XCTUnwrap(built.playerWriteGrant(player))
+        XCTAssertTrue(grant.play.paths.isSuperset(of: ["api/play/puzzle/hint", "api/play/hint/unlock"]))
+    }
+
+    /// mp-journey r3 (plan audit J-16): the play page now asks `productionPlayCircle` first. Its session transport goes
+    /// through the player write grant, which admits every circle route the MP circle page sends (offers/card by id).
+    func testReleasePlayGrantAdmitsTheCirclePageRoutes() throws {
+        let built = composition(Fix1128bRecorder())
+        let player = try playerContext(built)
+        let grant = try XCTUnwrap(built.playerWriteGrant(player))
+        for path in ["api/circle-theme/session", "api/circle-theme/session/join", "api/circle-theme/session/answer",
+                     "api/circle-theme/session/record", "api/circle-theme/instance/71/offers", "api/circle-theme/session/81/card"] {
+            XCTAssertTrue(ReviewedProductionGateLeases.isPlayGrantPath(path), path)
+        }
+        XCTAssertTrue(grant.play.paths.isSuperset(of: ["api/circle-theme/session/join", "api/circle-theme/instance/{}/offers"]))
+        XCTAssertFalse(ReviewedProductionGateLeases.isPlayGrantPath("api/circle-theme/instance/71/delete"))
+    }
+
     /// #21: the store-day gates the Release session builds permit proof and consent writes; merchant gates do not.
     func testStoreDayGatesOpenProofAndConsentWritesForThePlayerOnly() throws {
         let gates = MerchantCityNPCParityGates.playStoreDay
