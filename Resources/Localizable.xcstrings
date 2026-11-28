@@ -345505,6 +345505,23 @@
         }
       }
     },
+    "account.mine.tab.achievements": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成就"
+          }
+        }
+      }
+    },
     "account.mine.tab.projects": {
       "extractionState": "manual",
       "localizations": {
