@@ -7,8 +7,10 @@ import Foundation
 public enum PersonalFogFeature {
     /// The reveal write path (grid version, batch idempotency) is not a reviewed contract yet.
     public static let revealSyncEnabled = false
-    /// Live foreground reveal from the device fix stream (roam-fog-engine stage 4). Off until a separate reviewed change.
-    public static let liveRevealEnabled = false
+    /// Live foreground reveal from the device fix stream (roam-fog-engine stage 4).
+    /// Gap #24 (1128 plan R-02d, owner brief.md:312 "restore fog for maps"): on. The live walk draws its own revealed
+    /// cells over the map (`RoamLiveFogHost`); Reduce Motion crossfades, Low Power / thermal draws a static mask.
+    public static let liveRevealEnabled = true
 }
 
 public struct FogGridVersion: Hashable, Codable {

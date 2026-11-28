@@ -53,7 +53,7 @@ import QuestifyCore
     let offlineExample: Bool
     let localHistoryReader: (any RoamExperienceReading)?
     let albumMetadataReader: RoamAlbumMetadataReader?
-    /// Real map + fog behind the HUD. nil, or `PersonalFogFeature.liveRevealEnabled == false`, keeps the static backdrop.
+    /// A fixture map + fog behind the HUD. nil: the live marker map with this walk's own fog (gap #24, `RoamLiveFogHost`).
     private(set) var fogMap: RoamLiveFogMap? = nil
     func withFogMap(_ value: RoamLiveFogMap?) -> Self { var copy = self; copy.fogMap = value; return copy }
     @StateObject private var browse: RoamPausedBrowsePresentation
@@ -265,6 +265,16 @@ import QuestifyCore
                            onBaked: fogMap.onBaked, onSelect: { _ in })
                 .ignoresSafeArea()
         } else {
+            // Gap #24 (1128 plan R-02d): the fog lifts where this walk went, above the marker map.
+            RoamLiveFogHost(fog: liveFog) { liveMarkerMap }
+        }
+    }
+    /// Gap #24: this walk's revealed cells (Core `RoamLiveFogProjection`); nil while none, or when 迷雾 is switched off.
+    private var liveFog: FogPresentation? {
+        guard !fogOff, let projection = RoamLiveFogProjection.make(record: owner.record, owner: owner.record?.clientSessionKey) else { return nil }
+        return FogPresentation(projection)
+    }
+    @ViewBuilder private var liveMarkerMap: some View {
             // ROAM-r11-3: the session's nearby places as markers tinted by node level (普通 / 精选 / 官方合作 / 主题路线),
             // independent of the fog flag. Tapping one opens the 附近 list. MP pages/roam/index.wxml:301-433,
             // index.js:2575 (`buildNodeLevelMarkerStyle`), node-level-style.js.
@@ -328,7 +338,6 @@ import QuestifyCore
                     if sessionDetent == .fraction(0.3) { sessionDetent = .medium }
                 }
                 .accessibilityIdentifier("roam.live.map")
-        }
     }
     private var firstDiscoveryBinding: Binding<RoamPlace?> {
         Binding(get: { discoverDestinations == nil ? nil : owner.firstShopDiscovery },
