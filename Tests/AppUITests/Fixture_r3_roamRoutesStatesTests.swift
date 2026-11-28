@@ -31,6 +31,20 @@ final class Fixture_r3_roamRoutesStatesTests: XCTestCase {
         XCTAssertEqual(app.state, .runningForeground)
     }
 
+    func testRouteDetailShowsStops() {
+        let app = launch("r3-roam-route", language: "zh-Hans")
+        XCTAssertTrue(app.descendants(matching: .any)["officialRoute.detail"].firstMatch.waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["外滩源庭院"].firstMatch.waitForExistence(timeout: 5))
+    }
+
+    func testRouteDetailErrorAndNotFound() {
+        let app = launch("r3-roam-route-error", language: "en")
+        XCTAssertTrue(app.descendants(matching: .any)["officialRoute.detail.error"].firstMatch.waitForExistence(timeout: 20))
+        app.terminate()
+        let missing = launch("r3-roam-route-notfound", language: "zh-Hans")
+        XCTAssertTrue(missing.descendants(matching: .any)["officialRoute.detail.notFound"].firstMatch.waitForExistence(timeout: 20))
+    }
+
     private func launch(_ fixture: String, language: String) -> XCUIApplication {
         let app = XCUIApplication()
         self.app = app

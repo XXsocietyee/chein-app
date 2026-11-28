@@ -135,6 +135,9 @@ enum DesignFixtureRegistry {
         case "r3-roam-routes": return RoamR3RoutesFixture.make(.content)
         case "r3-roam-routes-empty": return RoamR3RoutesFixture.make(.empty)
         case "r3-roam-routes-error": return RoamR3RoutesFixture.make(.failure)
+        case "r3-roam-route": return RoamR3RoutesFixture.makeDetail(.content)
+        case "r3-roam-route-error": return RoamR3RoutesFixture.makeDetail(.failure)
+        case "r3-roam-route-notfound": return RoamR3RoutesFixture.makeDetail(.notFound)
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
