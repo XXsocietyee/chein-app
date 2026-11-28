@@ -104,7 +104,7 @@
     "zh-Hans": "导航已暂停；继续时重新获取目的地和路线"
   },
   "walking.cancelled": {
-    "en": "Navigation cancelled",
+    "en": "Navigation canceled",
     "zh-Hans": "导航已取消"
   },
   "walking.error.unavailable": {
@@ -144,7 +144,7 @@
     "zh-Hans": "路线请求冷却中，请稍后重试"
   },
   "walking.error.cancelled": {
-    "en": "Navigation cancelled",
+    "en": "Navigation canceled",
     "zh-Hans": "导航已取消"
   },
   "walking.error.staleContext": {

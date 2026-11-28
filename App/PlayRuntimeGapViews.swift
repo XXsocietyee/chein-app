@@ -99,40 +99,25 @@ import SwiftUI
     }
 }
 
-/// `play-hud-overlays.js` `loadPlayContact`: one read when the run screen opens; no phone, no row.
-@MainActor struct PlayContactSection: View {
+/// `play-hud-overlays.js` `loadPlayContact`: one read per current station while the run screen is open; no phone, no
+/// row. mp-journey-b r3: the row itself is the MP 游玩工具 row (`PlayToolsAndLeadSheetView.contact`, dial only, number
+/// hidden), so the read and the finished-run end tombstone (`run-session/clear`) live here, off the page list.
+@MainActor struct PlayContactReader: ViewModifier {
     let currentNodeID: Int?
+    /// False (no current media snapshot) skips both the read and the tombstone.
+    let active: Bool
     /// A completed run also leaves the server end tombstone (`run-session/clear`).
-    var finished = false
+    let finished: Bool
+    @Binding var contact: PlayContact?
     @Environment(\.playRuntimeGap) private var binding
-    @Environment(\.locale) private var locale
-    @State private var contact: PlayContact?
 
-    var body: some View {
-        Group {
-            if let contact {
-                Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: contact.merchant ? CYKitCopy(locale: locale)("Contact the merchant", contact.label)
-                             : CYKitCopy(locale: locale)("Contact the organizer", contact.label))
-                            .cyText(.label).foregroundStyle(CYColor.textPrimary)
-                        if !contact.name.isEmpty { Text(verbatim: contact.name).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                        // The number is shown as text; the link beside it is a convenience.
-                        HStack(spacing: CYSpacing.sm) {
-                            Text(verbatim: contact.phone).cyText(.body).monospacedDigit().textSelection(.enabled)
-                            if let url = URL(string: "tel:" + contact.phone.filter { $0.isNumber || $0 == "+" }) {
-                                Link(destination: url) { Image(systemName: "phone.fill").accessibilityLabel(Text(verbatim: contact.label)) }
-                            }
-                        }
-                    }.accessibilityElement(children: .contain).accessibilityIdentifier("play.contact")
-                }
+    func body(content: Content) -> some View {
+        content
+            .task(id: active && finished) { if active && finished { await binding?.clearRunSessionOnFinish() } }
+            .task(id: active ? (currentNodeID ?? 0) : -1) {
+                guard active, let binding, let client = binding.client() else { contact = nil; return }
+                contact = await PlayContact.read(client: client, scope: binding.scope, currentNodeID: currentNodeID)
             }
-        }
-        .task(id: finished) { if finished { await binding?.clearRunSessionOnFinish() } }
-        .task(id: currentNodeID ?? 0) {
-            guard let binding, let client = binding.client() else { contact = nil; return }
-            contact = await PlayContact.read(client: client, scope: binding.scope, currentNodeID: currentNodeID)
-        }
     }
 }
 

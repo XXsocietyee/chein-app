@@ -602,3 +602,30 @@ Merged `origin/ui/combined-r7` (clean). No new mp-mine rows in the brief (the 12
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**. `tools/check_personal_location_share.py` has 3 failures before and after this change (not ours).
 
 Not done: `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `e4-settings` (zh-Hans + en) to confirm the grouped sections render as one list per group.
+
+## Continue 37 (11-28, hourly run): d2-me identity card hairlines
+
+Merged `origin/ui/combined-r7` (clean). Brief rows after 07:45 for mp-mine: the 13:15 "成为商家" Settings row goes to K12 (`cursor/1128-merchant-gate`), so skipped; the 13:15 票夹 "generic grey ticket glyph" note is from build 0446d1c4f, which predates our pass cards (`27099b8ae`, continue 34; now in combined-r7) — please re-sweep `e4-tickets`. Screens checked: `docs/sweeps/latest/mp-mine/zh-Hans-d2-me.jpg`, `en-d2-me.jpg`.
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `subpackageMember/components/cy/profile` identity card (wxml hero → name/level/city → 好友/关注/粉丝 → actions) | `App/MemberHomeHeader.swift` `MemberIdentityCardSection`, new `MemberCardSeparatorEdge` | ✓ (unchanged order) | B | **Fixed.** The card's list hairlines started at two different insets (under the city text ≈165 pt, then under 好友 ≈80 pt), so the card looked broken into pieces. The identity row, streak row, assets row and counters row now start their separator at the row's leading edge (`.alignmentGuide(.listRowSeparatorLeading)`, the same pattern as `OrderLifecycleView`), so every hairline in the card has one inset. No content, order or identifier change. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Not done: `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `d2-me` and `e4-tickets`.
+
+## Continue 38 (11-28, half-hourly run): fixture names in the 13:03 sweep
+
+Merged `origin/ui/combined-r7` (46 commits, clean). The 13:15 coordinator rows for mp-mine are closed (ticket glyph → pass cards in continue 34; 成为商家 belongs to Cursor K12). Every MP page in `pages/member/*` and `subpackageMember/*` already has a row in this receipt, so this run re-scans the sweep. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg` (build 0446d1c4f): the public profile header reads "Synthetic medal owner" and the ticket wallet reads "Sample exploration ticket" / "Sample activity ticket".
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `subpackageMember/components/cy/profile` (own public profile, `e4-self-medals`) | `App/ProfileSelfMedalsFixture.swift`, `Tests/AppUITests/ProfileSelfMedalsFlowTests.swift` | ✓ (unchanged) | B | **Fixed (fixture).** The owner is Lin Yu / 林雨, the same member as `d2-me`; the medals read Hangzhou city medal / 杭州城市勋章 and City walker / 城市漫步者 in the UI language. UI tests read the new English names. |
+| `subpackageMember/signup` (`e4-tickets`, detail) | `App/TicketWalletFixtureSupport.swift`, `Tests/AppUITests/TicketWalletFlowTests.swift`, `Tests/AppUITests/RoamEnrolledChaptersFlowTests.swift` | ✓ (unchanged) | B | **Fixed (fixture; closes the continue 30 Not done "Sample … ticket").** The fixture reader maps the Core synthetic names to real ticket names in both languages (West Lake Night Walk / 西湖夜游探索票, Riverside Night Ride / 滨江夜骑活动票, …). Core keeps its synthetic JSON for Core tests. |
+
+For other lanes: `App/DesignFixtures/E2Fixtures.swift` `E2ChaptersHost` (mp-roam, 我的章节) decodes the Core JSON directly, so it still shows "Sample … ticket"; it could read through `TicketWalletFixtureReader`.
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Not done: `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `e4-self-medals` and `e4-tickets` (en + zh-Hans).

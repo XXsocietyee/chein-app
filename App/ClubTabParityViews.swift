@@ -115,9 +115,21 @@ struct ClubEditFactsSection: View {
             Section {
                 switch page?.state {
                 case nil, .loading?:
-                    ProgressView().accessibilityIdentifier("club.ops.facts.loading")
+                    // mp-states-b r3 (MP scene-club-edit wxml:3): the facts read says 正在读取俱乐部资料 in words.
+                    ProgressView { Text("club.ops.edit.loading") }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("club.ops.facts.loading")
                 case .error?:
-                    Text("club.loadFailed").accessibilityIdentifier("club.ops.facts.error")
+                    // mp-states-b r3 (MP scene-club-edit wxml:6): 编辑资料没能打开 with 重新加载, never a bare line.
+                    Label {
+                        Text("club.ops.edit.loadFailed")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                    }
+                    .accessibilityIdentifier("club.ops.facts.error")
+                    Button("club.ops.edit.reload") { Task { await load(readBody) } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("club.ops.facts.reload")
                 case .empty?, .unknown?, .ready?:
                     if let page {
                         LabeledContent("club.ops.facts.members") { Text(verbatim: page.memberCountText) }

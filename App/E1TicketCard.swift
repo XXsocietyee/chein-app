@@ -132,7 +132,7 @@ struct E1TicketCard: View {
                 Image(systemName: ticket.status == .unknown ? "questionmark.circle" : "ticket").resizable().scaledToFit()
                     .frame(width: glyph * 0.55, height: glyph * 0.55)
                     .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-                Text(verbatim: ticket.status == .cancelled ? c.t("此票已取消", "This ticket was cancelled") : ticket.status == .expired ? c.t("此票已过期", "This ticket has expired") : c.t("暂时无法确认票的状态", "Ticket status unavailable"))
+                Text(verbatim: ticket.status == .cancelled ? c.t("此票已取消", "This ticket was canceled") : ticket.status == .expired ? c.t("此票已过期", "This ticket has expired") : c.t("暂时无法确认票的状态", "Ticket status unavailable"))
                     .cyText(.cardTitle).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             }
             if let number = ticket.registrationNumber, !number.isEmpty {

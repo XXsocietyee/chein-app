@@ -14,7 +14,16 @@ public struct ProjectInitialState {
         public let after: Int
         public var id: String { key }
     }
+    /// MP `theme-initial-carry.js` 开局带着: `attributes` rows keyed `clue.*` / `tag.*` with initial 1.
+    public struct CarryRow: Identifiable, Equatable {
+        public let key: String
+        public let label: String
+        public let isClue: Bool
+        public var id: String { key }
+    }
     public private(set) var readOnly = false
+    private var attributeRows: [ProjectEditJSON]?
+    private var carryEdited = false
     public var hp = Resource(enabled: false, initial: "10", maximum: "10")
     public var luck = Resource(enabled: false, initial: "3", maximum: "3")
     private var originalHP = Resource(enabled: false, initial: "10", maximum: "10")
@@ -41,6 +50,7 @@ public struct ProjectInitialState {
             luck = try Self.resource(root["luck"], fallback: .init(enabled: !fresh, initial: "3", maximum: "3"))
             let recovery = try Self.object(root["recovery"])
             for (key, fallback) in Self.recoveryDefaults { _ = try Self.integer(recovery[key], fallback: fallback) }
+            attributeRows = root["attributes"]?.array
             originalHP = hp; originalLuck = luck
         } catch { readOnly = true }
     }
@@ -50,6 +60,28 @@ public struct ProjectInitialState {
         case .hp: if !enabled { hp = originalHP }; hp.enabled = enabled
         case .luck: if !enabled { luck = originalLuck }; luck.enabled = enabled
         }
+    }
+    /// MP `_carryLocked`: a bound attribute registry owns the rows, so 开局带着 is read-only there.
+    public var carryLocked: Bool { readOnly || (root["attributeBinding"].map { $0 != .null } ?? false) }
+    public var carry: [CarryRow] {
+        (attributeRows ?? []).compactMap { row -> CarryRow? in
+            guard let object = row.object, let key = object["key"]?.text else { return nil }
+            let isClue = key.hasPrefix("clue."), isTag = key.hasPrefix("tag.")
+            guard isClue || isTag, Self.carryInitial(object["initial"]) == 1 else { return nil }
+            return .init(key: key, label: object["label"]?.text ?? key, isClue: isClue)
+        }
+    }
+    /// MP `removeCarry`: drops the attribute row for that key.
+    public mutating func removeCarry(_ key: String) {
+        guard !carryLocked, let rows = attributeRows else { return }
+        let next = rows.filter { $0.object?["key"]?.text != key }
+        guard next.count != rows.count else { return }
+        attributeRows = next; carryEdited = true
+    }
+    private static func carryInitial(_ raw: ProjectEditJSON?) -> Int? {
+        if let value = raw?.integer { return value }
+        if let text = raw?.text { return Int(text.trimmingCharacters(in: .whitespaces)) }
+        return nil
     }
     private static func object(_ raw: ProjectEditJSON?) throws -> [String: ProjectEditJSON] {
         guard let raw, raw != .null else { return [:] }
@@ -72,7 +104,7 @@ public struct ProjectInitialState {
     private static func same(_ lhs: Resource, _ rhs: Resource) -> Bool {
         lhs.enabled == rhs.enabled && Int(lhs.initial) == Int(rhs.initial) && Int(lhs.maximum) == Int(rhs.maximum)
     }
-    public var isUnchanged: Bool { Self.same(hp, originalHP) && Self.same(luck, originalLuck) }
+    public var isUnchanged: Bool { !carryEdited && Self.same(hp, originalHP) && Self.same(luck, originalLuck) }
     private func values() throws -> (hpInitial: Int, hpMax: Int, luckInitial: Int, luckMax: Int) {
         guard !readOnly, let hpMax = Int(hp.maximum), (1...20).contains(hpMax),
               let hpInitial = Int(hp.initial), (1...hpMax).contains(hpInitial),
@@ -118,8 +150,10 @@ public struct ProjectInitialState {
         hpObject["enabled"] = .bool(hp.enabled); hpObject["init"] = .number(Decimal(values.hpInitial)); hpObject["max"] = .number(Decimal(values.hpMax))
         luckObject["enabled"] = .bool(luck.enabled); luckObject["init"] = .number(Decimal(values.luckInitial)); luckObject["max"] = .number(Decimal(values.luckMax))
         next["hp"] = .object(hpObject); next["luck"] = .object(luckObject); next["schemaVersion"] = .number(1)
+        if carryEdited, let attributeRows { next["attributes"] = .array(attributeRows) }
+        let hasAttributes = next["attributes"]?.array?.isEmpty == false
         next["stateEnabled"] = .bool(thoughtReplacement != nil ? root["stateEnabled"] == .bool(true) :
-            hp.enabled || luck.enabled || (root["stateEnabled"] == .bool(true) && root["attributes"]?.array?.isEmpty == false))
+            hp.enabled || luck.enabled || (root["stateEnabled"] == .bool(true) && hasAttributes))
         next["recovery"] = .object(try recovery(values: values))
         if let thoughtReplacement { next["thoughts"] = thoughtReplacement.isEmpty ? nil : .array(thoughtReplacement) }
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]

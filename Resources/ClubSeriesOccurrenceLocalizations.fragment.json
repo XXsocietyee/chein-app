@@ -39,7 +39,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All returned dates, including past and cancelled occurrences. Parsed times use China time (UTC+8)."
+            "value": "All returned dates, including past and canceled occurrences. Parsed times use China time (UTC+8)."
           }
         },
         "zh-Hans": {
@@ -103,7 +103,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {

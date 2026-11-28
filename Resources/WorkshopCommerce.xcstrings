@@ -347,7 +347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Digital modules use separately approved Apple In-App Purchase only. Pending or cancelled system prompts do not establish payment or a license. Recover the original order instead of buying again."
+            "value": "Digital modules use separately approved Apple In-App Purchase only. Pending or canceled system prompts do not establish payment or a license. Recover the original order instead of buying again."
           }
         },
         "zh-Hans": {
@@ -1282,7 +1282,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service has not provided a status explanation. Do not assume the reason or that an ongoing run has been cancelled."
+            "value": "The service has not provided a status explanation. Do not assume the reason or that an ongoing run has been canceled."
           }
         },
         "zh-Hans": {

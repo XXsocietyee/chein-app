@@ -299,7 +299,7 @@ struct OfficialOrganizerConsoleView: View {
                 Label(message.isEmpty ? c.t("平台拒绝了这次操作", "The platform rejected this action") : c.tr(message),
                       systemImage: "xmark.octagon.fill").foregroundStyle(.red)
             case .cancelled:
-                Label(c.t("原请求已取消", "The original request was cancelled"), systemImage: "minus.circle")
+                Label(c.t("原请求已取消", "The original request was canceled"), systemImage: "minus.circle")
             }
             Button(c.t("知道了", "Dismiss")) { model.outcome = nil }.frame(minHeight: 44)
         }
