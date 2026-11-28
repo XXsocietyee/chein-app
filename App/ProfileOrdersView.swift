@@ -357,6 +357,8 @@ private struct ProfileOrderRow: View {
     var showsPayButtons: Bool = false
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
+    /// a11y-dt r3: the MP order-card icons grow with the .subheadline text beside them (were fixed 16 pt at AX5).
+    @ScaledMetric(relativeTo: .subheadline) private var metaIconSide: CGFloat = 16
     @Environment(\.openURL) private var openURL
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     static func mapURL(_ address: String) -> URL? {
@@ -445,7 +447,7 @@ private struct ProfileOrderRow: View {
     /// MP order card icons (`d_orderIcon.png` time, `d_orderIcon2.png` address), drawn as shipped.
     private func meta(_ text: Text, mp icon: Image) -> some View {
         Label { text.fixedSize(horizontal: false, vertical: true) } icon: {
-            icon.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true)
+            icon.resizable().scaledToFit().frame(width: metaIconSide, height: metaIconSide).accessibilityHidden(true)
         }
         .font(.subheadline).foregroundStyle(.secondary)
     }

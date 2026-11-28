@@ -315,8 +315,23 @@ Merged `origin/ui/combined-r7` (f8574edab). Coordinator 00:50 sweep (build f8574
 | `pages/roam/index` "附近活动" panel over the map (`zh-Hans-a11y-roam-ax5.jpg`, 00:50) + every `CYMapScaffold` / `CYRoamNearbySheet` map screen (nearby teams, play session map, density map) | `DesignSystem/CYMapChrome.swift` (`cyMapPanelColor`, grabber), `DesignSystem/CYRoamKit.swift`, `RoamBrowserView.swift` (map-mode list) | ✓ (mp-roam owns order) | Panel fill `Color.black` → system `.regularMaterial` (follows light / dark like the map, as `RoamMapHomePanel` already does with the system background); panel content already uses semantic colors, so it was dark text on black in light mode before. Grabber white 0.3–0.5 (invisible on a light sheet) → `.tertiary`; panel shadow 0.4 → 0.18 | Done (next sweep: `a11y-roam-ax5`) |
 | `subpackageRoam` 集章册 cover (stamp album, not-done ring row) | `RoamStampViews.swift` (`RoamStampAlbumCover`), `DesignSystem/CYAlbum.swift` (`CYAlbumProgressRing`), `CYCollectible.swift` (`CYCountRing`) | ✓ (mp-roam owns order) | Ring numerals sized from the ring (which grows 1.4x / 1.6x at AX sizes): fine. Album cover put the 123 pt AX ring beside a `.display` title in one HStack → `AnyLayout` VStack at AX sizes (ring above title, same order); ring VoiceOver-hidden because the sentence under the title is the same text (was read twice). Badge wall header already `ViewThatFits`, `CYCountRing` hidden with the heading carrying the count: no change | Done |
 
+## Run 19 (2026-11-28, hourly)
+Merged `origin/ui/combined-r7` (conflict in the map panel fill: took ds-consistency's `CYColor.bgElevated` over run 18's
+`.regularMaterial`, both follow the system appearance; `RoamBrowserView` background back to the plain `Color` form).
+Not done item: sweep **907570051** (01:10Z) `en-a11y-roam-ax5.jpg`: the "Nearby activities 2 ^" panel is light under the
+light map at AX5, black text, chevron visible ✓. Closed. `zh-Hans-a11y-passport-ax5.jpg`: 票夹 / 账户收益 / 消息 stack as full
+lines, 印章 3 / 12 grid ✓. Then pages in the area without a row (largest player views first):
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` cy-profile (other player's public profile) | `SocialPublicProfileView.swift` (identity head, 关注 / 发消息 row) | ✓ (mp-mine owns order) | Identity head avatar + name `HStack` → `AnyLayout` VStack at AX sizes (name under the 64 pt avatar, Contacts card); 关注 / 发消息 pills stacked full width at AX sizes (same order) instead of two truncated halves. Counters already wrap + combine | Done |
+| `pages/topic/index` no-cover hero | `TopicDetailView.swift:294` | ✓ (mp-publish owns order) | Hero intro 1 → 3 lines at AX sizes (one line stays the MP look at regular sizes) | Done |
+| `subpackageMember` 我的订单 (order card meta) | `ProfileOrdersView.swift` (`ProfileOrderRow.meta`) | ✓ (mp-mine owns order) | MP time / address icons fixed 16 pt → `@ScaledMetric(relativeTo: .subheadline)` so they keep pace with the text; footer AX stacking already present | Done |
+| `pages/activity` detail, `pages/club` detail | `ActivityDetailView.swift`, `ClubDetailView.swift` | ✓ | Audit: no fixed frames, raw sizes, tap gestures or 1-line limits. No change | Done |
+
 ## Not done (next run starts here)
-- Re-read `a11y-roam-ax5` after the next sweep: panel should be light material in light mode (run 18); run-17 labels have no visual change.
+- Continue pages without a row: `RewardPledgeViews`, `PublishingModesViews`, `WalletCommerceViews`, `ProfileEditView`,
+  `RoamPassportToolsViews`, `PassMembershipViews`, `RoamHomeTabsView`, `ChapterStoryView` (largest player views first).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
@@ -327,4 +342,4 @@ Merged `origin/ui/combined-r7` (f8574edab). Coordinator 00:50 sweep (build f8574
   declared under `App/DesignFixtures` but missing from `DesignFixtureReleaseExclusionAudit.symbols` (ds-consistency / owning lanes).
 - i18n-r3: `ClubComponents.swift:357` video play glyph `.accessibilityLabel(Text(verbatim: "Play"))` is English-only.
 - i18n-r3: `MPGap/Club/ClubGapRound4Views.swift` accessibility label `"删除凭证图片 \(index + 1)"` is a Chinese literal key (no en).
-- mp-roam: `cyMapPanelColor` is now `.regularMaterial` (run 18, coordinator 00:50); re-check any map panel content you own that assumed a black panel (white text / white strokes).
+- mp-roam: `cyMapPanelColor` is now `CYColor.bgElevated` (ds-consistency, kept in run 19); re-check any map panel content you own that assumed a black panel (white text / white strokes).
