@@ -3718,7 +3718,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The confirmation wasn't sent, so it was cancelled on this device."
+            "value": "The confirmation wasn't sent, so it was canceled on this device."
           }
         },
         "zh-Hans": {

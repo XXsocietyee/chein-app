@@ -9,8 +9,8 @@ class WaitlistReviewUIContracts(unittest.TestCase):
         method = source.split('func testWaitingAndLeavingRemainInTheRegistrationForm()')[1].split('func testOfferRequires')[0]
         self.assertLess(method.index('app.buttons["Cancel"].tap()'), method.index('app.buttons["Leave waitlist"].tap()'))
         self.assertIn('XCTAssertTrue(app.staticTexts["Waiting for an available place"].exists, app.debugDescription)', method)
-        self.assertEqual(method.count('XCTAssertFalse(app.staticTexts["Waitlist entry cancelled"].exists)'), 2)
-        self.assertIn('XCTAssertTrue(app.staticTexts["Waitlist entry cancelled"].waitForExistence(timeout: 5), app.debugDescription)', method)
+        self.assertEqual(method.count('XCTAssertFalse(app.staticTexts["Waitlist entry canceled"].exists)'), 2)
+        self.assertIn('XCTAssertTrue(app.staticTexts["Waitlist entry canceled"].waitForExistence(timeout: 5), app.debugDescription)', method)
         self.assertEqual(method.count('XCTAssertFalse(app.buttons["registration.form.readStatus"].exists)'), 2)
         self.assertIn('XCTAssertTrue(app.navigationBars["Activity registration"].exists)', method)
 

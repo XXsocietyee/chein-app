@@ -14,6 +14,8 @@ import SwiftUI
     @State private var didAutoStart = false
     @Environment(\.ticketWalletPlayProvider) private var playProvider
     @Environment(\.mpParity) private var mpParity
+    @Environment(\.rootSignIn) private var rootSignIn
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = TicketWalletScreenModel<TicketWalletTicket>()
@@ -31,7 +33,7 @@ import SwiftUI
         let offeredPresentation = model.presentation
         List {
             if reader.isOfflineExample { Text("ticketWallet.offlineExample").font(.footnote).foregroundStyle(.secondary) }
-            if !reader.isAuthenticated { TicketWalletIssueView(issue: .login) }
+            if !reader.isAuthenticated { TicketWalletIssueView(issue: .login, signIn: rootSignIn.signedOutAction(fallback: rootTabSwitch)) }
             else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedOwner != key {
                 ProgressView { Text("ticketWallet.loading") }.frame(maxWidth: .infinity)
@@ -428,5 +430,7 @@ private struct TicketWalletEntitlementRow: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }.padding(.vertical, 6)
+        // a11y-dt: chapter, status, redeemed time and reason read as one row in VoiceOver (no controls inside).
+        .accessibilityElement(children: .combine)
     }
 }

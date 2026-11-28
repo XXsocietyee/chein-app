@@ -390,7 +390,7 @@ struct RoamPlaceExtrasSection: View {
         DisclosureGroup(isExpanded: $creditOpen) {
             Text(verbatim: credit).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
         } label: {
-            Text(verbatim: c.t("照片来源与许可", "Photo sources and licences")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: c.t("照片来源与许可", "Photo sources and licenses")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
         .accessibilityIdentifier("roam.place.photoCredit")
     }

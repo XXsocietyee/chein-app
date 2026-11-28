@@ -55,6 +55,16 @@ final class LocaleDisplayTests: XCTestCase {
         XCTAssertEqual(LocaleDisplay.civil("2026-13-40", locale: us), "2026-13-40")
     }
 
+    func testMonthDayPartsAreLocalizedWithoutShifting() {
+        XCTAssertEqual(LocaleDisplay.monthDay(month: 11, day: 6, locale: zh), "11月6日")
+        XCTAssertEqual(LocaleDisplay.monthDay(month: 11, day: 6, year: 2026, hour: 18, minute: 20, locale: zh), "11月6日 18:20")
+        let english = LocaleDisplay.monthDay(month: 11, day: 6, year: 2026, hour: 23, minute: 30, locale: us) ?? ""
+        XCTAssertTrue(english.contains("Nov 6"), english)
+        XCTAssertTrue(english.contains("11:30"), english)
+        XCTAssertEqual(LocaleDisplay.monthDay(month: 2, day: 29, locale: us).map { $0.contains("Feb 29") }, true)
+        XCTAssertNil(LocaleDisplay.monthDay(month: 2, day: 30, locale: us))
+    }
+
     func testDistanceUsesMilesInTheUSAndKilometresInChina() throws {
         let us1600 = try XCTUnwrap(LocaleDisplay.distance(meters: 1609.344, locale: us))
         XCTAssertTrue(us1600.contains("mi"), us1600)

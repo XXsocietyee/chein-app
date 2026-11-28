@@ -101,7 +101,7 @@
   },
   {
     "key": "orderLifecycle.timeline.cancelled",
-    "en": "Order cancelled",
+    "en": "Order canceled",
     "zh-Hans": "订单已取消"
   },
   {
@@ -271,7 +271,7 @@
   },
   {
     "key": "orderLifecycle.pass.cancelled",
-    "en": "This registration is cancelled.",
+    "en": "This registration is canceled.",
     "zh-Hans": "此报名已取消。"
   },
   {
@@ -371,7 +371,7 @@
   },
   {
     "key": "orderLifecycle.state.cancelled",
-    "en": "Cancelled",
+    "en": "Canceled",
     "zh-Hans": "已取消"
   },
   {

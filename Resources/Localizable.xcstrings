@@ -3087,7 +3087,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The host cancelled this activity"
+            "value": "The host canceled this activity"
           }
         },
         "zh-Hans": {
@@ -3138,7 +3138,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity cancelled"
+            "value": "Activity canceled"
           }
         },
         "zh-Hans": {
@@ -5189,7 +5189,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Application cancelled."
+            "value": "Application canceled."
           }
         },
         "zh-Hans": {
@@ -8011,7 +8011,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat sign-in was cancelled"
+            "value": "WeChat sign-in was canceled"
           }
         },
         "zh-Hans": {
@@ -18599,7 +18599,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -25782,7 +25782,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -27719,7 +27719,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -27911,7 +27911,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All returned dates, including past and cancelled occurrences. Parsed times use China time (UTC+8)."
+            "value": "All returned dates, including past and canceled occurrences. Parsed times use China time (UTC+8)."
           }
         },
         "zh-Hans": {
@@ -31142,7 +31142,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -32103,7 +32103,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Other tickets in the same order may also be cancelled."
+            "value": "Other tickets in the same order may also be canceled."
           }
         },
         "zh-Hans": {
@@ -35208,7 +35208,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -36175,7 +36175,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -37006,7 +37006,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The cooling-off period has ended. The account will be cancelled in the next early-morning batch. You can still withdraw before that finishes."
+            "value": "The cooling-off period has ended. The account will be canceled in the next early-morning batch. You can still withdraw before that finishes."
           }
         },
         "zh-Hans": {
@@ -39342,7 +39342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result lists cancelled periods, blocked bills, pending reviews and non-refundable items, and reports whether payouts have completed."
+            "value": "The result lists canceled periods, blocked bills, pending reviews and non-refundable items, and reports whether payouts have completed."
           }
         },
         "zh-Hans": {
@@ -43327,7 +43327,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -60005,7 +60005,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Excluded: cancelled or expired"
+            "value": "Excluded: canceled or expired"
           }
         },
         "zh-Hans": {
@@ -70505,7 +70505,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -72681,7 +72681,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -81010,7 +81010,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check each page for entry rules"
+            "value": "See each topic for how to join"
           }
         },
         "zh-Hans": {
@@ -81983,7 +81983,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled by you"
+            "value": "Canceled by you"
           }
         },
         "zh-Hans": {
@@ -82119,7 +82119,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This tip can no longer be cancelled"
+            "value": "This tip can no longer be canceled"
           }
         },
         "zh-Hans": {
@@ -83517,7 +83517,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This review was cancelled."
+            "value": "This review was canceled."
           }
         },
         "zh-Hans": {
@@ -137069,7 +137069,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -141331,7 +141331,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This status cannot be cancelled"
+            "value": "This status cannot be canceled"
           }
         },
         "zh-Hans": {
@@ -141535,7 +141535,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -146623,7 +146623,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service window changed. The old reminder was cancelled; review the new time."
+            "value": "The service window changed. The old reminder was canceled; review the new time."
           }
         },
         "zh-Hans": {
@@ -160329,7 +160329,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This registration is cancelled."
+            "value": "This registration is canceled."
           }
         },
         "zh-Hans": {
@@ -161021,7 +161021,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -161293,7 +161293,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Order cancelled"
+            "value": "Order canceled"
           }
         },
         "zh-Hans": {
@@ -165861,7 +165861,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -166541,7 +166541,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Existing sign-ups won't be cancelled. Past sign-up records stay valid."
+            "value": "Existing sign-ups won't be canceled. Past sign-up records stay valid."
           }
         },
         "zh-Hans": {
@@ -174421,7 +174421,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signup cancelled"
+            "value": "Signup canceled"
           }
         },
         "zh-Hans": {
@@ -175489,7 +175489,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity cancelled"
+            "value": "Activity canceled"
           }
         },
         "zh-Hans": {
@@ -180652,7 +180652,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This round was cancelled. No reward this time."
+            "value": "This round was canceled. No reward this time."
           }
         },
         "zh-Hans": {
@@ -201841,7 +201841,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Order cancelled"
+            "value": "Order canceled"
           }
         },
         "zh-Hans": {
@@ -202517,7 +202517,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -218581,7 +218581,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check cancelled."
+            "value": "Check canceled."
           }
         },
         "zh-Hans": {
@@ -218632,7 +218632,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The check was cancelled."
+            "value": "The check was canceled."
           }
         },
         "zh-Hans": {
@@ -219091,7 +219091,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check cancelled"
+            "value": "Check canceled"
           }
         },
         "zh-Hans": {
@@ -220041,7 +220041,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -222187,7 +222187,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waitlist entry cancelled"
+            "value": "Waitlist entry canceled"
           }
         },
         "zh-Hans": {
@@ -227301,7 +227301,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled; the file was not saved"
+            "value": "Canceled; the file was not saved"
           }
         },
         "zh-Hans": {
@@ -228610,7 +228610,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -241883,7 +241883,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -244509,7 +244509,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopping only ends local waiting. The server may have received the request. A confirmed retry uses the same request ID; it does not prove that the earlier request was cancelled."
+            "value": "Stopping only ends local waiting. The server may have received the request. A confirmed retry uses the same request ID; it does not prove that the earlier request was canceled."
           }
         },
         "zh-Hans": {
@@ -257340,7 +257340,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Either side can cancel. A cancelled meeting cannot be confirmed later."
+            "value": "Either side can cancel. A canceled meeting cannot be confirmed later."
           }
         },
         "zh-Hans": {
@@ -257357,7 +257357,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The cancel result is unknown. The meeting stays cancelled on this device."
+            "value": "The cancel result is unknown. The meeting stays canceled on this device."
           }
         },
         "zh-Hans": {
@@ -257374,7 +257374,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meeting cancelled. It cannot be resumed."
+            "value": "Meeting canceled. It cannot be resumed."
           }
         },
         "zh-Hans": {
@@ -272467,7 +272467,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This ticket has been cancelled"
+            "value": "This ticket has been canceled"
           }
         },
         "zh-Hans": {
@@ -272964,7 +272964,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This ticket was cancelled"
+            "value": "This ticket was canceled"
           }
         },
         "zh-Hans": {
@@ -273346,7 +273346,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This ticket has been cancelled"
+            "value": "This ticket has been canceled"
           }
         },
         "zh-Hans": {
@@ -273516,7 +273516,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -276019,7 +276019,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review cancelled"
+            "value": "Review canceled"
           }
         },
         "zh-Hans": {
@@ -281484,7 +281484,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Navigation cancelled"
+            "value": "Navigation canceled"
           }
         },
         "zh-Hans": {
@@ -281533,7 +281533,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Navigation cancelled"
+            "value": "Navigation canceled"
           }
         },
         "zh-Hans": {
@@ -288336,7 +288336,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled, not published"
+            "value": "Canceled, not published"
           }
         },
         "zh-Hans": {
@@ -305595,7 +305595,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -305612,7 +305612,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled (waived)"
+            "value": "Canceled (waived)"
           }
         },
         "zh-Hans": {
@@ -305833,7 +305833,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -315190,7 +315190,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -318629,7 +318629,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -340953,7 +340953,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The confirmation wasn't sent, so it was cancelled on this device."
+            "value": "The confirmation wasn't sent, so it was canceled on this device."
           }
         },
         "zh-Hans": {
@@ -351124,7 +351124,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This round was cancelled"
+            "value": "This round was canceled"
           }
         },
         "zh-Hans": {
@@ -357534,7 +357534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payment cancelled"
+            "value": "Payment canceled"
           }
         },
         "zh-Hans": {
@@ -361394,23 +361394,6 @@
         }
       }
     },
-    "registration.result.viewTicket": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "View in ticket wallet"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查看票夹"
-          }
-        }
-      }
-    },
     "club.leadProgress.summary %@": {
       "extractionState": "manual",
       "localizations": {
@@ -361594,6 +361577,669 @@
           "stringUnit": {
             "state": "translated",
             "value": "别动，量一下这儿的底子"
+          }
+        }
+      }
+    },
+    "playkit.sensor.skip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip this stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过这一站"
+          }
+        }
+      }
+    },
+    "playTools.contact.host": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact the organizer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系主办"
+          }
+        }
+      }
+    },
+    "playTools.contact.merchant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact the merchant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系商家"
+          }
+        }
+      }
+    },
+    "playTools.contact.call": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Call"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拨打"
+          }
+        }
+      }
+    },
+    "playTools.contact.prompt %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Call %@?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拨打「%@」的电话？"
+          }
+        }
+      }
+    },
+    "playTools.contact.hostName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the organizer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主办"
+          }
+        }
+      }
+    },
+    "playTools.contact.merchantName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the merchant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家"
+          }
+        }
+      }
+    },
+    "playerGap.invite.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite friends to explore the city"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请好友一起探索城市"
+          }
+        }
+      }
+    },
+    "playerGap.invite.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share Chein with your friends and discover new ways to play in the city together."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享城瘾给你的好友，一起发现城市里的新玩法。"
+          }
+        }
+      }
+    },
+    "playerGap.invite.share": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share link"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享链接"
+          }
+        }
+      }
+    },
+    "projectEdit.validation.runtimeEndings.tooMany": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can add up to 30 run endings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多添加 30 个运行结局"
+          }
+        }
+      }
+    },
+    "projectEdit.validation.runtimeEndings.badID": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An ending ID is duplicated or invalid. Add that ending again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结局编号重复或无效，请重新添加该结局"
+          }
+        }
+      }
+    },
+    "projectEdit.validation.runtimeEndings.fields": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give each ending a name (up to 80 characters) and a description (up to 2,000)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写结局名称（最多 80 字）和说明（最多 2000 字）"
+          }
+        }
+      }
+    },
+    "projectEdit.validation.runtimeEndings.fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose exactly one default ending."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请指定且仅指定一个默认收尾结局"
+          }
+        }
+      }
+    },
+    "projectEdit.validation.runtimeEndings.plan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every vote plan must end in an ending saved for this theme."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表决方案须选择本主题已保存的结局章"
+          }
+        }
+      }
+    },
+    "projectEdit.validation.runtimeEndings.inUse": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A vote plan uses this ending. Change that plan first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该结局正在被表决方案使用，请先修改对应方案"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run Endings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运行结局"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.lead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When the plan the team voted for is carried out, the run closes with one of these endings. Story endings are written in ending chapters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍表决的方案执行后，按这里的结局收场。剧情结局在结局章中编写。"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.ending %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ending %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结局 %lld"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.fallback.tag": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认收尾"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.name.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Safe escape"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如：成功撤离"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.summary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Description"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结局说明"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.summary.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What players see as the result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家看到的结果说明"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as default ending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为默认收尾"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.fallback.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If no plan passes, staff can close the run with it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有方案通过时，工作人员可用它收尾"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.delete.a11y %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete ending %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除结局 %lld"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Ending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加结局"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.exit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出"
+          }
+        }
+      }
+    },
+    "projectRuntimeEndings.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        }
+      }
+    },
+    "nearby.commands.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team actions to confirm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待确认的队伍操作"
+          }
+        }
+      }
+    },
+    "nearby.commands.storageError": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't read the team actions waiting for confirmation. Try again; no new actions are sent until then."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能读取待确认的队伍操作，请重试；暂不提交新操作"
+          }
+        }
+      }
+    },
+    "nearby.commands.reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取记录"
+          }
+        }
+      }
+    },
+    "nearby.commands.row": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍操作"
+          }
+        }
+      }
+    },
+    "nearby.commands.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result of the original request isn't confirmed yet. Your input is kept; check the result or retry the original request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求结果待确认；输入已保留，请查询或按原请求重试"
+          }
+        }
+      }
+    },
+    "nearby.commands.query": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询结果"
+          }
+        }
+      }
+    },
+    "nearby.commands.abortNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping doesn't undo an application or approval that already took effect."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终止不会撤销已经生效的申请或审批。"
+          }
+        }
+      }
+    },
+    "registration.result.viewTicket": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View in ticket wallet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看票夹"
           }
         }
       }

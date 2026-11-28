@@ -154,15 +154,24 @@ import SwiftUI
     var initialType: String = "topic"
     @State private var canManageProjects = false
     @State private var showsReceivedApplies = false
+    /// Merchant list scope is a merchant-center entry. Release keeps the personal list.
+    private var releasedEntryScope: String? {
+        if entryScope == "MERCHANT", !PlayerLaunch.merchantCenterEnabled { return nil }
+        return entryScope
+    }
     var body: some View {
         ProjectOwnedContentBrowser(reader: session.creatorContentReader, revision: session.sessionRevision,
             makeEditor: { session.projectEditor(target: $0) }, detail: { destination in
                 switch destination {
                 // R7-PC-B2-4, MP myproject index.js:450-453: 我发布的 topics open the project home (merchantinfo?topicId=, the
-                // host view), not the player ticket page.
-                case .topic(let id): return AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: id), focusedTopicID: id)
-                    .merchantProjectHostDestinations(session: session)
-                    .toolbar { TopicCreatorToolsToolbar(session: session, topicID: id, entryScope: entryScope) })
+                // host view), not the player ticket page. K12: merchantinfo is hidden in Release; the player topic opens.
+                case .topic(let id):
+                    if PlayerLaunch.merchantCenterEnabled {
+                        return AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: id), focusedTopicID: id)
+                            .merchantProjectHostDestinations(session: session)
+                            .toolbar { TopicCreatorToolsToolbar(session: session, topicID: id, entryScope: releasedEntryScope) })
+                    }
+                    return AnyView(SessionTopicDetailView(session: session, id: id))
                 case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session)
                     .toolbar { MyProjectActivityDetailWriteToolbar(session: session, activityID: id) })
                 case .playTemplate(let id): return AnyView(DiscoveryTemplateDetailView(id: id, reader: session,
@@ -174,24 +183,24 @@ import SwiftUI
             makeActivityCover: { session.makeActivityCoverService() },
             publishingEpoch: session.publishingSession?.epoch,
             activityGrants: session.activityEditingGrants(),
-            entryScope: entryScope, canManageProjects: canManageProjects, initialType: initialType)
+            entryScope: releasedEntryScope, canManageProjects: canManageProjects, initialType: initialType)
             .environment(\.myProjectTemplateShelf, MyProjectTemplateShelfHost { session.myProjectTemplateShelf(header: $0) })
             .environment(\.myProjectPublishEntry, session.myProjectPublishEntry())
             // Lane G: received coop applications (协作邀请) are hidden in Release; nil hides 查看申请.
             .environment(\.myProjectReceivedApplies, PlayerLaunch.merchantCenterEnabled ? { showsReceivedApplies = true } : nil)
             .navigationDestination(isPresented: $showsReceivedApplies) {
                 CooperationBrowserView(reader: session.cooperationReader, peerReader: session.cooperationFlowReader,
-                                       operationScope: entryScope, initialDirection: .received,
+                                       operationScope: releasedEntryScope, initialDirection: .received,
                                        topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
                                        embedsNavigationStack: false)
             }
             .id(session.creatorContentReader.scope)
-            .task(id: "\(session.creatorContentReader.scope.uuidString)|\(entryScope ?? "")") { await loadManage() }
+            .task(id: "\(session.creatorContentReader.scope.uuidString)|\(releasedEntryScope ?? "")") { await loadManage() }
     }
     /// Merchant entry reads access/me. Failure or a missing project-manage grant stays browse-only.
     /// The personal entry does not call access/me and does not send `scope`.
     private func loadManage() async {
-        guard (try? CreatorContentService.merchantWireScope(entryScope)) == "MERCHANT" else {
+        guard (try? CreatorContentService.merchantWireScope(releasedEntryScope)) == "MERCHANT" else {
             canManageProjects = false
             return
         }

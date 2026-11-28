@@ -7,7 +7,7 @@ final class ProfileSelfGrowthFlowTests:XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self,app:app);app.terminate();app=nil }
     private func launch(_ scenario:String="content") {
         app.launchArguments=["--uitesting-profile-self-growth","--profile-self-growth-scenario",scenario,"--uitesting-reset-language","-AppleLanguages","(en)","-AppleLocale","en_US"]
-        app.launch();XCTAssertTrue(app.staticTexts["Synthetic growth owner"].waitForExistence(timeout:10))
+        app.launch();XCTAssertTrue(app.staticTexts["Mia"].waitForExistence(timeout:10))
         let picker=app.buttons["social.profile.tabs"];if picker.exists {picker.tap()}
         let tab=app.buttons["Awards"];if tab.waitForExistence(timeout:3) {tab.tap()}else{app.staticTexts["Awards"].tap()}
     }
