@@ -17,3 +17,6 @@ Branch `mp/r3-activity-b` from `origin/mp/r3-activity` (49b6ede5f). Works the op
 
 ## Half done (11-28, collision-fix split)
 Second half of the A receipt's Not done list (Owner check 05:35 → Coop row) checked bottom-up. Coop row: stations, per-row chapter terms and the 补位 interaction are done here; its other parts are documented keeps (俱乐部/商家 picker, coop-list 合作池, read-receipt row, nearby consent block) or blocked (缴纳保证金 / 重试保证金退款: no native deposit payment client; inline send result: sends go through the per-recipient reviewed preview by design). Baoming manual entry and Official 参与情况 are documented keeps; Square 探店 has no backend field; the organizer 联系与签到配置 form lives in `OfficialOrganizerConsoleView` (already built); Owner check 05:35 needs a simulator sweep. Nothing actionable remains in the B half, so this run stops here.
+
+## Run 11-28 (hourly re-check)
+Merged `origin/mp/r3-activity` (6b3b7e815, clean). The A receipt's Not done list is unchanged since the half-done line (A lane's 39th–43rd sessions added state fixtures only, all in its own first-half / Next round work); no `cursor-k50-p*` lane-layout rows exist on any branch. The B half still has nothing actionable, so this run stops.
