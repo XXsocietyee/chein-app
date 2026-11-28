@@ -254,7 +254,7 @@ struct CityRoamRootView: View {
                             Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
                         }
                         .foregroundStyle(palette.textSecondary)
-                        .frame(minHeight: 32)
+                        .frame(minHeight: 44)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -296,7 +296,8 @@ struct CityRoamRootView: View {
                 .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textPrimary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 36)
                 .background(selected ? AnyShapeStyle(palette.actionPrimaryBg) : AnyShapeStyle(.ultraThinMaterial), in: Capsule())
-                .contentShape(Capsule())
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .frame(minHeight: 44)
