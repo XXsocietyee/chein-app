@@ -281687,6 +281687,22 @@
         }
       }
     },
+    "verificationCode.order.used": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This ticket is used. The entry code has been cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这张票已核销，入场码已清除。"
+          }
+        }
+      }
+    },
     "verificationCode.order.ended": {
       "localizations": {
         "en": {
