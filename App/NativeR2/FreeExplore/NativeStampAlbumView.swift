@@ -54,6 +54,8 @@ import SwiftUI
                 mineScroll(read: read, refresh: refresh)
             }
         }
+        // ADA 11-28 e2-stamp-album: grouped grey ground like the other pushed collection pages, not plain white.
+        .cyGroupedBackground()
         .cyAlbumChildTitle("roam.experience.album")
         .toolbar {
             if album.allowsCapture, album.canShowAlbum {
