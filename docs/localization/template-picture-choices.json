@@ -108,7 +108,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片 %lld"
+            "value": "图 %lld"
           }
         }
       }
@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Optional: an HTTPS address or a site path. This editor saves the address without loading the image."
+            "value": "Optional image link."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选填 HTTPS 地址或站内路径。此处仅保存地址，不加载图片。"
+            "value": "选填图片链接。"
           }
         }
       }
