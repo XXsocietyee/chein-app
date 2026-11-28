@@ -288,7 +288,8 @@ Merged `origin/ui/combined-r7` (087a088a9). P0-1…P0-4, P1-2, P1-3, P1-4 belong
 Gates: generate_project ok; scaffold PASS (AppSession ratchet held at 7977); a11y 0 new; design consistency PASS; contract ratchet 52/52 new 0; contextual factory contracts OK.
 
 ## Not done
-- P1-8 needs a device check: backend `api/comment/add` must return the inserted row (`id`, `memberId`, `ownerType`, `ownerId`, `replyId`, `rating`, `contents`) or the writer reports 结果未知; P2-1 (pay readiness / host tip / price UI on gated purchases) is next.
+- P1-8 needs a device check: backend `api/comment/add` must return the inserted row (`id`, `memberId`, `ownerType`, `ownerId`, `replyId`, `rating`, `contents`) or the writer reports 结果未知.
+- P2-1 checked, not changed here: (a) US readiness — `RegistrationStripePaySection.swift:118-122` waits on `payment-readiness.ready`, which the backend computes from WeChat only (audit row 507, owner **backend**; the app-side Stripe rows also sit with `fix/1128-us-pay`); (b) host tip `payable` → 支付已关闭 is `HostTipViews.swift:283-300` (audit row 529, owner **mp-club**); (c) pass detail price facts + 购买暂未开放 note is `PassMarketViews.swift:814-832` (audit row 525, owner **mp-mine**; MP shows prices, purchases deferred by `MPCommerceGate`). Listed under For other lanes.
 - Owner correction 11-28 04:45: Alipay adapter exists in Core (gated off); still open — the App-side SDK bridge driver + AppSession wiring + URL-scheme route once the SDK, app id and backend `alipay.trade.app.pay` exist; then flip `RegistrationPayMethod.alipayReady` and route the Alipay choice to it (US checkout verified: registration → Stripe, others gated off).
 - P32 still open on pass / bundle buy (purchases gated off by `MPCommerceGate`, no pay step to label) and order-detail Pay (`OrderLifecycleView` has no method choice; keeps 立即支付).
 - Owner check 05:35: no simulator here, so `t5-baoming-paying` / `t5-baoming-paid` are unseen until the next coordinator sweep; backend `/api/registration/pay/app` APP-param shape is the backend lane's check.
@@ -297,6 +298,9 @@ Gates: generate_project ok; scaffold PASS (AppSession ratchet held at 7977); a11
 - Official detail: native 参与情况 section kept (contract-pinned, holds signup action).
 - Baoming: native manual name/phone entry kept only when no saved participant is selected (MP requires creating one in the popup first).
 - Coop (audited, not yet fixed): invite — 俱乐部/商家 picker (kept: native entries without a route kind, e.g. coop list → 去发起邀请, need it) and search field are extra (MP takes the kind from the route); 核销据点 card copy and per-merchant picker; inline send result on the sheet (the 去编辑主题 exit exists on the review page; sends go through the per-recipient reviewed `CoopFlowRequestPreview`; failures stay there, not back on the sheet). List — no in-app 缴纳保证金 / 重试保证金退款 path on accepted cards (no native deposit payment client); 合作池 row kept (MP folded it into club detail, but it is the only native route to the pool and is UI-test pinned); extra per-section headers/empties and extra card fields; Detail — read-receipt row kept (it performs the `invite/read` write the MP sends silently), terms-card grouping, deposit footer. Nearby — consent block is extra (kept: native location-purpose consent before the search); 补位 sheet interaction and per-row chapter terms differ; missing-param state (native routes always pass a scope, no param-less entry).
+
+## For other lanes
+- backend: `payment-readiness` should report Stripe readiness for USD quotes (audit 507). mp-club: host tip `payable` has no pay step (audit 529). mp-mine: pass detail buy (audit 525).
 
 ## Gates
 - Fourth session (after merging `ui/combined-r7`, catalog key union): ratchet 52 / baseline 52 / **new 0**; scaffold, a11y, design consistency PASS
