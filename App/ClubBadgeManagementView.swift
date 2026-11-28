@@ -413,7 +413,7 @@ import SwiftUI
         } footer: {
             if let error {
                 Text(verbatim: error)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
             }
         }
     }

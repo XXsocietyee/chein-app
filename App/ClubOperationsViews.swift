@@ -517,7 +517,7 @@ struct ClubOperationsWorkspaceView: View {
                             ClubGovernanceReadView(operation: .bans, scope: .init(clubID: profile.club.id), identity: identity,
                                 access: governance.access, coordinator: governance.coordinator)
                         }
-                } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(.red) }
+                } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(CYColor.dangerText) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
             } header: {
@@ -589,7 +589,7 @@ struct ClubOperationsWorkspaceView: View {
                 if target == .create {
                     // CLB-r8-create-01 (fix-r8-club): MP create wxml:134-135 创建没有完成 + the reason + 重试. A taken
                     // name shows 去改名称 instead of 重试 (MP wxml:135, js:482 refreshStep(3)); the wizard stays put until tapped.
-                    Text("clubR8b.create.failed").font(.headline).foregroundStyle(.red)
+                    Text("clubR8b.create.failed").font(.headline).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("club.ops.create.failed")
                     Text(verbatim: failure.message ?? appLocalized("clubR8b.create.failedHint", locale: locale))
                     if createNameTakenMessage == nil {
@@ -1307,7 +1307,7 @@ private struct ClubOperationsProfileForm: View {
     private func fieldError(_ text: String) -> some View {
         Label(text, systemImage: "exclamationmark.circle.fill")
             .font(.footnote)
-            .foregroundStyle(.red)
+            .foregroundStyle(CYColor.dangerText)
             .accessibilityElement(children: .combine)
     }
     @ViewBuilder private var createProfileSection: some View {
@@ -1315,7 +1315,7 @@ private struct ClubOperationsProfileForm: View {
             field("name", text: $draft.name, focus: $createNameFocused)
             field("description", label: "club.ops.createDescription", text: $draft.description, axis: .vertical)
             if let createNameError {
-                Text(verbatim: createNameError).font(.footnote).foregroundStyle(.red)
+                Text(verbatim: createNameError).font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.player.create.nameError")
             }
         } footer: {

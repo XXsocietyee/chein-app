@@ -671,7 +671,7 @@ struct NativeGalleryLobby: View {
                     Spacer()
                     Text("撤回")
                         .font(.body)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                 }
             }
             Section {

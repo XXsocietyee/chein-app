@@ -159804,7 +159804,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check the current server refund policy and deadline."
+            "value": "Check the latest refund policy and deadline."
           }
         },
         "zh-Hans": {
@@ -204853,13 +204853,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View all projects"
+            "value": "Manage all projects"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看全部项目"
+            "value": "管理全部项目"
           }
         }
       }
@@ -206793,7 +206793,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recruitment deadline"
+            "value": "Merchant sign-up deadline"
           }
         },
         "zh-Hans": {
@@ -209591,7 +209591,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sale end"
+            "value": "Ticket sales end"
           }
         },
         "zh-Hans": {
@@ -209639,7 +209639,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sale start"
+            "value": "Ticket sales start"
           }
         },
         "zh-Hans": {
@@ -210279,7 +210279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free exploration needs a recruitment deadline."
+            "value": "Free exploration needs a merchant sign-up deadline."
           }
         },
         "zh-Hans": {
@@ -295224,7 +295224,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Parent-child ticket"
+            "value": "Family ticket"
           }
         },
         "zh-Hans": {
@@ -297658,7 +297658,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资料没有保存成功"
+            "value": "资料没有保存"
           }
         }
       }
@@ -350474,7 +350474,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Youngest child (age)"
+            "value": "Minimum child age"
           }
         },
         "zh-Hans": {
@@ -350491,7 +350491,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Oldest child (age)"
+            "value": "Maximum child age"
           }
         },
         "zh-Hans": {
@@ -355030,7 +355030,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld of 9 set"
+            "value": "%lld of 9 cells set"
           }
         },
         "zh-Hans": {
@@ -356733,6 +356733,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "二维码暂时不可用"
+          }
+        }
+      }
+    },
+    "participant.form.saveRejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participant info wasn't saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与人信息没有保存"
+          }
+        }
+      }
+    },
+    "participant.form.retrySave": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try saving again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试保存"
           }
         }
       }

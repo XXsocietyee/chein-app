@@ -205,7 +205,7 @@ enum CommunityMemberReportTaxonomy {
         } footer: {
             VStack(alignment: .leading, spacing: 4) {
                 if let message = detailError {
-                    Text(verbatim: message).foregroundStyle(.red)
+                    Text(verbatim: message).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("im.reportPeer.detailError")
                 }
                 Text(verbatim: "\(detail.count)/\(CommunityMemberReportDraft.descriptionMax)").accessibilityLabel(Text("a11y.value.characters \(Int(detail.count)) \(Int(CommunityMemberReportDraft.descriptionMax))")).monospacedDigit()

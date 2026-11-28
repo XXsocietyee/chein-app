@@ -34,7 +34,7 @@ import SwiftUI
                         .font(.footnote).foregroundStyle(.secondary)
                 case .failed(let message):
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: message).font(.footnote).foregroundStyle(.red)
+                        Text(verbatim: message).font(.footnote).foregroundStyle(CYColor.dangerText)
                         Button("marketingConsent.retry") { submit(offer) }
                             .accessibilityIdentifier("marketingConsent.retry")
                     }

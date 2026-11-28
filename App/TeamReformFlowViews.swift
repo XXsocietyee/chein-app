@@ -172,7 +172,7 @@ struct TeamReformSheetHost: View {
                             .buttonStyle(.borderless)
                             .disabled(flow.busy).accessibilityIdentifier("teamReform.invite.revoke.\(friend.friendId)")
                     case .revoked: Text("teamReform.invite.revokedState").font(.subheadline).foregroundStyle(.secondary).accessibilityIdentifier("teamReform.invite.revoked.\(friend.friendId)")
-                    case .rejected: Text("teamReform.invite.rejected").font(.subheadline).foregroundStyle(.red)
+                    case .rejected: Text("teamReform.invite.rejected").font(.subheadline).foregroundStyle(CYColor.dangerText)
                     case .unknown: Text("teamReform.invite.unknown").font(.subheadline).foregroundStyle(CYColor.warningText)
                     case .failed, .notSent: Text("teamReform.invite.retryable").font(.subheadline).foregroundStyle(CYColor.warningText)
                     }

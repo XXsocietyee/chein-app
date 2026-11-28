@@ -161,6 +161,10 @@ enum DesignFixtureRegistry {
         case "r3-roam-my-teams-empty": return RoamR3NearbyFixture.make(.mineEmpty)
         case "r3-roam-my-teams-error": return RoamR3NearbyFixture.make(.mineFailure)
         case "r3-roam-my-teams-signedout": return RoamR3NearbyFixture.make(.mineSignedOut)
+        // mp-roam r3: 官方活动 (scene-roam-task-list) list / cy-empty 暂无进行中的活动 / cy-error 活动列表没能打开 + 重试.
+        case "r3-roam-tasks": return AnyView(NavigationStack { RoamOfficialTasksView(roamReader: RoamExperienceFixtureReader(scenario: .content), reader: OfficialFixtureReader(scenario: .content)) })
+        case "r3-roam-tasks-empty": return AnyView(NavigationStack { RoamOfficialTasksView(roamReader: RoamExperienceFixtureReader(scenario: .content), reader: OfficialFixtureReader(scenario: .empty)) })
+        case "r3-roam-tasks-error": return AnyView(NavigationStack { RoamOfficialTasksView(roamReader: RoamExperienceFixtureReader(scenario: .content), reader: OfficialFixtureReader(scenario: .failure)) })
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).

@@ -70,7 +70,7 @@ import SwiftUI
                     if line.hasUnknownRefund {
                         Text(verbatim: "该行退款状态 UNKNOWN，禁止客户端重复发起退款")
                             .cyText(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                     }
                 }
                 .accessibilityIdentifier("commerceOrderLifecycle.line." + line.lineID)

@@ -468,7 +468,7 @@ public struct ClubChannelMessagingView: View {
                         if group.totalMentionCount > 0 {
                             Text(verbatim: "@\(group.totalMentionCount)")
                                 .monospacedDigit()
-                                .foregroundStyle(.red)
+                                .foregroundStyle(CYColor.dangerText)
                         }
                     }
                 }
@@ -952,7 +952,7 @@ private struct ChannelBurstGroupCard: View {
                                             .font(.caption)
                                         Text(copy("发送失败", "Failed to send"))
                                             .font(.caption)
-                                            .foregroundStyle(.red)
+                                            .foregroundStyle(CYColor.dangerText)
                                         if let cid = item.transcriptMessage.clientMessageID {
                                             Button(copy("重试（先核对回执）", "Retry (check receipt first)")) {
                                                 onRetrySend(cid)
@@ -1081,7 +1081,7 @@ public struct ClubChannelMemberRosterSheet: View {
                                             if coordinator.blockedSenderIDs.contains(member.memberID) {
                                                 Text(copy("已拉黑", "Blocked"))
                                                     .font(.caption)
-                                                    .foregroundStyle(.red)
+                                                    .foregroundStyle(CYColor.dangerText)
                                             }
                                         }
                                         if let expires = member.expiresText, !expires.isEmpty {
@@ -1164,7 +1164,7 @@ public struct ClubChannelMemberRosterSheet: View {
                                             Text(ban.nickname)
                                             Text(ban.platformOnly ? copy("平台封禁", "Platform Ban") : copy("俱乐部封禁", "Club Ban"))
                                                 .font(.caption)
-                                                .foregroundStyle(.red)
+                                                .foregroundStyle(CYColor.dangerText)
                                         }
                                         Text(verbatim: "\(ban.reasonCode): \(ban.reasonText)")
                                             .font(.caption)

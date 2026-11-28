@@ -19,7 +19,7 @@ import SwiftUI
             Section {
                 CYListRow(verbatim: host, meta: capability, trailing: .value(sdkVersion)) { CYRowIcon(systemImage: "globe") }
                     .accessibilityElement(children: .combine)
-            } header: { CYSectionHeader("h5.surface") }
+            } header: { Text("h5.surface").accessibilityAddTraits(.isHeader) }
             Section {
                 TextField("h5.request", text: $requestID)
                 TextField("h5.module", text: $moduleID)

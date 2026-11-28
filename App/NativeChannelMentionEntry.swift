@@ -44,7 +44,7 @@ import SwiftUI
                     }
                 }
                 Section {
-                    if rejected { Text("d7.channelMention.rejected").foregroundStyle(.red) }
+                    if rejected { Text("d7.channelMention.rejected").foregroundStyle(CYColor.dangerText) }
                     Button("d7.channelMention.apply") {
                         let orderedMembers=members.sorted { $0.rawValue < $1.rawValue },orderedRoles=roles.sorted { $0.rawValue < $1.rawValue }
                         if canApply() && apply(orderedMembers,orderedRoles,everyone) { dismiss() } else { rejected=true }

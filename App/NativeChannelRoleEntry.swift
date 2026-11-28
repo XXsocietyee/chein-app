@@ -153,12 +153,12 @@ import SwiftUI
                                 Toggle("d7.channelRoles.wholeSpace",isOn:$options.guildScope)
                                 Toggle("d7.channelRoles.setExpiry",isOn:$timed)
                                 if timed { DatePicker("d7.channelRoles.expires",selection:$expiry,in:Date()...,displayedComponents:[.date,.hourAndMinute]) }
-                                Text("d7.channelRoles.replaceWarning").foregroundStyle(.red).fixedSize(horizontal:false,vertical:true)
+                                Text("d7.channelRoles.replaceWarning").foregroundStyle(CYColor.dangerText).fixedSize(horizontal:false,vertical:true)
                             }
                         }
                         Section {
                             TextField("d7.channelRoles.reason",text:$reason,axis:.vertical).lineLimit(2...6)
-                            if localIssue { Text("d7.channelRoles.invalid").foregroundStyle(.red).fixedSize(horizontal:false,vertical:true) }
+                            if localIssue { Text("d7.channelRoles.invalid").foregroundStyle(CYColor.dangerText).fixedSize(horizontal:false,vertical:true) }
                         }
                         Section {
                             Button("d7.channelRoles.review") {

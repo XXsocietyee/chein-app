@@ -147,7 +147,7 @@ import QuestifyCore
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                 Text(row.title).font(.body).foregroundStyle(.primary).lineLimit(2)
                 if row.blocking {
-                    Text(W8Text.t("挡住发布", "Blocks publishing")).font(.caption).foregroundStyle(.red)
+                    Text(W8Text.t("挡住发布", "Blocks publishing")).font(.caption).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("locationTodos.blocking")
                 } else if row.warning {
                     Text(W8Text.t("待复核", "To review")).font(.caption).foregroundStyle(.secondary)
@@ -178,7 +178,7 @@ import QuestifyCore
             }
             .disabled(anyBusy)
             if let error {
-                Text(error).font(.subheadline).foregroundStyle(.red)
+                Text(error).font(.subheadline).foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isStaticText)
                     .accessibilityIdentifier("locationTodos.error.\(row.slotKey)")

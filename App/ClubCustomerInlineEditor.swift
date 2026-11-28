@@ -55,7 +55,7 @@ import SwiftUI
 
     @ViewBuilder private func failureRows(_ failure: ClubGovernanceFailure) -> some View {
         Label { Text("clubR3b.customer.saveFailed") } icon: { Image(systemName: "exclamationmark.circle") }
-            .foregroundStyle(.red)
+            .foregroundStyle(CYColor.dangerText)
             .accessibilityIdentifier("club.gov.formError")
         if let message = failure.message { Text(verbatim: message).foregroundStyle(.secondary) }
         else if locked { Text("club.gov.unknown").foregroundStyle(.secondary) }

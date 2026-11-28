@@ -280,7 +280,7 @@ struct CreatorTicketStageChip: View {
                         TextField("creatorStudio.ticket.notePlaceholder", text: $note, axis: .vertical).lineLimit(3...6)
                     } header: { Text("creatorStudio.ticket.noteField") } footer: { Text("creatorStudio.ticket.selected \(model.selected.count)") }
                 }
-                if let issue = model.writeIssue { Section { CreatorStudioWriteIssueText(failure: issue).foregroundStyle(.red) } }
+                if let issue = model.writeIssue { Section { CreatorStudioWriteIssueText(failure: issue).foregroundStyle(CYColor.dangerText) } }
                 Section {} footer: { Text("creatorStudio.ticket.baselineNote") }
             }
             .navigationTitle("creatorStudio.ticket.open").navigationBarTitleDisplayMode(.inline)
@@ -434,7 +434,7 @@ struct CreatorTicketCloseChoice: Identifiable {
                         .lineLimit(2...5).disabled(pending != nil).accessibilityIdentifier("creatorStudio.close.reasonField")
                 }
                 if unknown { Section { Label("creatorStudio.write.unknown", systemImage: "questionmark.circle").foregroundStyle(CYColor.warningText) } }
-                if let issue { Section { CreatorStudioWriteIssueText(failure: issue).foregroundStyle(.red) } }
+                if let issue { Section { CreatorStudioWriteIssueText(failure: issue).foregroundStyle(CYColor.dangerText) } }
             }
             .navigationTitle(resolution == .fixed ? "creatorStudio.close.fixed" : "creatorStudio.close.noChange").navigationBarTitleDisplayMode(.inline)
             .toolbar {

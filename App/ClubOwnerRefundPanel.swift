@@ -110,7 +110,7 @@ extension EnvironmentValues {
                                     if coordinator.identity == identity { onReadback() }
                                 }
                             }
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                             .disabled(!model.confirmEnabled)
                             .accessibilityIdentifier("club.refund.confirm")
                         }
@@ -144,7 +144,7 @@ extension EnvironmentValues {
                 .fixedSize(horizontal: false, vertical: true)
         } icon: {
             Image(systemName: systemImage)
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
                 .accessibilityHidden(true)
         }
     }

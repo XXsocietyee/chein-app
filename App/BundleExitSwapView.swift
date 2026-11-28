@@ -73,7 +73,7 @@ struct BundleExitSwapView: View {
     var body: some View {
         List {
             if let notice { Label(notice, systemImage: "info.circle").foregroundStyle(.secondary) }
-            if let error { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
+            if let error { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText) }
             ForEach(units, id: \.id) { unit in
                 Button { Task { await loadOptions(unit.id) } } label: {
                     Text(verbatim: PlayerCapabilityCopy.text("权益 #", "Unit #", locale) + unit.id.text + " · " + unit.status)
