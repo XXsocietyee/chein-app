@@ -131,11 +131,11 @@ final class ActivityFlowTests: XCTestCase {
         XCTAssertFalse(app.buttons["activity.people.participant.1"].exists)
         XCTAssertFalse(app.buttons["activity.people.participant.2"].exists)
         XCTAssertTrue(element("activity.people.participant.2.readOnly").exists)
-        // LabeledContent exposes the complete row under its own identifier.
+        // MP 「N 人已报名」: the section title carries the count (no separate total row).
         let total = app.staticTexts.matching(identifier: "activity.people.total")
         XCTAssertEqual(total.count, 1, app.debugDescription)
         scrollTo(total.element(boundBy: 0), in: element("activity.detail.content"))
-        XCTAssertEqual(total.element(boundBy: 0).label, "Total registered, 12")
+        XCTAssertEqual(total.element(boundBy: 0).label, "12 going")
         XCTAssertFalse(app.buttons["activity.openRegistration"].exists)
         goBackToList()
         tap(element("activity.row.101"))

@@ -30,7 +30,7 @@ struct ProfileParticipantsView: View {
         let _ = recoveryRevision
         Group {
         if reader.identity == nil {
-            ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("auth.expired"))
+            ProfileParticipantsSignInState(identifier: "profile.participants.signedOut")
         } else if let coordinator, reader.identity == coordinator.identity,
                   case .outcomeUnknown = coordinator.state {
             Form {
@@ -196,6 +196,27 @@ enum ProfileParticipantDisplay {
     }
 }
 
+/// Signed out / expired on pages/address: one state with the 登录 action inside it (MP cy-empty no-permission + 登录).
+@MainActor private struct ProfileParticipantsSignInState: View {
+    let identifier: String
+    @Environment(\.rootSignIn) private var rootSignIn
+    var body: some View {
+        ContentUnavailableView {
+            Label("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark")
+        } description: {
+            Text("auth.expired")
+        } actions: {
+            if rootSignIn.isAvailable {
+                Button("mp.common.signIn") { rootSignIn() }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .accessibilityIdentifier(identifier + ".action")
+            }
+        }
+        .accessibilityIdentifier(identifier)
+    }
+}
+
 /// pages/address list body. Reads `ProfileParticipantListCoordinator` so a refresh keeps the retained list
 /// (source `refreshing` float), a first-load failure is an error (not an empty list), and malformed is unknown.
 @MainActor private struct ProfileParticipantListBody<Ready: View>: View {
@@ -280,8 +301,7 @@ enum ProfileParticipantDisplay {
 
     @ViewBuilder private var failure: some View {
         if case .failure(let error)? = result, Self.isSignIn(error) {
-            ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("auth.expired"))
-                .accessibilityIdentifier("profile.participants.signIn")
+            ProfileParticipantsSignInState(identifier: "profile.participants.signIn")
         } else {
             ContentUnavailableView {
                 Label("profile.participants.loadFailed", systemImage: "exclamationmark.triangle")

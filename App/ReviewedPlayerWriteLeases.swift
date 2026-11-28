@@ -1134,7 +1134,8 @@ enum ReviewedPlayerReadRoute {
         return issued
     }
 
-    /// Static IM routes for audit, chain, check-in, poll receipts, moderation and role create.
+    /// Static IM routes for audit, chain, check-in, moderation and role create. The poll create-receipt read is not
+    /// granted: the MP has no such call, the poll `create` reply / `result` read is the record.
     /// Per-message and per-record routes are not issued here; the channel tools screen calls them.
     static func beGapImRoutes() -> [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] {
         func post(_ path: String) -> BusinessRuntimeRoute? { try? BusinessRuntimeRoute.post(path) }
@@ -1146,7 +1147,6 @@ enum ReviewedPlayerReadRoute {
             .imChainRead: [get("api/im/chain/info")], .imChainReceipt: [get("api/im/interaction/request")],
             .imCheckinWrite: [post("api/im/channel/checkin")], .imCheckinStatus: [get("api/im/channel/checkin-status")],
             .imCheckinRank: [get("api/im/channel/checkin-rank")], .imCheckinReceipt: [get("api/im/channel/checkin-request")],
-            .imPollCreateReceipt: [get("api/im/poll/create-receipt")],
             .imChannelModerationRead: [get("api/im/moderation/actions")],
             .imChannelModerationWrite: [post("api/im/moderation/timeout"), post("api/im/moderation/kick"), post("api/im/moderation/ban")],
             .imChannelRoleRead: [get("api/im/roles")], .imChannelRoleWrite: [post("api/im/roles")],
