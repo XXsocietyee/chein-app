@@ -92,7 +92,7 @@ extension EnvironmentValues {
     @Environment(\.locale) private var locale
     @Environment(\.registrationPaymentReadiness) private var readinessReader
     @Environment(\.registrationPayExecutor) private var payExecutor
-    /// US launch r1: non-nil only in the US market with payments open. Nil keeps the China flow exactly as before.
+    /// US launch r1 / fix 11-28 P1-3: non-nil while payments are open; used only for a USD quote / order. Nil keeps the China flow.
     @Environment(\.stripePayContext) private var stripePay
     /// Owner check 11-28 05:35: the WeChat SDK hand-off for APP pay params. Nil keeps the status chip only.
     @Environment(\.registrationAppPay) private var appPay
@@ -108,6 +108,10 @@ extension EnvironmentValues {
     /// US r2: the order's own `currency` / `paymentChannels` (order detail has no quote). A quote wins when present.
     let orderCurrency: String?
     let orderPaymentChannels: [String]?
+    /// P32: the sheet's "Pay with" choice. Nil (order detail) uses the default method for the order's channels.
+    let payMethod: RegistrationPayMethod?
+    /// Called once the server confirms the order paid (US rows), so the host can read the order again.
+    let onPaid: (() -> Void)?
 
     @StateObject private var viewModel = RegistrationPayViewModel()
     @State private var readiness: RegistrationPaymentReadiness?
@@ -121,7 +125,9 @@ extension EnvironmentValues {
          channel: RegistrationPayChannel = RegistrationAppPayResolver.inAppChannel,
          onExpiredRebuild: (() -> Void)? = nil,
          orderCurrency: String? = nil,
-         orderPaymentChannels: [String]? = nil) {
+         orderPaymentChannels: [String]? = nil,
+         payMethod: RegistrationPayMethod? = nil,
+         onPaid: (() -> Void)? = nil) {
         self.registrationID = registrationID
         self.payableAmount = payableAmount
         self.quote = quote
@@ -132,6 +138,8 @@ extension EnvironmentValues {
         self.onExpiredRebuild = onExpiredRebuild
         self.orderCurrency = orderCurrency
         self.orderPaymentChannels = orderPaymentChannels
+        self.payMethod = payMethod
+        self.onPaid = onPaid
     }
 
     /// Quote first (registration sheet), else the order detail's own fields; nil on a China order.
@@ -167,8 +175,10 @@ extension EnvironmentValues {
                     statusView
                     if let stripePay, usesStripe(stripePay) {
                         RegistrationStripePayRows(context: stripePay, registrationID: registrationID,
-                                                  paymentChannels: payChannels, consented: consented,
-                                                  readiness: readiness)
+                                                  paymentChannels: payChannels,
+                                                  amountText: payableAmount == nil ? nil : amountText,
+                                                  consented: consented, readiness: readiness,
+                                                  preferredMethod: payMethod, onPaid: onPaid)
                     } else if canTapPay {
                         CYPillButton(verbatim: c.t("立即支付", "Pay now"), style: .primary) {
                             Task {
@@ -209,9 +219,10 @@ extension EnvironmentValues {
         }
     }
 
-    /// US launch r1: a USD quote listing `APPLE_PAY` / `APP_STRIPE` in the US market. China quotes never match.
+    /// Fix 11-28 P1-3: a USD quote / order listing `APPLE_PAY` / `APP_STRIPE`, whatever the storefront market.
+    /// China (CNY) quotes never match and keep WeChat Pay / Alipay.
     private func usesStripe(_ context: StripePayContext) -> Bool {
-        StripePayEligibility.applies(market: context.market, currency: payCurrency, paymentChannels: payChannels)
+        StripePayEligibility.applies(currency: payCurrency, paymentChannels: payChannels)
     }
 
     /// A missing amount stays on screen as an em dash. A decoded zero stays off this section.

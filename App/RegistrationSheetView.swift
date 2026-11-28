@@ -117,7 +117,7 @@ struct RegistrationSheetView: View {
                     alreadyRegisteredSection
                     if flow.hasRetainedIntent {
                         activitySection
-                        RegistrationOperationSections(flow: flow,revision:model.revision,orderReader:orderReader)
+                        RegistrationOperationSections(flow: flow,revision:model.revision,orderReader:orderReader,payMethod:payMethod)
                         resultOrderSection
                     } else if case .pending(let registrationID) = flow.durableCreation {
                         activitySection
@@ -146,7 +146,8 @@ struct RegistrationSheetView: View {
                                 consented: flow.consented,
                                 requiresFreshQuote: false,
                                 channel: RegistrationAppPayResolver.inAppChannel,
-                                onExpiredRebuild: { Task { await flow.requestQuote() } }
+                                onExpiredRebuild: { Task { await flow.requestQuote() } },
+                                payMethod: payMethod
                             )
                         }
                         recoveredOrderSection
@@ -169,7 +170,8 @@ struct RegistrationSheetView: View {
                         childAgeSection
                         quoteSection
                         RegistrationPayMethodSection(selection: $payMethod, price: flow.selectedTicket?.price,
-                                                     market: RegionalLaunchConfiguration.storefrontMarket,
+                                                     market: payMethodMarket,
+                                                     paymentChannels: flow.quoteState.quoteValue?.paymentChannels,
                                                      applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,
                                                      enabled: flow.canEdit)
                         deliverySection
@@ -587,6 +589,14 @@ struct RegistrationSheetView: View {
                 .accessibilityIdentifier("registration.form.noTicketsAvailable")
         }
     }
+    /// Fix 11-28 P1-3: the "Pay with" options follow the quote's `currency` / `paymentChannels` (USD → Apple Pay / Card,
+    /// otherwise WeChat Pay / Alipay). Before the first quote the storefront market only previews the row.
+    private var payMethodMarket: RegionalMarket? {
+        let quote = flow.quoteState.quoteValue
+        return StripePayEligibility.payMarket(currency: quote?.currency, paymentChannels: quote?.paymentChannels)
+            ?? RegionalLaunchConfiguration.storefrontMarket
+    }
+
     private var showsCheckoutBar: Bool {
         if !flow.hasCurrentSession || flow.hasRetainedIntent { return false }
         if case .pending = flow.durableCreation { return false }
@@ -1207,6 +1217,8 @@ private struct RegistrationOperationSections: View {
     let flow: RegistrationUIFlow
     let revision:UInt64
     var orderReader: (any ProfileReading)? = nil
+    /// P32: the "Pay with" row's choice, so the pay button is that method.
+    var payMethod: RegistrationPayMethod? = nil
     var body: some View {
         if flow.retainedForAnotherActivity {
             Section { Text("registration.form.otherActivityIntent").foregroundStyle(.secondary) }
@@ -1292,7 +1304,8 @@ private struct RegistrationOperationSections: View {
                     consented: flow.consented,
                     requiresFreshQuote: flow.quoteState.quoteValue != nil,
                     channel: RegistrationAppPayResolver.inAppChannel,
-                    onExpiredRebuild: { Task { await flow.requestQuote() } }
+                    onExpiredRebuild: { Task { await flow.requestQuote() } },
+                    payMethod: payMethod
                 )
             }
         }

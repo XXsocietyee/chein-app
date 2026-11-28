@@ -356719,6 +356719,91 @@
           }
         }
       }
+    },
+    "registration.stripe.payWithCard %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay %@ with card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用银行卡支付 %@"
+          }
+        }
+      }
+    },
+    "registration.stripe.declined": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The card was declined. Try another card."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "银行卡被拒绝，请换一张卡再试。"
+          }
+        }
+      }
+    },
+    "registration.stripe.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This order can no longer be paid. Place a new order."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该订单已无法支付，请重新下单。"
+          }
+        }
+      }
+    },
+    "registration.stripe.notCompleted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment not completed. You can pay again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付未完成，可以重新支付。"
+          }
+        }
+      }
+    },
+    "registration.stripe.noMethod": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Pay is not set up on this device. Add a card in Wallet to pay."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备尚未设置 Apple Pay，请先在钱包中添加银行卡。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
