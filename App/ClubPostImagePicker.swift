@@ -319,6 +319,7 @@ struct ClubPostImageSectionView: View {
                 }
                 #endif
                 Text(verbatim: image).lineLimit(1)
+                    .accessibilityHidden(true)
                 Spacer()
                 if bridge.canSelectImage {
                     Button {
