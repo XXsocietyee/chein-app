@@ -76,9 +76,9 @@ public enum HomeIndexParityPresentation {
         public func title(locale: Locale) -> String {
             guard HomeIndexParityPresentation.isEnglish(locale) else { return title }
             switch id {
-            case "club_apply": return "Become a Club"
-            case "merchant_apply": return "Become a Merchant"
-            case "activity_list": return "Join Activities with Friends"
+            case "club_apply": return "Become a club host"
+            case "merchant_apply": return "Become a merchant"
+            case "activity_list": return "Join activities with friends"
             case "mini_games": return "Mini games"
             default: return title
             }
@@ -389,7 +389,7 @@ public enum HomeIndexParityPresentation {
     }
 
     /// Resolves the city selector label: returns trimmed city name, `"全国"` / `"Nationwide"` when nationwide is selected,
-    /// or `"选择城市"` / `"Select City"` when no city is resolved.
+    /// or `"选择城市"` / `"Select city"` when no city is resolved.
     public static func citySelectorLabel(
         selectedCity: String?,
         isNationwide: Bool = false,
@@ -402,7 +402,7 @@ public enum HomeIndexParityPresentation {
         if !trimmed.isEmpty {
             return trimmed
         }
-        return isEnglish(locale) ? "Select City" : defaultCityFallback
+        return isEnglish(locale) ? "Select city" : defaultCityFallback
     }
 
     /// Formats the mini-program hero greeting (`"Hi, {昵称‖旅人}!"` / `"Hi, {Nickname‖Traveler}!"`).
