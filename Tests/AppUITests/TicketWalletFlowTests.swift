@@ -69,7 +69,7 @@ final class TicketWalletFlowTests: XCTestCase {
         launch("refreshed")
         XCTAssertTrue(app.staticTexts["Sample exploration ticket"].waitForExistence(timeout: 10))
         app.buttons["ticketWallet.detail.refresh"].tap()
-        XCTAssertTrue(app.staticTexts["Sample cancelled after refresh"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Sample canceled after refresh"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Sample exploration ticket"].exists)
         XCTAssertFalse(app.staticTexts["Sample pending chapter"].exists)
     }

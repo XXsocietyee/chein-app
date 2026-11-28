@@ -772,7 +772,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meeting cancelled. It cannot be resumed."
+            "value": "Meeting canceled. It cannot be resumed."
           }
         },
         "zh-Hans": {
@@ -789,7 +789,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The cancel result is unknown. The meeting stays cancelled on this device."
+            "value": "The cancel result is unknown. The meeting stays canceled on this device."
           }
         },
         "zh-Hans": {
@@ -840,7 +840,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Either side can cancel. A cancelled meeting cannot be confirmed later."
+            "value": "Either side can cancel. A canceled meeting cannot be confirmed later."
           }
         },
         "zh-Hans": {

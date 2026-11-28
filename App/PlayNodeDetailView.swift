@@ -146,7 +146,7 @@ struct PlayNodeDetailView: View {
                     }
                 }
                 if let ext = node.externalGame {
-                    Section(W8Text.t("节点挑战小游戏", "Node External Game")) {
+                    Section(W8Text.t("节点挑战小游戏", "Stop mini-game")) {
                         Text(verbatim: ext.gameName ?? ext.gameID).cyText(.cardTitle)
                             .accessibilityIdentifier("play.node.externalGame.title")
                         if let minScore = ext.minScore, minScore > 0 {
