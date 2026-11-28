@@ -480,6 +480,7 @@ public struct ClubChannelMessagingView: View {
                             Text(verbatim: "@\(group.totalMentionCount)")
                                 .monospacedDigit()
                                 .foregroundStyle(CYColor.dangerText)
+                                .accessibilityLabel(Text(verbatim: mentionSpoken(group.totalMentionCount)))
                         }
                     }
                 }
@@ -516,6 +517,7 @@ public struct ClubChannelMessagingView: View {
         .badge(badgeText.map { Text(verbatim: $0) })
         .listRowBackground(isSelected ? Color(uiColor: .tertiarySystemFill) : nil)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityValue(Text(verbatim: channelSpokenValue(channel)))
         .contextMenu {
             Button(role: .destructive) {
                 Task {
@@ -533,6 +535,25 @@ public struct ClubChannelMessagingView: View {
             .accessibilityLabel(Text(verbatim: copy("举报该频道", "Report channel")))
             .accessibilityIdentifier("club.channel.report")
         }
+    }
+
+    /// a11y-dt r3 run 41: VoiceOver read the badge as a bare "2" / "@2" ("at 2"); speak what the count means.
+    private func mentionSpoken(_ count: Int) -> String {
+        copy("\(count) 条@提及", count == 1 ? "1 mention" : "\(count) mentions")
+    }
+
+    private func channelSpokenValue(_ channel: ChannelDiscordItemProjection) -> String {
+        if channel.mentionBadgeText != nil {
+            return mentionSpoken(channel.mentionCount)
+        }
+        if channel.unreadBadgeText != nil {
+            let unread = channel.unreadCount ?? 0
+            return copy("\(unread) 条未读", "\(unread) unread")
+        }
+        if channel.isMuted {
+            return copy("免打扰", "Muted")
+        }
+        return ""
     }
 
     // MARK: - Transcript + Paging Up + New-Message Jump + Composer
