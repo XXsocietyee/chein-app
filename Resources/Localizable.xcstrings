@@ -274026,7 +274026,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't open your ticket wallet"
+            "value": "Couldn’t open your ticket wallet"
           }
         },
         "zh-Hans": {
@@ -274731,7 +274731,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tickets"
+            "value": "Ticket wallet"
           }
         },
         "zh-Hans": {
