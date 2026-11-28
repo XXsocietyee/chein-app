@@ -726,7 +726,12 @@ extension RoamGoalState {
         }
         .onDisappear { retire(leaving: true) }
         .confirmationDialog("roam.goals.cancelTitle", isPresented: Binding(get: { model.cancelReview != nil }, set: { if !$0 { model.keepGoal() } }), titleVisibility: .visible) {
-            Button("roam.goals.cancelGoal", role: .destructive) { page.settle(write: true, { await model.confirmCancel() }, refresh: { await model.load() }) }.accessibilityIdentifier("roam.goals.confirmCancel")
+            Button("roam.goals.cancelGoal", role: .destructive) {
+                page.settle(write: true, { await model.confirmCancel() }, refresh: { await model.load() }, finished: { (_: Void) in
+                    // Motion r3: the server confirmed the cancellation (detail now reads 已取消).
+                    if model.detail?.state == .cancelled { HapticsService.shared.play(.success) }
+                })
+            }.accessibilityIdentifier("roam.goals.confirmCancel")
             Button("roam.goals.keep", role: .cancel) { model.keepGoal() }
         } message: { Text("roam.goals.cancelMessage") }
         .background { RoamHostedAccessibilityGroup(items: goalsAccessibilityItems) }
@@ -849,7 +854,10 @@ extension RoamGoalState {
                     ) {
                         await model.confirmCreate()
                     }
-                }, refresh: { await model.load() }) { saved in if saved { creating = false } }
+                }, refresh: { await model.load() }) { (saved: Bool) in
+                    // Motion r3: one success tap when the goal is created (the form closes on the new detail).
+                    if saved { creating = false; HapticsService.shared.play(.success) }
+                }
             }
                 .disabled(model.isBusy || model.pending != nil || !model.canWrite).accessibilityIdentifier("roam.goals.create")
             Button("roam.goals.later") { creating = false; model.dismissIssue() }.disabled(model.isBusy).accessibilityIdentifier("roam.goals.later")
