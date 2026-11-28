@@ -364419,7 +364419,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A bit far away. Walk closer"
+            "value": "Too far away. Walk closer"
           }
         },
         "zh-Hans": {
@@ -364436,7 +364436,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "+%1$lld exploration · %2$@ lit up"
+            "value": "+%1$lld exploration XP · %2$@ lit up"
           }
         },
         "zh-Hans": {
@@ -365405,7 +365405,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provisional No. %lld"
+            "value": "Provisionally No. %lld"
           }
         },
         "zh-Hans": {
@@ -365575,7 +365575,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "chapter %1$lld stop “%2$@” gameplay binding · %3$@"
+            "value": "gameplay binding of chapter %1$lld, stop “%2$@” (%3$@)"
           }
         },
         "zh-Hans": {
