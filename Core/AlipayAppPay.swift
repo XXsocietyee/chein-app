@@ -267,3 +267,23 @@ public enum AlipayURLPayment {
         return nil
     }
 }
+
+/// Reads the positive `id` field from a form body built by `AuthRequestBuilder.makeFormRequest` (multipart), or a
+/// url-encoded `id=` body. Used by the app-side Alipay transport lease.
+public enum RegistrationAlipayFormID {
+    public static func registrationID(inFormBody body: String) -> Int? {
+        let marker = "name=\"id\"\r\n\r\n"
+        if let range = body.range(of: marker) {
+            let rest = body[range.upperBound...]
+            let value = rest.prefix(while: { $0.isASCII && $0.isNumber })
+            guard let id = Int(value), id > 0 else { return nil }
+            return id
+        }
+        let pairs = body.split(separator: "&")
+        for pair in pairs where pair.hasPrefix("id=") {
+            guard let id = Int(pair.dropFirst(3)), id > 0 else { return nil }
+            return id
+        }
+        return nil
+    }
+}

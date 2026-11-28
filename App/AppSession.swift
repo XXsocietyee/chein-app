@@ -4361,7 +4361,7 @@ final class AppSession: ObservableObject {
             return try? PublishingCredentials(session: session, token: token)
         })
     }
-    private let nativeWeChatPaymentDriver = WeChatNativePaymentDriver()
+    private let nativeWeChatPaymentDriver = WeChatNativePaymentDriver(); lazy var alipayPay = AlipayPayHub(session: self)
     private lazy var nativeWeChatPaymentAdapter = WeChatSDKPaymentAdapter(driver: nativeWeChatPaymentDriver,
         configuration: runtimeDependencies.weChatPaymentConfiguration,
         allowed: { [weak self] in
@@ -7190,7 +7190,7 @@ final class AppSession: ObservableObject {
         return (service, session)
     }
     func receiveNativeURL(_ url: URL) {
-        if consumeDeepLinkSafetyAudit(url) || receiveCheinURL(url) || nativeWeChatPaymentDriver.handle(url, adapter: nativeWeChatPaymentAdapter) { return }
+        if consumeDeepLinkSafetyAudit(url) || receiveCheinURL(url) || nativeWeChatPaymentDriver.handle(url, adapter: nativeWeChatPaymentAdapter) || handleAlipayReturn(url) { return }
         if weChatSDKDriver.handle(url, adapter: weChatSDKAdapter) { return }
         guard let intent = nativeEntryLinkPolicy.parse(url) else {
             receiveNativeIntent(.routeError(.unsupported)); return

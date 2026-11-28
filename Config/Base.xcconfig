@@ -37,6 +37,11 @@ QUESTIFY_CITY_GAME_REGION =
 QUESTIFY_CITY_GAME_REGION[config=Debug] = gaps-a-test
 INFOPLIST_KEY_QuestifyCityGameRegion = $(QUESTIFY_CITY_GAME_REGION)
 
+// fix-1128-alipay (P0-4), owner value (docs/release/owner-values.md): the app's own URL scheme that Alipay returns
+// to after payment (`<scheme>://safepay/...`). Empty keeps Alipay off: the Pay with row lists WeChat Pay only.
+// The Alipay SDK binary is a second, separate opt-in: GCC_PREPROCESSOR_DEFINITIONS QUESTIFY_ALIPAY_SDK_APPROVED=1.
+QUESTIFY_ALIPAY_APP_SCHEME =
+
 #include? "Local.xcconfig"
 
 // Declares the explicit iPhone step-reading purpose; does not grant or enable access.
