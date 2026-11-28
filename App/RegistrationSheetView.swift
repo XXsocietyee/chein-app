@@ -717,7 +717,8 @@ struct RegistrationSheetView: View {
                     focusedField = nil
                     showingParticipantSheet = true
                 } label: {
-                    RegistrationChoiceRow(title: "registration.form.savedParticipant", value: participantRowValue)
+                    RegistrationChoiceRow(title: "registration.form.savedParticipant", value: participantRowValue,
+                                          detail: selectedParticipantRow?.mobilePhone)
                 }
                 .disabled(!flow.canEdit)
                 .accessibilityIdentifier("registration.form.participantPicker")
@@ -728,29 +729,38 @@ struct RegistrationSheetView: View {
                     Button { focusedField = nil; showingAddParticipant = true } label: {
                         Text("participant.recovery.inspect", tableName: "ProfileParticipantRecovery")
                     }.disabled(!flow.canEdit).accessibilityIdentifier("registration.form.inspectParticipant")
-                } else if participantReader.isConfigured, participantCoordinator.canPrepare {
+                } else if participantReader.isConfigured, participantCoordinator.canPrepare, flow.participants.isEmpty {
                     CYPillButton("participant.form.add", style: .secondary) { focusedField = nil; showingAddParticipant = true }
                         .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.addParticipant")
                 }
             }
-            TextField("registration.form.name", text: Binding(get: { flow.draft.realName }, set: flow.setName))
-                .textContentType(.name).textInputAutocapitalization(.words)
-                .focused($focusedField, equals: .name).submitLabel(.next)
-                .onSubmit { focusedField = .phone }
-                .accessibilityIdentifier("registration.form.name")
-            // US launch r1: +86 / +1 picker; the draft keeps the server value (China bare digits, US E.164).
-            PhoneCountryField("registration.form.phone", wire: Binding(get: { flow.draft.phone }, set: flow.setPhone),
-                              identifier: "registration.form.phone", focus: $focusedField, equals: .phone)
-            if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
-                Text("registration.form.phoneHint").cyText(.meta).foregroundStyle(CYColor.dangerText)
+            // MP baoming.wxml:48-56: a selected participant is shown as the row itself (name + phone), no inline fields.
+            if selectedParticipantRow == nil {
+                TextField("registration.form.name", text: Binding(get: { flow.draft.realName }, set: flow.setName))
+                    .textContentType(.name).textInputAutocapitalization(.words)
+                    .focused($focusedField, equals: .name).submitLabel(.next)
+                    .onSubmit { focusedField = .phone }
+                    .accessibilityIdentifier("registration.form.name")
+                // US launch r1: +86 / +1 picker; the draft keeps the server value (China bare digits, US E.164).
+                PhoneCountryField("registration.form.phone", wire: Binding(get: { flow.draft.phone }, set: flow.setPhone),
+                                  identifier: "registration.form.phone", focus: $focusedField, equals: .phone)
+                if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
+                    Text("registration.form.phoneHint").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                }
             }
         } header: { E1IconHeader(systemImage: "person.crop.circle", title: CoreLoopCopy(locale: locale).t("参与人信息", "Participant")) }
         .disabled(!flow.canEdit)
     }
-    /// Saved participant name while the fields still hold it; 手动填写 once the player typed their own.
+    /// The saved participant the draft still holds (name and phone unchanged); nil while the player types their own.
+    private var selectedParticipantRow: ProfileParticipant? {
+        guard flow.participantProjectionIsCurrent, let id = flow.selectedParticipantID,
+              let row = flow.participants.first(where: { $0.id == id }),
+              row.fullName == flow.draft.realName, row.mobilePhone == flow.draft.phone else { return nil }
+        return row
+    }
+    /// Saved participant name while the draft still holds it; 手动填写 once the player typed their own.
     private var participantRowValue: String {
-        if let id = flow.selectedParticipantID, let row = flow.participants.first(where: { $0.id == id }),
-           row.fullName == flow.draft.realName {
+        if let row = selectedParticipantRow {
             return row.fullName
         }
         return appLocalized("registration.form.manualEntry", locale: locale)
@@ -1473,13 +1483,22 @@ private struct RegistrationPlayerSheetHeader: ViewModifier {
 private struct RegistrationChoiceRow: View {
     let title: LocalizedStringKey
     let value: String
+    var detail: String? = nil
 
     var body: some View {
         LabeledContent {
             HStack(spacing: 6) {
-                Text(verbatim: value)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.trailing)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(verbatim: value)
+                        .foregroundStyle(.secondary)
+                    if let detail, !detail.isEmpty {
+                        Text(verbatim: detail)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                }
+                .multilineTextAlignment(.trailing)
                 Image(systemName: "chevron.right")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.tertiary)
