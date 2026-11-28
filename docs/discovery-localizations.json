@@ -56,7 +56,7 @@
   },
   {
     "key": "discovery.templateOffline",
-    "en": "Template has been taken down",
+    "en": "This template has been taken down",
     "zh-Hans": "这个玩法已下架"
   },
   {
@@ -86,7 +86,7 @@
   },
   {
     "key": "discovery.recommended",
-    "en": "Picked",
+    "en": "Recommended",
     "zh-Hans": "推荐"
   },
   {
@@ -146,7 +146,7 @@
   },
   {
     "key": "discovery.categoriesUnavailable",
-    "en": "Categories couldn’t be loaded. You can still browse forms.",
+    "en": "Categories couldn’t be loaded. You can still browse templates.",
     "zh-Hans": "品类加载失败，仍可浏览模板。"
   },
   {
@@ -226,7 +226,7 @@
   },
   {
     "key": "discovery.difficulty",
-    "en": "Level",
+    "en": "Difficulty",
     "zh-Hans": "难度"
   },
   {
@@ -246,17 +246,17 @@
   },
   {
     "key": "discovery.preview",
-    "en": "Experimental",
+    "en": "Experimental preview",
     "zh-Hans": "实验预览"
   },
   {
     "key": "discovery.experimental",
-    "en": "Experimental",
+    "en": "Experimental template",
     "zh-Hans": "实验模板"
   },
   {
     "key": "discovery.introduction",
-    "en": "Intro",
+    "en": "Introduction",
     "zh-Hans": "简介"
   },
   {
@@ -296,7 +296,7 @@
   },
   {
     "key": "discovery.verification.choice",
-    "en": "Multiple-choice",
+    "en": "Multiple-choice question",
     "zh-Hans": "选项问答"
   },
   {
@@ -311,7 +311,7 @@
   },
   {
     "key": "discovery.verification.preferences",
-    "en": "Preference",
+    "en": "Preference questions",
     "zh-Hans": "偏好题组"
   },
   {
@@ -336,7 +336,7 @@
   },
   {
     "key": "discovery.readOnlyHint",
-    "en": "You can browse forms. Using or editing a template isn't available in the app right.",
+    "en": "You can browse templates. Using or editing a template isn't available in the app right now.",
     "zh-Hans": "App 支持浏览模板，暂不支持套用或编辑。"
   },
   {

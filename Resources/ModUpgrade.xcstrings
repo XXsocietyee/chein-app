@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original purchased"
+            "value": "Original purchased version"
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Selected version"
+            "value": "Selected version comparison"
           }
         },
         "zh-Hans": {

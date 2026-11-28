@@ -550,7 +550,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the platform can lift"
+            "value": "Only the platform can lift this"
           }
         },
         "zh-Hans": {
@@ -813,7 +813,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No members"
+            "value": "No members to delegate yet"
           }
         },
         "zh-Hans": {
@@ -845,7 +845,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Role management temporarily unavailable"
+            "value": "Role management is temporarily unavailable"
           }
         },
         "zh-Hans": {
@@ -861,7 +861,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revoking takes effect now"
+            "value": "Revoking takes effect immediately"
           }
         },
         "zh-Hans": {
@@ -1053,7 +1053,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Platform"
+            "value": "Platform governance"
           }
         },
         "zh-Hans": {

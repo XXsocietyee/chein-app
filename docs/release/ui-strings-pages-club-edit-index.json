@@ -11,7 +11,7 @@
     },
     {
       "key": "club.ops.adminNote",
-      "en": "You're an administrator · you can only edit display info",
+      "en": "You're an administrator · you can only edit display information",
       "zh-Hans": "你是管理员 · 只能改展示信息",
       "accessibilityIdentifier": "club.ops.adminNote"
     },
@@ -29,7 +29,7 @@
     },
     {
       "key": "club.ops.positioning",
-      "en": "Place",
+      "en": "Positioning",
       "zh-Hans": "定位",
       "accessibilityIdentifier": "club.ops.positioning"
     },
@@ -185,7 +185,7 @@
     },
     {
       "key": "club.ops.retryRead",
-      "en": "Try",
+      "en": "Try again",
       "zh-Hans": "重试",
       "accessibilityIdentifier": "club.ops.retryRead"
     },

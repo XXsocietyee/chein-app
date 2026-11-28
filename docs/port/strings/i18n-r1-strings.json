@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting sync"
+            "value": "Waiting to sync"
           }
         },
         "zh-Hans": {
@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm"
+            "value": "Confirm participation"
           }
         },
         "zh-Hans": {

@@ -46,7 +46,7 @@
   },
   {
     "key": "im.inbox.emptySquare",
-    "en": "Find people Discover",
+    "en": "Find people in Discover",
     "zh-Hans": "去发现找人"
   },
   {
@@ -76,7 +76,7 @@
   },
   {
     "key": "im.time.yesterday",
-    "en": "Last day",
+    "en": "Yesterday",
     "zh-Hans": "昨天"
   },
   {
@@ -136,7 +136,7 @@
   },
   {
     "key": "im.safety.idle",
-    "en": "Nothing is waiting for check.",
+    "en": "Nothing is waiting for confirmation.",
     "zh-Hans": "没有待确认的操作"
   },
   {
@@ -206,7 +206,7 @@
   },
   {
     "key": "im.safety.hide.consequence1",
-    "en": "The chat disappears from your list",
+    "en": "The conversation disappears from your list",
     "zh-Hans": "会话从你的列表消失"
   },
   {
@@ -226,7 +226,7 @@
   },
   {
     "key": "im.safety.hide.failed",
-    "en": "Couldn't hide the chat. Try again.",
+    "en": "Couldn't hide the conversation. Try again.",
     "zh-Hans": "隐藏失败，请重试"
   },
   {
@@ -241,7 +241,7 @@
   },
   {
     "key": "im.safety.block.consequence1",
-    "en": "You will no longer receive any messages them",
+    "en": "You will no longer receive any messages from them",
     "zh-Hans": "不再收到对方的任何消息"
   },
   {
@@ -271,7 +271,7 @@
   },
   {
     "key": "im.safety.unblock.title",
-    "en": "Unblock?",
+    "en": "Unblock this person?",
     "zh-Hans": "解除拉黑?"
   },
   {
@@ -331,7 +331,7 @@
   },
   {
     "key": "im.chat.peerUnavailable",
-    "en": "This person can't be contacted right messages can't sent.",
+    "en": "This person can't be contacted right now, so messages can't be sent.",
     "zh-Hans": "对方暂不可联系，无法发送消息"
   },
   {

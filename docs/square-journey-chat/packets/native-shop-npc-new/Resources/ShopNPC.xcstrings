@@ -40,7 +40,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for reply…"
+            "value": "Waiting for a reply…"
           }
         },
         "zh-Hans": {
@@ -72,7 +72,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wait before trying."
+            "value": "Please wait before trying again."
           }
         },
         "zh-Hans": {
@@ -153,7 +153,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chat"
+            "value": "Conversation"
           }
         },
         "zh-Hans": {

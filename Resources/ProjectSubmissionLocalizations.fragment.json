@@ -39,7 +39,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Number"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {
@@ -215,7 +215,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not required by legacy service"
+            "value": "Not required by the legacy service"
           }
         },
         "zh-Hans": {

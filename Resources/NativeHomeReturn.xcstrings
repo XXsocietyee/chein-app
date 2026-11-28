@@ -294,7 +294,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your location is out of date. Wait moment try again."
+            "value": "Your location is out of date. Wait a moment and try again."
           }
         },
         "zh-Hans": {
@@ -422,7 +422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Return home isn't ready."
+            "value": "Return-home restore isn't available right now."
           }
         },
         "zh-Hans": {
@@ -758,7 +758,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stamina for theme only"
+            "value": "Stamina for this theme only"
           }
         },
         "zh-Hans": {

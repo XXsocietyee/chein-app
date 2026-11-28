@@ -245,7 +245,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starts once the platform turns"
+            "value": "Starts once the platform turns it on"
           }
         },
         "zh-Hans": {
@@ -602,7 +602,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Account unavailable right"
+            "value": "This account is unavailable right now"
           }
         },
         "zh-Hans": {
@@ -687,7 +687,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amount pending check"
+            "value": "Amount pending verification"
           }
         },
         "zh-Hans": {
@@ -840,7 +840,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending credit"
           }
         },
         "zh-Hans": {
@@ -857,7 +857,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending check"
+            "value": "Pending verification"
           }
         },
         "zh-Hans": {
@@ -942,7 +942,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact platform support withdraw"
+            "value": "Contact platform support to withdraw"
           }
         },
         "zh-Hans": {
@@ -993,7 +993,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shop compensation"
+            "value": "Merchant compensation"
           }
         },
         "zh-Hans": {
@@ -1503,7 +1503,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Account needs check"
+            "value": "Account needs verification"
           }
         },
         "zh-Hans": {
@@ -1554,7 +1554,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting sign"
+            "value": "Awaiting signature"
           }
         },
         "zh-Hans": {
@@ -1673,7 +1673,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking payment service…"
+            "value": "Checking the payment service…"
           }
         },
         "zh-Hans": {

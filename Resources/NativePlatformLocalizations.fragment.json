@@ -4,7 +4,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This feature isn't available right."
+          "value": "This feature isn't available right now."
         }
       },
       "zh-Hans": {
@@ -372,7 +372,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Waiting for service window"
+          "value": "Waiting for the service window"
         }
       },
       "zh-Hans": {
@@ -660,7 +660,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Could not complete request"
+          "value": "Could not complete this request"
         }
       },
       "zh-Hans": {

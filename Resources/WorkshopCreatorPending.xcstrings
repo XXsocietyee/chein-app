@@ -278,7 +278,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Variant"
+            "value": "Adaptation"
           }
         },
         "zh-Hans": {
@@ -294,7 +294,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wording"
+            "value": "Translation"
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Required restrictions for proposal"
+            "value": "Required restrictions for this proposal"
           }
         },
         "zh-Hans": {
@@ -598,7 +598,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Banned"
+            "value": "Prohibited"
           }
         },
         "zh-Hans": {
@@ -630,7 +630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Variant allowed"
+            "value": "Adaptation allowed"
           }
         },
         "zh-Hans": {
@@ -646,7 +646,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "We couldn't confirm the result. Retry the same request without changing."
+            "value": "We couldn't confirm the result. Retry the same request without changing it."
           }
         },
         "zh-Hans": {

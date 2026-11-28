@@ -16,7 +16,7 @@
     "zh-Hans": "相机未能打开，你仍可查看下方返回的图片。"
   },
   "playkitCamera.authorizing": {
-    "en": "Waiting camera permission",
+    "en": "Waiting for camera permission",
     "zh-Hans": "等待相机权限"
   },
   "playkitCamera.purpose": {

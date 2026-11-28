@@ -124,7 +124,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exact text for version"
+            "value": "Exact text for this version"
           }
         }
       }
@@ -156,7 +156,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Planning info excluded from this package"
+            "value": "Planning information excluded from this package"
           }
         }
       }
@@ -204,7 +204,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete terms for version"
+            "value": "Complete terms for this version"
           }
         }
       }
@@ -348,7 +348,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Package review is still required. This isn't a listing issued purchase license."
+            "value": "Package review is still required. This isn't a listing or an issued purchase license."
           }
         }
       }
@@ -396,7 +396,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Declaration"
+            "value": "Declaration record"
           }
         }
       }
@@ -540,7 +540,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Details"
+            "value": "Description"
           }
         }
       }
@@ -684,7 +684,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity groups"
+            "value": "Activity categories"
           }
         }
       }
@@ -700,7 +700,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Player"
+            "value": "Player count"
           }
         }
       }
@@ -764,7 +764,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Level"
+            "value": "Difficulty"
           }
         }
       }

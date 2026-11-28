@@ -8,8 +8,8 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 entries = {
 'myProject.tab.topic': ('Topics', '主题'),
-'myProject.tab.activity': ('Events', '活动'),
-'myProject.tab.template': ('Forms', '模板'),
+'myProject.tab.activity': ('Activities', '活动'),
+'myProject.tab.template': ('Templates', '模板'),
 'myProject.role.host': ('Host', '主办'),
 'myProject.role.coHost': ('Co-host', '承办'),
 'myProject.empty.topic': ('No topics yet', '还没有主题'),
@@ -19,7 +19,7 @@ entries = {
 'myProject.empty.template': ('No node plays yet', '还没有节点玩法'),
 'myProject.empty.templateDetail': ('Node interactions you build while publishing routes can be reused and managed here', '发布路线时可以沉淀自己的节点互动，之后在这里复用和管理'),
 'myProject.cta.topic': ('Publish', '去发布'),
-'myProject.cta.activity': ('Publish single-session', '发布单场活动'),
+'myProject.cta.activity': ('Publish a single-session activity', '发布单场活动'),
 'myProject.pendingVerify %lld': ('%lld to redeem', '待核销 %lld'),
 'myProject.longPressHint': ('Long-press a card to list, unlist or delete', '长按卡片可上下架 / 删除'),
 'myProject.op.viewApplies': ('Received applications', '收到的申请'),
@@ -35,7 +35,7 @@ entries = {
 'myProject.template.unavailable': ('Node plays are not available from this entry', '此入口暂不提供节点玩法列表'),
 'publishParity.crop.useOriginal': ('Use original', '使用原图'),
 'publishParity.activity.title': ('Activity title', '活动标题'),
-'publishParity.activity.description': ('Activity details', '活动说明'),
+'publishParity.activity.description': ('Activity description', '活动说明'),
 'publishParity.activity.type': ('Choose activity type', '请选择活动类型'),
 'publishParity.ticket.name': ('Ticket name', '票单名称'),
 'publishParity.ticket.price': ('Face price (enter 0 for free)', '票面价格（免费填 0）'),

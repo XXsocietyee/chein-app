@@ -16,7 +16,7 @@
     "zh-Hans": "这是本机所选图片经清除元数据后的预览，此预览不会读取已上传的图片。"
   },
   "projectStoryImage.notUploaded": {
-    "en": "Selection hasn't been uploaded.",
+    "en": "This selection hasn't been uploaded.",
     "zh-Hans": "此选择尚未上传。"
   },
   "projectStoryImage.upload": {

@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting merchant check"
+            "value": "Waiting for merchant verification"
           }
         },
         "zh-Hans": {
@@ -24,7 +24,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This task passed check"
+            "value": "This task passed verification"
           }
         },
         "zh-Hans": {
@@ -75,7 +75,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check number"
+            "value": "Verification number"
           }
         },
         "zh-Hans": {

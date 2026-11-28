@@ -24,7 +24,7 @@
     },
     {
       "key": "official.collective",
-      "en": "Collective",
+      "en": "Collective progress",
       "zh-Hans": "集体进度"
     },
     {
@@ -69,12 +69,12 @@
     },
     {
       "key": "official.detail",
-      "en": "Official event",
+      "en": "Official event details",
       "zh-Hans": "活动详情"
     },
     {
       "key": "official.detailParity.card.defaultDescription",
-      "en": "Complete as described by event",
+      "en": "Complete as described by the event",
       "zh-Hans": "按活动说明完成"
     },
     {
@@ -194,12 +194,12 @@
     },
     {
       "key": "official.detailParity.cta.themeSync",
-      "en": "Syncs on its own after you finish bound theme",
+      "en": "Syncs automatically after you finish the bound theme",
       "zh-Hans": "完成绑定主题后自动同步"
     },
     {
       "key": "official.detailParity.cta.unavailable",
-      "en": "Sign-up unavailable",
+      "en": "Registration unavailable",
       "zh-Hans": "暂不可报名"
     },
     {
@@ -249,12 +249,12 @@
     },
     {
       "key": "official.detailParity.fact.nationwide",
-      "en": "National",
+      "en": "Nationwide",
       "zh-Hans": "全国"
     },
     {
       "key": "official.detailParity.fact.participants",
-      "en": "People",
+      "en": "Participants",
       "zh-Hans": "参与"
     },
     {
@@ -294,7 +294,7 @@
     },
     {
       "key": "official.detailParity.mission.automatic",
-      "en": "Syncs on its own",
+      "en": "Syncs automatically",
       "zh-Hans": "自动同步"
     },
     {
@@ -459,7 +459,7 @@
     },
     {
       "key": "official.informationIncomplete",
-      "en": "Info incomplete",
+      "en": "Information incomplete",
       "zh-Hans": "信息不全"
     },
     {
@@ -469,7 +469,7 @@
     },
     {
       "key": "official.noPublisherPermission",
-      "en": "Account doesn't have official publishing permission",
+      "en": "Your account doesn't have official publishing permission",
       "zh-Hans": "你的账号没有官方发布权限"
     },
     {
@@ -479,12 +479,12 @@
     },
     {
       "key": "official.notConfigured",
-      "en": "Official events aren't available",
+      "en": "Official events aren't available right now",
       "zh-Hans": "官方活动暂不可用"
     },
     {
       "key": "official.notEligible",
-      "en": "Eligibility not yet",
+      "en": "Eligibility not yet confirmed",
       "zh-Hans": "资格尚未确认"
     },
     {
@@ -499,7 +499,7 @@
     },
     {
       "key": "official.participation.arrival",
-      "en": "Arrival check is required",
+      "en": "Arrival verification is required",
       "zh-Hans": "需要验证到达"
     },
     {
@@ -539,7 +539,7 @@
     },
     {
       "key": "official.participation.unavailable",
-      "en": "Participation unavailable",
+      "en": "Participation is currently unavailable",
       "zh-Hans": "当前不可参与"
     },
     {
@@ -584,7 +584,7 @@
     },
     {
       "key": "official.reward.experience",
-      "en": "Experience points",
+      "en": "Experience points configured",
       "zh-Hans": "已配置成长值"
     },
     {
@@ -619,7 +619,7 @@
     },
     {
       "key": "official.status.registration",
-      "en": "Sign-up open",
+      "en": "Registration open",
       "zh-Hans": "报名中"
     },
     {
@@ -659,7 +659,7 @@
     },
     {
       "key": "official.w206.detail.service.detail",
-      "en": "The service is temporarily unavailable. Try again later.",
+      "en": "The service is temporarily unavailable. Please try again later.",
       "zh-Hans": "服务暂时不可用，请稍后重试。"
     },
     {

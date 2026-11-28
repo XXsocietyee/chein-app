@@ -348,7 +348,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original session or topic info is unavailable."
+            "value": "Original session or topic information is unavailable."
           }
         }
       }
@@ -634,7 +634,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limited"
+            "value": "Restricted"
           }
         }
       }

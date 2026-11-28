@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bookings"
+            "value": "Reservations"
           }
         },
         "zh-Hans": {
@@ -330,7 +330,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ready"
+            "value": "Available"
           }
         },
         "zh-Hans": {

@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start club"
+            "value": "Start a club session"
           }
         },
         "zh-Hans": {
@@ -135,7 +135,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Owned by club"
+            "value": "Owned by this club"
           }
         },
         "zh-Hans": {

@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request declined"
+            "value": "Original request was declined"
           }
         },
         "zh-Hans": {
@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original receipt"
+            "value": "Original receipt acknowledged"
           }
         },
         "zh-Hans": {
@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request recovery"
+            "value": "Original request recovery is unavailable"
           }
         },
         "zh-Hans": {
@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Acknowledge"
+            "value": "Acknowledge receipt"
           }
         },
         "zh-Hans": {

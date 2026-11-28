@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free sign-up confirmed"
+            "value": "Free registration confirmed"
           }
         },
         "zh-Hans": {
@@ -503,7 +503,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Order can’t be viewed right"
+            "value": "Order can’t be viewed right now"
           }
         },
         "zh-Hans": {
@@ -535,7 +535,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free sign-up confirmed"
+            "value": "Free registration confirmed"
           }
         },
         "zh-Hans": {
@@ -599,7 +599,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting in-store redeem"
+            "value": "Awaiting in-store redemption"
           }
         },
         "zh-Hans": {
@@ -647,7 +647,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payment info"
+            "value": "Payment information"
           }
         },
         "zh-Hans": {
@@ -663,7 +663,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registration info"
+            "value": "Registration information"
           }
         },
         "zh-Hans": {
@@ -823,7 +823,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entitlement"
+            "value": "Entitlement expires"
           }
         },
         "zh-Hans": {

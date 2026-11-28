@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Durable use of purchased version"
+            "value": "Durable use of the purchased version"
           }
         },
         "zh-Hans": {
@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wording"
+            "value": "Translation"
           }
         },
         "zh-Hans": {
@@ -390,7 +390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redistribution banned"
+            "value": "Redistribution is prohibited"
           }
         },
         "zh-Hans": {
@@ -566,7 +566,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Library isn't set up."
+            "value": "Purchased library isn't configured"
           }
         },
         "zh-Hans": {
@@ -646,7 +646,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allowed by frozen terms"
+            "value": "Allowed by the frozen terms"
           }
         },
         "zh-Hans": {
@@ -662,7 +662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Banned by the frozen terms"
+            "value": "Prohibited by the frozen terms"
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Variant allowed"
+            "value": "Adaptation allowed"
           }
         },
         "zh-Hans": {

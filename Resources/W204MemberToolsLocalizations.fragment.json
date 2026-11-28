@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nickname to confirmed"
+            "value": "Nickname to be confirmed"
           }
         },
         "zh-Hans": {
@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submit marketplace review"
+            "value": "Submit for marketplace review"
           }
         },
         "zh-Hans": {
@@ -342,7 +342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw marketplace"
+            "value": "Withdraw marketplace review"
           }
         },
         "zh-Hans": {
@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remove marketplace"
+            "value": "Remove from marketplace"
           }
         },
         "zh-Hans": {
@@ -374,7 +374,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "List marketplace"
+            "value": "List in marketplace"
           }
         },
         "zh-Hans": {

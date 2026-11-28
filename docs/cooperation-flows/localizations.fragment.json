@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collab center"
+            "value": "Cooperation center"
           }
         },
         "zh-Hans": {
@@ -160,7 +160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collab workflows"
+            "value": "Cooperation workflows"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eligible complaint"
+            "value": "Eligible complaint topics"
           }
         },
         "zh-Hans": {
@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Relationship"
+            "value": "Relationship summary"
           }
         },
         "zh-Hans": {
@@ -381,7 +381,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collab"
+            "value": "Cooperation"
           }
         },
         "zh-Hans": {
@@ -398,7 +398,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout records"
+            "value": "Settlement records"
           }
         },
         "zh-Hans": {
@@ -415,7 +415,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No records"
+            "value": "No records returned"
           }
         },
         "zh-Hans": {
@@ -500,7 +500,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prepare request"
+            "value": "Prepare application"
           }
         },
         "zh-Hans": {
@@ -551,7 +551,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review candidate check"
+            "value": "Review candidate confirmation"
           }
         },
         "zh-Hans": {
@@ -585,7 +585,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prepare complaint"
+            "value": "Prepare a complaint"
           }
         },
         "zh-Hans": {
@@ -653,7 +653,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout details"
+            "value": "Settlement details"
           }
         },
         "zh-Hans": {
@@ -687,7 +687,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check required fields"
+            "value": "Please check the required fields"
           }
         },
         "zh-Hans": {
@@ -874,7 +874,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Decline invite"
+            "value": "Decline invitation"
           }
         },
         "zh-Hans": {
@@ -1027,7 +1027,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prepare invite"
+            "value": "Prepare invitation"
           }
         },
         "zh-Hans": {
@@ -1061,7 +1061,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending settlement"
           }
         },
         "zh-Hans": {
@@ -1095,7 +1095,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting credit"
           }
         },
         "zh-Hans": {
@@ -1316,7 +1316,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source status"
+            "value": "Source status code"
           }
         },
         "zh-Hans": {
@@ -2081,7 +2081,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Total supply"
+            "value": "Total supply quota"
           }
         },
         "zh-Hans": {

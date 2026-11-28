@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redistribution"
+            "value": "Redistribution is allowed"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "I have reviewed the capability changes and understand that existing runs keep original version new draft must reviewed again."
+            "value": "I have reviewed the capability changes and understand that existing runs keep their original version and the new draft must be reviewed again."
           }
         },
         "zh-Hans": {

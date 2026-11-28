@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check setup"
+            "value": "Check configuration"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rules"
+            "value": "Conditions"
           }
         },
         "zh-Hans": {
@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rule"
+            "value": "Condition"
           }
         },
         "zh-Hans": {
@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Action"
+            "value": "Operation"
           }
         },
         "zh-Hans": {
@@ -598,7 +598,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Move"
+            "value": "Move down"
           }
         },
         "zh-Hans": {
@@ -630,7 +630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original topic catalog and attribute source must connected before editing."
+            "value": "The original topic catalog and attribute source must be connected before editing."
           }
         },
         "zh-Hans": {
@@ -886,7 +886,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Val"
+            "value": "Value"
           }
         },
         "zh-Hans": {
@@ -1046,7 +1046,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original"
+            "value": "Original check"
           }
         },
         "zh-Hans": {
@@ -1094,7 +1094,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Does not"
+            "value": "Does not equal"
           }
         },
         "zh-Hans": {
@@ -1110,7 +1110,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Greater"
+            "value": "Greater than"
           }
         },
         "zh-Hans": {
@@ -1142,7 +1142,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Less"
+            "value": "Less than"
           }
         },
         "zh-Hans": {
@@ -1430,7 +1430,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Increase decrease"
+            "value": "Increase or decrease number"
           }
         },
         "zh-Hans": {
@@ -1734,7 +1734,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Attribute source contains duplicate keys."
+            "value": "The attribute source contains duplicate keys."
           }
         },
         "zh-Hans": {
@@ -1766,7 +1766,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An unsupported field is retained. Saving requires compatible consumer."
+            "value": "An unsupported field is retained. Saving requires a compatible consumer."
           }
         },
         "zh-Hans": {
@@ -1814,7 +1814,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original route requires valid terminal."
+            "value": "The original route requires valid terminal nodes."
           }
         },
         "zh-Hans": {
@@ -1958,7 +1958,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This source node doesn't declare this trigger outcome pair."
+            "value": "This source node doesn't declare this trigger and outcome pair."
           }
         },
         "zh-Hans": {
@@ -2038,7 +2038,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The variable key invalid."
+            "value": "The variable key is invalid."
           }
         },
         "zh-Hans": {
@@ -2246,7 +2246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Referenced branch doesn't exist."
+            "value": "The referenced branch doesn't exist."
           }
         },
         "zh-Hans": {
@@ -2486,7 +2486,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The reference is outside original RPG definitions."
+            "value": "The reference is outside the original RPG definitions."
           }
         },
         "zh-Hans": {
@@ -2502,7 +2502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Terminal node can't have outgoing."
+            "value": "A terminal node can't have outgoing branches."
           }
         },
         "zh-Hans": {
@@ -2710,7 +2710,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read original project again"
+            "value": "Read the original project again"
           }
         },
         "zh-Hans": {

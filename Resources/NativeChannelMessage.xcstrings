@@ -124,7 +124,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original action completed; its result is redacted for current access."
+            "value": "The original operation completed; its result is redacted for current access."
           }
         }
       }
@@ -812,7 +812,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Red gift"
+            "value": "Red packet"
           }
         }
       }
@@ -1244,7 +1244,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This attachment can't shown right"
+            "value": "This attachment can't be shown right now"
           }
         }
       }
@@ -1324,7 +1324,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Play voice"
+            "value": "Play voice message"
           }
         }
       }
@@ -1340,7 +1340,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voice message can't played right"
+            "value": "This voice message can't be played right now"
           }
         }
       }
@@ -1404,7 +1404,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This video can't be played right"
+            "value": "This video can't be played right now"
           }
         }
       }

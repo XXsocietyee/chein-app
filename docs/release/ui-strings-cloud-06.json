@@ -31,7 +31,7 @@
   },
   {
     "key": "cloud06.actionBudget.unread",
-    "en": "Current budget hasn't been read yet. Refresh load.",
+    "en": "The current budget hasn't been read yet. Refresh to load it.",
     "zh-Hans": "当前额度未读取，请刷新。"
   },
   {
@@ -41,22 +41,22 @@
   },
   {
     "key": "cloud06.actionBudget.original",
-    "en": "Original",
+    "en": "Original request",
     "zh-Hans": "原请求"
   },
   {
     "key": "cloud06.actionBudget.pending",
-    "en": "The result still unconfirmed. Original request won't submitted again.",
+    "en": "The result is still unconfirmed. The original request won't be submitted again.",
     "zh-Hans": "结果待确认。不会再次提交原请求。"
   },
   {
     "key": "cloud06.actionBudget.recheck",
-    "en": "Check original result",
+    "en": "Check the original result",
     "zh-Hans": "查询原结果"
   },
   {
     "key": "cloud06.actionBudget.complete",
-    "en": "Original request complete",
+    "en": "The original request is complete",
     "zh-Hans": "原请求已完成"
   },
   {
@@ -66,7 +66,7 @@
   },
   {
     "key": "cloud06.actionBudget.storage",
-    "en": "The original record can't be read, so nothing can submitted.",
+    "en": "The original record can't be read, so nothing can be submitted.",
     "zh-Hans": "原记录暂不可读，暂不能提交。"
   },
   {
@@ -81,7 +81,7 @@
   },
   {
     "key": "cloud06.actionBudget.verified",
-    "en": "Verified original",
+    "en": "Verified original result",
     "zh-Hans": "已核原结果"
   },
   {
@@ -96,7 +96,7 @@
   },
   {
     "key": "cloud06.actionBudget.after",
-    "en": "Left",
+    "en": "Remaining",
     "zh-Hans": "剩余"
   },
   {
@@ -111,7 +111,7 @@
   },
   {
     "key": "cloud06.actionBudget.submit",
-    "en": "Confirm submit",
+    "en": "Confirm and submit",
     "zh-Hans": "确认提交"
   },
   {
@@ -181,7 +181,7 @@
   },
   {
     "key": "cloud06.fairness.reason.insideDelta",
-    "en": "Inside window",
+    "en": "Inside the window",
     "zh-Hans": "窗口内"
   },
   {

@@ -132,7 +132,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reporting isn't available."
+          "value": "Reporting isn't available right now."
         }
       },
       "zh-Hans": {
@@ -164,7 +164,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Policy labels are shown in their original wording. English translations reference."
+          "value": "Policy labels are shown in their original wording. English translations are for reference."
         }
       },
       "zh-Hans": {
@@ -660,7 +660,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Infringement others’"
+          "value": "Infringement of others’ rights"
         }
       },
       "zh-Hans": {

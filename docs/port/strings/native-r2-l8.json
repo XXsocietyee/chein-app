@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your account returns to normal use now after cancelling."
+            "value": "Your account returns to normal use immediately after cancelling."
           }
         },
         "zh-Hans": {
@@ -41,7 +41,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can submit a closure request again later needed."
+            "value": "You can submit a closure request again later if needed."
           }
         },
         "zh-Hans": {
@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Switch %@ . Validity period stays unchanged."
+            "value": "Switch to %@. Your validity period stays unchanged."
           }
         },
         "zh-Hans": {

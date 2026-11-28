@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prep Overview"
+            "value": "Preparation Overview"
           }
         },
         "zh-Hans": {
@@ -182,7 +182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Targeted"
+            "value": "Targeted Broadcast"
           }
         },
         "zh-Hans": {
@@ -566,7 +566,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check Stations"
+            "value": "Verification Stations"
           }
         },
         "zh-Hans": {
@@ -582,7 +582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose replacement action"
+            "value": "Choose a replacement action"
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Initiate Collab"
+            "value": "Initiate Cooperation"
           }
         },
         "zh-Hans": {
@@ -726,7 +726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ending"
+            "value": "Ending Chapter"
           }
         },
         "zh-Hans": {
@@ -790,7 +790,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reply after"
+            "value": "Reply after scanning"
           }
         },
         "zh-Hans": {
@@ -870,7 +870,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter join"
+            "value": "Enter join code"
           }
         },
         "zh-Hans": {
