@@ -35,6 +35,8 @@ struct RegistrationSheetView: View {
     @Environment(\.registrationHidesFixtureNotice) private var hidesFixtureNotice
     /// R11-PC-C-3: marketing-consent opt-in after a successful create (MP baoming.wxml:345-351).
     @Environment(\.marketingConsentService) private var marketingConsentService
+    /// fix-1128-alipay (P0-4 / P32): Alipay app pay; offered only when the quote lists `APP_ALIPAY`.
+    @Environment(\.registrationAlipayPay) private var alipayPay
     @StateObject private var model: RegistrationSheetModel
     @FocusState private var focusedField: Field?
     @State private var showingConfirmation = false
@@ -147,7 +149,7 @@ struct RegistrationSheetView: View {
                                 requiresFreshQuote: false,
                                 channel: RegistrationAppPayResolver.inAppChannel,
                                 onExpiredRebuild: { Task { await flow.requestQuote() } },
-                                payMethod: selectedPayMethod
+                                payMethod: effectivePayMethod
                             )
                         }
                         recoveredOrderSection
@@ -172,7 +174,7 @@ struct RegistrationSheetView: View {
                         RegistrationPayMethodSection(selection: $payMethod, price: flow.selectedTicket?.price,
                                                      market: RegionalLaunchConfiguration.storefrontMarket,
                                                      applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,
-                                                     enabled: flow.canEdit)
+                                                     enabled: flow.canEdit, alipayOffered: alipayOffered)
                         deliverySection
                         refundTiersSection
                         hostReservationSection
@@ -201,6 +203,7 @@ struct RegistrationSheetView: View {
             .modifier(RegistrationPlayerSheetHeader(onClose: { flow.leave(); dismiss() }))
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
+            .environment(\.registrationPayMethodChoice, effectivePayMethod)
             // Next-round motion: a player's own choice (ticket, saved participant, sharing consent) answers with a
             // selection tick; the first automatic preselect (nil → id) stays silent.
             .modifier(RegistrationSelectionHaptics(ticket: flow.selectedTicketID, participant: flow.selectedParticipantID,
@@ -621,21 +624,27 @@ struct RegistrationSheetView: View {
         guard let ticket = flow.selectedTicket else { return nil }
         if flow.quoteEnabled, case .received(let quote) = flow.quoteState, let amount = quote.payAmount {
             if amount == .zero { return copy.t("确认报名", "Confirm sign-up") }
-            guard PlayAreaPopupCopy.paymentsOpen else { return nil }
-            // P32: the button names the method and the total (微信支付 ¥12.50 / Pay ¥12.50 with WeChat Pay).
-            guard let total = RegistrationUIMoney.display(amount, locale: locale,
-                                                          currencyCode: quote.currency ?? RegistrationUIMoney.yuanCurrencyCode) else {
-                return copy.t("付款", "Pay")
-            }
-            let title = selectedPayMethod.payTitle(amount: total)
-            return copy.t(title.zh, title.en)
+            // P32 (fix-1128-alipay): the button is the method, "Pay ¥12.50 with WeChat Pay" / "… with Alipay".
+            return PlayAreaPopupCopy.paymentsOpen ? payWithLabel(amount: amount, currency: quote.currency) : nil
         }
         if ticket.price == 0 { return copy.t("确认报名", "Confirm sign-up") }
         return PlayAreaPopupCopy.paymentsOpen ? copy.t("确认价格并付款", "Confirm price and pay") : nil
     }
-    private var selectedPayMethod: RegistrationPayMethod {
-        RegistrationPayMethod.effective(payMethod, market: RegionalLaunchConfiguration.storefrontMarket,
-                                        applePayAvailable: ApplePayStripeAuthorizer.canMakePayments)
+    /// fix-1128-alipay: Alipay is offered for this quote (backend `APP_ALIPAY` and the app can open Alipay).
+    private var alipayOffered: Bool {
+        RegistrationAlipayBridge.offered(alipayPay, paymentChannels: flow.quoteState.quoteValue?.paymentChannels)
+    }
+    /// The "Pay with" row's method, also read by the pay step (`registrationPayMethodChoice`).
+    private var effectivePayMethod: RegistrationPayMethod {
+        RegistrationPayMethod.effective(selection: payMethod, market: RegionalLaunchConfiguration.storefrontMarket,
+                                        applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,
+                                        alipayOffered: alipayOffered,
+                                        paymentChannels: flow.quoteState.quoteValue?.paymentChannels)
+    }
+    private func payWithLabel(amount: Decimal, currency: String?) -> String {
+        let text = RegistrationUIMoney.display(amount, locale: locale,
+                                               currencyCode: currency ?? RegistrationUIMoney.yuanCurrencyCode) ?? ""
+        return RegistrationAlipayBridge.payButtonTitle(effectivePayMethod, amountText: text, locale: locale)
     }
     private func footnoteReason(_ copy: CoreLoopCopy) -> String? {
         if flow.checkoutFooterNotice(paymentReadiness: paymentReadiness) != nil { return blockReason(copy) }

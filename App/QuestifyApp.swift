@@ -736,6 +736,8 @@ struct SessionRootView: View {
         .environment(\.registrationPaymentReadiness, readiness)
         .environment(\.registrationPayExecutor, payExecutor)
         .environment(\.registrationAppPay, RegistrationAppPayBridge.context(session))
+        // fix-1128-alipay (P0-4): Alipay app pay for CNY registrations. Nil with money payments closed.
+        .environment(\.registrationAlipayPay, RegistrationAlipayBridge.context(session))
         // US launch r1 (app-pay): Stripe / Apple Pay for USD orders. Nil outside the US market or with payments closed.
         .environment(\.stripePayContext, StripePayBridge.context(session))
     }
