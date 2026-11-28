@@ -324,13 +324,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Choose a valid reason and enter a description of no more than 2,000 UTF-16 units. You cannot report your own comment."
+          "value": "Choose a reason and describe the problem in 2,000 characters or fewer. You can’t report your own comment."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "请选择有效原因并填写不超过2000个UTF-16单元的说明；不能举报自己的评论。"
+          "value": "请选择原因，并用不超过 2000 个字符说明问题；不能举报自己的评论。"
         }
       }
     }
