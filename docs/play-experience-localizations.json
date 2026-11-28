@@ -1994,5 +1994,117 @@
   "playx.director.broadcast.send": {
     "en": "Send",
     "zh-Hans": "发送"
+  },
+  "playx.director.chapter.manualTitle": {
+    "en": "Unlock a chapter",
+    "zh-Hans": "手动解锁章节"
+  },
+  "playx.director.chapter.untitled": {
+    "en": "Untitled",
+    "zh-Hans": "未命名"
+  },
+  "playx.director.chapter.noneWaiting": {
+    "en": "No team has finished this chapter yet",
+    "zh-Hans": "还没有队伍完成本章"
+  },
+  "playx.director.chapter.reasonTitle": {
+    "en": "On-site reason (optional)",
+    "zh-Hans": "现场原因（选填）"
+  },
+  "playx.director.chapter.reasonPlaceholder": {
+    "en": "Why are you releasing it?",
+    "zh-Hans": "写明放行原因"
+  },
+  "playx.director.chapter.caption": {
+    "en": "Players can enter this chapter's stops right away. This can't be undone.",
+    "zh-Hans": "解锁后玩家立即可进入该章节的节点，不可撤回。"
+  },
+  "playx.director.chapter.confirm": {
+    "en": "Release",
+    "zh-Hans": "放行"
+  },
+  "playx.director.incident.title": {
+    "en": "On-site events",
+    "zh-Hans": "现场事件"
+  },
+  "playx.director.incident.modeTitle": {
+    "en": "How to handle it",
+    "zh-Hans": "处理方式"
+  },
+  "playx.director.incident.confirm": {
+    "en": "Handle event",
+    "zh-Hans": "确认处理"
+  },
+  "playx.director.incident.caption": {
+    "en": "Pausing affects only this stop. Rewards already given and finished submissions stay as they are.",
+    "zh-Hans": "暂停只影响本站，不改变已发放的权益与已完成的提交。"
+  },
+  "playx.director.incident.noPlanCaption": {
+    "en": "This stop has no approved backup plan: players will see the stop paused with its expected resume time and won't be sent elsewhere.",
+    "zh-Hans": "这一站没有已批准的备用方案：玩家会看到本站暂停和预计恢复时间，不会被引导到其他节点。"
+  },
+  "playx.director.incident.manyPlans": {
+    "en": "This stop has several backup plans. Choose one in the admin console.",
+    "zh-Hans": "有多个备用方案，请到后台指定"
+  },
+  "playx.director.incident.rejectNotice": {
+    "en": "The player will see your reason and submit again.",
+    "zh-Hans": "玩家会看到驳回原因并重新提交。"
+  },
+  "playx.director.incident.kind.paused": {
+    "en": "Paused by venue",
+    "zh-Hans": "商家暂停"
+  },
+  "playx.director.incident.kind.backlog": {
+    "en": "Verification backlog",
+    "zh-Hans": "待核验积压"
+  },
+  "playx.director.incident.kind.pendingSubmit": {
+    "en": "Submission awaiting check",
+    "zh-Hans": "待核验提交"
+  },
+  "playx.director.incident.kind.rejected": {
+    "en": "Task rejected",
+    "zh-Hans": "任务驳回"
+  },
+  "playx.director.incident.untitledNode": {
+    "en": "Untitled stop",
+    "zh-Hans": "未命名节点"
+  },
+  "playx.director.incident.noReason": {
+    "en": "No reason given",
+    "zh-Hans": "未填原因"
+  },
+  "playx.director.incident.noPlan": {
+    "en": "No backup plan attached",
+    "zh-Hans": "未绑备用方案"
+  },
+  "playx.director.incident.mode.resume": {
+    "en": "Resume stop",
+    "zh-Hans": "恢复本站"
+  },
+  "playx.director.incident.mode.pause": {
+    "en": "Pause stop",
+    "zh-Hans": "暂停本站"
+  },
+  "playx.director.incident.mode.reject": {
+    "en": "Reject for resubmission",
+    "zh-Hans": "驳回重交"
+  },
+  "playx.director.incident.pauseReason": {
+    "en": "Pause reason (at least 2 characters; shared with the venue and players)",
+    "zh-Hans": "暂停原因（至少 2 个字，会同步给商家与玩家）"
+  },
+  "playx.director.incident.rejectReason": {
+    "en": "Rejection reason (at least 2 characters; players will see it)",
+    "zh-Hans": "驳回原因（至少 2 个字，玩家会看到）"
+  },
+  "playx.director.incident.confirmPause": {
+    "en": "Pause",
+    "zh-Hans": "确认暂停"
+  },
+  "playx.director.incident.confirmReject": {
+    "en": "Reject",
+    "zh-Hans": "确认驳回"
   }
 }

@@ -213,5 +213,99 @@
       "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
     }
   },
-  "baseline": {}
+  "baseline": {
+    "App/AccountCollectionFavoritesView.swift": {
+      "manual paging": 2
+    },
+    "App/ActivityBrowserView.swift": {
+      "manual paging": 1
+    },
+    "App/CooperationContextualViews.swift": {
+      "manual paging": 2
+    },
+    "App/CreatorMaintenanceViews.swift": {
+      "manual paging": 2
+    },
+    "App/MapPublicLayerSectionView.swift": {
+      "manual paging": 1
+    },
+    "App/MessagingHistoryView.swift": {
+      "manual paging": 1
+    },
+    "App/MessagingHomeView.swift": {
+      "manual paging": 1
+    },
+    "App/NativeChannelAuditEntry.swift": {
+      "manual paging": 1
+    },
+    "App/NativeChannelChainView.swift": {
+      "manual paging": 1
+    },
+    "App/NativeChannelMentionEntry.swift": {
+      "manual paging": 1
+    },
+    "App/NativeChannelMessageContextView.swift": {
+      "manual paging": 1
+    },
+    "App/NativeChannelModerationEntry.swift": {
+      "manual paging": 1
+    },
+    "App/NativeChannelRoleEntry.swift": {
+      "manual paging": 1
+    },
+    "App/NativeFriendChannelInviteEntry.swift": {
+      "manual paging": 1
+    },
+    "App/NativeFriendChannelSourceEntry.swift": {
+      "manual paging": 1
+    },
+    "App/NativeNotificationDeliveryLogView.swift": {
+      "manual paging": 1
+    },
+    "App/NativeR2/FreeExplore/NativeStampAlbumView.swift": {
+      "manual paging": 1
+    },
+    "App/PlayThemeRecordsView.swift": {
+      "manual paging": 1
+    },
+    "App/ProjectStoryTemplateView.swift": {
+      "manual paging": 1
+    },
+    "App/RoamCreatedStampView.swift": {
+      "manual paging": 1
+    },
+    "App/RoamExperienceHubView.swift": {
+      "manual paging": 1
+    },
+    "App/RoamPassportPrivateToolsViews.swift": {
+      "manual paging": 2
+    },
+    "App/RoamPassportToolsViews.swift": {
+      "manual paging": 1
+    },
+    "App/RoamReceivedStampMetadataView.swift": {
+      "manual paging": 1
+    },
+    "App/RoamStampViews.swift": {
+      "manual paging": 1
+    },
+    "App/SearchMapExplorerView.swift": {
+      "manual paging": 1
+    },
+    "App/SettingsPostGovernanceView.swift": {
+      "manual paging": 1
+    },
+    "App/SquareGovernanceViews.swift": {
+      "manual paging": 2
+    },
+    "App/SquareWorkspaceView.swift": {
+      "manual paging": 1
+    },
+    "App/TemplateAuthoringMineView.swift": {
+      "manual paging": 1
+    },
+    "App/TopicBrowserView.swift": {
+      "manual paging": 1
+    }
+  }
 }

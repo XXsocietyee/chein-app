@@ -103,6 +103,7 @@ struct PlayThemeMusicKey: Equatable {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.mpParity) private var mpParity
     @Environment(\.externalGameSession) private var externalGameSession
+    @Environment(\.playerGapService) private var playToolsGapService
     private func chapterTitle(_ name: String?) -> String {
         let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return trimmed.isEmpty ? "—" : trimmed
@@ -806,11 +807,25 @@ struct PlayThemeMusicKey: Equatable {
             onLocationRow: Self.openLocationSettings,
             teamLead: model.lead,
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
+            journalAttributes: model.snapshot.map(PlayJournal.attributes(in:)) ?? [],
             boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
             scoreDestination: orientScoreDestination,
             entryCodeRegistrationID: entryCode?.registrationID,
-            contact: playContact
+            contact: playContact,
+            onTeamBroadcast: teamBroadcast
         )
+    }
+    /// mp-journey-b r3: MP `leadBroadcast` from 游玩工具 队伍位置 — `POST /api/club/lead/broadcast {activityId, text}`,
+    /// then the team progress is read again (MP `loadTeamProgress`); the line shown is the server's, else 已广播.
+    private var teamBroadcast: ((String) async -> String)? {
+        guard let service = playToolsGapService, case .activity(let activityID) = model.scope, activityID > 0 else { return nil }
+        let context = model.interactionContext
+        return { [model] text in
+            let reply = await service.leadBroadcast(activityID: activityID, text: text)
+            if reply.data != nil { await model.loadLead(context: context) }
+            if let message = reply.message, !message.isEmpty { return message }
+            return appLocalized(reply.data != nil ? "playerGap.lead.broadcasted" : "playerGap.lead.retry", locale: .current)
+        }
     }
     /// mp-journey r3: MP `_orientSessionId` (mode 1 and `routeState.sessionId`) opens 本局成绩; natively that is the
     /// member orient-score page at this session.
@@ -1004,7 +1019,7 @@ struct PlayThemeMusicKey: Equatable {
         CityOrientationFinishSummaryView(
             model: model, titleKey: key, subtitle: [topic, earned].compactMap { $0 }.joined(separator: " · "),
             medals: medals, shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
-            walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
+            shareURL: Self.finishShareURL(snapshot), walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
             scoreDestination: (snapshot?.result.allDone ?? false) ? nil : orientScoreDestination?(),
             collectionDestination: cityCollectionDestination,
             onClose: { finishScreen = false })
@@ -1193,8 +1208,15 @@ struct PlayThemeMusicKey: Equatable {
         ].filter { $0.value != nil }
         CYMedalScreen(items: medals, title: title, subtitle: subtitle, stats: stats,
                       shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
+                      shareURL: Self.finishShareURL(snapshot),
                       secondaryTitle: "medalScreen.records",
                       onClose: { finishScreen = false })
+    }
+    /// mp-nav r3: MP settle `onShareAppMessage` (subpackageJourney/pages/settle/index.js:264-271) shares the topic page
+    /// `/pages/topic/index/index?id=` when no referral token is issued; native issues none, so it shares that path.
+    static func finishShareURL(_ snapshot: PlaySnapshot?) -> URL? {
+        guard let id = snapshot?.result.topicID, id > 0 else { return nil }
+        return PublicContentShareLink.topic(id: id)
     }
     /// `finish-result.js`: cleared only from the report's legitimate completion or the server route's own COMPLETED status;
     /// every stop done while the report is pending or unreadable has no result word.

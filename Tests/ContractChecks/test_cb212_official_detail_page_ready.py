@@ -98,7 +98,10 @@ class OfficialDetailPageReadyChecks(unittest.TestCase):
             for language in ("en", "zh-Hans"):
                 value = row[language]
                 self.assertTrue(value.strip())
-                self.assertEqual(value, catalog[key]["localizations"][language]["stringUnit"]["value"])
+                # en-layout r3: English count strings carry plural variations; read the `other` form.
+                loc = catalog[key]["localizations"][language]
+                unit = loc.get("stringUnit") or loc["variations"]["plural"]["other"]["stringUnit"]
+                self.assertEqual(value, unit["value"])
                 self.assertIsNone(banned.search(value), value)
         inline = document["inline"]
         self.assertEqual(inline, [{

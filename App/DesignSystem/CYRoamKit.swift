@@ -425,20 +425,29 @@ struct CYRoamNearbyCard: View {
     var selected = false
     var onTap: () -> Void = {}
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     private var hue: Double { Double(item.seed.utf8.reduce(0) { ($0 &* 31 &+ Int($1)) % 360 }) / 360 }
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: CYSpacing.md) {
-                art
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(verbatim: item.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
-                    Text(verbatim: item.meta).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).lineLimit(2)
+            // Art beside the title at the default size. At an accessibility size the 64 pt tile sits above the title.
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    HStack(spacing: CYSpacing.md) {
+                        art
+                        Spacer(minLength: 0)
+                        nearbyChevron
+                    }
+                    nearbyText(titleLines: 4, metaLines: 3)
                 }
-                Spacer(minLength: 0)
-                Image(systemName: selected ? "mappin.circle.fill" : "chevron.right")
-                    .foregroundStyle(selected ? CYColor.brand : CYColor.textTertiary)
+            } else {
+                HStack(spacing: CYSpacing.md) {
+                    art
+                    nearbyText(titleLines: 2, metaLines: 2)
+                    Spacer(minLength: 0)
+                    nearbyChevron
+                }
             }
             .padding(CYSpacing.md)
             .background(selected ? CYColor.brandSoft : CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
@@ -450,6 +459,23 @@ struct CYRoamNearbyCard: View {
         .modifier(CYRoamCardParallax(enabled: !reduceMotion))
         .cyHaptic(.selection, trigger: selected, where: CYHapticTransition.turnedOn)
         .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    private func nearbyText(titleLines: Int, metaLines: Int) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: item.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .lineLimit(titleLines)
+                .fixedSize(horizontal: false, vertical: titleLines > 2)
+            Text(verbatim: item.meta).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                .lineLimit(metaLines)
+                .fixedSize(horizontal: false, vertical: metaLines > 2)
+        }
+    }
+
+    private var nearbyChevron: some View {
+        Image(systemName: selected ? "mappin.circle.fill" : "chevron.right")
+            .foregroundStyle(selected ? CYColor.brand : CYColor.textTertiary)
+            .accessibilityHidden(true)
     }
 
     private var art: some View {
