@@ -550,10 +550,20 @@ the editor ⋯ already reach 44 pt, the club leaderboard sort is a full List row
 |---|---|---|---|---|
 | `pages/publishkit` project editor pending materials (编辑 / 安排章节 / 移除 / 新建章节) | `ProjectEditPendingPresentation.swift:24-55` | ✓ (mp-publish owns order) | One List row held three borderless body-text actions, so each could only be tapped on its ~22 pt text line, and at AX5 "Remove" ran off the edge. Each label is now 44 pt tall (also New chapter) inside `CYAdaptiveButtonRow`, which stacks the actions vertically at accessibility sizes. Identifiers and copy are unchanged; the pending-material contract tests pass. Level C | Done |
 
+### Run 34b (2026-11-28, twin of run 34)
+Same scan; the twin's row kept as pushed. Three icon-only menus it did not list were still under 44 pt:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/club` community post ⋯ (置顶 / 删除 / 举报) | `ClubCommunityViews.swift:814` | ✓ (mp-club owns order) | Icon-only ⋯ was 44 tall but ~20 wide, frame sat outside the `Menu` → 44 × 44 inside the label + `contentShape`. Level B | Done |
+| Club posts / discussion / reviews safety shield (举报 / 屏蔽 / 联系客服) | `UGCSafetyComponents.swift:661` (`compactLabel`) | ✓ | Compact shield menu was 20 × 20 → 44 × 44 + `contentShape`, glyph size unchanged. Level B | Done |
+| `pages/member` friend groups ⋯ (重命名 / 删除) | `NativeFriendMetadataView.swift:138` | ✓ (mp-mine owns order) | Borderless ⋯ glyph in a List row (~22 pt) → 44 × 44 + `contentShape`. Level C | Done |
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-34).
 - Next pages without a row: VoiceOver grouping on player list cards. Find cards built from 3+ `Text` with no
   `.accessibilityElement(children: .combine)` that VoiceOver visits piece by piece (feed, club post, activity cards first).
+- Then: `UGCSafetyMenuButton` default (text 举报 label) inline uses and `Toggle` / `Stepper` rows with caption labels.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
