@@ -167,7 +167,17 @@ public struct IMCardAction: Equatable {
         }
         guard let card = message.card else { return [] }
         if message.senderID == 0, let result = card.result, !result.isEmpty {
-            return [Self(label: "im.full.reviewResult", isReject: false, destination: .review(result))]
+            var rows = [Self(label: "im.full.reviewResult", isReject: false, destination: .review(result))]
+            // mp-nav r3: MP 查看当前原单 (chat index.wxml:133 → `originalUrl`) opens the reviewed post / topic.
+            if let type = message.type, let raw = message.extraJSON?.data(using: .utf8),
+               let json = (try? JSONSerialization.jsonObject(with: raw)) as? [String: Any] {
+                switch IMSystemCardTarget.reviewOriginal(senderID: "0", messageType: String(type), card: json) {
+                case .topic(let id)?: rows.append(Self(label: "im.full.currentOriginal", isReject: false, destination: .topic(id)))
+                case .squarePost(let id)?: rows.append(Self(label: "im.full.currentOriginal", isReject: false, destination: .squarePost(id)))
+                default: break
+                }
+            }
+            return rows
         }
         if card.kind == .route {
             guard let projection = IMRouteCardProjection.read(message) else { return [] }
