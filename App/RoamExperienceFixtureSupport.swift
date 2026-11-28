@@ -53,6 +53,10 @@ import SwiftUI
         if ProcessInfo.processInfo.arguments.contains("--design-fixture") {
             json = json.replacingOccurrences(of: "Synthetic city stamp", with: Self.prefersChinese ? "外滩夜色" : "The Bund at night")
             json = json.replacingOccurrences(of: "Synthetic reviewed stamp", with: Self.prefersChinese ? "老街霓虹" : "Old street neon")
+            // ADA 11-28 e2-stamp-album: the live list never returns a check_state 2 row (MP comment: captions passed
+            // moderation), so the rendered page drops the hidden moderation row and 共 N 枚 matches the grid.
+            json = json.replacingOccurrences(of: #",{"id":903,"picUrl":"","caption":"Hidden synthetic moderation fixture","checkState":2}"#, with: "")
+            json = json.replacingOccurrences(of: "\"total\":3", with: "\"total\":2")
         } else if Self.prefersChinese {
             json = json.replacingOccurrences(of: "Synthetic city stamp", with: "示例城市邮票")
             json = json.replacingOccurrences(of: "Synthetic reviewed stamp", with: "示例已审核邮票")
