@@ -4399,5 +4399,39 @@
         }
       }
     }
+  },
+  "playx.freeEnding.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your city story didn't load. Your trail is still saved."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城市故事暂未加载，不影响本次足迹。"
+        }
+      }
+    }
+  },
+  "playx.freeEnding.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading your city story…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在读取城市故事…"
+        }
+      }
+    }
   }
 }

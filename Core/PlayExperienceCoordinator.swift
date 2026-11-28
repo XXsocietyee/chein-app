@@ -146,6 +146,9 @@ public struct PlayCompletionReview: Equatable {
     /// fix-1128b #16 (J-05a/J-09f): the finish ranking read failed. Soft, like the MP board `error`: the finish
     /// screen keeps its record and shows a retry row; the page phase is not failed.
     public private(set) var leaderboardUnavailable = false
+    /// mp-journey-b r3: MP mode 2 `endingError` (城市故事暂未加载，不影响本次足迹。+ 重新加载). Soft: the page phase
+    /// is not failed by the free-exploration ending read.
+    public private(set) var freeEndingUnavailable = false
     public private(set) var lead: PlayLeadProgress?
     public private(set) var clock = PlayRunClock()
     public private(set) var remoteRunSaveFailed = false
@@ -776,8 +779,9 @@ public struct PlayCompletionReview: Equatable {
               FreeExplorationPresentation(snapshot: snapshot)?.isFullyRedeemed == true,
               let session = loadedSession, session == currentSession(), phase != .submitting else { return }
         let request = generation
+        freeEndingUnavailable = false
         do { let value = try await service.ending(scope: scope, token: session.token); try check(session, request); ending = value }
-        catch { fail(error, session: session, generation: request) }
+        catch { if continuesAfterSoftRead(error, session: session, generation: request) { freeEndingUnavailable = true } }
     }
     public func loadEndingAndLeaderboard() async {
         guard gameplayMode == .cityOrientation, let session = loadedSession, session == currentSession(), phase != .submitting else { return }
