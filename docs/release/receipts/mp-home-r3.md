@@ -479,6 +479,15 @@ Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: the HEAD h
 | ADA `d2-search` "Filters sits alone in a full card" (MP `search2/index.wxml`: 筛选 sits beside the field) → `App/GlobalSearchView.swift` first section | A trailing toolbar 筛选 button would match the MP row better, but the view has no `.toolbar` today and if any host lacks a navigation container the toolbar would not show, leaving 筛选 with no entry point. | **Not done** — needs a simulator pass over every host (首页 push, search tab, map explorer) before moving it; the row stays (documented Mail/Files pattern). |
 | ADA `d2-search-results` "No more results / Search again footer card does not need to exist" | MP `search2/result/index.wxml:82-86` has 没有更多了 + 重新搜索 (ghost) at the end of the list. | Not changed — MP content (OWNER RULE). |
 
+## Round 3 continue (39) — planning audit H-05e+ (guest 俱乐部 search lane)
+
+Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: ours only kept `registration.result.viewTicket`, which no Swift file uses any more; took theirs). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (46/46; `tools/check_search_map.py` credential count 3 → 2 and `test_global_search_category_recovery` SearchMapService hash re-pinned, each with a one-line reason) · design consistency PASS. Sweep still build 0446d1c4f (covered in continue 36); no open coordinator item for mp-home. Every 首页-reachable MP page has a row, so this run took the mp-home rows of the planning audit (`audit/1128-plan` home domain): H-01c+ (我的地盘 rail) stays kept by owner request (row 7 above); H-02a 继续探索 card is not rendered in the MP wxml either (#29), so no section is added (OWNER RULE). Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `pages/search2/result` ← `utils/discover-search.js:221` (sends `/api/club/list` for every viewer; BE `ApiClubController` `club/list` is `@Anonymous`, guest projection) → `Core/SearchMapService.swift` `clubRows`, `App/GlobalSearchLinksAndTemplates.swift` `clubRows` | Plan audit H-05e+: both search aggregates threw `.unauthorized` for guests before sending, so a guest saw no 俱乐部 results and a 登录后查看 gate the MP does not have. The Release transport already admits guest `api/club/list` (`AppCompositionRoot` public `reads`, `isPublicTemplateViewer`). | **Fixed** — the guest guard is removed in both; the request shape (JSON `name` / `categoryId`) is unchanged and sends no `Authorization` for guests. A real 401 on any lane still gates that lane only. Tests updated: `SearchMapTests.testGuestSearchesAllFourPublicSourcesLikeTheMP`, `GlobalSearchRetainedResultsTests` (guest 401 gates only 商家; guest 503 still reads clubs), the search design fixture (guests get club rows, no gate) and `SearchMapFlowTests.testGuestSeesClubResultsLikeTheMPWithoutAGate`. |
+| H-04b guest `/api/city/nodes` (map search POIs) → `SearchMapService.cityNodes` / `cityNode` | BE permits guest GET with a guest projection; the app refuses before sending. | **Not done** — the Release map transport (`ManualMapReadApproval` / `manualMap` read) is bound to a signed-in selected area; opening it for guests needs a Release-composition test and a simulator pass. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -527,6 +536,8 @@ Merged `origin/ui/combined-r7` (one `Localizable.xcstrings` conflict: the HEAD h
 - Needs a simulator pass (continue 35): `rep3-activity-detail` 「N 人已报名」 avatar wrap (en + zh-Hans, AX5: avatars grow, still wrap) and the en "When · …" hero line; UI test `testPeopleOpenExactProfilesAndPreserveReadOnlyRowsAfterBack`.
 - Needs a simulator pass (continue 37): `rep3-activity-detail` map snippet under 集合点 (en + zh-Hans, light/dark, AX5: height scales, capped 220 pt); tap opens Maps.
 - Needs a simulator pass (continue 38): `d2-search-results` per-kind second lines and the scope chips running to the screen edge (zh: 商家 chip partly visible past the inset), en + zh-Hans.
+- Needs a simulator pass (continue 39): guest `d2-search-results` shows the 俱乐部 lane and no sign-in gate (en + zh-Hans); `SearchMapFlowTests` guest tests.
+- Plan audit H-04b (continue 39): guest city nodes on the map search — needs a Release-composition test + simulator.
 - Needs a simulator pass (continue 32): `d2-search` 类别 card with six capsules wrapping in en + zh-Hans, AX5.
 
 ## For other lanes
