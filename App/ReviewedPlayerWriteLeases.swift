@@ -962,6 +962,17 @@ enum ReviewedPlayerReadRoute {
                    accountID: context.session.accountID, paths: paths)
     }
 
+    /// Audit P1-8 (MP pages/topic/index/index.js:1246-1268, scene-play-activity-detail/index.js:644):
+    /// 写评价 posts `api/comment/add` for any topic / activity the signed-in player opens; the writer
+    /// re-reads the detail first and only reports success on the inserted row the server returns.
+    static let contextualReviewPaths: Set<String> = ["api/comment/add", "api/topic/info-to-user", "api/activity/info"]
+
+    func contextualReview(_ context: RuntimeDependencyContext) -> ContextualReviewApproval? {
+        guard socialRole(context), context.session.accountID > 0,
+              let endpoints = makeEndpoint(context, paths: Self.contextualReviewPaths) else { return nil }
+        return try? ContextualReviewApproval(market: .china, endpoints: endpoints, targets: [], allowsAnyPositiveTarget: true)
+    }
+
     // MARK: Channels + friends social writes (owner approval: non-money player/club social writes)
 
     private func socialRole(_ context: RuntimeDependencyContext) -> Bool {
@@ -1486,6 +1497,7 @@ enum ReviewedPlayerReadRoute {
             businessConfiguration: businessConfiguration,
             weChatPaymentConfiguration: WeChatPaymentBuildSettings.current,
             couponCodeApproval: couponCodeApproval,
+            contextualReviewApproval: contextualReview(context),
             // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js:143-200): the owner 清退并退款.
             ownerRefundApproval: playerWritesEnabled ? MPFirstClubApprovals.ownerRefund(context) : nil,
             clubGovernanceApproval: playerWritesEnabled ? MPFirstClubApprovals.governance(context) : nil,
