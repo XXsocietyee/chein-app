@@ -39,7 +39,7 @@ import SwiftUI
             default:
                 ForEach(model.items, id: \.id) { review in
                     VStack(alignment: .leading, spacing: 4) {
-                        Label { Text(verbatim: String(review.rating)).font(.headline).monospacedDigit() } icon: { Image(systemName: "star.fill").foregroundStyle(.orange) }
+                        Label { Text(verbatim: String(review.rating)).font(.headline).monospacedDigit() } icon: { Image(systemName: "star.fill").foregroundStyle(CYColor.ratingStar) }
                         Text(verbatim: review.content)
                         if let time = review.createTime { Text(verbatim: LocaleDisplay.civil(time, locale: locale)).font(.footnote).foregroundStyle(.secondary) }
                     }

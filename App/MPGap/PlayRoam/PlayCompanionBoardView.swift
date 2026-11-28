@@ -73,7 +73,7 @@ struct PlayCompanionBoardView: View {
         LabeledContent {
             HStack(spacing: 6) {
                 Text("playx.board.score \(score)").monospacedDigit()
-                if first { Image(systemName: "star.fill").foregroundStyle(.yellow).accessibilityHidden(true) }
+                if first { Image(systemName: "star.fill").foregroundStyle(CYColor.medalGold).accessibilityHidden(true) }
             }
         } label: {
             HStack(spacing: 12) {
