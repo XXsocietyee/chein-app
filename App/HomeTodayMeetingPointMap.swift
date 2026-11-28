@@ -23,6 +23,7 @@ extension EnvironmentValues {
 }
 
 /// Fixed meeting-point map snippet (P28): one marker on the system map, no gestures; a tap opens Apple Maps there.
+/// Shared by the 首页 Today card and the activity detail 集合点 fact (level B: a map snippet for every place).
 struct HomeTodayMeetingPointMap: View {
     let point: HomeTodayMeetingPoint
     let place: String?
@@ -49,7 +50,6 @@ struct HomeTodayMeetingPointMap: View {
         .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: copy("Meeting point", "集合点") + (place.map { ", " + $0 } ?? "")))
         .accessibilityHint(Text(verbatim: copy("Opens in Maps", "在地图中打开")))
-        .accessibilityIdentifier("homeFeed.today.meetingPoint")
     }
 
     private func openInMaps() {

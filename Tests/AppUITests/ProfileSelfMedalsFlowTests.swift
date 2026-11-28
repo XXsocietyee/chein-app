@@ -7,11 +7,11 @@ final class ProfileSelfMedalsFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self,app:app);app.terminate();app=nil }
     private func launch(_ scenario:String="content") {
         app.launchArguments=["--uitesting-profile-self-medals","--profile-self-medals-scenario",scenario,"--uitesting-reset-language","-AppleLanguages","(en)","-AppleLocale","en_US"]
-        app.launch();XCTAssertTrue(app.staticTexts["Synthetic medal owner"].waitForExistence(timeout:10))
+        app.launch();XCTAssertTrue(app.staticTexts["Lin Yu"].waitForExistence(timeout:10))
         let picker=app.buttons["social.profile.tabs"];if picker.exists { picker.tap() }
         let tab=app.buttons["Awards"];if tab.waitForExistence(timeout:3) { tab.tap() } else { app.staticTexts["Awards"].tap() }
     }
-    private var city:XCUIElement { app.staticTexts["Synthetic city medal"] }
+    private var city:XCUIElement { app.staticTexts["Hangzhou city medal"] }
     func testOwnMedalsLoadAndOpenExistingWall() {
         launch();XCTAssertTrue(city.waitForExistence(timeout:5));app.buttons["profile.selfMedals.openWall"].tap()
         XCTAssertTrue(app.buttons["profile.badge.medal.0"].waitForExistence(timeout:5))

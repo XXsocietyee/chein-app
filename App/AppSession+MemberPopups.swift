@@ -117,6 +117,8 @@ extension AppSession {
             default: return nil
             }
         }
+        // K12: 发送邀约 on a public store page is a coop entry. Release does not offer the loader.
+        if PlayerLaunch.merchantCenterEnabled {
         actions.loadCoopInviteTopics = { [weak self] in
             guard let self,
                   let config = self.regionalConfiguration?.apiConfiguration,
@@ -144,6 +146,7 @@ extension AppSession {
                 enabled: { [weak self] in self?.isSignedIn == true }
             )
             return (try? await editor.inviteChapters(topicID: Int64(topicID))) ?? []
+        }
         }
         return actions
     }

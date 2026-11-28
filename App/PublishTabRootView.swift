@@ -207,7 +207,8 @@ import SwiftUI
     /// MP `publish/fabu` query for a copied draft: `id`, plus `scope` only when the template was adopted for a scope.
     nonisolated static func topicEditorQuery(topicID: Int, scope: String?) -> [String: String] {
         var query = ["id": String(topicID)]
-        if let scope, !scope.isEmpty { query["scope"] = scope }
+        // K12: the publish tab does not open a merchant-scoped editor while merchant center is off.
+        if let scope, !scope.isEmpty, scope != "MERCHANT" || PlayerLaunch.merchantCenterEnabled { query["scope"] = scope }
         return query
     }
 

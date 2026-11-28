@@ -60,4 +60,17 @@ final class ProjectInitialStateTests: XCTestCase {
         let other: ProjectEditJSON = .string("{\"schemaVersion\":1,\"future\":\"é\"}")
         XCTAssertThrowsError(try state.serialized(matching: other))
     }
+    func testCarryRowsFollowMPAndRemovalRewritesOnlyAttributes() throws {
+        let raw: ProjectEditJSON = .string(#"{"schemaVersion":1,"stateEnabled":true,"hp":{"enabled":true,"init":10,"max":10},"luck":{"enabled":false,"init":3,"max":3},"attributes":[{"key":"clue.map","label":"地图","initial":1},{"key":"tag.brave","label":"勇敢","initial":"1"},{"key":"clue.key","label":"钥匙","initial":0},{"key":"stat.power","label":"力量","initial":1}]}"#)
+        var state = ProjectInitialState(raw: raw)
+        XCTAssertEqual(state.carry.map(\.key), ["clue.map", "tag.brave"])
+        XCTAssertEqual(state.carry.map(\.isClue), [true, false]); XCTAssertFalse(state.carryLocked)
+        state.removeCarry("clue.map"); XCTAssertEqual(state.carry.map(\.key), ["tag.brave"]); XCTAssertFalse(state.isUnchanged)
+        let next = try object(state.serialized(matching: raw))
+        XCTAssertEqual(next["attributes"]?.array?.compactMap { $0.object?["key"]?.text }, ["tag.brave", "clue.key", "stat.power"])
+        XCTAssertEqual(next["stateEnabled"], .bool(true))
+        let bound: ProjectEditJSON = .string(#"{"schemaVersion":1,"attributeBinding":{"version":2},"attributes":[{"key":"clue.map","label":"地图","initial":1}]}"#)
+        var locked = ProjectInitialState(raw: bound); XCTAssertTrue(locked.carryLocked)
+        locked.removeCarry("clue.map"); XCTAssertEqual(locked.carry.count, 1); XCTAssertTrue(locked.isUnchanged)
+    }
 }

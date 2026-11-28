@@ -48,7 +48,7 @@ final class TicketWalletFlowTests: XCTestCase {
         XCTAssertEqual(app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'redemption code' OR label MATCHES[c] '^pay.*'")).count, 0)
         app.navigationBars["Ticket details"].buttons.firstMatch.tap()
         XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
-        XCTAssertTrue(app.staticTexts["Sample exploration ticket"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["West Lake Night Walk"].waitForExistence(timeout: 5))
     }
     func testPartialEmptyIsNotReportedAsCompleteEmptyWallet() {
         launch("partialEmpty")
@@ -61,16 +61,16 @@ final class TicketWalletFlowTests: XCTestCase {
     func testUnavailableDetailRetryDoesNotShowCachedContent() {
         launch("unavailable")
         XCTAssertTrue(app.staticTexts["This ticket is unavailable"].waitForExistence(timeout: 10))
-        XCTAssertFalse(app.staticTexts["Sample exploration ticket"].exists)
+        XCTAssertFalse(app.staticTexts["West Lake Night Walk"].exists)
         app.buttons["ticketWallet.retry"].tap()
         XCTAssertTrue(app.staticTexts["This ticket is unavailable"].waitForExistence(timeout: 5))
     }
     func testRefreshReadsCurrentStatusInsteadOfKeepingTheOldTicket() {
         launch("refreshed")
-        XCTAssertTrue(app.staticTexts["Sample exploration ticket"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["West Lake Night Walk"].waitForExistence(timeout: 10))
         app.buttons["ticketWallet.detail.refresh"].tap()
         XCTAssertTrue(app.staticTexts["Sample canceled after refresh"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["Sample exploration ticket"].exists)
+        XCTAssertFalse(app.staticTexts["West Lake Night Walk"].exists)
         XCTAssertFalse(app.staticTexts["Sample pending chapter"].exists)
     }
     func testSignOutClearsDetailAndReturnsToLoginGate() {
@@ -80,7 +80,7 @@ final class TicketWalletFlowTests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Ticket details"].waitForExistence(timeout: 5))
         app.buttons["ticketWallet.fixture.signOut"].tap()
         XCTAssertTrue(app.staticTexts["Sign in to see your tickets"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["Sample exploration ticket"].exists)
+        XCTAssertFalse(app.staticTexts["West Lake Night Walk"].exists)
         XCTAssertFalse(app.staticTexts["Sample pending chapter"].exists)
     }
     func testEmptyFailureGuestAndConfigurationStatesAreDistinct() {
@@ -88,7 +88,7 @@ final class TicketWalletFlowTests: XCTestCase {
             launch(scenario)
             XCTAssertTrue(app.staticTexts[message].waitForExistence(timeout: 10), "Scenario: \(scenario)")
             if scenario != "empty" { XCTAssertFalse(app.staticTexts["No tickets yet. Join an activity and your ticket lands here."].exists) }
-            XCTAssertFalse(app.staticTexts["Sample exploration ticket"].exists)
+            XCTAssertFalse(app.staticTexts["West Lake Night Walk"].exists)
             app.terminate()
         }
     }

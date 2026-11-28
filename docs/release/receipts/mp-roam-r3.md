@@ -601,6 +601,16 @@ Base re-merged with `origin/ui/combined-r7` (clean). No new coordinator finding 
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet **new 0**. No Swift build here.
 
+## Round 3 continue (46) — ADA audit `d2-roam` (P0 "roam is not shown"): the sweep mounts the shipping map home
+
+Base re-merged with `origin/ui/combined-r7` (clean). Sweep build 0446d1c4f read: `mp-roam/sheet-zh-Hans.jpg` (d2-roam / d6-roam = legacy browser: drawn grid, inline 漫游, i · 走起 · map), `a11y-dt/zh-Hans-a11y-roam-ax5.jpg`. No new coordinator finding for mp-roam since 07:45.
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| ADA `d2-roam` (P0: drawn grid, no tiles / position, inline title vs AX5 large) + `d6-roam` (P1); Not done since continue (11) | `pages/roam/index` → shipping tab root `App/NativeR2/MapHome/RoamMapHomeView.swift` (`QuestifyApp.roamTab`, `NativeR2Flags.mapHome` default on); fixtures `App/DesignFixtures/RoamMapHomeFixture.swift` (new), `DesignFixtureRegistry.swift` | Both roam shots mounted the legacy `RoamBrowserView` (players only see it as the 漫游护照与工具 sheet) or a D6 mock of it, so the sweep, the ADA review and the App Store harness (`roam` → `d2-roam`) judged a screen that is not the tab root: no MapKit tiles, no Apple-Maps panel, a title style the real root does not have. | `d2-roam` → `RoamMapHomeFixture()` and `d6-roam` → `RoamMapHomeFixture(nearbyEmpty: true)`: the real `RoamMapHomeView` with synthetic readers only (no session, location, network, write). Places (灯笼门 / 老街霓虹 / 转角咖啡) and the entry 附近活动 rows (外滩夜色寻线 / 老街自由探索) sit around People's Square (GCJ-02) and follow the UI language; the empty variant shows the MP P-26 empty peek. Offline-example footer off (the shot shows what players see). Legacy `RoamHomeFixtureHostView` (`--uitesting-roam-home` UI tests) unchanged; `D6MapFixture(.roam)` mock is now unused. No new strings. | A · map home / `d2-roam`, `d6-roam` |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet **new 0**. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
@@ -615,6 +625,7 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen from merchant pins + shop photo pins: done in continue (23).
 - For other lanes (ds-consistency, mp-journey, mp-activity): the default panel is now ds-consistency's elevated surface (follows the appearance); roam additionally opts into `.environment(\.cyMapPanelFollowsAppearance, true)` (continue 24). The other `CYMapScaffold` users (`PlayExperienceView`, `PlaySessionView`, `NearbyTeamViews`) and `CYRoamNearbySheet` (fixture only) still use the black `cyMapPanelColor`; opt in once their panel content is checked for semantic colours.
+- For a11y-dt: `a11y-roam-ax5` is a hand-built mock of the legacy browser (large title, filled ⋯ circle); now that `d2-roam` mounts the real map home (continue 46), mount `RoamMapHomeFixture()` with `.environment(\.dynamicTypeSize, .accessibility5)` instead.
 - Entry peek `.login`: 401 part done in continue (16); the no-deployment `.login` fixture state stays (not reachable by players).
 - Live map bottom strip P-32: done in continue (21) for the map home (shipping tab root); the legacy `RoamBrowserView` live cover (flag off) gets no feed.
 - No Swift build ran here; integrator compiles.

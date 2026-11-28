@@ -32,26 +32,41 @@ class MerchantStoreIndustryChecks(unittest.TestCase):
         self.assertIn('currentSession() == session, captured == scope', reader)
 
     def test_apply_is_single_use_and_changes_only_existing_category_id(self):
+        # Ordered 1–5 selection replaced the single categoryID write. Apply still
+        # edits only that local decor buffer, then consumes itself. Saving stays outside.
         core = self.core(); apply = core.split('public func apply()')[1].split('public func cancel()')[0]
-        self.assertIn('var edited = original; edited.categoryID = selected.id', apply)
+        self.assertIn('var edited = original', apply)
+        self.assertIn('edited.selectIndustries(selectedIDs, catalog: rows)', apply)
         self.assertIn('cancel(); return edited', apply)
-        for text in ['save(', 'owner.edit(', 'categoryName', 'activityCategoryids']: self.assertNotIn(text, apply)
+        self.assertIn('(1...5).contains(selectedIDs.count)', core)
+        for text in ['save(', 'owner.edit(', 'categoryName', 'activityCategoryids', 'categoryID =']:
+            self.assertNotIn(text, apply)
         self.assertIn('document.edit(.decor(value))', self.app())
 
     def test_unavailable_source_is_retained_without_automatic_selection_or_clear(self):
+        # The buffer is seeded from the saved ordered ids. Reload replaces the catalog
+        # only. An empty selection cannot apply, so a missing catalog row is not a clear.
         core = self.core()
-        self.assertIn('selectedID = original.categoryID', core)
+        self.assertIn('selectedIDs = original.selectedCategoryIDs', core)
         self.assertIn('public var previousIsUnavailable:', core)
         self.assertIn('rows.contains(where: { $0.id == id })', core)
         self.assertNotIn('selectedID = nil', core)
+        self.assertIn('(1...5).contains(selectedIDs.count)', core)
         reload = core.split('public func reload()')[1].split('public func apply()')[0]
         self.assertNotIn('selectedID =', reload)
-        self.assertIn('merchant.industry.unavailable', self.app()); self.assertIn('merchant.industry.noClear', self.app())
+        self.assertNotIn('selectedIDs =', reload)
+        self.assertIn('merchant.industry.unavailable', self.app())
+        self.assertIn('merchant.industry.sourceUnreadable', self.app())
 
     def test_new_industry_field_can_make_an_otherwise_empty_decor_draft_valid(self):
+        # An ordered industry set is enough to leave the empty-decor state. The write
+        # sends categoryIds only for an explicit replacement; omitting it keeps the server set.
         core = read('Core/MerchantOperationsContracts.swift')
-        self.assertIn('&& tags.isEmpty && (categoryID ?? 0) <= 0 && !(featuredType == 0 && featuredID == nil)', core)
-        self.assertIn('"categoryId": categoryID as Any? ?? NSNull()', core)
+        self.assertIn('gallery.isEmpty && tags.isEmpty && selectedCategoryIDs.isEmpty && !(featuredType == 0 && featuredID == nil)', core)
+        fields = core.split('public func fields()')[1].split('public static func listString')[0]
+        self.assertIn('fields["categoryIds"]', fields)
+        self.assertIn('Only explicit replacement is writable', fields)
+        self.assertNotIn('"categoryId"', fields)
 
     def test_cancel_stale_document_account_and_late_response_are_fenced(self):
         core = self.core()
@@ -75,19 +90,42 @@ class MerchantStoreIndustryChecks(unittest.TestCase):
         for text in ['saveReviewed', 'saveExample', 'isLocked = true']: self.assertNotIn(text, section)
 
     def test_ui_has_load_empty_retry_buffer_and_clear_boundary(self):
+        # replaceHint / reviewBody were the single-select copy. The ordered picker
+        # uses orderedHint, reviewOrdered, the unreadable-source line, and the 1–5 limit.
         app = self.app()
         for text in ['merchant.industry.loading', 'merchant.industry.empty', 'merchant.industry.retry', 'merchant.industry.reload',
-                     'merchant.industry.cancel', 'merchant.industry.apply', 'merchant.industry.replaceHint', 'merchant.industry.reviewBody']:
+                     'merchant.industry.cancel', 'merchant.industry.apply', 'merchant.industry.orderedHint',
+                     'merchant.industry.reviewOrdered', 'merchant.industry.sourceUnreadable',
+                     'merchant.industry.selectionInvalid', 'merchant.industry.limit']:
             self.assertIn(text, app)
+        self.assertIn('.disabled(model.busy || !model.selection.canApply)', app)
         self.assertNotIn('URLSession', app); self.assertNotIn('publish(', app)
 
     def test_bilingual_fragment_and_interpolation_are_complete(self):
+        # The fragment is the older 22-key single-select snapshot. Shipped copy for the
+        # ordered picker is in Localizable.xcstrings, including the primary-id interpolation.
         fragment = json.loads(read('Resources/MerchantStoreIndustryLocalizations.fragment.json'))
         source = self.app() + read('Core/MerchantOperationsReading.swift')
         source = re.sub(r'\.accessibilityIdentifier\("[^"\n]*"\)', '', source)
         keys = set(re.findall(r'"(merchant\.industry\.[A-Za-z]+)"', source))
         keys.add('merchant.industry.currentID %lld')
-        self.assertEqual(set(fragment), keys); self.assertEqual(len(fragment), 22)
+        self.assertIn('merchant.industry.currentID \\(value.selectedCategoryIDs[0])', self.app())
+        self.assertEqual(keys, {
+            'merchant.industry.apply', 'merchant.industry.catalog', 'merchant.industry.choose',
+            'merchant.industry.currentID %lld', 'merchant.industry.empty', 'merchant.industry.limit',
+            'merchant.industry.loading', 'merchant.industry.new', 'merchant.industry.none',
+            'merchant.industry.orderedHint', 'merchant.industry.original', 'merchant.industry.previous',
+            'merchant.industry.readback', 'merchant.industry.readbackFailed', 'merchant.industry.reload',
+            'merchant.industry.remove', 'merchant.industry.retry', 'merchant.industry.reviewOrdered',
+            'merchant.industry.reviewTitle', 'merchant.industry.selectedOrder',
+            'merchant.industry.selectionInvalid', 'merchant.industry.sourceUnreadable',
+            'merchant.industry.stale', 'merchant.industry.unavailable',
+        })
+        catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']
+        for key in keys:
+            row = catalog[key]
+            for locale in ['en', 'zh-Hans']:
+                self.assertTrue(row['localizations'][locale]['stringUnit']['value'].strip(), key)
         for value in fragment.values():
             for locale in ['en', 'zh-Hans']: self.assertTrue(value['localizations'][locale]['stringUnit']['value'])
 
