@@ -26,10 +26,13 @@ struct ExternalGameCatalogLaunch: ViewModifier {
     @Environment(\.externalGameSession) private var session
 
     func body(content: Content) -> some View {
-        content.task(id: session?.token) { await Self.refresh(session) }
+        content.task(id: session?.token) {
+            await ColdStartAfterFirstFrame.waitUntilOpen()
+            await Self.refresh(session)
+        }
     }
 
-    /// Approved-catalog read at launch. A failed read leaves installed games in place.
+    /// Approved-catalog read after the first frame. A failed read leaves installed games in place.
     @MainActor static func refresh(_ session: ExternalGameSessionBridge?) async {
         guard ExternalGameSessionRead.externalGamesOpen(baseURL: session?.baseURL) else { return }
         let store = ExternalGameStore()

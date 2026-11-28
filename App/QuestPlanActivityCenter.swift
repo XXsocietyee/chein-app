@@ -30,7 +30,7 @@ import QuestifyCore
 
     // MARK: Launch / tokens
 
-    /// From `QuestifyApp.init`: installs the Tuck handler and starts observing tokens and push-started activities.
+    /// After the first frame (`ColdStartAfterFirstFrame.open`): installs the Tuck handler and starts observing tokens and push-started activities.
     func start() {
         guard !started else { return }
         started = true
