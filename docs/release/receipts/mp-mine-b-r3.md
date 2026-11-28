@@ -49,3 +49,11 @@ Half split (fixed at run start; A receipt open rows in file order): 1 `Character
 Row 4 (P2-5c, participants +1 regex and US legal copy): still backend / legal owner, nothing app-side to change. Skipped.
 
 **Half done** (B half 4–5: 5 fixed, 4 blocked on backend / legal). Run stops here per the 15:45 split rule.
+
+## Run 4 (11-28, hourly)
+
+Merged `origin/mp/r3-mine` (A continue 44, 511b2f751). Fetched every branch: no `docs/release/receipts/cursor-k50-p*.md` exists yet, so there are no K50 `lane-layout` rows for mp-mine. The sweep is unchanged (build c4e43841a, already checked by A continue 44), and the brief has no mp-mine coordinator rows after 13:15 (that ticket-wallet glyph row was closed by A continue 44).
+
+Half split (fixed at run start; A receipt open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin owner) · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` off) | 3 P2-5c participants +1 / US legal copy (backend + legal owner). **B half = row 3**, still blocked with nothing to change app-side. Skipped.
+
+**Half done** (B half: row 3 blocked). Run stops here per the 15:45 split rule.
