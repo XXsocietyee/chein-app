@@ -507,3 +507,5 @@ Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts and pbxproj tak
 | P2-5c participants reject +1, legal zh-only for US, no bind-phone | — | backend regex / legal | Not done: backend (participant regex) and legal copy owner. |
 
 Not done: `CharacterCardReadbackView` byte pin unchanged (needs the pin owner).
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
