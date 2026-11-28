@@ -377,6 +377,7 @@ Merged `origin/ui/combined-r7` (clean). Sweep build 0446d1c4f: checked `mp-mine/
 |---|---|---|---|---|
 | 125 | `pages/member/*` passport 徽章 rail (MP order unchanged) → `App/PassportView.swift` `badgeObject` (`en-ia-passport`) | Two-word English badge names clipped to the first line ("Market Regular" shows as "Market") inside the horizontal `LazyHStack` | Label reserves its two lines (`.lineLimit(…, reservesSpace: true)`), so every tile has the same height and the second line is never clipped; zh unchanged | Done |
 | 126 | `pages/member/*` 票夹 (`wType` 场次) → `App/TicketWalletView.swift:565` `ticketWallet.type.session` (`en-e4-tickets`) | Activity ticket sub-line reads a bare "Session" | en → "Event" (beside "City orienteering" / "Free explore"); zh 场次 unchanged | Done |
+| 127 | `pages/club/*` 主理人进度 (MP order unchanged) → `App/ClubLeadProgressView.swift:246-247` | "1 topics published", "1 invitations sent" (new keys from the merge had no plural variants; locale-format gate FAIL) | en one / other variants: "1 topic published" / "%lld topics published", "1 invitation sent" / "%lld invitations sent"; zh unchanged; locale format gate PASS again | Done |
 
 ## Not done
 
