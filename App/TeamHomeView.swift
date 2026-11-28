@@ -292,8 +292,7 @@ private struct TeamHomeRow: View {
             .cySheet(item: nonJoinReviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
             .cySheet(isPresented: $invitationPreview) { Group { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }.cySheet() }
             .cySheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in Group { if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }.cySheet(detents: [.large]) }
-        .cyHaptic(.success, trigger: model.coordinator.writeState, where: { old, new in old != new && new == .acknowledged })
-        .cyHaptic(.warning, trigger: model.coordinator.writeState, where: { old, new in old != new && (new == .rejected || new == .notSent || new == .blocked) })
+        .modifier(TeamWriteResultHaptics(state: model.coordinator.writeState))
         .themeDomain(.player)
     }
     /// C-J5 (MP team/join `.tj-bar`): the invitation's one action sits in the bottom bar, outside the scroll.
@@ -466,5 +465,21 @@ struct TeamInviteQRSheetButton: View {
                     .presentationDetents([.medium, .large])
                 }
         }
+    }
+}
+
+/// Success / warning haptics on the confirmed team command result, split out of the team page body so it type-checks in time.
+private struct TeamWriteResultHaptics: ViewModifier {
+    let state: TeamCoordinator.WriteState
+    func body(content: Content) -> some View {
+        content
+            .cyHaptic(.success, trigger: state, where: Self.acknowledged)
+            .cyHaptic(.warning, trigger: state, where: Self.failed)
+    }
+    private static func acknowledged(_ old: TeamCoordinator.WriteState, _ new: TeamCoordinator.WriteState) -> Bool {
+        old != new && new == .acknowledged
+    }
+    private static func failed(_ old: TeamCoordinator.WriteState, _ new: TeamCoordinator.WriteState) -> Bool {
+        old != new && (new == .rejected || new == .notSent || new == .blocked)
     }
 }
