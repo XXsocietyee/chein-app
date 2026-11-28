@@ -92,7 +92,7 @@ extension EnvironmentValues {
     @Environment(\.locale) private var locale
     @Environment(\.registrationPaymentReadiness) private var readinessReader
     @Environment(\.registrationPayExecutor) private var payExecutor
-    /// US launch r1: non-nil only in the US market with payments open. Nil keeps the China flow exactly as before.
+    /// US launch r1 / fix 11-28 P1-3: non-nil while payments are open; used only for a USD quote / order. Nil keeps the China flow.
     @Environment(\.stripePayContext) private var stripePay
     /// Owner check 11-28 05:35: the WeChat SDK hand-off for APP pay params. Nil keeps the status chip only.
     @Environment(\.registrationAppPay) private var appPay
@@ -119,6 +119,8 @@ extension EnvironmentValues {
     let initialPayParams: [String: String]?
     /// fix/1128-cn-pay P1-2: the server read said paid; the host refreshes its order / registration status.
     let onSettled: (() -> Void)?
+    /// fix/1128-us-pay: called once the server confirms a US order paid, so the host can read the order again.
+    let onPaid: (() -> Void)?
 
     @StateObject private var viewModel = RegistrationPayViewModel()
     @State private var readiness: RegistrationPaymentReadiness?
@@ -136,7 +138,8 @@ extension EnvironmentValues {
          orderPaymentChannels: [String]? = nil,
          payMethod: RegistrationPayMethod? = nil,
          initialPayParams: [String: String]? = nil,
-         onSettled: (() -> Void)? = nil) {
+         onSettled: (() -> Void)? = nil,
+         onPaid: (() -> Void)? = nil) {
         self.registrationID = registrationID
         self.payableAmount = payableAmount
         self.quote = quote
@@ -150,6 +153,7 @@ extension EnvironmentValues {
         self.payMethod = payMethod
         self.initialPayParams = initialPayParams
         self.onSettled = onSettled
+        self.onPaid = onPaid
     }
 
     /// Quote first (registration sheet), else the order detail's own fields; nil on a China order.
@@ -189,8 +193,16 @@ extension EnvironmentValues {
                     statusView
                     if let stripePay, usesStripe(stripePay) {
                         RegistrationStripePayRows(context: stripePay, registrationID: registrationID,
-                                                  paymentChannels: payChannels, consented: consented,
-                                                  readiness: readiness)
+                                                  paymentChannels: payChannels,
+                                                  amountText: payableAmount == nil ? nil : amountText,
+                                                  consented: consented,
+                                                  preferredMethod: payMethod, onPaid: onPaid)
+                    } else if isUSDOrder {
+                        // A USD order never goes to the China route (backend 409 STRIPE_CHANNEL_REQUIRED).
+                        Text("registration.stripe.unavailable")
+                            .cyText(.body)
+                            .foregroundStyle(CYColor.warningText)
+                            .accessibilityIdentifier("registration.pay.stripe.unavailable")
                     } else if canTapPay, chosenPayMethod == .alipay, let alipayPay {
                         RegistrationPayStepMethodRow(selection: payStepMethodBinding, enabled: !alipayPay.isWaiting())
                         RegistrationAlipayPayRows(context: alipayPay, registrationID: registrationID,
@@ -226,7 +238,7 @@ extension EnvironmentValues {
                          "Payment runs once with no automatic retry. Rebuild the order manually if it expires."))
             }
             .task(id: registrationID) {
-                if readiness == nil, let readinessReader {
+                if readiness == nil, !isUSDOrder, let readinessReader {
                     readiness = await readinessReader()
                 }
             }
@@ -253,9 +265,20 @@ extension EnvironmentValues {
         RegistrationAlipayBridge.payButtonTitle(.wechatPay, amountText: amountText, locale: locale)
     }
 
-    /// US launch r1: a USD quote listing `APPLE_PAY` / `APP_STRIPE` in the US market. China quotes never match.
+    /// Fix 11-28 P1-3: a USD quote / order listing `APPLE_PAY` / `APP_STRIPE`, whatever the storefront market.
+    /// China (CNY) quotes never match and keep WeChat Pay / Alipay.
     private func usesStripe(_ context: StripePayContext) -> Bool {
-        StripePayEligibility.applies(market: context.market, currency: payCurrency, paymentChannels: payChannels)
+        StripePayEligibility.applies(currency: payCurrency, paymentChannels: payChannels)
+    }
+
+    /// The quote / order is USD: Stripe only, readiness from its channels (the WeChat probe does not apply).
+    private var isUSDOrder: Bool {
+        StripePayEligibility.isUSDOrder(currency: payCurrency, paymentChannels: payChannels)
+    }
+
+    /// The readiness shown above the button: the order's Stripe channels for USD, else the WeChat probe.
+    private var shownReadiness: RegistrationPaymentReadiness? {
+        StripePayEligibility.readiness(currency: payCurrency, paymentChannels: payChannels) ?? readiness
     }
 
     private var usesStripePay: Bool {
@@ -356,7 +379,7 @@ extension EnvironmentValues {
     @ViewBuilder private var statusView: some View {
         switch viewModel.model.outcome {
         case .idle:
-            if let readiness, !readiness.ready {
+            if let readiness = shownReadiness, !readiness.ready, !isUSDOrder {
                 Text(verbatim: readiness.message ?? c.t("支付服务暂不可用", "Payment service unavailable"))
                     .cyText(.body)
                     .foregroundStyle(CYColor.warningText)

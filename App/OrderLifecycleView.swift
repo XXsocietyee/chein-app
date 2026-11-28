@@ -161,6 +161,11 @@ import SwiftUI
             .background(.bar)
         }
     }
+    /// Fix 11-28 (US pay): once the server says paid, read the order again so status, pass and actions refresh.
+    private func reloadAfterPayment(_ orderID: Int) {
+        Task { await model.load(id: orderID) }
+    }
+
     /// The accepted order detail, split out so the list body type-checks in reasonable time.
     @ViewBuilder private func acceptedDetail(_ detail: OrderLifecycleDetail) -> some View {
             summary(detail)
@@ -175,7 +180,8 @@ import SwiftUI
                     orderCurrency: detail.currency,
                     orderPaymentChannels: detail.paymentChannels,
                     // fix/1128-cn-pay P1-2: a server-confirmed paid read reloads this order detail.
-                    onSettled: { Task { await model.load(id: id) } }
+                    onSettled: { Task { await model.load(id: id) } },
+                    onPaid: { reloadAfterPayment(detail.id) }
                 )
             }
             timeline(detail)

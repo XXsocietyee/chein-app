@@ -119,7 +119,7 @@ struct RegistrationSheetView: View {
                     alreadyRegisteredSection
                     if flow.hasRetainedIntent {
                         activitySection
-                        RegistrationOperationSections(flow: flow,revision:model.revision,orderReader:orderReader)
+                        RegistrationOperationSections(flow: flow,revision:model.revision,orderReader:orderReader,payMethod:chosenPayMethod)
                         resultOrderSection
                     } else if case .pending(let registrationID) = flow.durableCreation {
                         activitySection
@@ -173,7 +173,8 @@ struct RegistrationSheetView: View {
                         childAgeSection
                         quoteSection
                         RegistrationPayMethodSection(selection: $payMethod, price: flow.selectedTicket?.price,
-                                                     market: RegionalLaunchConfiguration.storefrontMarket,
+                                                     market: payMethodMarket,
+                                                     paymentChannels: flow.quoteState.quoteValue?.paymentChannels,
                                                      applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,
                                                      enabled: flow.canEdit, alipayOffered: alipayOffered)
                         deliverySection
@@ -182,7 +183,8 @@ struct RegistrationSheetView: View {
                         waitlistSection
                         // R11-PC-C-5: a quote that lists channels without APP skips the readiness probe (MP quote-view.js:79-84).
                         // MP shows readiness on the pay button (检查支付服务… / 重新检查支付服务), so it sits by the footer.
-                        RegistrationPaymentReadinessSection(price: flow.quoteState.quoteValue?.paymentChannelUnavailable == true ? nil : flow.selectedTicket?.price,
+                        // Fix 11-28 P1-3: a USD quote is ready by its own Stripe channels; the WeChat probe is skipped.
+                        RegistrationPaymentReadinessSection(price: readinessProbePrice,
                                                             onResult: { paymentReadiness = $0 })
                         merchantClosedSection
                         confirmationSection
@@ -592,6 +594,37 @@ struct RegistrationSheetView: View {
                 .accessibilityIdentifier("registration.form.noTicketsAvailable")
         }
     }
+    /// Fix 11-28 P1-3: the "Pay with" options follow the quote's `currency` / `paymentChannels` (USD → Apple Pay / Card,
+    /// otherwise WeChat Pay / Alipay). Before the first quote the storefront market only previews the row.
+    private var readinessProbePrice: Decimal? {
+        guard let quote = flow.quoteState.quoteValue else { return flow.selectedTicket?.price }
+        if quote.paymentChannelUnavailable { return nil }
+        if StripePayEligibility.isUSDOrder(currency: quote.currency, paymentChannels: quote.paymentChannels) { return nil }
+        return flow.selectedTicket?.price
+    }
+
+    /// `payment-readiness` is WeChat-only; a USD quote's readiness is its own Stripe channel list.
+    private var effectivePaymentReadiness: RegistrationPaymentReadiness? {
+        let quote = flow.quoteState.quoteValue
+        return StripePayEligibility.readiness(currency: quote?.currency, paymentChannels: quote?.paymentChannels)
+            ?? paymentReadiness
+    }
+
+    /// The "Pay with" row's effective choice (its default until the player changes it), handed to the pay step (P32).
+    private var chosenPayMethod: RegistrationPayMethod? {
+        let options = RegistrationPayMethod.options(market: payMethodMarket,
+                                                    applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,
+                                                    paymentChannels: flow.quoteState.quoteValue?.paymentChannels)
+        if let payMethod, options.contains(payMethod) { return payMethod }
+        return options.first
+    }
+
+    private var payMethodMarket: RegionalMarket? {
+        let quote = flow.quoteState.quoteValue
+        return StripePayEligibility.payMarket(currency: quote?.currency, paymentChannels: quote?.paymentChannels)
+            ?? RegionalLaunchConfiguration.storefrontMarket
+    }
+
     private var showsCheckoutBar: Bool {
         if !flow.hasCurrentSession || flow.hasRetainedIntent { return false }
         if case .pending = flow.durableCreation { return false }
@@ -600,7 +633,7 @@ struct RegistrationSheetView: View {
     /// One-line, human reason why the primary button cannot proceed yet (nil when it can).
     private func blockReason(_ copy: CoreLoopCopy) -> String? {
         // Acceptance R2 F-01/F-02: "checking" only while a quote is in flight; a refusal shows the server sentence.
-        if let notice = flow.checkoutFooterNotice(paymentReadiness: paymentReadiness) { return footerNoticeText(notice, copy) }
+        if let notice = flow.checkoutFooterNotice(paymentReadiness: effectivePaymentReadiness) { return footerNoticeText(notice, copy) }
         guard let block = flow.confirmationBlock else { return nil }
         switch block {
         case .missingConsent: return copy.t("请先勾选上方的确认项", "Tick the confirmation above to continue")
@@ -638,7 +671,7 @@ struct RegistrationSheetView: View {
     }
     /// The "Pay with" row's method, also read by the pay step (`registrationPayMethodChoice`).
     private var effectivePayMethod: RegistrationPayMethod {
-        RegistrationPayMethod.effective(selection: payMethod, market: RegionalLaunchConfiguration.storefrontMarket,
+        RegistrationPayMethod.effective(selection: payMethod, market: payMethodMarket,
                                         applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,
                                         alipayOffered: alipayOffered,
                                         paymentChannels: flow.quoteState.quoteValue?.paymentChannels)
@@ -649,7 +682,7 @@ struct RegistrationSheetView: View {
         return RegistrationAlipayBridge.payButtonTitle(effectivePayMethod, amountText: text, locale: locale)
     }
     private func footnoteReason(_ copy: CoreLoopCopy) -> String? {
-        if flow.checkoutFooterNotice(paymentReadiness: paymentReadiness) != nil { return blockReason(copy) }
+        if flow.checkoutFooterNotice(paymentReadiness: effectivePaymentReadiness) != nil { return blockReason(copy) }
         // MP baoming.wxml:329 cy-btn label while `!canPay`, shown as the reason above the disabled button.
         switch flow.confirmationBlock {
         case .missingConsent?: return copy.t("请先勾选信息共享同意", "Turn on sharing consent first")
@@ -688,7 +721,7 @@ struct RegistrationSheetView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("registration.form.blockReason")
                     }
-                    if flow.checkoutFooterNotice(paymentReadiness: paymentReadiness)?.offersQuoteRetry == true {
+                    if flow.checkoutFooterNotice(paymentReadiness: effectivePaymentReadiness)?.offersQuoteRetry == true {
                         CYPillButton(verbatim: copy.t("重新获取价格", "Get the price again"), style: .secondary, compact: true) {
                             Task { await flow.requestQuote() }
                         }
@@ -1230,6 +1263,8 @@ private struct RegistrationOperationSections: View {
     let flow: RegistrationUIFlow
     let revision:UInt64
     var orderReader: (any ProfileReading)? = nil
+    /// P32: the "Pay with" row's choice, so the pay button is that method.
+    var payMethod: RegistrationPayMethod? = nil
     var body: some View {
         if flow.retainedForAnotherActivity {
             Section { Text("registration.form.otherActivityIntent").foregroundStyle(.secondary) }
@@ -1316,9 +1351,7 @@ private struct RegistrationOperationSections: View {
                     requiresFreshQuote: flow.quoteState.quoteValue != nil,
                     channel: RegistrationAppPayResolver.inAppChannel,
                     onExpiredRebuild: { Task { await flow.requestQuote() } },
-                    // P32: the CN in-app button is WeChat Pay (the only offered method until Alipay is ready).
-                    payMethod: RegistrationPayMethod.effective(nil, market: RegionalLaunchConfiguration.storefrontMarket,
-                                                               applePayAvailable: ApplePayStripeAuthorizer.canMakePayments),
+                    payMethod: payMethod,
                     // fix/1128-cn-pay P0-2/P1-2: the create's APP params open WeChat; a paid read refreshes the status.
                     initialPayParams: result.payParams,
                     onSettled: { Task { await flow.readKnownStatus() } }
