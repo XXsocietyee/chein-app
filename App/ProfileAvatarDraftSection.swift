@@ -315,7 +315,7 @@ import UIKit
                 Button("action.cancel", action: cancel)
                     .buttonStyle(.bordered)
             }
-            .accessibilityIdentifier("profile.avatar.cropFailed")
+            .accessibilityIdentifier("profile.avatar.crop.failed")
         }
     }
 
