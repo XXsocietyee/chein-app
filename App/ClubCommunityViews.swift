@@ -1059,7 +1059,8 @@ struct ClubCommunityComposer: View {
                     } else {
                         Text(verbatim: "\(content.count)/300")
                             .monospacedDigit().accessibilityLabel(Text("a11y.value.characters \(Int(content.count)) \(Int(300))"))
-                            .foregroundStyle(content.count > 300 ? AnyShapeStyle(Color.red) : AnyShapeStyle(HierarchicalShapeStyle.secondary))
+                            .accessibilityValue(Text(verbatim: content.count > 300 ? locale.pick("超出字数限制", "Over the character limit") : ""))
+                            .foregroundStyle(content.count > 300 ? AnyShapeStyle(CYColor.dangerText) : AnyShapeStyle(HierarchicalShapeStyle.secondary))
                     }
                 }
                 Section {
