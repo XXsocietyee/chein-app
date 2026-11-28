@@ -326,7 +326,8 @@ extension PlayKitScreen {
         case .estimate: return nativeEstimateSubmit
         case .pricePair:
             guard !projection.complete else { return nil }
-            return nativeSubmit("SUBMIT_PRICE_PAIR", ["pickId": .string(selected.first ?? "")], valid: !selected.isEmpty)
+            return nativeSubmit("SUBMIT_PRICE_PAIR", ["pickId": .string(selected.first ?? "")], valid: !selected.isEmpty,
+                                title: Text("playkit.branch.confirmPick"))
         case .diyName:
             guard !projection.complete else { return nil }
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)

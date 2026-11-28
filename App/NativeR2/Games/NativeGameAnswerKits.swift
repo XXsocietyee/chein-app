@@ -355,6 +355,8 @@ extension PlayKitScreen {
 
     // MARK: pricepair
 
+    /// MP `playkit-pricepair`: title (shell) → two-column posters (picture, judged mark 就是它 / 不是 / 正确答案 on it, name
+    /// under it, note only once revealed) → 确认选择 on the bottom bar until the round is revealed.
     @ViewBuilder var nativePricePair: some View {
         // Recomputed from the current accepted state; never from a local pick or a cached receipt.
         let result = model.isCurrent && !["stale", "disabled"].contains(model.phase) ? PlayKitPricePairResult(segment: raw) : nil
@@ -362,38 +364,41 @@ extension PlayKitScreen {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 ForEach(projection.options) { option in nativePriceOption(option, result: result) }
             }
-        } footer: {
-            if let result, !result.passed {
-                Text(result.finished ? "playkit.pricePair.ended" : "playkit.pricePair.retry")
-                    .accessibilityIdentifier("playkit.pricePair.roundStatus")
-            }
         }
     }
 
     @ViewBuilder func nativePriceOption(_ option: PlayKitOption, result: PlayKitPricePairResult?) -> some View {
         let on = selected.contains(option.id)
+        let revealed = result?.finished == true
+        let mark: (key: LocalizedStringKey, right: Bool)? = {
+            guard let result else { return nil }
+            if result.lastPickID == option.id { return (result.passed ? "playkit.pricePair.lastCorrect" : "playkit.pricePair.lastIncorrect", result.passed) }
+            if result.finished, result.answerID == option.id { return ("playkit.pricePair.revealedAnswer", true) }
+            return nil
+        }()
         let button = Button { nativeToggle(option.id, multi: false) } label: {
             VStack(alignment: .leading, spacing: 6) {
                 artwork(option.raw["imageUrl"].text)
+                    .overlay(alignment: .topTrailing) {
+                        if let mark {
+                            Label(mark.key, systemImage: mark.right ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 8).padding(.vertical, 4)
+                                .background(.regularMaterial, in: .capsule)
+                                .foregroundStyle(mark.right ? Color.green : Color.red)
+                                .padding(6)
+                                .accessibilityIdentifier(mark.right && result?.lastPickID != option.id
+                                    ? "playkit.pricePair.answer." + option.id : "playkit.pricePair.lastPick." + option.id)
+                        }
+                    }
                 Text(verbatim: option.label).font(.headline)
-                if let note = option.raw["note"].text { Text(verbatim: note).font(.footnote) }
-                if let result, result.lastPickID == option.id {
-                    Label(result.passed ? "playkit.pricePair.lastCorrect" : "playkit.pricePair.lastIncorrect",
-                          systemImage: result.passed ? "checkmark.circle" : "xmark.circle")
-                        .font(.footnote)
-                        .accessibilityIdentifier("playkit.pricePair.lastPick." + option.id)
-                }
-                if let result, result.answerID == option.id {
-                    Label("playkit.pricePair.revealedAnswer", systemImage: "checkmark.circle.fill")
-                        .font(.footnote)
-                        .accessibilityIdentifier("playkit.pricePair.answer." + option.id)
-                }
+                if revealed, let note = option.raw["note"].text, !note.isEmpty { Text(verbatim: note).font(.footnote) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .disabled(!enabled)
+        .disabled(!enabled || revealed)
         .accessibilityLabel(Text(verbatim: option.label))
-        .accessibilityValue(Text(on ? "playkit.pricePair.currentChoice" : "playkit.select"))
+        .accessibilityValue(mark.map { Text($0.key) } ?? Text(on ? "playkit.pricePair.currentChoice" : "playkit.select"))
         .accessibilityAddTraits(on ? .isSelected : [])
         if on { button.buttonStyle(.borderedProminent) } else { button.buttonStyle(.bordered) }
     }
