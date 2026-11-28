@@ -58,11 +58,16 @@ import SwiftUI
     @StateObject private var session = AppSession()
     @State private var reader: TicketWalletFixtureReader
     @State private var revision = 0
-    init() {
+    /// mp-mine r3 (Next round 3): design fixtures e4-tickets-empty / -error / -guest pass their state here so the
+    /// sweep shows the MP 还没有票 / 票夹没能打开 / 登录后查看票夹 shells. Nil keeps the UI-test launch argument.
+    private let showsStateActions: Bool
+    init(scenario: TicketWalletFixtureReader.Scenario? = nil) {
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-ticket-wallet-scenario")
         let raw = index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil }
-        _reader = State(initialValue: TicketWalletFixtureReader(scenario: raw.flatMap(TicketWalletFixtureReader.Scenario.init(rawValue:)) ?? .content))
+        let resolved = scenario ?? raw.flatMap(TicketWalletFixtureReader.Scenario.init(rawValue:)) ?? .content
+        _reader = State(initialValue: TicketWalletFixtureReader(scenario: resolved))
+        showsStateActions = scenario != nil
     }
     var body: some View {
         VStack(spacing: 0) {
@@ -72,6 +77,8 @@ import SwiftUI
             }
             if reader.scenario == .unavailable || reader.scenario == .refreshed {
                 NavigationStack { TicketWalletDetailView(id: 901, reader: reader) }
+            } else if showsStateActions {
+                TicketWalletView(reader: reader, onSignIn: {}, onExplore: {})
             } else { TicketWalletView(reader: reader) }
         }
         .id(revision)
