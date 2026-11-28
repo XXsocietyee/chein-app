@@ -597,9 +597,24 @@ finding. Not done item: VoiceOver grouping, rest of the run-35 scan.
 | remaining player steppers (RPG skill bonus, chapter supply max, reward discard, mod Q&A attempts) | `PlayRPGComponents:164`, `TopicCreatorToolsView:312`, `PlayRuntimeGapViews:387`, `ModInstallationQaEditorView:87` | ✓ | Audit: each label names the field with its value ("Skill bonus +2", "Give up X: 1 of 3"). No change. Level C | Done |
 
 
+### Run 37 (11-28)
+Merged `origin/ui/combined-r7` (e9296b463). Sweep index still **0446d1c4f**, so the sheets re-read waits. No open coordinator
+finding. Not done item: `Toggle` rows with a caption. Scripted scan of every player `Toggle` (Merchant / Fixture / Diagnostics
+skipped): a caption inside the Toggle label is already read once with the switch (wallet cart, editor switch rows, IM invite
+switch, cast sheet). Six captions sat as a sibling `Text` right under the switch and were a separate VoiceOver stop:
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/roam` record share (显示地点) | `RoamHistoryShareView.swift:150` | ✓ (mp-roam owns order) | Caption is now the switch's `accessibilityHint` and hidden as its own stop; look unchanged. Level B | Done |
+| catalog / stamp share card (显示地点) | `CatalogShareCardView.swift:50` | ✓ (mp-roam owns order) | Same: hint on the switch, caption hidden. Level B | Done |
+| `pages/publishkit` branch step 结束节点 | `TemplateBranchCompositionFields.swift:65` | ✓ (mp-publish owns order) | Same; the "choice hint" in the else branch is not about the switch and stays a stop. Level C | Done |
+| `pages/publishkit` module switch (启用模块 + provider line) | `TemplateCreatorConfigurationView.swift:14` | ✓ (mp-publish owns order) | Same. Level C | Done |
+| `pages/publishkit` initial attributes 启用 | `ProjectInitialAttributesEditor.swift:128` | ✓ (mp-publish owns order) | Same. The per-row "flag / integer" caption explains the whole row's fields, not the 可见 switch, so it stays a stop. Level C | Done |
+
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-36).
-- `Toggle` rows with a caption under the title (check VoiceOver reads title + caption once, and the caption is not a separate stop).
+- `Picker` / `Stepper` rows with a sibling caption (same pattern as the run-37 Toggle fix).
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
