@@ -38,7 +38,9 @@ import Foundation
     private var holds: [Hold] = []
     private var revisions: [String: Int] = [:]
     private var revokeListeners: [String: [UUID: () -> Void]] = [:]
-    private let driver: any SessionLocationDriving
+    /// Weak: the session tracker owns this ledger and is the driver. A strong driver
+    /// would keep that tracker (and every hold closure) alive after the session drops it.
+    private weak var driver: (any SessionLocationDriving)?
     public private(set) var isRunning = false
     public private(set) var isBackground = false
     /// Changes on every acquire, release and revoke, for observers that redraw the privacy page.
@@ -120,6 +122,10 @@ import Foundation
 
     private func apply() {
         let wantsBackground = holds.contains { !$0.foregroundOnly }
+        guard let driver else {
+            isRunning = false; isBackground = false
+            changeCount &+= 1; onChange?(); return
+        }
         if holds.isEmpty {
             if isRunning { driver.stopUpdates() }
             isRunning = false; isBackground = false

@@ -357,6 +357,22 @@ private enum PSFixture {
         XCTAssertGreaterThan(provider.stops, 0); XCTAssertNil(coordinator.publishingRequestKey)
     }
 
+    func testSharingCoordinatorDeallocatesWhilePublishAndLeaseTimersRun() async throws {
+        let service = PSService(scope: try PSFixture.scope()); let provider = PSProvider()
+        weak var released: PersonalLocationShareCoordinator?
+        do {
+            let coordinator = await configured(service: service, journal: PSJournal(), provider: provider)
+            released = coordinator
+            await confirm(coordinator)
+            XCTAssertNotNil(coordinator.publishingRequestKey)
+            XCTAssertEqual(provider.makes, 1)
+            await coordinator.refreshReceived()
+            XCTAssertFalse(coordinator.visibleLocations.isEmpty)
+        }
+        for _ in 0..<40 where released != nil { await Task.yield() }
+        XCTAssertNil(released)
+    }
+
     func testOwnedOnlyStopJournalFailureCannotBeReopenedBySuccessfulRead() async throws {
         let service = PSService(scope: try PSFixture.scope()); service.ownedValues = [PSFixture.grant()]
         let journal = PSJournal(); let provider = PSProvider()

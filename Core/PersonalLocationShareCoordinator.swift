@@ -96,6 +96,9 @@ public struct PersonalLocationShareConfirmationTicket: Equatable, Identifiable, 
         self.current = current; self.uptime = uptime; clockUptime = uptime()
         receiver = .init(recipientId: scope.accountId)
     }
+    deinit {
+        publisher?.cancel(); receiverPoll?.cancel(); leaseTimer?.cancel(); ownerLeaseTimer?.cancel()
+    }
     public private(set) var authorizationGeneration: UInt64 = 0
     private var isCurrent: Bool { !authorizationBlocked && current() == scope && service?.scope == scope }
     private var canRead: Bool { isCurrent && foreground && connected }
@@ -462,26 +465,40 @@ public struct PersonalLocationShareConfirmationTicket: Equatable, Identifiable, 
                 self.ownerDeadline.map { self.uptime() < $0 } == true
         })
         publisher = Task { [weak self] in
-            guard let self else { return }
-            while self.live(captured), self.publishingRequestKey == grant.requestKey, !Task.isCancelled {
+            let requestKey = grant.requestKey
+            while !Task.isCancelled {
+                // publishIfCurrent retains the coordinator only for that call. The refresh pause does not.
                 do {
-                    try await self.publishOne(grant: grant, policy: policy, captured: captured)
-                    try await Self.pause(milliseconds: policy.refreshAfterMs)
+                    guard try await self?.publishIfCurrent(grant: grant, policy: policy, captured: captured, requestKey: requestKey) == true else { return }
                 } catch {
-                    if self.handleAuthorizationFailure(error) { return }
-                    if self.publishingRequestKey == grant.requestKey {
-                        self.report(error) // Do not hide permission/accuracy failures behind a hanging revoke.
-                        await self.stop(requestKey: grant.requestKey)
-                        if self.live(captured), self.journalHealthy {
-                            self.report(error)
-                            if self.requests[grant.requestKey] == .stopPending { self.message += " 服务端撤销仍待确认，请重试原请求。" }
-                        }
-                    }
+                    await self?.publisherFailed(error, requestKey: requestKey, captured: captured)
+                    return
+                }
+                do { try await Self.pause(milliseconds: policy.refreshAfterMs) } catch {
+                    await self?.publisherFailed(error, requestKey: requestKey, captured: captured)
                     return
                 }
             }
         }
         message = "服务端授权已建立，正在等待本次前台定位；尚不能确认已发布位置。"
+    }
+    /// False when this generation or request is no longer the live publish. Throws the publish error.
+    private func publishIfCurrent(grant: PersonalLocationShareGrant, policy: PersonalLocationSharePolicy, captured: UInt64, requestKey: String) async throws -> Bool {
+        guard live(captured), publishingRequestKey == requestKey else { return false }
+        try await publishOne(grant: grant, policy: policy, captured: captured)
+        return true
+    }
+    /// Same failure path the publisher used when publish or its pause threw, including cancellation.
+    private func publisherFailed(_ error: Error, requestKey: String, captured: UInt64) async {
+        if handleAuthorizationFailure(error) { return }
+        if publishingRequestKey == requestKey {
+            report(error) // Do not hide permission/accuracy failures behind a hanging revoke.
+            await stop(requestKey: requestKey)
+            if live(captured), journalHealthy {
+                report(error)
+                if requests[requestKey] == .stopPending { message += " 服务端撤销仍待确认，请重试原请求。" }
+            }
+        }
     }
     private func publishOne(grant: PersonalLocationShareGrant, policy: PersonalLocationSharePolicy, captured: UInt64) async throws {
         guard live(captured), !stopFence.contains(grant.requestKey), let service, let provider,
@@ -558,17 +575,26 @@ public struct PersonalLocationShareConfirmationTicket: Equatable, Identifiable, 
         guard !receiver.visible.isEmpty else { return }
         let captured = generation
         leaseTimer = Task { [weak self] in
-            guard let self else { return }
             // Wake at actual policy-derived stale/expiry boundaries, never a local business cadence.
-            while self.live(captured), !self.receiver.visible.isEmpty, !Task.isCancelled {
-                let now = self.uptime()
-                let boundaries = self.receiver.visible.values.flatMap { [$0.deadlineUptime, $0.staleUptime] }.filter { $0 > now }
-                guard let next = boundaries.min() else { self.receiver.expire(at: now); break }
-                do { try await Task.sleep(nanoseconds: UInt64(min((next - now) * 1_000_000_000, Double(Int64.max)))) } catch { return }
-                guard self.live(captured), !Task.isCancelled else { return }
-                self.clockUptime = self.uptime(); self.receiver.expire(at: self.clockUptime)
+            // Each call retains the coordinator only for that call. The sleep does not.
+            while !Task.isCancelled {
+                guard let nanoseconds = self?.leaseSleepNanoseconds(captured: captured) else { return }
+                do { try await Task.sleep(nanoseconds: nanoseconds) } catch { return }
+                guard self?.expireLease(captured: captured) == true else { return }
             }
         }
+    }
+    /// Nil stops the lease loop. No next boundary expires now and stops, matching the old `break`.
+    private func leaseSleepNanoseconds(captured: UInt64) -> UInt64? {
+        guard live(captured), !receiver.visible.isEmpty else { return nil }
+        let now = uptime()
+        let boundaries = receiver.visible.values.flatMap { [$0.deadlineUptime, $0.staleUptime] }.filter { $0 > now }
+        guard let next = boundaries.min() else { receiver.expire(at: now); return nil }
+        return UInt64(min((next - now) * 1_000_000_000, Double(Int64.max)))
+    }
+    private func expireLease(captured: UInt64) -> Bool {
+        guard live(captured), !Task.isCancelled else { return false }
+        clockUptime = uptime(); receiver.expire(at: clockUptime); return true
     }
     private func stopLocalPublisher() { collectionSwitches.shareStopped(); authorizationGeneration &+= 1; ownerLeaseTimer?.cancel(); ownerLeaseTimer = nil; grantExpiryUptime = nil; provider?.stop(); provider = nil; publishingGrantId = nil; publisher?.cancel(); publisher = nil; publishingRequestKey = nil; ownerDeadline = nil }
     private func cancelReceiver() { receiverReadRevision &+= 1; receiverPoll?.cancel(); receiverPoll = nil; leaseTimer?.cancel(); leaseTimer = nil }

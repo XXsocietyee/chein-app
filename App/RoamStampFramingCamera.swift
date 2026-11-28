@@ -17,6 +17,7 @@ import UIKit
     private var pinchStart = RoamStampFramingState.defaultRatio
     private var ready = false
     private var shotFailed = false
+    private let pinchRelay = PinchRelay()
     private let finished: (Result<RetainedSelectedImage?, Error>) -> Void
     private var locale: Locale
 
@@ -31,7 +32,9 @@ import UIKit
         super.viewDidLoad(); view.backgroundColor = .systemBackground
         preview.backgroundColor = .black; preview.layer.cornerRadius = 20; preview.clipsToBounds = true
         preview.accessibilityIdentifier = "roam.stampFraming.preview"
-        preview.addGestureRecognizer(UIPinchGestureRecognizer(target: self, action: #selector(pinched(_:))))
+        // The recognizer retains its target. A relay keeps that off this controller, which already owns preview.
+        pinchRelay.owner = self
+        preview.addGestureRecognizer(UIPinchGestureRecognizer(target: pinchRelay, action: #selector(PinchRelay.pinched(_:))))
         scale.minimumValue = Float(RoamStampFramingState.minimumRatio)
         scale.maximumValue = Float(RoamStampFramingState.maximumRatio)
         scale.accessibilityLabel = appLocalized("roam.stampFraming.range", locale: locale)
@@ -102,7 +105,7 @@ import UIKit
         if hint.text != message { hint.text = message; view.setNeedsLayout() }
     }
     @objc private func sliderChanged() { framing.adjust(to: Double(scale.value)); refreshControls() }
-    @objc private func pinched(_ gesture: UIPinchGestureRecognizer) {
+    private func pinched(_ gesture: UIPinchGestureRecognizer) {
         guard ready, framing.isActive, framing.pending == nil else { return }
         if gesture.state == .began { pinchStart = framing.ratio }
         if gesture.state == .began || gesture.state == .changed {
@@ -139,6 +142,12 @@ import UIKit
     private func fail() {
         guard framing.isActive else { return }
         invalidate(); finished(.failure(RetainedImageFailure.invalid))
+    }
+
+    /// Gesture recognizers retain their target. This target does not retain the controller.
+    private final class PinchRelay: NSObject {
+        weak var owner: RoamStampFramingCameraController?
+        @objc func pinched(_ gesture: UIPinchGestureRecognizer) { owner?.pinched(gesture) }
     }
 }
 

@@ -88,6 +88,15 @@ import ImageIO
     func testEmptyImageFailsWithoutReturningOriginalContainer() throws {
         XCTAssertThrowsError(try RoamStampFramedPixels.render(UIImage(), frame: frame(0.74)))
     }
+    func testFramingCameraControllerDeallocatesAfterThePreviewLoads() {
+        weak var released: RoamStampFramingCameraController?
+        autoreleasepool {
+            let controller = RoamStampFramingCameraController(locale: Locale(identifier: "en"), finished: { _ in })
+            released = controller
+            controller.loadViewIfNeeded()
+        }
+        XCTAssertNil(released)
+    }
     func testFractionalFrameProducesNoAspectRatioRoundingDrift() throws {
         let fractional = try RoamStampFrame(viewportWidth: 367.5, viewportHeight: 459.375, ratio: 0.743)
         let output = try RoamStampFramedPixels.render(image(width: 1333, height: 1777), frame: fractional)
