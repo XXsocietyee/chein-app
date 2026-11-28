@@ -72,6 +72,13 @@ public enum PublicContentShareLink {
         return url
     }
 
+    /// Mini-program `subpackageRoam/official-route/index?id=` (MP official-route/index.js `SHARE_PATH`, `onShareAppMessage` /
+    /// `onShareTimeline`): the route detail share. Nil when the id is not canonical or the link would not parse back.
+    public static func officialRoute(id: String) -> URL? {
+        guard canonicalID(id) != nil else { return nil }
+        return reviewedPage("subpackageRoam/official-route/index", items: [URLQueryItem(name: "id", value: id)])
+    }
+
     /// Mini-program `pages/talent/list/index?tab=`. Nil while that page is not already a universal link.
     public static func clubHub(tab: String) -> URL? {
         guard tab == "feed" || tab == "club", let origin,

@@ -621,6 +621,18 @@ No new coordinator finding for mp-roam since 07:45; latest sweep still build 044
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet **new 0**. No Swift build here.
 
+## Round 3 continue (48) — pages without a row: roam components; official-route share on the shipping route card
+
+Base re-merged with `origin/ui/combined-r7` (clean). Latest sweep still build 0446d1c4f (no new mp-roam finding). B lane (`mp/r3-roam-b`) finished "team-recovery per-command rows on my-teams / nearby" (marked below).
+Pages in the area with no row until now, read this run: `components/roam-photo` (decorative event photo / 3D icon, `aria-hidden`; native rows use SF Symbols — no content), `components/roam-place-note` (tag → 推荐理由 + 资料来源 lookup; already rendered on the place card, row `pages/roam/index` 地标 · 地点卡), `components/cy/share-card` (roam page never sets `shareCard.show`, dead in the MP roam page), `components/cy/scene-qr-citynode` (covered by the `citynode-code` rows), `components/cy/route-thumb` / `scene-roam-history` (covered by `history` rows), `components/cy/slide-confirm` (used by `pages/play`, mp-journey), `components/roam-atmos-entry` (weather/atmosphere: `fix/1128c-ai-weather`), `utils/team-recovery-panel` (B lane).
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| MP `subpackageRoam/official-route/index.js` `SHARE_PATH` + `onShareAppMessage` / `onShareTimeline` (title = route name, else 城瘾官方线路; path `?id=`) | `subpackageRoam/official-route` → shipping `App/NativeR2/MapHome/RoamMapHomeRoutes.swift` `RoamMapHomeRouteCard` | The legacy `OfficialRouteDetailView` had a share card, but the route card players reach from the map home had no share at all, and no https link existed for the route page. | `Core/PublicContentShareLink.officialRoute(id:)` (MP path, kept only when `UniversalLinkParser` reads it back as the same `MiniProgramPageLink`); the route card's toolbar gets a system `ShareLink` (subject + preview = route name, fallback `officialRoute.share.fallbackTitle` 城瘾官方线路 / Chein official route) once the route is loaded. Test `PublicContentShareLinkTests.testOfficialRouteShareIsTheMiniProgramRoutePageThatParsesBack`. | B · `r3-roam-routes` → route card |
+| A row "team-recovery per-command rows on my-teams / nearby" | `subpackageRoam/my-teams`, `nearby` | — | Done (B lane, `817059d4c`). | — |
+
+Gates: see commit. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
@@ -631,7 +643,7 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
   `RoamStampExchangeCoordinator` (never instantiated), so the citystamp camera (`showsCaption: true`) keeps its caption + exchange. Needs an
   upload-only camera mode returning the picture URL and session wiring for the coordinator — left for a compiled pass.
-- team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
+- team-recovery per-command rows on my-teams / nearby: done (B lane, `817059d4c`).
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen from merchant pins + shop photo pins: done in continue (23).
 - For other lanes (ds-consistency, mp-journey, mp-activity): the default panel is now ds-consistency's elevated surface (follows the appearance); roam additionally opts into `.environment(\.cyMapPanelFollowsAppearance, true)` (continue 24). The other `CYMapScaffold` users (`PlayExperienceView`, `PlaySessionView`, `NearbyTeamViews`) and `CYRoamNearbySheet` (fixture only) still use the black `cyMapPanelColor`; opt in once their panel content is checked for semantic colours.
