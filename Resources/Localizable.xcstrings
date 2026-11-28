@@ -209959,13 +209959,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket price"
+            "value": "Ticket price (¥)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "票价"
+            "value": "票单价格 (¥)"
           }
         }
       }
@@ -210055,13 +210055,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Total stock"
+            "value": "Tickets issued"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "总库存"
+            "value": "发行数量 (张)"
           }
         }
       }
@@ -355961,7 +355961,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use up even with no effect"
+            "value": "Count recoveries that have no effect"
           }
         },
         "zh-Hans": {
