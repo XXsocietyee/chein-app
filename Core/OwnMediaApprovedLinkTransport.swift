@@ -7,7 +7,8 @@ import FoundationNetworking
     public init() {}
     public func send(_ request: URLRequest, authorization: OwnMediaApprovedLinkAuthorization) async throws -> (Data, Int) {
         guard authorization.accepts(request), authorization.isCurrent else { throw OwnMediaApprovedLinkFailure.unavailable }
-        let exchange = OwnMediaApprovedLinkExchange(endpoint: request.url!)
+        guard let releaseURL = request.url else { throw APIError.invalidConfiguration }
+        let exchange = OwnMediaApprovedLinkExchange(endpoint: releaseURL)
         return try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
                 exchange.install(continuation)

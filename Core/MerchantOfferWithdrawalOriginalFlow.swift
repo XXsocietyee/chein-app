@@ -87,8 +87,10 @@ public struct MerchantOfferWithdrawalOriginalReview:Identifiable,Equatable {
     private struct ResponseCode: Decodable { let code: Int }
     private func send<T:Decodable>(_ path:String,query:[URLQueryItem]=[],body:Data?=nil,stamp:UUID,as:T.Type)async throws->T{
         try ensure(stamp);guard allowed(path),let credential=token(),AuthRequestBuilder.isValidToken(credential) else{throw MerchantOfferWithdrawalOriginalFailure.unavailable}
-        var p=URLComponents(url:api.baseURL.appendingPathComponent(path),resolvingAgainstBaseURL:false)!;if !query.isEmpty{p.queryItems=query}
-        var r=URLRequest(url:p.url!);r.httpMethod=body==nil ? "GET":"POST";r.httpBody=body;r.httpShouldHandleCookies=false;r.cachePolicy = .reloadIgnoringLocalCacheData
+        guard var p = URLComponents(url:api.baseURL.appendingPathComponent(path),resolvingAgainstBaseURL:false) else { throw APIError.invalidConfiguration }
+        if !query.isEmpty{p.queryItems=query}
+        guard let releaseURL = p.url else { throw APIError.invalidConfiguration }
+        var r=URLRequest(url:releaseURL);r.httpMethod=body==nil ? "GET":"POST";r.httpBody=body;r.httpShouldHandleCookies=false;r.cachePolicy = .reloadIgnoringLocalCacheData
         r.setValue(credential,forHTTPHeaderField:"Authorization");if body != nil{r.setValue("application/json",forHTTPHeaderField:"Content-Type")}
         let transport=self.transport;let job=Task{try await transport.send(r)};transmission=job;defer{transmission=nil}
         let(data,status)=try await withTaskCancellationHandler(operation:{try await job.value},onCancel:{job.cancel()});try ensure(stamp)

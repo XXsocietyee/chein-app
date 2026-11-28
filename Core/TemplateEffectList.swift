@@ -87,14 +87,14 @@ public struct TemplateEffectList {
             let row = values.remove(at: from); values.insert(row, at: to)
         case .operation(let index, let operation):
             guard values.indices.contains(index), Self.operations.contains(operation) else { return nil }
-            var row = values[index].object!
+            guard var row = values[index].object else { return nil }
             let value = row["value"]
             if operation == "ADD_TAG" { row["value"] = .string(value?.string ?? "") }
             else { row["value"] = .number(Self.numericTransition(value)) }
             row["op"] = .string(operation); values[index] = .object(row)
         case .input(let index, let field, let text):
             guard values.indices.contains(index) else { return nil }
-            var row = values[index].object!
+            guard var row = values[index].object else { return nil }
             guard Self.operations.contains(row["op"]?.string ?? "") else { return nil }
             switch field {
             case .variable:

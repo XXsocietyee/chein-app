@@ -107,7 +107,7 @@ public enum FreeExplorationVisitConfigError: Error, Equatable {
         guard readsEnabled else { throw FreeExplorationVisitConfigError.disabled }
         try Self.admit(configuration)
         guard topicID > 0, let token = token(), AuthRequestBuilder.isValidToken(token) else { throw FreeExplorationVisitConfigError.unauthorized }
-        var components = URLComponents(url: configuration.baseURL.appendingPathComponent(Self.path), resolvingAgainstBaseURL: false)!
+        guard var components = URLComponents(url: configuration.baseURL.appendingPathComponent(Self.path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         components.queryItems = [URLQueryItem(name: "topicId", value: String(topicID))]
         guard let url = components.url else { throw FreeExplorationVisitConfigError.malformed }
         var request = URLRequest(url: url); request.httpMethod = "GET"

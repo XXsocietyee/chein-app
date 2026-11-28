@@ -180,7 +180,7 @@ private enum CheckinError: Error { case rejected(String) }
     private func send<Value: Decodable>(_ suffix: String, command: NativeChannelCheckinCommand? = nil, query: [String: String] = [:], source: () -> Bool) async throws -> Value {
         let method = command == nil ? "GET" : "POST"
         guard source(), !Task.isCancelled, allows(method, suffix) else { throw APIError.notConfigured }
-        var url = URLComponents(url: context.baseURL.appendingPathComponent("api/im/channel/" + suffix), resolvingAgainstBaseURL: false)!
+        guard var url = URLComponents(url: context.baseURL.appendingPathComponent("api/im/channel/" + suffix), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if command == nil { url.queryItems = (["channel_id": channelID].merging(query) { _, rhs in rhs }).sorted { $0.key < $1.key }.map { .init(name: $0.key, value: $0.value) } }
         guard let endpoint = url.url else { throw APIError.invalidRequest }
         var request = URLRequest(url: endpoint); request.httpMethod = method; request.httpShouldHandleCookies = false

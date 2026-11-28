@@ -62,9 +62,10 @@ public struct NativePlatformPending: Equatable {
     public func timeWindow(activityID: Int, topicID: Int, nodeID: Int) async throws -> NativeTimeWindow {
         try gate(remindersEnabled)
         guard activityID >= 0, topicID > 0, nodeID > 0 else { throw NativePlatformIssue.invalidContract }
-        var components = URLComponents(url: service.configuration.baseURL.appendingPathComponent(Self.windowPath), resolvingAgainstBaseURL: false)!
+        guard var components = URLComponents(url: service.configuration.baseURL.appendingPathComponent(Self.windowPath), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         components.queryItems = [URLQueryItem(name: "activityId", value: String(activityID)), URLQueryItem(name: "nodeId", value: String(nodeID)), URLQueryItem(name: "topicId", value: String(topicID))]
-        var request = URLRequest(url: components.url!); request.httpMethod = "GET"; request.timeoutInterval = 20
+        guard let releaseURL = components.url else { throw APIError.invalidConfiguration }
+        var request = URLRequest(url: releaseURL); request.httpMethod = "GET"; request.timeoutInterval = 20
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue(owner.token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
         try Task.checkCancellation()

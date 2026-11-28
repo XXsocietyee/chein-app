@@ -125,7 +125,7 @@ public struct NativeFriendApproval: Equatable {
     }
     private func exchange<T: Decodable>(_ suffix: String, fields: [String: String], body: Data?) async throws -> T {
         guard isCurrent, approval.endpoint.paths.contains("api/friend/" + suffix), !Task.isCancelled else { throw NativeFriendFailure.notSent }
-        var parts = URLComponents(url: context.baseURL.appendingPathComponent("api/friend/" + suffix), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: context.baseURL.appendingPathComponent("api/friend/" + suffix), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if body == nil { parts.queryItems = fields.sorted(by: { $0.key < $1.key }).map { URLQueryItem(name: $0.key, value: $0.value) } }
         guard let url = parts.url else { throw NativeFriendFailure.notSent }
         var request = URLRequest(url: url); request.httpShouldHandleCookies = false; request.httpMethod = body == nil ? "GET" : "POST"

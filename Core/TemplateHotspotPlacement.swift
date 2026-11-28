@@ -69,10 +69,12 @@ public struct TemplateHotspotPlacement {
             let row = rows.remove(at: index); rows.insert(row, at: destination)
         case .label(let id, let label):
             guard let index = targets.firstIndex(where: { $0.id == id }) else { return nil }
-            var row = rows[index].object!; row["label"] = .string(label); rows[index] = .object(row)
+            guard var row = rows[index].object else { return nil }
+            row["label"] = .string(label); rows[index] = .object(row)
         case .place(let id, let x, let y, let width, let height):
             guard let index = targets.firstIndex(where: { $0.id == id }), let point = Self.point(x: x, y: y, width: width, height: height) else { return nil }
-            var row = rows[index].object!; row["x"] = .number(point.x); row["y"] = .number(point.y); rows[index] = .object(row)
+            guard var row = rows[index].object else { return nil }
+            row["x"] = .number(point.x); row["y"] = .number(point.y); rows[index] = .object(row)
         }
         var next = draft; next.set("hiddenObject", "hotspots", .array(rows)); return next
     }

@@ -83,7 +83,7 @@ public enum OwnMediaImagePreviewRoute {
     }
     public var isCurrent: Bool { !cancelled && !Task.isCancelled && current() }
     public func accepts(_ request: URLRequest) -> Bool {
-        guard request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true,
+        guard (request.url?.absoluteString == expected.url?.absoluteString && request.url != nil) == true,
               request.httpMethod == "GET", request.httpBody == nil, request.httpBodyStream == nil,
               request.allHTTPHeaderFields == expected.allHTTPHeaderFields, !request.httpShouldHandleCookies,
               request.cachePolicy == .reloadIgnoringLocalCacheData, request.value(forHTTPHeaderField: "Cookie") == nil else { return false }

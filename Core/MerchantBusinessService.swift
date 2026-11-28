@@ -56,7 +56,7 @@ public struct MerchantBusinessService {
     }
     public func makeRequest(_ descriptor: MerchantBusinessRequest, token: String) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        var url = URLComponents(url: configuration.baseURL.appendingPathComponent(descriptor.path), resolvingAgainstBaseURL: false)!
+        guard var url = URLComponents(url: configuration.baseURL.appendingPathComponent(descriptor.path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if !descriptor.query.isEmpty { url.queryItems = descriptor.query.sorted(by: { $0.key < $1.key }).map { URLQueryItem(name: $0.key, value: $0.value) } }
         guard let target = url.url else { throw MerchantBusinessFailure.invalid }
         let fields: [String: String]

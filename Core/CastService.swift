@@ -90,7 +90,7 @@ public struct CastService {
         request.setValue(token, forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if !query.isEmpty {
-            var components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!
+            guard let requestURL = request.url, var components = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
             components.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
             request.url = components.url
         }

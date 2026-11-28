@@ -63,7 +63,7 @@ public struct PlayService {
     func actionContext(scope: PlaySessionScope, nodeID: Int, token: String) async throws -> PlayBasicActionContext {
         guard nodeID > 0 else { throw APIError.invalidRequest }
         var request = try readRequest("api/play/action-context", scope: scope, token: token)
-        guard var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
+        guard let requestURL = request.url, var url = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         url.queryItems = (url.queryItems ?? []) + [URLQueryItem(name: "nodeId", value: String(nodeID))]
         guard let finalURL = url.url else { throw APIError.invalidRequest }
         request.url = finalURL
@@ -81,7 +81,7 @@ public struct PlayService {
     private func readRequest(_ path: String, scope: PlaySessionScope, token: String) throws -> URLRequest {
         guard scope.isValid else { throw APIError.invalidRequest }
         var request = try baseRequest(path, token: token)
-        guard var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
+        guard let requestURL = request.url, var url = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         url.queryItems = scope.fields.sorted(by: { $0.key < $1.key }).map { URLQueryItem(name: $0.key, value: $0.value) }
         guard let finalURL = url.url else { throw APIError.invalidRequest }
         request.url = finalURL; request.httpMethod = "GET"

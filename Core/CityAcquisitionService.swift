@@ -79,7 +79,8 @@ private enum CityAcquisitionDates {
         let prefix = baseURL.appendingPathComponent("api/city-game/acquisition").absoluteString
         if request.httpMethod == "GET", request.httpBody == nil {
             if let items = parts.queryItems, items.count == 1, items[0].name == "regionId", let region = items[0].value, CityReadRoute.validID(region), ["state", "titles"].contains(url.lastPathComponent) {
-                var canonical = URLComponents(string: prefix + "/" + url.lastPathComponent)!; canonical.queryItems = [.init(name: "regionId", value: region)]
+                guard var canonical = URLComponents(string: prefix + "/" + url.lastPathComponent) else { return nil }
+                canonical.queryItems = [.init(name: "regionId", value: region)]
                 guard canonical.url == url else { return nil }; write = false; regionID = region; return
             }
             if parts.query == nil, let id = UUID(uuidString: url.lastPathComponent), url.absoluteString == prefix + "/request/" + id.uuidString { write = false; regionID = nil; return }
@@ -198,8 +199,10 @@ private enum CityAcquisitionDates {
               (t.budgetVersion ?? 0) > 0, (t.termSeconds ?? 0) > 0 else { throw CityAcquisitionError.malformed }
     }
     private func execute(_ path: String, query: [URLQueryItem]? = nil, body: Data? = nil) async throws -> (Data, Int) {
-        var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/acquisition/" + path), resolvingAgainstBaseURL: false)!; parts.queryItems = query
-        var request = URLRequest(url: parts.url!); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body; request.httpShouldHandleCookies = false; request.cachePolicy = .reloadIgnoringLocalCacheData
+        guard var parts = URLComponents(url: approval.context.baseURL.appendingPathComponent("api/city-game/acquisition/" + path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
+        parts.queryItems = query
+        guard let releaseURL = parts.url else { throw APIError.invalidConfiguration }
+        var request = URLRequest(url: releaseURL); request.httpMethod = body == nil ? "GET" : "POST"; request.httpBody = body; request.httpShouldHandleCookies = false; request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue(approval.context.session.token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
         if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         let result = try await transport.send(request)

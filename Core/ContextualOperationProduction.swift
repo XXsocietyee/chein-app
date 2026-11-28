@@ -148,9 +148,10 @@ private enum ContextualOperationBoundary {
         do {
             let data = try await detail(target, captured: captured, transport: scoped)
             guard data["timeLocationLocked"].bool == false else { throw ClubOpsTimeFailure.rejected }
-            var components = URLComponents(url: configuration.baseURL.appendingPathComponent("api/club/lead/team-progress"), resolvingAgainstBaseURL: false)!
+            guard var components = URLComponents(url: configuration.baseURL.appendingPathComponent("api/club/lead/team-progress"), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
             components.queryItems = [.init(name: "activityId", value: String(target.activityID))]
-            var leaderRequest = URLRequest(url: components.url!); leaderRequest.httpMethod = "GET"
+            guard let releaseURL = components.url else { throw APIError.invalidConfiguration }
+            var leaderRequest = URLRequest(url: releaseURL); leaderRequest.httpMethod = "GET"
             leaderRequest.setValue(captured.session.token, forHTTPHeaderField: "Authorization")
             let leader = try ContextualOperationBoundary.data(await scoped.send(leaderRequest))
             guard leader["exists"].bool == true, leader["isLeader"].bool == true,

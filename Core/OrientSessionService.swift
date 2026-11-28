@@ -247,7 +247,7 @@ public enum OrientSessionWriteReceipt: Equatable {
         request.httpMethod = method; request.timeoutInterval = 20; request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("application/json", forHTTPHeaderField: "Accept"); request.setValue(token, forHTTPHeaderField: "Authorization")
         if method == "GET" {
-            guard var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
+            guard let requestURL = request.url, var url = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
             url.queryItems = fields.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
             guard let final = url.url else { throw APIError.invalidRequest }; request.url = final
         } else if json {

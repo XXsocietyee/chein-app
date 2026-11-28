@@ -14,7 +14,7 @@ import FoundationNetworking
     public func scoped(authorize: @escaping () throws -> Void) -> Self { var copy = self; copy.authorize = authorize; return copy }
     private func request(_ method: String, _ path: String, token: String, body: [String: Any]? = nil, query: [String: String] = [:]) throws -> URLRequest {
         guard AuthRequestBuilder.isValidToken(token) else { throw SquareWorkspaceFailure.invalid }
-        var components = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var components = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if !query.isEmpty { components.queryItems = query.keys.sorted().map { URLQueryItem(name: $0, value: query[$0]) } }
         guard let url = components.url else { throw SquareWorkspaceFailure.invalid }
         var r = URLRequest(url: url); r.httpMethod = method; r.httpShouldHandleCookies = false

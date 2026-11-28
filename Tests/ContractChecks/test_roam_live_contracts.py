@@ -23,8 +23,8 @@ class LiveRoamContracts(unittest.TestCase):
         self.assertIn('currentSession() == captured', service)
         self.assertIn('result.sessionId == sessionID', service)
         controller = source('Core/RoamLiveSessionController.swift')
-        self.assertLess(controller.index('draft.pendingWrite = .reveal; try persist(draft)'), controller.index('service!.reveal('))
-        self.assertLess(controller.index('draft.pendingWrite = .finish; try persist(draft)'), controller.index('service!.finish('))
+        self.assertLess(controller.index('draft.pendingWrite = .reveal; try persist(draft)'), controller.index('requireService().reveal('))
+        self.assertLess(controller.index('draft.pendingWrite = .finish; try persist(draft)'), controller.index('requireService().finish('))
         self.assertIn('fact.hasCompleteSettlement, record.pendingTiles.isEmpty', controller)
         self.assertIn('try history.prependSettled(archived, fact: fact)', controller)
     def test_precise_tracking_is_ephemeral_and_presence_ttl_is_honest(self):

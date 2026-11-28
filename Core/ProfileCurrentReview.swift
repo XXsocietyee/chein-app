@@ -242,7 +242,8 @@ public struct ProfileCurrentReviewReadKey: Hashable {
     public init() {}
     public func send(_ request: URLRequest, authorization: ProfileCurrentReviewAuthorization) async throws -> (Data, Int) {
         guard authorization.accepts(request), authorization.isCurrent else { throw ProfileCurrentReviewFailure.unavailable }
-        let exchange = ProfileCurrentReviewExchange(endpoint: request.url!)
+        guard let releaseURL = request.url else { throw APIError.invalidConfiguration }
+        let exchange = ProfileCurrentReviewExchange(endpoint: releaseURL)
         return try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
                 exchange.install(continuation)

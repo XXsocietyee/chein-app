@@ -100,7 +100,7 @@ public enum PublicMerchantReviewFilter: String, CaseIterable, Hashable {
         if let session, session.realm != configuration.baseURL.absoluteString { throw PublicMerchantHomeFailure.invalid }
         do {
             try Task.checkCancellation()
-            var components = URLComponents(url: configuration.baseURL.appendingPathComponent("api/merchant/reviews/public"), resolvingAgainstBaseURL: false)!
+            guard var components = URLComponents(url: configuration.baseURL.appendingPathComponent("api/merchant/reviews/public"), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
             components.queryItems = [URLQueryItem(name: "merchantRowId", value: String(target.merchantRowID.rawValue)),
                                      URLQueryItem(name: "pageNum", value: String(page)), URLQueryItem(name: "pageSize", value: "20")]
             guard let url = components.url else { throw PublicMerchantHomeFailure.invalid }
