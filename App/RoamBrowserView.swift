@@ -601,7 +601,7 @@ struct RoamBrowserView: View {
         .modifier(RoamMapListStyle(plain: mapMode))
         .listRowBackground(Color.clear)
         .scrollContentBackground(.hidden)
-        .background(mapMode ? cyMapPanelColor : CYColor.bgPage)
+        .background(mapMode ? cyMapPanelColor : AnyShapeStyle(CYColor.bgPage))
         .contentMargins(.bottom, mapMode ? 24 : 0, for: .scrollContent)
         .refreshable { await load() }
         .accessibilityIdentifier("roam.content")
