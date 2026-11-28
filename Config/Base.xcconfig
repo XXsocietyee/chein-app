@@ -39,7 +39,7 @@ INFOPLIST_KEY_QuestifyCityGameRegion = $(QUESTIFY_CITY_GAME_REGION)
 
 // fix-1128-alipay (P0-4), owner value (docs/release/owner-values.md): the app's own URL scheme that Alipay returns
 // to after payment (`<scheme>://safepay/...`). Empty keeps Alipay off: the Pay with row lists WeChat Pay only.
-// The Alipay SDK binary is a second, separate opt-in: GCC_PREPROCESSOR_DEFINITIONS QUESTIFY_ALIPAY_SDK_APPROVED=1.
+// The Alipay SDK binary is a second, separate opt-in: define QUESTIFY_ALIPAY_SDK_APPROVED (value 1) in GCC_PREPROCESSOR_DEFINITIONS, Local only.
 QUESTIFY_ALIPAY_APP_SCHEME =
 
 #include? "Local.xcconfig"
