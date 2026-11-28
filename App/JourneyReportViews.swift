@@ -907,6 +907,8 @@ struct JourneySettleView: View {
     @State private var skipped = false
     /// The success haptic 150 ms after the seal's contact (skill-r2 SR2-49 "Seal lands").
     @State private var sealSuccess = false
+    /// mp-journey r3 (sweep 05:50, P30): the seal is the overview hero (MP `st-hero` trophy), sized with Dynamic Type.
+    @ScaledMetric(relativeTo: .largeTitle) private var sealSize: CGFloat = 88
     /// mp-journey r3: MP `st-pop` 谢谢 — the centred pop after a rating lands; it stays until 去分享.
     @State private var thanksPop = false
     @Environment(\.locale) private var locale
@@ -1054,13 +1056,16 @@ struct JourneySettleView: View {
     // in; nothing redraws. Beats follow the moment table (seal from 0, text +950 ms, chips 0 / 50 / 90).
     private func overview(_ report: JourneyReport) -> some View {
         VStack(spacing: CYSpacing.md) {
-            Spacer()
+            // mp-journey r3 (sweep 05:50, P30): the result sits in the upper part of the page, not centred under a
+            // large empty gap; the free space goes below the facts.
+            Spacer(minLength: CYSpacing.lg).frame(maxHeight: CYSpacing.xxxl * 2)
             // 结算 (204:15096, skill-r2 SR2-07): the `Moment/Art` seal at 96 pt lands over the stop count (6 / 6),
             // in place of the trophy and the row of ticks. No glow behind it (AGENTS 删减: no 发光).
             // N-JOURNEY-3 (r10): an SF Symbol seal instead of the drawn moment art (MP subpackageJourney/pages/settle).
-            Label { Text("playx.completed") } icon: { Image(systemName: "checkmark.seal.fill").imageScale(.large) }
-                .labelStyle(.iconOnly)
-                .font(.largeTitle)
+            Image(systemName: "checkmark.seal.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: min(sealSize, 160), height: min(sealSize, 160))
                 .foregroundStyle(Color.accentColor)
                 // P30: the seal bounces once with the success haptic; Reduce Motion keeps it still.
                 .symbolEffect(.bounce, value: reduceMotion ? false : sealSuccess)
@@ -1235,10 +1240,11 @@ struct JourneySettleView: View {
         MPBottomBar {
             switch step {
             case .overview:
-                // mp-journey r3 (MP settle wxml footer, overview): 看排行榜 is the one primary; 完成 is the quiet text link below.
+                // mp-journey r3 (MP settle wxml footer, overview): 看排行榜 is the one primary, 完成 under it.
+                // Sweep 05:50 (P30, OWNER RULE 2 one button system): 完成 is the `.bordered` secondary, not plain text;
+                // stacked so "See the leaderboard" never truncates in English or at large type.
                 CYPillButton("mp.settle.toRank", size: .moment) { go(.rank) }.accessibilityIdentifier("journeySettle.toRank")
-                Button("action.done", action: onDone).cyText(.label).foregroundStyle(CYColor.textSecondary)
-                    .frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("journeySettle.done")
+                CYPillButton("action.done", style: .secondary, action: onDone).accessibilityIdentifier("journeySettle.done")
             case .rank:
                 CYPillButton("mp.settle.toRate") { go(.rate) }.accessibilityIdentifier("journeySettle.toRate")
             case .rate:
