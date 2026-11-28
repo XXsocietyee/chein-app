@@ -24,7 +24,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact the organiser of this run."
+            "value": "Contact the organizer of this run."
           }
         },
         "zh-Hans": {
@@ -177,7 +177,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Trying again will not help. The organiser needs to fix this stop."
+            "value": "Trying again will not help. The organizer needs to fix this stop."
           }
         },
         "zh-Hans": {
@@ -755,7 +755,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The organiser approved going to this stop instead. You still need to arrive there."
+            "value": "The organizer approved going to this stop instead. You still need to arrive there."
           }
         },
         "zh-Hans": {
@@ -1469,7 +1469,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The route was changed by the organiser. This run cannot continue for now."
+            "value": "The route was changed by the organizer. This run cannot continue for now."
           }
         },
         "zh-Hans": {
@@ -1571,7 +1571,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questions? Ask the on-site staff or the organiser of this run."
+            "value": "Questions? Ask the on-site staff or the organizer of this run."
           }
         },
         "zh-Hans": {

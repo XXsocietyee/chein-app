@@ -86,12 +86,22 @@ struct D2Fixture: View {
                         .accessibilityIdentifier("account.mine.posts.empty")
                     }
                 case .mine:
+                    // mp-mine r3: MP TAB · 项目 for a player with no orders / projects / bounties:
+                    // 我的项目 (header + 管理全部, no preview) → 我的资产 (账户余额) → 通行证与礼品, as AccountView draws on Passport.
+                    Section("profile.selfProjects.title") {
+                        Button {} label: { Label("profile.selfProjects.all", systemImage: "square.stack") }
+                            .accessibilityIdentifier("profile.selfProjects.all")
+                    }
                     Section("wallet.assets") {
                         LabeledContent {
                             Text(verbatim: MemberBalanceDisplay.text("0", locale: locale)).monospacedDigit()
                         } label: {
                             Label { Text("member.card.balance", tableName: "MemberProfile") } icon: { Image(systemName: "wallet.pass") }
                         }
+                        Button {} label: {
+                            CYListRow("mp.account.passes", trailing: .none) { CYRowIcon(systemImage: "ticket") }
+                        }
+                        .accessibilityIdentifier("account.mp.passes")
                     }
                 case .achievements:
                     MemberAchievementMetricsSection(growth: growth, onOpenPoints: {}, onOpenPointsHelp: {}) {
