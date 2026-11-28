@@ -458,6 +458,7 @@ Merged `origin/ui/combined-r7` again (021045941; run 42 had merged 51f0d6476): x
 | # | MP page → native view | Problem in English | Fix | Status |
 |---|---|---|---|---|
 | 149 | `pages/publish/temp/index.wxml:261` qa 正确答案 (placeholder 可填多个，用、分隔; MP order unchanged) → `Core/TemplateCreatorSchema.swift:124` `creator.mp.qa.answerText.prompt` | English hint "Several answers allowed, separated by 、" asks US players to type a Chinese enumeration comma | en → "Several answers allowed, separated by commas". MP `pages/publish/utils/answer-text.js` `SEPARATOR_CHARS = '、,，;；'` accepts the ASCII comma, so the hint matches the judge. Catalog + `docs/port/strings/mp-r3-publish-b.json`; zh unchanged | Done |
+| 150 | `pages/publish/temp/*` creator config fields (MP order unchanged) → `Core/TemplateCreatorSchema.swift` `creator.field.imageUrl` / `.markerUrl` / `.overlayUrl`, `creator.mp.pricePair.imageUrl.prompt`, `creator.mp.hiddenObject.imageUrl` | Five labels said "image address" while 15 other image fields say "image link" | en → "Image link", "Recognition image link", "Overlay image link", "Image link (https or in-app path)", "Scene image link"; catalog + `Resources/CreatorConfigurationLocalizations.fragment.json` + `docs/port/strings/mp-r3-publish-b.json`; zh unchanged | Done |
 
 ## Not done
 

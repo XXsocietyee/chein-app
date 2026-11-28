@@ -1467,7 +1467,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Image address"
+          "value": "Image link"
         }
       },
       "zh-Hans": {
@@ -1756,7 +1756,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Overlay image address"
+          "value": "Overlay image link"
         }
       },
       "zh-Hans": {
@@ -1807,7 +1807,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Recognition image address"
+          "value": "Recognition image link"
         }
       },
       "zh-Hans": {
