@@ -966,6 +966,13 @@ struct JourneySettleView: View {
                 if direction == .decrement, let previous = Step(rawValue: step.rawValue - 1) { go(previous) }
             }
             .cyAnimation(value: step)
+            // ADA 1128 t5-settle: the MP dots only speak their step (aria-label 第 N 步，共 4 步); natively the same line
+            // is shown under the bar so the bar is never an unexplained ornament.
+            Text("mp.settle.progress \(step.rawValue + 1)")
+                .font(.caption).foregroundStyle(.secondary)
+                .contentTransition(.numericText())
+                .accessibilityHidden(true)
+                .padding(.bottom, CYSpacing.sm)
             ZStack {
                 switch step {
                 case .overview: overview(report).transition(.opacity)
