@@ -24,10 +24,21 @@ class AppStorePrivacyLaunchContracts(unittest.TestCase):
         self.assertIn('background', keys['INFOPLIST_KEY_NSLocationWhenInUseUsageDescription'])
         mic_en = catalog['NSMicrophoneUsageDescription']['localizations']['en']['stringUnit']['value']
         mic_zh = catalog['NSMicrophoneUsageDescription']['localizations']['zh-Hans']['stringUnit']['value']
-        for snippet in ('NPC voice', 'sound peak', 'amplitude is measured on device without uploading audio'):
+        for snippet in ('NPC voice', 'story editor', 'play-task clip', 'sound peak',
+                        'amplitude is measured on device without uploading audio'):
             self.assertIn(snippet, mic_en)
-        for snippet in ('NPC', '声音互动玩法', '本地测量振幅', '不上传录音'):
+        for snippet in ('NPC', '角色录音', '玩法任务', '声音互动玩法', '本地测量振幅', '不上传录音'):
             self.assertIn(snippet, mic_zh)
+        camera_en = catalog['NSCameraUsageDescription']['localizations']['en']['stringUnit']['value']
+        camera_zh = catalog['NSCameraUsageDescription']['localizations']['zh-Hans']['stringUnit']['value']
+        self.assertIn('place you are claiming', camera_en)
+        self.assertIn('认领', camera_zh)
+        primer = (ROOT / 'App/DesignSystem/CYPermissionPrimer.swift').read_text()
+        self.assertIn(keys['INFOPLIST_KEY_NSLocationWhenInUseUsageDescription'], primer)
+        self.assertIn(catalog['NSLocationWhenInUseUsageDescription']['localizations']['zh-Hans']['stringUnit']['value'], primer)
+        self.assertIn(camera_en, primer)
+        self.assertIn(camera_zh, primer)
+        self.assertNotIn('Sharing sends your location', primer)
 
     def test_no_always_location_and_only_session_background_location(self):
         # OWN-D-07: When-In-Use only; background modes are session-scoped location and story audio (P-083).

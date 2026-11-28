@@ -6,13 +6,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use the camera only when you choose to scan a QR code, take a photo for a play task, a city stamp, a post or your profile, or view an augmented-reality scene. Merchants also use it to photograph aftercare evidence. Nothing is captured in the background."
+            "value": "Use the camera only when you choose to scan a QR code, take a photo for a play task, a city stamp, a post, your profile or a place you are claiming, or view an augmented-reality scene. Merchants also use it to photograph aftercare evidence. Nothing is captured in the background."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅在你主动选择时使用相机：扫描二维码，为玩法任务、城市印章、动态或个人资料拍照，或查看 AR 场景；商家也会用它拍摄售后凭证照片。相机不会在后台拍摄。"
+            "value": "仅在你主动选择时使用相机：扫描二维码，为玩法任务、城市印章、动态、个人资料或正在认领的地点拍照，或查看 AR 场景；商家也会用它拍摄售后凭证照片。相机不会在后台拍摄。"
           }
         }
       }
@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The microphone is used only when you choose to record a voice message, talk to or set up an NPC voice, or measure sound peak levels on this iPhone in sound-based gameplay. Voice messages are uploaded for a safety check only after you confirm, and sending needs a second confirmation. In sound challenges, amplitude is measured on device without uploading audio. The microphone turns off when you finish and never runs in the background."
+            "value": "The microphone is used only when you choose to record a voice message, talk to or set up an NPC voice, record a role's voice in the story editor, record a short clip for a sound play task, or measure sound peak levels on this iPhone in sound-based gameplay. Voice messages are uploaded for a safety check only after you confirm, and sending needs a second confirmation. A role recording uploads when you stop and keep the take. A play-task clip uploads when you submit it. In sound challenges, amplitude is measured on device without uploading audio. The microphone turns off when you finish and never runs in the background."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅在你主动选择录制站内语音消息、与 NPC 语音对话、设置 NPC 声音，或在声音互动玩法中于本机测量音量峰值时使用麦克风。站内语音上传需另行确认并经过原音频安全检查，发送消息还需再次确认。声音互动玩法仅在本地测量振幅、不上传录音；结束后即停止使用麦克风，不会在后台运行。"
+            "value": "仅在你主动选择录制站内语音消息、与 NPC 语音对话、设置 NPC 声音、在故事编辑里录制角色声音、为声音玩法任务录制一段短录音，或在声音互动玩法中于本机测量音量峰值时使用麦克风。站内语音上传需另行确认并经过原音频安全检查，发送消息还需再次确认。角色录音在你停止并保留这段录音后上传。玩法任务的录音在你提交后上传。声音互动玩法仅在本地测量振幅、不上传录音；结束后即停止使用麦克风，不会在后台运行。"
           }
         }
       }

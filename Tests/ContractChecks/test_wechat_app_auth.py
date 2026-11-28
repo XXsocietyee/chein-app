@@ -47,7 +47,8 @@ class WeChatAuthSourceChecks(unittest.TestCase):
         for key in ['auth.signIn','auth.otherChannels','AuthChannelView(embeddedModel: model', 'LoginAuthChannelHost(coordinator: channelCoordinator)', 'return session.authChannels']:
             # mp-nav 11-28: the host reads `channelCoordinator` (session.authChannels; DEBUG fixtures may inject one).
             self.assertIn(key, login)
-        self.assertIn('if session.operationalMarket == .china', login)
+        self.assertIn('signInLeadsWithWeChat', login)
+        self.assertIn('(RegionalLaunchConfiguration.storefrontMarket ?? session.operationalMarket) == .china', login)
     def test_no_sdk_or_entitlement_activation(self):
         manifest=(ROOT/'Package.swift').read_text()
         self.assertNotIn('Wechat', manifest)

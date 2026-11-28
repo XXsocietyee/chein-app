@@ -62,8 +62,10 @@ class AuthEntryParitySourceChecks(unittest.TestCase):
         self.assertLess(apple.index('if needsConsent {'), apple.index('guard model.canStart'))
         # Apple also needs a sign-in service behind it (P27, mp-nav 11-28: no half-transparent button).
         self.assertIn('if model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured {', login)
-        # P33: China = WeChat (agreement on record) -> phone -> Apple; US = Apple -> phone.
-        self.assertIn('if session.operationalMarket == .china {\n            if consentGranted {\n                WeChatAppAuthSection(', login)
+        # P33: China storefront = WeChat (agreement on record) -> phone -> Apple; any other storefront = Apple -> phone.
+        # Order reads storefrontMarket. The shipped backend market stays China for both storefronts.
+        self.assertIn('if signInLeadsWithWeChat {\n            if consentGranted {\n                WeChatAppAuthSection(', login)
+        self.assertIn('(RegionalLaunchConfiguration.storefrontMarket ?? session.operationalMarket) == .china', login)
         # L1 P-005: the legal documents push inside the one sign-in sheet.
         self.assertIn('Button("auth.channels.privacyPolicy") { path.append(.legal(.privacyPolicy)) }', login)
 

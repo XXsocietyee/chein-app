@@ -28,6 +28,7 @@ COVERED = {
     'App/DiscoveryTemplateDetailView.swift': 'creator and personal templates',
     'App/ExternalGameReviewScreens.swift': 'external games',
     'App/WorkshopPurchasedLibraryView.swift': 'workshop purchased mods',
+    'App/RoamNearbyParityExtras.swift': 'place player reviews (api/comment/list owner type 4)',
 }
 GAPS = {}
 

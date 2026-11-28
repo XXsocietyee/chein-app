@@ -29,8 +29,8 @@ struct CYPermissionPrimerContent: Equatable {
         return CYPermissionPrimerContent(
             glyph: "location.fill",
             title: c("Light up where you walk", "点亮你走过的地方"),
-            body: c("Your location is used when you choose to roam, play a location-based activity, find nearby places, or start sharing your location with someone you pick. During a roam or city orienteering run you started, your route keeps recording in the background, even with the screen locked, and iOS shows the location indicator. It stops when you pause or finish. Sharing sends your location to that person until you stop or the sharing period ends. Your location is never shown to other players otherwise.",
-                    "仅在你主动选择漫游、参与基于位置的玩法、查找附近地点或向指定的人开启位置分享时使用你的位置。你开启的漫游或城市定向赛进行中，锁屏后仍会在后台记录轨迹，系统会显示定位指示；暂停或结束后即停止。位置分享会把你的位置发给该对象，直到你停止或分享期限结束；除此之外不会展示给其他玩家。"),
+            body: c("Your location is used only when you choose to roam, play a location-based activity or find nearby places. When you tap I'm Here, your location is read once to confirm you're near the start or the place you're visiting. During a roam walk you started, your route keeps recording in the background, even with the screen locked, and iOS shows the location indicator; it stops when you pause or finish the walk, sign out, or turn off roam location in Privacy. During a city orienteering run you started, your walking distance keeps counting in the background with the same indicator until the run ends. Your location is never shared with other players.",
+                    "仅在你主动选择漫游、参与基于位置的玩法或查找附近地点时使用你的位置。点「我已到达」时只读取一次位置，用来确认你在起点或要到访的地点附近。你开启的漫游进行中，锁屏后仍会记录轨迹，系统会显示定位指示；暂停或结束漫游、退出登录或在隐私页撤回漫游定位后即停止。你开始的城市定向赛进行中，锁屏后仍会累计步行距离，系统会显示定位指示；比赛结束即停止。不会把你的位置分享给其他玩家。"),
             points: [
                 c("Only when you start something", "仅在你主动开始时使用"),
                 c("A roam keeps recording in the background until you pause or finish", "漫游进行中会在后台记录，暂停或结束即停止"),
@@ -60,8 +60,8 @@ struct CYPermissionPrimerContent: Equatable {
         return CYPermissionPrimerContent(
             glyph: "camera.fill",
             title: c("Camera for this moment", "相机只用于这一刻"),
-            body: c("Use the camera only when you choose to scan a QR code, take a photo for a play task, a city stamp, a post or your profile, or view an augmented-reality scene. Merchants also use it to photograph aftercare evidence. Nothing is captured in the background.",
-                    "仅在你主动选择时使用相机：扫描二维码，为玩法任务、城市印章、动态或个人资料拍照，或查看 AR 场景；商家也会用它拍摄售后凭证照片。相机不会在后台拍摄。"),
+            body: c("Use the camera only when you choose to scan a QR code, take a photo for a play task, a city stamp, a post, your profile or a place you are claiming, or view an augmented-reality scene. Merchants also use it to photograph aftercare evidence. Nothing is captured in the background.",
+                    "仅在你主动选择时使用相机：扫描二维码，为玩法任务、城市印章、动态、个人资料或正在认领的地点拍照，或查看 AR 场景；商家也会用它拍摄售后凭证照片。相机不会在后台拍摄。"),
             points: [
                 c("Only when you choose to capture", "仅在你选择拍摄或扫码时"),
                 c("Nothing is recorded in the background", "不会在后台录制"),

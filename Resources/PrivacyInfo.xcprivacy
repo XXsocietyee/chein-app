@@ -197,6 +197,20 @@
                 <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
             </array>
         </dict>
+        <!-- First-party product events posted to api/analytics/events/batch (Core/AnalyticsEventClient.swift).
+             actorScope is member:<account id>. anonymousId is empty. Not used for tracking. -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeProductInteraction</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
         <!-- Resident ID number (idCard) for the China real-name publisher registration in Core/PublisherIdentityRegistration.swift. -->
         <dict>
             <key>NSPrivacyCollectedDataType</key>

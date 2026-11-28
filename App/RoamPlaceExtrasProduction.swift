@@ -261,7 +261,7 @@ struct RoamPlaceExtrasLive: View {
             rowsOut.append(RoamPlaceInfoRow(key: copy("品类", "Categories"), value: categories.joined(separator: " · ")))
         }
         let reviewRows = rows.map {
-            RoamPlaceReview(id: $0.id, name: $0.name, timeText: $0.timeText, stars: $0.stars, text: $0.text)
+            RoamPlaceReview(id: $0.id, memberID: $0.memberID, name: $0.name, timeText: $0.timeText, stars: $0.stars, text: $0.text)
         }
         var next = RoamPlaceExtras(
             placeName: nonempty(node?.name) ?? nonempty(map?.name) ?? RoamFinishAddress.unknown,

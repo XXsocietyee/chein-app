@@ -128,11 +128,13 @@ struct LoginView: View {
         }
     }
 
-    /// P33 (audit P0-5): China leads with WeChat (only when installed and configured), then phone +86, then Sign in with
-    /// Apple; the US leads with Sign in with Apple, then phone +1. Equal-width 50 pt buttons, one primary action, terms in
-    /// the footnote. No Alipay sign-in (Alipay is payment only). Gated channels render nothing (P27).
+    /// P33 (audit P0-5): China storefront leads with WeChat (only when installed and configured), then phone +86, then
+    /// Sign in with Apple; any other storefront leads with Sign in with Apple, then phone +1. The order follows
+    /// `storefrontMarket` (presentation). The shipped composition pins the backend market to China for both storefronts,
+    /// so this must not read `operationalMarket`. Equal-width 50 pt buttons, one primary action, terms in the footnote.
+    /// No Alipay sign-in (Alipay is payment only). Gated channels render nothing (P27). WeChat stays off the US sheet.
     @ViewBuilder private func signInChannelSections(_ model: AuthChannelModel) -> some View {
-        if session.operationalMarket == .china {
+        if signInLeadsWithWeChat {
             if consentGranted {
                 WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
             }
@@ -144,14 +146,19 @@ struct LoginView: View {
         }
     }
 
+    /// China presentation only. A nil storefront falls back to the backend market (unconfigured builds).
+    private var signInLeadsWithWeChat: Bool {
+        (RegionalLaunchConfiguration.storefrontMarket ?? session.operationalMarket) == .china
+    }
+
     /// Sign in with Apple is on screen: approved and a sign-in service behind it (same test as `appleSignInSection`).
     private func appleShown(_ model: AuthChannelModel) -> Bool {
         model.coordinator.appleConfigurationVerified && model.coordinator.isConfigured
     }
 
-    /// The WeChat button is on screen (it is then the first method and the primary action).
+    /// The WeChat button is on screen (it is then the first method and the primary action). US storefront never leads with it.
     private var weChatLeads: Bool {
-        consentGranted && (session.weChatAuth.isOffered || session.weChatAuth.isWorking)
+        signInLeadsWithWeChat && consentGranted && (session.weChatAuth.isOffered || session.weChatAuth.isWorking)
     }
 
     /// The sign-in form, split out of `stack(_:)` so each part type-checks in time.

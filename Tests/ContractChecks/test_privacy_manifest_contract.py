@@ -24,6 +24,7 @@ EVIDENCE = {
     'GameplayContent': ('Core/PlayRuntimeGap.swift', 'api/play/run-session/save'),
     'CustomerSupport': ('Core/JourneyLoopSource.swift', '/api/play/feedback/submit'),
     'OtherDataTypes': ('Core/PublisherIdentityRegistration.swift', 'idCard'),
+    'ProductInteraction': ('Core/AnalyticsEventClient.swift', 'actorScope: "member:\\(accountID)"'),
 }
 
 
