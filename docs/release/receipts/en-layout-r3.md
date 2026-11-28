@@ -138,6 +138,17 @@ Merged `origin/ui/combined-r7` (clean). Sweep still build 8fa84e4d3 (22:11Z). Lo
 | 50 | `pages/activity/baoming` 选择参与人信息 half-screen + 选择票种 links → `RegistrationSheetView.swift:729`, `:828` (`en-t5-baoming`) | Link labels read "Select participant sheet" / "Choose ticket sheet" (internal wording) | en → "Choose participant details" / "Choose a ticket" (MP titles); zh unchanged. Fixture names ("Offline fixture activity", "Standard fixture ticket") and the ticket price "—" are mp-activity's (coordinator 22:20) | Done |
 | 51 | Workshop creator consent / pending (`WorkshopCreatorConsentView`, `WorkshopCreatorPendingView`) | Checked: `declaredAt` / `expiresAt` raw next to version ids and hashes | Record surfaces with ISO instants (same as row 48); left as sent | Checked |
 
+### Run 13 (2026-11-27, half-hourly)
+
+Merged `origin/ui/combined-r7` (one conflict in `RegistrationSheetView.swift`: took the base's restyled participant/ticket links, "Choose a saved participant…" / "Choose a ticket…", fine in English). Sweep build b3b03703a (23:07Z): looked at `mp-mine/sheet-en.jpg`, `mp-home/sheet-en.jpg`, `mp-club/sheet-en.jpg`.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 52 | `pages/index/index` 编辑精选 subtitle → `HomeFeedView.swift:195` (`en-d2-home`) | "Editor's picks · entry conditions are on each detail page" repeats the heading right above it and reads as a translation | en → "Picked by our editors · see each page for entry requirements"; zh unchanged | Done |
+| 53 | Club channel chat (MP `im/chat` `decorate` divider + burst header) → `Core/ChannelDiscordMessaging.swift` `formatDivider` (`en-d4-channel-chat`) | "Nov 7, 09:00" / "Today 08:30": 24-hour MP clock in US English | English (non-Chinese) clock via the locale hour cycle (`localeClock`, template `jmm`) → "Nov 7, 9:00 AM"; zh keeps MP `MM-dd HH:mm`. Pin `ChannelDiscordMessagingTests.swift:585/587` updated (reason: locale hour cycle) | Done |
+| 54 | Club events / series occurrences / correction window / managed projects / invoice time → `Core/ClubOpsEventPresentation.swift:54,61`, `ClubActivityListContent.swift:135`, `ClubManagedProjectsSection.swift:42`, `InvoiceLaunchPresentation.swift:286` | Date templates used `HHmm`, which forces 24-hour time in English | Templates `HHmm` → `jmm` (locale hour cycle; zh-Hans still 24-hour). Pin `ClubOpsEventPresentationTests.swift:42` updated | Done |
+| 55 | Me / balance ledger / order lookup / badge wall (`en-d2-me`, `en-e4-wallet-balance`, `en-t5-order-center`, `en-e5b-badge-wall`) | Checked: CN¥ vs ¥ is row 44; badge "First Stamp" grey with "Unlocked" is fixture art (data says unlocked); Search "Example content" is the fixture notice (same in zh) | No change | Checked |
+
 ## Not done
 
 | Item | Why |

@@ -582,9 +582,10 @@ final class ChannelDiscordMessagingTests: XCTestCase {
         XCTAssertEqual(ChannelMemberRoleTier.owner.sectionTitle(locale: en), "Owner")
         XCTAssertEqual(ChannelMemberRoleTier.owner.sectionTitle(locale: zh), ChannelMemberRoleTier.owner.sectionTitle)
         XCTAssertEqual(filter.evaluate(message: hidden.wireMessage).displayText, "x")
-        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today(clock: "08:30"), locale: en), "Today 08:30")
+        // en-layout r3: English follows the locale hour cycle ("Today 8:30 AM"); Chinese keeps the MP HH:mm.
+        XCTAssertTrue(ChannelMessageBurstGrouper.formatDivider(.today(clock: "08:30"), locale: en).hasPrefix("Today 8:30"))
         XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today(clock: "08:30")), "今天 08:30")
-        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.date(month: 11, day: 7, clock: "09:00"), locale: en), "Nov 7, 09:00")
+        XCTAssertTrue(ChannelMessageBurstGrouper.formatDivider(.date(month: 11, day: 7, clock: "09:00"), locale: en).hasPrefix("Nov 7, 9:00"))
         XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.date(month: 11, day: 7, clock: "09:00"), locale: zh), "11-07 09:00")
     }
 

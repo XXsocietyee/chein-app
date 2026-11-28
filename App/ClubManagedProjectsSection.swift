@@ -39,7 +39,7 @@ struct ClubManagedProjectRow: Identifiable, Equatable {
         formatter.locale = locale
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.timeZone = TimeZone(secondsFromGMT: 8 * 3600)
-        formatter.setLocalizedDateFormatFromTemplate(dateOnly ? "EEE MMMd" : "EEE MMMd HHmm")
+        formatter.setLocalizedDateFormatFromTemplate(dateOnly ? "EEE MMMd" : "EEE MMMd jmm")
         return formatter.string(from: date)
     }
 }

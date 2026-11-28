@@ -48,17 +48,17 @@ public enum ClubOpsEventClock {
         formatter.setLocalizedDateFormatFromTemplate(template)
         return formatter.string(from: date)
     }
-    /// "M月d日 周X HH:mm" (zh) or the locale's month/day/weekday/24h time.
+    /// "M月d日 周X HH:mm" (zh) or the locale's month/day/weekday/time (en-layout r3: locale hour cycle).
     public static func occurrenceText(_ value: ClubGovernanceValue, locale: Locale) -> String? {
         guard let date = ClubOccurrenceClock.instant(value) else { return nil }
-        guard isChinese(locale) else { return localized(date, template: "MMMdEEEHHmm", locale: locale) }
+        guard isChinese(locale) else { return localized(date, template: "MMMdEEEjmm", locale: locale) }
         let p = parts(date)
         return "\(localized(date, template: "MMMd", locale: locale)) \(localized(date, template: "EEE", locale: locale)) \(pad(p.hour)):\(pad(p.minute))"
     }
-    /// "M月d日 HH:mm" (zh) or the locale's month/day/24h time.
+    /// "M月d日 HH:mm" (zh) or the locale's month/day/time (en-layout r3: locale hour cycle).
     public static func momentText(_ raw: String?, locale: Locale) -> String? {
         guard let raw, let date = ClubOccurrenceClock.instant(.string(raw)) else { return nil }
-        guard isChinese(locale) else { return localized(date, template: "MMMdHHmm", locale: locale) }
+        guard isChinese(locale) else { return localized(date, template: "MMMdjmm", locale: locale) }
         let p = parts(date)
         return "\(localized(date, template: "MMMd", locale: locale)) \(pad(p.hour)):\(pad(p.minute))"
     }
