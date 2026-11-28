@@ -89,6 +89,9 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
   refresh no pull a toolbar refresh button (`"arrow.clockwise"` inside a `.toolbar` / `ToolbarItem`) in a file with a
                   `List` / `Form` / `ScrollView` and no `.refreshable`: 24 sibling pages pair the button with
                   pull-to-refresh (the MP `onPullDownRefresh`); add `.refreshable { await load() }` on the scroll
+  section spacing a numeric `.listSectionSpacing(…)` outside App/DesignSystem and App/Theme: `CYScreenStyle` gives every
+                  player list 24 pt between sections (`CYSpacing.xxl`); three pages re-set 16 / 20 / 20 by hand. Drop
+                  it to inherit the one spacing; `.compact` (tab strips / dense detail lists) stays the system value
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
 fixtures included; there is no Swift compiler in the lanes' cloud sessions):
@@ -205,12 +208,15 @@ REFRESH_NO_PULL = 'refresh no pull'
 REFRESH_GLYPH = re.compile(r'"arrow\.clockwise"')
 REFRESH_TOOLBAR = re.compile(r'\bToolbarItem\b|\.toolbar\s*\{')
 REFRESH_SCROLL = re.compile(r'\b(?:List|Form)\s*[({]|\bScrollView\b')
+SECTION_SPACING = 'section spacing'
+# One list rhythm: CYScreenStyle sets `.listSectionSpacing(CYSpacing.xxl)` once; a page re-setting a number drifts.
+SECTION_SPACING_PATTERN = re.compile(r'\.listSectionSpacing\(\s*(?!\.compact\b|\.default\b)')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
-         ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, DUPLICATE_TYPE, UNDECLARED_STATE)
+         ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, SECTION_SPACING, DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -405,6 +411,8 @@ def scan_file(rel, text):
             hits.append((number, RAW_RADIUS, code.strip()))
         if not colour_exempt and LINE_SPACING_PATTERN.search(code):
             hits.append((number, LINE_SPACING, code.strip()))
+        if not colour_exempt and SECTION_SPACING_PATTERN.search(code):
+            hits.append((number, SECTION_SPACING, code.strip()))
         if not colour_exempt and HAND_DIVIDER_PATTERN.search(code):
             hits.append((number, HAND_DIVIDER, code.strip()))
         if ALL_CAPS_PATTERN.search(code):

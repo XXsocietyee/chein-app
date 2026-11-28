@@ -790,6 +790,30 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 None from this run. Simulator check: pull down on growth center / leaderboard (no design fixture yet; next sweep).
 
+## Continue run 26 (2026-11-28, after merging combined-r7 733bfb368)
+
+Merge clean. Run 25 Not done: none. No new coordinator row for this lane (03:15 / 04:00 sweeps: no new findings).
+
+Scan: one list rhythm (OWNER RULE 2 "one list/card pattern"). `CYScreenStyle` gives every player list 24 pt between
+sections (`CYSpacing.xxl`); three player pages re-set the spacing by hand (20 / 20 / 16), so their sections sat closer
+than every sibling list. MP content unchanged.
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| `subpackageActivity` 活动详情 | `App/ActivityDetailView.swift:518` | unchanged | dropped `.listSectionSpacing(CYSpacing.xl)` (inherits 24 pt) |
+| `pages/signup/index` 票夹 | `App/TicketWalletView.swift:123` | unchanged | dropped `.listSectionSpacing(20)` (raw literal) |
+| club co-op 收益 / 结算 | `App/CoopFinanceSummarySection.swift:46` (`CoopOperationListPresentation`) | unchanged | dropped `.listSectionSpacing(Theme.Space.s4)` |
+
+New checker kind **section spacing**: a `.listSectionSpacing(…)` other than `.compact` / `.default` outside
+App/DesignSystem and App/Theme. Baseline 0. Self-test: the pre-fix files fail at the three lines above. Contract pin
+`test_activity_design_structure` updated (asserts no per-page spacing, reason in the test).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(section spacing 0, status capsule 29 baselined), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+None from this run.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
