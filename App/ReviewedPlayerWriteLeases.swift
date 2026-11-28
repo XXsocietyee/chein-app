@@ -1438,7 +1438,10 @@ enum ReviewedPlayerReadRoute {
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, role: context.role,
             sourceRevision: OrderLifecycleSourceContract.revision, approvals: [],
-            externalCheckoutApproved: false, devicePaymentApproved: false,
+            // fix/1128-cn-pay P0-2: the device (WeChat SDK) payment follows the payment switch. Order-detail Pay runs
+            // through RegistrationPaySection (`pay/app` → WeChat SDK → one `registration/info` read); the review-sheet
+            // payment stays closed (externalCheckoutApproved false, no payment approval) and is not shown (P1-4).
+            externalCheckoutApproved: false, devicePaymentApproved: ReleaseMoneyWriteSwitch.paymentEnabled,
             allowsReviewedCancellationAndRefund: true
         )
         var imRoutes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [
@@ -1464,6 +1467,7 @@ enum ReviewedPlayerReadRoute {
         return NativeRuntimeDependencies(
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
+            weChatPaymentConfiguration: WeChatPaymentBuildSettings.current,
             couponCodeApproval: couponCodeApproval,
             // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js:143-200): the owner 清退并退款.
             ownerRefundApproval: playerWritesEnabled ? MPFirstClubApprovals.ownerRefund(context) : nil,
