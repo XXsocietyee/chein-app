@@ -75,11 +75,11 @@ import SwiftUI
                                 .accessibilityIdentifier("projectTopicMedia.apply")
                         }
                         if controller.state == .localSaveFailed {
-                            Text("projectTopicMedia.applyFailed").foregroundStyle(.red)
+                            Text("projectTopicMedia.applyFailed").foregroundStyle(CYColor.dangerText)
                         }
-                        if controller.state == .failed { Text("projectTopicMedia.failed").foregroundStyle(.red) }
+                        if controller.state == .failed { Text("projectTopicMedia.failed").foregroundStyle(CYColor.dangerText) }
                         if controller.state == .unknown {
-                            Text("projectTopicMedia.unknown").foregroundStyle(.red)
+                            Text("projectTopicMedia.unknown").foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("projectTopicMedia.unknown")
                         }
                     }

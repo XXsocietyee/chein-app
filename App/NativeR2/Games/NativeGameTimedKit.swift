@@ -318,7 +318,7 @@ import SwiftUI
                 if timing.phase == .interrupted || reaction.phase == .interrupted {
                     Label("playkit.challenge.interrupted", systemImage: "pause.circle").foregroundStyle(CYColor.warningText)
                 }
-                if expired { Label("playkit.challenge.expired", systemImage: "timer").foregroundStyle(.red) }
+                if expired { Label("playkit.challenge.expired", systemImage: "timer").foregroundStyle(CYColor.dangerText) }
                 if running {
                     Button("playkit.challenge.abort", role: .destructive) { interrupt() }
                         .accessibilityIdentifier("playkit.challenge.abort")

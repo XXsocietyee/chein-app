@@ -33,9 +33,15 @@ struct CYStarBloom<S: Shape>: View {
 
     private var bloomIn: Double { Self.clamp(phase / 0.45) }
 
-    /// Native r2: no bloom, glow or orbiting stars. Draws nothing; the static timing helpers stay for callers.
     var body: some View {
-        EmptyView()
+        ZStack {
+            horizon
+            glow
+            silhouette
+            orbit
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
     }
 
     /// Lantern-gold arc that draws in from its centre outward with a soft bloom underneath (phase 0.45...0.70).

@@ -164,7 +164,7 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
             }
             if unavailable { Text("workshopUpgrade.noNewVersion").foregroundStyle(.secondary).accessibilityIdentifier("workshopPurchased.upgrade.unavailable") }
             if draftSaved { Text("workshopUpgrade.savedUnchanged").foregroundStyle(.secondary).accessibilityIdentifier("workshopPurchased.upgrade.draftSaved") }
-            if saveFailed { Text("workshopUpgrade.error.failed").foregroundStyle(.red).accessibilityIdentifier("workshopPurchased.upgrade.saveFailed") }
+            if saveFailed { Text("workshopUpgrade.error.failed").foregroundStyle(CYColor.dangerText).accessibilityIdentifier("workshopPurchased.upgrade.saveFailed") }
         }
         .background(WorkshopUpgradeLeasePublish(live: liveAccount, flow: handlers.flow))
         .onAppear { Self.performRestore(item: item, handlers: handlers, draftSaved: &draftSaved, receipt: &receipt) }

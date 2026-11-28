@@ -64,6 +64,9 @@
     "App/DesignSystem/CYThemeLook.swift": {
       "tracking": "per-theme game look (story-flow / theme looks are out of scope for round 3)"
     },
+    "App/DesignSystem/CYTicketPass.swift": {
+      "effect on clean page": "cyCodeReveal: one silver sweep as a pass / code tile lands after payment (OWNER RULE 3 item 3, payment moment); no call site on a clean page"
+    },
     "App/DiceD20View.swift": {
       "raw colour": "game HUD: shaded 3D dice faces computed per face"
     },

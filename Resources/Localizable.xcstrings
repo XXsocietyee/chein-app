@@ -204853,13 +204853,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View all projects"
+            "value": "Manage all projects"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看全部项目"
+            "value": "管理全部项目"
           }
         }
       }
@@ -297641,7 +297641,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资料没有保存成功"
+            "value": "资料没有保存"
           }
         }
       }
@@ -356716,6 +356716,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "二维码暂时不可用"
+          }
+        }
+      }
+    },
+    "participant.form.saveRejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participant info wasn't saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与人信息没有保存"
+          }
+        }
+      }
+    },
+    "participant.form.retrySave": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try saving again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试保存"
           }
         }
       }

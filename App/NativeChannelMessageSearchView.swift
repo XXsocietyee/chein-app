@@ -40,7 +40,7 @@ import SwiftUI
                         Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
                     }
                     .font(.footnote)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityElement(children: .combine)
                 }
                 Button { search() } label: { Text("search.run", tableName: "NativeChannelMessage") }

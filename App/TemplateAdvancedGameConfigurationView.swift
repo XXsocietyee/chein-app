@@ -74,7 +74,7 @@ import SwiftUI
             }
             if !model.draft.advanced.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
-                    ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Label(LocalizedStringKey($0), systemImage: "exclamationmark.circle").foregroundStyle(.red) }
+                    ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Label(LocalizedStringKey($0), systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) }
                 }
             }
         }.formStyle(.grouped).navigationTitle(LocalizedStringKey(game.labelKey)).navigationBarTitleDisplayMode(.inline).disabled(!model.canEdit)

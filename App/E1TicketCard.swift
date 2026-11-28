@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// The pass in the ticket holder: art band with the title on a scrim, a status chip, info rows, a
-/// perforated tear line with side notches (real cut-outs) and a stub. Press and hold to tilt it, tap for a foil
-/// sheen. The stub never draws a fake code: the real pass is issued by `TicketPassPresentView` when the host
+/// perforated tear line with side notches (real cut-outs) and a stub. Press and hold to tilt it; a tap plays a
+/// selection haptic (no foil sheen: the wallet is a clean page, OWNER RULE 3). The stub never draws a fake code: the real pass is issued by `TicketPassPresentView` when the host
 /// supplies a verification code factory, otherwise venue staff verify the ticket.
 struct E1TicketCard: View {
     let ticket: TicketWalletTicket
@@ -35,7 +35,6 @@ struct E1TicketCard: View {
         // native-a r3: the pass sits on the system secondary background (Light/Dark by the system); no drawn gloss
         // line and no custom double drop shadow. The notch cut-outs and foil edge stay (P20: a pass, not a receipt).
         .background(.background.secondary)
-        .cyFoilSheen(trigger: sheen + autoSheen)
         .clipShape(shape, style: FillStyle(eoFill: true))
         .cyPassFoilEdge(shape, active: ticket.status == .ready)
         .opacity(state.isRetired ? 0.74 : 1)

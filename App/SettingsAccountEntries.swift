@@ -117,7 +117,7 @@ import SwiftUI
                     .accessibilityIdentifier("settings.signOut")
                 // B-SZ-02: the server did not confirm; the account stays signed in and the row retries.
                 if failed {
-                    Text("settings.signOut.failed").font(.footnote).foregroundStyle(.red)
+                    Text("settings.signOut.failed").font(.footnote).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("settings.signOut.failed")
                 }
             }

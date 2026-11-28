@@ -342,13 +342,14 @@ import SwiftUI
     /// modifier in the chain (not only the Form) are light when this is pushed from the dark player shell.
     /// C-F14b (r9): MP fabu/index.js:6540-6551 `_ticketMissing` — 档期 + 票务 validation keys (+ 实名 cells, which this
     /// editor does not collect, so 0). Core ids map to the MP keys: start/end/deadline → startDate/endDate/recruitDeadline.
-    private var ticketGapTotal: Int {
-        guard let scope = model.coordinator.snapshot?.scope else { return 0 }
+    private var ticketGap: ProjectEditTicketGap {
+        guard let scope = model.coordinator.snapshot?.scope else { return .init(dates: 0, tickets: 0, identity: 0) }
         let mpKeys: [String: String] = ["start": "startDate", "end": "endDate", "deadline": "recruitDeadline"]
         let keys = ProjectEditValidation.issues(model.draft, scope: scope).map { mpKeys[$0.id] ?? $0.id }
         return ProjectEditTicketGap.count(errorKeys: keys, identityRequired: false, identityRegistered: true,
-                                          realName: "", idCard: "", consented: true).total
+                                          realName: "", idCard: "", consented: true)
     }
+    private var ticketGapTotal: Int { ticketGap.total }
     var body: some View {
         pageBody.themeDomain(.topicEditor)
             .cySheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
@@ -1135,9 +1136,8 @@ import SwiftUI
                 }
                 .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addFamilyTicket")
             } header: {
-                HStack {
-                    Text("projectEdit.tickets")
-                    Spacer(minLength: CYSpacing.sm)
+                // MP step3.wxml:143 票务 header: red `* 还有 N 项未填` (ticketMissing.tickets) beside the title.
+                ProjectEditSectionGapHeader(title: "projectEdit.tickets", missing: ticketGap.tickets, identifier: "mpPublish.ticketSettings.tickets.missing") {
                     ProjectEditTicketSummaryLabel(summary: EditorTicketSummary(prices: model.draft.tickets.map { Int($0.price) }))
                 }
             }
@@ -1153,7 +1153,7 @@ import SwiftUI
     }
     private var scheduleFields: some View {
         // MP step3 档期: 开始日期 → 结束日期 → 招商截止日期 (the mode stays on page 1's 模式 row).
-        Section("mpPublish.ticketSettings.schedule") {
+        Section {
             ProjectEditDateField(title: "projectEdit.startDate", value: $model.draft.startDate, identifier: "projectEdit.startDate").dateEditing(.init(model: model, field: .start)).id("project-issue-anchor-start")
             ProjectEditDateField(title: "projectEdit.endDate", value: $model.draft.endDate, identifier: "projectEdit.endDate").dateEditing(.init(model: model, field: .end)).id("project-issue-anchor-end")
             ProjectEditScheduleSpan(start: model.draft.startDate, end: model.draft.endDate)
@@ -1163,6 +1163,11 @@ import SwiftUI
                     NavigationLink { FreeExplorationVisitConfigView(model: visit) } label: { Text("feVisitConfig.title") }
                         .accessibilityIdentifier("feVisitConfig.open")
                 }
+            }
+        } header: {
+            // MP step3.wxml:24 档期 header: red `* 还有 N 项未填` (ticketMissing.dates) beside the title.
+            ProjectEditSectionGapHeader(title: "mpPublish.ticketSettings.schedule", missing: ticketGap.dates, identifier: "mpPublish.ticketSettings.schedule.missing") {
+                EmptyView()
             }
         }.disabled(!model.fullEdit)
     }

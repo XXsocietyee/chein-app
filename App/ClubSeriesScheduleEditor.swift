@@ -730,7 +730,7 @@ struct ClubSeriesOfferWindowField: View {
                 Text(verbatim: duration).font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("club.schedule.offer.duration")
             } else {
-                Text("club.gov.invalid").font(.footnote).foregroundStyle(.red)
+                Text("club.gov.invalid").font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.schedule.offer.invalid")
             }
         }

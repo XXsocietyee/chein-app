@@ -78,7 +78,8 @@ import SwiftUI
                         LabeledContent(text("本机最近读取时间", "Last local read")) { Text(at, style: .time) }
                     }
                 } header: {
-                    CYSectionHeader(LocalizedStringKey(stringLiteral: text("本人原作品交易分配", "My original MOD allocations")))
+                    Text(LocalizedStringKey(stringLiteral: text("本人原作品交易分配", "My original MOD allocations")))
+                        .accessibilityAddTraits(.isHeader)
                 }
             }
         }
@@ -193,7 +194,8 @@ import SwiftUI
                         ModCreatorIncomeFactView(fact: current)
                         if let at = model.readAt { LabeledContent(text("本机读取时间", "Local read time")) { Text(at, format: .dateTime) } }
                     } header: {
-                        CYSectionHeader(LocalizedStringKey(stringLiteral: text("本次原单事实（不是渠道查询）", "Original order fact, not a provider query")))
+                        Text(LocalizedStringKey(stringLiteral: text("本次原单事实（不是渠道查询）", "Original order fact, not a provider query")))
+                            .accessibilityAddTraits(.isHeader)
                     }
                     Section {
                         Text(verbatim: text("按本次修订固定读取：", "Read through original revision: ") + String(current.revision))
@@ -232,7 +234,8 @@ import SwiftUI
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     } header: {
-                        CYSectionHeader(LocalizedStringKey(stringLiteral: text("原不可变修订历史", "Original immutable revisions")))
+                        Text(LocalizedStringKey(stringLiteral: text("原不可变修订历史", "Original immutable revisions")))
+                            .accessibilityAddTraits(.isHeader)
                     }
                 }
                 CYPillButton(verbatim: text("只读刷新同一原单", "Refresh same original order"), style: .primary) { if payoutOpen { Task { await model.refresh() } } }

@@ -28,7 +28,7 @@ import QuestifyCore
         if !model.error.isEmpty {
             Text(model.error)
                 .cyText(.meta)
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
         }
 
         // Conditions Section

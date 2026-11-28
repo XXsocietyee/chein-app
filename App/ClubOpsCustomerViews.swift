@@ -517,7 +517,7 @@ struct ClubOpsCustomerTagRemarkEditor: View {
         if let current = issue ?? ClubOpsCustomerTagRemarkDraft.issue(tagsText: tagsText, remark: remark) {
             Text(LocalizedStringKey(current.localizationKey), tableName: "ClubOpsCustomer")
                 .font(.footnote)
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOps.customer.draftIssue")
         }

@@ -209,9 +209,9 @@ struct VideoBountyView: View {
         } footer: {
             // Validation in the section footer (native r2), same texts as the MP inline errors.
             if let text = state.fieldError?.text, state.fieldError?.field == .platform || state.fieldError?.field == .sourceURL {
-                Text(verbatim: text).foregroundStyle(.red)
+                Text(verbatim: text).foregroundStyle(CYColor.dangerText)
             } else if let error = state.submitError {
-                Text(verbatim: error).foregroundStyle(.red)
+                Text(verbatim: error).foregroundStyle(CYColor.dangerText)
             }
         }
         Section {
@@ -333,7 +333,7 @@ private struct VideoBountyAppealSheet: View {
                         .onChange(of: note) { _, _ in showsRequired = false }
                         .accessibilityIdentifier("videoBounty.appeal.note")
                 } footer: {
-                    if showsRequired { Text("mp.vb.appeal.required").foregroundStyle(.red) }
+                    if showsRequired { Text("mp.vb.appeal.required").foregroundStyle(CYColor.dangerText) }
                 }
             }
             .navigationTitle(Text("mp.vb.appeal.title"))

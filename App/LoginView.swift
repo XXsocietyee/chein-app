@@ -151,7 +151,7 @@ struct LoginView: View {
                     // Validation sits in the section footer (native r2 inputs rule).
                     if let key = shownErrorKey {
                         Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
-                            .foregroundStyle(.red).accessibilityIdentifier("auth.error")
+                            .foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error")
                     }
                 }
                 Section {
@@ -173,7 +173,7 @@ struct LoginView: View {
             if !showsPasswordForm, let key = shownErrorKey {
                 Section {
                     Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
-                        .foregroundStyle(.red).accessibilityIdentifier("auth.error")
+                        .foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error")
                 }
             }
             SessionRestorationRetrySection(session: session)

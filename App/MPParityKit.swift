@@ -440,17 +440,6 @@ struct MPRows<Item: Identifiable, Row: View>: View {
     }
 }
 
-struct MPSectionHeader: View {
-    let title: LocalizedStringKey
-    var body: some View {
-        // Native inset-grouped section header (native-ios-r1 §3.2): .footnote secondary, sentence case, row inset.
-        Text(title).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            .textCase(nil)
-            .padding(.horizontal, CYSpacing.lg)
-            .accessibilityAddTraits(.isHeader)
-    }
-}
-
 /// Read-only note used where a commerce or claim CTA would sit while the gate is OFF.
 struct MPGatedNote: View {
     let text: Text

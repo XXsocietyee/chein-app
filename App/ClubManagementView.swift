@@ -284,7 +284,7 @@ struct ClubManagementView: View {
         let attachment = reviewOwner.attachment, source = reviewContext
         let busy = loading || state == .checking || state == .awaitingConfirmation || state == .submitting
         return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text("clubR8b.join.rowFailed").font(.body.weight(.semibold)).foregroundStyle(.red)
+            Text("clubR8b.join.rowFailed").font(.body.weight(.semibold)).foregroundStyle(CYColor.dangerText)
             if let message = failure.message { Text(verbatim: message).font(.footnote).foregroundStyle(.secondary) }
             if let row = failedRow {
                 Button("clubR8b.retry") { Task { await prepare(row.action, memberID: request.id, attachment: attachment, source: source) } }

@@ -154,7 +154,7 @@ import Combine
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
-                    ForEach(editor.issues) { issue in VStack(alignment: .leading) { Label(LocalizedStringKey(issue.labelKey), systemImage: "exclamationmark.circle").foregroundStyle(.red) } }
+                    ForEach(editor.issues) { issue in VStack(alignment: .leading) { Label(LocalizedStringKey(issue.labelKey), systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) } }
                 }
             }
         }.formStyle(.grouped).navigationTitle(Text("templateHotspots.title")).navigationBarTitleDisplayMode(.inline).disabled(!editor.canEdit)
