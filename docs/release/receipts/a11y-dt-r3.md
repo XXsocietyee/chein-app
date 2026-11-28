@@ -497,11 +497,24 @@ finding. Not done item: Reduce Motion — `withAnimation` / `.animation` with `.
 | `pages/playkit` hangman (active letter cell), `pages/publishkit` wizard step bar, creator studio feedback picker | `PlayKitQuestoViews.swift:208`, `DesignSystem/CYBusinessComponents.swift:1249` (`CYPublishStatusBar`), `CreatorMaintenanceViews.swift:170` | ✓ (mp-journey / mp-publish own order) | Same: the typing cell, the current wizard step and each picked feedback row add `.isSelected`. Other hits are menus with checkmarks (system), rows with their own `accessibilityValue` (step checklist), or merchant (`MerchantRootModeSwitchBannerView`, skipped); `CYMapChrome` left (settled, coordinator 02:05) | Done |
 | Hold-to-start buttons (roam GO pill, city hold) and long-press / context-menu actions | `DesignSystem/CYPlayerKit.swift:788`, `CityKit/CityHoldButton.swift:40` | ✓ | Audit: every player `.onLongPressGesture` has an `accessibilityAction` that commits (VoiceOver / Switch Control get a plain activation; city hold drops to 0 s under Reduce Motion); `.contextMenu` / `.swipeActions` are exposed to VoiceOver by the system as actions. No change | Done |
 
+### Run 32 (2026-11-28)
+Merged `origin/ui/combined-r7`. Sweep **3348aa51f** (07:26Z, contains runs 28-30) a11y sheets read: `en-a11y-badges-ax5` ring +
+Collected / Locked rows wrap, `en-a11y-passport-ax5` Ticket wallet / Earnings / Messages capsules wrap in blue on tint, stamps
+"3 of 12" ✓, `en-a11y-roam-ax5` Nearby activities 2 wraps on the light panel, i · Go · map ✓. No open coordinator finding.
+Not done item: meaningful images with no label (scripted scan of status / verified / lock / warning / offline / muted symbols
+outside `Label` icons, buttons and combined / hidden parents: 10 hits, 7 already hidden inside a labelled parent).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/club` channel sidebar (muted channel) | `ClubChannelMessagingView.swift:498` | ✓ (mp-club owns order) | The muted bell was the only cue that a channel is muted; VoiceOver now hears "Muted" / "免打扰" (existing `messaging.muted`) | Done |
+| Offline banner (all player lists) | `DesignSystem/CYStatusOfflineBanner.swift:53` | ✓ | `wifi.slash` beside the offline message hidden (the banner already speaks its label + message) | Done |
+| `pages/publishkit` wizard issue list | `DesignSystem/CYBusinessComponents.swift:1291` | ✓ (mp-publish owns order) | Issue rows (jump to step) were 32 pt tall → 44 pt target; the warning and arrow glyphs are hidden so VoiceOver reads only "Step n: message" | Done |
+| Stamp created, journey settle seal, ticket verified, pass verified, collectible / cover lock, in-place result, city claim step | `RoamStampCameraView`, `JourneyReportViews`, `E1TicketCard`, `CYPassVerified`, `CYCollectible`, `CYCoverArt`, `CYInPlaceResult`, `CityClaimFlow` | ✓ | Audit: each glyph is inside an `.ignore` / hidden parent whose text or label says the state. No change | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than ffeef67c7, to see runs 28-31).
-- Next pages without a row: VoiceOver — images that carry meaning (`Image(...)` beside no text: status glyphs, verified marks,
-  medal tiers) with neither `accessibilityLabel` nor `accessibilityHidden`, outside the a11y lint's button/image rules.
-  (Run 31: selected traits and long-press alternatives scanned.)
+- Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-32).
+- Next pages without a row: 44 pt targets — custom `Button` labels with `.frame(minHeight:` / `.frame(height:` below 44
+  (run 32 found one at 32 pt in the publish issue list). (Run 32: meaningful-image scan done.)
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

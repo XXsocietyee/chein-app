@@ -497,6 +497,7 @@ public struct ClubChannelMessagingView: View {
                 if badgeText == nil && channel.isMuted {
                     Image(systemName: "bell.slash")
                         .foregroundStyle(.secondary)
+                        .accessibilityLabel(Text("messaging.muted"))
                 }
             }
             .contentShape(Rectangle())
