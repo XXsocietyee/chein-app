@@ -62,6 +62,8 @@ public struct ProjectEditGapCastEditorSheet: View {
     public let chapters: [ProjectEditChapter]
     /// nil hides 试听 (owner decision 2026-11-24 #7: no live cast calls; the MP also hides it when TTS is off).
     public let onPreviewVoice: ((TopicCastMemberDraft) -> Void)?
+    /// MP `pickCastAvatar`; nil hides 上传头像 in 编辑角色.
+    public let avatarUpload: ProjectEditCastAvatarUpload?
     @Environment(\.dismiss) private var dismiss
     @State private var editing: ProjectEditCastEditTarget?
 
@@ -69,12 +71,14 @@ public struct ProjectEditGapCastEditorSheet: View {
         members: Binding<[TopicCastMemberDraft]>,
         player: Binding<ProjectEditCastPlayer>,
         chapters: [ProjectEditChapter] = [],
-        onPreviewVoice: ((TopicCastMemberDraft) -> Void)?
+        onPreviewVoice: ((TopicCastMemberDraft) -> Void)?,
+        avatarUpload: ProjectEditCastAvatarUpload? = nil
     ) {
         self._members = members
         self._player = player
         self.chapters = chapters
         self.onPreviewVoice = onPreviewVoice
+        self.avatarUpload = avatarUpload
     }
 
     public var body: some View {
@@ -139,7 +143,8 @@ public struct ProjectEditGapCastEditorSheet: View {
                     },
                     onDelete: {
                         members.removeAll { $0.id == target.member.id }
-                    })
+                    },
+                    avatarUpload: avatarUpload)
                 .cySheet(detents: [.large])
             }
         }
@@ -148,7 +153,7 @@ public struct ProjectEditGapCastEditorSheet: View {
     /// MP `cast-row`: face, name, then `identity · voice` when either is set.
     private func castRow(_ member: TopicCastMemberDraft) -> some View {
         HStack(spacing: CYSpacing.md) {
-            ProjectEditCastFace(name: member.name, colorHex: member.colorHex, size: .medium)
+            ProjectEditCastFace(name: member.name, colorHex: member.colorHex, size: .medium, imageURL: member.avatarURL)
             VStack(alignment: .leading, spacing: 2) {
                 if member.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Text("castMember.untitled").foregroundStyle(.secondary)

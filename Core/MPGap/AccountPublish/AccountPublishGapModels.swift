@@ -34,9 +34,12 @@ public struct TopicCastMemberDraft: Identifiable, Equatable, Sendable {
     public var endingLow: String
     public var endingMid: String
     public var endingHigh: String
+    /// MP `cast[].avatarUrl` (theme-cast.js `pickCastAvatar`): an `https://` upload result or a `media-asset:N` id; nil = no photo.
+    public var avatarURL: String?
 
     public init(id: String, name: String, roleTitle: String, voiceID: String? = nil, colorHex: String? = nil,
-                clues: [TopicCastClueDraft] = [], endingLow: String = "", endingMid: String = "", endingHigh: String = "") {
+                clues: [TopicCastClueDraft] = [], endingLow: String = "", endingMid: String = "", endingHigh: String = "",
+                avatarURL: String? = nil) {
         self.id = id
         self.name = name
         self.roleTitle = roleTitle
@@ -46,6 +49,7 @@ public struct TopicCastMemberDraft: Identifiable, Equatable, Sendable {
         self.endingLow = endingLow
         self.endingMid = endingMid
         self.endingHigh = endingHigh
+        self.avatarURL = avatarURL
     }
 }
 
