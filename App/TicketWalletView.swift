@@ -76,29 +76,32 @@ import SwiftUI
                     // NAT-12 (native-r2): MP signup/index.wxml has no swiper; the rows are the one list (no app-only carousel).
                     // Source preserves both lanes and row order, including repeated server IDs.
                     ForEach(Array(shown.enumerated()), id: \.offset) { rowIndex, ticket in
-                        if ticket.action == .detail && !ticket.isWalletLocked {
-                            NavigationLink {
-                                TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
-                            } label: { TicketWalletRow(ticket: ticket) }
-                            .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
-                            .id(rowIndex)
-                        } else if let provider = pendingOrderProvider, pendingOrderReadOwner == provider.owner,
-                                  pendingOrderEntry.canOpen(ticket: ticket, reader: reader, provider: provider) {
-                            Button {
-                                guard let offeredPresentation, !model.isLoading,
-                                      model.accepts(offeredPresentation, currentOwner: key),
-                                      pendingOrderReadOwner == provider.owner,
-                                      let current = model.value(owner: key) else { return }
-                                pendingOrderEntry.activate(ticket: ticket, rowIndex: rowIndex, snapshot: current,
-                                    reader: reader, provider: provider, presentationID: offeredPendingPresentation)
-                            } label: { TicketWalletRow(ticket: ticket, showsPendingOrderAction: true) }
-                            .foregroundStyle(.primary)
-                            .accessibilityIdentifier("ticketWallet.pendingOrder.open.\(ticket.id)")
-                            .id(rowIndex)
-                        } else {
-                            TicketWalletRow(ticket: ticket)
+                        // mp-mine r3 (ADA e4-tickets): one section per ticket, so each pass reads as its own card.
+                        Section {
+                            if ticket.action == .detail && !ticket.isWalletLocked {
+                                NavigationLink {
+                                    TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
+                                } label: { TicketWalletRow(ticket: ticket) }
                                 .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
                                 .id(rowIndex)
+                            } else if let provider = pendingOrderProvider, pendingOrderReadOwner == provider.owner,
+                                      pendingOrderEntry.canOpen(ticket: ticket, reader: reader, provider: provider) {
+                                Button {
+                                    guard let offeredPresentation, !model.isLoading,
+                                          model.accepts(offeredPresentation, currentOwner: key),
+                                          pendingOrderReadOwner == provider.owner,
+                                          let current = model.value(owner: key) else { return }
+                                    pendingOrderEntry.activate(ticket: ticket, rowIndex: rowIndex, snapshot: current,
+                                        reader: reader, provider: provider, presentationID: offeredPendingPresentation)
+                                } label: { TicketWalletRow(ticket: ticket, showsPendingOrderAction: true) }
+                                .foregroundStyle(.primary)
+                                .accessibilityIdentifier("ticketWallet.pendingOrder.open.\(ticket.id)")
+                                .id(rowIndex)
+                            } else {
+                                TicketWalletRow(ticket: ticket)
+                                    .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
+                                    .id(rowIndex)
+                            }
                         }
                     }
                 }
@@ -343,7 +346,7 @@ extension TicketWalletTicket {
     }
 }
 
-/// Native r2: one inset-grouped list row (artwork thumbnail, tag, title, facts), no card chrome, scrim or shadow.
+/// Native r2: one inset-grouped section per ticket (cover band, perforation, tag, title, facts), no scrim or shadow.
 private struct TicketWalletRow: View {
     /// mp-mine r3: MP signup writes dates as「M月D日」, never the raw server `yyyy-MM-dd`; this reads the
     /// Beijing calendar day in the user's locale (2030年4月20日 / Apr 20, 2030) and keeps any other text as sent.
@@ -362,39 +365,44 @@ private struct TicketWalletRow: View {
     var showsPendingOrderAction = false
     @Environment(\.ticketWalletCompletionReader) private var completionReader
     @Environment(\.locale) private var locale
-    @ScaledMetric(relativeTo: .body) private var thumb: CGFloat = 60
+    @Environment(\.dynamicTypeSize) private var typeSize
     /// R7-MEM-21-3: activity image, else topic image. The MP illustration stays only when that URL is absent.
     private var httpsCover: URL? { ticket.walletHTTPSCoverURL }
     private var coverIllustration: some View {
-        // MP signup wxml:68 `wc__im--illus` keeps a placeholder slot when there is no cover. 20:25 sweep: the
-        // route illustration read as an empty grey box at 60 pt, so the slot shows the `ticket` symbol instead.
-        Image(systemName: "ticket")
-            .font(.title2)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(CYColor.bgSurfaceSubtle)
-            .accessibilityHidden(true)
+        // MP signup wxml:68 `wc__im--illus`: no cover shows the route illustration (`cover-route.svg`), the same
+        // fallback as the pass sheet (`TicketPassSheet.header`), so the wallet card and the pass read as one object.
+        ZStack {
+            Rectangle().fill(CYColor.bgSurfaceSubtle)
+            MPAsset.BannerCover.coverRoute.resizable().scaledToFit().padding(12).opacity(0.5)
+        }
+        .accessibilityHidden(true)
+    }
+    /// mp-mine r3 (ADA e4-tickets): the MP card is one big pass with its cover on top (signup wxml:66-68);
+    /// the native row is that pass in a list section: cover band, a perforation, then the MP facts.
+    private var coverBand: some View {
+        Group {
+            if let url = httpsCover {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image {
+                        image.resizable().scaledToFill()
+                    } else {
+                        coverIllustration
+                    }
+                }
+            } else {
+                coverIllustration
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: typeSize.isAccessibilitySize ? 72 : 132)
+        .clipShape(.rect(cornerRadius: CYRadius.inner))
+        .accessibilityHidden(true)
     }
     var body: some View {
         let dimmed = ticket.status == .cancelled || ticket.status == .expired || ticket.isWalletLocked
-        HStack(alignment: .top, spacing: 12) {
-            Group {
-                if let url = httpsCover {
-                    AsyncImage(url: url) { phase in
-                        if let image = phase.image {
-                            image.resizable().scaledToFill()
-                        } else {
-                            coverIllustration
-                        }
-                    }
-                } else {
-                    coverIllustration
-                }
-            }
-            // a11y-dt r3: artwork capped at 96 pt (Music list rule) so the title keeps the row width at AX5.
-            .frame(width: min(thumb, 96), height: min(thumb, 96))
-            .clipShape(.rect(cornerRadius: CYRadius.inner))
-            .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 12) {
+            coverBand
+            TicketWalletPerforation()
             VStack(alignment: .leading, spacing: 4) {
                 // Owner rule (MP 2026-10-28): no status on the card. Only the MP tag: M月D日开始 / 退款中 / 已通关 / 未通关.
                 TicketWalletCardTag(ticket: ticket)
@@ -405,7 +413,7 @@ private struct TicketWalletRow: View {
                 if let date = ticket.participateDate, !date.isEmpty {
                     QuestifyMetadataLine(label: "ticketWallet.participateDate", value: Self.participateDateText(date), systemImage: "calendar")
                 }
-                if let place = ticket.addressName, !place.isEmpty {
+                if ticket.walletSessionLine == nil, let place = ticket.addressName, !place.isEmpty {
                     QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
                 }
                 if ticket.needsScheduleSync {
@@ -433,7 +441,7 @@ private struct TicketWalletRow: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
         .opacity(dimmed ? 0.6 : 1)
     }
     /// Completed shows 已通关. Absent hides that line. A non-boolean shows an em dash.
@@ -448,6 +456,21 @@ private struct TicketWalletRow: View {
                 .accessibilityLabel(Text("mpfresh.ticketWallet.completion.unknownLabel", tableName: "MpFresh"))
                 .accessibilityIdentifier("ticketWallet.topicCompleted.unknown.\(ticket.id)")
         }
+    }
+}
+
+/// The pass perforation between the cover and the facts: a dashed hairline in the separator colour (no ornament).
+private struct TicketWalletPerforation: View {
+    var body: some View {
+        GeometryReader { proxy in
+            Path { path in
+                path.move(to: CGPoint(x: 0, y: 0.5))
+                path.addLine(to: CGPoint(x: proxy.size.width, y: 0.5))
+            }
+            .stroke(Color(uiColor: .separator), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+        }
+        .frame(height: 1)
+        .accessibilityHidden(true)
     }
 }
 
@@ -524,6 +547,8 @@ private struct TicketWalletSubline: View {
         return text ?? Text(verbatim: "")
     }
     private func head(_ typeKey: String) -> Text {
+        // MP P-27 `sessionLine`: a session card reads「M月D日 HH:mm · 地点」; only without a start time 场次 · 剩 N 天.
+        if let session = ticket.walletSessionLine { return Text(verbatim: session) }
         guard let days = ticket.walletDaysLeft else { return Text(LocalizedStringKey(typeKey)) }
         if days == 0 {
             return Text(LocalizedStringKey(typeKey)) + Text(verbatim: " · ") + Text("ticketWallet.subline.today")
@@ -540,6 +565,22 @@ extension TicketWalletTicket {
         case .activity?: return "ticketWallet.type.session"
         case nil: return nil
         }
+    }
+    /// MP signup `sessionLine`: start (`yyyy-MM-dd HH:mm`, Beijing) in the user's locale, then the place.
+    /// Nil for route tickets, upcoming tickets and sessions without a start time.
+    var walletSessionLine: String? {
+        guard lane == .activity, !isUpcoming, let raw = startDate else { return nil }
+        let digits = raw.split(whereSeparator: { !$0.isNumber }).compactMap { Int($0) }
+        guard digits.count >= 5 else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
+        let parts = DateComponents(year: digits[0], month: digits[1], day: digits[2], hour: digits[3], minute: digits[4])
+        guard let start = calendar.date(from: parts) else { return nil }
+        var style = Date.FormatStyle().month(.abbreviated).day().hour().minute()
+        style.timeZone = calendar.timeZone
+        let when = start.formatted(style)
+        guard let place = addressName?.trimmingCharacters(in: .whitespacesAndNewlines), !place.isEmpty else { return when }
+        return when + " · " + place
     }
     /// Whole days from today to `usableUntil` (Beijing calendar). Nil when upcoming, a session ticket, or no date.
     var walletDaysLeft: Int? {
