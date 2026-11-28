@@ -18,6 +18,8 @@ public enum BusinessRuntimeFeature: Hashable {
     case imPollResult, imPollCreate, imPollVote, imPollClose, imPollCreateReceipt, clubChat
     case publishingRead, publishingWrite, projectRead, projectWrite, projectAuthorInputRead, projectPublicationRead, directVerification
     case publishingAIQuota, publishingAITheme, publishingAIClub, publishingAITemplate
+    /// Planning audit H-08b: the pre-publish AI safety precheck (club hosts; the backend gate blocks players).
+    case publishingAISafety
     case merchantDraftSelectionList, merchantDraftSelectionResolve
     case approvedTopicReleasePrepare, approvedTopicReleasePublish, approvedTopicReleaseStatus
     case approvedTopicReviewSources, approvedTopicReviewPrepare, approvedTopicReviewSubmit, approvedTopicReviewStatus, approvedTopicReviewCurrent
@@ -342,6 +344,7 @@ public extension BusinessRuntimeFeature {
         case .publishingAITheme: paths = ["api/ai/theme/draft/prepare", "api/ai/theme/draft/execute"]
         case .publishingAIClub: paths = ["api/ai/club/design"]
         case .publishingAITemplate: paths = ["api/ai/template/fill"]
+        case .publishingAISafety: paths = ["api/ai/safety/precheck"]
         case .publishingWrite: paths = ["api/project/state-requests/submit", "api/activity/create-requests/submit", "api/activity/create-requests/resume-post-processing", "api/activity/publish", "api/topic/create", "api/topic/delete", "api/topic/update_user_status", "api/activity/delete", "api/activity/update_publish_status", "api/template/delete", "api/template/updateLibraryStatus"]
         case .approvedTopicReviewSources: paths = [ApprovedTopicReviewPath.sources]
         case .merchantDraftSelectionList: paths = [ProjectMerchantDraftPath.list]

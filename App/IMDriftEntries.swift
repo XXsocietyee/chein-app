@@ -101,7 +101,11 @@ extension EnvironmentValues {
                     Text(result).font(.caption).foregroundStyle(.secondary)
                 }
                 if offersSettings {
-                    Button(action: openNotificationSettings) { Text("d7.notifyPermission.settings") }
+                    Button(action: openNotificationSettings) {
+                        Text("d7.notifyPermission.settings")
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                    }
                         .font(.caption).buttonStyle(.borderless)
                         .accessibilityIdentifier("im.coopStrip.inviteReminder.settings")
                         .accessibilityLabel(Text("d7.notifyPermission.settings"))

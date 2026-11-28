@@ -18,7 +18,7 @@ import UIKit
         guard let topicID = result.topicID, topicID > 0 else { return }
         let server = result.themeFacts
         byTopic[topicID] = PlayThemePresentationFacts(
-            look: server.look.flatMap { CYThemeLook(style: $0.style, palette: $0.palette, neon: $0.neon) },
+            look: server.look.flatMap { CYThemeLook(style: $0.style, palette: $0.palette, neon: $0.neon, climate: $0.climate, volatility: $0.volatility) },
             aiGenerated: server.aiGenerated,
             productType: server.productType,
             coverURL: server.coverURL)

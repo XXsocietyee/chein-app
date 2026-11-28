@@ -152,14 +152,22 @@ public struct PublishingSafetyIssue: Equatable {
                 if status == 401 || code == 401 { try journal.clear(record); return .rejected("请先登录") }
                 if status == 403 || code == 403 { try journal.clear(record); return .rejected("当前身份暂不支持AI创作") }
             }
-            guard (200..<300).contains(status), let body = try? OperationAdapterHTTP.envelope(data), let code = body["code"]?.integer else { return review.isSafety ? .unavailable("") : .unknown }
+            guard (200..<300).contains(status), let body = try? OperationAdapterHTTP.envelope(data), let code = body["code"]?.integer else {
+                // fix/1128c-ai-showcase: the safety precheck moves nothing, so a failed answer clears its marker; a stuck
+                // marker would otherwise skip every later precheck as "unavailable".
+                if review.isSafety { try? journal.clear(record); return .unavailable("") }
+                return .unknown
+            }
             if review.isThemeDraftPrepare {
                 return try await finishThemeDraftV2(prepareBody: body, prepareCode: code, credential: credential, record: record, journal: journal)
             }
             try journal.clear(record)
             if code == 200 { return .acknowledged(body["data"] ?? .null) }
             return review.isSafety ? .unavailable(body["msg"]?.text ?? "") : .rejected(body["msg"]?.text ?? "")
-        } catch { return review.isSafety ? .unavailable("") : .unknown }
+        } catch {
+            if review.isSafety { try? journal.clear(record); return .unavailable("") }
+            return .unknown
+        }
     }
 
     private func finishThemeDraftV2(prepareBody: [String: ProjectEditJSON], prepareCode: Int, credential: PublishingCredentials,
