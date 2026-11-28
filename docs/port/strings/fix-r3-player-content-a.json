@@ -126,7 +126,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load topic templates"
+            "value": "Couldn’t load route templates"
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This play could not be opened"
+            "value": "Couldn’t open this play"
           }
         },
         "zh-Hans": {
@@ -711,7 +711,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This topic template could not be opened"
+            "value": "Couldn’t open this route template"
           }
         },
         "zh-Hans": {
@@ -728,7 +728,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading topic template"
+            "value": "Loading route template…"
           }
         },
         "zh-Hans": {

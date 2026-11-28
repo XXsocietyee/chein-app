@@ -8,7 +8,6 @@ import SwiftUI
     let identity: ClubReadIdentity
     @ObservedObject var model: ClubCommunityViewModel
     @Environment(\.clubEnrollmentProfile) private var profile
-    @State private var selected: ClubPostAuthorRoute?
     @State private var sourceActive = true
     private var context: ClubPostAuthorContext? {
         guard let profile else { return nil }
@@ -28,9 +27,10 @@ import SwiftUI
     var body: some View {
         Group {
             if let target = route {
-                Button {
-                    guard sourceActive, selected == nil, current(target) else { return }
-                    selected = target
+                // mp-nav r3: MP club/detail index.js:2895-2897 onPostUser = navigateTo pages/userinfo/userinfo,
+                // so the author profile is a push (system back), not a sheet with 关闭. The destination re-checks the route.
+                NavigationLink {
+                    if let profile { ClubPostAuthorDestination(target: target, identity: identity, profile: profile, model: model) }
                 } label: { authorLabel }
                 .buttonStyle(.borderless).accessibilityHint("social.profile")
                 .accessibilityIdentifier("club.postAuthor.open.\(post.id)")
@@ -40,20 +40,8 @@ import SwiftUI
                     .buttonStyle(.borderless)
             } else { authorLabel }
         }
-        .cySheet(item: $selected) { target in
-            if let profile {
-                ClubPostAuthorDestination(target: target, identity: identity, profile: profile, model: model)
-                    .presentationDetents([.large]).presentationCompactAdaptation(.sheet)
-            }
-        }
-        .onChange(of: context) { _, _ in selected = nil }
-        .onChange(of: post) { _, _ in selected = nil }
         .onAppear { sourceActive = true }
         .onDisappear { sourceActive = false }
-    }
-    private func current(_ target: ClubPostAuthorRoute) -> Bool {
-        guard currentPost, profile?.reader.isConfigured == true, let context else { return false }
-        return target.isCurrent(acceptedPosts: model.snapshot?.posts, context: context)
     }
     private var authorLabel: some View {
         // Round 4 image parity (MP cy-post-card wxml:12-13): the author avatar leads the name, `d_profile.png` when
@@ -83,18 +71,14 @@ import SwiftUI
         target.isCurrent(acceptedPosts: model.snapshot?.posts, context: context)
     }
     var body: some View {
-        NavigationStack {
+        Group {
             if current {
                 SocialPublicProfileView(memberID: target.memberID, reader: profile.reader,
                                         squareReader: profile.squareReader, actions: profile.actions)
                     .id(target.id)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("action.close") { dismiss() }.accessibilityIdentifier("club.postAuthor.close")
-                        }
-                    }
             } else { Color.clear.onAppear { dismiss() } }
         }
+        .cyPushedChrome()
         .onChange(of: context) { _, _ in dismiss() }
     }
 }
