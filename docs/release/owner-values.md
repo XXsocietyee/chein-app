@@ -116,3 +116,18 @@ The defaults keep every dependent feature hidden, so a build with placeholders s
 | Key (xcconfig → Info.plist) | Where | Value | Status |
 |---|---|---|---|
 | `QUESTIFY_IMAGE_ORIGINS` → `CYStampImageOrigins` | `Config/OwnerValues.xcconfig` | Comma-separated https origins that `api/common/uploadOSS` returns (OSS bucket / CDN host). Used by avatar, stamp, IM image, play photo upload and, since fix-1128b #22, play kit artwork (`artworkHosts`). The API origin is always included. Write each URL as `https:/$()/host`. | **owner to supply** (empty = API origin only) |
+
+## fix/1128c-ai-weather: Apple WeatherKit (temperature chip, day / night, weather outside the backend provider)
+
+| Key (xcconfig → Info.plist) | Where | Value | Status |
+|---|---|---|---|
+| `CY_WEATHERKIT_ENABLED` → `CYWeatherKitEnabled` | `Config/OwnerValues.xcconfig` | `YES` once the two steps below are done; `NO` keeps the backend weather only (`api/map/weather` + `api/play/environment`). | `NO` (owner to switch) |
+| WeatherKit capability | developer.apple.com → Identifiers → the app's App ID → Capabilities **and** App Services → WeatherKit | Enable both (the App Services checkbox can take ~30 min to propagate). | **owner to do** |
+| `com.apple.developer.weatherkit` = `true` | `Config/Questify.entitlements` | Add after the capability exists, then regenerate the provisioning profile. Not committed: an entitlement the profile lacks breaks Release signing. | **owner to add** |
+
+With the switch on, the chip shows the temperature (°C / °F by locale), the scene uses Apple's day / night, and the
+Apple Weather mark with its legal link appears under the chip wherever an Apple value is shown (WeatherKit attribution
+rule). Any WeatherKit error (missing entitlement, no network, quota) is silent: the app falls back to the backend reading
+and the sun-position light. WeatherKit includes 500,000 calls / month with the developer membership; the app asks at
+most once per ~5.5 km cell per ten minutes, with the cell centre only. Backend values: none (the Tencent weather key for
+`MapWeatherServiceImpl` / `TencentTopicWeatherProvider` is already a backend config).
