@@ -51,13 +51,17 @@ import QuestifyCore
 
     var body: some View {
         Form {
-            Section {
-                TextField(text: $number) { Text("orderCenter.number", tableName: "CreatorEditorUI") }
-                    .textInputAutocapitalization(.never).autocorrectionDisabled()
-                    .accessibilityIdentifier("orderCenter.number")
-                Button { Task { await model.load(number) } } label: { Text("orderCenter.lookup", tableName: "CreatorEditorUI") }
-                    .disabled(!OrderCenterDetailService.validOutTradeNo(number.trimmingCharacters(in: .whitespacesAndNewlines)))
-                    .accessibilityIdentifier("orderCenter.lookup")
+            // MP order-center-entry is opened with an order id and shows only the summary card (no lookup field);
+            // the field stays for the app-only manual lookup (no number given).
+            if initialOutTradeNo.isEmpty {
+                Section {
+                    TextField(text: $number) { Text("orderCenter.number", tableName: "CreatorEditorUI") }
+                        .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .accessibilityIdentifier("orderCenter.number")
+                    Button { Task { await model.load(number) } } label: { Text("orderCenter.lookup", tableName: "CreatorEditorUI") }
+                        .disabled(!OrderCenterDetailService.validOutTradeNo(number.trimmingCharacters(in: .whitespacesAndNewlines)))
+                        .accessibilityIdentifier("orderCenter.lookup")
+                }
             }
             switch model.phase {
             case .idle: EmptyView()
