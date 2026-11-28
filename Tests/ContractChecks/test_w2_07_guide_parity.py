@@ -19,7 +19,10 @@ class W207GuideParity(unittest.TestCase):
     def test_source_copy_is_in_catalog(self):
         for row in self.rows:
             for lang in ('en', 'zh-Hans'):
-                self.assertEqual(self.catalog[row['key']]['localizations'][lang]['stringUnit']['value'], row[lang], row['key'])
+                # en-layout r3: English count strings carry plural variations; read the `other` form.
+                loc = self.catalog[row['key']]['localizations'][lang]
+                unit = loc.get('stringUnit') or loc['variations']['plural']['other']['stringUnit']
+                self.assertEqual(unit['value'], row[lang], row['key'])
         self.assertEqual(self.zh('social.guide.title'), '城瘾玩法')
         self.assertEqual(self.zh('guideXcx.go'), '去看看')
         self.assertEqual(self.zh('guideXcx.docs'), '玩法文档')
