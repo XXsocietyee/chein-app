@@ -372,6 +372,12 @@ Merged `origin/ui/combined-r7`. Level A surface (play), no visual change: the ex
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 52/52 new 0, design consistency PASS.
 
+## Pass 38: next page in area — club/detail 管理 `components/cy/timeline` (带队进度) + stale row 61 (no new coordinator finding for mp-club; latest sweep 3348aa51f covers nav/activity only)
+Merged `origin/ui/combined-r7`. Row 61 re-checked: `components/cy/fe-reference-range` is **Already present** (`App/ClubFEReferenceSettlementHost.swift`: 开始/结束日期, 清除, 导出 → `/api/fe/reference-settlement/payer/export`, failure line), `club-game-code-sheet` and `club-pinned-notice` already have rows / implementations (pass 8, `ClubCommunityViews.swift:397`). The 10 director sheets stay Not done.
+| MP page | Native | MP sections | Fix |
+|---|---|---|---|
+| `pages/club/detail` wxml:411 `cy-timeline` in 现在要做 + js:1557-1585 `buildLeadTimeline` | `Core/ClubLeadProgress.swift`, `App/ClubLeadProgressView.swift` | ① no timeline while `ownerStage === 'publish'` (第十轮 f3 第 4 项: 一站都没走,不画时间线) ② collapsed head = summary 「带队进度 · 当前站」 ③ every node: title, time (node 1 only), desc 已发布 N 个项目 / 先发布一个俱乐部项目 · 已发出 N 份邀请 / 选择一个项目，开始对接商家 · N 份等待商家回应 / 邀请发出后在这里等回应 · 商家已接受，可进入项目主办视图 | **Fixed.** ① `nodes` empty at `.publish` (only the 现在要做 card stays) ② `DisclosureGroup` label is `club.leadProgress.summary %@` with the current station (falls back to 带队四站 when no cursor) ③ each node shows the MP desc (subheadline, secondary) above the native done/doing/todo state line (footnote); invitation time row unchanged. 8 new keys (en + zh-Hans). Test: `ClubLeadProgressTests` publish case now asserts no nodes + `currentStationKey` station.0, pending case station.2 |
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.

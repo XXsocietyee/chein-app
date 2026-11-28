@@ -5,7 +5,7 @@ import XCTest
     func testEmptyTopicsPublishEvenWithOtherProjectRecords() throws {
         let f = LeadFixture(); f.access.topicIDs = []; f.projects.page = f.page([f.project(1, accepted: true)])
         let s = try f.snapshot(); XCTAssertEqual(s.stage, .publish); XCTAssertEqual(s.topicCount, 0)
-        XCTAssertEqual(s.nodes.map(\.state), [.doing, .todo, .todo, .todo])
+        XCTAssertTrue(s.nodes.isEmpty); XCTAssertEqual(s.currentStationKey, "club.leadProgress.station.0")
     }
     func testInviteAndPendingStagesUseOnlyCurrentClubTopics() throws {
         let f = LeadFixture()
@@ -13,6 +13,7 @@ import XCTest
         let s = try f.snapshot(sent: [f.row(1), f.row(2, topic: 999), f.row(3, topic: 92, status: .id(2))])
         XCTAssertEqual(s.stage, .pending); XCTAssertEqual(s.sentCount, 2); XCTAssertEqual(s.pendingCount, 1)
         XCTAssertEqual(s.nodes.map(\.state), [.done, .done, .doing, .todo])
+        XCTAssertEqual(s.currentStationKey, "club.leadProgress.station.2")
     }
     func testOnlyCurrentClubNonActivityAcceptedProjectsAdvanceStage() throws {
         let f = LeadFixture()
