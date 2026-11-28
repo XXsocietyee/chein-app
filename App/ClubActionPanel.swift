@@ -86,10 +86,14 @@ struct ClubActionPanel: View {
                 }
                 if let reward = rewardAction, reward != .leave {
                     // The settled join or apply is a status row, like the membership state in Settings.
-                    Label(LocalizedStringKey(reward == .apply ? "club.membership.pending" : "club.membership.joined"),
-                          systemImage: reward == .apply ? "clock" : "checkmark.circle.fill")
-                        .foregroundStyle(reward == .apply ? Color.orange : Color.green)
-                        .transition(.opacity)
+                    Label {
+                        Text(LocalizedStringKey(reward == .apply ? "club.membership.pending" : "club.membership.joined"))
+                    } icon: {
+                        // Contrast (a11y-dt r3): only the glyph is tinted; orange/green text on the bar is about 2:1.
+                        Image(systemName: reward == .apply ? "clock" : "checkmark.circle.fill")
+                            .foregroundStyle(reward == .apply ? Color.orange : Color.green)
+                    }
+                    .transition(.opacity)
                 }
                 if !rewardPlaying {
                     if coordinator.isConfigured, case .available(let action) = availability {
@@ -246,12 +250,12 @@ struct ClubActionPanel: View {
             // The displayed club may come from a newer ordinary refresh. Never show
             // an older coordinator snapshot as current membership beside it.
             Label {
-                Text(LocalizedStringKey(club.isOwner ? "club.role.creator" : club.isJoined ? "club.membership.joined" : club.joinPending ? "club.membership.pending" : "club.action.notJoined"))
-                    .accessibilityIdentifier("club.action.serverMembership")
-            } icon: {
-                // This is a status, not a Refresh action. Keep the decorative symbol
-                // out of VoiceOver and attach the status identifier only to its text.
-                Image(systemName: "arrow.clockwise").accessibilityHidden(true)
+        Text(LocalizedStringKey(club.isOwner ? "club.role.creator" : club.isJoined ? "club.membership.joined" : club.joinPending ? "club.membership.pending" : "club.action.notJoined"))
+            .accessibilityIdentifier("club.action.serverMembership")
+    } icon: {
+        // This is a status, not a Refresh action. Keep the decorative symbol
+        // out of VoiceOver and attach the status identifier only to its text.
+        Image(systemName: "arrow.clockwise").accessibilityHidden(true)
             }
         case .unavailable: Text("club.action.readbackUnavailable").foregroundStyle(.secondary)
         default: EmptyView()
@@ -292,9 +296,13 @@ struct ClubActionPanel: View {
                             Text("club.action.unavailable").foregroundStyle(.secondary)
                         }
                         if let reward = rewardAction, reward != .leave {
-                            Label(LocalizedStringKey(reward == .apply ? "club.membership.pending" : "club.membership.joined"),
-                                  systemImage: reward == .apply ? "clock" : "checkmark.circle.fill")
-                                .foregroundStyle(reward == .apply ? Color.orange : Color.green)
+                            Label {
+                                Text(LocalizedStringKey(reward == .apply ? "club.membership.pending" : "club.membership.joined"))
+                            } icon: {
+                                // Contrast (a11y-dt r3): only the glyph is tinted; orange/green text on the bar is about 2:1.
+                                Image(systemName: reward == .apply ? "clock" : "checkmark.circle.fill")
+                                    .foregroundStyle(reward == .apply ? Color.orange : Color.green)
+                            }
                         }
                         if isWorking { ProgressView("club.action.working").accessibilityIdentifier("club.action.loading") }
                         if let issueKey { Text(LocalizedStringKey(issueKey)).foregroundStyle(.secondary).accessibilityIdentifier("club.action.error") }

@@ -284,9 +284,9 @@ struct OwnMediaRow: View {
     }
     @ViewBuilder private var state: some View {
         switch asset.reviewState {
-        case .hold: Text("member.media.state.hold", tableName: "MemberProfile").foregroundStyle(.orange)
-        case .approved: Text("member.media.state.approved", tableName: "MemberProfile").foregroundStyle(.green)
-        case .rejected: Text("member.media.state.rejected", tableName: "MemberProfile").foregroundStyle(.red)
+        case .hold: Text("member.media.state.hold", tableName: "MemberProfile").foregroundStyle(CYColor.warningText)
+        case .approved: Text("member.media.state.approved", tableName: "MemberProfile").foregroundStyle(CYColor.successText)
+        case .rejected: Text("member.media.state.rejected", tableName: "MemberProfile").foregroundStyle(CYColor.dangerText)
         case .unavailable: Text("member.media.state.unavailable", tableName: "MemberProfile").foregroundStyle(.secondary)
         }
     }

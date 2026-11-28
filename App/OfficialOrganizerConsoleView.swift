@@ -290,7 +290,7 @@ struct OfficialOrganizerConsoleView: View {
         Section {
             switch outcome {
             case .applied(let a):
-                Label(appliedText(a), systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                Label(appliedText(a), systemImage: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
             case .notConfirmed(let a):
                 Label(c.t("平台已受理「\(actionName(a))」，但回读状态还没更新，请下拉刷新确认。",
                           "The platform accepted “\(actionName(a))”, but the refreshed state doesn't show it yet. Pull to refresh."),
