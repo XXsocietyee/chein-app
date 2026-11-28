@@ -674,3 +674,13 @@ Merged `origin/ui/combined-r7` (clean). B lane (`mp/r3-mine-b`) unchanged since 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
 
 Not done: `CharacterCardReadbackView` byte pin (needs the pin owner).
+
+## Continue 42 (11-28, half-hourly run): appeal refusal releases the row (MP `rejected`)
+
+Merged `origin/ui/combined-r7` (clean). Sweep unchanged (build 0446d1c4f), every mp-mine coordinator finding is closed. B lane run 2 (`c5acc598b`) did the continue 41 `pendingUnknown` row in parallel: same result, nothing more to mark (B lane). Its "For other lanes / Core owner" note is in this area, so this run takes it.
+
+| MP page | Native file | MP sections | Level | Result |
+|---|---|---|---|---|
+| `pages/shezhi/components/post-governance` submit (`index.js:138-149`: body code ≠ 200 → `settle('rejected')` except 409 → `unknown()`; HTTP 4xx except 408/409 → `rejected`; else `unknown()`) | `Core/SquareGovernanceService.swift` (`appealOutcome`, `dispatch(release:)`), `Core/SquareGovernanceCoordinator.swift` (`SquareGovernanceJournal.remove`), `Core/SquareGovernanceSyntheticFixtures.swift` (`mutationReply`), `Tests/CoreTests/SquareGovernanceTests.swift` | ✓ (unchanged) | C | **Fixed.** Before, the device journal claimed `appeal:<id>` before dispatch and never released it, so a definite refusal (e.g. 400 reason invalid) left the row showing 提交申请 that always failed with `outcomeLocked` and the continue 41 pending warning forever. Now an appeal refused definitely releases the claim (the form stays open with 申诉未提交, as the MP `done(requestError)`), and a 409 (an appeal already exists) reads back like an unknown result. Unknown / 5xx / 408 / transport failures stay locked (no automatic unlock). Other governance actions unchanged. Tests: `testDefiniteAppealRefusalReleasesTheRowLikeTheMP`, `testAppealConflictAndServerErrorStayLocked`. |
+
+Not done: `CharacterCardReadbackView` byte pin (needs the pin owner). The refusal notice is the fixed 申诉未提交 copy; the MP shows the server `msg` (`requestError`), which needs the failure to carry it.
