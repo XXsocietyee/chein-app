@@ -149,8 +149,10 @@ import UIKit
             if record.meaningfulZone != nil {
                 Toggle("roam.share.includePlace", isOn: $includePlace).tint(.green)
                     .accessibilityIdentifier("roam.share.includePlace")
+                    .accessibilityHint(Text("roam.share.includePlaceHint"))
                 Text("roam.share.includePlaceHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHidden(true)
             }
             if !record.track.isEmpty {
                 Toggle("roam.share.includeRoute", isOn: $includeRoute).tint(.green)

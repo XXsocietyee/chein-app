@@ -32282,13 +32282,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creator"
+            "value": "Owner"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建者"
+            "value": "主理人"
           }
         }
       }
@@ -198350,6 +198350,23 @@
         }
       }
     },
+    "profile.complaint.read.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account can’t file complaints"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能发起投诉"
+          }
+        }
+      }
+    },
     "profile.complaint.read.network": {
       "extractionState": "manual",
       "localizations": {
@@ -204077,6 +204094,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "未绑定"
+          }
+        }
+      }
+    },
+    "profile.posts.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load posts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帖文加载失败"
           }
         }
       }
@@ -215198,6 +215232,23 @@
         }
       }
     },
+    "publishModes.identityLoading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking your registration…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取登记状态…"
+          }
+        }
+      }
+    },
     "publishModes.identityPrivacy": {
       "localizations": {
         "en": {
@@ -215210,6 +215261,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "仅查询登记状态，不读取或保存姓名和身份证号。"
+          }
+        }
+      }
+    },
+    "publishModes.identityReadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t check your registration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登记状态没能读取"
           }
         }
       }
@@ -273800,7 +273868,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session"
+            "value": "Event"
           }
         },
         "zh-Hans": {
@@ -346808,6 +346876,23 @@
         }
       }
     },
+    "profile.complaint.state.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account can’t file complaints"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能发起投诉"
+          }
+        }
+      }
+    },
     "club.community.feedFailed": {
       "extractionState": "manual",
       "localizations": {
@@ -361415,9 +361500,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld topics published"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld topic published"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld topics published"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -361449,9 +361546,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld invitations sent"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld invitation sent"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld invitations sent"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -362536,6 +362645,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "发送"
+          }
+        }
+      }
+    },
+    "playx.freeEnding.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your city story didn't load. Your trail is still saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市故事暂未加载，不影响本次足迹。"
+          }
+        }
+      }
+    },
+    "playx.freeEnding.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading your city story…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取城市故事…"
           }
         }
       }

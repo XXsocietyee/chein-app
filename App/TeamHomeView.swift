@@ -77,11 +77,11 @@ private struct TeamHomeRow: View {
                 else { Text(verbatim: team.title) }
                 HStack(spacing: 4) {
                     Text(LocalizedStringKey(team.status.key))
-                    Text(verbatim: "·")
+                    Text(verbatim: "·").accessibilityHidden(true)
                     if let joined = team.joinedCount, let max = team.maxMembers {
                         Text("team.members.count") + Text(verbatim: " \(joined) / \(max)")
                     } else { Text("team.members.unknown") }
-                    Text(verbatim: "·")
+                    Text(verbatim: "·").accessibilityHidden(true)
                     Text(LocalizedStringKey(team.joinMode.key))
                 }
                 .font(.subheadline)

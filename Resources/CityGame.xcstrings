@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Acquire operating right"
+            "value": "Apply to run it"
           }
         },
         "zh-Hans": {
@@ -1094,7 +1094,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Operable property"
+            "value": "Place you can run"
           }
         },
         "zh-Hans": {
@@ -1254,7 +1254,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Operated"
+            "value": "Taken"
           }
         },
         "zh-Hans": {

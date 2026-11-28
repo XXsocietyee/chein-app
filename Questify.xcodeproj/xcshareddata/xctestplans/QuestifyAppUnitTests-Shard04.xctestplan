@@ -522,6 +522,7 @@
         "ReformWorldHostWorkbenchViewTests",
         "RegistrationUncertainEvidenceCacheTests",
         "RegistrationWaitlistOrderVisitTests",
+        "ReleasePlayerServiceAuditTests",
         "RetainedImageNormalHostTests",
         "RetainedImageSanitizerTests",
         "RevealChoreographerTests",
