@@ -59,7 +59,7 @@ struct ProfileParticipantsView: View {
                             Label {
                                 Text("participant.list.deletedTitle").font(.headline)
                             } icon: {
-                                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                                Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
                             }
                             Text("participant.list.deletedDetail").font(.subheadline).foregroundStyle(.secondary)
                         }

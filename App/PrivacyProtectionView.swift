@@ -86,8 +86,8 @@ struct PrivacyProtectionView: View {
             }
             Section {
                 LabeledContent {
-                    if granted { Label { Text("authEntry.privacy.consentGranted", tableName: "AuthEntry") } icon: { Image(systemName: "checkmark.seal") }.foregroundStyle(.green) }
-                    else { Label { Text("authEntry.privacy.consentMissing", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(.orange) }
+                    if granted { Label { Text("authEntry.privacy.consentGranted", tableName: "AuthEntry") } icon: { Image(systemName: "checkmark.seal") }.foregroundStyle(CYColor.successText) }
+                    else { Label { Text("authEntry.privacy.consentMissing", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(CYColor.warningText) }
                 } label: { Text("authEntry.privacy.consentStatus", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.consentStatus")
                     .accessibilityLabel(Text("authEntry.privacy.consentStatus", tableName: "AuthEntry"))

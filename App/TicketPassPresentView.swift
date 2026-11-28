@@ -22,7 +22,7 @@ import SwiftUI
                     summary
                     tile.opacity(checkedIn ? 0.6 : 1)
                     if checkedIn {
-                        Label { Text(verbatim: c.t("已入场，玩得开心", "You're in. Have fun.")) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
+                        Label { Text(verbatim: c.t("已入场，玩得开心", "You're in. Have fun.")) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText) }
                             .font(.headline)
                             .transition(.opacity)
                             .accessibilityIdentifier("ticketWallet.present.checkedIn")

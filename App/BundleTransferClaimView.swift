@@ -46,7 +46,7 @@ import SwiftUI
             Label {
                 text("transfer.claim.done").accessibilityIdentifier("bundleTransfer.claimed")
             } icon: {
-                Image(systemName: "checkmark.circle").foregroundStyle(.green)
+                Image(systemName: "checkmark.circle").foregroundStyle(CYColor.successText)
             }
         }
     }

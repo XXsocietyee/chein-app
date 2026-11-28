@@ -226,6 +226,9 @@
     },
     "App/WeChatAndAppleSignInNonceStateSectionView.swift": {
       "status capsule": "unmounted internal screen: release-checklist status page with no call site in App/ outside DesignFixtures (not a player surface); the gate fails if it is mounted, then its soft-tint capsules become CYStatusChip"
+    },
+    "App/CooperationInviteDetailView.swift": {
+      "status hue": "merchant cooperation invite (out of scope for the player release)"
     }
   },
   "baseline": {

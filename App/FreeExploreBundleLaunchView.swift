@@ -187,7 +187,7 @@ import SwiftUI
                     .accessibilityIdentifier("freeBundle.saleUnknown")
             }
             if model.state == .confirmed {
-                Label { text("confirmed") } icon: { Image(systemName: "checkmark.seal.fill").foregroundStyle(.green) }
+                Label { text("confirmed") } icon: { Image(systemName: "checkmark.seal.fill").foregroundStyle(CYColor.successText) }
             }
         }
         // MP order: the catalog (topic name, 暂未开售, chapter cards with stores) comes before the order.

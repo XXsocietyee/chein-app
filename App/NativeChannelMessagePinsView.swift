@@ -52,7 +52,7 @@ import SwiftUI
                             Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
                         }
                     } else {
-                        Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
+                        Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText) }
                     }
                     Button(copy.text("p23.reload")) { reload() }
                         .disabled(!coordinator.pins.isCurrent || phase != .active)
