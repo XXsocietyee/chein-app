@@ -1154,7 +1154,7 @@ widened it failed on `CYRecordStatGrid:40` before that fold. Kept: `TicketPassSh
 not a count), `PlayKitTimedChallengeView:100` (type-in prompt), CityOrientation / Games HUD numerals (level A).
 
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
-(0 debt, raw count 0, 115 allowed), `contract_ratchet --check` RATCHET_RESULT.
+(0 debt, raw count 0, 115 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
 ### Not done (next run)
 - Badge detail name weight (needs the `test_object_badge_wall_layout…byte_identical` re-pin).
