@@ -183,8 +183,7 @@ final class AlipayAppPayTests: XCTestCase {
                                                        alipayOffered: false, paymentChannels: ["APP"]), .wechatPay)
         XCTAssertEqual(RegistrationPayMethod.effective(selection: nil, market: .china, applePayAvailable: false,
                                                        alipayOffered: true, paymentChannels: ["APP_ALIPAY"]), .alipay)
-        XCTAssertEqual(RegistrationPayMethod.alipay.payButtonKey, "registration.payWith.alipay %@")
-        XCTAssertEqual(RegistrationPayMethod.wechatPay.payButtonKey, "registration.payWith.wechatPay %@")
+        XCTAssertEqual(RegistrationPayMethod.alipay.payTitle(amount: "¥12.50").en, "Pay ¥12.50 with Alipay")
     }
 
     func testAlipayOnlyQuoteIsNotPaymentUnavailable() throws {

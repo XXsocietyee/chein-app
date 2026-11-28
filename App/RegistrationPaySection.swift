@@ -258,9 +258,17 @@ extension EnvironmentValues {
     }
 
     /// P32: the button is the payment method plus the total; without a method or a known amount it stays 立即支付.
+    private static func buttonMethod(alipayOffered: Bool, chosen: RegistrationPayMethod,
+                                     passed: RegistrationPayMethod?) -> RegistrationPayMethod? {
+        if alipayOffered { return chosen }
+        return passed
+    }
+
     private var payButtonTitle: String {
         // fix-1128-alipay: with Alipay offered, the WeChat button follows the pay step's own choice.
-        guard let payMethod = alipayOffered ? chosenPayMethod : payMethod,
+        let buttonMethod: RegistrationPayMethod? = Self.buttonMethod(alipayOffered: alipayOffered,
+                                                                     chosen: chosenPayMethod, passed: payMethod)
+        guard let payMethod = buttonMethod,
               let total = RegistrationUIMoney.display(payableAmount, locale: locale,
                                                       currencyCode: payCurrency ?? RegistrationUIMoney.yuanCurrencyCode) else {
             return c.t("立即支付", "Pay now")

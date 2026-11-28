@@ -49,7 +49,7 @@ class AlipayAppPayWiring(unittest.TestCase):
         self.assertIn('RegistrationPayStepMethodRow(selection: payStepMethodBinding', pay)
         sheet = self.read('App/RegistrationSheetView.swift')
         self.assertIn('alipayOffered: alipayOffered)', sheet)
-        self.assertIn('.environment(\\.registrationPayMethodChoice, effectivePayMethod)', sheet)
+        self.assertIn('.environment(\\.registrationPayMethodChoice, selectedPayMethod)', sheet)
         rows = self.read('App/RegistrationAlipayPayRows.swift')
         for token in ['context.createOrder(registrationID)', 'context.launch(registrationID, order)',
                       'context.query(registrationID)', 'RegistrationAlipayResolver.stage(providerReturn:']:
