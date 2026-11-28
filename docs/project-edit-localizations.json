@@ -56,7 +56,7 @@
     "zh-Hans": "结束日期"
   },
   "projectEdit.deadline": {
-    "en": "Recruitment deadline",
+    "en": "Merchant sign-up deadline",
     "zh-Hans": "招商截止日期"
   },
   "projectEdit.dateFormat": {
@@ -448,7 +448,7 @@
     "zh-Hans": "结束时间必须晚于开始时间。"
   },
   "projectEdit.validation.deadline": {
-    "en": "Free exploration needs a recruitment deadline.",
+    "en": "Free exploration needs a merchant sign-up deadline.",
     "zh-Hans": "自由探索需填写招商截止日期。"
   },
   "projectEdit.validation.chapters": {
@@ -652,11 +652,11 @@
     "zh-Hans": "售票日期"
   },
   "projectEdit.saleStart": {
-    "en": "Sale start",
+    "en": "Ticket sales start",
     "zh-Hans": "售票开始"
   },
   "projectEdit.saleEnd": {
-    "en": "Sale end",
+    "en": "Ticket sales end",
     "zh-Hans": "售票结束"
   },
   "projectEdit.saleStoredOnly": {

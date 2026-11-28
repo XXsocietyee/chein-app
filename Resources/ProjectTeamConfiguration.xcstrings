@@ -126,7 +126,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Maximum selectable team size"
+            "value": "Maximum team size"
           }
         },
         "zh-Hans": {
