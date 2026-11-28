@@ -391,6 +391,10 @@ struct RoamAnniversaryReadIntent {
         if unavailableError == nil && state.page != nil && !state.isLoading && state.rows.isEmpty && state.error == nil {
             items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.anniversary.empty"))
         }
+        if unavailableError == nil, state.error != nil, !state.isLoading {
+            let retry = readIntent(state.retryIntent)
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.experience.retry", action: { enqueue(retry) }))
+        }
         if unavailableError == nil, let page = state.page, page.hasMore, !state.isLoading, state.error == nil {
             items.append(
                 RoamHostedAccessibilityItem(
