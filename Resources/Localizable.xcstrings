@@ -142753,6 +142753,23 @@
         }
       }
     },
+    "mpd.postGov.confirming": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submission not confirmed yet. Checking…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交结果未确认，正在确认…"
+          }
+        }
+      }
+    },
     "mpd.postGov.decision %@": {
       "extractionState": "manual",
       "localizations": {
@@ -142919,6 +142936,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "申诉复核后维持原处置"
+          }
+        }
+      }
+    },
+    "mpd.postGov.pendingRow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your last appeal hasn't been confirmed yet. Pull down to check again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次申诉的提交结果未确认，下拉刷新再次核对"
           }
         }
       }
@@ -143446,6 +143480,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "警告"
+          }
+        }
+      }
+    },
+    "mpd.postGov.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This appeal isn't showing yet. Pull down later to check."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有查到这条申诉，请稍后下拉刷新确认"
           }
         }
       }
