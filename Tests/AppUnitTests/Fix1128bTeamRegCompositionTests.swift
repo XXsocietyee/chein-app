@@ -93,6 +93,18 @@ import FoundationNetworking
         XCTAssertFalse(ReviewedProductionFormMutationRoute.waitlistScopeBody(request(#"{"activityId":5,"ticketId":6}"#, type: "text/plain")))
     }
 
+    // MARK: Gap #9 — Release order configuration
+
+    func testGap9ReleaseOrderConfigurationApprovesDevicePaymentAndReviewedOrderActions() throws {
+        let composition = shipped(Fix1128bRecorder())
+        let player = try playerContext(composition)
+        let order = try XCTUnwrap(composition.sessionDependencies(player).orderLifecycleConfiguration)
+        XCTAssertTrue(order.devicePaymentApproved)
+        XCTAssertTrue(order.allowsReviewedCancellationAndRefund)
+        XCTAssertFalse(order.externalCheckoutApproved, "the review-sheet checkout stays closed; re-pay uses the pay section")
+        XCTAssertTrue(order.matches(player))
+    }
+
     // MARK: helpers
 
     func shipped(_ recorder: Fix1128bRecorder) -> AppCompositionRoot {

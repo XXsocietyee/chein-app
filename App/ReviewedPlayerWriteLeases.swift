@@ -1492,10 +1492,12 @@ enum ReviewedPlayerReadRoute {
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, role: context.role,
             sourceRevision: OrderLifecycleSourceContract.revision, approvals: [],
-            // fix/1128-cn-pay P0-2: the device (WeChat SDK) payment follows the payment switch. Order-detail Pay runs
-            // through RegistrationPaySection (`pay/app` → WeChat SDK → one `registration/info` read); the review-sheet
-            // payment stays closed (externalCheckoutApproved false, no payment approval) and is not shown (P1-4).
-            externalCheckoutApproved: false, devicePaymentApproved: ReleaseMoneyWriteSwitch.paymentEnabled,
+            // fix/1128-cn-pay P0-2: order-detail Pay runs through RegistrationPaySection (`pay/app` → WeChat SDK → one
+            // `registration/info` read); the review-sheet payment stays closed (externalCheckoutApproved false, no payment
+            // approval) and is not shown (P1-4). Gap #9 (1128 plan): device payment is approved in Release; the WeChat
+            // SDK path is gated by its own build flag (`WeChatPaymentBuildSettings`) and the pay route by
+            // `ReleaseMoneyWriteSwitch` in the composition firewall. Cancel / cancel-refund are the reviewed order actions.
+            externalCheckoutApproved: false, devicePaymentApproved: true,
             allowsReviewedCancellationAndRefund: true
         )
         var imRoutes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [
