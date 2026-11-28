@@ -852,8 +852,7 @@ struct PlayThemeMusicKey: Equatable {
                 // Next round (motion): start / resume taps land with a medium impact, pause with a light one; a restored
                 // paused record (idle → paused) stays silent.
                 cityRunPrimary
-                    .cyHaptic(.impactMedium, trigger: model.clock.phase) { old, new in old != .running && new == .running }
-                    .cyHaptic(.impactLight, trigger: model.clock.phase) { old, new in old == .running && new == .paused }
+                    .modifier(PlayClockHaptics(running: model.clock.phase == .running, paused: model.clock.phase == .paused))
             }
             NavigationStack {
                 List {
@@ -2381,4 +2380,21 @@ private struct PlayTaskRightSection: View {
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("playx.right")
     }
+}
+
+
+/// Start / resume taps land with a medium impact, pause with a light one; typed and split out so the play body
+/// type-checks in time. A restored paused record (idle → paused) stays silent because `running` never rose.
+private struct PlayClockHaptics: ViewModifier {
+    let running: Bool
+    let paused: Bool
+    @State private var wasRunning = false
+    func body(content: Content) -> some View {
+        content
+            .cyHaptic(.impactMedium, trigger: running, where: Self.rose)
+            .cyHaptic(.impactLight, trigger: paused, where: pausedFromRun)
+            .onChange(of: running) { _, now in if now { wasRunning = true } }
+    }
+    private static func rose(_ old: Bool, _ new: Bool) -> Bool { !old && new }
+    private func pausedFromRun(_ old: Bool, _ new: Bool) -> Bool { !old && new && wasRunning }
 }
