@@ -11,13 +11,14 @@ enum SearchMapFixtureKeywords {
     }
 }
 
-@MainActor final class SearchMapFixtureReader: SearchMapReading {
+@MainActor final class SearchMapFixtureReader: SearchMapReading, SearchMapOfflineNoteHiding {
     enum Scenario: String { case content, empty, partial, guest, failure, retry, unauthorized, unconfigured, delayed, categoryDelayed, cityFallback, pagination, pageFailure, pageDelayed, filteredPage }
     let scenario: Scenario
     var scope = UUID()
     var isAuthenticated: Bool
     var isConfigured: Bool { scenario != .unconfigured }
     var isOfflineExample: Bool { true }
+    var hidesOfflineExampleNote: Bool { SearchMapFixtureLanguage.isDesignFixture }
     private var searches = 0
     private(set) var activityPageRequests: [Int] = []
     private var pendingActivityPages: [UUID: CheckedContinuation<Void, Error>] = [:]

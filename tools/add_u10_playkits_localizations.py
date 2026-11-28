@@ -11,7 +11,7 @@ S = {
     'playkit.kind.hangman': ('Word guess', '逐字猜词'),
     'playkit.hangman.placeholder': ('Tap a cell and type with the keyboard', '点格子，用系统键盘输入'),
     'playkit.hangman.field': ('Word guess input', '逐字猜词输入框'),
-    'playkit.hangman.wrong': ('Not quite. Think again.', '不对，再想想'),
+    'playkit.hangman.wrong': ('Not quite. Look at the clue again.', '还不对，再看看题面'),
     'playkit.hangman.submit': ('Submit', '提交'),
     'playkit.hangman.continue': ('Continue', '继续'),
     'playkit.hangman.answer %@': ('Answer: %@', '答案：%@'),

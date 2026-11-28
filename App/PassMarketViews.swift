@@ -471,6 +471,17 @@ struct PassMarketView: View {
 /// Shop row content: kind + city line, name, validity, "includes N works · seats", price.
 struct PassProductCardView: View {
     let product: PassProductCard
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    @ViewBuilder private var coverText: some View {
+        if product.coverCount > 0 {
+            if let seats = product.seats {
+                Text("mp.pass.coverSeats \(product.coverCount) \(seats)")
+            } else {
+                Text("mp.pass.cover \(product.coverCount)")
+            }
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -483,27 +494,22 @@ struct PassProductCardView: View {
             Text(verbatim: product.name).font(.headline).foregroundStyle(.primary)
                 .multilineTextAlignment(.leading)
             if let validity = product.validity { validity.text.font(.subheadline).foregroundStyle(.secondary) }
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .firstTextBaseline) {
-                    if product.coverCount > 0 {
-                        if let seats = product.seats {
-                            Text("mp.pass.coverSeats \(product.coverCount) \(seats)")
-                        } else {
-                            Text("mp.pass.cover \(product.coverCount)")
-                        }
+            // MP passes/index.wxml:34-36 mk-card__foot: cover line and price share one row on every card;
+            // the cover wraps instead of pushing the price onto its own line. Stacks only at accessibility sizes.
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: 4) {
+                        coverText
+                        PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(.headline)
                     }
-                    Spacer()
-                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(.headline)
-                }
-                VStack(alignment: .leading, spacing: 4) {
-                    if product.coverCount > 0 {
-                        if let seats = product.seats {
-                            Text("mp.pass.coverSeats \(product.coverCount) \(seats)")
-                        } else {
-                            Text("mp.pass.cover \(product.coverCount)")
-                        }
+                } else {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        coverText
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(.headline)
+                            .fixedSize()
+                            .layoutPriority(1)
                     }
-                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(.headline)
                 }
             }
             .font(.subheadline).foregroundStyle(.secondary)

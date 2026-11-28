@@ -229,6 +229,14 @@ import FoundationNetworking
         XCTAssertFalse(try node(#"{"id":4,"topicId":7,"productType":1,"latitude":31.2,"longitude":121.4}"#).isLiveMerchantLayerShop)
         XCTAssertFalse(try node(#"{"id":5,"topicId":7,"latitude":31.2,"longitude":121.4}"#).isLiveMerchantLayerShop)
     }
+    func testLiveMerchantPinKeepsMPShopPhotoAndToleratesMalformedPicUrl() throws {
+        func node(_ json: String) throws -> RoamRouteNode { try JSONDecoder().decode(RoamRouteNode.self, from: Data(json.utf8)) }
+        XCTAssertEqual(try node(#"{"id":1,"picUrl":" https://img.example.com/a.jpg ","latitude":31.2,"longitude":121.4}"#).picUrl,
+                       "https://img.example.com/a.jpg")
+        XCTAssertNil(try node(#"{"id":2,"picUrl":"","latitude":31.2,"longitude":121.4}"#).picUrl)
+        XCTAssertNil(try node(#"{"id":3,"picUrl":{"x":1},"latitude":31.2,"longitude":121.4}"#).picUrl)
+        XCTAssertNil(try node(#"{"id":4,"latitude":31.2,"longitude":121.4}"#).picUrl)
+    }
     func testFinishUsesReadbackAndArchivesOnlyCompleteMatchingFact() async throws {
         let (owner, service, _, storage, scope) = try fixture(); await owner.start(purposeAccepted: true)
         await owner.finish(); XCTAssertEqual(service.finishes, 1); XCTAssertEqual(service.reads, 1); XCTAssertEqual(owner.phase, .finished)
