@@ -740,6 +740,24 @@ public struct PlayCompletionReview: Equatable {
             fail(error, session: session, generation: request)
         }
     }
+    /// Legacy puzzle "揭晓答案" (MP pages/play reveal → `POST api/play/puzzle/reveal`). Only while the hint
+    /// ladder is off; the ladder's ANSWER row uses `help/use` instead. City orientation, hints on, unlocked node.
+    public func requestReveal(nodeID: Int, context: PlayInteractionContext? = nil) async {
+        guard accepts(context), gameplayMode == .cityOrientation,
+              service.enabled.contains(.hints), canWrite, let session = loadedSession,
+              let node = snapshot?.visibleNodes.first(where: { $0.id == nodeID }),
+              snapshot?.isLocked(node) == false else { return }
+        let request = generation
+        phase = .submitting
+        do {
+            _ = try await service.reveal(scope: scope, nodeID: nodeID, advance: nil, token: session.token)
+            try check(session, request)
+            phase = .needsReadback
+            await load()
+        } catch {
+            fail(error, session: session, generation: request)
+        }
+    }
     /// Cast reads for this play session. Capabilities stay empty, so profile, voice and branch writes do not send.
     public func makeCastCoordinator() -> CastCoordinator {
         CastCoordinator(service: CastService(configuration: service.configuration, transport: service.transport, enabled: CastCapability.productionEnabled), currentSession: currentSession)

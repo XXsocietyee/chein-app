@@ -15,7 +15,7 @@ struct TopicChapterCardsSection: View {
         if !cards.isEmpty {
             Section("topicXcx.section.nodeIntro") {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                    LazyHStack(alignment: .top, spacing: CYSpacing.md) {
                         ForEach(cards) { card in
                             TopicChapterCardView(card: card, isOpen: openID == card.id) { toggle(card.id) }
                         }

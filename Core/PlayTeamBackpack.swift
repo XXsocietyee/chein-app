@@ -103,6 +103,8 @@ public enum PlayTeamBackpackRead: Equatable {
     public private(set) var cooperation: PlayWireValue
     public private(set) var loading = true
     public private(set) var issue: Issue?
+    /// Server sentence for the current issue, when the reply carried one. Empty when it did not.
+    public private(set) var serverMessage: String?
     public private(set) var rows: [PlayCoopHelp.Row] = []
     public private(set) var skip: PlayCoopHelp.Skip?
     public private(set) var freeText = ""
@@ -152,13 +154,19 @@ public enum PlayTeamBackpackRead: Equatable {
         sending = true
         busyLevel = operation == .view ? nil : level
         issue = nil
+        serverMessage = nil
         let outcome = await PlayCoopHelp.send(client: client, body: body)
         sending = false; loading = false; busyLevel = nil
         switch outcome {
         case .unknown:
             issue = operation == .view ? .viewUnknown : .writeUnknown
             unknown = operation == .view ? nil : Unknown(operation: operation, level: level, requestID: requestID ?? "")
+        case .notedUnknown(let message):
+            serverMessage = message
+            issue = operation == .view ? .viewUnknown : .writeUnknown
+            unknown = operation == .view ? nil : Unknown(operation: operation, level: level, requestID: requestID ?? "")
         case .rejected(let message):
+            serverMessage = message
             issue = .rejected(message); unknown = nil; skipConfirm = false
         case .ok(let data):
             unknown = nil

@@ -14,7 +14,7 @@ import WeatherKit
     static let shared = WeatherKitReader()
     /// A constant plist key. `isEnabled` is nonisolated, so this static cannot stay on the main actor.
     nonisolated static let infoKey = "CYWeatherKitEnabled"
-    static let ttl: TimeInterval = 600
+    static let ttl: TimeInterval = WeatherContext.mapFreshFor
 
     struct Attribution: Equatable {
         let lightMarkURL: URL

@@ -350,6 +350,18 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         ownerType == 2 && registrationStatus == 2 && historyState() != .completed
             && (teamMode == 1 || teamMode == 2)
     }
+
+    /// MP `info.teamStarted = info.teamOpen && !(startMs > Date.now())` (scene-member-order-detail index.js:1125):
+    /// once the session has started (or has no readable start), only an invite-only team can be created.
+    public func teamStarted(nowMilliseconds: Int64) -> Bool {
+        guard teamOpen else { return false }
+        guard let start = MoneyParityTime.timestamp(startDate) else { return true }
+        return !(start > nowMilliseconds)
+    }
+
+    public var teamStartedNow: Bool {
+        teamStarted(nowMilliseconds: Int64(Date().timeIntervalSince1970 * 1000))
+    }
 }
 
 /// FIN-17-3: the MP order detail 发票 block (scene-member-order-detail index.js:431-437).

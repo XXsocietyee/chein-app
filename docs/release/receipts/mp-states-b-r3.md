@@ -27,6 +27,12 @@ publish authoring, club-owner tools). Player screen taken:
 |---|---|---|---|
 | (new, no A row; A row "设置 · AI 对话记录 loader" covered only the loader) 设置 · 隐私 · AI 对话记录 failure (`NPCChatDataView`, `App/NPCChatDataView.swift`) — code read, no sweep fixture | `subpackageMember/components/cy/npc-chat/index.wxml:25` cy-inline-error 导出没有完成 · sub exportError · 重试 (onExportData) | retry-able failure = `CYErrorState` whose title was the long reason sentence (e.g. 暂时无法读取记录。读取权限仍有效时可以重试。) and a 重新读取记录 button; a non-retry failure = a red warning `Label` with the same sentence, no title | both = one `CYEmptyState` (system `ContentUnavailableView`, failure kind) titled 导出没有完成 (Couldn’t export your AI chats; new key `npcData.failure.title`), the reason as its description; retry-able → `.bordered` 重试 (`action.retry`) inside that re-reads (id `npcData.reload` kept); otherwise no button (id `npcData.failure` kept). Level C |
 
+## Run 11-28 (third B run, under the 15:45 "split by half" rule)
+
+A receipt open rows at start (`origin/mp/r3-states` bb53d61fa): one, **"Not done · P1-9 remote push"**, still blocked on the
+backend (no device-token upload route in this repo's route docs or `Core`; `DevicePushRegistrationLifecycle` is still pure state).
+One open row = nothing in the B half. **Half done** — no re-scan beyond the middle per the collision-fix rule; run stopped.
+
 ## Not done
 
 | Row | Why |

@@ -1,5 +1,6 @@
 import XCTest
 @testable import Questify
+@testable import QuestifyCore
 
 /// fix/1128c-ai-weather: the weather systems are ON in the shipped (Release) composition
 /// (`RegionalLaunchConfiguration.reviewedDeployment` → `shippedComposition`): both weather reads are admitted by the
@@ -77,6 +78,30 @@ import XCTest
         XCTAssertTrue(painted.bolt)
         XCTAssertGreaterThan(painted.rain, 0.5)
         XCTAssertEqual(CYWeatherPainter.mix(.init(kind: .cloudy, intensity: 0.5), time: 3), CYWeatherPainter.Mix())
+    }
+
+    func testReloadRereadsMapWeatherInsideTheTenMinuteWindow() async {
+        final class Rain: HTTPTransport {
+            var count = 0
+            func send(_ request: URLRequest) async throws -> (Data, Int) {
+                count += 1
+                return (Data(#"{"code":200,"data":{"kind":"fog","intensity":0.4,"temperature":18}}"#.utf8), 200)
+            }
+        }
+        let rain = Rain()
+        let client = PlayerCapabilityClient(baseURL: URL(string: "https://example.test/native/")!, token: "synthetic-token", transport: rain)
+        let model = SceneWeatherModel()
+        let now = Date(timeIntervalSince1970: 1_795_825_800)
+        await model.refresh(latitude: 30.2741, longitude: 120.1551, topicID: nil, client: client, now: now)
+        await model.refresh(latitude: 30.2741, longitude: 120.1551, topicID: nil, client: client, now: now.addingTimeInterval(60))
+        XCTAssertEqual(rain.count, 1)
+        XCTAssertEqual(SceneWeatherModel.ttl, WeatherContext.mapFreshFor)
+        XCTAssertEqual(WeatherKitReader.ttl, WeatherContext.mapFreshFor)
+        await model.reload(latitude: 30.2741, longitude: 120.1551, topicID: nil, client: client, now: now.addingTimeInterval(60))
+        XCTAssertEqual(rain.count, 2)
+        XCTAssertEqual(model.context?.kind, .fog)
+        XCTAssertNil(model.context?.temperatureCelsius)
+        XCTAssertEqual(model.context?.daypart, .morning)
     }
 
     func testWeatherKitIsAnOwnerSwitchThatDefaultsOff() {

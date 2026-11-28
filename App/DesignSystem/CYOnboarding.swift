@@ -791,6 +791,7 @@ private struct GOHoldDemo: View {
             .accessibilityHint(Text("onboarding.roam.demo.hint"))
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { onComplete() }
+            .accessibilityAction(named: Text("onboarding.fog.clear")) { onComplete() }
             .accessibilityIdentifier("onboarding.demo")
             Text(done ? "onboarding.roam.done" : "onboarding.roam.prompt")
                 .cyText(.bodyCompact).foregroundStyle(.white.opacity(0.85))

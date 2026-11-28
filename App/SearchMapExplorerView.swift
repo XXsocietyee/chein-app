@@ -522,8 +522,8 @@ import SwiftUI
                 }
             }.accessibilityIdentifier("mapPagination.failure")
         } else if pagination.nextPage != nil {
-            Button("mapPagination.more") { startLoadMore() }
-                .buttonStyle(.bordered)
+            // ADA §3 paging: the MP onReachBottom; startLoadMore() guards loading / refresh / configuration itself.
+            CYLoadMoreRow("mapPagination.more") { startLoadMore() }
                 .disabled(loading || refresh.isLoading || !reader.isConfigured)
                 .accessibilityIdentifier("mapPagination.more")
         }

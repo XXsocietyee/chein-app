@@ -29,6 +29,8 @@ public enum PlayerLaunch {
     public static let merchantCenterPages: Set<String> = [
         "pages/topic/merchantapply/index",
         "pages/topic/merchantinfo/merchantinfo",
+        // Page-map duplicate of the coop settlement detail. The merchant-center gate covers it.
+        "pages/topic/settlement/index",
     ]
 
     /// Player-facing pages under a merchant prefix that stay visible.

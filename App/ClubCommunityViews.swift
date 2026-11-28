@@ -728,10 +728,14 @@ struct ClubCommunityPostTile: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            HStack(alignment: .center, spacing: CYSpacing.sm) {
+            // a11y-dt r3: at accessibility sizes the Follow button moves under the author so the name keeps the width.
+            let authorLayout = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+                : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.sm))
+            authorLayout {
                 ClubPostAuthorProfile(post: post, clubID: clubID, identity: identity, model: model)
                 if let author = followableAuthor {
-                    Spacer(minLength: 0)
+                    if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
                     // CLB-G10: MP cy-post-card `show-follow` (detail wxml:117-119, post-card wxml:15-17).
                     ClubGapFollowAuthorButton(isFollowing: model.followedAuthors.contains(author)) {
                         Task { await model.followAuthor(author) }

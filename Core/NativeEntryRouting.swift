@@ -34,6 +34,9 @@ public struct NativeContentTarget: Equatable {
     public let kind: Kind
     public let id: Int
     public init?(kind: Kind, id: Int) { guard id > 0 else { return nil }; self.kind = kind; self.id = id }
+    /// Mini-program page path without the leading slash. Detail screens read this id as `id`.
+    public var inboundPage: String { String(kind.sourcePath.dropFirst()) }
+    public var inboundQuery: [String: String] { ["id": String(id)] }
 }
 public struct NativeEntryPresentation: Identifiable {
     public let id = UUID()
