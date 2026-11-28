@@ -493,11 +493,13 @@ finding. Not done item: Reduce Motion — `withAnimation` / `.animation` with `.
 |---|---|---|---|---|
 | `pages/roam/index` map home bottom panel (detents) | `NativeR2/MapHome/RoamMapHomePanel.swift` | ✓ (mp-roam owns order) | The only file with a spring and no Reduce Motion read: drag release, VoiceOver adjust and the detent `.animation` used `.snappy` → `settle` = `CYMotion.reduced` (short ease, no overshoot) under Reduce Motion, `.snappy` otherwise. Not the settled `CYMapChrome` / `RoamBrowserView` panel (coordinator 02:05) | Done |
 | Other spring hits (club welcome, free-explore pack, games HUD, night tab bar, section reveal, signature, progress ring, purchase / scan failure nudge, roam kit, onboarding, collectible, object card pile, chat send, live stat roll) | `ClubMemberWelcomeSheet`, `FreeExplorationViews`, `NativeGameHUD`, `CYNightTabBar`, `CYExploreKit`, `CYSignature`, `CYCoverArt`, `CYPurchaseMotion`, `CYRoamKit`, `CYScan`, `CYOnboarding*`, `CYCollectible`, `PlayRoamRound4Views`, `MessageActionComposer`, `RoamLiveSessionView` | ✓ | Audit: each is behind an earlier `reduceMotion` guard / else, renders its final state when Reduce Motion is on (opacity / trim forced to 1), swaps to the grid layout (object card pile), or is a colour fill / numeric roll. `.transition(.move / .slide / .asymmetric)` scan: every hit gated. No change | Done |
+| `pages/club` post card 赞, channel sidebar (current channel) | `ClubCommunityViews.swift:769`, `ClubChannelMessagingView.swift:505` | ✓ (mp-club owns order) | VoiceOver selected-state scan (custom buttons whose selected state shows only by colour / glyph, no `.isSelected`): liked heart and the open channel row now add `.isSelected` (Square like already does, run 4) | Done |
+| `pages/playkit` hangman (active letter cell), `pages/publishkit` wizard step bar, creator studio feedback picker | `PlayKitQuestoViews.swift:208`, `DesignSystem/CYBusinessComponents.swift:1249` (`CYPublishStatusBar`), `CreatorMaintenanceViews.swift:170` | ✓ (mp-journey / mp-publish own order) | Same: the typing cell, the current wizard step and each picked feedback row add `.isSelected`. Other hits are menus with checkmarks (system), rows with their own `accessibilityValue` (step checklist), or merchant (`MerchantRootModeSwitchBannerView`, skipped); `CYMapChrome` left (settled, coordinator 02:05) | Done |
 
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than ffeef67c7, to see runs 28-31).
-- Next pages without a row: VoiceOver — custom controls built from `Button` + `.buttonStyle(.plain)` that show a selected state
-  (chips, segmented-like rows) without `.accessibilityAddTraits(.isSelected)`.
+- Next pages without a row: VoiceOver — `.onLongPressGesture` / `.contextMenu`-only actions with no `accessibilityAction`
+  alternative on player rows. (Run 31: selected-state traits scanned.)
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

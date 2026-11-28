@@ -1248,6 +1248,7 @@ public struct CYPublishStatusBar: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityAddTraits(isActive ? .isSelected : [])
         }
     }
 

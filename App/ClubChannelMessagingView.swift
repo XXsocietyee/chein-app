@@ -503,6 +503,7 @@ public struct ClubChannelMessagingView: View {
         }
         .badge(badgeText.map { Text(verbatim: $0) })
         .listRowBackground(isSelected ? Color(uiColor: .tertiarySystemFill) : nil)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .contextMenu {
             Button(role: .destructive) {
                 Task {
