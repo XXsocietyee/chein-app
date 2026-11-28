@@ -28,13 +28,14 @@ struct WeChatAppAuthSection: View {
         }
     }
     /// Sweep 04:50: the same full-width, 50 pt button as Sign in with Apple and phone sign-in; status in the footer.
+    /// P33: in China WeChat is the first method, so it carries the screen's one prominent style.
     private var section: some View {
         Section {
             Button { model.coordinator.start() } label: {
                 Label("auth.wechat.signIn", systemImage: "bubble.left.and.bubble.right")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .disabled(!model.coordinator.canStart)
             .accessibilityIdentifier("auth.wechat.signIn")

@@ -14,6 +14,7 @@ public struct AuthChannelSessionSnapshot: Equatable {
 public enum AuthChannelWork: Equatable { case sendingSMS, phoneLogin, appleAuthorization, appleExchange }
 public enum AuthChannelIssue: Equatable {
     case invalidPhone, invalidCode, rateLimited, notConfigured, sessionUnavailable
+    case smsDailyLimit, smsRegionUnavailable
     case invalidResponse, rejected, unauthorized, network, smsOutcomeUnknown, storage, upgradeRequired
     case appleNotConfigured, appleMissingCredential, appleIncomplete, appleFailed
     public var localizationKey: String {
@@ -21,6 +22,8 @@ public enum AuthChannelIssue: Equatable {
         case .invalidPhone: return "auth.channels.invalidPhone"
         case .invalidCode: return "auth.channels.invalidCode"
         case .rateLimited: return "auth.channels.rateLimited"
+        case .smsDailyLimit: return "auth.channels.smsDailyLimit"
+        case .smsRegionUnavailable: return "auth.channels.smsRegionUnavailable"
         case .notConfigured: return "auth.notConfigured"
         case .sessionUnavailable: return "auth.channels.sessionUnavailable"
         case .invalidResponse: return "auth.invalidResponse"
@@ -170,6 +173,8 @@ public final class AuthChannelCoordinator {
             case .invalidCode: return .invalidCode
             case .invalidAppleCredential: return .appleMissingCredential
             case .rateLimited: return .rateLimited
+            case .smsDailyLimit: return .smsDailyLimit
+            case .smsRegionUnavailable: return .smsRegionUnavailable
             }
         }
         if let error = error as? APIError {
@@ -241,14 +246,15 @@ public final class AuthChannelCoordinator {
         appleAttempt == attempt && state.work == .appleAuthorization && service != nil
             && isCurrent(attempt.id, attempt.snapshot)
     }
-    public func completeAppleAuthorization(_ attempt: AuthChannelAppleAttempt, identityToken: String) async {
+    public func completeAppleAuthorization(_ attempt: AuthChannelAppleAttempt, identityToken: String,
+                                           givenName: String? = nil, familyName: String? = nil) async {
         guard appleAttempt == attempt, state.work == .appleAuthorization, let service else { return }
         defer { finish(attempt.id) }
         guard isCurrent(attempt.id, attempt.snapshot) else { return }
         state.work = .appleExchange; publish()
         do {
             try Task.checkCancellation()
-            let result = try await service.loginWithApple(identityToken: identityToken)
+            let result = try await service.loginWithApple(identityToken: identityToken, givenName: givenName, familyName: familyName)
             try await validateAndCommit(result, id: attempt.id, snapshot: attempt.snapshot, service: service)
         } catch {
             guard isCurrent(attempt.id, attempt.snapshot) else { return }

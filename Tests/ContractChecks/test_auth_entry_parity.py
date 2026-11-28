@@ -57,7 +57,8 @@ class AuthEntryParitySourceChecks(unittest.TestCase):
         login = (ROOT/'App/LoginView.swift').read_text()
         self.assertIn('.disabled(working || !consentGranted)', login)
         self.assertIn('if consentGranted && model.coordinator.appleConfigurationVerified {', login)
-        self.assertIn('session.operationalMarket == .china && consentGranted', login)
+        # P33: China = WeChat (agreement on record) -> phone -> Apple; US = Apple -> phone.
+        self.assertIn('if session.operationalMarket == .china {\n            if consentGranted {\n                WeChatAppAuthSection(', login)
         # L1 P-005: the legal documents push inside the one sign-in sheet.
         self.assertIn('Button("auth.channels.privacyPolicy") { path.append(.legal(.privacyPolicy)) }', login)
 

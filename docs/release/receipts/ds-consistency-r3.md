@@ -919,6 +919,8 @@ Self-test: the pre-fix `NPCChatDataView` fails at line 327. Gates: `generate_pro
 baseline 52, **new 0**.
 
 ### For other lanes
+- mp-mine / debt-r3 (run 30): `test_object_badge_wall_layout` byte pin blocks matching the badge detail name weight
+  (`.title2.weight(.semibold)`) to the other hero names (`.title2.bold()`).
 - debt-r3: the 18 unmounted `*SectionView` release-checklist pages above (plus their unit tests) are dead code in the
   player target; deleting them would shrink the app and the allowed list.
 
@@ -955,9 +957,24 @@ look) had **0 call sites** → deleted. `E3SectionTitle` is used only by `Design
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS,
 `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
+### Batch 3 — one hero-name weight
+Object/person hero names: 54 use `.title2.bold()` (activity, club, team, public profile, co-op invite …), 9 use
+`.title2.weight(.semibold)`. Of the 9, five are numbers/codes/glyphs (ticket number, invite code, progress, stats, quiz
+character: left), two are person names:
+
+| MP page → native | Change |
+|---|---|
+| `subpackageMember/components/cy/profile` (Me card name) → `MemberHomeHeader:60` | `.title2.weight(.semibold)` → `.title2.bold()`, same as the public profile name (`SocialPublicProfileView:137`) |
+| `pages/member/gerenziliao` `.rv-name` → `ProfileCurrentAvatarView:86` | same |
+
+Kept: badge detail names (`ObjectBadgeViews:258`, `ProfileBadgesView:107`) stay semibold together —
+`test_object_badge_wall_layout…byte_identical` pins the detail; changing one alone would split the two badge views.
+Gates: `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS, `contract_ratchet --check`
+52 failing, baseline 52, **new 0**.
+
 ### Not done (next run)
-- Page-hero headers (`ActivityDetailHeader`, `ClubDetailHeader`, `TeamPageHeader`: `.title2.bold()`) vs
-  `cyPageTitle`: check they share one hero title style.
+- Badge detail name weight (needs the byte pin re-pinned by mp-mine / debt-r3, then `.title2.bold()` in both views).
+- Next scan: `.font(.title.bold())` (9) vs `.cyText(.pageTitle)` (38, same spec) — fold raw spellings into the token.
 
 ## Continue run 31 (2026-11-28, rebased onto run 30) — OWNER RULE 3 shared effect kit (ds-consistency goes first)
 
@@ -1005,6 +1022,47 @@ No compiler in the cloud: the restored bodies are the exact pre-11-26 code; help
   `cyPageTitle`: one hero title style (run 30 row).
 - Effect kit: reduce-motion fallback for `CYBurst` / `CYConfettiBurst` is "draw nothing" (callers pair a haptic);
   check each celebration caller also shows the static state (opacity fade) per OWNER RULE 3.
+
+### Run 30 batch 4 — `docs/design/levels.md` (OWNER RULE 3 clarified, 06:20)
+The brief asks ds-consistency for a map of every screen to A · Signature / B · Crafted / C · Utility. Written from the
+function audit's screen list (`origin/audit/1128-functions`, 5 tabs + cross-tab payment) plus the play/game/story
+screens (not in that audit): each row = screen → native view → level → owner-lane note (P-principle where it applies).
+Level rules and the "never" column per level match the brief; the gate kind `effect on clean page` (run 31) enforces A
+effects off B/C files. Lanes add a row for any screen not listed, at its closest sibling's level.
+
+## Continue run 32 (2026-11-28, rebased onto run 30 batch 4, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane. Run 31 / run 30 Not done rows:
+
+- **Page-hero headers (run 31 row): closed, no change.** Run 30 batch 3 settled the in-content object/person name on
+  `.title2.bold()` (54 sites, incl. `ActivityDetailHeader`, `ClubDetailHeader`, `TeamPageHeader`); `cyPageTitle` is
+  the navigation-bar inline title, not an in-content style, so the two do not compete. (A draft of this run moved 7
+  heroes to `.title`; dropped on rebase so the 54 stay one style.)
+- **Effect kit Reduce Motion fallback (run 31 row): checked, no change.** Every celebration caller shows the static end
+  state: stamp celebration (`CYCelebrationViews`: timeline jumps to the final frame, `play()` returns early),
+  collectible result (`CYCollectible`: `landed = true`), club joined (`CYJoinReward`: status chip, no seal / burst),
+  album unlock (`CYAlbum.cyUnlockCelebration`: content static + success haptic), play reward badge
+  (`PlayRewardBadgeRows`: static medal, `cyStampSlam` gated).
+- **`.font(.title.bold())` vs `.cyText(.pageTitle)` (run 30 row):** same spec, two spellings. Headings folded into the
+  token (MP content and order unchanged):
+
+| Page (MP → native) · level | Line | Change |
+|---|---|---|
+| shared hero (`CYHeroHeader`, city board / neutral task) · B | `App/DesignSystem/CYHeroHeader.swift:42` | `.font(.title.bold())` → `.cyText(.pageTitle)` |
+| sign-in headline (`pages/login`) · C | `App/LoginView.swift:70` | same |
+| cast start identity question · A | `App/CastViews.swift:260` | same |
+| template timer / reaction rehearsal (publish preview) · C | `TemplateTimerRehearsalView:149`, `TemplateReactionRehearsalView:132` | same |
+
+Kept raw on purpose (numbers / glyphs, not headings): wallet currency glyph (`WalletCommerceViews:675, 1318`), event
+collective percent (`OfficialEventDetailView:118`, monospaced digit), dice face (`ChanceKits:47`).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- Badge detail name weight (run 30 row; needs mp-mine / debt-r3 to re-pin `test_object_badge_wall_layout…byte_identical`).
+- Number styles: big numbers outside the `.dataXL`/data tokens (`.font(.title.bold())` glyph/percent above, other
+  `.largeTitle` counts) → one count style (ADA audit cross-screen section).
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,

@@ -1505,7 +1505,7 @@ private struct ClubOperationsProfileForm: View {
     @ViewBuilder private func counterLabel(_ key: String, _ value: String) -> some View {
         if let counter = ClubOperationsPort.counter(value, field: key) {
             Text("club.ops.counter \(counter.used) \(counter.limit)")
-                .foregroundStyle(counter.used > counter.limit ? Color.red : Color.secondary)
+                .foregroundStyle(counter.used > counter.limit ? CYColor.dangerText : Color.secondary)
                 .accessibilityIdentifier("club.ops.counter." + key)
         }
     }

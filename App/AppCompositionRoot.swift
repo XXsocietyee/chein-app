@@ -514,11 +514,11 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else {
             productionGatesEnabled = false
         }
-        self.projectStoryAudioUploadApproval = projectStoryAudioUploadApproval; self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport
+        self.projectStoryAudioUploadApproval = MPFirstPublishApprovals.fallback(projectStoryAudioUploadApproval, deployment, { MPFirstPublishApprovals.storyAudio($0) }); self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport
         self.projectTopicImageUploadApproval = projectTopicImageUploadApproval; self.makeProjectTopicImageUploadTransport = makeProjectTopicImageUploadTransport
-        self.projectStoryImageUploadApproval = projectStoryImageUploadApproval; self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport
-        self.projectNodeImageUploadApproval = projectNodeImageUploadApproval; self.makeProjectNodeImageUploadTransport = makeProjectNodeImageUploadTransport
-        self.ownedTopicCoverApproval = ownedTopicCoverApproval; self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport
+        self.projectStoryImageUploadApproval = MPFirstPublishApprovals.fallback(projectStoryImageUploadApproval, deployment, { MPFirstPublishApprovals.storyImage($0) }); self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport
+        self.projectNodeImageUploadApproval = MPFirstPublishApprovals.fallback(projectNodeImageUploadApproval, deployment, { MPFirstPublishApprovals.nodeImage($0) }); self.makeProjectNodeImageUploadTransport = makeProjectNodeImageUploadTransport
+        self.ownedTopicCoverApproval = MPFirstPublishApprovals.fallback(ownedTopicCoverApproval, deployment, { MPFirstPublishApprovals.ownedCover($0) }); self.makeOwnedTopicCoverTransport = makeOwnedTopicCoverTransport; self.templateAuthoringOriginalReadApproval = MPFirstPublishApprovals.fallback({ _ in nil }, deployment, { MPFirstPublishApprovals.templateAuthoringRead($0) }); self.templateAuthoringOriginalSubmitApproval = MPFirstPublishApprovals.fallback({ _ in nil }, deployment, { MPFirstPublishApprovals.templateAuthoringSubmit($0) })
         self.invoiceLaunchReadApproval = { [gates] context in invoiceLaunchReadApproval(context) ?? gates.playerInvoiceApproval(context) }
         self.clubBadgeManagementApproval = clubBadgeManagementApproval
         self.merchantReviewOriginalReadApproval = merchantReviewOriginalReadApproval
@@ -529,7 +529,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.couponLocks = couponLocks
         self.couponReadApproval = couponReadApproval ?? (productionGatesEnabled ? { [gates] in gates.couponRead($0) } : { _ in nil })
         self.couponWriteApproval = couponWriteApproval ?? (productionGatesEnabled ? { [gates] in gates.couponWrite($0) } : { _ in nil })
-        self.templateShelfReadApproval = templateShelfReadApproval
+        self.templateShelfReadApproval = MPFirstPublishApprovals.fallback(templateShelfReadApproval, deployment, { MPFirstPublishApprovals.templateShelf($0) })
         self.messagingHistoryReadApproval = { [gates] context in
             messagingHistoryReadApproval(context) ?? (productionGatesEnabled ? gates.messagingHistory(context) : nil)
         }
@@ -2686,7 +2686,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         }()
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
-        let appleAuth = url == api.url(for: .apple)
+        let appleAuth = url == api.url(for: .apple), weChatAuth = url == api.url(for: .wechatApp) // P0-5: same one-field form shape
         let publicHome = PublicMerchantHomeCompositionScope.accepts(request, baseURL: api.baseURL)
         let roamShareSnapshot = ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL)
         let publicTopicsRoute = ClubPublicTopicsRoute(request: request, baseURL: api.baseURL)
@@ -2715,9 +2715,9 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
-        } else if appleAuth {
-            guard deployment.appleSignInApproved,
-                  Self.acceptsAppleLogin(request, configuration: api) else { throw APIError.notConfigured }
+        } else if appleAuth || weChatAuth {
+            guard weChatAuth ? deployment.weChatSignInApproved && Self.acceptsAppleLogin(request, configuration: api, endpoint: .wechatApp, field: "code")
+                  : deployment.appleSignInApproved && Self.acceptsAppleLogin(request, configuration: api) else { throw APIError.notConfigured }
         } else if let rewardPledgeOperation {
             guard captured.isSignedInContentViewer, rewardPledgePermit(rewardPledgeOperation) else { throw APIError.notConfigured }
             let permit = rewardPledgePermit
@@ -3592,7 +3592,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             // Owner 2026-11-25 MP-first rule: the merchant writes the MP sends; the server checks the merchant role.
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
-        } else if ReviewedNearbyTeamWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+        } else if ReviewedNearbyTeamWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) || ReviewedTeamMembershipWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
@@ -3620,7 +3620,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   captured.isPublicTemplateViewer,
                   reads.contains(where: { api.baseURL.appendingPathComponent($0) == url }) else { throw APIError.notConfigured }
         }
-        if !auth && !appleAuth && !publicHome && !roamShareSnapshot, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
+        if !auth && !appleAuth && !weChatAuth && !publicHome && !roamShareSnapshot, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
         try Task.checkCancellation()
         guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
         do {
@@ -3915,23 +3915,23 @@ extension CompositionHTTPTransport {
 private extension Character { var isASCIIDigit: Bool { isASCII && isNumber } }
 
 extension CompositionHTTPTransport {
-    fileprivate static func acceptsAppleLogin(_ request: URLRequest, configuration: APIConfiguration) -> Bool {
+    fileprivate static func acceptsAppleLogin(_ request: URLRequest, configuration: APIConfiguration, endpoint: AuthEndpoint = .apple, field: String = "identityToken") -> Bool {
         guard request.httpMethod == "POST", request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Accept") == "application/json",
               request.value(forHTTPHeaderField: "Authorization") == nil,
-              let url = request.url, url == configuration.url(for: .apple),
+              let url = request.url, url == configuration.url(for: endpoint),
               url.query == nil, url.fragment == nil else { return false }
         let prefix = "multipart/form-data; boundary="
         guard let type = request.value(forHTTPHeaderField: "Content-Type"), type.hasPrefix(prefix),
               let body = request.httpBody, body.count <= 4096,
               let text = String(data: body, encoding: .utf8) else { return false }
         let boundary = String(type.dropFirst(prefix.count))
-        let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"identityToken\"\r\n\r\n"
+        let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(field)\"\r\n\r\n"
         guard let range = text.range(of: marker),
               let end = text[range.upperBound...].range(of: "\r\n") else { return false }
         let token = String(text[range.upperBound..<end.lowerBound])
         guard AuthRequestBuilder.isValidToken(token),
-              let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: ["identityToken": token],
+              let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: [field: token],
                   token: nil, boundary: boundary) else { return false }
         return canonical.httpBody == body
     }

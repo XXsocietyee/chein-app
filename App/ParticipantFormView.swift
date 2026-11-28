@@ -257,12 +257,101 @@ struct ParticipantFormView: View {
         if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } }
     }
 
+    /// Typed separately so the form type-checks: a rejected delete keeps the shared title (no 重试保存).
+    private var saveRetryAction: (() -> Void)? {
+        if model.lastMutationIsDelete { return nil }
+        let retry: () -> Void = { retrySaveAction() }
+        return retry
+    }
+
     @MainActor private func commitMutation() async {
         if await model.confirmMutation() {
             if let row = model.coordinator.savedParticipant, let identity = model.coordinator.identity { onCreated(row, identity) }
             savedTick += 1
             try? await Task.sleep(for: .milliseconds(700))
             onSaved(); dismiss()
+        }
+    }
+
+    /// The editing form, split out of `body` so it type-checks in reasonable time.
+    @ViewBuilder private var editForm: some View {
+        Form {
+            // Native iOS: the inline nav title is the one title (参与人信息); the purpose line heads the fields.
+            Section {
+                // A6-04: MP addressinfo rows are "label * | input" (wxml:18-34): a native labelled row with a
+                // red required mark, not an icon label stacked over each field.
+                LabeledContent {
+                    TextField("profile.participants.name", text: $model.draft.fullName, prompt: Text("participant.form.namePrompt"))
+                    .textContentType(.name).textInputAutocapitalization(.words)
+                    .multilineTextAlignment(.trailing)
+                    .submitLabel(.next).focused($focusedField, equals: .name)
+                    .onSubmit { focusedField = .phone }
+                    .accessibilityIdentifier("participant.form.name")
+                } label: { requiredLabel("profile.participants.name") }
+                if let boundPhone, !ownPhone {
+                    LabeledContent {
+                        Text(verbatim: boundPhone.text)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("participant.form.phone.bound")
+                    } label: { requiredLabel("profile.participants.phone") }
+                } else {
+                LabeledContent {
+                    // US launch r1: +86 / +1 picker; the draft keeps the server value (China bare digits, US E.164).
+                    PhoneCountryField("profile.participants.phone", wire: $model.draft.mobilePhone,
+                                      prompt: Text("participant.form.phonePrompt"), identifier: "participant.form.phone",
+                                      focus: $focusedField, equals: .phone)
+                    .multilineTextAlignment(.trailing)
+                    .submitLabel(.done)
+                    .onSubmit { focusedField = model.reviewForSave(); if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } } }
+                } label: { requiredLabel("profile.participants.phone") }
+                }
+                // Input errors sit in red under the fields (ui-spec States).
+                if let field = model.validationIssue {
+                    Text(LocalizedStringKey(field.messageKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("profile.participantValidation.issue." + field.rawValue)
+                }
+            } header: {
+                Text("participant.form.purpose").textCase(nil)
+            } footer: {
+                // Phone rule up front, so the red error is never the first time the rule is seen.
+                if model.validationIssue == nil {
+                    Text("participant.form.phoneHint").accessibilityIdentifier("participant.form.phoneHint")
+                }
+            }
+            .disabled(model.operation.preventsNewMutation)
+            if let issue = model.issue {
+                Section { ParticipantIssueText(issue: issue) }
+            }
+            if savedTick > 0 {
+                // A6-05: MP toast 参与人信息已保存 before navigateBack (addressinfo.js:209).
+                Section {
+                    Label("participant.form.savedToast", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(CYColor.successText)
+                        .accessibilityIdentifier("participant.form.saved")
+                }
+            }
+            CYScreenOfflineWriteSection(
+                routes: ["/api/user/address/action"],
+                session: offlineWriteSession.session
+            )
+            ParticipantOperationSections(state: model.operation, readback: model.readback, canReadAgain: model.canReadBack, actionIssue: model.issue,
+                                         saveRetry: saveRetryAction) {
+                Task { await model.readBack() }
+            }
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .toolbar {
+            // native-r2 N-07: MP addressinfo.wxml:49 保存 as the toolbar confirmation action (Contacts-style).
+            ToolbarItem(placement: .confirmationAction) {
+                Button(LocalizedStringKey(model.operation == .submitting ? "participant.form.saving"
+                    : model.draft.validation == nil ? "participant.form.save" : "profile.participantValidation.check")) {
+                    focusedField = model.reviewForSave()
+                    // r9 A6-02: MP addressinfo.wxml:49 saves on tap (progress → success), no confirm.
+                    if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } }
+                }
+                .disabled(!model.canReviewForSave)
+                .accessibilityIdentifier("participant.form.save")
+            }
         }
     }
 
@@ -300,84 +389,7 @@ struct ParticipantFormView: View {
             } else if !model.loaded {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
             } else {
-                Form {
-                    // Native iOS: the inline nav title is the one title (参与人信息); the purpose line heads the fields.
-                    Section {
-                        // A6-04: MP addressinfo rows are "label * | input" (wxml:18-34): a native labelled row with a
-                        // red required mark, not an icon label stacked over each field.
-                        LabeledContent {
-                            TextField("profile.participants.name", text: $model.draft.fullName, prompt: Text("participant.form.namePrompt"))
-                            .textContentType(.name).textInputAutocapitalization(.words)
-                            .multilineTextAlignment(.trailing)
-                            .submitLabel(.next).focused($focusedField, equals: .name)
-                            .onSubmit { focusedField = .phone }
-                            .accessibilityIdentifier("participant.form.name")
-                        } label: { requiredLabel("profile.participants.name") }
-                        if let boundPhone, !ownPhone {
-                            LabeledContent {
-                                Text(verbatim: boundPhone.text)
-                                    .foregroundStyle(CYColor.textSecondary)
-                                    .accessibilityIdentifier("participant.form.phone.bound")
-                            } label: { requiredLabel("profile.participants.phone") }
-                        } else {
-                        LabeledContent {
-                            // US launch r1: +86 / +1 picker; the draft keeps the server value (China bare digits, US E.164).
-                            PhoneCountryField("profile.participants.phone", wire: $model.draft.mobilePhone,
-                                              prompt: Text("participant.form.phonePrompt"), identifier: "participant.form.phone",
-                                              focus: $focusedField, equals: .phone)
-                            .multilineTextAlignment(.trailing)
-                            .submitLabel(.done)
-                            .onSubmit { focusedField = model.reviewForSave(); if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } } }
-                        } label: { requiredLabel("profile.participants.phone") }
-                        }
-                        // Input errors sit in red under the fields (ui-spec States).
-                        if let field = model.validationIssue {
-                            Text(LocalizedStringKey(field.messageKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
-                                .accessibilityIdentifier("profile.participantValidation.issue." + field.rawValue)
-                        }
-                    } header: {
-                        Text("participant.form.purpose").textCase(nil)
-                    } footer: {
-                        // Phone rule up front, so the red error is never the first time the rule is seen.
-                        if model.validationIssue == nil {
-                            Text("participant.form.phoneHint").accessibilityIdentifier("participant.form.phoneHint")
-                        }
-                    }
-                    .disabled(model.operation.preventsNewMutation)
-                    if let issue = model.issue {
-                        Section { ParticipantIssueText(issue: issue) }
-                    }
-                    if savedTick > 0 {
-                        // A6-05: MP toast 参与人信息已保存 before navigateBack (addressinfo.js:209).
-                        Section {
-                            Label("participant.form.savedToast", systemImage: "checkmark.circle.fill")
-                                .foregroundStyle(CYColor.successText)
-                                .accessibilityIdentifier("participant.form.saved")
-                        }
-                    }
-                    CYScreenOfflineWriteSection(
-                        routes: ["/api/user/address/action"],
-                        session: offlineWriteSession.session
-                    )
-                    ParticipantOperationSections(state: model.operation, readback: model.readback, canReadAgain: model.canReadBack, actionIssue: model.issue,
-                                                 saveRetry: model.lastMutationIsDelete ? nil : retrySaveAction) {
-                        Task { await model.readBack() }
-                    }
-                }
-                .scrollDismissesKeyboard(.interactively)
-                .toolbar {
-                    // native-r2 N-07: MP addressinfo.wxml:49 保存 as the toolbar confirmation action (Contacts-style).
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button(LocalizedStringKey(model.operation == .submitting ? "participant.form.saving"
-                            : model.draft.validation == nil ? "participant.form.save" : "profile.participantValidation.check")) {
-                            focusedField = model.reviewForSave()
-                            // r9 A6-02: MP addressinfo.wxml:49 saves on tap (progress → success), no confirm.
-                            if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } }
-                        }
-                        .disabled(!model.canReviewForSave)
-                        .accessibilityIdentifier("participant.form.save")
-                    }
-                }
+                editForm
             }
         }
         .cyGroupedSurface()

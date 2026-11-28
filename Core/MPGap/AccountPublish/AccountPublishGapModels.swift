@@ -367,19 +367,26 @@ public enum AccountPublishMPContract {
         try bare(baseURL: baseURL, path: deregisterPrecheckPath, method: "POST", contentType: formContentType, token: token)
     }
 
-    public static func deregisterApplyRequest(baseURL: URL, requestID: String, smsCode: String? = nil, wxCode: String? = nil, token: String? = nil) throws -> URLRequest {
+    /// Exactly one proof: `smscode` (bound phone), `wxcode` (mini-program WeChat) or `identityToken`
+    /// (+ optional `authorizationCode`) from a fresh Sign in with Apple — the backend field names of
+    /// `ApiAccountDeregistrationController.apply`.
+    public static func deregisterApplyRequest(baseURL: URL, requestID: String, smsCode: String? = nil, wxCode: String? = nil,
+                                              appleProof: DeregistrationAppleProof? = nil, token: String? = nil) throws -> URLRequest {
         guard !requestID.isEmpty else { throw APIError.invalidRequest }
-        let sms = smsCode?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let wx = wxCode?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let field: (String, String)
-        if let sms, !sms.isEmpty, wx == nil || wx?.isEmpty == true {
-            field = ("smscode", sms)
-        } else if let wx, !wx.isEmpty, sms == nil || sms?.isEmpty == true {
-            field = ("wxcode", wx)
-        } else {
-            throw APIError.invalidRequest
+        let sms = smsCode?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let wx = wxCode?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let proofs = [!sms.isEmpty, !wx.isEmpty, appleProof != nil].filter { $0 }.count
+        guard proofs == 1 else { throw APIError.invalidRequest }
+        var fields: [(String, String)] = [("requestId", requestID)]
+        if !sms.isEmpty {
+            fields.append(("smscode", sms))
+        } else if !wx.isEmpty {
+            fields.append(("wxcode", wx))
+        } else if let appleProof {
+            fields.append(("identityToken", appleProof.identityToken))
+            if let code = appleProof.authorizationCode { fields.append(("authorizationCode", code)) }
         }
-        return try form(baseURL: baseURL, path: deregisterApplyPath, fields: [("requestId", requestID), field], token: token)
+        return try form(baseURL: baseURL, path: deregisterApplyPath, fields: fields, token: token)
     }
 
     public static func deregisterCancelRequest(baseURL: URL, token: String? = nil) throws -> URLRequest {
@@ -543,7 +550,7 @@ public enum AccountPublishMPContract {
         let method: String
         if object["verificationMethod"] == nil || object["verificationMethod"] is NSNull {
             method = "SMS"
-        } else if let raw = object["verificationMethod"] as? String, ["SMS", "WECHAT", "UNAVAILABLE"].contains(raw) {
+        } else if let raw = object["verificationMethod"] as? String, ["SMS", "WECHAT", "APPLE", "UNAVAILABLE"].contains(raw) {
             method = raw
         } else {
             method = "UNAVAILABLE"
@@ -563,6 +570,14 @@ public enum AccountPublishMPContract {
             return .blocked(blockers)
         }
         return nil
+    }
+
+    /// Server refusal text of a failed apply (`{"code":500,"msg":"Apple 身份校验失败"}`), nil for success or no text.
+    public static func deregisterApplyRefusal(from body: Data) -> String? {
+        guard let root = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let code = businessCode(body), code != 200 else { return nil }
+        let message = (root["msg"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return message.isEmpty ? nil : message
     }
 
     public static func deregisterCancel(from body: Data) -> String? {

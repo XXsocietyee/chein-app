@@ -241,7 +241,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         .environment(\.ugcSafetySubjectID, id)
         .cySheet(isPresented: $showsShare) {
             if let access, case .allowed(let detail) = access {
-                CatalogShareCardView(content: shareContent(detail), tint: .sunset)
+                CatalogShareCardView(content: shareContent(detail), tint: .sunset, link: CatalogShareCardView.activityURL(detail.summary.id))
                     .themeDomain(.player)
                     .cySheet()
             }

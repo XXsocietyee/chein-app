@@ -56,7 +56,7 @@ private actor MemberHomeWire: HTTPTransport {
         let info = try JSONDecoder().decode(MemberRoleInfo.self, from: Data(json.utf8))
         XCTAssertEqual(info.role, "merchant"); XCTAssertEqual(info.ownedClubCount, 2); XCTAssertFalse(info.isClubLeader)
         let unlocked = info.benefits.filter(\.unlocked).map(\.kind)
-        XCTAssertEqual(unlocked, [.publishRoutes, .publishCoupons])
+        XCTAssertEqual(unlocked, [.publishRoutes])
         XCTAssertEqual(info.benefits[0].routeLimit, .limited(3))
         XCTAssertTrue(try JSONDecoder().decode(MemberRoleInfo.self, from: Data(#"{"role":"club"}"#.utf8)).isClubLeader)
         for bad in ["{}", #"{"role":""}"#, #"{"role":null}"#] {

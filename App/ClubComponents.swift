@@ -431,7 +431,7 @@ struct E3PostCard: View {
                 E3Avatar(seed: author, size: 36)
                 VStack(alignment: .leading, spacing: 0) {
                     Text(verbatim: author).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                    Text(verbatim: club + " · " + time).cyText(.caption).foregroundStyle(CYColor.textTertiary).lineLimit(1)
+                    Text(verbatim: club + " · " + time).cyText(.caption).foregroundStyle(CYColor.textTertiary).lineLimit(2)
                 }
                 Spacer(minLength: 0)
             }.padding(CYSpacing.md)

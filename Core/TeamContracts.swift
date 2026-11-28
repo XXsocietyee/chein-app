@@ -149,6 +149,19 @@ public enum TeamAction: Equatable {
     public var consequenceKey: String {
         switch self { case .create: return "team.create.consequence"; case .join: return "team.join.consequence"; case .leave: return "team.leave.consequence"; case .remove: return "team.remove.consequence"; case .disband: return "team.disband.consequence"; case .changeJoinMode: return "team.mode.title" }
     }
+    /// P0-8: the server's success copy for each confirmed write (`ApiPlayTeamController`: 已加入队伍 / 已退出队伍 /
+    /// 成员已移出 / 队伍已解散 / 组队方式已更新). Create keeps the generic acknowledgement.
+    public var confirmedKey: String? {
+        switch self {
+        case .create: return nil
+        case .join: return "team.done.join"
+        case .leave: return "team.done.leave"
+        case .remove: return "team.done.remove"
+        case .disband: return "team.done.disband"
+        case .changeJoinMode: return "team.done.joinMode"
+        }
+    }
+    public static let confirmedKeys: Set<String> = ["team.done.join", "team.done.leave", "team.done.remove", "team.done.disband", "team.done.joinMode"]
     public var targetKey: String {
         switch self { case .create(let c, _, _): return "activity-\(c.ownerID)"; case .join(let id, _), .leave(let id), .remove(let id, _), .disband(let id), .changeJoinMode(let id, _): return "team-\(id)" }
     }

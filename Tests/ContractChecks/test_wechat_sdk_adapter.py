@@ -4,15 +4,19 @@ import json, re, unittest
 ROOT = Path(__file__).resolve().parents[2]
 
 class WeChatSDKSourceChecks(unittest.TestCase):
-    def test_default_host_stays_unconfigured(self):
+    def test_default_host_needs_owner_sdk_and_values(self):
+        # P0-5 (audit 11-28): configuration + exchange are wired; the SDK stays a two-key owner step
+        # (Vendor/WechatOpenSDK/WechatOpenSDK.xcframework present AND QUESTIFY_WECHAT_SDK_APPROVED = 1).
         host = (ROOT/'App/AppSession.swift').read_text()
-        self.assertIn('private let weChatSDKConfiguration: WeChatSDKConfiguration? = nil', host)
-        self.assertIn('private let weChatSDKGate = WeChatAppAuthGate()', host)
+        self.assertIn('private let weChatSDKConfiguration: WeChatSDKConfiguration? = WeChatAppLaunch.bundleConfiguration()', host)
         line = next(x for x in host.splitlines() if 'lazy var weChatAuth =' in x)
-        self.assertNotIn('service:', line)
-        for path in [ROOT/'Config/Base.xcconfig', ROOT/'Config/Info.plist', ROOT/'Package.swift']:
-            self.assertNotIn('QUESTIFY_WECHAT_SDK_APPROVED', path.read_text())
-            self.assertNotIn('WechatOpenSDK', path.read_text())
+        self.assertIn('service: weChatExchangeService', line)
+        base = (ROOT/'Config/Base.xcconfig').read_text()
+        self.assertIn('\nQUESTIFY_WECHAT_SDK_APPROVED = 0\n', base)
+        self.assertIn('QUESTIFY_WECHAT_APP_ID = chein-wechat-unset', (ROOT/'Config/OwnerValues.xcconfig').read_text())
+        self.assertIn('GCC_PREPROCESSOR_DEFINITIONS = $(inherited) QUESTIFY_WECHAT_SDK_APPROVED=$(QUESTIFY_WECHAT_SDK_APPROVED)', base)
+        self.assertNotIn('WechatOpenSDK', (ROOT/'Package.swift').read_text())
+        self.assertNotIn('QUESTIFY_WECHAT_SDK_APPROVED', (ROOT/'Config/Info.plist').read_text())
         self.assertFalse(list(ROOT.rglob('*.xcframework')))
         self.assertFalse(list(ROOT.rglob('WXApi.h')))
     def test_verified_selectors_remain_inside_conditional_bridge(self):
