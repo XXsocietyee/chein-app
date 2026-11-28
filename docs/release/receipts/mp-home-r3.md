@@ -317,6 +317,7 @@ Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home; sw
 | MP page → native view | Difference (screenshot) | Fixed / not |
 |---|---|---|
 | `pages/search2/result/index.wxml:67-76` `result-card` (`__type` text → `__title` → `__detail` text) → `App/SearchMapComponents.swift` `SearchMapCard.textColumn` | `zh-Hans-d2-search-results.jpg`: the activity row alone draws a `mappin.and.ellipse` glyph before its area line, and every kind line is a `Label` whose icon pushes 主题 / 活动 … right of the title's edge — four rows, two leading edges. MP has plain type and detail text. | **Fixed** — kind and detail are plain `Text` lines (caption / subheadline, `.secondary`) for every kind, so title, kind and area share one leading edge; cover cards and the no-cover kind icon in `coverImage` unchanged. |
+| 首页 Today card (native `HomeTodayCard`, eyebrow 今天 · 俱乐部活动) → `App/HomeFeedView.swift` `HomeTodayCard.meta` | `zh-Hans-wave-today-club.jpg`: eyebrow says 今天, then the meta line repeats the full date 「2026年11月27日 18:14 · 老城」. | **Fixed** — a start on the same day (card time zone) shows the time only (「18:14 · 老城」 / "6:14 PM · Old Town"); a ticket starting tomorrow (the ±24 h window) keeps the abbreviated date; unknown time stays "—". |
 
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
@@ -345,3 +346,4 @@ Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home; sw
 - Needs a simulator pass (continue 19): `rep3-activity-detail` 已结束 / Ended readable on the hero in en + zh-Hans, light and dark.
 - Needs a simulator pass (continue 20): `rep3-activity-detail` fact rows with leading icons in en + zh-Hans, AX5 (LabeledContent stacks).
 - Needs a simulator pass (continue 21): `d2-search-results` rows with plain kind / area lines (one leading edge) in en + zh-Hans, AX5.
+- Needs a simulator pass (continue 21): `wave-today-club` meta line time-only in en + zh-Hans.\n
