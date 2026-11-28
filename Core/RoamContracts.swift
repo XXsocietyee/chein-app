@@ -110,7 +110,9 @@ public struct RoamRouteNode: Decodable, Equatable, Identifiable {
     public let distance: Double?
     /// MP `productType` of the attached topic: 1 城市定向 / 2 自由探索. Missing or malformed stays nil.
     public let productType: Int?
-    enum CodingKeys: String, CodingKey { case id, addressName, latitude, longitude, topicId, nodeId, address, distance, productType }
+    /// MP `n.picUrl` (pages/roam/index.js:1401): the shop photo; the photo pin only uses a real photo, never a placeholder.
+    public let picUrl: String?
+    enum CodingKeys: String, CodingKey { case id, addressName, latitude, longitude, topicId, nodeId, address, distance, productType, picUrl }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
@@ -120,6 +122,7 @@ public struct RoamRouteNode: Decodable, Equatable, Identifiable {
         nodeId = try c.decodeIfPresent(Int.self, forKey: .nodeId)
         address = try c.roamText(.address)
         distance = try c.decodeIfPresent(Double.self, forKey: .distance)
+        picUrl = (try? c.roamText(.picUrl)) ?? nil
         if let value = try? c.decode(Int.self, forKey: .productType) {
             productType = value
         } else if let raw = try? c.decode(String.self, forKey: .productType), let value = Int(raw.trimmingCharacters(in: .whitespaces)) {

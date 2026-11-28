@@ -213,7 +213,7 @@ public enum ProjectEditThemeRules {
         theme["gameplayRuntime"]?.object?["runtimeScope"]?.text
     }
 
-    private static func readable(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {
+    static func readable(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {
         do {
             return try NativeRuntimeStructureAuthorDraft.readTheme(draft)
         } catch {
@@ -221,7 +221,7 @@ public enum ProjectEditThemeRules {
         }
     }
 
-    private static func write(_ theme: [String: ProjectEditJSON], into draft: ProjectEditDraft) throws -> ProjectEditDraft {
+    static func write(_ theme: [String: ProjectEditJSON], into draft: ProjectEditDraft) throws -> ProjectEditDraft {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
         let data = try encoder.encode(ProjectEditJSON.object(theme))
@@ -229,5 +229,100 @@ public enum ProjectEditThemeRules {
         var next = draft
         next.preserved["themeRuntimeConfig"] = .string(text)
         return next
+    }
+}
+
+// MARK: 结果卡 (`theme-runtime-survival.js` `CARD_FIELDS`, `openSurvivalEditor`, `saveSurvivalEditor`, `validate` card part)
+
+extension ProjectEditThemeRules {
+    /// MP `CARD_FIELDS`, in MP order (卡片上显示 rows).
+    public enum CardField: String, CaseIterable, Identifiable, Sendable {
+        case scene, ending, hp, luck, actions, medals, items, story, rescue
+        public var id: String { rawValue }
+    }
+
+    /// MP `survivalSummary.cardText`: 已自定义 when the theme has a `card`, else 默认.
+    public static func cardCustomized(in draft: ProjectEditDraft) -> Bool {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return false }
+        return theme["card"]?.object != nil
+    }
+
+    /// MP `openSurvivalEditor` row: a copy of `card`, or an empty row for the default card.
+    public static func card(in draft: ProjectEditDraft) -> [String: ProjectEditJSON] {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return [:] }
+        return theme["card"]?.object ?? [:]
+    }
+
+    /// MP `labels`: the three value rows use the theme's own names (`hpName` / `luckName` / `actionName`) when set.
+    public static func cardCustomName(_ field: CardField, in draft: ProjectEditDraft) -> String? {
+        guard let theme = try? NativeRuntimeStructureAuthorDraft.readTheme(draft) else { return nil }
+        let key: String
+        switch field {
+        case .hp: key = "hpName"
+        case .luck: key = "luckName"
+        case .actions: key = "actionName"
+        default: return nil
+        }
+        guard let text = theme[key]?.text, !text.isEmpty else { return nil }
+        return text
+    }
+
+    /// MP `cardFieldLabelKey` fallback copy (场景 · 结局 · 生命值 · 幸运值 · 行动次数 · 勋章 · 物品 · 故事 · 救助记录).
+    public static func cardFieldLabelKey(_ field: CardField) -> String {
+        "mpPublish.rules.card.field." + field.rawValue
+    }
+
+    /// MP `row.fields`: the chosen fields, in the order they were ticked.
+    public static func cardFields(_ row: [String: ProjectEditJSON]) -> [String] {
+        (row["fields"]?.array ?? []).compactMap(\.text)
+    }
+
+    /// MP `survivalEditor.row.cover` (empty = the topic cover is used).
+    public static func cardCover(_ row: [String: ProjectEditJSON]) -> String {
+        row["cover"]?.text ?? ""
+    }
+
+    /// MP `uploadSurvivalCover` / `clearSurvivalField('cover')`.
+    public static func settingCardCover(_ cover: String, in row: [String: ProjectEditJSON]) -> [String: ProjectEditJSON] {
+        var next = row
+        next["cover"] = cover.isEmpty ? nil : ProjectEditJSON.string(cover)
+        return next
+    }
+
+    /// MP `toggleSurvivalCardField`: removes a ticked field, else appends it.
+    public static func toggleCardField(_ field: CardField, in row: [String: ProjectEditJSON]) -> [String: ProjectEditJSON] {
+        var next = row
+        let fields = cardFields(row)
+        let updated = fields.contains(field.rawValue) ? fields.filter { $0 != field.rawValue } : fields + [field.rawValue]
+        next["fields"] = .array(updated.map { ProjectEditJSON.string($0) })
+        return next
+    }
+
+    /// MP `saveSurvivalEditor`: an empty row after 恢复默认结果卡 (or on a default card) removes `card`; otherwise the row
+    /// becomes `card`. An unchanged card writes nothing. Checks the MP card rules (`validate`): an `https` cover of at
+    /// most 500 characters and only `CARD_FIELDS`.
+    public static func saveCard(_ row: [String: ProjectEditJSON], reset: Bool, in draft: ProjectEditDraft) throws -> ProjectEditDraft {
+        var theme = try readable(draft)
+        let original = theme["card"]?.object
+        let next: [String: ProjectEditJSON]? = (reset || original == nil) && row.isEmpty ? nil : row
+        if next == original { return draft }
+        if let next {
+            if let cover = next["cover"]?.text, !validCover(cover) {
+                throw ProjectEditRuntimeActsError.refused("mpPublish.rules.card.coverInvalid")
+            }
+            if cardFields(next).contains(where: { CardField(rawValue: $0) == nil }) {
+                throw ProjectEditRuntimeActsError.refused("mpPublish.rules.card.fieldInvalid")
+            }
+        }
+        if theme.isEmpty { theme = defaults }
+        theme["card"] = next.map { ProjectEditJSON.object($0) }
+        return try write(theme, into: draft)
+    }
+
+    /// MP `/^https:\/\/[^\s]{1,492}$/`.
+    static func validCover(_ cover: String) -> Bool {
+        guard cover.hasPrefix("https://") else { return false }
+        let rest = cover.dropFirst("https://".count)
+        return (1...492).contains(rest.count) && !rest.contains(where: { $0.isWhitespace })
     }
 }

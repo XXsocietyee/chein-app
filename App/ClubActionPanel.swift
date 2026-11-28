@@ -28,6 +28,10 @@ struct ClubActionPanel: View {
     @State private var task: Task<Void, Never>? = nil
     @State private var isWorking = false
     @State private var joinMessage = ""
+    /// Floating placement: MP detail js:2537-2548 asks the required note in the 申请加入 modal, so the field lives in
+    /// a sheet opened by the capsule, and the sheet's 提交申请 is the one confirmation (no second dialog).
+    @State private var applySheet = false
+    @State private var submitsOnPrepare = false
     /// Set only after the server acknowledges a join or apply. Leave never celebrates.
     @State private var rewardAction: ClubAction? = nil
     @State private var rewardHandedOff = false
@@ -284,26 +288,6 @@ struct ClubActionPanel: View {
                                   systemImage: reward == .apply ? "clock" : "checkmark.circle.fill")
                                 .foregroundStyle(reward == .apply ? Color.orange : Color.green)
                         }
-                        if showsApplyMessage() {
-                            TextField(text: $joinMessage, axis: .vertical) {
-                                Text("club.admission.messageLabel", tableName: "ClubApplicationMessage")
-                            }
-                                .lineLimit(1...3)
-                                .disabled(isWorking || state.preventsNewAction)
-                                .accessibilityIdentifier("club.application.message")
-                            Text("club.application.messageHelp").font(.footnote).foregroundStyle(.secondary)
-                            if !ClubApplicationMessage.isValid(joinMessage, for: .apply) {
-                                Group {
-                                    if ClubApplicationMessage.isMissingRequiredMessage(joinMessage) {
-                                        Text("club.admission.messageRequired", tableName: "ClubApplicationMessage")
-                                    } else {
-                                        Text("club.application.messageTooLong")
-                                    }
-                                }
-                                .font(.footnote).foregroundStyle(.secondary)
-                                .accessibilityIdentifier("club.application.messageTooLong")
-                            }
-                        }
                         if isWorking { ProgressView("club.action.working").accessibilityIdentifier("club.action.loading") }
                         if let issueKey { Text(LocalizedStringKey(issueKey)).foregroundStyle(.secondary).accessibilityIdentifier("club.action.error") }
                         if !rewardPlaying, floatingGatedText {
@@ -317,7 +301,16 @@ struct ClubActionPanel: View {
                 }
                 if !rewardPlaying, coordinator.isConfigured, case .available(let action) = availability,
                    action != .leave, rewardAction != action {
-                    membershipRow(action, state: state)
+                    if action == .apply {
+                        Button { applySheet = true } label: {
+                            Label(LocalizedStringKey(actionKey(.apply)), systemImage: "person.badge.plus")
+                        }
+                        .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
+                        .disabled(isWorking || state.preventsNewAction)
+                        .accessibilityIdentifier("club.action.apply")
+                    } else {
+                        membershipRow(action, state: state)
+                    }
                 } else if !rewardPlaying, availability == .pending {
                     // MP join-btn--pending: the greyed, disabled 等待主理人审核 capsule.
                     Button {} label: { Text(LocalizedStringKey(availabilityKey)) }
@@ -329,6 +322,7 @@ struct ClubActionPanel: View {
         }
         .padding(.horizontal, CYSpacing.lg)
         .padding(.bottom, CYSpacing.sm)
+        .sheet(isPresented: $applySheet) { applyForm }
         .onChange(of: identity) { _, _ in reset() }
         .onChange(of: club.id) { old, _ in reset(clubID: old) }
         .onDisappear { reset() }
@@ -343,7 +337,51 @@ struct ClubActionPanel: View {
     private func floatingShowsCard(_ state: ClubActionState) -> Bool {
         if state != .idle || !coordinator.isConfigured || isWorking || issueKey != nil { return true }
         if let reward = rewardAction, reward != .leave { return true }
-        return showsApplyMessage() || (!rewardPlaying && floatingGatedText)
+        return !rewardPlaying && floatingGatedText
+    }
+    /// MP detail js:2537-2548 `modal.show({ title: 申请加入, content: 给主理人说一句吧…, editable, confirmText: 提交申请 })`:
+    /// the note is required and at most 60 characters; an invalid note keeps 提交申请 disabled instead of re-opening.
+    private var applyForm: some View {
+        let state = coordinator.state(clubID: club.id)
+        let valid = ClubApplicationMessage.isValid(joinMessage, for: .apply)
+        return NavigationStack {
+            Form {
+                Section {
+                    Text("club.application.prompt").foregroundStyle(.secondary)
+                    TextField(text: $joinMessage, prompt: Text("club.application.placeholder"), axis: .vertical) {
+                        Text("club.admission.messageLabel", tableName: "ClubApplicationMessage")
+                    }
+                    .lineLimit(2...4)
+                    .disabled(isWorking || state.preventsNewAction)
+                    .accessibilityIdentifier("club.application.message")
+                } header: {
+                    Text(verbatim: club.name)
+                } footer: {
+                    if !valid && !ClubApplicationMessage.isMissingRequiredMessage(joinMessage) {
+                        Text("club.application.messageTooLong")
+                            .accessibilityIdentifier("club.application.messageTooLong")
+                    }
+                }
+            }
+            .navigationTitle(Text(LocalizedStringKey(actionKey(.apply))))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("common.cancel") { applySheet = false }
+                        .accessibilityIdentifier("club.application.cancel")
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("admission.submit") {
+                        applySheet = false
+                        submitsOnPrepare = true
+                        prepare(.apply)
+                    }
+                    .disabled(isWorking || state.preventsNewAction || !valid)
+                    .accessibilityIdentifier("club.application.submit")
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
     /// Header and floating placements share the one membership row and its one confirmation presenter.
     @ViewBuilder private func membershipRow(_ action: ClubAction, state: ClubActionState) -> some View {
@@ -383,12 +421,19 @@ struct ClubActionPanel: View {
         generation &+= 1
         let operation = generation, snapshot = identity, clubID = club.id
         let reviewedMessage = action == .apply ? joinMessage : ""
+        let autoSubmit = submitsOnPrepare
+        submitsOnPrepare = false
         isWorking = true; issueKey = nil
         task = Task {
             defer { if operation == generation { isWorking = false; revision &+= 1 } }
             do {
                 let value = try await coordinator.prepare(clubID: clubID, action: action, expectedIdentity: snapshot, ownerID: ownerID, joinMessage: reviewedMessage)
                 guard !Task.isCancelled, operation == generation, coordinator.identity == snapshot else { coordinator.cancel(value); return }
+                if autoSubmit {
+                    isWorking = false
+                    submit(value)
+                    return
+                }
                 confirmation = value
             } catch {
                 guard operation == generation, coordinator.identity == snapshot, !Task.isCancelled else { return }
@@ -455,6 +500,7 @@ struct ClubActionPanel: View {
         coordinator.leaveScreen(clubID: clubID ?? club.id, expectedIdentity: identity, ownerID: ownerID)
         confirmation = nil; isWorking = false; issueKey = nil
         rewardAction = nil; rewardHandedOff = false; rewardPhase = .landing
+        applySheet = false; submitsOnPrepare = false
         joinMessage = ""; revision &+= 1
     }
 }

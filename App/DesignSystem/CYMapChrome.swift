@@ -388,7 +388,9 @@ extension View {
 let cyRoamSheetSnap = Animation.spring(response: 0.42, dampingFraction: 0.82)
 
 /// Fill of the map panel; content inside the panel stays clear so header and list share one surface.
-let cyMapPanelColor = Color.black
+/// ds-consistency r3 (sweep 283dd3b52 `d2-roam`): the elevated system surface, so the panel follows the system
+/// appearance like every other sheet (it was fixed black, a dark slab under a light map in light mode).
+let cyMapPanelColor = CYColor.bgElevated
 
 /// Panel height as a fraction of the available height. The grabber drags between them.
 /// With a `peek` line the compact detent is only the grabber + that one line.
@@ -496,7 +498,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
     }
 
     private func grabber(total: CGFloat) -> some View {
-        Capsule().fill(Color.white.opacity(0.5)).frame(width: 40, height: 5)
+        Capsule().fill(Color(uiColor: .tertiaryLabel)).frame(width: 40, height: 5)
             .frame(maxWidth: .infinity, minHeight: grabberHeight)
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 4)

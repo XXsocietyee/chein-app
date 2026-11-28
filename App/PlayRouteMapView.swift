@@ -405,7 +405,6 @@ struct RouteActionPageReadRequest {
             }
         }
         .mapStyle(.standard(elevation: .flat, emphasis: .muted))
-        .environment(\.colorScheme, .light)
         .background { CYMapPlaceholder(fog: false) }
         .onAppear {
             if cameraPosition == .automatic {

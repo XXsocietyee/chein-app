@@ -39,10 +39,17 @@ extension PlayKitScreen {
 
     // MARK: Bottom bar (NativeGameScreenHost.nativeKitSubmit falls through to this)
 
-    /// The one prominent action. Camera, branch and hidden keep their actions in the kit (multi-step
-    /// capture, a confirmation dialog, a tap on the scene); music plays in the kit and 继续 sits here.
+    /// The one prominent action. Camera and hidden keep their actions in the kit (multi-step capture, a tap on
+    /// the scene); music plays in the kit and 继续 sits here; branch confirms its pick here (MP 确认选择).
     var nativeKitSubmitB: NativeGameSubmit? {
         switch kind {
+        case .branch:
+            // MP: 确认选择 only with more than one option and before the end step; a single option confirms on tap.
+            let options = projection.options
+            guard !projection.complete, raw["currentStep"]["terminal"].bool != true, options.count > 1 else { return nil }
+            let choice = selected.first ?? ""
+            return nativeSubmit("CHOOSE", ["optionId": .string(choice)], valid: options.contains { $0.id == choice },
+                                title: Text("playkit.branch.confirmPick"), identifier: "playkit.submit.branch")
         case .coinFlip:
             return NativeGameSubmit(title: Text("playkit.coin.flip"), enabled: enabled, busy: model.phase == "submitting",
                                     identifier: "playkit.coin.flip", action: { nativePrepare("FLIP_COIN") })
@@ -75,24 +82,12 @@ extension PlayKitScreen {
 
     // MARK: hidden (tap the spot on the scene; the server judges the point)
 
+    /// MP `playkit-hidden`: title (shell) → scene (tap to find; found dots stay) → target chips (found marked) → n / total.
     @ViewBuilder var nativeHiddenObjectB: some View {
         let found = Set((raw["foundIds"].array ?? []).compactMap(\.text))
         let targets = PlayKitOption.read(raw["targets"])
-        if !targets.isEmpty {
-            Section {
-                ForEach(targets) { target in
-                    let done = found.contains(target.id) || target.raw["found"].bool == true
-                    Label {
-                        Text(verbatim: target.label)
-                    } icon: {
-                        Image(systemName: done ? "checkmark.circle.fill" : "circle")
-                    }
-                    .accessibilityAddTraits(done ? .isSelected : [])
-                }
-            } header: {
-                Text("nativeR2.gamesB.hidden.targets")
-            }
-        }
+        let foundCount = targets.isEmpty ? found.count : targets.filter { found.contains($0.id) || $0.raw["found"].bool == true }.count
+        let total = max(raw["total"].integer ?? 0, targets.count)
         Section {
             if let url = QuestifyCardArtwork.safeURL(raw["imageUrl"].text), let host = url.host, approvedArtworkHosts.contains(host) {
                 AsyncImage(url: url) { phase in
@@ -105,6 +100,16 @@ extension PlayKitScreen {
                                         guard enabled, let point = PlayKitInputContract.imagePoint(x: Double(event.location.x), y: Double(event.location.y), viewWidth: Double(geometry.size.width), viewHeight: Double(geometry.size.height), imageWidth: Double(geometry.size.width), imageHeight: Double(geometry.size.height)) else { return }
                                         nativePrepare("SUBMIT_HIDDEN_OBJECT", ["x": .number(point.0), "y": .number(point.1)])
                                     })
+                                // MP `hd__dot`: a found target stays marked where it was found (server x / y in %).
+                                ForEach(hiddenFoundDots) { dot in
+                                    Circle()
+                                        .strokeBorder(.white, lineWidth: 3)
+                                        .background(Circle().fill(Color.green.opacity(0.6)))
+                                        .frame(width: 28, height: 28)
+                                        .position(x: geometry.size.width * dot.x / 100, y: geometry.size.height * dot.y / 100)
+                                        .accessibilityHidden(true)
+                                        .allowsHitTesting(false)
+                                }
                             }
                         }
                         .accessibilityLabel(Text("playkit.hidden.scene"))
@@ -128,8 +133,40 @@ extension PlayKitScreen {
             } else {
                 ContentUnavailableView("playkit.hidden.scenePending", systemImage: "photo")
             }
-        } footer: {
-            Text("playkit.hidden.hint")
+        }
+        if !targets.isEmpty || total > 0 {
+            Section {
+                ForEach(targets.filter { !$0.label.isEmpty }) { target in
+                    let done = found.contains(target.id) || target.raw["found"].bool == true
+                    Label {
+                        Text(verbatim: target.label)
+                    } icon: {
+                        Image(systemName: done ? "checkmark.circle.fill" : "circle")
+                    }
+                    .foregroundStyle(done ? Color.green : Color.primary)
+                    .accessibilityAddTraits(done ? .isSelected : [])
+                }
+                Text(verbatim: "\(foundCount) / \(total)")
+                    .font(.headline)
+                    .monospacedDigit()
+                    .frame(maxWidth: .infinity)
+                    .accessibilityLabel(Text("playkit.hidden.progress \(foundCount) \(total)"))
+                    .accessibilityIdentifier("playkit.hidden.progress")
+            } header: {
+                Text("nativeR2.gamesB.hidden.targets")
+            }
+        }
+    }
+
+    struct HiddenFoundDot: Identifiable { let id: String; let x: Double; let y: Double }
+
+    var hiddenFoundDots: [HiddenFoundDot] {
+        let found = Set((raw["foundIds"].array ?? []).compactMap(\.text))
+        return PlayKitOption.read(raw["targets"]).compactMap { target in
+            guard found.contains(target.id) || target.raw["found"].bool == true,
+                  let x = target.raw["x"].double, let y = target.raw["y"].double,
+                  (0...100).contains(x), (0...100).contains(y) else { return nil }
+            return HiddenFoundDot(id: target.id, x: x, y: y)
         }
     }
 }
