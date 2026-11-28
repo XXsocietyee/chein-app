@@ -115,6 +115,8 @@ public struct PlayTeamCommandDisplay: Equatable {
     private var revision = 0
     private var authorityEpoch: Int?
     private var generation: UInt64 = 0
+    /// Unknown command results keep the request id that was sent. A later tap of the same action replays that id.
+    private var openRequestIDs: [String: String] = [:]
 
     public init(activityID: Int, reader: any PlayTeamBackpackReading, client: PlayTeamItemCommandClient?, token: @escaping @MainActor () -> String?) {
         self.activityID = activityID
@@ -134,11 +136,11 @@ public struct PlayTeamCommandDisplay: Equatable {
         } catch {
             guard stamp == generation else { return }
             phase = .failed
-            items = []
-            pending = []
-            canUse = false
-            canDiscard = false
-            canReceive = false
+            if items.isEmpty, pending.isEmpty {
+                canUse = false
+                canDiscard = false
+                canReceive = false
+            }
         }
     }
 
@@ -167,9 +169,12 @@ public struct PlayTeamCommandDisplay: Equatable {
             receipt = Self.display(.refused)
             return
         }
-        let requestID = "pg-theme-" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        let slot = action + "\u{1f}" + contentID
+        let requestID = openRequestIDs[slot].flatMap { PlayTeamItemCommandBody.validRequestID($0) ? $0 : nil }
+            ?? "pg-theme-" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
         let answer = await client.submit(activityID: activityID, action: action, contentID: contentID, revision: revision,
                                          authorityEpoch: authorityEpoch, requestID: requestID, token: token)
+        if case .unknown = answer { openRequestIDs[slot] = requestID } else { openRequestIDs[slot] = nil }
         receipt = Self.display(answer)
     }
 

@@ -503,13 +503,21 @@ import QuestifyCore
             if pins.isEmpty, model.searchPhase == .loading {
                 ProgressView { Text("nativeR2.mapHome.loading") }
                     .frame(maxWidth: .infinity)
+            } else if pins.isEmpty, model.hasSubmittedSearch, model.searchPhase == .failed {
+                ContentUnavailableView {
+                    Label("nativeR2.mapHome.search.failed", systemImage: "wifi.slash")
+                } actions: {
+                    Button("action.retry") { submitSearch() }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("roam.mapHome.search.retry")
+                }
             } else if pins.isEmpty {
                 ContentUnavailableView.search(text: model.query)
             } else {
                 ForEach(pins) { pin in RoamMapHomePinRow(pin: pin) }
             }
         } footer: {
-            if model.hasSubmittedSearch, model.searchPhase == .failed {
+            if model.hasSubmittedSearch, model.searchPhase == .failed, !pins.isEmpty {
                 Label("nativeR2.mapHome.search.failed", systemImage: "exclamationmark.triangle")
             }
         }

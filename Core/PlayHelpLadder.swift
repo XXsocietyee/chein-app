@@ -250,6 +250,8 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
     public private(set) var receiptUnavailable = false
     public private(set) var receiptOpen = false
     public private(set) var loaded = false
+    /// A failed read. Cached rows stay; an empty ladder is the offline state, not a blank sheet.
+    public private(set) var readFailed = false
     /// Bumps after a POOL_TRIM use so the host can re-read the trimmed pool.
     public private(set) var poolTrimGeneration = 0
 
@@ -275,7 +277,7 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
         "h" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
     }
 
-    /// One read when the task opens. A failed read leaves the legacy entries alone.
+    /// One read when the task opens. A failed read keeps rows already on screen.
     public func load() async {
         epoch &+= 1
         let ticket = epoch
@@ -283,10 +285,18 @@ public enum PlayHelpReceiptLine: Equatable, Identifiable {
         guard current(ticket) else { return }
         loaded = true
         guard case .ok(let data) = reply else {
-            if reply == .unauthorized { client.onUnauthorized() }
-            projection = .disabled; rows = []
+            if reply == .unauthorized {
+                client.onUnauthorized()
+                readFailed = false
+                projection = .disabled
+                rows = []
+                return
+            }
+            readFailed = true
+            if rows.isEmpty { projection = .disabled }
             return
         }
+        readFailed = false
         apply(PlayHelpProjection.project(data, identity: client.identity, poolTrimEnabled: poolTrimEnabled), keepContent: false)
     }
 

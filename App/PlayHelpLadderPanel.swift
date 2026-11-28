@@ -43,6 +43,18 @@ import SwiftUI
     /// The free count is a tag; when the server did not send it, the tag reads "—" with the reason under it.
     var body: some View {
         CYResizableSheet(kind: .hint, title: Text("hint.sheet.title", tableName: "DesignR1"), onClose: close) {
+                if model.readFailed, model.rows.isEmpty, !model.enabled {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        CYStateView.offline(locale: locale) { Task { await model.load() } }
+                            .accessibilityIdentifier("playHelp.offline")
+                        CYScreenOfflineWriteBanner(
+                            routes: ["/api/play/help/use", "/api/play/help/skip"],
+                            session: offlineWriteSession.session
+                        )
+                    }
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("playHelp.panel")
+                } else {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     if let left = model.freeLeft {
                         if left > 0 {
@@ -56,6 +68,12 @@ import SwiftUI
                         }
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("playHelp.freeLeft")
+                    }
+                    if model.readFailed {
+                        Text("cy.kit.offline.title")
+                            .cyText(.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("playHelp.offline")
                     }
                     if !model.rows.isEmpty {
                         VStack(spacing: 0) {
@@ -79,6 +97,7 @@ import SwiftUI
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("playHelp.panel")
+                }
         }
         .onAppear {
             model.markSavedRequests()

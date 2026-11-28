@@ -3,6 +3,8 @@ import SwiftUI
 /// Coordinates unread summary polling and channel resolution for one in-game channel entry point.
 @MainActor final class InGameChannelEntryModel: ObservableObject {
     @Published private(set) var summary: InGameChannelSummary?
+    /// A refresh failed. The last summary stays; with no summary the entry shows the offline state.
+    @Published private(set) var summaryStale = false
     @Published private(set) var activeChannel: InGameChannelRef?
     @Published private(set) var isOpening = false
     @Published var errorMessage: String?
@@ -19,18 +21,18 @@ import SwiftUI
     func refresh(scope: InGameChannelScope, host: InGameChannelHost?) async {
         guard let host, host.reader.isSummaryConfigured, host.reader.identity != nil, scope.isValid else {
             summary = nil
+            summaryStale = false
             return
         }
         do {
             let value = try await host.reader.channelSummary(scope)
             guard !Task.isCancelled else { return }
             summary = value
+            summaryStale = false
         } catch is CancellationError {
             return
         } catch {
-            if errorMessage == nil {
-                summary = nil
-            }
+            summaryStale = true
         }
     }
 
@@ -150,7 +152,7 @@ import SwiftUI
                 Task { await model.open(scope: scope, host: host) }
             } label: {
                 ZStack(alignment: .topTrailing) {
-                    Image(systemName: model.isOpening ? "ellipsis.bubble" : "bubble.left.and.bubble.right")
+                    Image(systemName: model.summaryStale && model.summary == nil ? "wifi.slash" : (model.isOpening ? "ellipsis.bubble" : "bubble.left.and.bubble.right"))
                         .cyText(.bodyMedium)
                         .frame(minWidth: 32, minHeight: 32)
                     IMUnreadBadge(count: model.unreadCount, muted: model.isMuted)
@@ -185,7 +187,7 @@ import SwiftUI
                 Task { await model.open(scope: scope, host: host) }
             } label: {
                 HStack(spacing: CYSpacing.md) {
-                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                    Image(systemName: model.summaryStale && model.summary == nil ? "wifi.slash" : "bubble.left.and.bubble.right.fill")
                         .cyText(.sectionTitle)
                         .foregroundStyle(palette.brand)
                         .accessibilityHidden(true)
@@ -201,7 +203,12 @@ import SwiftUI
                                     .accessibilityHidden(true)
                             }
                         }
-                        if let preview = model.summary?.lastMsgText, !preview.isEmpty {
+                        if model.summaryStale, model.summary == nil {
+                            Text("cy.kit.offline.title")
+                                .cyText(.meta)
+                                .foregroundStyle(palette.textSecondary)
+                                .accessibilityIdentifier("ingame.channel.offline")
+                        } else if let preview = model.summary?.lastMsgText, !preview.isEmpty {
                             Text(verbatim: preview)
                                 .cyText(.meta)
                                 .foregroundStyle(palette.textSecondary)

@@ -392,8 +392,8 @@ import SwiftUI
     var body: some View {
         List {
             stateRows
-            if model.phase == .ready { itemRows }
-            if model.phase == .ready, !model.pending.isEmpty { pendingRows }
+            if model.phase == .ready || (model.phase == .failed && !model.items.isEmpty) { itemRows }
+            if (model.phase == .ready || model.phase == .failed), !model.pending.isEmpty { pendingRows }
             if model.receipt.kind != .blank { receiptRows }
         }
         .listStyle(.insetGrouped)
