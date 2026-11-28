@@ -3618,7 +3618,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else {
             guard request.httpMethod == "POST", deployment.reads.contains(.homeAndSearch),
                   captured.isPublicTemplateViewer,
-                  reads.contains(where: { api.baseURL.appendingPathComponent($0) == url }) else { throw APIError.notConfigured }
+                  PublicPlayTemplateReadRoute.accepts(request, baseURL: api.baseURL) || reads.contains(where: { api.baseURL.appendingPathComponent($0) == url }) else { throw APIError.notConfigured }
         }
         if !auth && !appleAuth && !weChatAuth && !publicHome && !roamShareSnapshot, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
         try Task.checkCancellation()
