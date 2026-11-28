@@ -273800,7 +273800,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session"
+            "value": "Event"
           }
         },
         "zh-Hans": {
@@ -361415,9 +361415,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld topics published"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld topic published"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld topics published"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -361449,9 +361461,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld invitations sent"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld invitation sent"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld invitations sent"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
