@@ -228,6 +228,18 @@ page → mp-roam / mp-journey, brand story + `scene-topic-customers` = merchant,
 
 **Half done (run 11-28 ~19:10):** no open rows; run stopped per the collision-fix rule.
 
+## Run 11-28 ~19:40 (A lane)
+
+Merged `origin/ui/combined-r7`. Open rows at start: none (P1-9 is K50-R1). Latest sweep still b954de71c (checked in the 18:40 run);
+no coordinator row for mp-states after 17:30; no `cursor-k50-p*` receipt exists with a `lane-layout` row. Next page without a row,
+found by a scan of unlabelled page-level `ProgressView()` (inline button spinners excluded):
+
+| Screen | MP state | Before | After (level) |
+|---|---|---|---|
+| 开局大厅 · 邀请同行 sheet (`JourneyInviteSheet` in `App/JourneyLandingViews.swift`, from 开局大厅 邀请) — code read, no sweep fixture (level B) | `subpackageJourney/pages/seats/index.wxml:69` cy-share-card opens once the invite token exists; failure = `:59` cy-inline-error actionError (already native `MPInlineError`) | silent spinner in place of 发给好友 while the seat-invite link is issued | `ProgressView { Text("mp.seats.invite.preparing") }` 正在生成邀请链接… / Preparing your invite link…, same 44 pt height, id `journeySeats.invite.preparing` |
+
+**Half done (run 11-28 ~19:40):** the one new row is closed; gates PASS (ratchet 46 = baseline, new 0; design consistency silent spinner 0). Run stopped per the collision-fix rule.
+
 ## Contract cleanup (brief 20:40 UTC, rows owned by mp-states)
 
 | Path | Caller | Done |
