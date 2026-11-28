@@ -216,6 +216,18 @@ my own look at `docs/sweeps/latest/mp-states/sheet-en.jpg` / `sheet-zh-Hans.jpg`
 
 **Half done (run 11-28 ~18:40):** the one new sweep row is closed; P1-9 moved to K50-R1. No other mp-states issue is visible in the b954de71c sheets (both languages) for the B half. Run stopped per the collision-fix rule.
 
+## Run 11-28 ~19:10 (A lane)
+
+Merged `origin/ui/combined-r7` (51f0d6476). Open rows at start: none (Not done = None). No coordinator row for mp-states after 17:30
+(the 18:30 sweep is mp-club / mp-journey; the latest sheets are still build b954de71c, already checked in the 18:40 run). No `cursor-k50-*`
+receipt has a `lane-layout` row or names mp-states. Re-scan (method above, on the merged head): 32 MP `cy-empty` / `cy-error` /
+`cy-inline-error` / `cy-state-shell` titles have no native string; every one is already classified in the 14:10 / 17:10 re-scans
+(club-owner tools and topic-detail → mp-club, 报名 参与人信息暂未更新 / 活动信息加载失败 → mp-activity, `scene-roam-discover` = missing
+page → mp-roam / mp-journey, brand story + `scene-topic-customers` = merchant, `scene-route-content` = publish authoring, POI 页面暂时无法显示
+= covered by the POI missing view). Nothing new in this lane's area.
+
+**Half done (run 11-28 ~19:10):** no open rows; run stopped per the collision-fix rule.
+
 ## Contract cleanup (brief 20:40 UTC, rows owned by mp-states)
 
 | Path | Caller | Done |
