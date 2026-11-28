@@ -95,7 +95,7 @@ import SwiftUI
                             .disabled(flow.busy)
                     }
                     if batches.isEmpty && !flow.busy { ContentUnavailableView("d7.channelInvite.empty", systemImage: "paperplane") }
-                    if flow.canMore { Button { Task { await flow.loadMine(more: true) } } label: { Text("d7.friendInvite.loadMore") } }
+                    if flow.canMore { CYLoadMoreRow("d7.friendInvite.loadMore", isLoading: flow.busy) { Task { await flow.loadMine(more: true) } } }
                 } header: { Text("d7.channelInvite.sent") }
             }
             if let batch = flow.batch {
