@@ -17,3 +17,8 @@ Remaining open A rows (this run, bottom-up): "3. MP-account sync note" still blo
 Merged `origin/mp/r3-nav` (clean). Open rows in `mp-nav-r3.md`, file order: (1) "漫游护照与工具" hub sheet (line 40, kept by owner Q9, coordinator) → A half; (2) "3. MP-account sync note" (line 339) → B half. Row (2) still blocked: `WeChatAppAuthService.Envelope` (Core/WeChatAppAuth.swift:83) decodes only `code`, `token`, `data` and `api/login/wechat/app` exposes no mini-program-origin field. No code change possible without that backend field; not crossing the middle.
 
 **Half done** (B half = one row, blocked on the backend field). Run stopped.
+
+## Run 11-28 ~17:xx UTC (hourly)
+Merged `origin/mp/r3-nav` (fa99a37a7) and `origin/ui/combined-r7` (42e9a8aa8), both clean. Open rows in `mp-nav-r3.md` unchanged: (1) "漫游护照与工具" hub sheet → A half (coordinator, owner Q9); (2) "3. MP-account sync note" → B half, still blocked: `WeChatAppAuthService.Envelope` (Core/WeChatAppAuth.swift:83) decodes only `code`, `token`, `data`; no mini-program-origin field from `api/login/wechat/app`. No `cursor-k50-p*` lane-layout receipts exist on any branch yet.
+
+**Half done** (B half blocked on the backend field). Run stopped.
