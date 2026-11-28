@@ -205,7 +205,7 @@ extension EnvironmentValues {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: row.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             if let address = row.address { NearbyMerchantAddressLine(address: address) }
-            if let member = row.memberID, let text = invitable.first(where: { $0.memberID == member })?.chapterText {
+            if let member = row.memberID, let text = invitable.first(where: { $0.memberID == member })?.chapterText(chinese: LocaleDisplay.isChinese(locale)) {
                 NearbyMerchantChapterLine(text: text)
             }
             if let distance = LocaleDisplay.isChinese(locale) ? NearbyMerchantPage.distanceText(row.distance) : row.distance.flatMap({ LocaleDisplay.distance(meters: $0, locale: locale) }) { Text(verbatim: distance).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
