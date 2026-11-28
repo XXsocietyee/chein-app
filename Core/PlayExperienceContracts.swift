@@ -271,14 +271,17 @@ public enum PlayJournal {
         let cityRun = snapshot.result.mode == 1
         let visible = snapshot.visibleNodes
         let ordered: [PlayNode]
-        if cityRun {
+        let branch = snapshot.route?.isBranch == true
+        if branch {
+            ordered = branchOrder(visible, in: snapshot)
+        } else if cityRun {
             ordered = visible.enumerated().sorted { lhs, rhs in
                 (lhs.element.sortID ?? Int.max, lhs.offset) < (rhs.element.sortID ?? Int.max, rhs.offset)
             }.map { $0.element }
         } else {
             ordered = visible.filter { snapshot.isDone($0) } + visible.filter { !snapshot.isDone($0) }
         }
-        let focusIndex = ordered.firstIndex { !snapshot.isDone($0) }
+        let focusIndex = branch ? branchFocus(ordered, in: snapshot) : ordered.firstIndex { !snapshot.isDone($0) }
         let chapterIDs = ordered.compactMap { $0.chapterID }
         let multiChapter = chapterIDs.count == ordered.count && Set(chapterIDs).count > 1
         var chapterNames: [Int: String] = [:]
@@ -292,7 +295,8 @@ public enum PlayJournal {
             var excerpt: String? = paragraph
             var redacted = false
             if done {
-                key = cityRun ? .station(index + 1) : .step(index + 1)
+                // MP: 第 N 站 only on a linear city run; a branch route reads as the player's own steps (我的第 K 步).
+                key = cityRun && !branch ? .station(index + 1) : .step(index + 1)
             } else if index == focusIndex {
                 key = .now
             } else if cityRun {
@@ -315,6 +319,40 @@ public enum PlayJournal {
                                        coverURL: opens ? cover : nil))
         }
         return rows
+    }
+
+    /// MP `orderedJourneyNodes` (BRANCH_GRAPH): finished first, then the current / recommended station, then the rest;
+    /// inside a group by the decision log (from = 2i, to = 2i + 1, first occurrence), then station order.
+    static func branchOrder(_ nodes: [PlayNode], in snapshot: PlaySnapshot) -> [PlayNode] {
+        let route = snapshot.route
+        var decision: [Int: Int] = [:]
+        if let log = route?.decisionLog {
+            for (offset, entry) in log.entries.enumerated() {
+                let index = offset < log.sourceIndices.count ? log.sourceIndices[offset] : offset
+                if decision[entry.fromNodeID] == nil { decision[entry.fromNodeID] = index * 2 }
+                if decision[entry.toNodeID] == nil { decision[entry.toNodeID] = index * 2 + 1 }
+            }
+        }
+        func rank(_ node: PlayNode) -> Int {
+            if snapshot.isDone(node) { return 0 }
+            if node.id == route?.currentNodeID || node.id == route?.recommendedNodeID { return 1 }
+            return 2
+        }
+        return nodes.enumerated().sorted { lhs, rhs in
+            let left = (rank(lhs.element), decision[lhs.element.id] ?? Int.max, lhs.element.sortID ?? 0, lhs.offset)
+            let right = (rank(rhs.element), decision[rhs.element.id] ?? Int.max, rhs.element.sortID ?? 0, rhs.offset)
+            return left < right
+        }.map { $0.element }
+    }
+
+    /// MP `resolveNextRouteNode` (BRANCH_GRAPH): the recommended, else the current station, only while unfinished and PLAYABLE.
+    static func branchFocus(_ nodes: [PlayNode], in snapshot: PlaySnapshot) -> Int? {
+        guard let route = snapshot.route else { return nil }
+        for candidate in [route.recommendedNodeID, route.currentNodeID] {
+            guard let id = candidate, let index = nodes.firstIndex(where: { $0.id == id }) else { continue }
+            if !snapshot.isDone(nodes[index]) && route.nodeStates[id] == "PLAYABLE" { return index }
+        }
+        return nil
     }
 
     static func firstParagraph(_ text: String?) -> String? {
