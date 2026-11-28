@@ -165,7 +165,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
   story stream (`fx-story`, story-flow theme).
 - ~~同行者榜: the orient-scoring board (SCORE / ROUTE rows, elapsed); the tools row's 第 N 名 value~~ done 11-28 (see the
   同行者榜 orient board row and the sessStats row). Left: avatars (MP orient rows have none either: 你 / 同行者 only, so
-  nothing to port for orient rounds); finish grid 个人最佳 (`puzzlePersonalBest` not kept).
+  nothing to port for orient rounds); ~~finish grid 个人最佳 (`puzzlePersonalBest` not kept)~~ done 11-28 (B lane, `c04d09a09`).
 - ~~Mode-2 ending: MP reads it automatically at completion and offers 保存足迹卡 / 去发现; natively it stays behind the
   read button (Core `loadFreeExplorationEnding` fails the page on error).~~ done 11-28 (B lane).
 - MP auth empty card (登录已过期 + 重新登录): the app handles login expiry globally.
@@ -178,6 +178,8 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
   嵌入故事流), `theme-backpack`, `theme-plan-*`, `theme-player-ops*`, `cast-play`, `play-overlays` 角色卡.
 
 **A lane, 11-28 16:xx run (half split):** open rows in file order = J-18 club-lead bar (blocked on a coordinator call, see the planning-audit line), stopwatch 再来一局 / 暂停 (done this run) | free-explore hero 3D card face (story-flow), finish grid 个人最佳 (B half). **A half done**; J-18 waits for the coordinator.
+
+**A lane, 11-28 ~17:xx run:** no K50 `cursor-k50-p*` lane-layout rows published yet on any branch; no new coordinator finding for mp-journey since the 05:50 sweep (rows 125/126 fixed); the brief has no ruling on J-18 yet. B half done too (个人最佳 `c04d09a09`). **A half still done; nothing open in the A half** — run stopped.
 
 ## For other lanes
 
