@@ -488,16 +488,18 @@ struct MPAvatar: View {
     let initial: String
     var size: CGFloat = 40
     var body: some View {
+        // One avatar fallback app-wide: the MP default face `/images/d_profile.png` (as `CYAvatarView`,
+        // `ClubMPAvatar`, square and settings), never a per-screen monogram. `initial` stays for callers.
         ZStack {
-            Circle().fill(.fill.secondary)
+            MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
             if let url {
-                AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { Text(verbatim: initial).cyText(.label) }
-                    .clipShape(Circle())
-            } else {
-                Text(verbatim: initial).cyText(.label).foregroundStyle(CYColor.textPrimary)
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() } else { Color.clear }
+                }
             }
         }
         .frame(width: size, height: size)
+        .clipShape(Circle())
         .accessibilityHidden(true)
     }
 }
