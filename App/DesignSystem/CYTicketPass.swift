@@ -207,7 +207,7 @@ private struct CYPassTilt: ViewModifier {
                     .onEnded { _ in grabbed = false }
             )
             .onChange(of: drag == nil) { _, released in if released { grabbed = false } }
-            .cyHaptic(.impactLight, trigger: grabbed) { old, new in !old && new }
+            .cyHaptic(.impactLight, trigger: grabbed, where: CYHapticTransition.turnedOn)
     }
 }
 
@@ -432,7 +432,7 @@ private struct CYCodeReveal: ViewModifier {
                     sweep += 1
                 }
             }
-            .cyHaptic(.success, trigger: shown) { old, new in !old && new }
+            .cyHaptic(.success, trigger: shown, where: CYHapticTransition.turnedOn)
     }
 }
 

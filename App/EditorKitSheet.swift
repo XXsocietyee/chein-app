@@ -132,7 +132,7 @@ struct EditorSheetPage<Content: View>: View {
             Button(role: .destructive) { close() } label: { EditorKitText.text("editorKit.discard.confirm") }
             Button(role: .cancel) {} label: { EditorKitText.text("editorKit.discard.keep") }
         }
-        .sensoryFeedback(.warning, trigger: confirmDiscard) { _, new in new }
+        .sensoryFeedback(.warning, trigger: confirmDiscard, condition: CYHapticTransition.isOn)
     }
 
     private func leadingTapped() {

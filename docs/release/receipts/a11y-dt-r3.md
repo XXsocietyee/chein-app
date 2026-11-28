@@ -403,11 +403,24 @@ passport capsules full-width ✓, roam peek wraps on the light panel ✓; `a11y-
 | `subpackageJourney` route stops (play detail route list) | `DesignSystem/CYBusinessComponents.swift` (`CYRouteNodeRow`, used by `PlayExperienceView.swift:385`) | ✓ (mp-journey owns order) | Stop number / check / lock (`.caption`) in a fixed 28 pt node and 28 pt rail clipped at AX sizes → `@ScaledMetric(relativeTo: .caption)` capped 56 for node and rail | Done |
 | `pages/roam` finish report (漫游总结) | `RoamFinishReportView.swift` (`bottomBar`) | ✓ (mp-roam owns order) | Share + Done half-width capsules with `lineLimit(1)` cut the labels at AX sizes → `AnyLayout` stacks them full-width at accessibility sizes (Share above the primary Done, order kept) | Done |
 
+## Run 25 (2026-11-28, hourly)
+Merged `origin/ui/combined-r7` (93bff6dcd). Sweep index still **733bfb368** (03:49Z), so the sheet re-read waits.
+No open coordinator finding for this lane. Not done pages first:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| Shared components (section header, CY buttons, empty/error, unread badge, avatar) | `DesignSystem/CYDesignComponents.swift` | ✓ | Audit: header `.headline` + `.isHeader` with `ViewThatFits` stacking, system button styles, unread dot/count and avatar labelled and localized (en + zh), avatar scale capped 1.35x. No change | Done |
+| Native gallery screens | `NativeGallery/NativeGalleryScreens.swift` | — | Fixture-only (mounted from `DesignFixtureRegistry` only), skipped | Skipped |
+| `pages/activity` official organizer console | `OfficialOrganizerConsoleView.swift` | ✓ (mp-activity owns order) | Audit: text styles only, every action ≥ 44 pt, pause fields labelled, the n/200 counter reads a localized sentence, denied/error states `ContentUnavailableView`. No change | Done |
+| Roam city board 附近 drawer (`subpackageJourney` city roam) | `CityKit/CityRoamRootView.swift` (`CityNearbyDrawer.grabber`) | ✓ (mp-roam / mp-journey own order) | VoiceOver could only toggle peek ↔ medium and heard "Expanded" for both medium and large → adjustable handle (swipe up/down steps peek → half → full, Roam map panel pattern), value names all three heights, hint added; double-tap toggle kept | Done |
+| `pages/roam` territory (领地 nearby spaces) | `RoamTerritoryView.swift` (nearby card) | ✓ (mp-roam owns order) | Up to six status chips (status · tile · distance · tier · level · decay) sat in one HStack and ran off the card in English / at AX sizes → `ClubR1WrapLayout` wraps them; Claim · Check in · Deed card row → `AnyLayout` VStack at accessibility sizes (same order) | Done |
+
 ## Not done (next run starts here)
-- Continue pages without a row (largest player views next; pick by `wc -l App/*.swift`, skip Merchant / Fixture / Diagnostics). Next candidates: `CYDesignComponents.swift`, `NativeGallery/NativeGalleryScreens.swift`, `OfficialOrganizerConsoleView.swift`.
+- Continue pages without a row (largest player views next; skip Merchant / Fixture / Diagnostics). Next candidates: `GlobalSearchLinksAndTemplates.swift`, `ClubActionPanel.swift`, `CooperationBrowserView.swift`, `OrientScoreView.swift`, `ParticipantFormView.swift`, `DesignSystem/CYTabs.swift`.
 - Re-read the a11y sheets after the next sweep (newer than 733bfb368; confirm the badge ring now scales in `a11y-badges-ax5`).
 
 ## For other lanes
+- en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
   overlay with the logo watermark at capture time (same symptom as the 16:53 `d2-home` note) — it must never dim a
   tab root. Also the `a11y-passport-ax5` fixture opens the badge wall, not the passport.

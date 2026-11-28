@@ -200,7 +200,7 @@ struct EditorReorderableStack<Item: Identifiable, Row: View>: View {
                 ))
         }
         .animation(EditorKitMotion.move(reduceMotion: reduceMotion), value: items.map(key))
-        .sensoryFeedback(.selection, trigger: targetKey) { _, new in new != nil }
+        .sensoryFeedback(.selection, trigger: targetKey, condition: CYHapticTransition.isSet)
         .sensoryFeedback(.impact(weight: .light), trigger: drops)
     }
 

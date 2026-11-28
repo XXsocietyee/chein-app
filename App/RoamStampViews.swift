@@ -237,7 +237,7 @@ struct RoamAlbumReadOwner: Hashable {
                     StampAlbumContinuationRetry(retry: read)
                 }
                 if presentation.loading {
-                    CYSkeleton().accessibilityLabel(Text(pager.stamps.isEmpty ? "roam.loading" : "stampAlbum.loadingNext"))
+                    CYSkeleton(label: pager.stamps.isEmpty ? "roam.loading" : "stampAlbum.loadingNext")
                 }
                 if pager.hasMore && !presentation.loading && pager.loaded {
                     Button("roam.experience.loadMore", action: read)

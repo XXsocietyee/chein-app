@@ -7,7 +7,8 @@ class CNNativeLoginContracts(unittest.TestCase):
     def text(self, name): return (ROOT/name).read_text()
     def test_password_flag_cannot_enable_legacy_bootstrap(self):
         config = self.text('Core/RegionalConfiguration.swift')
-        self.assertIn('market == .china ? [.domesticChinaPhone] : []', config)
+        # Owner 11-28 04:30: the US implements +1 phone (still verified per deployment); password stays out.
+        self.assertIn('market == .china ? [.domesticChinaPhone] : [.internationalPhone]', config)
         root = self.text('App/AppCompositionRoot.swift')
         self.assertIn('[AuthEndpoint.smsSend, .phone, .userInfo, .logout]', root)
         self.assertNotIn('[AuthEndpoint.password,', root)

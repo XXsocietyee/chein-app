@@ -46,8 +46,8 @@ import SwiftUI
         .coordinateSpace(name: space)
         .onChange(of: isPresented) { _, now in now ? present() : dismiss() }
         .onAppear { if isPresented { present() } }
-        .cyHaptic(.selection, trigger: isPresented) { _, now in now }
-        .cyHaptic(.impactLight, trigger: isPresented) { _, now in !now }
+        .cyHaptic(.selection, trigger: isPresented, where: CYHapticTransition.isOn)
+        .cyHaptic(.impactLight, trigger: isPresented, where: CYHapticTransition.turnedOff)
     }
 
     private var overlayLayer: some View {
