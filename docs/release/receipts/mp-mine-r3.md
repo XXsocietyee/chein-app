@@ -476,4 +476,4 @@ Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts, `tools/check_d
 
 Not done: the 我的项目 refresh row (continue 18) is the same pattern and is next; `CharacterCardReadbackView` byte pin unchanged.
 
-Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet see commit.
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
