@@ -440,6 +440,11 @@ struct TopicDetailView: View {
             }
             if value.productType == 2 {
             Section("topic.source.sessions") {
+                // mp-home r3 (MP topic/index.wxml:245 `sess__capacity`, `formatPerkCapacity`): 本期可售 N 张 above the sessions.
+                if let capacity = Self.perkCapacity(value.perkSellableCapacity) {
+                    Text("topic.source.perkCapacity \(capacity)").font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                        .accessibilityIdentifier("topic.session.capacity")
+                }
                 if value.tickets.isEmpty { Text("topic.noTickets") }
                 ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
                     // R7-PC-B1-13 (MP index.wxml:227 `bindtap="bmClick"`): a session row opens the in-page session picker.
@@ -675,6 +680,12 @@ struct TopicDetailView: View {
     }
     /// Source `topicSaleClosed`: the sale end (endDate) has passed. Mainland wall-clock source, as in the mini-program.
     /// A purchased topic keeps its 去票夹 path; an unparsable end never closes the topic.
+    /// MP `formatPerkCapacity`: no value or the unlimited sentinel (Int32.max and above) → no line; negatives read 0.
+    static func perkCapacity(_ value: Int?) -> Int? {
+        guard let value, value < 2_147_483_647 else { return nil }
+        return max(0, value)
+    }
+
     private func saleClosed(_ value: TopicDetail) -> Bool {
         // PC-B-1-3: one rule with the bottom bar (MP `topicSaleClosed`: `saleEndAt`, else `endDate`).
         !value.isSignUp && TopicXcxFacts.saleClosed(value)

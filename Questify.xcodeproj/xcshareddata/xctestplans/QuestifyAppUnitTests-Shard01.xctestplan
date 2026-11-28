@@ -682,6 +682,7 @@
         "TicketWalletTeamTests",
         "TopicFavoriteMPFirstTests",
         "TopicLikeAndSquareEvictionSectionViewTests",
+        "TopicPerkCapacityTests",
         "UITestFlowReadinessAnchorSectionViewTests",
         "UITestShardDiagnosticsSectionViewTests",
         "UltimateReleaseReadinessExecutiveSummaryViewTests",

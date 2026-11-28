@@ -565,6 +565,15 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 | `pages/topic/index/index.wxml:426-438` stop card (seq → photo → merchant name else stop name → 地址 → 营业时间 → 到店礼 · …) → same view, stop rows | Native read stop name → 营业时间 → 到店礼 → 地址 and always used the stop name, so a stop hosted by a shop showed the node label instead of the shop the player walks to. | **Fixed** — title = first merchant's name, else the stop name (`TopicXcxRouteSection.stopTitle`); lines now 地址 (Maps link) → 营业时间 → 到店礼 in MP order. Number badge leading and the 56 pt photo trailing kept (native list thumbnail placement); ids unchanged. |
 | `pages/topic/index/index.wxml:419` stop list is `wx:if="{{!isExplore}}"` (free explore shows only 没有固定路线 + 参与商家) | Native also lists the stops for free explore, under the 地点 / Places header (earlier R7 decision). | **Not done — needs coordinator check**: removing the free-explore stop list drops content an earlier lane added on purpose; MP shows merchant cards only. |
 
+## Round 3 continue (49) — topic detail 详情 tab order and 场次 capacity line
+
+Rebased onto `origin/mp/r3-home` (continue 48). No coordinator item for mp-home in the brief (last sections 17:30 / 18:30 name other lanes); sweep still build b954de71c; no K50 `lane-layout` rows for mp-home. Next Home-reachable block without a row: topic detail 详情 tab (`pages/topic/index/index.wxml:176-300`). Level B (Crafted).
+
+| MP page → native | Difference | Status |
+|---|---|---|
+| `pages/topic/index/index.wxml:176-300` 详情 tab (name + subtitle → 参与商家 (free explore) → 开局前准备 → 节点介绍 → 活动内容 → 出发前 → 场次 (free explore) → 参与品牌 → 组队) → `App/TopicDetailView.swift` | Order re-checked: same order; native's 我的游玩记录 row (kept, row 73) sits between 出发前 and 场次. | No change. |
+| `pages/topic/index/index.wxml:245` `sess__capacity` 本期可售 N 张 (`index.js` `formatPerkCapacity(perkSellableCapacity)`) → same view, 场次 section | Native decoded `perkSellableCapacity` but never showed it, so a free-explore day did not say how many tickets are on sale this round. | **Fixed** — first row of 场次: 本期可售 N 张 / N tickets on sale this round (plural en, `.subheadline` secondary, monospaced digits, id `topic.session.capacity`); hidden when missing or the unlimited sentinel (≥ Int32.max), negatives read 0 (`TopicDetailView.perkCapacity`, test `TopicPerkCapacityTests`). |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -628,6 +637,7 @@ Merged `origin/ui/combined-r7` (clean). Gates: generate_project OK · scaffold P
 - Needs a simulator pass (continue 47): en `d2-home` hero title + Sign up on one row (iPhone 17, default size).
 - Needs a simulator pass (continue 48): stop rows with a shop (shop name, address → hours → gift) in en + zh-Hans, AX5.
 - Needs a coordinator check (continue 48): free-explore 地点 stop list (MP hides it; native shows it).
+- Needs a simulator pass (continue 49): free-explore topic with `perkSellableCapacity` shows 本期可售 N 张 above the sessions (en + zh-Hans, AX5).
 - Needs a simulator pass (continue 48): topic with no stops, 路线 tab shows the 路线配置中 empty view + 浏览其他主题 (en + zh-Hans, AX5).
 
 ## For other lanes

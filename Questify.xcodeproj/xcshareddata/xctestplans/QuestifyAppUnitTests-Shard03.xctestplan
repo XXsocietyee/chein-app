@@ -669,6 +669,7 @@
         "TicketWalletTeamHTTPJourneyTests",
         "TicketWalletTeamTests",
         "TopicFavoriteMPFirstTests",
+        "TopicPerkCapacityTests",
         "UltimateReleaseReadinessExecutiveSummaryViewTests",
         "UnifiedDecisionsU01ToU08SectionViewTests",
         "UnifiedReleaseAuditHubViewTests",
