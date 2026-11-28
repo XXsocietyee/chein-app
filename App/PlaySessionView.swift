@@ -105,7 +105,7 @@ struct PlaySessionView: View {
                         .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("play.status")
                     if let total = snapshot.result.total, let done = snapshot.displayedDoneCount, total > 0 {
                         ProgressView(value: Double(min(done, total)), total: Double(total))
-                        LabeledContent("play.progress") { Text(verbatim: "\(done) / \(total)").cyText(.numericBody).monospacedDigit() }
+                        LabeledContent("play.progress") { Text(verbatim: "\(done) / \(total)").cyText(.numericBody).monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: done)) \(String(describing: total))")) }
                     } else {
                         // UNKNOWN progress is the em dash (PlayIndexPageReadiness.unknownMark), not a sentence or 0/0.
                         LabeledContent("play.progress") {

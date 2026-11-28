@@ -18,38 +18,63 @@ struct CYHeroBannerItem: Identifiable {
 struct CYHeroBanner: View {
     let items: [CYHeroBannerItem]
     @State private var page: Int = 0
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     private var hasCaption: Bool { items.contains { $0.title != nil } }
 
     var body: some View {
         if !items.isEmpty {
+            if typeSize.isAccessibilitySize {
+                accessibilityPager
+            } else {
+                regularPager
+            }
+        }
+    }
+
+    /// Default text size: caption sits under the cover inside the 4:3 pager.
+    private var regularPager: some View {
+        TabView(selection: $page) {
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                slide(item)
+                    .padding(.horizontal)
+                    .padding(.bottom, items.count > 1 ? CYSpacing.xxl : 0)
+                    .tag(index)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: items.count > 1 ? .always : .never))
+        .indexViewStyle(.page(backgroundDisplayMode: .interactive))
+        .frame(maxWidth: .infinity)
+        .aspectRatio(hasCaption ? 4.0 / 3.0 : 16.0 / 10.0, contentMode: .fit)
+        .sensoryFeedback(.selection, trigger: page)
+    }
+
+    /// AX-XXXL: the 4:3 frame clipped the caption. The cover keeps 16:9; the title sits under it and can grow.
+    private var accessibilityPager: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
             TabView(selection: $page) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                    slide(item)
+                    coverButton(item)
                         .padding(.horizontal)
-                        .padding(.bottom, items.count > 1 ? CYSpacing.xxl : 0)
                         .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: items.count > 1 ? .always : .never))
             .indexViewStyle(.page(backgroundDisplayMode: .interactive))
-            .frame(maxWidth: .infinity)
-            .aspectRatio(hasCaption ? 4.0 / 3.0 : 16.0 / 10.0, contentMode: .fit)
-            .sensoryFeedback(.selection, trigger: page)
+            .aspectRatio(16.0 / 9.0, contentMode: .fit)
+            if items.indices.contains(page) {
+                caption(items[page], titleLines: 4, subtitleLines: 3)
+                    .padding(.horizontal)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .sensoryFeedback(.selection, trigger: page)
     }
 
     @ViewBuilder private func slide(_ item: CYHeroBannerItem) -> some View {
         let content = VStack(alignment: .leading, spacing: CYSpacing.sm) {
             cover(item)
-            if let title = item.title {
-                VStack(alignment: .leading, spacing: 2) {
-                    title.font(.headline).lineLimit(2)
-                    if let subtitle = item.subtitle {
-                        subtitle.font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
-                    }
-                }
-            }
+            caption(item, titleLines: 2, subtitleLines: 2)
         }
         if let action = item.action {
             Button(action: action) { content }
@@ -57,6 +82,28 @@ struct CYHeroBanner: View {
                 .accessibilityLabel(item.accessibilityLabel ?? "")
         } else {
             content.accessibilityHidden(true)
+        }
+    }
+
+    @ViewBuilder private func caption(_ item: CYHeroBannerItem, titleLines: Int, subtitleLines: Int) -> some View {
+        if let title = item.title {
+            VStack(alignment: .leading, spacing: 2) {
+                title.font(.headline).lineLimit(titleLines).fixedSize(horizontal: false, vertical: titleLines > 2)
+                if let subtitle = item.subtitle {
+                    subtitle.font(.subheadline).foregroundStyle(.secondary).lineLimit(subtitleLines).fixedSize(horizontal: false, vertical: subtitleLines > 2)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder private func coverButton(_ item: CYHeroBannerItem) -> some View {
+        if let action = item.action {
+            Button(action: action) { cover(item) }
+                .buttonStyle(.plain)
+                .accessibilityLabel(item.accessibilityLabel ?? "")
+        } else {
+            cover(item)
         }
     }
 

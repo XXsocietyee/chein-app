@@ -131,13 +131,14 @@ final class SearchMapTests: XCTestCase {
             }
         }
     }
-    func testGuestSkipsPrivateClubAndPreservesThreePublicSources() async throws {
+    func testGuestSearchesAllFourPublicSourcesLikeTheMP() async throws {
+        // MP discover-search sends club/list for guests; the backend route is @Anonymous (plan audit H-05e).
         let t = SearchMapTestTransport(); await seed(t)
         let result = try await service(t).search(.init(keyword: "sample", categoryID: 7))
-        XCTAssertEqual(result.gatedKinds, [.club]); XCTAssertTrue(result.failedKinds.isEmpty)
-        XCTAssertEqual(Set(result.rows.map(\.kind)), Set([.topic,.activity,.merchant]))
+        XCTAssertTrue(result.gatedKinds.isEmpty); XCTAssertTrue(result.failedKinds.isEmpty)
+        XCTAssertEqual(Set(result.rows.map(\.kind)), Set([.topic,.activity,.club,.merchant]))
         let requests = await t.requests
-        XCTAssertEqual(requests.count, 3); XCTAssertFalse(requests.contains { $0.url?.path == "/test/api/club/list" })
+        XCTAssertEqual(requests.count, 4); XCTAssertTrue(requests.contains { $0.url?.path == "/test/api/club/list" })
         XCTAssertTrue(requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
         let merchant = try XCTUnwrap(requests.first { $0.url?.path == "/test/api/merchant/list" })
         let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(merchant.httpBody)) as? [String: Any])
