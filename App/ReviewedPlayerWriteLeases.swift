@@ -576,6 +576,7 @@ enum ReviewedPlayerReadRoute {
     private var exploreCompletionByContext: [String: ExploreCompletionReadApproval] = [:]
     private var profileOwnedCouponByContext: [String: ProfileOwnedCouponReadAccess] = [:]
     private var profileFavoritesByContext: [String: ProfileFavoritesReadAccess] = [:]
+    private var profileInviteHistoryByContext: [String: ProfileInviteHistoryReadAccess] = [:]
     private var profileFavoriteTopicByContext: [String: ProfileFavoriteTopicReadAccess] = [:]
     private var profileFavoriteDetailByContext: [String: ProfileFavoriteDetailAccess] = [:]
     private var profileFavoriteRemovalByScope: [String: [ProfileFavoriteRemovalAccess]] = [:]
@@ -1454,6 +1455,19 @@ enum ReviewedPlayerReadRoute {
         guard let endpoints = makeEndpoint(context, paths: [ProfileOwnedCouponReadRoute.path]),
               let access = try? ProfileOwnedCouponReadAccess(context: context, approval: endpoints) else { return nil }
         profileOwnedCouponByContext[key] = access
+        return access
+    }
+
+    /// 1128 gap #29 (O-14b; MP scene-member-invite-history/index.js:245): 我的邀请 reads `api/user/invite_list`
+    /// and the first reward-ledger page `api/user/points/list`. One stable access per signed-in context (the composition
+    /// transport re-checks identity with `===`). Read only; 填写邀请人 (P1-15) is a separate write.
+    func profileInviteHistory(_ context: RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? {
+        guard context.market == .china else { return nil }
+        let key = contextKey(context)
+        if let existing = profileInviteHistoryByContext[key], !existing.isRevoked { return existing }
+        guard let endpoints = makeEndpoint(context, paths: ProfileInviteHistoryReadRoute.paths),
+              let access = try? ProfileInviteHistoryReadAccess(context: context, approval: endpoints) else { return nil }
+        profileInviteHistoryByContext[key] = access
         return access
     }
 
