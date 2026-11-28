@@ -150391,13 +150391,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading your records…"
+            "value": "Reading all AI chats on your account…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在读取你的记录…"
+            "value": "正在读取你账号下的全部 AI 对话…"
           }
         }
       }
@@ -306290,13 +306290,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Network error. Please try again."
+            "value": "Network error. Try again later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "网络异常，请重试"
+            "value": "网络异常，请稍后重试"
           }
         }
       }
@@ -306307,13 +306307,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No session can show a group code yet"
+            "value": "Session details are incomplete. Try again later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可出示团码的场次"
+            "value": "场次信息不完整，请稍后重试"
           }
         }
       }
@@ -306341,13 +306341,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load the sessions"
+            "value": "Couldn’t load the sessions. Please try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "场次加载失败"
+            "value": "场次加载失败，请重试"
           }
         }
       }
@@ -357816,6 +357816,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld 人报名"
+          }
+        }
+      }
+    },
+    "clubR3b.groupCode.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open the group code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "团核销码无法打开"
+          }
+        }
+      }
+    },
+    "club.enroll.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load the sign-up roster"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名名册加载失败"
+          }
+        }
+      }
+    },
+    "club.enroll.detailFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load the sign-up details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名详情加载失败"
+          }
+        }
+      }
+    },
+    "club.enroll.detailRetry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }
