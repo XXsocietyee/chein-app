@@ -127,6 +127,8 @@ struct DiscoveryTemplateBrowserView: View {
                 .refreshable { await reloadCurrent() }
             }
         }
+        // K40 (P1-26 / H-10): a session shelf, including one hosted in a sheet, pushes the copied draft into the editor.
+        .modifier(SessionShelfTopicEditor(reader: reader))
         // PC-A-2-3: pushed / sheet-hosted page, inline title; the 发布 tab root takes the large root title.
         .modifier(DiscoveryTemplateShelfTitle(isTabRoot: isTabRoot))
         .cyToast(verbatimMessage: $toastMessage)
@@ -581,6 +583,18 @@ struct DiscoveryTemplateBrowserView: View {
     }
     private func reloadCurrent() async {
         if tab == .topics { await loadTopics() } else { await loadShelfGames() }
+    }
+}
+
+/// Session shelves adopt a topic template into the professional editor. Fixture readers are not sessions, so they stay as they are.
+@MainActor private struct SessionShelfTopicEditor: ViewModifier {
+    let reader: any DiscoveryReading
+    func body(content: Content) -> some View {
+        if let session = reader as? AppSession {
+            content.environment(\.topicEditorDestination, PublishTabRootView.topicEditorDestination(session: session))
+        } else {
+            content
+        }
     }
 }
 
