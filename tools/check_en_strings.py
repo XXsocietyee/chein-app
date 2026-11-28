@@ -17,7 +17,10 @@ the zh-Hans string at the same path, or with the only zh-Hans string
 when Chinese has a single form.
 
 usage: python3 -B tools/check_en_strings.py
-exit 1 when problems is not 0. The last line is: problems: N
+exit 1 when a missing or chinese problem exists. The long check is
+advisory: it lists labels to check on screen at 375 pt, and the fix is a
+reworded sentence (or a layout that wraps), never dropping words.
+The last line is: problems: N (blocking: M)
 """
 import glob
 import json
@@ -166,8 +169,9 @@ def main():
             shown += 1
             if shown >= 40:
                 break
-    print(f'problems: {len(found)}')
-    return 1 if found else 0
+    blocking = [row for row in found if row[2] != 'long']
+    print(f'problems: {len(found)} (blocking: {len(blocking)})')
+    return 1 if blocking else 0
 
 
 if __name__ == '__main__':

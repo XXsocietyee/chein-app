@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Processing"
+            "value": "Processing deadline"
           }
         },
         "zh-Hans": {
@@ -319,7 +319,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not provided original"
+            "value": "Not provided by the original service"
           }
         }
       }
@@ -925,7 +925,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review before retrying original"
+            "value": "Review before retrying original request"
           }
         },
         "zh-Hans": {
@@ -942,7 +942,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recover original"
+            "value": "Recover original request"
           }
         },
         "zh-Hans": {
@@ -993,7 +993,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm original"
+            "value": "Confirm original action"
           }
         },
         "zh-Hans": {
@@ -1129,7 +1129,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current session or access is no longer valid. Original pending request still saved."
+            "value": "The current session or access is no longer valid. The original pending request is still saved."
           }
         },
         "zh-Hans": {
@@ -1231,7 +1231,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original appeal"
+            "value": "Original appeal deadline"
           }
         },
         "zh-Hans": {
@@ -1350,7 +1350,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw original"
+            "value": "Withdraw original appeal"
           }
         },
         "zh-Hans": {
@@ -1367,7 +1367,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original"
+            "value": "Original action"
           }
         },
         "zh-Hans": {
@@ -1384,7 +1384,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal status can't be confirmed"
+            "value": "Appeal status cannot currently be confirmed"
           }
         },
         "zh-Hans": {

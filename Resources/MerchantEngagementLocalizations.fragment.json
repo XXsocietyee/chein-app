@@ -212,7 +212,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Clear this response screen"
+          "value": "Clear this response from the screen"
         }
       },
       "zh-Hans": {
@@ -932,7 +932,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Aftercare"
+          "value": "Aftercare evidence"
         }
       },
       "zh-Hans": {
@@ -980,7 +980,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Selected aftercare"
+          "value": "Selected aftercare evidence"
         }
       },
       "zh-Hans": {
@@ -1316,7 +1316,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Photos and camera aren't available right."
+          "value": "Photos and camera aren't available right now."
         }
       },
       "zh-Hans": {
@@ -1348,7 +1348,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No campaign history returned."
+          "value": "No campaign history was returned."
         }
       },
       "zh-Hans": {
@@ -1764,7 +1764,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Calculated"
+          "value": "Calculated audience"
         }
       },
       "zh-Hans": {
@@ -1860,7 +1860,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Partially"
+          "value": "Partially completed"
         }
       },
       "zh-Hans": {
@@ -2004,7 +2004,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Number"
+          "value": "Reference number"
         }
       },
       "zh-Hans": {
@@ -2132,7 +2132,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This action isn't available for this account store right."
+          "value": "This action isn't available for this account and store right now."
         }
       },
       "zh-Hans": {

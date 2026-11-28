@@ -180,7 +180,7 @@
     "zh-Hans": "已完成"
   },
   "playx.merchant.steps": {
-    "en": "Three on-site",
+    "en": "Three on-site steps",
     "zh-Hans": "到店三步"
   },
   "playx.merchant.scan": {
@@ -192,7 +192,7 @@
     "zh-Hans": "记录到店时间，不代表已核销"
   },
   "playx.merchant.photo": {
-    "en": "Provide requested photo",
+    "en": "Provide the requested photo",
     "zh-Hans": "提交现场凭证"
   },
   "playx.merchant.photo.default": {
@@ -216,15 +216,15 @@
     "zh-Hans": "现场参考"
   },
   "playx.merchant.onsite": {
-    "en": "On-site",
+    "en": "On-site status",
     "zh-Hans": "现场"
   },
   "playx.merchant.crowd.queue": {
-    "en": "Queuing consider visiting another store",
+    "en": "Queuing now, consider visiting another store first",
     "zh-Hans": "排队中，建议先去别家"
   },
   "playx.merchant.crowd.go": {
-    "en": "Ready visit",
+    "en": "Ready to visit",
     "zh-Hans": "可前往"
   },
   "playx.merchant.crowd.unknown": {

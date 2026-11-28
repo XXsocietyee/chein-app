@@ -374,7 +374,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Part of order has been fulfilled."
+            "value": "Part of this order has been fulfilled."
           }
         },
         "zh-Hans": {
@@ -422,7 +422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limited quantity, while supplies."
+            "value": "Limited quantity, while supplies last."
           }
         },
         "zh-Hans": {
@@ -486,7 +486,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capability"
+            "value": "Capability switches"
           }
         },
         "zh-Hans": {

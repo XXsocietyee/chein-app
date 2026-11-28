@@ -278,7 +278,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Daily average, last 7"
+            "value": "Daily average, last 7 days"
           }
         },
         "zh-Hans": {
@@ -598,7 +598,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdrawals handled platform support"
+            "value": "Withdrawals are handled by platform support"
           }
         },
         "zh-Hans": {
