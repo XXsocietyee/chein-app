@@ -719,9 +719,10 @@ struct RegistrationSheetView: View {
             } else if flow.participantsState == .loading {
                 CYLoadingStateView(rows: 1, label: "registration.form.loadingParticipants")
             } else if flow.participantsState == .unavailable {
-                Text("registration.form.participantReadFailed").foregroundStyle(.secondary)
-                CYPillButton("registration.form.reloadParticipants", style: .secondary) { Task { await flow.loadParticipants() } }
-                    .accessibilityIdentifier("registration.form.reloadParticipants")
+                // MP baoming.wxml:38-40 cy-inline-error 参与人信息加载失败 + 重试: one state, retry inside.
+                CYEmptyState(systemImage: "exclamationmark.triangle", "profile.participants.loadFailed",
+                             actionTitle: "action.retry", actionIdentifier: "registration.form.reloadParticipants",
+                             kind: .failure) { Task { await flow.loadParticipants() } }
             } else if flow.participantProjectionIsCurrent, !flow.participants.isEmpty {
                 // MP baoming.wxml:31-46: one 参与人信息 row opens the participant popup (native `.sheet`).
                 Button {
