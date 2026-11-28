@@ -55,7 +55,7 @@ import SwiftUI
                 if let priceText {
                     LabeledContent {
                         Text(verbatim: LocaleDisplay.yuanAmounts(in: priceText, locale: locale))
-                            .font(.title2.weight(.semibold).monospacedDigit())
+                            .cyText(.numericTitle)
                             .foregroundStyle(.primary)
                     } label: {
                         Text(verbatim: copy.t("套餐价", "Bundle price"))

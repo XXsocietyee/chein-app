@@ -37,8 +37,7 @@ struct CYRecordStat: Identifiable {
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: stat.value)
-                            .font(.title2.bold())
-                            .monospacedDigit()
+                            .cyText(.numericTitle)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
                     }
