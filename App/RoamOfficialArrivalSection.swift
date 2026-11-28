@@ -102,9 +102,9 @@ extension EnvironmentValues {
             Text(verbatim: event.title).font(.headline)
             if event.paused {
                 if let reason = event.pausedReason?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
-                    Text("roam.official.pausedReason \(reason)").foregroundStyle(.orange)
+                    Text("roam.official.pausedReason \(reason)").foregroundStyle(CYColor.warningText)
                 } else {
-                    Text("roam.official.paused").foregroundStyle(.orange)
+                    Text("roam.official.paused").foregroundStyle(CYColor.warningText)
                 }
             } else if event.signed != true {
                 Text("roam.official.signupFirst").foregroundStyle(.secondary)
