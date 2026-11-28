@@ -38,3 +38,18 @@ public enum UserMarketResolver {
         return nil
     }
 }
+
+/// US launch presentation. The shipped app runs both storefronts on the China deployment, so
+/// `operationalMarket` is China for a US player. These helpers read the storefront first.
+public enum USLaunchPresentation {
+    /// Storefront wins. A nil storefront keeps the deployment market (China screens stay on China).
+    public static func market(storefront: RegionalMarket?, deployment: RegionalMarket?) -> RegionalMarket? {
+        storefront ?? deployment
+    }
+
+    /// P33: the United States leads with Sign in with Apple, then phone (+1). China, and an unknown
+    /// market, keep WeChat (when it is offered), then phone (+86), then Apple.
+    public static func signInLeadsWithApple(storefront: RegionalMarket?, deployment: RegionalMarket?) -> Bool {
+        market(storefront: storefront, deployment: deployment) == .unitedStates
+    }
+}

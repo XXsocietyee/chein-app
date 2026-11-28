@@ -690,6 +690,12 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - Sweep notes not app-side: `zh-Hans-d2/d6-roam` map tiles still grey (tile load in the simulator; en loaded), `en-e2-stamp-album` is the black launch frame (sweep warm-up, as at 15:50). Stamp album, city sticker, official routes read correctly in both languages.
 - A-half open rows unchanged (P2-7 POI tap, citystamp coordinator, P21 mini bar: compiled pass; P1-22: owner value). **A half done** after this fix.
 
+## Round 3 continue (55) — merge `ui/combined-r7` (d5702393c); A half still done
+
+- Merged `origin/ui/combined-r7` (mp-nav ia-tabs loading cards, en-layout plurals, K17 acceptance receipt). No new coordinator finding for mp-roam (latest sweep 17:30 covers mp-states / mp-nav only). Still no `cursor-k50-p*` receipts: no `lane-layout` rows for roam.
+- K17 (`docs/release/receipts/cursor-1128-acceptance.md`) lists roam AppUnit failures as hosted SwiftUI lifetime failures (`InvalidTransition` idle → `failed(deinit)`; control never appears): `RoamHistoryHubToolsTests`, `RoamNearbyOwnedStateRecoveryTests`, `RoamAnniversary*`, `RoamHomeResumeEntryRecoveryTests`, `RoamAlbumIntentLifetimeTests`, `RoamReceivedStampMetadataHostTests`, `RoamEnrolledTopicsLifetimeTests`, `RoamMonthlyRecapRestoredHostTests`, `RoamNearbyEventsRestoredDetailTests`, `RoamOfficialTasksLifetimeTests`, `RoamTileIntentLifetimeTests`. They need a simulator run to diagnose (no compiler here) — compiled pass. `PremergeScreensViewModelTests:131` (presence disable `.failed`) fails together with the club read at `:138` in the same `.dormant` composition, so it is a shared transport/allow-list cause, not roam presence code — for K13/K17.
+- A-half open rows unchanged (P2-7 POI tap, citystamp coordinator, P21 mini bar: compiled pass; P1-22: owner value). **A half done** — stopped per the 15:45 collision rule.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).

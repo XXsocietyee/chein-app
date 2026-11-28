@@ -16,6 +16,9 @@ import UIKit
     /// 隐私与定位 and 关于; 漫游定位 lives inside 隐私与定位 (privacy-sheet); 注销须知 lives inside 账号注销.
     func followingMPShezhiOrder() -> Self { var copy = self; copy.followsMPShezhiOrder = true; return copy }
     private var legalTypes: [SettingsLegalType] { followsMPShezhiOrder ? [.userAgreement] : SettingsLegalType.allCases }
+    /// Agreement and privacy follow the storefront. Compliance (including account deletion) keeps `market`,
+    /// the deployment, so the deletion notice stays the versioned source document.
+    private var legalDocumentMarket: RegionalMarket? { UserMarketMemory.legalDocumentMarket(deployment: market) }
     let soundStore: any SettingsSoundStoring
     let legalReader: any SettingsLegalReading
     let appInformation: SettingsAppInformation
@@ -35,7 +38,7 @@ import UIKit
         Section("settingsNative.legal.title") {
             ForEach(legalTypes) { type in
                 NavigationLink {
-                    SettingsLegalDocumentView(type: type, market: market, reader: legalReader)
+                    SettingsLegalDocumentView(type: type, market: legalDocumentMarket, reader: legalReader)
                 } label: {
                     // MP shezhi 用户服务协议 = icon_lc_scroll-text; the other legal rows use about's icon_agreement.
                     Label { Text(LocalizedStringKey(type.titleKey)) } icon: {
@@ -157,7 +160,7 @@ import UIKit
             Section {
                 let type: SettingsLegalType = feature == .accountDeletion ? .cancellationNotice : .privacyPolicy
                 NavigationLink {
-                    SettingsLegalDocumentView(type: type, market: market, reader: legalReader)
+                    SettingsLegalDocumentView(type: type, market: legalDocumentMarket, reader: legalReader)
                 } label: { Text(LocalizedStringKey(type.titleKey)) }
                 .accessibilityIdentifier("settingsNative.blocked.openDocument")
             }
