@@ -153,6 +153,19 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 我的项目 · 模板 tab + 我的节点玩法 shelf (`TemplateAuthoringMineView`, inline in 我的项目 and standalone; level B) — code read, no sweep fixture | `subpackageA/pages/myproject/index.wxml:109-114`: cy-skeleton; cy-empty no-permission 当前身份不能查看这些模板 (no CTA); cy-error tplErrorMsg · 重试; cy-empty 还没有模板 · cta 做一个玩法 (`createTemplate` → `pages/publish/template-intro`); signed-out = global 登录 | custom headline VStack per state: signed out showed 登录 as dead footnote text; denied offered 重试; empty had no action | one `ContentUnavailableView` pattern (`TemplateOwnShelfReadCopy`): signed out → `.borderedProminent` 登录 opens the root sign-in sheet over the page (`RootSignIn.signedOutAction`, nothing when no host); denied → title + hint, no button (MP), pull to refresh stays; failed → 重试 `.bordered`; empty → `TemplateOwnShelfEmptyState` with `.borderedProminent` 做一个玩法 / Make a play pushing the template intro → editor flow (`sessionTemplateAuthoringEntry`, shelf scope passed through), wired from 我的项目's 模板 tab; load-more failure stays an inline row. Pin `test_template_own_shelf_read_state` updated (dead 登录 text removed on purpose) |
 | **Sweep 13:03 (build 0446d1c4f)** 票夹 signed out (`TicketWalletView` / `TicketWalletDetailView` → `TicketWalletIssueView`, fixture `e4-tickets-guest`, `mp-states/sheet-zh-Hans.jpg` tile 9; level B) | `subpackageMember/signup` cy-empty no-permission 登录后查看票夹 · cta 登录 | lock card, then a separate full-width blue 登录 bar below the card (two pieces; 消息 signed-out shows the capsule inside the state); ticket detail signed out had no 登录 at all | `TicketWalletIssueView(signIn:)`: 登录 is the one `.borderedProminent` action inside the same `ContentUnavailableView` (id `ticketWallet.signIn` kept), same as 消息; detail page now offers it too via `RootSignIn.signedOutAction(fallback:)` (sign-in sheet over the page; nil → no button) |
 | **Sweep 13:03** 个人主页 empty fixture (`ProfileSelfGrowthFixture`, `e4-self-growth-zero`, `mp-states/sheet-en.jpg` tile 7; level B) | — (fixture data) | nickname "Synthetic growth owner" / 示例成长主人 read as debug data | nickname Mia, as every other d2 fixture; the two UI tests that looked the name up follow |
+| 投诉与建议 denied (`ProfileComplaintPreparationView`, from 我的 · 设置 · 投诉与建议; level C) — code read, no sweep fixture | `subpackageMember/complaint/index.wxml:22` cy-empty no-permission 当前身份不能发起投诉 · cta 重试 (`index.js:176` on code 403) | a 403 read fell into the generic 可投诉活动加载失败 failure | `ProfileComplaintReadIssue.denied` (HTTP / business 403, `Core/ProfileComplaintPreparation.swift:80-88`): one `ContentUnavailableView` 当前身份不能发起投诉 / Your account can’t file complaints, lock glyph, `.bordered` 重试; topics and draft cleared like signed-out. Unit test `testComplaintForbiddenReadIsTheMPDeniedState` |
+
+| 个人主页 · 帖文 failure + signed out (`ProfileAuthorPostsSection`, in 我的 · 推文 and 个人主页 Posts; fixture `e4-self-growth-zero` shows the empty state; level B) — code read | `subpackageMember/components/cy/profile/index.wxml:276` cy-error 帖文加载失败 (登录未成功) · 重试; global 登录 for guests | failure = `SocialIssueView` with the generic 暂时无法获取信息 line, then a separate plain 重试 row; signed out = a bare 登录后查看该用户的动态。 line with no action | failure → one `ContentUnavailableView` 帖文加载失败 / Couldn’t load posts with `.bordered` 重试 inside (id `profile.postsRefresh.retry` kept via the new `SocialIssueView.identifierPrefix`; disabled while busy); signed out → `ContentUnavailableView` with `.borderedProminent` 登录 (`RootSignIn.signedOutAction`, id `profile.posts.signIn`; no button when no host). Empty 还没有帖文 stays as mp-mine left it. Pin `test_refresh_busy_retained_and_retry_ui` updated (retry is inside the state now) |
+
+### Re-scan 11-28 14:10 UTC (method above, on the merged head)
+
+48 MP `cy-empty` / `cy-error` titles still have no native string. 6 already have a receipt row (reviewed / covered, e.g.
+报名 活动信息加载失败, 节点详情 页面暂时无法显示 = the POI missing view). Fixed this run: 投诉 当前身份不能发起投诉. The rest are
+outside player screens: merchant coupon list (`subpackageMember/coupon`), the merchant 承接 / project-host / chapter and
+session pickers (`pages/topic/components/*`, `pages/topic/pricing/partner`), publish authoring (`pages/publish/*`,
+`scene-route-content` 当前身份不能管理节点), the brand-story block (merchant profile), and club-owner tools
+(`pages/club/detail` 数据看板 / 合作池 / 邀约, `club/topic-detail`, `club/notify`, `club/apply`, `scene-club-edit`), already listed
+for mp-club below.
 
 ## Sweep fixtures for mp-states (coordinator 05:50 UTC: "mp-states has no sheets")
 
@@ -182,7 +195,6 @@ delay or locale-dependent path, so this reads as a capture-timing flake in the s
 
 ## For other lanes
 
-- mp-settings: 营销同意 (`AccountComplianceViews.marketing`) has no visible loading words (MP 正在加载…) and its failure is a 当前状态未确认 line instead of the MP cy-inline-error 营销同意状态加载失败 · 重试.
 - debt: `tools/check_contextual_flows.py` already fails on the branch base (asserts `payload: .route(topicID: row.id)` in the IM UI, no longer present) — not one of the brief's gates.
 - mp-roam / mp-journey: MP `pages/play/components/scene-roam-discover` (搜店名 search, hot tags, 附近商家无法打开 · 重试, 没有找到匹配的商家 · 换个关键词试试) has no native screen — a missing page, not a state.
 - mp-activity: `TeamOrientBoardView` progress card title reads 任务进度; MP `pages/team/detail/index.wxml:115` says 队伍进度.

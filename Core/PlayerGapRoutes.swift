@@ -6,7 +6,7 @@ import FoundationNetworking
 /// G7/G8 capability gaps: player routes the mini-program calls that the app did not.
 /// Each method is one request with no retry. Shapers port the mini-program helpers named beside them.
 /// Money routes (payment readiness, payout receiver, settlement) and club host-only routes are not here.
-public enum PlayerGapReply: Equatable {
+public enum PlayerGapReply: Equatable, Sendable {
     case ok(PlayWireValue, message: String?)
     case refused(code: Int, message: String?)
     case unauthorized

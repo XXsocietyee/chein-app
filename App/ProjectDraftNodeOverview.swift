@@ -11,7 +11,7 @@ import SwiftUI
     }
     struct Opening: Identifiable { let id = UUID(); let capture: Capture }
     struct Destination: Identifiable, Hashable {
-        let id = UUID()
+        nonisolated let id = UUID()
         let capture: Capture
         let row: ProjectDraftNodeProjection.Row
         nonisolated static func == (a: Self, b: Self) -> Bool { a.id == b.id }

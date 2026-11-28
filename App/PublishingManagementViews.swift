@@ -206,14 +206,30 @@ import SwiftUI
     let account: PublishingSession?
     private enum Status { case unconfigured, loading, failed, registered, notRegistered }
     @State private var status: Status = .unconfigured
+    @State private var reloadToken = 0
     var body: some View {
         List {
             if account?.region == .unitedStates { Text("publishModes.identityUSUnsupported") }
             else {
                 switch status {
                 case .unconfigured: Text("publishModes.offlineNotice")
-                case .loading: ProgressView()
-                case .failed: Text("publishModes.readFailed")
+                case .loading:
+                    // mp-states-b r3: the status read says what it is reading (P10), never a silent spinner.
+                    ProgressView { Text("publishModes.identityLoading") }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("publishModes.identity.loading")
+                case .failed:
+                    // mp-states-b r3 (MP cy-error load-failure · 重试): one titled state with a retry, not a "list" sentence.
+                    ContentUnavailableView {
+                        Label("publishModes.identityReadFailed", systemImage: "exclamationmark.triangle")
+                    } description: {
+                        Text("cy.kit.offline.body")
+                    } actions: {
+                        Button("publishModes.retry") { reloadToken += 1 }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("publishModes.identity.retry")
+                    }
+                    .accessibilityIdentifier("publishModes.identity.failed")
                 case .registered:
                     Text("publishModes.registered")
                     Text("publishModes.identityChange").foregroundStyle(.secondary)
@@ -224,7 +240,7 @@ import SwiftUI
                 Text("publishModes.identityPrivacy").font(.footnote).foregroundStyle(.secondary)
             }
         }.navigationTitle(Text("publishModes.identity")).navigationBarTitleDisplayMode(.inline)
-        .task(id: account?.epoch) {
+        .task(id: "\(account?.epoch.uuidString ?? "")-\(reloadToken)") {
             status = .unconfigured
             guard let account, let service, account.region == .china else { return }
             status = .loading

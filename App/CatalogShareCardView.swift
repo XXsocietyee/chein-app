@@ -49,8 +49,10 @@ import UIKit
                             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                 Toggle("share.card.includePlace", isOn: $includePlace)
                                     .accessibilityIdentifier("share.card.includePlace")
+                                    .accessibilityHint(Text("share.card.includePlaceHint"))
                                 Text("share.card.includePlaceHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                                     .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityHidden(true)
                             }
                             .padding(CYSpacing.lg)
                             .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))

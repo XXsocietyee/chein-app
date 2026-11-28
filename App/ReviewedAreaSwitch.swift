@@ -174,10 +174,10 @@ enum ReviewedAreaSwitch {
     static func payout(host: String?) -> Bool { areaOpen(host) }
     static func passwordLogin(host: String?) -> Bool { testAreaOnly(host) }
     static func externalGames(host: String?) -> Bool { testAreaOnly(host) }
-    static func paymentsOpen(session: AppSession) -> Bool {
+    @MainActor static func paymentsOpen(session: AppSession) -> Bool {
         moneyPayments(host: session.regionalConfiguration?.apiConfiguration?.baseURL.host)
     }
-    static func payoutOpen(session: AppSession) -> Bool {
+    @MainActor static func payoutOpen(session: AppSession) -> Bool {
         payout(host: session.regionalConfiguration?.apiConfiguration?.baseURL.host)
     }
 

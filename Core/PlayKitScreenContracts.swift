@@ -63,7 +63,8 @@ public struct PlayKitScreenProjection: Equatable {
         case .dailySign: return !(segment["claimedDate"].text ?? "").isEmpty
         case .coinFlip: return segment["flipped"].bool == true
         case .diceRoll: return segment["rolled"].bool == true
-        case .walk, .steps: return segment["reached"].bool == true
+        case .walk: return segment["reached"].bool == true
+        case .steps: return segment["reached"].bool == true || segment["skipped"].bool == true // MP `isDone`: a skipped walk station is finished.
         case .bingo: return PlayKitBingoBoard(segment).filled.count == 9
         case .match, .classify: return segment["passed"].bool == true
         case .reaction, .countdown, .stopwatch: return segment["submitted"].bool == true

@@ -93,7 +93,8 @@ struct EditorCardFooter: View {
                         EditorStepper(
                             value: Binding(get: { count }, set: { limit = .limited(EditorNumber.clamp($0, to: EditorAttemptLimit.range)) }),
                             range: EditorAttemptLimit.range,
-                            unit: .times
+                            unit: .times,
+                            fieldLabel: EditorKitText.text("editorKit.cardFooter.limit")
                         )
                     }
                     .frame(minHeight: EditorKitMetric.switchRowMinHeight)

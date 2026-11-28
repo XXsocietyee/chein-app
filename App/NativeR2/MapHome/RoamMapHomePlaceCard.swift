@@ -46,11 +46,11 @@ import QuestifyCore
                             .labelStyle(.titleAndIcon)
                             .accessibilityLabel(Text("nativeR2.mapHome.card.rating \(rating ?? "—")"))
                             .accessibilityIdentifier("roam.mapHome.card.rating")
-                            Text(verbatim: "·")
+                            Text(verbatim: "·").accessibilityHidden(true)
                         }
                         Text(pin.kindKey)
                         if let meters = pin.distanceMeters {
-                            Text(verbatim: "·")
+                            Text(verbatim: "·").accessibilityHidden(true)
                             Text(Measurement(value: meters, unit: UnitLength.meters), format: .measurement(width: .abbreviated, usage: .road))
                         }
                     }

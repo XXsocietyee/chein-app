@@ -39,6 +39,11 @@ enum DesignFixtureRegistry {
         case "d2-square": return AnyView(D2Fixture(screen: .square))
         case "d2-square-empty": return AnyView(D2Fixture(screen: .squareEmpty))
         case "d2-square-failed": return AnyView(D2Fixture(screen: .squareFailed))
+        case "d2-square-detail": return AnyView(SquareDetailDesignFixtureHost(scenario: .content))
+        case "d2-square-detail-no-comments": return AnyView(SquareDetailDesignFixtureHost(scenario: .empty))
+        case "d2-square-detail-comments-failed": return AnyView(SquareDetailDesignFixtureHost(scenario: .partial))
+        case "d2-square-detail-unavailable": return AnyView(SquareDetailDesignFixtureHost(scenario: .unavailable))
+        case "d2-square-detail-failed": return AnyView(SquareDetailDesignFixtureHost(scenario: .failure))
         case "d2-play": return AnyView(D2Fixture(screen: .play))
         case "d2-city": return AnyView(D2Fixture(screen: .city))
         case "d2-npc": return AnyView(D2Fixture(screen: .npc))
@@ -566,10 +571,26 @@ enum T5PageFixtures {
                     pointsDestination: { AnyView(WalletLedgerPointsFixturePage()) }
                 )
             })
-        case "t5-pass-market-error":
+        case "t5-pass-market-empty", "t5-pass-market-orders-empty", "t5-pass-market-loading":
+            // State fixtures for the sweep: nothing on sale (暂无在售通行证), no orders, and the first load.
+            let emptyContent = PassMarketContent(products: [], orders: [], giftsBought: [], giftsReceived: [])
             return wrapPlayer(NavigationStack {
                 PassMarketView(
-                    state: PassMarketState(content: .failed("Offline load error"), pointBalance: nil, member: nil, refreshFailed: false),
+                    state: PassMarketState(content: name == "t5-pass-market-loading" ? .loading : .ready(emptyContent),
+                                           pointBalance: nil, member: nil, refreshFailed: false),
+                    initialTab: name == "t5-pass-market-orders-empty" ? .orders : .shop,
+                    onReload: { _ in },
+                    onOpenProduct: { _ in },
+                    onOpenMembership: {},
+                    onOpenLibrary: nil,
+                    pointsDestination: nil
+                )
+            })
+        case "t5-pass-market-error":
+            // nil message: the page shows the localized MP load-failed copy, never fixture English in zh-Hans.
+            return wrapPlayer(NavigationStack {
+                PassMarketView(
+                    state: PassMarketState(content: .failed(nil), pointBalance: nil, member: nil, refreshFailed: false),
                     initialTab: .shop,
                     onReload: { _ in },
                     onOpenProduct: { _ in },
