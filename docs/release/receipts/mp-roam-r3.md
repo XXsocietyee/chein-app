@@ -465,6 +465,21 @@ sweep row (with the history / stamp-album / route / session state fixtures from 
 
 **For the coordinator:** please add `r3-roam-nearby`, `r3-roam-nearby-empty`, `r3-roam-nearby-error` to the mp-roam sweep row. No new strings. No Swift build here.
 
+## Round 3 continue (34) — 我的队伍 states as design fixtures + guest gate fix (01:40 "next round" item 3) + sweep 05:15 (build a4142df0d)
+
+Base re-merged with `origin/ui/combined-r7`. No open coordinator finding for mp-roam (05:35 sweep: "nothing new"; `mp-roam/sheet-zh-Hans.jpg`:
+d2-roam / d6-roam same inline title + light map, e2-stamp-album art + 还没收到 cell, e5b-stamp — keep). Map panel settled (02:05) — not touched.
+
+| MP page → native | Difference | Fix | Fixture |
+|---|---|---|---|
+| `subpackageRoam/my-teams` guest (`tab==='mine' && guest` → only `cy-empty no-permission 登录后查看 + 登录`, PG-004; the 附近在招募 block needs `!guest`) → `App/NearbyTeamViews.swift` `loadMine` / `mineSection` | **Bug:** for a guest the tab-1 `.task` still ran `loadMine`; the coordinator's `begin()` set `nearby.signIn`, so `mine.failed` turned true and the page drew 队伍没能读到 + 重试 under the sign-in gate. | `loadMine` returns before any read when `!coordinator.authenticated` (loading / failed cleared): the guest sees only the gate. | `r3-roam-my-teams-signedout` |
+| same page, `mt-err` 队伍获取失败 · 轻点重试 | Native title 队伍没能读到. | `nearby.w208.mine.failedTitle` zh → 队伍获取失败 (MP copy; en "Couldn't load your teams" unchanged); 重试 stays the `.bordered` action. | `r3-roam-my-teams-error` (my-applications read fails) |
+| same page: `.mt-stats` → 我的 / 附近招募 → groups 带队 / 已通过 / 审核中 / 未通过 (card: faces · name · badge, members, N 条入队申请) → `mt-empty 还没有队伍 + 去地图找队伍` → 附近在招募 rows | Content and order already match (continue 1). No fixture showed the shipping tab 1. | `App/DesignFixtures/RoamR3NearbyFixture.swift` gains `.mine`, `.mineEmpty`, `.mineFailure`, `.mineSignedOut` on the real `NearbyTeamsView` (`initialTab: 1`): led team 外滩夜色寻迹队 (1 applicant → N 条入队申请), joined 滨江拍照散步队, pending 老街夜走搭子, rejected 豫园寻灯小队 — all `name(en, zh)`. UI test `Fixture_r3_roamMyTeamsTests` (group ids, 去地图找队伍, retry id, guest gate without retry). | `r3-roam-my-teams`, `r3-roam-my-teams-empty` |
+
+**For the coordinator:** please add `r3-roam-my-teams`, `-empty`, `-error`, `-signedout` to the mp-roam sweep row.
+
+Gates: generate_project OK · check_scaffold PASS (21251 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

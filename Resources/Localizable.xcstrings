@@ -351155,7 +351155,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "队伍没能读到"
+            "value": "队伍获取失败"
           }
         }
       }
