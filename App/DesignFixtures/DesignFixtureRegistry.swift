@@ -144,6 +144,11 @@ enum DesignFixtureRegistry {
         case "r3-roam-route": return RoamR3RoutesFixture.makeDetail(.content)
         case "r3-roam-route-error": return RoamR3RoutesFixture.makeDetail(.failure)
         case "r3-roam-route-notfound": return RoamR3RoutesFixture.makeDetail(.notFound)
+        // mp-roam r3: 地点详情 (subpackageRoam/poi-detail → scene-roam-poi-detail) node card / error / unavailable / missing.
+        case "r3-roam-poi": return RoamR3PoiFixture.make(.content)
+        case "r3-roam-poi-error": return RoamR3PoiFixture.make(.failure)
+        case "r3-roam-poi-unavailable": return RoamR3PoiFixture.make(.unavailable)
+        case "r3-roam-poi-missing": return RoamR3PoiFixture.make(.missing)
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
