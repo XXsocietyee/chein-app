@@ -515,7 +515,18 @@ import SwiftUI
                 ForEach(snapshot.visibleNodes.filter(snapshot.isDone)) { node in
                     Label { FreeExplorationStoreName(name: node.name) } icon: { Image(systemName: "checkmark.seal") }
                 }
-                Button("playFree.ending.read") { Task { await model.loadFreeExplorationEnding() } }
+                // mp-journey-b r3: read by itself at completion (MP `loadEnding`); a failure is a soft line + 重新加载.
+                if model.freeEndingUnavailable {
+                    LabeledContent {
+                        Button("action.reload") { Task { await model.loadFreeExplorationEnding() } }
+                            .accessibilityIdentifier("playFree.ending.retry")
+                    } label: {
+                        Text("playx.freeEnding.failed").foregroundStyle(.secondary)
+                    }
+                } else if model.ending == nil {
+                    ProgressView { Text("playx.freeEnding.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("playFree.ending.loading")
+                        .task { await model.loadFreeExplorationEnding() }
+                }
                 if let ending = model.ending {
                     if !ending.opener.isEmpty { Text(verbatim: ending.opener) }
                     ForEach(Array(ending.fragments.enumerated()), id: \.offset) { _, fragment in

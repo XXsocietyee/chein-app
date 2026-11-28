@@ -277,11 +277,18 @@ struct FreeExplorationStoreName: View {
                         ForEach(snapshot.visibleNodes.filter(snapshot.isDone)) { node in
                             Label { FreeExplorationStoreName(name: node.name) } icon: { Image(systemName: "checkmark.seal") }
                         }
-                        CYPillButton("playFree.ending.read") {
-                            Task {
-                                await model.loadFreeExplorationEnding()
-                                if let ending = model.ending, FreeExplorationEndingLetter.hasVisibleContent(ending) { endingShown = true }
+                        // mp-journey-b r3: MP `openFinish` → `loadEnding()` reads the ending by itself once every store
+                        // is redeemed; a failed read is one soft line with 重新加载 (`endingError`), never a page error.
+                        if model.freeEndingUnavailable {
+                            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                                Text("playx.freeEnding.failed").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                Button("action.reload") { Task { await model.loadFreeExplorationEnding() } }
+                                    .buttonStyle(.borderless)
+                                    .accessibilityIdentifier("playFree.ending.retry")
                             }
+                        } else if model.ending == nil {
+                            ProgressView { Text("playx.freeEnding.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("playFree.ending.loading")
+                                .task { await model.loadFreeExplorationEnding() }
                         }
                         if let ending = model.ending {
                             if FreeExplorationEndingLetter.hasVisibleContent(ending) {

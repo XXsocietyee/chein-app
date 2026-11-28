@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 /// A merchant chosen on `pages/coop/invite` (memberId + display name).
 struct CoopInviteStationMerchant: Identifiable, Equatable {

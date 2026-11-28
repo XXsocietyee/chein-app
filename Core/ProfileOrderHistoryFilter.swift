@@ -163,7 +163,9 @@ public extension ProfileOrder {
     /// Same key as not_started, with the source text 可使用. A future start stays 未开始.
     public func showsUnusedPass(now: Date = Date()) -> Bool {
         guard isSelfPlayPass, OrderLifecycleTime.date(historyFacts.firstSuccessfulScanAt) == nil else { return false }
-        if let start = OrderLifecycleTime.date(historyFacts.start), now < start { return false }
+        // U-033: the same clock as `historyState` (server read time first), so 可使用 / 未开始 never disagree.
+        let current = historyFacts.serverNow ?? now
+        if let start = OrderLifecycleTime.date(historyFacts.start), current < start { return false }
         return historyState(now: now) == .notStarted
     }
 

@@ -184,7 +184,7 @@ struct EditorNumberRow: View {
                 label.cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
                 if useStepper, let range {
-                    EditorStepper(value: Binding(get: { value ?? range.lowerBound }, set: { value = $0 }), range: range, unit: unit)
+                    EditorStepper(value: Binding(get: { value ?? range.lowerBound }, set: { value = $0 }), range: range, unit: unit, fieldLabel: label)
                 } else {
                     EditorNumberField(value: $value, unit: unit, surface: surface, isInvalid: isOutOfRange,
                                       accessibilityLabel: label, accessibilityID: accessibilityID)
@@ -201,7 +201,13 @@ struct EditorStepper: View {
     @Binding var value: Int
     let range: ClosedRange<Int>
     var unit: EditorUnit? = nil
+    /// The host row's field name, so VoiceOver reads "Max tries, 3 times" instead of the number alone.
+    var fieldLabel: Text? = nil
     @Environment(\.cyPalette) private var palette
+    private var spokenValue: Text {
+        if let unit { return Text(verbatim: "\(value) ") + EditorKitText.text(unit.key) }
+        return Text(verbatim: String(value))
+    }
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
             HStack(spacing: 2) {
@@ -214,6 +220,20 @@ struct EditorStepper: View {
                 .labelsHidden()
         }
         .accessibilityElement(children: .combine)
+        .modifier(EditorStepperFieldLabel(label: fieldLabel, value: spokenValue))
+    }
+}
+
+/// Names the combined stepper after its field when the host row passes one; otherwise the combined children stay as they are.
+private struct EditorStepperFieldLabel: ViewModifier {
+    let label: Text?
+    let value: Text
+    @ViewBuilder func body(content: Content) -> some View {
+        if let label {
+            content.accessibilityLabel(label).accessibilityValue(value)
+        } else {
+            content
+        }
     }
 }
 

@@ -7,9 +7,27 @@ import SwiftUI
     var body: some View {
         Group {
             JourneyRoleViewSection(model: model.roleContent)
-            if model.visible, let problem = model.problem {
-                Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+            journeyProblem
+        }
+    }
+    @ViewBuilder private var journeyProblem: some View {
+        if model.visible, let problem = model.problem {
+            journeyCheckSection(problem)
+        } else if model.problem != nil && !model.nodeDone {
+            Button("journey.check.title") { model.reopen() }.accessibilityIdentifier("journey.check.reopen")
+        }
+    }
+    private func journeyCheckSection(_ problem: JourneyCheckProblem) -> some View {
+        Section {
+            journeyCheckStack(problem)
+                .padding(CYSpacing.xl)
+                .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
+                .modifier(JourneyCheckHaptics(dice: model.receipt?.dice ?? [], success: model.receipt?.success))
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)).listRowBackground(Color.clear)
+        }
+    }
+    private func journeyCheckStack(_ problem: JourneyCheckProblem) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
                         HStack(spacing: CYSpacing.sm) {
                             Image(systemName: "dice.fill").font(.title3).foregroundStyle(CYColor.textSecondary)
                             Text("journey.check.title").cyText(.meta).foregroundStyle(CYColor.textTertiary)
@@ -77,18 +95,22 @@ import SwiftUI
                         Button("journey.close") { model.close() }.cyText(.label).foregroundStyle(CYColor.textSecondary)
                             .frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("journey.check.close")
                     }
-                    .padding(CYSpacing.xl)
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
-                    .cyHapticEvent(.diceLand, trigger: model.receipt?.dice ?? []) { old, next in !next.isEmpty && old != next }
-                    .cyHapticEvent(.rewardOrMedal, trigger: model.receipt?.success) { _, next in next == true }
-                    .cyHapticEvent(.warning, trigger: model.receipt?.success) { _, next in next == false }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)).listRowBackground(Color.clear)
-                }
-            } else if model.problem != nil && !model.nodeDone {
-                Button("journey.check.title") { model.reopen() }.accessibilityIdentifier("journey.check.reopen")
-            }
-        }
     }
+
+/// Typed haptic conditions. Untyped `old, next` closures in the check card were a type-check hot spot.
+private struct JourneyCheckHaptics: ViewModifier {
+    let dice: [Int]
+    let success: Bool?
+    func body(content: Content) -> some View {
+        content
+            .cyHapticEvent(.diceLand, trigger: dice, where: Self.landed)
+            .cyHapticEvent(.rewardOrMedal, trigger: success, where: Self.rewarded)
+            .cyHapticEvent(.warning, trigger: success, where: Self.missed)
+    }
+    private static func landed(_ old: [Int], _ next: [Int]) -> Bool { !next.isEmpty && old != next }
+    private static func rewarded(_ old: Bool?, _ next: Bool?) -> Bool { next == true }
+    private static func missed(_ old: Bool?, _ next: Bool?) -> Bool { next == false }
+}
     /// Big total against the pass line, with icon + words so colour is never the only signal.
     private func resultCard(_ receipt: JourneyCheckReceipt) -> some View {
         let tone = receipt.success == true ? CYColor.successText : receipt.success == false ? CYColor.warningText : CYColor.textSecondary
