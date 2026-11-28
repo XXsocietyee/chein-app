@@ -99,8 +99,8 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                             }.accessibilityIdentifier("roam.serverHistory.record")
                         }
                         if model.busy { ProgressView { Text("roamSub.w208.history.loading") } }
-                        else if model.hasMore {
-                            Button("roam.experience.loadMore") { Task { await model.read(more) } }.accessibilityIdentifier("roam.serverHistory.more")
+                        else if model.hasMore && model.pageError == nil {
+                            CYLoadMoreRow("roam.experience.loadMore") { Task { await model.read(more) } }.accessibilityIdentifier("roam.serverHistory.more")
                         }
                         if !model.busy {
                             Button("action.retry") { Task { await model.read(refresh) } }.accessibilityIdentifier("roam.serverHistory.refresh")
