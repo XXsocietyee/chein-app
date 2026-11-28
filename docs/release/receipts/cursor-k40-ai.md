@@ -1,6 +1,6 @@
 # K40 · AI NPC, guide, and creation
 
-Branch `cursor/1128-k40-ai` from `origin/ui/combined-r7` pin `a7c956335`. Base for the PR is `ui/combined-r7`. Not deployed. `main` untouched. No secrets, no executed SQL, no money-switch edits. `App/AppSession.swift` stays 7977 lines. Play init order stays `devices`, `sensors`, `artworkHosts`. Merchant AI stays off (`AICreationReleaseApprovals` has no merchant case). The AI row stays the first item of the player create menu (`PublishTabRootView.publishMenu`, `PublishingModesViews`). No `String(localized:)` literals in the AI files this pass touched.
+Branch `cursor/1128-k40-ai` (`350bbb1e9`) from `origin/ui/combined-r7` pin `a7c956335`. Base for the PR is `ui/combined-r7`. Not deployed. `main` untouched. No secrets, no executed SQL, no money-switch edits. `App/AppSession.swift` stays 7977 lines. Play init order stays `devices`, `sensors`, `artworkHosts`. Merchant AI stays off (`AICreationReleaseApprovals` has no merchant case). The AI row stays the first item of the player create menu (`PublishTabRootView.publishMenu`, `PublishingModesViews`). No `String(localized:)` literals in the AI files this pass touched.
 
 Counts: **n=11** audit rows rechecked, **m=5** already fixed, **k=4** closed here with a test, **2** left.
 
