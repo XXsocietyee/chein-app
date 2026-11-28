@@ -63,7 +63,18 @@ public enum NativeNavigationContract {
                   query.values.allSatisfy({ $0.utf8.count <= 2048 && $0.rangeOfCharacter(from: .controlCharacters) == nil }) else { return nil }
             return .badge(ObjectBadgeDetailParameters(query: query, fallbackName: ""))
         }
+        if path == "/pages/index/index", let door = homeReferral(query) { return .door(door) }
         if let page = MiniProgramPageLink(path: path, query: query) { return .miniProgramPage(page) }
         return nil
+    }
+
+    /// mp-nav r3: MP invite share card `/pages/index/index?inviter=<uid>` (older cards `?id=`; cy/profile index.js:2413,
+    /// myinvite.js:25) and the home QR `?scene=`. MP home onLoad (index.js:37, 318, 355) keeps the inviter until sign-in,
+    /// then `setInviter`. Same keys as the `/door` link; a non-numeric inviter is not a route.
+    public static func homeReferral(_ query: [String: String]) -> DoorIntent? {
+        guard !query.isEmpty, Set(query.keys).isSubset(of: ["scene", "inviter", "id"]) else { return nil }
+        let referral = query["inviter"] ?? query["id"]
+        if let referral, DoorParsing.inviter(referral) == nil { return nil }
+        return DoorIntent(scene: query["scene"], inviter: referral)
     }
 }
