@@ -104,7 +104,7 @@ import UIKit
                 // the combined button label rather than hiding it behind a generic image label.
                 Text("media.destination.openImage").font(.footnote).foregroundStyle(.tint)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("\(index + 1) / \(context.sources.count)").monospacedDigit().font(.footnote).foregroundStyle(.secondary)
+                Text("\(index + 1) / \(context.sources.count)").accessibilityLabel(Text("carousel.position \(Int(index + 1)) \(Int(context.sources.count))")).monospacedDigit().font(.footnote).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(width: stacked ? nil : ProfileCurrentMediaPreviewLayout.thumbnailSide)
@@ -328,7 +328,7 @@ import UIKit
         }
     }
     private var position: some View {
-        Text("\(index + 1) / \(sources.count)").monospacedDigit()
+        Text("\(index + 1) / \(sources.count)").accessibilityLabel(Text("carousel.position \(Int(index + 1)) \(Int(sources.count))")).monospacedDigit()
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("profile.currentMedia.position")
     }

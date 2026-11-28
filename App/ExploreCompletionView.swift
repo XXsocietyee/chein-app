@@ -152,7 +152,7 @@ struct ExploreCompletionProvider {
                          tone: value.completed ? .success : .info, systemImage: value.completed ? "checkmark.seal.fill" : "hourglass")
             if value.requiredChapterCount > 0 {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(verbatim: "\(value.redeemedChapterCount)/\(value.requiredChapterCount)")
+                    Text(verbatim: "\(value.redeemedChapterCount)/\(value.requiredChapterCount)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(value.redeemedChapterCount)) \(Int(value.requiredChapterCount))"))
                         .cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     Text("exploreCompletion.collected").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }.accessibilityElement(children: .combine)

@@ -196,6 +196,14 @@ Merged `origin/ui/combined-r7` (a2baf94fa). Sweep unchanged since 22:3x, so this
 | pages/member/index → 设置 (MP profile index.wxml:17 icon_set, navigateTo pages/shezhi/shezhi) → App/AccountView.swift | `.large` sheet with its own stack + 完成 (popup for a page edge, OWNER RULE 2) | `navigationDestination(isPresented: $showsSettings)` push of `SettingsView(…, isPushed: true)` + `.cyPushedChrome()`: no own stack, no 完成, system back; the 城瘾玩法 guide hand-off (`SettingsGuideHandoff`) now finishes on the pop (`onChange(of: showsSettings)` false) instead of the sheet's onDismiss, same begin/request/finish order; Settings no longer marks the 我的 root "sheet open" for replayed links (a push does not cover the tabs). MP shezhi list order unchanged | fixed |
 | signed-out 我的 root ⋯ → 设置 (App/WelcomeView.swift:66) | still a sheet (shared `cySheet(item:)` with 登录 / legal) | not changed this run: the welcome page is also the launch screen without a host stack; flagged | open |
 
+## Re-scan 11-27 23:3x (sweep build b3b03703a; mp-nav sheets clean)
+
+Sweep sheets (en / zh-Hans): `d2-inbox` inline 消息 ✓, `ia-tabs` large 首页 ✓, `login-player` one mark + phone sign-in only ✓, `onboarding-1` reads Chein in en ✓, `welcome` ✓. No coordinator row for mp-nav after 20:55; this run takes the carried Open row.
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| signed-out 我的 root / launch welcome ⋯ → 设置 (MP navigateTo pages/shezhi/shezhi) → App/WelcomeView.swift | `.cySheet(item:)` case `.settings` with its own stack + 完成 | both welcome modes already own a `NavigationStack` (the 23:xx note was wrong): `navigationDestination(isPresented: $showsSettings)` push of `SettingsView(isPushed: true)` + `.cyPushedChrome()`, system back, like 我的 → 设置; consent re-read on the pop. 登录 / legal stay sheets (MP popups). UI tests EntryFlowTests / NativeSettingsReuseFlowTests leave Settings with the nav-bar back button instead of 完成/Done | fixed |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
@@ -215,7 +223,7 @@ All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScre
 
 ## Open (carried)
 
-- 我的 → 设置 is a push since 23:xx (AccountView); the signed-out Welcome ⋯ 设置 (WelcomeView.swift:66) is still a sheet.
+- 我的 → 设置 and signed-out Welcome ⋯ 设置 are both pushes now (23:xx / 23:3x).
 - 漫游护照与工具 hub sheet (owner Q9) and topic 编辑 editor sheet — kept, see the edge table.
 
 ## For other lanes

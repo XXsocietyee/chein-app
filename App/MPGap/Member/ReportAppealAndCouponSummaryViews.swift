@@ -47,7 +47,7 @@ public struct ReportAppealSheetView: View {
                             Text("reportAppeal.reasonPlaceholder")
                                 .cyText(.meta)
                             Spacer()
-                            Text("\(reason.count)/\(ReportAppealValidator.maxReasonLength)")
+                            Text("\(reason.count)/\(ReportAppealValidator.maxReasonLength)").accessibilityLabel(Text("a11y.value.characters \(Int(reason.count)) \(Int(ReportAppealValidator.maxReasonLength))"))
                                 .cyText(.meta, monospacedDigit: true)
                         }
                     }
@@ -201,7 +201,7 @@ public struct PlatformPassOrderCancelRefundSheetView: View {
                     } footer: {
                         HStack {
                             Spacer()
-                            Text("\(reason.count)/\(maxLength)")
+                            Text("\(reason.count)/\(maxLength)").accessibilityLabel(Text("a11y.value.characters \(Int(reason.count)) \(Int(maxLength))"))
                                 .cyText(.meta, monospacedDigit: true)
                         }
                     }

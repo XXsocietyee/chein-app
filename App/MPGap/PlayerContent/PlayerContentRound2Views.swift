@@ -64,7 +64,7 @@ public struct ContextualReviewStarAndPhotoComposerView: View {
                 } footer: {
                     HStack {
                         Spacer()
-                        Text("\(content.count)/\(maxChars)")
+                        Text("\(content.count)/\(maxChars)").accessibilityLabel(Text("a11y.value.characters \(Int(content.count)) \(Int(maxChars))"))
                             .cyText(.meta, monospacedDigit: true)
                     }
                 }
