@@ -396,7 +396,11 @@ public struct PlayCompletionReview: Equatable {
                 unresolved = unresolved || !pendingThoughtKeys.isEmpty
             }
             phase = unresolved ? .unknown : .ready
-            await refreshStoryArchive(snapshot: snapshot, session: session, generation: request)
+            // Free-exploration archive refresh is the only work left. Awaiting it for a city or branch
+            // load suspends after the page is ready and lets the lead probe record a request inside this load.
+            if mode == .freeExploration {
+                await refreshStoryArchive(snapshot: snapshot, session: session, generation: request)
+            }
         } catch {
             let offline = (error as? URLError).map(PlayExperienceService.isOffline) == true
             let expired: Bool

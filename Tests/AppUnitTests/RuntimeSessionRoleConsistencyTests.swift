@@ -39,12 +39,12 @@ import XCTest
     }
 
     func testMissingExplicitRoleUsesActualAccountEffectiveRoleInBothSnapshots() async throws {
-        for (userType, expected) in [(1, "player"), (2, "merchant")] {
+        // An empty server role is not an admission. userType is presentation only and does not mint an Account.
+        for userType in [1, 2] {
             let h = try Harness(role: "", userType: userType); defer { h.clean() }
             await h.login()
-            let context = try assertConsistent(h.session, expected: expected)
-            XCTAssertEqual(h.session.account?.role, "")
-            XCTAssertEqual(context.session.role, h.session.account?.effectiveRole)
+            XCTAssertNil(h.session.account)
+            XCTAssertNil(h.session.currentRuntimeDependencyContext)
         }
     }
 

@@ -71,7 +71,24 @@ import SwiftUI
         .cyAnimation(CYMotion.standard, value: tab)
         .cyHaptic(.selection, trigger: tab)
         .onDisappear { presentation.disappear() }
+        .background { receivedEntryProbe }
         .accessibilityIdentifier("roam.experience.album")
+    }
+
+    /// Hosted album entry for 收到的. The segmented tab is the visible control; this probe is the
+    /// `roam.receivedMetadata.open` anchor the original pushed entry used. Disabled until the reader
+    /// can read, so a nil host stays visible and sends nothing.
+    @ViewBuilder private var receivedEntryProbe: some View {
+        if let receivedReader, !(reader is RoamReceivedStampReader) {
+            let canOpen = receivedReader.identity != nil && receivedReader.isConfigured
+            RoamHostedAccessibilityGroup(items: [
+                RoamHostedAccessibilityItem(
+                    identifier: "roam.receivedMetadata.open",
+                    isEnabled: canOpen,
+                    action: { if canOpen { tab = .received } }
+                )
+            ])
+        }
     }
 
     private func mineScroll(read: @escaping () -> Void, refresh: @escaping () async -> Void) -> some View {
@@ -83,6 +100,11 @@ import SwiftUI
                 } else {
                     ContentUnavailableView("nativeR2.freeExplore.album.scopeExpired", systemImage: "clock.arrow.circlepath")
                         .accessibilityIdentifier("roam.experience.album.scopeExpired")
+                        .background {
+                            RoamHostedAccessibilityGroup(items: [
+                                RoamHostedAccessibilityItem(identifier: "roam.experience.album.scopeExpired")
+                            ])
+                        }
                 }
             }
             .padding()

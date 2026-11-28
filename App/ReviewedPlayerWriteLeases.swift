@@ -156,6 +156,12 @@ extension ReviewedProductionFormMutationRoute {
         if let surface = hostTipSurfaceDecision(method: method, relative: relative, request: request, paths: grant.play.paths) {
             return surface
         }
+        if ReviewedProductionGateLeases.isBodilessPlayTagWrite(relative) {
+            // fix-1128b #19 (J-09e): tag confirm/revoke are bodiless POSTs (PlayExperienceService `postWithoutBody`);
+            // the server checks the tag owner. A GET of the same path is not a player write. `correct` carries JSON
+            // and takes the generic POST rule below.
+            return method == "POST" && (request.httpBody?.isEmpty ?? true) && covers(relative, grant.play)
+        }
         if method == "GET" {
             let emptyBody = request.httpBody?.isEmpty ?? true
             // Admission receipts use the client's own `adm-<uuid>` request ids (contract §0.3 management form).
@@ -171,11 +177,6 @@ extension ReviewedProductionFormMutationRoute {
             if covers(relative, grant.friends.endpoint) || covers(relative, grant.admission) || covers(relative, grant.teamPool) { return true }
             // G4/G5 capability reads and the other play-grant reads (parity-a): GET with no body.
             return covers(relative, grant.play) && emptyBody
-        }
-        if ReviewedProductionGateLeases.isBodilessPlayTagWrite(relative) {
-            // fix-1128b #19 (J-09e): tag confirm/revoke are bodiless POSTs (PlayExperienceService `postWithoutBody`);
-            // the server checks the tag owner. `correct` carries JSON and takes the generic POST rule below.
-            return method == "POST" && (request.httpBody?.isEmpty ?? true) && covers(relative, grant.play)
         }
         if relative == "api/user/player-code" { return method == "POST" && covers(relative, grant.play) }
         // `share/revoke` and the personal `publish_precheck` are the mini-program's `data: {}` form posts: an empty body is that call.

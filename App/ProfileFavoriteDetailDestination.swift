@@ -24,6 +24,7 @@ import Observation
     }
     @discardableResult func close(id: UUID) -> Bool {
         guard let selected = selection, selected.id == id else { return false }
+        ProfileFavoriteDetailReaderLifetime.release(id)
         selected.retire(); selection = nil; return true
     }
     func binding(for selected: ProfileFavoritePostSelection) -> Binding<ProfileFavoritePostSelection?> {
@@ -35,7 +36,23 @@ import Observation
             if value == nil { _ = self.close(id: id) }
         })
     }
-    private func retireSelection() { selection?.retire(); selection = nil }
+    private func retireSelection() {
+        if let id = selection?.id { ProfileFavoriteDetailReaderLifetime.release(id) }
+        selection?.retire(); selection = nil
+    }
+}
+
+/// One detail reader per selection. A child cover can rebuild the destination view; the account
+/// route keeps the reader that was created the first time that selection appeared.
+@MainActor enum ProfileFavoriteDetailReaderLifetime {
+    private static var readers: [UUID: ProfileFavoriteDetailReader] = [:]
+    static func reader(for id: UUID, make: () -> ProfileFavoriteDetailReader) -> ProfileFavoriteDetailReader {
+        if let existing = readers[id] { return existing }
+        let created = make()
+        readers[id] = created
+        return created
+    }
+    static func release(_ id: UUID) { readers[id] = nil }
 }
 
 /// A new UUID mounts a new non-nil native item binding; no initial-nil binding is reused.
@@ -71,7 +88,7 @@ import Observation
         }
         .onAppear {
             guard reader == nil, selection.isCurrent else { return }
-            reader = makeReader()
+            reader = ProfileFavoriteDetailReaderLifetime.reader(for: selection.id, make: makeReader)
         }
     }
 }

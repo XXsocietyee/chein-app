@@ -316,7 +316,7 @@ import XCTest
     func testUnknownAttributeJournalDoesNotBecomeSourceRetirementOrTriggerProjectReadback() async throws {
         let (model, _, reader, _) = try await setup()
         let project = try XCTUnwrap(NativeAttributeAuthorProjectHost(model: model, configuration: configuration()))
-        var draft = try localDraft(project.binding), row = try XCTUnwrap(localDraft(project.binding).rows.first)
+        var draft = try localDraft(project.binding), row = try XCTUnwrap(draft.rows.first)
         row.label = "Pending"; try draft.replace(row)
         let requestKey = UUID()
         let request = try NativeAttributeAuthorRequest.definitionsWrite(draft, key: requestKey)

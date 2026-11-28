@@ -354,6 +354,7 @@ public enum ChinaReviewedRouteCapability {
         "/api/template/{}/market-submit",
         "/api/map/geocode",
         "/api/map/place-search",
+        "/api/map/public-layers",
         "/api/map/weather",
         "/api/search/unified",
         // fix/1128c-ai-weather: `GET api/play/environment?topicId=` (topic weather snapshot + weather_event_rule events).

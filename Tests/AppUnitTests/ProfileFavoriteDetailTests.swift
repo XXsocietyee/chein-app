@@ -193,8 +193,8 @@ import SwiftUI
             XCTAssertFalse(selected.isCurrent);XCTAssertNil(owner.selection)
         }
     }
-    @MainActor private final class CoverProbe: ObservableObject {
-        @Published var covered = false
+    @MainActor @Observable private final class CoverProbe {
+        var covered = false
         var rootAppearances = 0
         var author = 991, detailAppearances = 0, detailDisappearances = 0, childAppearances = 0, readerCreations = 0
     }
@@ -203,7 +203,7 @@ import SwiftUI
         let scope: UUID
         let reader: ProfileFavoriteDetailReader
         let account: any SocialAccountReading
-        @ObservedObject var probe: CoverProbe
+        @Bindable var probe: CoverProbe
         @Environment(\.scenePhase) private var scenePhase
         var body: some View {
             NavigationStack {

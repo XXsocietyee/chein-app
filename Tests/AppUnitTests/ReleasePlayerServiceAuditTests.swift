@@ -88,8 +88,11 @@ import XCTest
             case .wasOffByMistake: fixed += 1
             }
         }
-        XCTAssertEqual(on, 54)
-        XCTAssertEqual(designed, 26)
+        // City board is on for a China player only when QuestifyCityGameRegion is set (Debug gaps-a-test).
+        // Release leaves the region empty, so the same row stays off by design there.
+        let cityBoardOn = ReviewedProductionGateLeases.cityGameRegion != nil
+        XCTAssertEqual(on, 54 + (cityBoardOn ? 1 : 0))
+        XCTAssertEqual(designed, 26 - (cityBoardOn ? 1 : 0))
         XCTAssertEqual(fixed, 10)
     }
 
@@ -419,7 +422,7 @@ import XCTest
                 let runtime = root.sessionDependencies(context)
                 return runtime.ownerRefundApproval != nil && !ReleaseMoneyWriteSwitch.isEnabled(.refund)
             },
-            Row(service: "City board", kind: off) { $0.cityPlayerReadApproval($1) != nil },
+            Row(service: "City board", kind: ReviewedProductionGateLeases.cityGameRegion == nil ? off : on) { $0.cityPlayerReadApproval($1) != nil },
             Row(service: "Own media status writes", kind: off) { $0.ownMediaReadApproval($1)?.allowsStatus == true },
             Row(service: "Owner draft save and delete", kind: off) { root, context in
                 let routes = root.ownerDraftReadApproval(context)?.grant.routes ?? []
