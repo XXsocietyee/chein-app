@@ -152,49 +152,26 @@ struct RoamShopVisitorsLoad: ViewModifier {
 }
 
 /// Roam map weather ambience for the searched area (cell centre only). A modifier on the map, so the read runs
-/// while the overlay still draws nothing.
+/// while the overlay still draws nothing. The browser map has its control row at the top corner, so no chip here.
 struct RoamMapWeather: ViewModifier {
     let area: RoamSearchArea
-    @Environment(\.socialRoamCapabilities) private var capabilities
-    @StateObject private var model = MapWeatherModel()
 
     func body(content: Content) -> some View {
-        content
-            .overlay { MapWeatherOverlay(weather: capabilities == nil ? nil : model.weather) }
-            .task(id: WeatherKey(area: area, account: capabilities?.accountID)) {
-                guard let capabilities else { return }
-                await model.refresh(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude, client: capabilities.client)
-            }
+        content.modifier(OwnedMapSceneWeather(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude,
+                                              showsChip: false))
     }
-
-    private struct WeatherKey: Hashable { let area: RoamSearchArea; let account: Int? }
 }
 
 /// mp-roam r3: MP `cy-map-weather` on the live map (pages/roam/index.wxml:251, active only on `screen == 'map'`).
 /// Reads `/api/map/weather` for the ~5.5 km cell around the player (cell centre only, never the exact point) and
-/// re-reads only when the cell changes. No fix, signed out, clear, reduced motion or any failure: nothing drawn.
+/// re-reads only when the cell changes. fix/1128c-ai-weather: real particles, day / night light and the chip.
 struct RoamLiveMapWeather: ViewModifier {
     let latitude: Double?
     let longitude: Double?
-    @Environment(\.socialRoamCapabilities) private var capabilities
-    @StateObject private var model = MapWeatherModel()
 
     func body(content: Content) -> some View {
-        content
-            .overlay { MapWeatherOverlay(weather: capabilities == nil || cellKey.isEmpty ? nil : model.weather) }
-            .task(id: WeatherKey(cell: cellKey, account: capabilities?.accountID)) {
-                guard let capabilities, let latitude, let longitude, !cellKey.isEmpty else { return }
-                await model.refresh(latitude: latitude, longitude: longitude, client: capabilities.client)
-            }
+        content.modifier(OwnedMapSceneWeather(latitude: latitude, longitude: longitude))
     }
-
-    private var cellKey: String {
-        guard let latitude, let longitude,
-              let cell = MapSearchPlayerService.cell(latitude: latitude, longitude: longitude) else { return "" }
-        return "\(cell.0):\(cell.1)"
-    }
-
-    private struct WeatherKey: Hashable { let cell: String; let account: Int? }
 }
 
 /// Roam share sheet: 「作废我发出的全部分享链接」 (`revokeShareSnapshots`).
