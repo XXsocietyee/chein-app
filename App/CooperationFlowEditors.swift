@@ -538,7 +538,7 @@ struct CoopFlowReviewEditor: View {
     var body: some View {
         Form {
             Text(partnerName).font(.headline)
-            Stepper("\(rating) / 5", value: $rating, in: 1...5).accessibilityLabel("coopflow.field.rating")
+            Stepper("\(rating) / 5", value: $rating, in: 1...5).accessibilityLabel("coopflow.field.rating").accessibilityValue(Text("a11y.value.ofTotal \(rating) \(5)"))
             TextField("coopflow.field.comment", text: $comment, axis: .vertical)
             NavigationLink("coopflow.reviewAction") {
                 CoopFlowRequestPreview(operation: .review(topicID: topicID, memberID: memberID, rating: rating, comment: comment))

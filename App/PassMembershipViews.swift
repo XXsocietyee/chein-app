@@ -522,7 +522,7 @@ struct PassLibraryCardView: View {
                 if kindText != nil || card.minutes != nil {
                     HStack(spacing: 4) {
                         if let kindText { kindText }
-                        if kindText != nil && card.minutes != nil { Text(verbatim: "·") }
+                        if kindText != nil && card.minutes != nil { Text(verbatim: "·").accessibilityHidden(true) }
                         if let minutes = card.minutes { Text("mp.library.minutes \(minutes)") }
                     }
                     .font(.subheadline).foregroundStyle(.secondary)
