@@ -58,7 +58,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in see analysis"
+            "value": "Sign in to see your analysis"
           }
         },
         "zh-Hans": {
@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The currency these records isn't known"
+            "value": "The currency of these records isn't known"
           }
         },
         "zh-Hans": {

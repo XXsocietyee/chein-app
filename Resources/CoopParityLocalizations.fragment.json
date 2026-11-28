@@ -423,7 +423,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting payout"
           }
         },
         "zh-Hans": {
@@ -983,7 +983,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Host-side profit"
+            "value": "Host-side profit share"
           }
         },
         "zh-Hans": {

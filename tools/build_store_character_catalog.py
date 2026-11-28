@@ -113,7 +113,7 @@ ROWS = {
  'voiceIssue.writesDisabled': ('Voice creation is not available yet. Nothing is uploaded or sent.', '声音生成暂未开放，不会上传或发送录音。'),
  'consent.title': ('Voice cloning processing', '声音克隆处理'),
  'consent.body': ('This recording will be sent to the Alibaba Cloud voice model (Tongyi CosyVoice) to create a dedicated voice for speech synthesis. If the recording is not your own voice, you must have told the voice owner and obtained their separate consent. The generated speech will be played to players during play. Do you confirm and separately consent? Declining does not affect other features.', '这段录音将发送给阿里云语音模型（通义 CosyVoice），用于生成可合成语音的专属音色。如录音不是你本人的声音，你必须已告知声音本人并取得其单独同意；生成的语音会在游玩中播放给玩家。是否确认并单独同意？拒绝不会影响其他功能。'),
- 'consent.agree': ('Consent', '单独同意'),
+ 'consent.agree': ('Separately consent', '单独同意'),
  'consent.decline': ('Decline', '拒绝'),
  'reform.scopesHeader': ('Scene scopes (unavailable)', '场景范围（暂不可用）'),
  'reform.storePublic': ('Store public mode', '门店公开模式'),

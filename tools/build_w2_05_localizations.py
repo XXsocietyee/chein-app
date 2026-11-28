@@ -27,7 +27,7 @@ values = {
     # subpackageMember/coupon-qr
     'couponCode.missing': ('Coupon details missing', '缺少券信息'),
     'couponCode.missing.detail': ('Go back to your coupon wallet and open it again.', '请返回票夹重新进入'),
-    'couponCode.presentToMerchant': ('Show this to the merchant scan redeem', '出示给商家扫码核销'),
+    'couponCode.presentToMerchant': ('Show this to the merchant to scan and redeem', '出示给商家扫码核销'),
     'couponCode.refresh': ('Refresh QR code', '刷新二维码'),
     'couponCode.fetchAgain': ('Get a new code', '重新获取'),
     'couponCode.serviceDisabled': ('Coupon codes are unavailable', '优惠券出示码暂不可用'),

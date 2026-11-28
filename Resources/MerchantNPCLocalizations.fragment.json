@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No reply"
+            "value": "No reply is available"
           }
         },
         "zh-Hans": {
@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Audio playback isn't available"
+            "value": "Audio playback isn't available right now"
           }
         },
         "zh-Hans": {
@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording, uploads and voice generation aren't available right."
+            "value": "Recording, uploads and voice generation aren't available right now."
           }
         },
         "zh-Hans": {
@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not available"
+            "value": "Not available right now"
           }
         },
         "zh-Hans": {
