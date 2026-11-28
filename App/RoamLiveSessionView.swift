@@ -79,6 +79,8 @@ import QuestifyCore
     @State private var runners: [RoamNearbyRunner] = []
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.offlineWriteSession) private var offlineWriteSession
+    @Environment(\.roamFinishedRecordsArchive) private var roamFinishedRecordsArchive
+    @State private var uploadedFinishedRecords: Set<Int> = []
     /// Location-purpose consent is asked once, on the first GO, by the inline card; the stored answer seeds this state and
     /// still feeds `owner.start(purposeAccepted:)`, which stays the source of truth.
     @AppStorage("roamLivePurposeAcceptedV1") private var storedPurposeAccepted = false
@@ -630,6 +632,11 @@ import QuestifyCore
             } else {
                 finishReport = nil
             }
+        }
+        // The finish already settled. This posts the in-memory tile times and does not change that outcome.
+        if let id, let bundle = owner.settledSessionArchive, let upload = roamFinishedRecordsArchive,
+           uploadedFinishedRecords.insert(id).inserted {
+            Task { await upload(bundle) }
         }
         // Presentation only: the summary follows the existing settled-and-archived state; the queue dedupes a re-delivery.
         if id != nil {

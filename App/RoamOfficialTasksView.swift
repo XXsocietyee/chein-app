@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Ordinary composition obtains the existing concrete session reader. An unrelated or stale Roam
-/// reader cannot be used to open another account's official participation. No writer is constructed.
+/// reader cannot be used to open another account's official participation. The session's existing
+/// official-action coordinator is passed through; this view does not build another writer.
 @MainActor struct RoamOfficialTasksDestination: View {
     let roamReader: any RoamExperienceReading
     var body: some View {
@@ -21,7 +22,8 @@ import SwiftUI
     let roamReader: any RoamExperienceReading
     var body: some View {
         if ObjectIdentifier(roamReader) == ObjectIdentifier(session.roamExperienceReader), roamReader.identity != nil {
-            RoamOfficialTasksView(roamReader: roamReader, reader: session.officialEventReader)
+            RoamOfficialTasksView(roamReader: roamReader, reader: session.officialEventReader,
+                                  actions: session.officialActionCoordinator)
                 .id(session.sessionRevision)
         } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.tasks.changed") }
     }
@@ -91,23 +93,44 @@ import SwiftUI
         await model.load()
     }
 }
+/// One detail factory for the official-task list and the first-discovery tasks card.
+@MainActor enum RoamOfficialTaskDetail {
+    static func make(eventID: Int, reader: any OfficialEventReading,
+                     actions: OfficialActionCoordinator? = nil,
+                     onLogin: (() -> Void)? = nil,
+                     onOpenRoam: ((Int, String?) -> Void)? = nil) -> OfficialEventDetailView {
+        OfficialEventDetailView(id: eventID, reader: reader, actions: actions, onLogin: onLogin, onOpenRoam: onOpenRoam)
+    }
+}
 @MainActor struct RoamOfficialTasksView: View {
     let roamReader: any RoamExperienceReading
     let reader: any OfficialEventReading
+    var actions: OfficialActionCoordinator? = nil
+    var onLogin: (() -> Void)? = nil
+    var onOpenRoam: ((Int, String?) -> Void)? = nil
     var body: some View {
-        RoamOfficialTasksContent(roamReader: roamReader, reader: reader)
+        RoamOfficialTasksContent(roamReader: roamReader, reader: reader, actions: actions, onLogin: onLogin, onOpenRoam: onOpenRoam)
             .id(RoamOfficialTasksOwner(roam: roamReader, official: reader))
     }
 }
 @MainActor private struct RoamOfficialTasksContent: View {
     @Environment(\.scenePhase) private var scenePhase
     let reader: any OfficialEventReading
+    var actions: OfficialActionCoordinator?
+    var onLogin: (() -> Void)?
+    var onOpenRoam: ((Int, String?) -> Void)?
     @StateObject private var viewModel: RoamOfficialTasksViewModel
     @State private var bucket: OfficialEventBucket = .live
     @State private var keyword = ""
     @State private var target: RoamOfficialTaskTarget?
-    init(roamReader: any RoamExperienceReading, reader: any OfficialEventReading) {
-        self.reader = reader; _viewModel = StateObject(wrappedValue: .init(roam: roamReader, official: reader))
+    init(roamReader: any RoamExperienceReading, reader: any OfficialEventReading,
+         actions: OfficialActionCoordinator? = nil, onLogin: (() -> Void)? = nil,
+         onOpenRoam: ((Int, String?) -> Void)? = nil) {
+        self.reader = reader
+        self.actions = actions
+        self.onLogin = onLogin
+        self.onOpenRoam = onOpenRoam
+        _viewModel = StateObject(wrappedValue: .init(roam: roamReader, official: reader))
     }
     private var model: RoamOfficialTasksModel { viewModel.model }
     /// MP `tabs: ['进行中', '即将', '我的']`.
@@ -212,7 +235,8 @@ import SwiftUI
             .onChange(of: model.owner) { _, _ in bucket = .live; keyword = ""; target = nil; viewModel.ownerChanged() }
             .navigationDestination(item: $target) { selection in
                 if model.mayRemainOpen(selection) {
-                    OfficialEventDetailView(id: selection.eventID, reader: reader)
+                    RoamOfficialTaskDetail.make(eventID: selection.eventID, reader: reader,
+                                                actions: actions, onLogin: onLogin, onOpenRoam: onOpenRoam)
                 } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.tasks.changed") }
             }
             .accessibilityIdentifier("roam.tasks.browser")

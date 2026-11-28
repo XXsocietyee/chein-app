@@ -208,6 +208,7 @@
         "InvoiceLaunchNavigationCancellationTests",
         "InvoiceLaunchPresentationActionTests",
         "K40NotificationLeaseTests",
+        "K40RoamOfficialTasksCompositionTests",
         "KeychainAndBiometricSessionSecuritySectionViewTests",
         "LBSGeofenceAndBatteryThermalSectionViewTests",
         "LocalizationPluralAndFormatterConsistencySectionViewTests",

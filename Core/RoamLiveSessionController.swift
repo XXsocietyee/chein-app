@@ -1,5 +1,28 @@
 import Foundation
 
+/// One tile the walk first saw in this process, with the device time it was collected.
+/// The durable journal never stores these times.
+public struct RoamSettledTileRecord: Equatable, Sendable {
+    public let tile: String
+    public let collectedAt: Int64
+    public init(tile: String, collectedAt: Int64) {
+        self.tile = tile
+        self.collectedAt = collectedAt
+    }
+}
+
+/// The finished walk's session-record batch. Present only while the in-memory finish route is.
+public struct RoamSettledSessionArchive: Equatable, Sendable {
+    public let sessionID: Int
+    public let clientSessionKey: String
+    public let records: [RoamSettledTileRecord]
+    public init(sessionID: Int, clientSessionKey: String, records: [RoamSettledTileRecord]) {
+        self.sessionID = sessionID
+        self.clientSessionKey = clientSessionKey
+        self.records = records
+    }
+}
+
 /// Foreground state machine; an active walk continues in the background only while its provider holds a
 /// session background hold (OWN-D-07). Opening a screen performs no location/network work.
 /// Uncertain writes survive cancellation/relaunch; recovery is read-only and never awards locally.
@@ -54,19 +77,35 @@ import Foundation
         let clientSessionKey: String
         let reference: RoamFinishedHistoryReference
         let points: [RoamHistoryPoint]
+        let sessionRecords: [RoamSettledTileRecord]
     }
-    /// Only points retained in this controller after a fully archived settlement.
-    /// An empty result means no route is available, never a reconstructed or zero-distance walk.
-    public var finishedRouteTrack: [RoamHistoryPoint]? {
+    private enum RetainedFinish { case unavailable, mismatch, ready(FinishedRoute) }
+    private func retainedFinish() -> RetainedFinish {
         guard phase == .finished, foreground, !busy, isAvailable, record == nil,
               let identity = service?.identity, identity == boundIdentity,
               let reference = completedHistory, let fact = settlement,
               fact.hasCompleteSettlement, fact.sessionID == reference.serverSessionID else {
-            capturedFinishedRoute = nil; return nil
+            capturedFinishedRoute = nil
+            return .unavailable
         }
         guard let captured = capturedFinishedRoute, captured.identity == identity,
-              captured.reference == reference, fact.clientSessionKey == captured.clientSessionKey else { return [] }
-        return captured.points
+              captured.reference == reference, fact.clientSessionKey == captured.clientSessionKey else { return .mismatch }
+        return .ready(captured)
+    }
+    /// Only points retained in this controller after a fully archived settlement.
+    /// An empty result means no route is available, never a reconstructed or zero-distance walk.
+    public var finishedRouteTrack: [RoamHistoryPoint]? {
+        switch retainedFinish() {
+        case .unavailable: return nil
+        case .mismatch: return []
+        case .ready(let route): return route.points
+        }
+    }
+    /// Tiles this process saw, with their first-seen times. A restored walk has none: times are not invented.
+    public var settledSessionArchive: RoamSettledSessionArchive? {
+        guard case .ready(let route) = retainedFinish(), !route.sessionRecords.isEmpty else { return nil }
+        return RoamSettledSessionArchive(sessionID: route.reference.serverSessionID,
+                                          clientSessionKey: route.clientSessionKey, records: route.sessionRecords)
     }
     private var capturedPlaceMemory: CapturedPlaceMemory?
     private struct CapturedPlaceMemory {
@@ -103,6 +142,8 @@ import Foundation
     private var previousFix: RoamDeviceFix?
     private var origin: RoamCoordinate?
     private var grid: Set<String> = []
+    /// First-seen collection times for tiles of the current walk. Memory only; never written to the journal.
+    private var tileSeenAt: [String: Int64] = [:]
     private var lastReveal: Date?
     private var lastPresence: Date?
     private var lastPlaces: Date?
@@ -193,6 +234,7 @@ import Foundation
             phase = .acquiring; error = nil; changed()
             let raw = try await location.currentFix(); try check(token)
             let fix = try accepted(raw)
+            tileSeenAt = [:]
             let draft = RoamLiveRecord(scope: identity.scope, clientSessionKey: key(), startedAt: now())
             try journal.write(draft); record = draft
             presenceEnabled = presenceAccepted && presenceAvailable
@@ -476,7 +518,11 @@ import Foundation
         }
         previousFix = fix; lastFix = fix
         if origin == nil { origin = fix.coordinate }
-        if !draft.allTiles.contains(tile) { draft.allTiles.append(tile); draft.pendingTiles.append(tile) }
+        if !draft.allTiles.contains(tile) {
+            draft.allTiles.append(tile); draft.pendingTiles.append(tile)
+            let millis = Int64((fix.measuredAt.timeIntervalSince1970 * 1000).rounded())
+            if millis > 0 { tileSeenAt[tile] = millis }
+        }
         try persist(draft)
         track.append(RoamHistoryPoint(coordinate: fix.coordinate)); if track.count > 2000 { track.removeFirst() }
         updateGrid(fix.coordinate)
@@ -517,6 +563,10 @@ import Foundation
         guard let record, fact.hasCompleteSettlement, record.pendingTiles.isEmpty, let id = fact.sessionID else { throw RoamExperienceFailure.incompleteSettlement }
         let routeIdentity = boundIdentity, routeGeneration = generation, routeOperation = operation
         let routePoints = track
+        let sessionRecords = record.allTiles.compactMap { tile -> RoamSettledTileRecord? in
+            guard let at = tileSeenAt[tile], at > 0 else { return nil }
+            return RoamSettledTileRecord(tile: tile, collectedAt: at)
+        }
         settlement = fact
         guard let history, history.scope == record.scope else { throw RoamLiveFailure.journalUnavailable }
         var fields: [String: Any] = ["ts": Int64(record.startedAt.timeIntervalSince1970 * 1000), "serverSessionID": id,
@@ -534,7 +584,8 @@ import Foundation
            isAvailable, foreground, fact.clientSessionKey == record.clientSessionKey,
            let reference = completedHistory {
             capturedFinishedRoute = .init(identity: identity, clientSessionKey: record.clientSessionKey,
-                reference: reference, points: routePoints)
+                reference: reference, points: routePoints, sessionRecords: sessionRecords)
+            tileSeenAt = [:]
         }
     }
     private func persist(_ draft: RoamLiveRecord) throws { try journal.write(draft); record = draft }
@@ -567,6 +618,7 @@ import Foundation
         placesReadError = nil; registeredShopsReadError = nil
         completedHistory = nil
         generation += 1; operation = nil; busy = false; location?.stop(); record = nil; settlement = nil; places = []; registeredShops = []; track = []
+        tileSeenAt = [:]
         lastFix = nil; previousFix = nil; origin = nil; grid = []; boundIdentity = nil; presenceEnabled = false; error = nil; phase = .unavailable; changed()
     }
     private func changed() { onChange?(); publishLiveActivity() }
