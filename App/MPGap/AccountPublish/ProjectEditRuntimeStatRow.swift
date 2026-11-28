@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - MP pages/publish/fabu/topic-detail-sheet.wxml:115-123 (runtime-values card rows 生命值 · 幸运值)
-// theme-runtime.js _syncRuntimeStats / onRuntimeStatToggle / onRuntimeStatMax / onRuntimeName / editRuntimeStat
+// theme-runtime.js _syncRuntimeStats / onRuntimeStatToggle (refused while referenced) / onRuntimeStatMax / onRuntimeName / editRuntimeStat
 
 /// One 生命值 or 幸运值 row of the MP runtime-values card: switch with the value line
 /// (已启用 · 玩家可见 · 0 至 N / 未启用), the 编辑 row, and while editing 显示名称 and 上限.
@@ -115,6 +115,7 @@ import SwiftUI
 
     private static func key(_ error: Error) -> String {
         if case ProjectEditRuntimeActsError.refused(let key) = error { return key }
+        if error is ProjectEditRuntimeValues.Refusal { return ProjectEditRuntimeCustomValueRows.message(error) }
         return ProjectEditThemeRules.Copy.unreadable
     }
 }

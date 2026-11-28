@@ -9,6 +9,8 @@ import SwiftUI
     var isCurrent: @MainActor () -> Bool = { true }
     var retainedModel: ProfileAuthorPostsRefreshController? = nil
     var onOpenPost: ((SquarePost) -> Void)? = nil
+    /// 11-28 05:35 sweep (P30, MP pull-down only): the host's pull to refresh bumps this; there is no refresh row.
+    var refreshTrigger: Int = 0
     @State private var ownedModel = ProfileAuthorPostsRefreshController()
     private var model: ProfileAuthorPostsRefreshController { retainedModel ?? ownedModel }
     private var context: ProfileAuthorPostsContext {
@@ -20,11 +22,6 @@ import SwiftUI
             else if !context.isSignedIn { Text("social.postsSignIn").accessibilityIdentifier("social.profile.postsSignIn") }
             else if !context.isConfigured { SocialIssueView(error: APIError.notConfigured) }
             else {
-                Button { Task { await refresh() } } label: {
-                    Label("profile.postsRefresh.refresh", systemImage: "arrow.clockwise")
-                }
-                .disabled(model.isBusy)
-                .accessibilityIdentifier("profile.postsRefresh.refresh")
                 if model.context != context || (model.isBusy && !model.pagination.hasLoadedPage) {
                     ProgressView("social.loading")
                 } else {
@@ -62,8 +59,15 @@ import SwiftUI
                         NativeMediaGalleryEntry(sources: post.images, scope: squareReader.scope, titleKey: "media.destination.squareImages")
                     }
                     if model.pagination.hasLoadedPage && model.pagination.items.isEmpty {
-                        // MP cy/profile 推文 `cy-empty`: 还没有帖文 (same copy as the club posts tab).
-                        Text("club.tab.feed.empty").accessibilityIdentifier("profile.postsRefresh.empty")
+                        // MP cy/profile 推文 `cy-empty`: 还没有帖文 (same copy as the club posts tab); system empty view (P30).
+                        ContentUnavailableView {
+                            Label {
+                                Text("club.tab.feed.empty").accessibilityIdentifier("profile.postsRefresh.empty")
+                            } icon: {
+                                Image(systemName: "text.bubble")
+                            }
+                        }
+                        .listRowBackground(Color.clear)
                     }
                     if model.pagination.continuationInvalid {
                         Text("square.invalidCursor").accessibilityIdentifier("profile.postsRefresh.invalidCursor")
@@ -79,6 +83,10 @@ import SwiftUI
         }
         .task(id: context) { await model.activate(memberID: memberID, accountReader: accountReader, squareReader: squareReader, isCurrent: isCurrent) }
         .onDisappear { model.suspend() }
+        .onChange(of: refreshTrigger) { _, _ in
+            guard !model.isBusy else { return }
+            Task { await refresh() }
+        }
     }
     private func refresh() async {
         await model.refresh(memberID: memberID, accountReader: accountReader, squareReader: squareReader, isCurrent: isCurrent)

@@ -520,7 +520,7 @@ extension PlayKitScreen {
         if done {
             Section {
                 Label("playkit.note.doneLine", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(CYColor.successText)
                     .accessibilityIdentifier("playkit.note.done")
             }
         }

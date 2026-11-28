@@ -376,7 +376,7 @@ extension EnvironmentValues {
                         // MP publishkit creation-success (fabu node play): eyebrow 节点玩法已保存, then the play's title
                         // (fallback 新玩法), then 返回路线编辑; staying on the page is 继续编辑玩法.
                         Label { Text("projectNodeCreate.saved", tableName: "ProjectNodeTemplateCreation") } icon: { Image(systemName: "checkmark.circle.fill") }
-                            .foregroundStyle(.green)
+                            .foregroundStyle(CYColor.successText)
                         if model.draft.title.isEmpty {
                             Text("projectNodeCreate.untitled", tableName: "ProjectNodeTemplateCreation").font(.headline)
                         } else {

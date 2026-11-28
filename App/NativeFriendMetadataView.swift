@@ -68,7 +68,7 @@ import SwiftUI
             if flow.isCurrent, flow.resolvedIdentity != nil {
                 if flow.didApply {
                     Label(localized("friendMeta.saved"), systemImage: "checkmark")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(CYColor.successText)
                         .accessibilityIdentifier("friendMeta.saved")
                 } else {
                     Label(localized("friendMeta.notApplied"), systemImage: "circle")

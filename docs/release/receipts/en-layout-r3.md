@@ -264,11 +264,22 @@ Merged `origin/ui/combined-r7` (clean). No open coordinator finding for en-layou
 | 92 | `pages/publish/fabu/look-sheet.wxml` (画面风格: 风格 → 主题配色 → 字体 → 文字动效) → `MPGap/AccountPublish/AccountPublishR8Mounts.swift:575` (`fixr8.look.*`, `mpPublish.look.*`) | Checked: Visual style, Style (Paper / Stardust / Night city / Wasteland), Theme colors, Story font (Serif / Sans serif / Calligraphic / Handwritten / Bold italic), Text effect / Match the style; summary "Paper · Black · Serif" | English reads well; no change | Checked |
 | 93 | `pages/publish/fabu/topic-detail-sheet.wxml:139` 值域 card 没有实际效果时也消耗 (MP order unchanged) → `MPGap/AccountPublish/ProjectEditRuntimeValuesRows.swift:99` (`mpPublish.values.consume`) | Toggle "Use up even with no effect" — unclear what is used up; the footnote under it says a recovery "still costs and counts once" | en → "Count recoveries that have no effect" (catalog + `mp-r3-publish.json`); zh unchanged; logic unchanged. Other topic-detail-sheet labels checked (Topic description, Portrait cover, Landscape covers, Story details, Display name, Maximum, Bingo grid, Clues and items) | Done |
 
+### Run 25 (2026-11-28, half-hourly)
+
+Merged `origin/ui/combined-r7` (7a7d2708a). Sweep a4142df0d `mp-mine`, `mp-activity` `sheet-en.jpg`: no open coordinator finding for en-layout; Not done row unchanged (owner decision). Worked `subpackageMember/invoice*` (no row yet).
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 94 | `en-t5-baoming` "Listed ticket price ¥12.50", `en-t5-pass-market` "¥168.00" vs `en-d2-me` / `en-e4-wallet-balance` / `en-t5-order-center` "CN¥" | Two CNY spellings in English again (row 44 closed the ledger side) | Checked: registration uses `RegistrationUIMoney.display` (US r2 rule: order currency's narrow symbol in every locale, pinned by `Tests/CoreTests/RegistrationUIFormTests.swift:25-59`), while Me/ledger use `E1Money` (i18n r1: CN¥ in non-Chinese UI). Both rules are deliberate and test-pinned in other lanes; not overridden here. Listed in Not done for the coordinator to pick one | Checked |
+| 95 | `subpackageMember/invoice`, `invoice-apply`, `invoice-detail`, `invoice-titles`, `invoice-title-edit` → `InvoiceLaunchHistoryView.swift:185`, `InvoiceLaunchApplyView.swift`, `InvoiceLaunchDetailView.swift`, `InvoiceLaunchTitlesView.swift`, `InvoiceLaunchTitleEditor.swift` (`InvoiceLaunchUI.xcstrings`; MP order unchanged) | History row "1 orders" (no plural); "withdraw"/"delete" used as nouns ("The withdraw is not confirmed yet", "Delete didn't finish"); "Tax number" (US reads "Tax ID") | `orderCountFormat` en plural one/other ("1 order" / "3 orders"; `String(format:)` on the bundle string honours the plural rule); "The withdrawal / deletion is not confirmed yet", "Withdrawal / Deletion didn't finish", "Withdrawal / Deletion not confirmed. Refresh to check."; "Tax ID", "Enter the full tax ID again", tax-ID validation message. zh unchanged; logic unchanged. Other invoice strings checked (status chips, filters, empty, apply total, issuer groups, notices) | Done |
+| 96 | `subpackageMember/coupon-wallet`, `coupon`, `coupon-qr` → `AccountCollectionCouponsView.swift`, `AccountCollectionCouponDetailView.swift`, `CouponCodeView.swift`, `SessionRoamCouponWalletView.swift` (MP order unchanged) | Code screen "Coupon codes aren't available right now. No request was sent." (engineering wording); retry button "Fetch again" | en → "Coupon codes aren't available right now.", "Get a new code" (catalog + `NativeNavigationLocalizations`, `W205CouponsWithdrawalLocalizations` fragments, `tools/build_w2_05_localizations.py`); zh unchanged. Other coupon strings checked (filters All/Unused/Used/Expired, empty, validity rows, Directions, QR states, redeemed) | Done |
+
 ## Not done
 
 | Item | Why |
 |---|---|
 | `payoutReceiver.bind.mpOnly`, `payoutReceiver.bind.mpPathCopied`, `authEntry.deregister.wechatUnavailable` say "the Chengyin (WeChat) mini program" in English | These name the WeChat mini program, which is searched by its Chinese name; owner to decide whether English shows "Chein", "城瘾" or both. Not changed. |
+| CNY in English: registration / pass market "¥12.50" vs Me / ledger / order lookup "CN¥" (row 94) | Two test-pinned rules from other lanes (US r2 `RegistrationUIMoney` narrow symbol vs i18n r1 `E1Money` CN¥); coordinator to pick one. |
 
 
 ## Next pages (no row yet)
