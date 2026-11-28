@@ -500,6 +500,15 @@ struct PlayThemeMusicKey: Equatable {
                     CYSkeleton().accessibilityIdentifier("playx.loading")
                 }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                if native, model.snapshot == nil, model.available, model.issue != nil, model.phase != .loading {
+                    // All states: the city run's first-load failure gets the same 刷新 action as the legacy error card.
+                    Button { Task { await model.load() } } label: {
+                        Label("playx.refresh", systemImage: "arrow.clockwise")
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(model.phase == .submitting)
+                    .accessibilityIdentifier("playx.city.retry")
+                }
                 if PlayContentCompatibility.isUnsupportedRejection(model.issue) {
                     // The server refused to open this run for this build; nothing was skipped or started.
                     Text("playCompat.refused.next", tableName: "PlayFullStory").font(CYTypography.caption)
