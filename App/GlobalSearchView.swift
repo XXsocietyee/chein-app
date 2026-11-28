@@ -522,6 +522,8 @@ import SwiftUI
                 }
             }
         }
+        // Next round (motion): switching the result scope ticks like a segmented control.
+        .sensoryFeedback(.selection, trigger: searchModel.scope)
         .accessibilityIdentifier("searchMap.resultScopes")
     }
     private func countText(_ value: GlobalSearchResults, _ kind: GlobalSearchKind) -> String {

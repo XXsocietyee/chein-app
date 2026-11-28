@@ -29,7 +29,8 @@ class ActivityDesignStructureTests(unittest.TestCase):
         self.assertNotIn("Map(initialPosition", fold)
         self.assertNotIn("E1ActivityInfoCard", fold)
         self.assertIn(".listStyle(.insetGrouped)", source)
-        self.assertIn(".listSectionSpacing(CYSpacing.xl)", source)
+        # ds-consistency r3 run 26: the page inherits the one 24 pt section spacing from CYScreenStyle.
+        self.assertNotIn(".listSectionSpacing(", source)
 
     def test_primary_action_preserves_allowed_detail_and_registration_gate(self):
         source = app("ActivityDetailView.swift")

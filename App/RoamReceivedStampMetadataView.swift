@@ -218,7 +218,11 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                 }
                 if let error = pager.error {
                     if CollectionReadAccess(error) == .denied { Label("roam.w208.entry.denied", systemImage: "lock") }
-                    else { RoamExperienceIssue(error: error, retry: more) }
+                    else {
+                        // MP scene-roam-stamp-album 收到的: 收到的邮票无法打开 with no rows, 这一页没读到 · 点此重试 below loaded rows.
+                        let title = pager.stamps.isEmpty ? "roam.receivedStamp.openFailed" : "stampAlbum.continuationRetry"
+                        RoamExperienceIssue(error: error, retry: more, failureTitle: LocalizedStringKey(title))
+                    }
                 }
                 if pager.loaded && pager.stamps.isEmpty && pager.error == nil {
                     receivedStampText("empty")

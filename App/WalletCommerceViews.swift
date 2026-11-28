@@ -545,7 +545,8 @@ extension EnvironmentValues {
             // MP points-history has no 积分任务 row; 如何获取积分 lives on 我的 → 成就 (MemberAchievementMetricsSection).
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
-                    if income || points {
+                    if income || points || kind == .balance {
+                        // mp-mine r3: 余额流水 uses the one empty pattern too (OWNER RULE 2), same key and id.
                         ContentUnavailableView(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points, incomeFilter: incomeFilter)), systemImage: "tray")
                             .accessibilityIdentifier("wallet.ledger.empty")
                     } else {

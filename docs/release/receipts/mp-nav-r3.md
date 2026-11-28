@@ -104,7 +104,7 @@ MP `subpackageB/pages/im/chat/system-card-target.js` + `index.js` `onCardTap` / 
 | chat activity notice (msgType 1, `activityNoticeUrl`) | plain notice, no way to the activity | one answer 查看活动 / View event (`im.full.viewActivity`) under the notice → pushed activity detail | fixed |
 | non-system sender with an MP path | — | stays `.unsupported` (MP opens page paths only for senderId 0) | OK |
 | `/subpackageMember/coupon-wallet/index` | recognized, refused (L5 money surface) | unchanged | n/a |
-| review result 查看原单 (`onCurrentCard` → `originalUrl`) | review sheet only | MP binds `onCurrentCard` in no `.wxml` (the 生成时记录 cy-sheet, chat/index.wxml:210-224, has no button), so it is dead in the MP; sheet unchanged | n/a |
+| review result 查看原单 (`onCurrentCard` → `originalUrl`) | review sheet only | was recorded as dead; the MP now binds it (chat index.wxml:133 查看当前原单 → `onCardBtn` mode original). Fixed in the 11-28 04:xx re-scan below | fixed (04:xx) |
 | pages/userinfo/userinfo share link `?userId=&tab=about` (onShareTimeline / merchant home) | — | `tab` honoured (`SocialPublicProfileView(initialTab:)`, MPReviewedPageScreen.swift:831); missing id → MPUserInfoMissingView with 返回 | OK |
 | system chat 举报进度 entry (`openReportMine` → subpackageMember/report-mine, wxml:25) | — | pushed from the chat (IMDriftEntries.swift:49) | OK |
 
@@ -279,6 +279,14 @@ Backend audit row **[mp-nav] chat-info mark read** (round 4, 00:30): already in 
 
 Coordinator: please add `d2-inbox-error`, `d2-inbox-signed-out`, `d2-inbox-loading` to the mp-nav sweep list.
 
+## Re-scan 11-28 04:xx (combined-r7 ad55acd94 already merged; sweep 03:04 mp-nav sheets clean)
+
+No open coordinator row for mp-nav. Notification / subscribe-message landings re-checked (City + play reminder carry `page`; subscribe pages land through `MPParityDestination` with pushed chrome): OK. Next edge without a correct row: IM review-result card.
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| subpackageB/pages/im/chat review-result card 查看当前原单 (index.wxml:133 → `onCardBtn` mode original → `_openCardOriginal` → `originalUrl`, system-card-target.js:15-25: `result.bizType` COMMUNITY_POST → pages/square/detail, TOPIC → pages/topic/index/index, `?id=<bizId>`, card `action` must match) → App chat bubble + message detail via `IMCardAction` | only 查看处理结果 (the generation-time record sheet); no way to the reviewed post / topic | `IMSystemCardTarget.reviewOriginal` (Core/IMChatCardReport.swift) + a second action `im.full.currentOriginal` 查看当前原单 / "View the current original" (Core/IMExpandedContracts.swift) → existing `.squarePost` / `.topic` pushes in MessagingHistoryView `answerCard` and MessagingMessageDetailView. System sender only; other bizTypes and a mismatched `action` add nothing. Unit test `IMExpandedTests.testReviewResultCardOpensCurrentOriginal`. Not compiled here | fixed |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
@@ -308,3 +316,14 @@ All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScre
 - mp-states / coordinator: the 消息 inbox preview is always "打开会话查看消息" (`MessagingPreview`, App/MessagingComponents.swift:300; `MessagingConversation` drops `lastMsgText` because recalled text may survive in it). MP `fmtPreview` shows the last message text / [图片] / [系统卡片]. Showing it needs a recall-safe server field first; left as is (privacy decision).
 
 - en-layout: `onboarding-1` (en) header and centre disc show 城瘾; LoginView `brandMark` and SettingsAboutView `appName` use `Text(verbatim: "城瘾")` (en should read Chein).
+
+## Re-scan 11-28 05:xx (merged combined-r7 733bfb368; sweep 03:49 mp-nav sheets clean, no coordinator row)
+
+Next edge without a row: sign-in from club pages landed by a share card / link (MP `pages/club/detail/index?id=&postId=` share path, club/detail index.js:3502; talent/list index.js:590).
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| landed `pages/club/detail/index` (share card, link, notification) → 申请加入 / members / activity sign-in prompts → App/MPReviewedPageScreen.swift:891 `ClubDetailView` | `onSignIn: {}`: the signed-out 登录 action did nothing (same dead-button defect fixed for Square at 18:10) | `onSignIn: { signIn() }` = clear entry + 我的 tab sign-in, like every other landed page | fixed (not compiled here) |
+| landed `pages/talent/list/index` → App/MPReviewedPageScreen.swift:87 `ClubHomeView`; owned-club fallback (`ownedClubs`, :909 `ClubOwnedView`) | same `onSignIn: {}` | same `{ signIn() }` | fixed (not compiled here) |
+
+Sections / order unchanged; navigation only.

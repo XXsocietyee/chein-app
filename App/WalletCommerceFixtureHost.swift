@@ -4,11 +4,13 @@ import SwiftUI
 @MainActor private final class WalletFixtureState: ObservableObject {
     @Published var scope: WalletCommerceScope? = .init(namespace: "offline-fixture", accountID: 9001, epoch: UUID())
     private let failed: Bool
-    init(failed: Bool) { self.failed = failed }
+    /// mp-mine r3 (Next round 3): state design fixtures add the ledger state flags here instead of on the launch line.
+    private let extraArguments: [String]
+    init(failed: Bool, extraArguments: [String] = []) { self.failed = failed; self.extraArguments = extraArguments }
     lazy var reader: WalletCommerceReader = {
         let configuration = try! APIConfiguration(baseURL: URL(string: "https://example.com")!)
         let service = WalletCommerceService(configuration: configuration,
-            transport: WalletAssetFixtureTransport(failed: failed, arguments: ProcessInfo.processInfo.arguments))
+            transport: WalletAssetFixtureTransport(failed: failed, arguments: ProcessInfo.processInfo.arguments + extraArguments))
         return WalletCommerceReader(service: service) { [weak self] in
             guard let scope = self?.scope else { return nil }
             return (scope, "synthetic-token")
@@ -21,6 +23,7 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
     let arguments: [String]
     private var reads = 0
     private var ledgerReads = 0
+    private var pagedLedgerReads = 0
     private var withdrawalReads = 0
     init(failed: Bool, arguments: [String]) {
         fallback = WalletCommerceSyntheticTransport(fail: failed); self.arguments = arguments
@@ -59,6 +62,15 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
             if arguments.contains("--wallet-ledger-recover"), ledgerReads == 1 { throw APIError.httpStatus(503) }
             if arguments.contains("--wallet-ledger-empty") {
                 return (Data(#"{"code":200,"data":[]}"#.utf8), 200)
+            }
+        }
+        // mp-mine r3 (Next round 3): the paged 积分明细 / 收益明细 reads take their own state flags, so the design
+        // sweep can show the MP empty and error states without changing the unpaged ledger flags above.
+        if ["/api/user/points/list", "/api/user/balance/list"].contains(request.url?.path ?? "") {
+            pagedLedgerReads += 1
+            if arguments.contains("--wallet-paged-ledger-recover"), pagedLedgerReads == 1 { throw APIError.httpStatus(503) }
+            if arguments.contains("--wallet-paged-ledger-empty") {
+                return (Data(#"{"code":200,"data":{"rows":[],"total":0}}"#.utf8), 200)
             }
         }
         if request.url?.path == "/api/user/info" {
@@ -107,7 +119,7 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
     /// e4 design shots: mount one real wallet page (income, points, assets, analysis, bank, withdrawals, tasks, cart, products).
     var designPage: String? = nil
     @State private var showParity = false
-    init(designHome: Bool = false, designPage: String? = nil) { self.designHome = designHome; self.designPage = designPage; _state = StateObject(wrappedValue: WalletFixtureState(failed: ProcessInfo.processInfo.arguments.contains("--wallet-failure"))) }
+    init(designHome: Bool = false, designPage: String? = nil, stateArguments: [String] = []) { self.designHome = designHome; self.designPage = designPage; _state = StateObject(wrappedValue: WalletFixtureState(failed: ProcessInfo.processInfo.arguments.contains("--wallet-failure"), extraArguments: stateArguments)) }
     var body: some View {
         if let page = designPage {
             NavigationStack {

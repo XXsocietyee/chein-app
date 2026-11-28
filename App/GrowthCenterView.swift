@@ -92,6 +92,8 @@ extension RootTabSwitch {
             }
         }
         .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
+        // MP onPullDownRefresh: pull to read again, like the toolbar refresh.
+        .refreshable { await load() }
         .appNavigationTitle("growth.title")
         .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()

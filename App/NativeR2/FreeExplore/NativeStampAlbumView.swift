@@ -130,7 +130,8 @@ import SwiftUI
                     .accessibilityIdentifier("roam.experience.error")
             case .retryWholePage:
                 ContentUnavailableView {
-                    Label("roam.experience.readFailed", systemImage: "exclamationmark.circle")
+                    // MP scene-roam-stamp-album cy-error title 集邮册无法打开 (retry 重试).
+                    Label("stampAlbum.openFailed", systemImage: "exclamationmark.circle")
                 } actions: {
                     Button("action.retry", action: read).buttonStyle(.bordered)
                         .accessibilityIdentifier("roam.experience.retry")

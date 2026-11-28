@@ -93,6 +93,24 @@ public enum IMSystemCardTarget {
         return Action(open: open, bcID: bcID)
     }
 
+    /// MP `originalUrl` (查看当前原单, chat index.wxml:133): a system review-result card whose `result.bizType`
+    /// names a page with that same `bizId` opens it. Only COMMUNITY_POST and TOPIC; a card `action` must match.
+    public static func reviewOriginal(senderID: String, messageType: String, card: [String: Any]) -> Open? {
+        guard senderID == "0", messageType == "3" else { return nil }
+        if let kind = card["cardType"] as? String, !kind.isEmpty, kind != "generic" { return nil }
+        guard let result = card["result"] as? [String: Any], let bizType = result["bizType"] as? String else { return nil }
+        if let flag = result["bizId"] as? NSNumber, CFGetTypeID(flag) == CFBooleanGetTypeID() { return nil }
+        guard let id = positiveID(string(result["bizId"])) else { return nil }
+        let path: String
+        switch bizType {
+        case "COMMUNITY_POST": path = "/pages/square/detail/index"
+        case "TOPIC": path = "/pages/topic/index/index"
+        default: return nil
+        }
+        if card.keys.contains("action"), (card["action"] as? String) != path + "?id=" + String(id) { return nil }
+        return bizType == "TOPIC" ? .topic(id) : .squarePost(id)
+    }
+
     public static func openURL(_ action: Any?) -> Open? {
         guard let action = action as? String else { return nil }
         if action == "/subpackageMember/coupon-wallet/index" { return .blockedCouponWallet }

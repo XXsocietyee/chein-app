@@ -228,7 +228,7 @@ enum HomeHeroCityNames {
     static let chinese: [String: String] = [
         "Shanghai": "上海", "Beijing": "北京", "Hangzhou": "杭州",
         "Shenzhen": "深圳", "Guangzhou": "广州", "Chengdu": "成都",
-        "Nationwide": "全国", "Select City": "选择城市",
+        "Nationwide": "全国", "Select City": "选择城市", "Select city": "选择城市",
         "Chongqing": "重庆", "Wuhan": "武汉", "Xi'an": "西安", "Nanjing": "南京", "Suzhou": "苏州",
         "Tianjin": "天津", "Changsha": "长沙", "Zhengzhou": "郑州", "Qingdao": "青岛", "Xiamen": "厦门",
         "Kunming": "昆明", "Shenyang": "沈阳", "Jinan": "济南", "Hefei": "合肥",

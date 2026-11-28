@@ -122,6 +122,16 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 广场 / 俱乐部帖子 · 活动卡路线 (`SquareCloudStravaBlock` → `SquareCloudRouteMap`, in the square feed and club post cards) — code read (no sweep fixture for a post without a route) | `pages/square/components/route-map/index.wxml:1` renders only `wx:if="{{routeReady}}"` (no route → `empty` event, nothing drawn); `components/cy/post-card/index.wxml:106-110` route image only when `routePreviewImg` exists | every activity without a route drew a grey 这条活动没有可画的轨迹 line in the card, and the 双击路线点赞 hint showed with no route to tap | the route block and its double-tap hint are mounted only when the card has ≥ 2 route points; an unusable point set inside a ready map draws nothing (MP hidden state). Picker preview loader unchanged |
 | 队伍详情 · 定向进度 empty (`TeamOrientBoardView`, in 队伍详情) — code read | `pages/team/detail/index.wxml:120-122` summary 全队已完成 n / m 个节点 then cy-empty 暂无节点 | empty board: the summary line replaced by 当前场次暂无定向任务 (a sentence the MP never shows), no empty state | summary line always (全队已完成 0 / 0 个节点), then one `CYEmptyState` 暂无节点 (No nodes yet), id `team.orient.empty`; loading / 队伍进度加载失败 · 重试 / 队伍排名 states already MP |
 | 附近 · 地图图层 empty (`NearbyTeamViews` discovery list, MP `subpackageRoam/nearby`, from 漫游 附近) — code read (no sweep fixture for an empty area) | `subpackageRoam/nearby/index.wxml:58,71` one cy-empty 附近暂无节点 for the whole list (teams + places), no sub | with discovery layers on and nothing loaded: two stacked empties — 附近暂无队伍 + hint, then 已读取图层中暂无符合当前筛选的地点、商家或活动。 | one `CYEmptyState` 附近暂无节点 (Nothing nearby yet); the team empty is not drawn under it (`discoveryEmptyShown`); teams-only layer and the no-discovery path keep 附近暂无队伍; id `nearby.discovery.empty` kept |
+| 报名 · 候补 read failure (`RegistrationSheetView` waitlist section, from 活动详情 报名 on a sold-out ticket) — code read (no sweep fixture for this state) | `pages/activity/baoming/baoming.wxml:270-272` cy-inline-error load-failure 候补状态读取失败 · sub · 重试 | plain line 候补状态暂时无法核验。 plus the always-on 刷新候补状态 pill as the only way back | one `CYEmptyState` (failure kind) 候补状态读取失败 (Couldn’t read the waitlist status) with 重试 inside (`registration.waitlist.retry`); the refresh pill shows only when there is no failure; outcome-unknown keeps its own warning + refresh |
+| 报名 · 表单 参与人信息 read failure (`RegistrationSheetView.participantSection`, from 活动详情 报名) — code read (no sweep fixture for this state) | `pages/activity/baoming/baoming.wxml:38-40` cy-inline-error load-failure 参与人信息加载失败 · sub · 重试 (under the 参与人信息 row) | a grey 参与人信息暂时无法读取 line + a separate secondary pill 重新读取参与人信息 | one `CYEmptyState` (failure kind) 参与人信息加载失败 (Couldn't load participant info; same key as the participant sheet) with 重试 inside; id `registration.form.reloadParticipants` kept on the action. Loading / not-configured unchanged |
+
+## Not done
+
+| Screen | MP state | Why not done |
+|---|---|---|
+| AI 对话记录 loader (`NPCChatDataView`, 设置 · AI 对话记录) | `subpackageMember/components/cy/npc-chat/index.wxml:24` visible 正在读取你账号下的全部 AI 对话… | native `CYSkeleton` with the words for VoiceOver only; the file bytes are sha256-pinned by `test_category_roam_registration` (`feature_batch_support_sha256`), so the labelled `ProgressView` swap needs that pin refreshed first (debt lane) |
+| 参与人信息 save rejected (`ParticipantOperationSections`, add/edit form) | `pages/addressinfo/addressinfo.wxml:44` cy-inline-error 参与人信息没有保存 · sub · 重试保存 | the section title 修改未被接受 is shared with the delete / detail flows, so it cannot take the save-only MP title without a save/delete split in the coordinator state |
+| 参与人信息 form signed out (`ParticipantFormView`) | MP global 登录 | the form is always presented in a sheet; opening root sign-in from inside it needs the sheet to dismiss first — left without a button |
 
 ## Contract cleanup (brief 20:40 UTC, rows owned by mp-states)
 
@@ -135,6 +145,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 
 - mp-settings: 营销同意 (`AccountComplianceViews.marketing`) has no visible loading words (MP 正在加载…) and its failure is a 当前状态未确认 line instead of the MP cy-inline-error 营销同意状态加载失败 · 重试.
 - debt: `tools/check_contextual_flows.py` already fails on the branch base (asserts `payload: .route(topicID: row.id)` in the IM UI, no longer present) — not one of the brief's gates.
+- mp-roam / mp-journey: MP `pages/play/components/scene-roam-discover` (搜店名 search, hot tags, 附近商家无法打开 · 重试, 没有找到匹配的商家 · 换个关键词试试) has no native screen — a missing page, not a state.
 - mp-activity: `TeamOrientBoardView` progress card title reads 任务进度; MP `pages/team/detail/index.wxml:115` says 队伍进度.
 
 ## Gates
@@ -142,7 +153,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 Every push ran, on the merged head: `python3 tools/generate_project.py` (no project diff), `python3 tools/check_scaffold.py`
 (PASS, incl. design / typography / a11y sub-lints), `python3 tools/check_a11y_lint.py` (0 new) and
 `python3 -B tools/contract_ratchet.py --check` (52 failing = baseline 52, **new 0**). Stale pins touched with a one-line
-reason: `test_global_search_category_recovery` (view hash), `test_w2_04_p2_member_tools` (complaint copy). Files whose
+reason: `test_global_search_category_recovery` (view hash), `test_w2_04_p2_member_tools` (complaint copy), `test_pages_activity_baoming_baoming` (accepts the `CYEmptyState` `actionIdentifier:` form). Files whose
 bytes are hash-pinned (`WorkshopPaidInstalledTextView`, `ClubGovernanceViews`, `ClubInvitationFeedbackView`) were left as is.
 Supplementary syntax check: `tools/check_swift_syntax.py` (tree-sitter 0.26.0 / tree-sitter-swift 0.7.3 in a scratch venv)
 over all 315 App files changed vs `origin/ui/combined-r7` gives the same per-file result as the base for every file present

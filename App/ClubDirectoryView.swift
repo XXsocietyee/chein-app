@@ -151,7 +151,7 @@ private struct ClubDirectoryCard: View {
                             if let secondary {
                                 Text(verbatim: secondary)
                                     .font(.subheadline).foregroundStyle(.secondary)
-                                    .lineLimit(1).monospacedDigit()
+                                    .lineLimit(style == .discover ? 2 : 1).monospacedDigit()
                             }
                         }
                     } icon: {
