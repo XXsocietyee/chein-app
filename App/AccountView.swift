@@ -69,6 +69,7 @@ import SwiftUI
                         .accessibilityElement(children: .contain)
                         .accessibilityLabel(Text("social.profileSection"))
                         .accessibilityIdentifier("account.mine.tabs")
+                        .sensoryFeedback(.selection, trigger: mineTab)
                 }
                 switch activeMineTab {
                 case .mine: mineTabSections

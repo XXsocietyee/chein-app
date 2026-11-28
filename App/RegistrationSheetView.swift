@@ -230,7 +230,7 @@ struct RegistrationSheetView: View {
                         showingTicketSheet = false
                         if flow.selectTicket(id: ticket.id) { Task { await flow.requestQuote() } }
                     } label: {
-                        RegistrationPickerRow(title: ticket.name, subtitle: gatedPayAmount(ticket.price),
+                        RegistrationPickerRow(title: ticket.name, subtitle: ticketPriceText(ticket.price),
                                               selected: ticket.id == flow.selectedTicketID)
                     }
                     .accessibilityIdentifier("registration.ticketSheet.row.\(ticket.id)")
@@ -257,11 +257,11 @@ struct RegistrationSheetView: View {
                     ProgressView { Text("registration.form.loadingParticipants") }
                         .frame(maxWidth: .infinity)
                 } else if flow.participantsState == .unavailable {
+                    // MP baoming.wxml:286 cy-inline-error 参与人信息加载失败 + 重试: one state, retry inside.
                     Section {
-                        Label("profile.participants.loadFailed", systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.secondary)
-                        Button("action.retry") { Task { await flow.loadParticipants() } }
-                            .accessibilityIdentifier("registration.participantSheet.retry")
+                        CYEmptyState(systemImage: "exclamationmark.triangle", "profile.participants.loadFailed",
+                                     actionTitle: "action.retry", actionIdentifier: "registration.participantSheet.retry",
+                                     kind: .failure) { Task { await flow.loadParticipants() } }
                     }
                 }
                 ForEach(flow.participants, id: \.id) { row in
@@ -458,6 +458,13 @@ struct RegistrationSheetView: View {
             parts?.queryItems = [URLQueryItem(name: "q", value: venue)]
         }
         return parts?.url
+    }
+    private func ticketPriceText(_ price: Decimal?) -> String {
+        let copy = CoreLoopCopy(locale: locale)
+        guard let price, !price.isNaN, price >= .zero else { return copy.t("价格待定", "Price to be confirmed") }
+        if price == .zero { return copy.t("免费", "Free") }
+        return RegistrationUIMoney.display(price, locale: locale, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
+            ?? copy.t("价格待定", "Price to be confirmed")
     }
     private func gatedPayAmount(_ amount: Decimal?) -> String {
         guard let amount else { return "—" }
@@ -830,7 +837,13 @@ struct RegistrationSheetView: View {
                 .disabled(!flow.canEdit)
                 .accessibilityIdentifier("registration.form.ticketPicker")
                 if let ticket = flow.selectedTicket {
-                    RegistrationAmountRow(key: "registration.form.ticketPrice", amount: ticket.price)
+                    // MP baoming.wxml:149-153 `money.amount(selectedTicket.price)`: the ticket price is always shown
+                    // (¥ amount, 免费 when 0); a ticket without a server price reads 价格待定, never a bare dash.
+                    LabeledContent {
+                        Text(verbatim: ticketPriceText(ticket.price))
+                            .monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            .accessibilityIdentifier("registration.form.ticketPrice.amount")
+                    } label: { Text("registration.form.ticketPrice") }
                     if let description = ticket.description, !description.isEmpty { Text(verbatim: description) }
                     if ticket.isSoldOut {
                         TimelineView(.periodic(from: .now, by: 1)) { context in

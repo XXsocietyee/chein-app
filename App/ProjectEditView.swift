@@ -604,9 +604,10 @@ import SwiftUI
         // Continuity (owner, xrefs-1): a new chapter or ticket appears in its place while the others make room, a
         // deleted one collapses, and undo puts it back the same way — the system default animation.
         // Drag-to-reorder is the list's own drag (follows the finger, settles with the release).
-        .animation(.default, value: model.draft.chapters.map(\.id))
-        .animation(.default, value: model.draft.tickets.map(\.id))
-        .animation(.default, value: canvas)
+        // a11y-dt r3: the editor move spring, which cross-fades under Reduce Motion.
+        .animation(EditorKitMotion.move(reduceMotion: reduceMotion), value: model.draft.chapters.map(\.id))
+        .animation(EditorKitMotion.move(reduceMotion: reduceMotion), value: model.draft.tickets.map(\.id))
+        .animation(EditorKitMotion.move(reduceMotion: reduceMotion), value: canvas)
         .editorToast($undoCenter.toast)
         .navigationTitle(OpsR3Text.string("editor.title", locale: locale))
         .navigationBarTitleDisplayMode(.inline)
@@ -1058,9 +1059,11 @@ import SwiftUI
         ProjectEditThemeRulesSection(model: model)
         // MP topic-detail-sheet.wxml:213-214: 可玩时段 (no 归属俱乐部 only) → 开局前准备.
         ProjectEditPlaySetupRows(model: model)
-        // MP topic-detail-sheet.wxml:215-262: 主题通关奖励 → 通关条件 → 发布到创意广场 → 归属俱乐部.
+        // MP topic-detail-sheet.wxml:215-262: 主题通关奖励 → 通关条件 → 宾果九宫格 → 发布到创意广场 → 归属俱乐部.
         PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit).id("project-issue-anchor-topicRewards")
         ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
+        // MP topic-detail-sheet.wxml:236: 宾果九宫格 is its own row after 通关条件.
+        ProjectEditBingoRow(rules: model.completionRules, editable: model.fullEdit)
         Section("projectEdit.visibility") {
             Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
                 .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)

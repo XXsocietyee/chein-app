@@ -621,6 +621,7 @@ extension PlayKitScreen {
                 // MP `pf__count`: n / max under a written answer (not for a pick).
                 if question["kind"].text != "pick" {
                     Text(verbatim: "\((answers[key] ?? "").utf16.count) / \(limit)").monospacedDigit()
+                        .accessibilityLabel(Text("a11y.value.characters \(Int((answers[key] ?? "").utf16.count)) \(Int(limit))"))
                 }
             }
         }
