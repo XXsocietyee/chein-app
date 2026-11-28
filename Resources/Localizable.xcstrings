@@ -357223,6 +357223,23 @@
         }
       }
     },
+    "playerGap.playerCode.imageFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the QR code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二维码加载失败"
+          }
+        }
+      }
+    },
     "playerGap.playerCode.retry": {
       "extractionState": "manual",
       "localizations": {
