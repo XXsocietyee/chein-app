@@ -909,15 +909,22 @@ The activity detail showed two header looks in one list: "About this activity" a
 |---|---|
 | `pages/activity/detail` → `ActivityDetailView:459`; `pages/activity/baoming` → `RegistrationSheetView:453/763/865/1070` | shared `E1IconHeader` (`E1CommerceComponents.swift`) drops the custom `.cyText(.sectionTitle, .semibold)` + primary colour + secondary icon tint and inherits the List's system section-header style (`Label` with the SF Symbol kept, `.textCase(nil)`, `.isHeader`). Call sites, MP sections and order unchanged; contract pins on `E1IconHeader(systemImage: "ticket"` still hold. |
 
+### Batch 3 — gate kind `header font`
+Brace-balanced scan of every `header: { … }` closure on player files: 6 set a font; 5 are footnote/meta trailing
+accessories (fine, header size), 1 was a heading: `NPCChatDataView:325` (AI chat records → delete section) used
+`.cyText(.sectionTitle)` + primary colour → plain system header text. New checker kind **header font**
+(`header_font_hits`): heading text styles / `.bold()` / `.fontWeight(.bold…)` inside a header closure fail; baseline 0.
+Self-test: the pre-fix `NPCChatDataView` fails at line 327. Gates: `generate_project` PASS, `check_scaffold` PASS,
+`check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (header font 0), `contract_ratchet --check` 52 failing,
+baseline 52, **new 0**.
+
 ### For other lanes
 - debt-r3: the 18 unmounted `*SectionView` release-checklist pages above (plus their unit tests) are dead code in the
   player target; deleting them would shrink the app and the allowed list.
 
 ### Not done (next run)
-- Section headers with a hand-set font (`header: { Text(…).font(.headline / .title3 / .largeTitle) }`,
-  ~25 candidate sites by a 5-line scan, e.g. `ClubOpsGovernanceSections:203`, `AccountComplianceViews:506`,
-  `TemplateAdditionalSampleBrowserView:194`, `WorkshopCommerceView:87`): verify each, move to the system header, then
-  add a checker kind `header font`.
+- Shared header components outside `header:` closures (`E1IconHeader`-like wrappers in page files) are not seen by
+  `header font`; scan for `View` structs used only as section headers and fold them into the system header.
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,

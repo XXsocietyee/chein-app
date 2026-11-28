@@ -104,6 +104,11 @@ fixtures included; there is no Swift compiler in the lanes' cloud sessions):
                    (`var` / `let` / `inout` / enum `case`) in that type, its extensions or the module's globals
                    (a lane used `governanceMemberCount = $0` without `@State private var governanceMemberCount`).
                    Heuristic text scan: string literals are blanked first.
+  header font     a List/Form `header: { … }` closure outside App/DesignSystem that sets a heading style
+                  (`.cyText(.sectionTitle / .cardTitle / .headline / .title…)`, `.font(.headline / .title… /
+                  .largeTitle)`, `.bold()`, `.fontWeight(.bold / .semibold …)`): one section shouts next to its
+                  system-header siblings. Leave the header text plain (system footnote, secondary); trailing
+                  footnote / meta accessories are fine
 
 Baseline: tools/design_consistency_baseline.json
   "allowed":  {file: {kind: reason}}  intentional chrome (game HUDs, full-screen maps, procedural art), never fails;
@@ -221,11 +226,19 @@ SECTION_SPACING = 'section spacing'
 SECTION_SPACING_PATTERN = re.compile(r'\.listSectionSpacing\(\s*(?!\.compact\b|\.default\b)')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
+HEADER_FONT = 'header font'
+# One section-header look: a List/Form `header: { … }` closure inherits the system header style (footnote, secondary).
+# A heading-size font, bold weight or primary colour inside it makes one section shout next to its siblings.
+HEADER_OPEN = re.compile(r'\bheader:\s*\{')
+HEADER_FONT_PATTERN = re.compile(
+    r'\.cyText\(\s*\.(?:sectionTitle|cardTitle|headline|largeTitle|title\w*|display\w*)\b'
+    r'|\.font\(\s*\.(?:headline|largeTitle|title\w*)\b'
+    r'|\.(?:bold|fontWeight)\(\s*(?:\.(?:bold|semibold|heavy|black))?\s*\)')
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
          ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, SECTION_SPACING, DUPLICATE_TYPE,
-         UNDECLARED_STATE, UNTYPED_HAPTIC)
+         UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -375,6 +388,31 @@ def code_lines(text):
         yield number, code
 
 
+def header_font_hits(lines):
+    """`header: { … }` closures (brace-balanced over comment-free code lines) that set a heading font or weight."""
+    out = []
+    for index, (number, code) in enumerate(lines):
+        match = HEADER_OPEN.search(code)
+        if not match:
+            continue
+        depth = 1
+        body = [(number, code[match.end():])]
+        for later_number, later in lines[index + 1:index + 40]:
+            body.append((later_number, later))
+        for part_number, part in body:
+            cut = len(part)
+            for pos, ch in enumerate(part):
+                depth += {'{': 1, '}': -1}.get(ch, 0)
+                if depth == 0:
+                    cut = pos
+                    break
+            if HEADER_FONT_PATTERN.search(part[:cut]):
+                out.append((part_number, HEADER_FONT, part.strip()))
+            if depth == 0:
+                break
+    return out
+
+
 def scan_file(rel, text):
     hits = []
     lines = list(code_lines(text))
@@ -503,6 +541,8 @@ def scan_file(rel, text):
         for number, code in lines:
             if TITLE_PATTERN.search(code):
                 hits.append((number, TITLE_MODE, code.strip()))
+    if not design_system:
+        hits.extend(header_font_hits(lines))
     if is_root:
         has_large = any(ROOT_HEADER_PATTERN.search(c) or LARGE_PATTERN.search(c) for _, c in lines)
         if not has_large:
