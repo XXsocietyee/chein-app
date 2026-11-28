@@ -150391,13 +150391,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading your records…"
+            "value": "Reading all AI chats on your account…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在读取你的记录…"
+            "value": "正在读取你账号下的全部 AI 对话…"
           }
         }
       }
