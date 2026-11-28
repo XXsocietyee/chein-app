@@ -157,6 +157,17 @@ public struct VerificationCodeApproval {
     }
 }
 
+/// MP `subpackageMember/signup/index.js` ticket QR (V-02): renew `leadSeconds` before expiry,
+/// and never sooner than `retrySeconds` after the last try. A failure inside that last window stops.
+/// Issuing a code moves no money.
+public enum TicketEntryCodeRefresh {
+    public static let leadSeconds: TimeInterval = 30
+    public static let retrySeconds: TimeInterval = 5
+    public static func next(expiry: Date, now: Date) -> Date {
+        max(expiry.addingTimeInterval(-leadSeconds), now.addingTimeInterval(retrySeconds))
+    }
+}
+
 @MainActor @Observable public final class VerificationCodeCoordinator {
     public enum Phase: String { case review, loading, ready, expired, paused, disabled, login, invalid, unavailable, failed, stale }
     public let target: VerificationCodeTarget
@@ -174,6 +185,8 @@ public struct VerificationCodeApproval {
     private var generation: UInt64 = 0
     private var active = false
     private var issuing = false
+    /// Next silent ticket renew. Nil after the code is dead, so a late tick cannot loop.
+    private var nextSilentRenewAt: Date?
     private let service: any VerificationCodeServing
     private let current: () -> RuntimeDependencyContext?
     private let now: () -> Date
@@ -199,25 +212,78 @@ public struct VerificationCodeApproval {
     private func isCurrent(_ stamp: UInt64) -> Bool {
         active && generation == stamp && owner != nil && current() == owner && !Task.isCancelled
     }
-    private func eraseCode() { code = nil; expiry = nil; issuedAt = nil; remainingSeconds = 0 }
+    private func eraseCode() { code = nil; expiry = nil; issuedAt = nil; remainingSeconds = 0; nextSilentRenewAt = nil }
     private func clear() {
         generation &+= 1; active = false; owner = nil; issuing = false; checkingOrder = false
         readback = nil; readbackFailed = false; eraseCode()
     }
     public func pause() { clear(); phase = .paused }
     public func invalidate() { clear(); phase = .review }
-    /// View-owned, cancellable one-second task. At expiry the ticket code clears and waits
-    /// for a manual retry. City vouchers reissue only at expiry, never on a failed or uncertain response.
+    /// View-owned, cancellable one-second task. Ticket codes renew silently before expiry
+    /// (`TicketEntryCodeRefresh`); a failed renew keeps the current code until the last few
+    /// seconds, then stops. A clock jump past expiry clears and waits for a manual retry.
+    /// City vouchers reissue only at expiry, never on a failed or uncertain response.
     public func tick() async {
         guard active else { return }
         guard current() == owner, service.enabled else { clear(); phase = .stale; return }
         guard let expiry else { return }
         if let issuedAt, now() < issuedAt { eraseCode(); phase = .expired; return }
+        if target.kind == .ticket {
+            await tickTicket(expiry: expiry)
+            return
+        }
         if now() >= expiry {
             eraseCode(); phase = .expired
             if target.kind == .cityVoucher { await issue() }
         } else {
             remainingSeconds = max(0, Int(expiry.timeIntervalSince(now()).rounded(.up)))
+        }
+    }
+    /// Still inside the lead window: keep showing the current code and renew once it is due.
+    /// At or past expiry the code is already dead, so this does not mint another one.
+    private func tickTicket(expiry: Date) async {
+        if now() >= expiry {
+            eraseCode(); phase = .expired
+            return
+        }
+        remainingSeconds = max(0, Int(expiry.timeIntervalSince(now()).rounded(.up)))
+        guard let due = nextSilentRenewAt, now() >= due, !issuing else { return }
+        await renewTicket(keeping: expiry)
+    }
+    /// Silent renew (MP `_loadQr(..., true)`). The code on screen stays until a new receipt validates.
+    /// An ended registration clears the code and does not mint another. A scanned chapter does not:
+    /// the registration can stay active, and this path never reads the verification field.
+    private func renewTicket(keeping previousExpiry: Date) async {
+        guard active, !issuing, let owner, current() == owner, target.kind == .ticket else { return }
+        let stamp = generation
+        issuing = true
+        defer { if generation == stamp { issuing = false } }
+        do {
+            let detail = try await service.order(id: target.id, context: owner)
+            guard isCurrent(stamp) else { return }
+            guard detail.id == target.id else { throw VerificationCodeFailure.invalid }
+            readback = detail
+            guard detail.registrationStatus == 2 else { throw VerificationCodeFailure.unavailable }
+            let requestedAt = now()
+            let receipt = try await service.issue(target, context: owner)
+            guard isCurrent(stamp) else { return }
+            let validated = try receipt.validated(target: target, accountID: owner.session.accountID, requestedAt: requestedAt, now: now())
+            code = validated.code; expiry = validated.expiry; issuedAt = requestedAt
+            remainingSeconds = max(0, Int(validated.expiry.timeIntervalSince(now()).rounded(.up))); phase = .ready
+            nextSilentRenewAt = TicketEntryCodeRefresh.next(expiry: validated.expiry, now: now())
+        } catch {
+            guard isCurrent(stamp) else { return }
+            if error as? APIError == .unauthorized || error as? VerificationCodeFailure == .login {
+                fail(error, stamp: stamp); return
+            }
+            if error as? VerificationCodeFailure == .unavailable {
+                eraseCode(); phase = .unavailable; return
+            }
+            if now() < previousExpiry.addingTimeInterval(-TicketEntryCodeRefresh.retrySeconds), self.expiry != nil, phase == .ready {
+                nextSilentRenewAt = now().addingTimeInterval(TicketEntryCodeRefresh.retrySeconds)
+                return
+            }
+            eraseCode(); phase = .failed
         }
     }
     private func issue() async {
@@ -240,6 +306,9 @@ public struct VerificationCodeApproval {
             let validated = try receipt.validated(target: target, accountID: owner.session.accountID, requestedAt: requestedAt, now: now())
             code = validated.code; expiry = validated.expiry; issuedAt = requestedAt
             remainingSeconds = max(0, Int(validated.expiry.timeIntervalSince(now()).rounded(.up))); phase = .ready
+            if target.kind == .ticket {
+                nextSilentRenewAt = TicketEntryCodeRefresh.next(expiry: validated.expiry, now: now())
+            }
         } catch { fail(error, stamp: stamp) }
     }
     /// There is no ticket-code status endpoint. Read the authoritative registration record.
