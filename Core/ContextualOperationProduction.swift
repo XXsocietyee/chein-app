@@ -50,13 +50,26 @@ public struct ContextualReviewApproval {
     public let market: RegionalMarket
     public let endpoints: OperationEndpointApproval
     public let targets: Set<ContextualReviewTarget>
-    public init(market: RegionalMarket, endpoints: OperationEndpointApproval, targets: Set<ContextualReviewTarget>) throws {
+    /// Audit P1-8: the MP lets any signed-in player review any topic / activity it opens
+    /// (pages/topic/index/index.js:1246-1268), so the session approval names no fixed ids.
+    public let allowsAnyPositiveTarget: Bool
+    public init(market: RegionalMarket, endpoints: OperationEndpointApproval, targets: Set<ContextualReviewTarget>,
+                allowsAnyPositiveTarget: Bool = false) throws {
         guard targets.allSatisfy({ $0.ownerID > 0 }) else { throw APIError.invalidConfiguration }
         self.market = market; self.endpoints = endpoints; self.targets = targets
+        self.allowsAnyPositiveTarget = allowsAnyPositiveTarget
     }
     public func permits(_ target: ContextualReviewTarget, context: RuntimeDependencyContext) -> Bool {
-        ContextualOperationBoundary.matches(market, endpoints, context) && targets.contains(target) &&
-        Set(["api/comment/add", target.detailPath]).isSubset(of: endpoints.paths)
+        let named = allowsAnyPositiveTarget ? target.ownerID > 0 : targets.contains(target)
+        return ContextualOperationBoundary.matches(market, endpoints, context) && named &&
+            Set(["api/comment/add", target.detailPath]).isSubset(of: endpoints.paths)
+    }
+    /// True when at least one target kind can be reviewed in this context.
+    func permitsSome(context: RuntimeDependencyContext) -> Bool {
+        if allowsAnyPositiveTarget {
+            return permits(.topic(1), context: context) || permits(.activity(1), context: context)
+        }
+        return targets.contains { permits($0, context: context) }
     }
 }
 extension ContextualReviewTarget {
@@ -92,7 +105,7 @@ private enum ContextualOperationBoundary {
     public var session: ClubOpsTimeSession? { current().flatMap { try? .init(context: $0) } }
     public var isConfigured: Bool {
         guard let captured = current(), captured.baseURL == configuration.baseURL, let approval else { return false }
-        return approval.targets.contains { approval.permits($0, context: captured) }
+        return approval.permitsSome(context: captured)
     }
     private func capture(_ session: ClubOpsTimeSession, activityID: Int) throws -> (RuntimeDependencyContext, ClubOpsTimeTarget, RuntimeDependencyTransport) {
         guard let captured = current(), captured == session.runtimeContext, self.session == session,
@@ -162,18 +175,27 @@ private enum ContextualOperationBoundary {
 /// to review an existing topic/activity. Participation only controls first-review rewards.
 @MainActor public struct ContextualReviewConfiguredWriter: ContextualReviewWriting {
     private let configuration: APIConfiguration
-    private let approval: ContextualReviewApproval?
+    private let fixedApproval: ContextualReviewApproval?
+    private let approvalSource: (() -> ContextualReviewApproval?)?
     private let transport: any HTTPTransport
     private let current: () -> RuntimeDependencyContext?
     private let onUnauthorized: (RuntimeDependencyContext) -> Void
-    public init(configuration: APIConfiguration, approval: ContextualReviewApproval? = nil, transport: any HTTPTransport,
+    /// `approvalSource` (when given) is read on every use, so a host created before sign-in
+    /// picks up the signed-in session's approval instead of keeping the signed-out nil.
+    public init(configuration: APIConfiguration, approval: ContextualReviewApproval? = nil,
+                approvalSource: (() -> ContextualReviewApproval?)? = nil, transport: any HTTPTransport,
                 current: @escaping () -> RuntimeDependencyContext?, onUnauthorized: @escaping (RuntimeDependencyContext) -> Void = { _ in }) {
-        self.configuration = configuration; self.approval = approval; self.transport = transport; self.current = current; self.onUnauthorized = onUnauthorized
+        self.configuration = configuration; self.fixedApproval = approval; self.approvalSource = approvalSource
+        self.transport = transport; self.current = current; self.onUnauthorized = onUnauthorized
+    }
+    private var approval: ContextualReviewApproval? {
+        if let approvalSource { return approvalSource() }
+        return fixedApproval
     }
     public var session: ContextualReviewSession? { current().flatMap { try? .init(context: $0) } }
     public var isConfigured: Bool {
         guard let captured = current(), captured.baseURL == configuration.baseURL, let approval else { return false }
-        return approval.targets.contains { approval.permits($0, context: captured) }
+        return approval.permitsSome(context: captured)
     }
     public let requiresDurableJournal = true
     public func submit(_ draft: ContextualReviewDraft, target: ContextualReviewTarget, session: ContextualReviewSession) async throws { throw ContextualReviewFailure.notSent }

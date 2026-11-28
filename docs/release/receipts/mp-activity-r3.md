@@ -278,7 +278,17 @@ Merged `origin/ui/combined-r7` (135f87720; pbxproj regenerated). Sweep `mp-activ
 
 Gates: generate_project ok; scaffold PASS; a11y 0 new; design consistency PASS (untyped haptic 0); contract ratchet 52/52 new 0.
 
+## Round 3 continue (2026-11-28, thirtieth session — function audit P1-8)
+Merged `origin/ui/combined-r7` (087a088a9). P0-1…P0-4, P1-2, P1-3, P1-4 belong to the `fix/1128-*` workers (owner 06:25), so this session takes the next unowned audit row, **P1-8**.
+
+| Audit item / MP page | Native view | Change | Level / optimization |
+|---|---|---|---|
+| **P1-8** 写评价 on topic + activity detail (MP `pages/topic/index/index.js:1246-1268` `submitComment` → `POST /api/comment/add`; scene-play-activity-detail `index.js:644`) | `App/ReviewedPlayerWriteLeases.swift` `contextualReview(_:)` + `contextualReviewPaths`, wired into `sessionDependencies`; `Core/ContextualOperationProduction.swift` `ContextualReviewApproval(allowsAnyPositiveTarget:)`, `permitsSome`, `ContextualReviewConfiguredWriter(approvalSource:)`; `App/AppSession.swift` `contextualReviews` (+ `Tests/CoreTests/ContextualOperationProductionTests.swift` `testSessionReviewApprovalAllowsAnyPositiveTargetAndIsReadLive`, pins in `Tests/ContractChecks/test_contextual_operation_factories.py`) | **fixed**: `contextualReviewApproval` was never built, so the composer always said 评价提交暂不可用. Signed-in player/club sessions (CN, player writes on) now get an approval for `api/comment/add` + `api/topic/info-to-user` + `api/activity/info` covering any positive topic / activity id (the MP has no per-id allowlist). The lazily created session host now reads the approval live (`approvalSource`), so a host first touched while signed out still works after sign-in. Loop unchanged and server-confirmed: detail re-read → `comment/add` (owner_type, owner_id, rating, contents, reply_id 0, img_arr, request_id) → success only when the returned row matches member, target, rating and contents; durable journal keeps one submission | C · Utility composer; no UI change |
+
+Gates: generate_project ok; scaffold PASS (AppSession ratchet held at 7977); a11y 0 new; design consistency PASS; contract ratchet 52/52 new 0; contextual factory contracts OK.
+
 ## Not done
+- P1-8 needs a device check: backend `api/comment/add` must return the inserted row (`id`, `memberId`, `ownerType`, `ownerId`, `replyId`, `rating`, `contents`) or the writer reports 结果未知; P2-1 (pay readiness / host tip / price UI on gated purchases) is next.
 - Owner correction 11-28 04:45: Alipay adapter exists in Core (gated off); still open — the App-side SDK bridge driver + AppSession wiring + URL-scheme route once the SDK, app id and backend `alipay.trade.app.pay` exist; then flip `RegistrationPayMethod.alipayReady` and route the Alipay choice to it (US checkout verified: registration → Stripe, others gated off).
 - P32 still open on pass / bundle buy (purchases gated off by `MPCommerceGate`, no pay step to label) and order-detail Pay (`OrderLifecycleView` has no method choice; keeps 立即支付).
 - Owner check 05:35: no simulator here, so `t5-baoming-paying` / `t5-baoming-paid` are unseen until the next coordinator sweep; backend `/api/registration/pay/app` APP-param shape is the backend lane's check.

@@ -6086,7 +6086,7 @@ final class AppSession: ObservableObject {
     var clubManagementContext:ClubManagementContext { .init(access:clubManagementAccess,coordinator:clubManagementCoordinator,viewerRevision:compositionViewerRevision,operations:clubOperationsContext,governance:clubGovernanceContext) }
     lazy var contextualReviews: ContextualReviewHost? = regionalConfiguration?.apiConfiguration.map {
         ContextualReviewHost(writer: ContextualReviewConfiguredWriter(configuration: $0, approval: runtimeDependencies.contextualReviewApproval,
-            transport: runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext },
+            approvalSource: { [weak self] in self?.runtimeDependencies.contextualReviewApproval }, transport: runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext },
             onUnauthorized: { [weak self] captured in
                 guard let self, self.currentRuntimeDependencyContext == captured else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
