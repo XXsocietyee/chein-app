@@ -361513,6 +361513,57 @@
           }
         }
       }
+    },
+    "playkit.calibrate.ball": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold the phone the way you’ll play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拿成你打算玩的姿势"
+          }
+        }
+      }
+    },
+    "playkit.calibrate.audio": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First, a quick listen to how loud it is here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先听一下这儿有多吵"
+          }
+        }
+      }
+    },
+    "playkit.calibrate.sub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold still while it takes a baseline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "别动，量一下这儿的底子"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
