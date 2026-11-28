@@ -81,6 +81,7 @@ struct PlayThemeMusicKey: Equatable {
     @State private var sessionStats: PlayToolsSessionStats?
     @State private var sessionStatsOff = false
     @Environment(\.playToolsSessionStatsLoader) private var sessionStatsLoader
+    @Environment(\.playOrientBoardLoader) private var orientBoardLoader
     @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
     @StateObject private var musicLifetime = PlayBackgroundMusicLifetime()
     @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
@@ -830,7 +831,7 @@ struct PlayThemeMusicKey: Equatable {
             teamLead: model.lead,
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
             journalAttributes: model.snapshot.map(PlayJournal.attributes(in:)) ?? [],
-            boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
+            boardDestination: model.snapshot == nil ? nil : { [model, orientBoard] in AnyView(PlayCompanionBoardView(model: model, orientBoard: orientBoard)) },
             scoreDestination: orientScoreDestination,
             sessionStats: sessionStats,
             sessionStatsOff: sessionStatsOff,
@@ -839,6 +840,13 @@ struct PlayThemeMusicKey: Equatable {
             contact: playContact,
             onTeamBroadcast: teamBroadcast
         )
+    }
+    /// mp-journey-b r3: MP `openBoard` — a city run (mode 1) with `routeState.sessionId` reads the orient-scoring board
+    /// first; nil keeps the `/api/play/leaderboard` board.
+    private var orientBoard: (() async -> PlayOrientBoardRead)? {
+        guard let loader = orientBoardLoader, let result = model.snapshot?.result, result.mode == 1,
+              let sessionID = result.routeState?.sessionID, sessionID > 0 else { return nil }
+        return { await loader(sessionID) }
     }
     /// mp-journey-b r3: MP `leadBroadcast` from 游玩工具 队伍位置 — `POST /api/club/lead/broadcast {activityId, text}`,
     /// then the team progress is read again (MP `loadTeamProgress`); the line shown is the server's, else 已广播.

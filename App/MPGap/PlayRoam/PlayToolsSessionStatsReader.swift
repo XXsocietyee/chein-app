@@ -38,3 +38,34 @@ extension EnvironmentValues {
         set { self[PlayToolsSessionStatsLoaderKey.self] = newValue }
     }
 }
+
+/// mp-journey-b r3: MP 同行者榜 `openBoard` on a city run reads the orient-scoring board for `routeState.sessionId` first
+/// (same c6 service and live token as `PlayToolsSessionStatsRead`).
+typealias PlayOrientBoardLoader = (_ sessionID: Int) async -> PlayOrientBoardRead
+
+@MainActor enum PlayOrientBoardReadFactory {
+    static func make(session: AppSession) -> PlayOrientBoardLoader? {
+        guard let configuration = session.regionalConfiguration?.apiConfiguration else { return nil }
+        let service = OrientSessionService(configuration: configuration, transport: session.runtimeHTTPTransport, contract: .currentC6)
+        let access = session.squareGovernanceAccess()
+        return { sessionID in
+            guard let token = access.token, AuthRequestBuilder.isValidToken(token) else { return .failed }
+            do {
+                return .board(PlayOrientBoard(try await service.leaderboard(sessionID: sessionID, token: token)))
+            } catch {
+                return PlayToolsSessionStats.hidesRows(for: error) ? .scoringOff : .failed
+            }
+        }
+    }
+}
+
+private struct PlayOrientBoardLoaderKey: EnvironmentKey {
+    static let defaultValue: PlayOrientBoardLoader? = nil
+}
+
+extension EnvironmentValues {
+    var playOrientBoardLoader: PlayOrientBoardLoader? {
+        get { self[PlayOrientBoardLoaderKey.self] }
+        set { self[PlayOrientBoardLoaderKey.self] = newValue }
+    }
+}
