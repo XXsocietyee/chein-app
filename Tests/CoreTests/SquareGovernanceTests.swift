@@ -140,7 +140,7 @@ import FoundationNetworking
         let (coordinator, access, transport) = fixture(); let snapshot = try await coordinator.load(access: access)
         transport.mutationReply = (code: 400, status: 400)
         let review = try coordinator.prepare(.appeal(enforcementID: 91, reason: "facts"), snapshot: snapshot, access: access)
-        do { _ = try await coordinator.confirm(review, access: access); XCTFail() } catch { XCTAssertEqual(error as? SquareGovernanceFailure, .rejected(400)) }
+        do { _ = try await coordinator.confirm(review, access: access); XCTFail() } catch { XCTAssertEqual(error as? SquareGovernanceFailure, .appealRefused(message: nil)) }
         XCTAssertFalse(coordinator.dispatched(.appeal(enforcementID: 91, reason: ""), snapshot: snapshot))
         transport.mutationReply = nil
         let again = try coordinator.prepare(.appeal(enforcementID: 91, reason: "facts"), snapshot: snapshot, access: access)

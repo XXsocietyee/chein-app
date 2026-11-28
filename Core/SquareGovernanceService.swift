@@ -129,7 +129,13 @@ public struct SquareGovernanceService {
             // MP post-governance settles an appeal as `rejected` (new appeal allowed) on a definite refusal,
             // and reads back on 409 (an appeal for this enforcement already exists) like any unknown result.
             switch Self.appealOutcome(data, status: status) {
-            case .rejected: release()
+            case .rejected:
+                release()
+                let body = try? JSONDecoder().decode(SquareGovernanceJSON.self, from: data)
+                let code = body?["code"].int ?? body?["code"].string.flatMap(Int.init)
+                if status == 401 || code == 401 { throw SquareGovernanceFailure.signedOut }
+                if status == 403 || code == 403 { throw SquareGovernanceFailure.forbidden }
+                throw SquareGovernanceFailure.appealRefused(message: Self.refusalMessage(body))
             case .alreadyExists: throw SquareGovernanceFailure.unknown
             case .other: break
             }
@@ -139,6 +145,25 @@ public struct SquareGovernanceService {
         return .acknowledgedNeedsRefresh
     }
     enum AppealOutcome: Equatable { case rejected, alreadyExists, other }
+    /// MP `requestError(res, '申诉未提交')` → `safeUserMessage`: the server `msg` / `message` when it is a short
+    /// business sentence; nil (the caller's fallback copy) for empty, long, diagnostic or developer-only text.
+    static func refusalMessage(_ body: SquareGovernanceJSON?) -> String? {
+        let raw = (body?["msg"].string ?? body?["message"].string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty, raw.count <= 60, raw.rangeOfCharacter(from: .newlines) == nil, !raw.contains("\t") else { return nil }
+        let unsafe = [
+            #"认证失败|无法访问系统资源|timeout|超时"#,
+            #"lifecycle|sellingStartedAt|saleEndAt|拒绝售卖|不可再售"#,
+            #"Exception|java\.|SQL|database|JSON|HttpMessage|CHENGYIN_|配置缺失|cannot be cast"#,
+            #"^[^，,。;；]*(参数错误|参数异常|数据异常|系统错误|系统异常|UNKNOWN|undefined)[^，,。;；]*$"#,
+            #"errMsg|:fail\b|<\s*/?\s*(html|body|head|script|style|title)\b|https?://|/api/|/(Users|home|var|etc|opt)/"#,
+            #"\b(select|insert|update|delete)\b.+\b(from|into|set|where)\b"#,
+            #"\b(bearer|authorization|token|password|secret|openid|unionid|cookie|session(id)?|sid)\b\s*[:=]"#,
+            #"\b(trace|request|span|correlation)[_-]?id\b"#,
+            #"\b1[3-9]\d{9}\b|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}"#,
+        ]
+        for pattern in unsafe where raw.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil { return nil }
+        return raw
+    }
     /// MP `post-governance/index.js` submit: HTTP 2xx with a body code other than 200 is a refusal
     /// (409 reads back); HTTP 4xx other than 408 / 409 is a refusal; everything else stays unknown.
     static func appealOutcome(_ data: Data, status: Int) -> AppealOutcome {

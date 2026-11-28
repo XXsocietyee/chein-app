@@ -363973,23 +363973,6 @@
         }
       }
     },
-    "mpd.postGov.pendingUnknown": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The result of your last appeal is not confirmed yet. Pull down to refresh later."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "上次申诉的提交结果未确认，请稍后下拉刷新确认"
-          }
-        }
-      }
-    },
     "mpPublish.themeAudio.title": {
       "extractionState": "manual",
       "localizations": {
