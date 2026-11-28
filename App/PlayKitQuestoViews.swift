@@ -36,6 +36,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.playGameStage) private var stage
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(spacing: CYSpacing.xxl) {
@@ -45,6 +46,16 @@ typealias PlayKitAccusationWrite = (String) -> Void
                 Text(verbatim: shownTitle).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("playkit.hangman.title")
+            }
+            // MP order: 怎么填 (server howto, else the MP default line) and 看不清？查看资料图 sit under the title,
+            // above the board, in every input mode while unsolved.
+            if !projection.solved {
+                VStack(spacing: CYSpacing.sm) {
+                    PlayKitHowToButton(text: projection.howTo ?? appLocalized("playkit.hangman.howToDefault", locale: locale))
+                    if let source = PlayKitReferenceImage.source(in: segment) {
+                        PlayKitReferenceButton(source: source, alt: PlayKitReferenceImage.alt(in: segment), nodeID: nodeID, kit: "hangman")
+                    }
+                }
             }
             if projection.inputMode != .pool { board }
             if projection.inputMode == .pool, projection.poolMalformed {
@@ -102,12 +113,6 @@ typealias PlayKitAccusationWrite = (String) -> Void
                 Text("playkit.questo.unavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .multilineTextAlignment(.center).accessibilityIdentifier("playkit.hangman.unavailable")
             }
-            if projection.inputMode != .pool, let howTo = projection.howTo, !projection.solved {
-                PlayKitHowToButton(text: howTo)
-            }
-            if let source = PlayKitReferenceImage.source(in: segment) {
-                PlayKitReferenceButton(source: source, alt: PlayKitReferenceImage.alt(in: segment), nodeID: nodeID, kit: "hangman")
-            }
             if projection.inputMode != .pool || projection.solved { cta }
         }
         .frame(maxWidth: .infinity)
@@ -142,9 +147,17 @@ typealias PlayKitAccusationWrite = (String) -> Void
     private var shownTitle: String { projection.stationTitle(question: stationQuestion, placeName: stationName) }
     private var shownFeedback: String { projection.stationFeedback(passText: stationPassText) }
 
+    /// MP `wrongFeedback`: the server's `lastFeedback` for an unsolved board, else the default line.
+    private var wrongReply: String? {
+        guard !projection.solved, let reply = segment["lastFeedback"].text?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !reply.isEmpty else { return nil }
+        return reply
+    }
+
     private var wrongLine: some View {
         Group {
-            if wrong { Text("playkit.hangman.wrong").accessibilityIdentifier("playkit.hangman.wrong") }
+            if wrong, let reply = wrongReply { Text(verbatim: reply).accessibilityIdentifier("playkit.hangman.wrong") }
+            else if wrong { Text("playkit.hangman.wrong").accessibilityIdentifier("playkit.hangman.wrong") }
             else { Text(verbatim: " ").accessibilityHidden(true) }
         }
         .cyText(.meta).foregroundStyle(CYColor.dangerText)

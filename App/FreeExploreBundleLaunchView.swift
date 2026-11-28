@@ -155,6 +155,7 @@ import SwiftUI
                       ChannelCopy.text("定时间", "Time", locale: locale)]
         let current = unitID == nil ? 0 : offerID == nil ? 1 : 2
         return Text(verbatim: "\(current + 1)/\(titles.count) · \(titles[current])")
+            .accessibilityLabel(Text("a11y.value.ofTotal \(current + 1) \(titles.count)") + Text(verbatim: ", \(titles[current])"))
     }
     @ViewBuilder private func readyContent(_ facts: FreeExploreBundlePageReady.Facts) -> some View {
         Section {

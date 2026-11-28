@@ -1015,7 +1015,7 @@ Status `both` means the identifier is applied on this base and on ui/d6. Status 
 | `club.poolApplication.message` | both |
 | `club.poolApplication.open` | both |
 | `club.poolApplication.review` | both |
-| `club.postAuthor.close` | both |
+| `club.postAuthor.close` | retired (mp-nav r3: post author profile is a push) |
 | `club.postEditExit.cancel` | both |
 | `club.postEditExit.discard` | both |
 | `club.postEditExit.keep` | both |
