@@ -696,6 +696,13 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - K17 (`docs/release/receipts/cursor-1128-acceptance.md`) lists roam AppUnit failures as hosted SwiftUI lifetime failures (`InvalidTransition` idle → `failed(deinit)`; control never appears): `RoamHistoryHubToolsTests`, `RoamNearbyOwnedStateRecoveryTests`, `RoamAnniversary*`, `RoamHomeResumeEntryRecoveryTests`, `RoamAlbumIntentLifetimeTests`, `RoamReceivedStampMetadataHostTests`, `RoamEnrolledTopicsLifetimeTests`, `RoamMonthlyRecapRestoredHostTests`, `RoamNearbyEventsRestoredDetailTests`, `RoamOfficialTasksLifetimeTests`, `RoamTileIntentLifetimeTests`. They need a simulator run to diagnose (no compiler here) — compiled pass. `PremergeScreensViewModelTests:131` (presence disable `.failed`) fails together with the club read at `:138` in the same `.dormant` composition, so it is a shared transport/allow-list cause, not roam presence code — for K13/K17.
 - A-half open rows unchanged (P2-7 POI tap, citystamp coordinator, P21 mini bar: compiled pass; P1-22: owner value). **A half done** — stopped per the 15:45 collision rule.
 
+## Round 3 continue (56) — merge `ui/combined-r7` (5375df502); sweep b954de71c; A half still done
+
+- Merged `origin/ui/combined-r7`. Still no `cursor-k50-p*` receipts (only K50-R r01/r03/r08; their roam rows are analytics event sites and walked-distance formatting, no `lane-layout` work).
+- Sweep b954de71c (`zh-Hans-d2-roam.jpg`, `en-d2-roam.jpg`, `*-d6-roam.jpg`): the map home now renders on the first fixture in both languages (the 15:50 black launch frame is gone), map tiles load in zh too, panel reads 漫游 → search → 开始漫游. Stamp album, city sticker, official routes correct in both languages. No new coordinator finding for roam (18:30 sweep covers club / journey).
+- Seen, not changed: `zh-Hans-e5b-stamp.jpg` 留于 reads `2026-01-02 12:00` (en: `Jan 2, 2026 at 12:00 PM`). This is the app-wide `LocaleDisplay.civil` Chinese rule (MP `yyyy-MM-dd HH:mm`, pinned in `LocaleDisplayTests` / `LocaleDisplayR2Tests`, 72 callers), not roam code. **For en-layout / ds-consistency:** if zh should read `2026年1月2日 12:00` (as the 16:53 badge-wall note asked), change `civil` once for every screen.
+- A-half open rows unchanged (P2-7 POI tap, citystamp coordinator, P21 mini bar: compiled pass; P1-22: owner value). **A half done** — stopped per the 15:45 collision rule.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
