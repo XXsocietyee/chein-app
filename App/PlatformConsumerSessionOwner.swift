@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Session owner invalidates all active consumers BEFORE credentials/account are replaced.
-/// No production factory supplies native drivers. Injection is explicit and optional.
+/// Injection is explicit and optional: the session supplies the Apple Maps driver (P1-21); audio has no production driver.
 @MainActor final class PlatformConsumerSessionOwner {
     private(set) var scope = UUID()
     private let audioBuilder: (() -> PlatformAudioPlayback)?
@@ -18,6 +18,11 @@ import SwiftUI
     var mapsFactory: (() -> PlatformExternalMaps)? {
         guard let mapsBuilder else { return nil }
         return { [self] in let model = mapsBuilder(); maps.append(model); return model }
+    }
+    /// Function audit P1-21 / MP `wx.openLocation` (roam-place-card, utils/open-address.js): 导航 opens the reviewed
+    /// place in Apple Maps after the host's confirm dialog, with copy-address as the fallback.
+    static func appleMaps() -> PlatformExternalMaps {
+        PlatformExternalMaps(opener: NativePlatformMapOpener(), copier: NativePlatformAddressCopier(), enabled: true)
     }
     func invalidate() {
         audio.forEach { $0.dispose() }; maps.forEach { $0.invalidate() }

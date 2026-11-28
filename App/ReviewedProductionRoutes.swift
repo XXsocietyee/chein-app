@@ -3,6 +3,65 @@ import Foundation
 import FoundationNetworking
 #endif
 
+/// P0-8: exact requests emitted by `TeamHTTPService.submit` (`TeamWriteContract` fields, sorted-key JSON): join by invite
+/// code, quit, kick, disband and join-mode, the five membership writes MP `pages/team/detail` and `pages/team/join` send.
+/// `api/team/create`, invite-code rotation and every other team route are not matched.
+enum ReviewedTeamMembershipWriteRoute {
+    static let approvalPaths: Set<String> = ["api/team/join", "api/team/quit", "api/team/kick", "api/team/disband", "api/team/join-mode"]
+
+    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Accept") == "application/json",
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              request.value(forHTTPHeaderField: "Cookie") == nil,
+              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+              let url = request.url, url.fragment == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              parts.user == nil, parts.password == nil, parts.query == nil,
+              let body = request.httpBody, body.count <= 512,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return false }
+        guard let path = approvalPaths.first(where: { parts.path == baseURL.appendingPathComponent($0).path }) else { return false }
+        return canonicalBody(path: path, object: object) == body
+    }
+
+    /// The one body each path may carry, re-encoded the way `TeamHTTPService` encodes it. Nil refuses the request.
+    static func canonicalBody(path: String, object: [String: Any]) -> Data? {
+        let canonical: [String: Any]
+        if path == "api/team/join" {
+            guard object.count == 1, let code = object["inviteCode"] as? String, TeamLookup.validInvite(code),
+                  code == code.trimmingCharacters(in: .whitespacesAndNewlines), code.count <= 64 else { return nil }
+            canonical = ["inviteCode": code]
+        } else {
+            guard let teamID = positiveInteger(object["teamId"]) else { return nil }
+            switch path {
+            case "api/team/quit", "api/team/disband":
+                guard object.count == 1 else { return nil }
+                canonical = ["teamId": teamID]
+            case "api/team/kick":
+                guard object.count == 2, let memberID = positiveInteger(object["memberId"]) else { return nil }
+                canonical = ["teamId": teamID, "memberId": memberID]
+            case "api/team/join-mode":
+                guard object.count == 2, let mode = positiveInteger(object["joinMode"]),
+                      mode == TeamJoinMode.invitation.rawValue || mode == TeamJoinMode.publicApplication.rawValue else { return nil }
+                canonical = ["teamId": teamID, "joinMode": mode]
+            default:
+                return nil
+            }
+        }
+        return try? JSONSerialization.data(withJSONObject: canonical, options: [.sortedKeys])
+    }
+
+    /// A JSON integer only: booleans and strings are refused.
+    private static func positiveInteger(_ value: Any?) -> Int? {
+        guard let number = value as? NSNumber, CFGetTypeID(number as CFTypeRef) != CFBooleanGetTypeID(),
+              let exact = value as? Int, exact > 0, number.doubleValue == Double(exact) else { return nil }
+        return exact
+    }
+}
+
 /// Exact requests emitted by `NearbyTeamHTTPWriteAdapter` for apply, withdraw and handle (`NearbyTeamRequest.action`:
 /// sorted-key JSON, `teamId` / `memberId` positive, `approved` a JSON boolean). `kick`, `quit`, `disband` and the
 /// other team mutations are not matched.

@@ -45,12 +45,12 @@ final class AuthChannelModel: ObservableObject {
             await coordinator.loginWithPhone(phone: phoneValue, code: codeValue, intent: intent)
         }
     }
-    func exchangeApple(_ attempt: AuthChannelAppleAttempt, identityToken: String) {
+    func exchangeApple(_ attempt: AuthChannelAppleAttempt, identityToken: String, givenName: String? = nil, familyName: String? = nil) {
         guard coordinator.ownsPresentation(presentation), coordinator.canCompleteAppleAuthorization(attempt) else { return }
         signInCountry = nil
         // Native Apple authorization already captures its session/generation synchronously.
         schedule { [coordinator] in
-            await coordinator.completeAppleAuthorization(attempt, identityToken: identityToken)
+            await coordinator.completeAppleAuthorization(attempt, identityToken: identityToken, givenName: givenName, familyName: familyName)
         }
     }
     private func schedule(_ operation: @escaping @MainActor () async -> Void) {

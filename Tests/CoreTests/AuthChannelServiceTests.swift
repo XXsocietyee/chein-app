@@ -52,6 +52,22 @@ final class AuthChannelServiceTests: XCTestCase {
         XCTAssertEqual(transport.requests[3].value(forHTTPHeaderField: "Authorization"), "synthetic-token")
         XCTAssertNil(transport.requests[3].httpBody)
     }
+    /// P2-5: the first Apple authorization's given/family name reach `/api/login/apple` so a new account is not 城瘾用户.
+    func testAppleLoginForwardsFirstAuthorizationNameParts() async throws {
+        let transport = AuthChannelFixtureTransport([(success, 200), (success, 200)])
+        let service = try service(transport)
+        _ = try await service.loginWithApple(identityToken: "synthetic.apple.token", givenName: " 三 ", familyName: "张")
+        _ = try await service.loginWithApple(identityToken: "synthetic.apple.token", givenName: "  ", familyName: nil)
+        let named = String(data: transport.requests[0].httpBody!, encoding: .utf8)!
+        XCTAssertTrue(named.contains("name=\"givenName\"\r\n\r\n三\r\n"))
+        XCTAssertTrue(named.contains("name=\"familyName\"\r\n\r\n张\r\n"))
+        XCTAssertTrue(named.contains("name=\"identityToken\"\r\n\r\nsynthetic.apple.token\r\n"))
+        let unnamed = String(data: transport.requests[1].httpBody!, encoding: .utf8)!
+        XCTAssertFalse(unnamed.contains("givenName"))
+        XCTAssertFalse(unnamed.contains("familyName"))
+        XCTAssertEqual(AuthChannelService.appleNamePart(String(repeating: "A", count: 40))?.count, 30)
+        XCTAssertNil(AuthChannelService.appleNamePart("\u{0}"))
+    }
     func testInvalidPhoneAndCodeNeverDispatch() async throws {
         let transport = AuthChannelFixtureTransport([]), service = try service(transport)
         for phone in ["", "20000000000", "1000000000", "100000000000", "+8610000000000", "１0000000000", "1000000000x", "1000\n000000"] {
@@ -90,6 +106,22 @@ final class AuthChannelServiceTests: XCTestCase {
             catch { XCTAssertEqual(error as? AuthChannelError, .rateLimited) }
             XCTAssertEqual(transport.requests.count, 1)
         }
+    }
+    /// P1-16: SmsVerificationService answers code 500 with a typed errorCode; each maps to its own message.
+    func testBackendSMSErrorCodesMapToTypedFailures() async throws {
+        let cases: [(String, AuthChannelError)] = [("SMS_RATE_LIMITED", .rateLimited), ("SMS_DAILY_LIMIT", .smsDailyLimit),
+                                                   ("SMS_INTL_NOT_CONFIGURED", .smsRegionUnavailable)]
+        for (code, expected) in cases {
+            let body = #"{"code":500,"msg":"private","errorCode":""# + code + #""}"#
+            let transport = AuthChannelFixtureTransport([(body, 200)])
+            do { try await service(transport).sendSMSCode(phone: "10000000000"); XCTFail("Must fail") }
+            catch { XCTAssertEqual(error as? AuthChannelError, expected) }
+            XCTAssertEqual(transport.requests.count, 1)
+        }
+        XCTAssertNil(AuthChannelError.sms(errorCode: "OTHER"))
+        XCTAssertNil(AuthChannelError.sms(errorCode: nil))
+        XCTAssertEqual(AuthChannelIssue.smsDailyLimit.localizationKey, "auth.channels.smsDailyLimit")
+        XCTAssertEqual(AuthChannelIssue.smsRegionUnavailable.localizationKey, "auth.channels.smsRegionUnavailable")
     }
     func testBusinessAndHTTPFailuresKeepStructuredCodesWithoutRawMessage() async throws {
         for (response, expected) in [((#"{"code":500,"msg":"private server internals"}"#, 200), APIError.businessCode(500)),

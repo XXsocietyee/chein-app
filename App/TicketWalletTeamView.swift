@@ -66,7 +66,7 @@ struct TicketWalletTeamContext: Hashable {
         .onChange(of: context) { _, _ in entry.retire() }
         .navigationDestination(item: $entry.target) { target in
             if entry.matches(target, context: context, reader: reader) {
-                TicketWalletTeamView(target: target, reader: reader, coordinator: makeCoordinator()).id(target.id)
+                TicketWalletTeamView(target: target, reader: reader, coordinator: makeCoordinator(), openTeam: makeCoordinator).id(target.id)
             } else { ContentUnavailableView("ticketTeam.changed", systemImage: "lock") }
         }
     }
@@ -164,8 +164,12 @@ struct TicketWalletTeamContext: Hashable {
     @State private var model: TicketWalletTeamModel
     @State private var visible = false
     @Environment(\.scenePhase) private var scenePhase
-    init(target: TicketWalletTeamEntryState.Target, reader: any TicketWalletReading, coordinator: TeamCoordinator) {
-        self.target = target; self.reader = reader
+    /// MP signup `goMyTeam` → `pages/team/detail`: a fresh team-page coordinator for the full detail (writes included).
+    /// This roster stays read-only; it reads my teams again when the player comes back.
+    private let openTeam: (() -> TeamCoordinator)?
+    init(target: TicketWalletTeamEntryState.Target, reader: any TicketWalletReading, coordinator: TeamCoordinator,
+         openTeam: (() -> TeamCoordinator)? = nil) {
+        self.target = target; self.reader = reader; self.openTeam = openTeam
         _model = State(initialValue: TicketWalletTeamModel(target: target, reader: reader, coordinator: coordinator))
     }
     var body: some View {
@@ -216,6 +220,12 @@ struct TicketWalletTeamContext: Hashable {
                         if let expiry = detail.team.expireTime, !expiry.isEmpty {
                             LabeledContent("team.invitationExpiry", value: expiry)
                         } else { Text("team.invitationExpiryUnknown") }
+                        if let openTeam {
+                            NavigationLink {
+                                TeamDetailView(lookup: .id(detail.team.id), coordinator: openTeam(), makeCoordinator: openTeam, requiresMembership: true)
+                            } label: { Label("ticketTeam.manage", systemImage: "person.3") }
+                                .accessibilityIdentifier("ticketTeam.manage")
+                        }
                     }
                     Section("team.members.title") {
                         if detail.members.isEmpty { ContentUnavailableView("team.members.empty", systemImage: "person.2") }

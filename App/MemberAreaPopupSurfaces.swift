@@ -1042,7 +1042,7 @@ struct MemberOptionSheet<ID: Hashable>: View {
                             }
                             .contentShape(Rectangle())
                         }
-                        .foregroundStyle(item.isDanger ? Color.red : Color.primary)
+                        .foregroundStyle(item.isDanger ? CYColor.dangerText : Color.primary)
                         .accessibilityAddTraits(item.id == selectedID ? .isSelected : [])
                         .memberOptionalIdentifier(item.identifier)
                     }

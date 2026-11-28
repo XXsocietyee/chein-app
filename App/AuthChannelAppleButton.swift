@@ -37,8 +37,8 @@ struct AuthChannelAppleButton: UIViewRepresentable {
                   let attempt = model.coordinator.beginAppleAuthorization() else { return }
             self.window = window; self.attempt = attempt
             let request = ASAuthorizationAppleIDProvider().createRequest()
-            // Match the source authorization scopes. Only identityToken is exchanged;
-            // no supplied email or name is persisted or added to an invented API route.
+            // Match the source authorization scopes. identityToken plus, on the first authorization only,
+            // the given/family name (P2-5) go to /api/login/apple; nothing is persisted on the device.
             request.requestedScopes = [.email, .fullName]
             let controller = ASAuthorizationController(authorizationRequests: [request])
             self.controller = controller
@@ -59,7 +59,8 @@ struct AuthChannelAppleButton: UIViewRepresentable {
                 model.coordinator.failAppleAuthorization(attempt, issue: .appleMissingCredential)
                 return
             }
-            model.exchangeApple(attempt, identityToken: token)
+            model.exchangeApple(attempt, identityToken: token,
+                                givenName: credential.fullName?.givenName, familyName: credential.fullName?.familyName)
         }
         func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
             guard self.controller === controller, let attempt else { return }

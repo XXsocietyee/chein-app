@@ -80,7 +80,6 @@ final class PublicContentShareLinkTests: XCTestCase {
         let raw = "https://www.chengyinhub.com/pages/templatedetail/topic-detail/index?id=15"
         let url = try XCTUnwrap(URL(string: raw))
         XCTAssertNil(CheinDeepLink(url: url))
-        // PC-A-8-1 (parity r1): a verified universal link to the MP template detail opens that template.
         XCTAssertEqual(UniversalLinkParser(verifiedHTTPSOrigins: ["https://www.chengyinhub.com"]).parse(url),
                        .miniProgramPage(try XCTUnwrap(MiniProgramPageLink(path: "pages/templatedetail/topic-detail/index", query: ["id": "15"]))))
         // Function audit P2-2: the share is that https link, so the copy-text fallback is gone.
@@ -131,5 +130,15 @@ final class PublicContentShareLinkTests: XCTestCase {
         guard case .miniProgramPage(let page)? = parser.parse(ticket) else { return XCTFail("ticket share is a reviewed page") }
         XCTAssertEqual(page.query, ["id": "8", "sourceClubId": "42", "clubCode": "club-42-t8"])
         XCTAssertNil(PublicContentShareLink.clubTicket(TopicClubShareLink(topicID: 8, sourceClubId: 0, clubCode: nil)))
+    }
+
+    /// MP infomationdetail.js:161 share path: the guide article shares its https link once the parser reads it back.
+    func testInformationSharesTheParsedUniversalLink() throws {
+        let url = try XCTUnwrap(PublicContentShareLink.information(id: 21))
+        XCTAssertEqual(url.absoluteString, "https://www.chengyinhub.com/subpackageA/pages/infomationdetail/infomationdetail?id=21")
+        XCTAssertEqual(UniversalLinkParser(verifiedHTTPSOrigins: ["https://www.chengyinhub.com"]).parse(url),
+                       .miniProgramPage(try XCTUnwrap(MiniProgramPageLink(path: "subpackageA/pages/infomationdetail/infomationdetail", query: ["id": "21"]))))
+        XCTAssertNil(PublicContentShareLink.informationCopyText(id: 21))
+        XCTAssertNil(PublicContentShareLink.information(id: 0))
     }
 }

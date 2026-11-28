@@ -92,6 +92,17 @@ final class OrderLifecycleTests: XCTestCase {
         let unknown = try detail(#""registrationStatus":2,"paymentStatus":2,"verificationStatus":0"#)
         XCTAssertFalse(OrderLifecycleCoordinator.isReviewable(.refund, detail: unknown))
     }
+    /// fix/1128-cn-pay P1-4: an unpaid order's detail actions never include the dead review-sheet payment;
+    /// cancel is first (the pinned slot), and a paid refundable order pins refund.
+    func testDetailActionsSkipReviewSheetPayment() throws {
+        let unpaid = try detail(#""registrationStatus":1,"paymentStatus":1,"verificationStatus":0"#)
+        XCTAssertTrue(OrderLifecycleCoordinator.isReviewable(.payment, detail: unpaid))
+        XCTAssertEqual(OrderLifecycleCoordinator.detailActions(detail: unpaid), [.cancel])
+        let paid = try detail(#""registrationStatus":2,"paymentStatus":2,"verificationStatus":0,"refundInfo":{"refundable":true}"#)
+        XCTAssertEqual(OrderLifecycleCoordinator.detailActions(detail: paid), [.refund])
+        let closed = try detail(#""registrationStatus":1,"paymentStatus":2,"verificationStatus":0"#)
+        XCTAssertTrue(OrderLifecycleCoordinator.detailActions(detail: closed).isEmpty)
+    }
     func testCancelAndRefundRoutesAreDistinct() {
         XCTAssertEqual(OrderLifecycleAction.cancel.sourcePath, "api/registration/cancel")
         XCTAssertEqual(OrderLifecycleAction.refund.sourcePath, "api/registration/cancel-refund")

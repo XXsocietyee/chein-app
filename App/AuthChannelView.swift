@@ -272,7 +272,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
     @ViewBuilder private var status: some View {
         if let issueKey {
             Label { Text(LocalizedStringKey(issueKey)) } icon: { Image(systemName: issueIsSoft ? "info.circle" : "exclamationmark.circle.fill") }
-                .foregroundStyle(issueIsSoft ? Color.secondary : Color.red)
+                .foregroundStyle(issueIsSoft ? Color.secondary : CYColor.dangerText)
                 .accessibilityIdentifier("auth.channels.error")
             if requiresAppUpdate {
                 Text("auth.channels.upgradeRequired").foregroundStyle(CYColor.dangerText)

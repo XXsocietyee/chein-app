@@ -15,10 +15,16 @@ public enum RegistrationPayMethod: String, CaseIterable, Hashable, Sendable {
 
     /// Channels offered in a market, default first. Apple Pay only when the device can pay with it;
     /// Alipay only when `alipayReady`.
+    /// Fix 11-28 P1-3: with the quote's `paymentChannels` known, the US options are exactly what the backend offers
+    /// (`APPLE_PAY` / `APP_STRIPE`), Apple Pay first (P32). Never empty: the picker always has a default.
     public static func options(market: RegionalMarket?, applePayAvailable: Bool,
-                               alipayReady: Bool = RegistrationPayMethod.alipayReady) -> [RegistrationPayMethod] {
+                               alipayReady: Bool = RegistrationPayMethod.alipayReady,
+                               paymentChannels: [String]? = nil) -> [RegistrationPayMethod] {
         switch market ?? .china {
-        case .unitedStates: return applePayAvailable ? [.applePay, .card] : [.card]
+        case .unitedStates:
+            let offered = StripePayEligibility.methods(paymentChannels: paymentChannels, applePayAvailable: applePayAvailable)
+            if paymentChannels != nil, !offered.isEmpty { return offered }
+            return applePayAvailable ? [.applePay, .card] : [.card]
         default: return alipayReady ? [.wechatPay, .alipay] : [.wechatPay]
         }
     }

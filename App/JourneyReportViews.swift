@@ -912,6 +912,12 @@ struct JourneySettleView: View {
     /// mp-journey r3: MP `st-pop` 谢谢 — the centred pop after a rating lands; it stays until 去分享.
     @State private var thanksPop = false
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var settleTypeSize
+    private var settleFactsLayout: AnyLayout {
+        settleTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: CYSpacing.lg))
+            : AnyLayout(HStackLayout(spacing: CYSpacing.xxxl))
+    }
     @Environment(\.dismiss) private var dismiss
     @QuestifyReduceMotion private var reduceMotion
 
@@ -1080,7 +1086,9 @@ struct JourneySettleView: View {
                 Text("mp.settle.rank \(rank)").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)
                     .settleRise(overviewOn, 2, skipped: skipped, reduceMotion: reduceMotion)
             }
-            HStack(spacing: CYSpacing.xxxl) {
+            // a11y-dt r3: the score / stops / assisted / start cells stack at accessibility sizes (same order), so the
+            // data2XL numbers never clip off the sides at AX5.
+            settleFactsLayout {
                 if let score = report.score {
                     VStack(spacing: CYSpacing.xxs) {
                         Text(verbatim: String(shownScore)).cyText(.data2XL).lineLimit(1).minimumScaleFactor(0.7)

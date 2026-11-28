@@ -79,6 +79,12 @@ public struct AccountMarketingReadIntent {
     private var requestID = UUID().uuidString.lowercased()
     private var boundSMSSentAt: Date?
     private var reviewCode: String? // In memory only; cleared on apply, invalidation and failed SMS.
+    /// P0-6: fresh Sign in with Apple proof for an APPLE (no phone) account. In memory only, cleared like reviewCode.
+    private var reviewAppleProof: DeregistrationAppleProof?
+    /// The verification proof the review step holds: an SMS code after a send, or a fresh Apple proof.
+    private var hasReviewProof: Bool { reviewAppleProof != nil || (state.smsSent && reviewCode != nil) }
+    /// The contract lane posts this proof itself; nil outside the review step.
+    public var reviewedAppleProof: DeregistrationAppleProof? { state.step == .review ? reviewAppleProof : nil }
     private var retainedNPCChatData: NPCChatDataCoordinator?
     /// Dormant: nil keeps NPC log deletion OFF; the service also needs its own endpoint approval.
     public var npcChatLogDeletion: NPCChatLogDeletionService?
@@ -86,7 +92,7 @@ public struct AccountMarketingReadIntent {
                 current: @escaping () -> ComplianceSession?, invalidateSession: @escaping (ComplianceSession) async -> Void) {
         self.service = service; self.auth = auth; self.effects = effects; self.current = current; self.invalidateSession = invalidateSession
     }
-    public func invalidate() { marketingPresentation = nil; marketingPresentationActive = false; marketingRunning = false; marketingSession = nil; marketingRevision = UUID(); deregistrationPresentation = nil; deregistrationPresentationActive = false; retainedNPCChatData?.invalidate(); retainedNPCChatData = nil; generation &+= 1; state = .init(); noticeAccepted = false; reviewSession = nil; reviewIssuance = nil; reviewCode = nil; requestID = UUID().uuidString.lowercased(); onChange?(state) }
+    public func invalidate() { marketingPresentation = nil; marketingPresentationActive = false; marketingRunning = false; marketingSession = nil; marketingRevision = UUID(); deregistrationPresentation = nil; deregistrationPresentationActive = false; retainedNPCChatData?.invalidate(); retainedNPCChatData = nil; generation &+= 1; state = .init(); noticeAccepted = false; reviewSession = nil; reviewIssuance = nil; reviewCode = nil; reviewAppleProof = nil; requestID = UUID().uuidString.lowercased(); onChange?(state) }
     /// Signed-out sheet. The screen closes before sign-in; this only selects the step.
     public func noteSignedOut() {
         guard !state.busy else { return }
@@ -301,7 +307,7 @@ public struct AccountMarketingReadIntent {
                 self.state.step = .blocked
                 return
             case .eligible(let method):
-                guard method == .sms else { self.state.step = .verificationUnavailable; return }
+                guard method == .sms || method == .apple else { self.state.step = .verificationUnavailable; return }
             }
             if let impact = result.impact {
                 guard impact.valid(for: session.accountID), impact.confirmable else { self.state.step = .blocked; return }
@@ -373,12 +379,41 @@ public struct AccountMarketingReadIntent {
         do { reviewCode = try AuthChannelInput.code(code); reviewSession = current(); reviewIssuance = service.deregistrationOriginalRevision; state.step = .review; state.error = nil }
         catch { state.error = "compliance.codeRequired" }; changed()
     }
-    public func backToVerification() { guard !state.busy else { return }; reviewCode = nil; state.step = .verify; changed() }
+    /// P0-6: an APPLE account (no bound phone) re-authenticates with Sign in with Apple instead of an SMS code.
+    /// The view passes the fresh credential; nothing is sent until the user confirms on the review step.
+    public func prepareAppleReview(identityToken: String, authorizationCode: String?, intent: AccountDeregistrationIntent? = nil) {
+        guard acceptsDeregistrationIntent(intent), !state.busy, noticeAccepted, state.localCancellationConsent.allowsNewConsent,
+              state.step == .verify, state.status?.verifiesWithApple == true else { return }
+        guard let proof = DeregistrationAppleProof(identityToken: identityToken, authorizationCode: authorizationCode) else {
+            reviewAppleProof = nil
+            state.error = Self.appleReauthFailed
+            changed()
+            return
+        }
+        reviewCode = nil
+        reviewAppleProof = proof
+        reviewSession = current(); reviewIssuance = service.deregistrationOriginalRevision
+        state.step = .review
+        state.error = nil
+        changed()
+    }
+    /// The Apple sheet ended without a credential. A user cancel is silent; any other failure is shown.
+    public func noteAppleReauthFailed(cancelled: Bool) {
+        guard !state.busy, state.step == .verify else { return }
+        reviewAppleProof = nil
+        state.error = cancelled ? nil : Self.appleReauthFailed
+        changed()
+    }
+    public static let appleReauthFailed = "compliance.apple.reauthFailed"
+    public static let appleReauthRejected = "compliance.apple.reauthRejected"
+    public func backToVerification() { guard !state.busy else { return }; reviewCode = nil; reviewAppleProof = nil; state.step = .verify; changed() }
     public func apply(explicitlyConfirmed: Bool, recordNoticeConsent: Bool = false, expectedConsentVersion: String? = nil, intent: AccountDeregistrationIntent? = nil) async {
-        guard explicitlyConfirmed, noticeAccepted, state.smsSent, state.step == .review, let code = reviewCode else { return }
+        guard explicitlyConfirmed, noticeAccepted, state.step == .review, hasReviewProof else { return }
         guard acceptsDeregistrationIntent(intent), state.localCancellationConsent.allowsNewConsent,
               reviewSession == current(), reviewIssuance == service.deregistrationOriginalRevision else { return }
-        reviewCode = nil
+        let code = reviewCode ?? ""
+        let appleProof = reviewAppleProof
+        reviewCode = nil; reviewAppleProof = nil
         let issuance = service.deregistrationOriginalRevision
         await run(deregistration: true) { session, stamp in
             do {
@@ -389,7 +424,7 @@ public struct AccountMarketingReadIntent {
                     try self.deregistrationFence(session, stamp, issuance: issuance)
                 }
                 let result = try await self.service.apply(smscode: code, requestID: self.requestID, session: session, impact: self.state.status?.impact,
-                    whileCurrent: { self.generation == stamp && self.current() == session })
+                    appleProof: appleProof, whileCurrent: { self.generation == stamp && self.current() == session })
                 try self.deregistrationFence(session, stamp, issuance: issuance); self.state.status = result
                 if result.blocked { self.state.step = .blocked; self.noticeAccepted = false; self.state.smsSent = false }
                 else if result.pending {
@@ -465,7 +500,7 @@ public struct AccountMarketingReadIntent {
             changed()
             return
         case .eligible(let method):
-            guard method == .sms else { state.step = .verificationUnavailable; changed(); return }
+            guard method == .sms || method == .apple else { state.step = .verificationUnavailable; changed(); return }
         }
         if let impact = result.impact {
             guard let session = current(), impact.valid(for: session.accountID), impact.confirmable else { state.step = .blocked; changed(); return }
@@ -498,7 +533,7 @@ public struct AccountMarketingReadIntent {
     }
     /// Records cancellation AGREE on the existing consent client, then returns. The apply body is sent by the view.
     public func prepareContractApplyConsent(recordNoticeConsent: Bool, expectedConsentVersion: String?, intent: AccountDeregistrationIntent? = nil) async -> Bool {
-        guard acceptsDeregistrationIntent(intent), noticeAccepted, state.smsSent, state.step == .review, reviewCode != nil,
+        guard acceptsDeregistrationIntent(intent), noticeAccepted, state.step == .review, hasReviewProof,
               state.localCancellationConsent.allowsNewConsent,
               reviewSession == current(), reviewIssuance == service.deregistrationOriginalRevision,
               let session = current() else { return false }
@@ -515,10 +550,20 @@ public struct AccountMarketingReadIntent {
             return false
         }
     }
-    public func adoptContractApply(_ outcome: AccountPublishMPContract.DeregisterApplyOutcome?, intent: AccountDeregistrationIntent? = nil) async {
-        guard acceptsDeregistrationIntent(intent), noticeAccepted, state.smsSent, state.step == .review, reviewCode != nil,
+    /// `refusal` is the server's explicit refusal text (wrong code, Apple identity mismatch): nothing was
+    /// applied, so the screen returns to verification with a clear error instead of the unknown state.
+    public func adoptContractApply(_ outcome: AccountPublishMPContract.DeregisterApplyOutcome?, refusal: String? = nil, intent: AccountDeregistrationIntent? = nil) async {
+        guard acceptsDeregistrationIntent(intent), noticeAccepted, state.step == .review, hasReviewProof,
               let session = current() else { return }
-        reviewCode = nil
+        let usedApple = reviewAppleProof != nil
+        reviewCode = nil; reviewAppleProof = nil
+        if outcome == nil, let refusal {
+            state.step = .verify
+            state.smsSent = false
+            state.error = usedApple ? Self.appleReauthRejected : refusal
+            changed()
+            return
+        }
         switch outcome {
         case .blocked(let blockers):
             state.status = decodedDeregistration(status: "BLOCKED", blockers: blockers, method: "UNAVAILABLE", executeAfter: nil)

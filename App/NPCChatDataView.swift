@@ -142,9 +142,10 @@ struct NPCChatDataPresentation: Identifiable {
                 }
                 if coordinator.phase == .loading {
                     Section {
-                        CYSkeleton()
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel(Text("npcData.loading"))
+                        // MP npc-chat wxml:24 visible 正在读取你账号下的全部 AI 对话… (aria-role status).
+                        ProgressView { Text("npcData.loading") }
+                            .frame(maxWidth: .infinity)
+                            .accessibilityIdentifier("npcData.loading")
                     }
                 }
                 if let value = coordinator.data {

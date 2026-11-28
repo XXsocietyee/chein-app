@@ -1,0 +1,13 @@
+// Owner-supplied public identifiers (docs/release/owner-values.md). Included by Base.xcconfig, so every market and
+// configuration sees the same values; a gitignored Local*.xcconfig may still override them for local checks.
+// No secret belongs here: the WeChat AppSecret is `app.wechat.app.appsecret` on the backend.
+
+// P0-5: WeChat Open Platform mobile-app AppID (starts with "wx", NOT the mini-program AppID). The placeholder is a valid
+// URL scheme that no WeChat app answers, and WeChatAppLaunch rejects it (no "wx" prefix), so the WeChat button stays
+// hidden until the real AppID is set. It also fills the CFBundleURLTypes "weixin" scheme in Config/Info.plist.
+QUESTIFY_WECHAT_APP_ID = chein-wechat-unset
+// The Universal Link registered for the app on the WeChat Open Platform (owner plan 9-14). Must end in "/".
+// `$()` keeps the URL from being read as an xcconfig comment.
+QUESTIFY_WECHAT_UNIVERSAL_LINK = https:/$()/www.chengyinhub.com/app/
+// P1-1: the one verified https origin for Universal Links (AppUniversalLinkRouter). Host name only.
+QUESTIFY_APP_LINK_DOMAIN = www.chengyinhub.com

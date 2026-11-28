@@ -265,7 +265,7 @@ import SwiftUI
                 Text(verbatim: PlayAreaPopupCopy.paymentsOpen
                     ? c.tr("将给 \(paidCount) 位已付款玩家全额退款,不可撤销。活动同时下架。")
                     : "—")
-                    .foregroundStyle(PlayAreaPopupCopy.paymentsOpen ? Color.red : Color.secondary)
+                    .foregroundStyle(PlayAreaPopupCopy.paymentsOpen ? CYColor.dangerText : Color.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityIdentifier("activity.hostCancel.summary")
@@ -328,7 +328,7 @@ import SwiftUI
                 Spacer(minLength: 8)
                 Text(verbatim: "\(trimmed.count)/\(ActivityHostCancelRules.reasonLimit)")
                     .monospacedDigit()
-                    .foregroundStyle(trimmed.count > ActivityHostCancelRules.reasonLimit ? Color.red : Color.secondary)
+                    .foregroundStyle(trimmed.count > ActivityHostCancelRules.reasonLimit ? CYColor.dangerText : Color.secondary)
             }
         }
 
