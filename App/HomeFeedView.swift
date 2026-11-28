@@ -246,6 +246,13 @@ import UIKit
                     }
                 } description: {
                     if !submittedKeyword.isEmpty { Text("homeFeed.emptyHint") }
+                } actions: {
+                    // Next step (07:05 sweep): the other 首页 feed tab, the MP's own second tab.
+                    Button(kind == .topics ? LocalizedStringKey("homeFeed.empty.seeActivities") : LocalizedStringKey("homeFeed.empty.seeTopics")) {
+                        kind = kind == .topics ? .activities : .topics
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("homeFeed.empty.switchKind")
                 }
             }
             if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {

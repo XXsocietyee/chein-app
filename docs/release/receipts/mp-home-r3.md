@@ -389,6 +389,14 @@ Merged `origin/ui/combined-r7` (pbxproj regenerated). Gates: generate_project OK
 | **P2-3d** 关联玩法模板 rows not tappable → MP `scene-play-activity-detail/index.wxml:69` `goTemplateDetail` → `templatedetail?id=&scope=my` → `App/ActivityAssociatedPlaysSection.swift` | Rows are read-only by an earlier privacy decision ("the myinfo grant is not inherited"; `ActivityAssociatedPlaysTests.testAllowedResponseReadsOnlyThreeDisplayFieldsAndKeepsReturnedOrder` pins that no `id`/`imgUrl` is decoded). | **Not done — needs coordinator decision**: MP opens `scope=my` (the organizer's own-template read), which a viewer cannot use; the safe native target would be the public `templatedetail?id=` read, which changes a pinned privacy contract. |
 
 
+## Round 3 continue (30) — sweep 11-28 ~06:48 (build ffeef67c7), mp-home sheets zh-Hans + en; 07:05 states note
+
+Merged `origin/ui/combined-r7` (clean). `sheet-zh-Hans.jpg` / `sheet-en.jpg`: d2-home-offline, d2-home, d2-search-results, d2-search, rep3-activity-detail, wave-today-club read correctly in both languages; no open coordinator item for mp-home. Every `pages/index/index.js` target already has a row. Level B (Crafted).
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `pages/index/index.wxml:246,283` `cy-empty` 暂时没有主题 / 暂时没有活动 → `App/HomeFeedView.swift` `streamSection` (coordinator 07:05, `d2-home-empty`, listed under mp-states; the file is mp-home's) | The empty `ContentUnavailableView` offered no next step. The MP empty has a title only; its next step on this page is the other feed tab. | **Fixed** — one `.bordered` action in the `ContentUnavailableView` `actions:` switches the system picker: 看看活动 / See activities on 主题, 看看主题 / See themes on 活动 (`homeFeed.empty.seeActivities` / `.seeTopics`, en + zh-Hans, id `homeFeed.empty.switchKind`); the query change reloads through the existing `.onChange(of: query)`. Title, icon, keyword hint and `homeFeed.empty` id unchanged (`HomeFeedFlowTests.testEmptyStateIsNotAnError` still holds). |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -429,3 +437,7 @@ Merged `origin/ui/combined-r7` (pbxproj regenerated). Gates: generate_project OK
 - Function audit P2-3b (city consent → locate) and P2-3d (关联玩法模板 tap, needs a decision).
 - Needs a simulator pass (continue 28): 首页 map button opens the explorer titled with the 首页 city and 搜索此区域 enabled.
 - Needs a device pass (continue 29): 首页 city rail with location not determined shows no prompt and loads around the chosen area.
+- Needs a simulator pass (continue 30): `d2-home-empty` with the 看看活动 / See activities button in en + zh-Hans, AX5.
+
+## For other lanes
+- mp-states: the 07:05 `d2-home-empty` next-step item is done on `mp/r3-home` (continue 30); `r3-roam-routes-empty` stays yours / mp-roam.

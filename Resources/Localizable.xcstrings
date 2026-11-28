@@ -80983,6 +80983,40 @@
         }
       }
     },
+    "homeFeed.empty.seeActivities": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看活动"
+          }
+        }
+      }
+    },
+    "homeFeed.empty.seeTopics": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See themes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看主题"
+          }
+        }
+      }
+    },
     "homeFeed.emptyHint": {
       "localizations": {
         "en": {
