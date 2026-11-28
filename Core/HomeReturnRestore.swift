@@ -7,7 +7,7 @@ import Foundation
 /// file performs no I/O. Radius, dwell, freshness, cooldown and restore frequency are
 /// server-versioned policy, never client defaults. The home point and the device fix
 /// are never logged or exported (`description` is redacted). W20 never reads this.
-public enum HomeReturnFailure: Error, Equatable {
+public enum HomeReturnFailure: Error, Equatable, Sendable {
     case disabled, locationOff, permissionDenied, lowAccuracy, staleFix, cooldown(retryAfterSeconds: Int)
     case outOfRadius, homeChanged, proofExpired, noHome, network, unknown, invalid
     /// Whether the user can act on it right now (vs. waiting or changing settings).

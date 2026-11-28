@@ -77,6 +77,10 @@ struct PlayThemeMusicKey: Equatable {
     @State private var showPlayTools = false
     /// MP `playContact` (联系主办 / 联系商家) for the 游玩工具 row; nil hides it.
     @State private var playContact: PlayContact?
+    /// mp-journey r3: MP 游玩工具 `sessStats` (本局用时 · 当前得分 · 同行者榜 第 N 名), read when the sheet opens.
+    @State private var sessionStats: PlayToolsSessionStats?
+    @State private var sessionStatsOff = false
+    @Environment(\.playToolsSessionStatsLoader) private var sessionStatsLoader
     @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
     @StateObject private var musicLifetime = PlayBackgroundMusicLifetime()
     @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
@@ -288,6 +292,10 @@ struct PlayThemeMusicKey: Equatable {
         }
     }
     var body: some View {
+        playExperienceTail
+    }
+
+    private var playExperienceScene: some View {
         presentationLayer
         // fix/1128c-ai-weather: story weather (SURVIVAL look) or live weather + weather events over the play scene.
         .modifier(PlaySceneWeather(topicID: model.snapshot?.result.topicID, latitude: sceneWeatherPoint?.latitude,
@@ -299,6 +307,10 @@ struct PlayThemeMusicKey: Equatable {
         // One page-level host (the lead section used to own the poll, so it only ran while that row was on screen).
         .task(id: model.interactionContext) { await model.probeLead(context: model.interactionContext) }
         .modifier(PlayLeadProgressPollingModifier(model: model, context: model.interactionContext))
+    }
+
+    private var playExperienceLoads: some View {
+        playExperienceScene
         .modifier(ActiveSessionPlayHostMarker())
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
@@ -328,6 +340,10 @@ struct PlayThemeMusicKey: Equatable {
             // guard still fails, so the run record was never read and Start did nothing. Restore once the load is done.
             if model.gameplayMode == .cityOrientation { await model.restoreRun(); projectAmbient() }
         }
+    }
+
+    private var playExperienceOuter: some View {
+        playExperienceLoads
         .onChange(of: model.gameplayMode) { _, mode in
             let previous = presentedMode
             if let mode { presentedMode = mode }
@@ -348,6 +364,10 @@ struct PlayThemeMusicKey: Equatable {
                   model.hasCurrentMediaSnapshot, finishShownFor != model.identity else { return }
             finishShownFor = model.identity; finishScreen = true
         }
+    }
+
+    private var playExperienceTail: some View {
+        playExperienceOuter
         .cyFullScreenCover(isPresented: $finishScreen) {
             if NativeR2Flags.cityOrientation { cityFinishSummary } else { finishMedalScreen }
         }
@@ -368,6 +388,7 @@ struct PlayThemeMusicKey: Equatable {
         // started and not ended, in the background; the run's end stops it.
         .onChange(of: model.clock.phase, initial: true) { _, phase in syncCityRunTracking(phase) }
     }
+
     private func syncCityRunTracking(_ phase: PlayRunClock.Phase) {
         guard NativeR2Flags.cityOrientation, model.gameplayMode == .cityOrientation else { return }
         cityLocation.setRunActive(phase == .running || phase == .paused)
@@ -774,7 +795,25 @@ struct PlayThemeMusicKey: Equatable {
                               openPreferences: openPlayTools)
             }
     }
-    private func openPlayTools() { showPlayTools = true }
+    private func openPlayTools() {
+        showPlayTools = true
+        Task { await loadSessionStats() }
+    }
+    /// MP `loadSessionStats`: city orientation (mode 1) with an orient session only; keeps shown values while re-reading.
+    private func loadSessionStats() async {
+        guard let loader = sessionStatsLoader, let result = model.snapshot?.result, result.mode == 1,
+              let sessionID = result.routeState?.sessionID, sessionID > 0,
+              let topicID = result.topicID, topicID > 0 else { sessionStats = nil; return }
+        var activityID = 0
+        if case .activity(let id) = model.scope { activityID = id }
+        guard let scope = try? OrientSessionScope(topicID: topicID, activityID: activityID, productType: 1) else { sessionStats = nil; return }
+        var showsValues = false
+        if case .some(.ready) = sessionStats { showsValues = true }
+        if !showsValues { sessionStats = .loading }
+        let read = await loader(sessionID, scope)
+        sessionStatsOff = read == nil
+        sessionStats = read
+    }
     /// PLAY-6a: lead actions already sit in `PlayLeadSection` on the page, so the sheet carries stats + preferences.
     private var playToolsSheet: some View {
         PlayToolsAndLeadSheetView(
@@ -793,6 +832,9 @@ struct PlayThemeMusicKey: Equatable {
             journalAttributes: model.snapshot.map(PlayJournal.attributes(in:)) ?? [],
             boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
             scoreDestination: orientScoreDestination,
+            sessionStats: sessionStats,
+            sessionStatsOff: sessionStatsOff,
+            onRetrySessionStats: { Task { await loadSessionStats() } },
             entryCodeRegistrationID: entryCode?.registrationID,
             contact: playContact,
             onTeamBroadcast: teamBroadcast
@@ -1316,8 +1358,12 @@ struct PlayThemeMusicKey: Equatable {
         return PlayGameStage.resolve(nodeID: nodeID, nodes: result.nodes, chapters: result.chapters)
     }
     var body: some View {
+        nodeExperienceOuter
+    }
+
+    private var nodeExperienceBase: some View {
         let context = model.interactionContext
-        nodeWithConfirms(context: context)
+        return nodeWithConfirms(context: context)
             .environment(\.playGameStage, gameStage)
             // Native r2 games: the kit shell shows the same ladder from its toolbar hint button.
             .environment(\.nativeGameHelp, helpEnabled ? help.map { NativeGameHelpContext(model: $0, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts,
@@ -1338,6 +1384,10 @@ struct PlayThemeMusicKey: Equatable {
             }
             .cyToast(verbatimMessage: $nodeToastMessage)
             // Native r2 M4: a revealed hint (story or game stop) also shows as a hint island; "下一条提示" reopens the ladder.
+    }
+
+    private var nodeExperienceChrome: some View {
+        nodeExperienceBase
             .islandHints(helpEnabled ? help : nil) { showHelpPanel = true }
             .onChange(of: answer) { _, _ in refusal = nil }
             // A new read (advanced step accepted, stop done, run resynced) replaces the reason from the last tap.
@@ -1353,9 +1403,14 @@ struct PlayThemeMusicKey: Equatable {
                     Task { await model.load() }
                 }
             }
+    }
+
+    private var nodeExperienceOuter: some View {
+        nodeExperienceChrome
             .onAppear { if arrival == nil { arrival = PlayArrivalService(runtime: model, location: RuntimeNativeLocationProvider(enabled: true)) } }
             .onDisappear { journey?.roleContent.close(); device?.cancel(); arrival?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
     }
+
 
     @ViewBuilder
     private func nodeList(context: PlayInteractionContext?) -> some View {

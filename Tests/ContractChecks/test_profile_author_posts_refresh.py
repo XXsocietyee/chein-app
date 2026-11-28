@@ -74,13 +74,15 @@ class ProfileAuthorPostsRefreshSourceChecks(unittest.TestCase):
         self.assertIn('publicReader == nil || publicRetention?.memberID == memberID', self.core)
     def test_refresh_busy_retained_and_retry_ui(self):
         # 11-28 05:35 sweep: refresh is the host's pull-down (MP), not a row; the hosts bump refreshTrigger or call refresh.
-        for key in ['refreshing', 'retained', 'retry', 'more', 'empty', 'invalidCursor']:
+        for key in ['refreshing', 'retained', 'more', 'empty', 'invalidCursor']:
             self.assertIn('"profile.postsRefresh.' + key + '"', self.view)
+        # mp-states r3: 重试 sits inside the one SocialIssueView state; its id stays profile.postsRefresh.retry via the prefix.
+        self.assertIn('identifierPrefix: "profile.postsRefresh."', self.view)
         self.assertNotIn('"profile.postsRefresh.refresh"', self.view)
         self.assertIn('.onChange(of: refreshTrigger)', self.view)
         self.assertIn('.cyRefreshable { await refreshPage() }', self.host)
         self.assertIn('.disabled(model.isBusy)', self.view)
-        self.assertIn('if model.failedOperation != nil', self.view)
+        self.assertIn('guard model.failedOperation != nil else { return nil }', self.view)
     def test_empty_requires_successfully_loaded_page(self):
         self.assertIn('if model.pagination.hasLoadedPage && model.pagination.items.isEmpty', self.view)
     def test_gallery_contract_not_replaced(self):

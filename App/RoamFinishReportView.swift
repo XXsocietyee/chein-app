@@ -189,7 +189,7 @@ struct RoamFinishReport: Equatable {
             Text(verbatim: footprints.map { String(revealed ? $0 : 0) } ?? "—")
                 .font(.system(.largeTitle, design: .default).weight(.black).italic())
                 .contentTransition(.numericText(value: Double(revealed ? (footprints ?? 0) : 0)))
-                .dynamicTypeSize(.accessibility3)
+                .dynamicTypeSize(max(dynamicTypeSize, DynamicTypeSize.accessibility3))
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary)
             Text("design.roam.footprints").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)

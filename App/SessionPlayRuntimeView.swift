@@ -64,6 +64,7 @@ import UIKit
                         .environment(\.inGameChannelHost, session.inGameChannelHost)
                         .task(id: session.cityPlayerReadIdentity) { await session.loadCityGamePlayRead() }
                         .environment(\.playRuntimeGap, PlayRuntimeGapBridge.binding(session: session, scope: scope, topicID: model.snapshot?.result.topicID))
+                        .environment(\.playToolsSessionStatsLoader, PlayToolsSessionStatsRead.make(session: session))
                         .task(id: session.sessionRevision) { await mountTeamAndFinish(scope: scope, model: model) }
                         .task(id: session.sessionRevision) { await consumeInviteCode(scope: scope) }
                 } else { CYEmptyState(systemImage: "gamecontroller", "playx.disabled") }
