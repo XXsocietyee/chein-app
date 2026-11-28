@@ -24,6 +24,8 @@ public enum PlayStoreDayWriteOutcome: Equatable {
     case confirmed(message: String?, data: PlayWireValue)
     case rejected(String?)
     case unknown
+    /// HTTP 5xx or 408 that still carried a server sentence. The write stays unproven; the sentence is shown beside readback.
+    case notedUnknown(String)
 }
 /// pages/play/merchant `arriveRefusal`: why `/api/play/arrive` refused, and which retry the CTA becomes.
 public enum PlayStoreDayArriveRefusal: Equatable {
@@ -216,12 +218,17 @@ public enum PlayStoreDayArriveOutcome: Equatable {
         if let inspect, let root = try? JSONDecoder().decode(PlayWireValue.self, from: bytes) { inspect(root) }
         guard currentSession() == session else { return .unknown }
         if status == 401 { onUnauthorized(session); return .rejected(nil) }
+        if status >= 500 || status == 408, let note = serverSentence(bytes) { return .notedUnknown(note) }
         if status >= 500 || status == 408 { return .unknown }
         guard (200..<300).contains(status), let envelope = try? decodeEnvelope(bytes) else { return (200..<300).contains(status) ? .unknown : .rejected(nil) }
         return envelope.code == 200 ? .confirmed(message: envelope.message, data: envelope.data) : .rejected(envelope.message)
     }
 
     // MARK: Plumbing
+    private func serverSentence(_ bytes: Data) -> String? {
+        let root = try? JSONDecoder().decode(PlayWireValue.self, from: bytes)
+        return PlayerGapReply.sentence(root?["msg"].text)
+    }
     private struct Envelope { let code: Int; let message: String?; let data: PlayWireValue }
     private func decodeEnvelope(_ bytes: Data) throws -> Envelope {
         guard let root = try? JSONDecoder().decode(PlayWireValue.self, from: bytes), let code = root["code"].tolerantInteger else { throw PlayStoreDayFailure.malformed }
