@@ -215,6 +215,14 @@ Merged `origin/ui/combined-r7` (793c3190b). Sweep sheets (en / zh-Hans): `d2-inb
 | pages/club/detail 成员 / 贡献榜 row → pages/userinfo/userinfo (`goMemberProfile`, detail index.js:2506 navigateTo) → App/ClubPublicRosterView.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` | `navigationDestination(item:)` push of `SocialPublicProfileView` + `.cyPushedChrome()`; the roster's onDisappear reset is skipped while the profile is pushed (as with the sheet), scene-phase / identity checks still close it | fixed |
 | talent/list 帖文 post tap / author / club chip → square detail, club detail (postId), pages/userinfo (onPostTap / onPostUser / onPostClub) | — | `navigationDestination(item:)` pushes in ClubCommunityFeedView (ClubCommunityViews.swift:471-493) | OK |
 
+## Re-scan 11-28 00:4x (sweep build 283dd3b52; mp-nav sheets clean)
+
+Merged `origin/ui/combined-r7` (283dd3b52). Sweep sheets (en / zh-Hans) `d2-inbox`, `ia-tabs`, `login-player`, `onboarding-1`, `welcome`: clean, no new coordinator row for mp-nav. Contract-cleanup row `/api/compliance/usage-records` already fixed (21:0x). Next edge without a row: club detail 帖子 post-card author.
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| pages/club/detail 帖子 post-card author → pages/userinfo/userinfo (`onPostUser`, detail index.js:2895-2897 navigateTo) → App/ClubPostAuthorProfile.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` + 关闭 around `SocialPublicProfileView` | `NavigationLink` push of `ClubPostAuthorDestination` (no own stack, no 关闭, `.cyPushedChrome()`, system back); destination still re-checks post / identity / profile reader and pops when stale. Author label (avatar + name) unchanged; `club.postAuthor.close` retired | fixed |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
