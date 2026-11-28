@@ -303850,7 +303850,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use each chapter's colours"
+            "value": "Use each chapter’s colors"
           }
         },
         "zh-Hans": {
@@ -303884,7 +303884,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Theme colours"
+            "value": "Theme colors"
           }
         },
         "zh-Hans": {
@@ -303901,7 +303901,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Song"
+            "value": "Serif"
           }
         },
         "zh-Hans": {
@@ -303918,7 +303918,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kai"
+            "value": "Calligraphic"
           }
         },
         "zh-Hans": {
@@ -303935,7 +303935,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hei"
+            "value": "Sans serif"
           }
         },
         "zh-Hans": {
@@ -340121,7 +340121,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Playable until %1$lld/%2$lld · Days left: %3$lld"
+            "value": "Playable until %1$lld/%2$lld · %#@day@ left"
+          },
+          "substitutions": {
+            "day": {
+              "argNum": 3,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg day"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg days"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -340138,7 +340160,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Playable until %1$lld/%2$lld (when the topic ends) · Days left: %3$lld"
+            "value": "Playable until %1$lld/%2$lld, when the topic ends · %#@day@ left"
+          },
+          "substitutions": {
+            "day": {
+              "argNum": 3,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg day"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg days"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -351703,7 +351747,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld/%2$lld people"
+            "value": "%1$lld/%#@person@"
+          },
+          "substitutions": {
+            "person": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg person"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg people"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
