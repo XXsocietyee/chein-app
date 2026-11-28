@@ -15,6 +15,10 @@ import SwiftUI
 
     @State private var dragTranslation: CGFloat = 0
     @State private var isDragging = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// Detent change: the system spring, or a short ease under Reduce Motion (no overshoot).
+    private var settle: Animation { reduceMotion ? CYMotion.reduced : .snappy }
 
     private var restingHeight: CGFloat { RoamMapHomePanelMetrics.height(of: detent, available: available, peek: peekHeight) }
     private var currentHeight: CGFloat {
@@ -32,7 +36,7 @@ import SwiftUI
         .frame(maxWidth: .infinity)
         .background(.background)
         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 10, topTrailingRadius: 10, style: .continuous))
-        .animation(isDragging ? nil : .snappy, value: detent)
+        .animation(isDragging ? nil : settle, value: detent)
     }
 
     /// The sheet grabber: drag between detents; VoiceOver swipes up / down to change the detent.
@@ -53,7 +57,7 @@ import SwiftUI
                         let target = restingHeight - value.predictedEndTranslation.height
                         let next = nearestDetent(to: target)
                         isDragging = false
-                        withAnimation(.snappy) {
+                        withAnimation(settle) {
                             dragTranslation = 0
                             detent = next
                         }
@@ -85,7 +89,7 @@ import SwiftUI
         let detents = RoamMapHomeModel.detents
         let index = detents.firstIndex(of: detent) ?? 0
         let next = min(detents.count - 1, max(0, index + offset))
-        withAnimation(.snappy) { detent = detents[next] }
+        withAnimation(settle) { detent = detents[next] }
     }
 }
 

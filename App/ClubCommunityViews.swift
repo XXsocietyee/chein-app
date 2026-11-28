@@ -769,6 +769,7 @@ struct ClubCommunityPostTile: View {
                     }
                         .accessibilityLabel(Text("club.community.like"))
                         .accessibilityValue(post.likeCount > 0 ? Text(verbatim: String(post.likeCount)) : Text(verbatim: ""))
+                        .accessibilityAddTraits(post.liked ? .isSelected : [])
                         .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
                     Button(action: openComments) {
                         if commentsExpanded { Label("club.discussion.collapse", systemImage: "bubble") }
