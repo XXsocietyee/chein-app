@@ -106,6 +106,23 @@ final class ProfileContractTests: XCTestCase {
         XCTAssertTrue(ProfileBadgeWall(identities: [], medals: []).isEmpty)
     }
 
+    func testOrderTeamStartedFollowsTheMiniProgramStartTime() throws {
+        let json = """
+        {"id":21,"ownerType":2,"registrationStatus":2,"paymentStatus":2,"orderNum":1,
+         "cmsActivity":{"name":"Session","teamMode":2,"startDate":"2026-11-28 19:00:00"}}
+        """
+        let order = try decode(ProfileOrder.self, json)
+        let start = try XCTUnwrap(MoneyParityTime.timestamp("2026-11-28 19:00:00"))
+        XCTAssertTrue(order.teamOpen)
+        XCTAssertFalse(order.teamStarted(nowMilliseconds: start - 60_000))
+        XCTAssertTrue(order.teamStarted(nowMilliseconds: start))
+        XCTAssertTrue(order.teamStarted(nowMilliseconds: start + 60_000))
+        let noStart = try decode(ProfileOrder.self, #"{"id":22,"ownerType":2,"registrationStatus":2,"cmsActivity":{"teamMode":1}}"#)
+        XCTAssertTrue(noStart.teamStarted(nowMilliseconds: start))
+        let closed = try decode(ProfileOrder.self, #"{"id":23,"ownerType":2,"registrationStatus":1,"cmsActivity":{"teamMode":1,"startDate":"2020-01-01 10:00:00"}}"#)
+        XCTAssertFalse(closed.teamStarted(nowMilliseconds: start))
+    }
+
     func testOrderDetailFactsFollowTheMiniProgramCard() throws {
         let json = """
         {"id":12,"ownerType":2,"registrationStatus":2,"paymentStatus":2,"orderNum":2,

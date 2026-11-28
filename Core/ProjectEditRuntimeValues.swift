@@ -26,6 +26,10 @@ public enum ProjectEditRuntimeValues {
         public static let needsHP = "mpPublish.values.custom.needsHP"
         public static let bound = "mpPublish.values.custom.bound"
         public static let unknown = "mpPublish.values.custom.unknown"
+        /// MP `saveValueEditor` (bound): 请先在初始状态中启用注册属性.
+        public static let notEnabled = "mpPublish.values.custom.notEnabled"
+        /// MP `saveValueEditor` (bound): 属性定义已变化，请重新读取后编辑关联.
+        public static let definitionChanged = "mpPublish.values.custom.definitionChanged"
     }
 
     /// One MP `runtimeValues` row.
@@ -45,11 +49,13 @@ public enum ProjectEditRuntimeValues {
         }
     }
 
-    /// MP `values.references` places, formatted by the view (第N章费用 / 物品「名」效果 / 关联「id」).
+    /// MP `values.references` places, formatted by the view (第N章费用 / 物品「名」效果 / 关联「id」 /
+    /// 第N章节点「名」玩法绑定 · path).
     public enum Reference: Equatable, Hashable, Sendable {
         case chapterCost(Int)
         case item(String)
         case link(String)
+        case node(chapter: Int, node: String, path: String)
     }
 
     public enum Refusal: Error, Equatable {
@@ -93,7 +99,7 @@ public enum ProjectEditRuntimeValues {
     /// replaces this row's links (a new default PER_POINT link when `link` is on and none existed),
     /// and turns `stateEnabled` on.
     public static func save(_ value: Value, link: Bool, in draft: ProjectEditDraft) throws -> ProjectEditDraft {
-        if bound(in: draft) { throw Refusal.copy(Copy.bound) }
+        if bound(in: draft) { return try saveBoundLinks(value, link: link, in: draft) }
         guard ProjectEditD20Rules.isCounter(value.key) else { throw Refusal.copy(Copy.unknown) }
         let label = value.label.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !label.isEmpty, label.count <= labelLimit else { throw Refusal.copy(Copy.labelInvalid) }
@@ -110,24 +116,43 @@ public enum ProjectEditRuntimeValues {
         if current == nil { row["initial"] = .number(Decimal(value.initial)) }
         if let current { attributes[current] = .object(row) } else { attributes.append(.object(row)) }
         guard attributes.count <= maxValues else { throw Refusal.copy(Copy.tooMany) }
+        rules["attributes"] = .array(attributes)
+        try writeLinks(for: value.key, link: link, into: &rules, draft: draft)
+        rules["stateEnabled"] = .bool(true)
+        return try ProjectEditD20Rules.write(rules, into: draft)
+    }
+
+    /// MP `saveValueEditor` with `r.attributeBinding`: the definition is the registry's, so only this
+    /// row's 关联 is written. The row must be enabled in the binding and unchanged since it was read.
+    static func saveBoundLinks(_ value: Value, link: Bool, in draft: ProjectEditDraft) throws -> ProjectEditDraft {
+        var rules = try readableRules(draft)
+        let enabled = (rules["attributeBinding"]?.object?["enabledKeys"]?.array ?? []).compactMap { $0.text }
+        let stored = (rules["attributes"]?.array ?? []).compactMap { Self.value($0) }.first { $0.key == value.key }
+        guard let stored, enabled.contains(value.key) else { throw Refusal.copy(Copy.notEnabled) }
+        guard stored == value else { throw Refusal.copy(Copy.definitionChanged) }
+        try writeLinks(for: value.key, link: link, into: &rules, draft: draft)
+        rules["stateEnabled"] = .bool(true)
+        return try ProjectEditD20Rules.write(rules, into: draft)
+    }
+
+    /// MP `onValueLinkSwitch` + `saveValueEditor` links: replaces this row's links (a new default
+    /// PER_POINT link when `link` is on and none existed; none when off).
+    private static func writeLinks(for key: String, link: Bool, into rules: inout [String: ProjectEditJSON], draft: ProjectEditDraft) throws {
         let allLinks = rules["statLinks"]?.array ?? []
-        let own = allLinks.filter { $0.object?["sourceKey"]?.text == value.key }
-        var links = allLinks.filter { $0.object?["sourceKey"]?.text != value.key }
+        let own = allLinks.filter { $0.object?["sourceKey"]?.text == key }
+        var links = allLinks.filter { $0.object?["sourceKey"]?.text != key }
         if link {
             guard ProjectEditRuntimeStats.enabled(.hp, in: draft) else { throw Refusal.copy(Copy.needsHP) }
             if own.isEmpty {
-                links.append(defaultLink(source: value.key, existing: allLinks))
+                links.append(defaultLink(source: key, existing: allLinks))
             } else {
                 links.append(contentsOf: own)
             }
         }
-        rules["attributes"] = .array(attributes)
         // MP writes statLinks only when the rules had them or a link exists.
         if !links.isEmpty || rules["statLinks"] != nil {
             rules["statLinks"] = .array(links)
         }
-        rules["stateEnabled"] = .bool(true)
-        return try ProjectEditD20Rules.write(rules, into: draft)
     }
 
     /// MP `removeValue` (the row switch off, or 删除数值): refused while the value is referenced.
@@ -148,8 +173,8 @@ public enum ProjectEditRuntimeValues {
     public static let hpKey = "sys.hp"
     public static let luckKey = "sys.luck"
 
-    /// MP `values.references` for the runtime config (chapter `statCosts`, item `statKey`) and
-    /// journeyRules `statLinks`. The MP also walks node gameplay bindings; native nodes carry no stat keys.
+    /// MP `values.references` for the runtime config (chapter `statCosts`, item `statKey`),
+    /// journeyRules `statLinks` and each node's gameplay binding (the node's retained MP fields).
     public static func references(_ key: String, in draft: ProjectEditDraft) -> [Reference] {
         var found: [Reference] = []
         let theme = (try? ProjectEditThemeRules.readable(draft)) ?? [:]
@@ -182,12 +207,54 @@ public enum ProjectEditRuntimeValues {
                 found.append(.link(object["id"]?.text ?? ""))
             }
         }
+        for (chapterIndex, chapter) in draft.chapters.enumerated() {
+            for (nodeIndex, node) in chapter.nodes.enumerated() {
+                let name = node.name.isEmpty ? String(nodeIndex + 1) : node.name
+                for path in nodePaths(key, in: .object(node.localMetadata), path: "") {
+                    found.append(.node(chapter: chapterIndex + 1, node: name, path: path))
+                }
+            }
+        }
         var unique: [Reference] = []
         for row in found where !unique.contains(row) { unique.append(row) }
         return unique
     }
 
     // MARK: plumbing
+
+    private static let keyFields = ["statKey", "sourceKey", "targetKey"]
+
+    /// MP `references` `walk`: JSON text that starts with `[` or `{` is parsed and walked; arrays add
+    /// `[n]` (1-based); a `statKey` / `sourceKey` / `targetKey` equal to `key` yields `path + field`.
+    /// Object keys are walked in sorted order so the list is stable.
+    static func nodePaths(_ key: String, in node: ProjectEditJSON, path: String) -> [String] {
+        switch node {
+        case .string(let text):
+            let trimmed = text.drop(while: { $0.isWhitespace })
+            guard trimmed.first == "[" || trimmed.first == "{",
+                  let parsed = try? JSONDecoder().decode(ProjectEditJSON.self, from: Data(text.utf8)) else { return [] }
+            return nodePaths(key, in: parsed, path: path)
+        case .array(let rows):
+            var result: [String] = []
+            for (index, row) in rows.enumerated() {
+                result.append(contentsOf: nodePaths(key, in: row, path: path + "[\(index + 1)]"))
+            }
+            return result
+        case .object(let object):
+            var result: [String] = []
+            for field in keyFields where object[field]?.text == key {
+                result.append(path + field)
+            }
+            for field in object.keys.sorted() where !keyFields.contains(field) {
+                if let child = object[field] {
+                    result.append(contentsOf: nodePaths(key, in: child, path: path + field + "."))
+                }
+            }
+            return result
+        default:
+            return []
+        }
+    }
 
     private static func readableRules(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {
         do {

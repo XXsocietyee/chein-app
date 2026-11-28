@@ -39,6 +39,8 @@ public struct ProfileService {
     public static let registrationListPageSize = 10
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    /// Orders, participants and the badge wall share one in-flight body. A finished read is not kept.
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
@@ -83,9 +85,7 @@ public struct ProfileService {
         }
         guard let orderID = Int(id), orderID > 0, String(orderID) == id else { throw APIError.invalidRequest }
         let request = try form(path, fields: ["id": id], token: token)
-        try Task.checkCancellation()
-        let (data, _) = try await transport.send(request)
-        try Task.checkCancellation()
+        let (data, _) = try await send(request)
         return data.isEmpty ? nil : data
     }
 
@@ -136,9 +136,7 @@ public struct ProfileService {
         return request
     }
     private func execute<Value: Decodable>(_ request: URLRequest) async throws -> Value {
-        try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
-        try Task.checkCancellation()
+        let (data, status) = try await send(request)
         if !(200..<300).contains(status) {
             let failure = try? JSONDecoder().decode(FailureEnvelope.self, from: data)
             throw ProfileReadFailure(httpStatus: status, code: failure?.code, message: failure?.msg)
@@ -146,6 +144,16 @@ public struct ProfileService {
         do { return try JSONDecoder().decode(Envelope<Value>.self, from: data).data }
         catch let error as ProfileReadFailure { throw error }
         catch { throw APIError.malformedResponse }
+    }
+    /// Status and decode stay outside the join, so a finished read is dropped and the next call sends again.
+    private func send(_ request: URLRequest) async throws -> (Data, Int) {
+        try Task.checkCancellation()
+        let response = try await reads.join(InFlightReadKey.request(request)) {
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        return (response.data, response.status)
     }
     private struct FailureEnvelope: Decodable {
         let code: Int?

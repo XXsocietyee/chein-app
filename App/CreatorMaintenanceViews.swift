@@ -19,6 +19,8 @@ import QuestifyCore
     var feedbackCursor: String?
     var tickets: [CreatorMaintenanceTicket] = []
     var ticketsCursor: String?
+    var feedbackLoadingMore = false
+    var ticketsLoadingMore = false
     var feedbackPhase: Phase = .idle
     var ticketsPhase: Phase = .idle
     var selected: Set<Int> = []
@@ -53,7 +55,8 @@ import QuestifyCore
     }
 
     func moreFeedback() async {
-        guard let topicID, let cursor = feedbackCursor else { return }
+        guard let topicID, let cursor = feedbackCursor, !feedbackLoadingMore else { return }
+        feedbackLoadingMore = true; defer { feedbackLoadingMore = false }
         guard let page = try? await service.feedback(topicID: topicID, cursor: cursor), topicID == self.topicID else { return }
         feedback += page.items; feedbackCursor = page.hasMore ? page.nextCursor : nil
     }
@@ -68,7 +71,9 @@ import QuestifyCore
     }
 
     func moreTickets() async {
-        guard let cursor = ticketsCursor, let page = try? await service.tickets(cursor: cursor) else { return }
+        guard let cursor = ticketsCursor, !ticketsLoadingMore else { return }
+        ticketsLoadingMore = true; defer { ticketsLoadingMore = false }
+        guard let page = try? await service.tickets(cursor: cursor) else { return }
         tickets += page.items; ticketsCursor = page.hasMore ? page.nextCursor : nil
     }
 
@@ -172,7 +177,7 @@ import QuestifyCore
                         .accessibilityIdentifier("creatorStudio.feedback.\(item.feedbackId)")
                 }
                 if model.feedbackCursor != nil {
-                    Button("creatorStudio.more") { Task { await model.moreFeedback() } }
+                    CYLoadMoreRow("creatorStudio.more", isLoading: model.feedbackLoadingMore) { Task { await model.moreFeedback() } }
                 }
             }
         } header: { Text("creatorStudio.feedback.header") } footer: { Text("creatorStudio.feedback.privacy") }
@@ -205,7 +210,7 @@ import QuestifyCore
                     }.accessibilityIdentifier("creatorStudio.ticket.\(ticket.ticketId)")
                 }
                 if model.ticketsCursor != nil {
-                    Button("creatorStudio.more") { Task { await model.moreTickets() } }
+                    CYLoadMoreRow("creatorStudio.more", isLoading: model.ticketsLoadingMore) { Task { await model.moreTickets() } }
                 }
             }
         } header: { Text("creatorStudio.tickets.header") }

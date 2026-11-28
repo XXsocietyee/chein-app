@@ -5,8 +5,15 @@ import SwiftUI
     let activityID: Int
     @StateObject private var model: TeamScreenModel
     @State private var size = 2
-    @State private var inviteOnly = false
-    init(activityID: Int, coordinator: TeamCoordinator) { self.activityID = activityID; _model = StateObject(wrappedValue: TeamScreenModel(coordinator)) }
+    @State private var inviteOnly: Bool
+    /// MP `teamStarted`: the session has started, so the switch is gone and the team is invite-only.
+    let sessionStarted: Bool
+    init(activityID: Int, coordinator: TeamCoordinator, sessionStarted: Bool = false) {
+        self.activityID = activityID
+        self.sessionStarted = sessionStarted
+        _inviteOnly = State(initialValue: sessionStarted)
+        _model = StateObject(wrappedValue: TeamScreenModel(coordinator))
+    }
     var body: some View {
         Form {
             Section { TeamNotice(coordinator: model.coordinator) }
@@ -16,9 +23,11 @@ import SwiftUI
                 Section {
                     Picker("team.size", selection: $size) { ForEach(context.sizes, id: \.self) { Text(verbatim: "\($0)").tag($0) } }
                         .accessibilityIdentifier("team.create.size")
-                    Toggle("team.invitationOnly", isOn: $inviteOnly).accessibilityIdentifier("team.create.inviteOnly")
+                    if !sessionStarted {
+                        Toggle("team.invitationOnly", isOn: $inviteOnly).accessibilityIdentifier("team.create.inviteOnly")
+                    }
                 } header: { Text("team.create.settings") } footer: {
-                    Text(LocalizedStringKey(inviteOnly ? "team.create.privateHelp" : "team.create.publicHelp"))
+                    Text(LocalizedStringKey(sessionStarted ? "orderDetail.team.started" : (inviteOnly ? "team.create.privateHelp" : "team.create.publicHelp")))
                 }.disabled(model.actionLocked)
                 Section {
                     Text("team.create.consequence").fixedSize(horizontal: false, vertical: true)

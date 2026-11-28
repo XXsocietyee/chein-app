@@ -111,27 +111,20 @@ import SwiftUI
                     Section { CYLoadingState() }
                 }
                 if let failure = flow.failure {
-                    ContentUnavailableView {
-                        Label {
-                            Text(LocalizedStringKey(failureKey(failure)), tableName: "MemberReportProgress")
-                        } icon: {
-                            Image(systemName: "exclamationmark.triangle")
-                        }
-                    } description: {
-                        EmptyView()
-                    } actions: {
-                        Button { load(rendered) } label: { Text("report.retry", tableName: "MemberReportProgress") }
-                            .buttonStyle(.bordered)
-                    }
+                    failureState(failure, rendered: rendered)
                 }
             } else {
+                // mp-states r3: reader unavailable — one state view with a title, the reason as description.
                 ContentUnavailableView {
                     Label {
-                        Text("report.error.disabled", tableName: "MemberReportProgress")
+                        Text("report.unavailable.title", tableName: "MemberReportProgress")
                     } icon: {
-                        Image(systemName: "exclamationmark.triangle")
+                        Image(systemName: "lock")
                     }
+                } description: {
+                    Text("report.error.disabled", tableName: "MemberReportProgress")
                 }
+                .accessibilityIdentifier("report.detail.unavailable")
             }
             // PLY-29-2: the developer boundary footer (which contradicted the appeal button) is gone.
             // R7-MEM-29-1: MP report-detail 查看我的全部举报 (wxml:48-49) opens 我的举报.
@@ -212,6 +205,38 @@ import SwiftUI
         String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "MemberReportProgress", locale: locale))
     }
     private func failureKey(_ failure: MemberReportProgressFailure) -> String { "report.error.\(failure)" }
+    /// mp-states r3: MP report-detail (index.wxml:11-14) — no-permission 暂时不能查看这条举报 · 仅举报人可查看 (no action);
+    /// data error 举报进度加载失败 · errorSub · 重试.
+    @ViewBuilder
+    private func failureState(_ failure: MemberReportProgressFailure,
+                              rendered: (MemberReportProgressCoordinator, MemberReportProgressIntent)?) -> some View {
+        if failure == .denied {
+            ContentUnavailableView {
+                Label {
+                    Text("report.detail.denied.title", tableName: "MemberReportProgress")
+                } icon: {
+                    Image(systemName: "lock")
+                }
+            } description: {
+                Text("report.detail.denied.reason", tableName: "MemberReportProgress")
+            }
+            .accessibilityIdentifier("report.detail.denied")
+        } else {
+            ContentUnavailableView {
+                Label {
+                    Text("report.detail.error.title", tableName: "MemberReportProgress")
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+            } description: {
+                Text(LocalizedStringKey(failureKey(failure)), tableName: "MemberReportProgress")
+            } actions: {
+                Button { load(rendered) } label: { Text("report.retry", tableName: "MemberReportProgress") }
+                    .buttonStyle(.bordered)
+            }
+            .accessibilityIdentifier("report.detail.error")
+        }
+    }
     private func stageTint(_ stage: String) -> Color {
         switch stage {
         case "RESOLVED", "CLOSED": return .green

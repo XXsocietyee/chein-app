@@ -13,6 +13,8 @@ public struct MapSearchPlayerService {
     public static let placeSearchPath = "api/map/place-search"
     public static let weatherPath = "api/map/weather"
     public static let unifiedSearchPath = "api/search/unified"
+    /// V-06 fallback of `components/cy/map-address-search` `_searchNodes`: `GET api/city/nodes {lat, lng, radius: 20000, keyword}`.
+    public static let cityNodesPath = "api/city/nodes"
 
     let client: PlayerCapabilityClient
     public init(client: PlayerCapabilityClient) { self.client = client }
@@ -66,10 +68,32 @@ public struct MapSearchPlayerService {
         }
     }
 
+    /// MP `_searchNodes` + `utils/map-address-search.js#cityNodesToPlaces` (2026-10-29 V-06): when the Tencent place
+    /// search is off (empty list) or fails, the merchant node library answers instead. Name = `name`, else `merchantName`;
+    /// rows without a usable point or whose name is already listed (`localNames`, then earlier rows) are dropped.
+    public func cityNodePlaces(keyword: String, latitude: Double, longitude: Double, localNames: Set<String> = []) async throws -> [Place] {
+        let text = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text.count >= 2, latitude != 0, longitude != 0 else { return [] }
+        let raw = try await client.read(try client.getRequest(Self.cityNodesPath, query: [
+            ("lat", String(latitude)), ("lng", String(longitude)), ("radius", "20000"), ("keyword", text)
+        ]))
+        var taken = localNames
+        var places: [Place] = []
+        for row in raw.array ?? [] {
+            let primary = row["name"].string ?? ""
+            let name = primary.isEmpty ? (row["merchantName"].string ?? "") : primary
+            guard !name.isEmpty, !taken.contains(name), let point = Self.coordinate(row) else { continue }
+            taken.insert(name)
+            let id = row["poiId"].int.map { "node-\($0)" } ?? "node-\(places.count)"
+            places.append(Place(id: id, name: name, address: row["merchantAddress"].string ?? "", coordinate: point))
+        }
+        return places
+    }
+
     // MARK: Weather
 
     public struct Weather: Equatable {
-        /// rain | snow | fog
+        /// `MapWeatherVO` is `kind` + `intensity` only (rain | snow | fog; clear and anything else draw nothing).
         public let kind: String
         /// Clamped to 0.15…1, default 0.5.
         public let intensity: Double

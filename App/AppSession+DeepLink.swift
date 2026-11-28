@@ -5,7 +5,8 @@ import Foundation
 extension AppSession {
     /// True when `url` is a chein:// URL and was handled here (valid -> pending link, invalid -> unsupported route error).
     func receiveCheinURL(_ url: URL) -> Bool {
-        guard url.scheme?.lowercased() == CheinDeepLink.scheme else { return false }
+        guard CheinDeepLink.isPlayerScheme(url.scheme) else { return false }
+        let url = CheinDeepLink.canonicalURL(url)
         if receiveMiniProgramPageURL(url) { return true }
         if let link = CheinDeepLink(url: url) { pendingDeepLink = link; return true }
         // P1-1: `chein://activity/12`, `chein://topic/7`, `chein://club/3` open the content page like the https form.
