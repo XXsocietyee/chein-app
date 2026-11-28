@@ -180,7 +180,9 @@ class OfficialSourceChecks(unittest.TestCase):
             self.assertNotIn("https://", item["en"])
             self.assertNotIn("https://", item["zh-Hans"])
             entry = catalog[key]["localizations"]
-            self.assertEqual(entry["en"]["stringUnit"]["value"], item["en"])
+            # en-layout r3: English count strings carry plural variations; read the `other` form.
+            en_unit = entry["en"].get("stringUnit") or entry["en"]["variations"]["plural"]["other"]["stringUnit"]
+            self.assertEqual(en_unit["value"], item["en"])
             self.assertEqual(entry["zh-Hans"]["stringUnit"]["value"], item["zh-Hans"])
         self.assertEqual(len(keys), len(set(keys)))
         ids = [item["id"] for item in spec["accessibilityIdentifiers"]]
