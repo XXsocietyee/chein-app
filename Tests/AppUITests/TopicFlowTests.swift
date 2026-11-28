@@ -230,7 +230,8 @@ final class TopicFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["topic.reviews.average"].exists)
         XCTAssertFalse(app.staticTexts["topic.reviews.averageUnknown"].exists)
         XCTAssertFalse(app.staticTexts["topic.reviews.previewUnavailable"].exists)
-        XCTAssertTrue(app.buttons["topic.openReview"].exists)
+        // MP topic/index.wxml:302-316: the empty card is the one write entry; no second 写评价 button.
+        XCTAssertFalse(app.buttons["topic.openReview"].exists)
     }
 
     func testMissingTopicReviewMetadataStaysUnknownWithoutFalseEmpty() {
