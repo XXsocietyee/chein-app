@@ -121,10 +121,7 @@ struct IMConversationRowButtonToken: Equatable {
             .listStyle(.insetGrouped)
             .navigationTitle(Text(LocalizedStringKey(titleKey)))
             .navigationBarTitleDisplayMode(.inline)
-            .cyHaptic(.success, trigger: model.state) { _, new in
-                if case .acknowledged = new { return true }
-                return false
-            }
+            .cyHaptic(.success, trigger: model.state, where: Self.acknowledged)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(isReviewing ? LocalizedStringKey("action.cancel") : LocalizedStringKey("action.close")) { model.dismiss(); dismiss() }
@@ -218,4 +215,12 @@ struct IMConversationRowButtonToken: Equatable {
 @MainActor struct IMConversationRowActionPresentation: Identifiable {
     let id = UUID()
     let actions: IMConversationRowActions
+}
+
+/// Typed haptic condition (design consistency `untyped haptic`): fires when the state lands on `.acknowledged`.
+private extension IMConversationRowActionsView {
+    static func acknowledged(_ old: IMReviewState, _ new: IMReviewState) -> Bool {
+        if case .acknowledged = new { return true }
+        return false
+    }
 }

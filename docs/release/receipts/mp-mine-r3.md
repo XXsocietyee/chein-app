@@ -439,3 +439,28 @@ Merged `origin/ui/combined-r7` (46 commits, clean). The 04:00 coordinator note h
 Coordinator: please add `e4-wallet-points-empty`, `e4-wallet-points-error`, `e4-wallet-income-empty` (and the continue 23 ids `e4-tickets-empty`, `e4-tickets-error`, `e4-tickets-guest`, `e4-wallet-balance-empty`, `e4-wallet-balance-error`) to the mp-mine sweep.
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 25 (half-hourly re-arm, sweep 03:49 UTC build 733bfb368)
+
+Merged `origin/ui/combined-r7` (30 commits, clean). The sweep build is the same as in continue 24, and the 04:20 / 04:30 coordinator notes have no mp-mine rows (the sign-in requirement is mp-nav's). The blocked Not done rows are unchanged, so this run continues "Next round" item 3 (all states, with a design fixture for each) on the 我的 tab content sections.
+
+| Page | MP states (`subpackageMember/components/cy/profile/index.wxml`) | Native file | Fixed now |
+|---|---|---|---|
+| 我的项目 / My projects (`e4-self-projects`) | error 项目加载失败 + 重试 (wxml:192-195) | `App/ProfileSelfProjectsFixture.swift`, `App/DesignFixtures/DesignFixtureRegistry.swift` | **Fixed (fixtures).** The design fixture showed the UI-test controls ("Projects reads: N", "Retire synthetic account") and the offline banner, and its owner name and project titles were English in zh. The host now has `showsTestControls` (default true, so the UI tests are unchanged). The sweep ids pass false, which hides the controls and the offline banner. Names and titles use `iaFixtureText`, and en keeps the strings the UI tests read. New id `e4-self-projects-error` uses the `failure` scenario: the first read fails and 重试 recovers. No empty fixture, because the MP hides the block when there are no projects (the continue 18 Not done row). |
+| 成就 · 成长记录 / Growth (`e4-self-growth`) | error 成长记录加载失败 + 重试 (wxml:364) | `App/ProfileSelfGrowthFixture.swift`, `App/ProfileSelfGrowthSection.swift`, `Resources/Localizable.xcstrings`, registry | **Fixed.** The fixture got the same `showsTestControls` / `iaFixtureText` treatment. New ids are `e4-self-growth-zero` (a new player with all zeros) and `e4-self-growth-error` (the first read fails; 重试 recovers). The section's whole-read failure used the shared growth-center title. It now uses the MP title through `failedTitle:` with the new key `profile.selfGrowth.failed` (成长记录加载失败 / Couldn't load your growth record). The partial center / progress issues keep the shared copy. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Coordinator: please add `e4-self-projects`, `e4-self-projects-error`, `e4-self-growth`, `e4-self-growth-zero` and `e4-self-growth-error` to the mp-mine sweep, together with the continue 23 / 24 ids.
+
+## Continue 26 (hourly re-arm, sweep 04:46 UTC build 13a6690eb)
+
+Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts and `tools/check_design_consistency.py` taken from combined-r7; `DesignFixtureRegistry.swift` kept both sides' cases; xcstrings = combined-r7 plus `profile.selfGrowth.failed`; pbxproj regenerated). The 04:30 / 04:45 / 04:50 coordinator notes have no mp-mine rows. Screens checked: `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg`, `sheet-en.jpg`: no new visual issues. zh dates on 余额流水 / 订单查询 stay the server text (`LocaleDisplay.civil` returns the MP `createTimeText` as-is in zh by design; shared Core helper, not changed). The blocked Not done rows are unchanged, so this run continues "Next round" item 3 (all states, with a design fixture for each).
+
+| Page | MP states (`subpackageMember/components/cy/scene-member-withdraw-history/index.wxml`) | Native file | Fixed now |
+|---|---|---|---|
+| 提现记录 / Withdrawal history (`e4-wallet-withdrawals`; MP `subpackageMember/tixianjilu`) | skeleton while loading; empty 还没有发起提现 (wxml:20); error 提现记录加载失败 + 重试, denied 当前身份不能查看提现记录 (wxml:18) | `App/WalletCommerceViews.swift` `WalletWithdrawalsView`, `App/DesignFixtures/DesignFixtureRegistry.swift` | **Fixed.** The whole-read failure showed the shared wallet title; it now passes the MP titles through `failedKey: "withdrawal.history.failed.title"` and `deniedKey: "withdrawal.history.denied.title"` (existing keys, en + zh). The signed-out title stays the shared one, because `WalletCommerceFlowTests.testWithdrawal401ShowsSignInWithoutRetry` reads it. New fixture ids `e4-wallet-withdrawals-empty` (`--wallet-withdrawals-empty`) and `e4-wallet-withdrawals-error` (`--wallet-withdrawals-recover`: the first read fails, 重试 recovers). |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Coordinator: please add `e4-wallet-withdrawals-empty` and `e4-wallet-withdrawals-error` to the mp-mine sweep.

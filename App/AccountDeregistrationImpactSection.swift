@@ -90,7 +90,7 @@ struct AccountDeregistrationImpactConfirmation: View {
             }
             .buttonStyle(.borderedProminent).controlSize(.large)
             .disabled(!matches).accessibilityIdentifier("compliance.submit")
-            .sensoryFeedback(.warning, trigger: confirming) { _, new in new }
+            .sensoryFeedback(.warning, trigger: confirming, condition: CYHapticTransition.isOn)
         }
         .onDisappear { confirmation = "" }
         .cySheet(isPresented: $confirming) {

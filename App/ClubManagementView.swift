@@ -558,13 +558,7 @@ struct ClubManagementView: View {
                     LabeledContent("club.management.target") { Text(verbatim: Self.namedID(pending.memberName, pending.memberID)) }
                     if pending.action == .reject { ClubOpsJoinRejectReasonField(text: $reviewReasonDraft).disabled(state == .submitting || state.preventsNewAction) }
                     confirmControl(pending, item: item)
-                        .cyHaptic(.impactMedium, trigger: state) { old, new in
-                            if case .submitting = new {
-                                if case .submitting = old { return false }
-                                return true
-                            }
-                            return false
-                        }
+                        .cyHaptic(.impactMedium, trigger: state == .submitting, where: CYHapticTransition.turnedOn)
                 }
                 // CLB-join-requests-09 (fix-r3-club-b): a sheet title, not a 34 pt hero.
                 .navigationTitle(Text(LocalizedStringKey("club.management." + pending.action.rawValue)))

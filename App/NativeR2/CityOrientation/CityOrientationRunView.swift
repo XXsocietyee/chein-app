@@ -85,7 +85,7 @@ extension EnvironmentValues {
                 .padding(.horizontal)
                 .padding(.top, 8)
             }
-            .sensoryFeedback(.success, trigger: inHighlight) { old, new in !old && new }
+            .sensoryFeedback(.success, trigger: inHighlight, condition: CYHapticTransition.turnedOn)
             .sheet(isPresented: $sheetShown) {
                 panel()
                     .presentationDetents([.height(peekHeight), .medium, .large], selection: $detent)

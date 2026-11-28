@@ -45,7 +45,7 @@ struct MotionR2ScratchTiles: View {
             }
         }
         .sensoryFeedback(.selection, trigger: opened.count)
-        .sensoryFeedback(.success, trigger: opened.count == prizes.count) { old, new in !old && new }
+        .sensoryFeedback(.success, trigger: opened.count == prizes.count, condition: CYHapticTransition.turnedOn)
         .accessibilityIdentifier("motion2.scratch.tiles")
     }
 

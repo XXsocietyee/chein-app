@@ -1382,7 +1382,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Light colour"
+          "value": "Light color"
         }
       },
       "zh-Hans": {
@@ -5151,7 +5151,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Use up even with no effect"
+          "value": "Count recoveries that have no effect"
         }
       },
       "zh-Hans": {

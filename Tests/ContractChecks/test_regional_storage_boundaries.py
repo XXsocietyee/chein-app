@@ -62,7 +62,7 @@ class RegionalStorageBoundaryTests(unittest.TestCase):
         self.assertIn('let approved:[RegionalMarket:Set<String>]=[:]', launch)
         self.assertIn('verifiedCapabilities:[]', launch)
         self.assertIn('storageScope != nil && regionalConfiguration?.availability(of:.usernamePassword) == .available', session)
-        self.assertIn('regional.canUseDomesticChinaPhone ?', session)
+        self.assertIn('regional.canUsePhoneSignIn ?', session)  # 11-28: CN or verified US phone
         self.assertIn('answersEnabled:false', session)
         self.assertRegex(apple, r'static let enabled\s*=\s*false')
 

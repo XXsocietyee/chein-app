@@ -344,6 +344,8 @@ struct PlayCloseResultSheet: View {
     @State private var inputCredential = ""
     @State private var busy = false
     @State private var toastMessage: String?
+    @State private var successTicks = 0
+    @State private var warningTicks = 0
 
     private var player: OfficialAttendancePlayerView? {
         guard let snapshot else { return nil }
@@ -393,6 +395,7 @@ struct PlayCloseResultSheet: View {
             )
         }
         .cyToast(verbatimMessage: $toastMessage)
+        .modifier(AttendanceResultHaptics(successTicks: successTicks, warningTicks: warningTicks, checkedIn: player?.checkin?.done))
     }
 
     private var dialName: String {
@@ -649,12 +652,14 @@ struct PlayCloseResultSheet: View {
             let receipt = await sendCommand(eventID, .attendanceRotate, [:])
             if receipt?.state == .applied {
                 toastMessage = PlayCloseCopy.text("签到码已更换", "Check-in code rotated", locale)
+                successTicks += 1
                 if let loadAttendance = popupCloseActions.loadAttendance {
                     snapshot = await loadAttendance(eventID, organizer)
                 }
             } else {
                 toastMessage = PlayCloseCopy.text(receipt?.message.isEmpty == false ? (receipt?.message ?? "") : "更换签到码失败",
                                                   "Could not rotate code", locale)
+                warningTicks += 1
             }
         }
     }
@@ -670,11 +675,30 @@ struct PlayCloseResultSheet: View {
                 showingCodeSheet = false
                 inputCredential = ""
                 toastMessage = PlayCloseCopy.text("核验成功", "Verified", locale)
+                successTicks += 1
                 await load()
             } else {
                 toastMessage = PlayCloseCopy.text(receipt?.message.isEmpty == false ? (receipt?.message ?? "") : "操作未成功",
                                                   "Action failed", locale)
+                warningTicks += 1
             }
         }
+    }
+}
+
+/// Success / warning haptics for the attendance section, split out of the body so it type-checks in time:
+/// organizer rotate / verify results (counters), and the player's own check-in turning done on a refresh.
+private struct AttendanceResultHaptics: ViewModifier {
+    let successTicks: Int
+    let warningTicks: Int
+    let checkedIn: Bool?
+    func body(content: Content) -> some View {
+        content
+            .cyHaptic(.success, trigger: successTicks)
+            .cyHaptic(.warning, trigger: warningTicks)
+            .cyHaptic(.success, trigger: checkedIn, where: Self.becameCheckedIn)
+    }
+    private static func becameCheckedIn(_ old: Bool?, _ new: Bool?) -> Bool {
+        old == false && new == true
     }
 }

@@ -145,7 +145,7 @@ import UIKit
                 slip(scratchable: true)
             }
             .accessibilityIdentifier("playkit.dailySign.ticket")
-            .sensoryFeedback(.success, trigger: stage) { old, next in old < 1 && next >= 1 }
+            .sensoryFeedback(.success, trigger: stage >= 1, condition: CYHapticTransition.turnedOn)
             .onChange(of: claimed, initial: true) { _, next in if next { renderShareImage() } }
         } footer: {
             if !isRevealed { Text("playkit.daily.scratchHint") }

@@ -46,10 +46,7 @@ import SwiftUI
         .navigationTitle(Text(verbatim: W8Text.t("评价", "Review")))
         .navigationBarTitleDisplayMode(.inline)
         .cyAnimation(value: model.state)
-        .cyHaptic(.success, trigger: model.state) { _, new in
-            if case .submitted = new { return true }
-            return false
-        }
+        .cyHaptic(.success, trigger: model.state, where: Self.submitted)
         .task { await model.load() }
     }
 
@@ -193,3 +190,11 @@ import SwiftUI
     }
 }
 #endif
+
+/// Typed haptic condition (design consistency `untyped haptic`): fires when the state lands on `.submitted`.
+private extension BundleReviewComposeView {
+    static func submitted(_ old: BundleReviewComposeState, _ new: BundleReviewComposeState) -> Bool {
+        if case .submitted = new { return true }
+        return false
+    }
+}

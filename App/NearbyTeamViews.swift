@@ -205,7 +205,7 @@ import SwiftUI
                 if let issue = NearbyLoadIssue(messageKey: coordinator.messageKey), !model.running {
                     NearbyLoadIssueCard(issue: issue, onSignIn: onSignIn) { Task { await refresh() } }
                 } else if !model.running && coordinator.authenticated && coordinator.context != nil && coordinator.messageKey == nil && visibleTeams.isEmpty && (discoverySources == nil || nearbyCurrentReadSucceeded) && !discoveryEmptyShown {
-                    CYEmptyState(systemImage: "person.3", "nearby.empty", detail: "nearby.w208.listEmpty")
+                    CYEmptyState(systemImage: "person.3", "nearby.empty", detail: "nearby.w208.listEmpty", messageIdentifier: "nearby.list.empty")
                 }
                 }
                 if viewMode == .map {

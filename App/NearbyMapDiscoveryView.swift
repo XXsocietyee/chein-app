@@ -232,23 +232,29 @@ struct NearbyMapDiscoveryStatusView: View {
             }
         }.accessibilityIdentifier("nearby.discovery.readStatus")
     }
+    @ViewBuilder private func loadingLabel(events: Bool) -> some View {
+        if events { Text("nearby.map.eventsLoading", tableName: "NearbyMapDiscovery") }
+        else { Text("nearby.map.poisLoading", tableName: "NearbyMapDiscovery") }
+    }
+    @ViewBuilder private func failedLine(events: Bool) -> some View {
+        if events { Text("nearby.map.eventsFailed", tableName: "NearbyMapDiscovery") }
+        else { Text("nearby.map.poisFailed", tableName: "NearbyMapDiscovery") }
+    }
     @ViewBuilder private func status(_ phase: NearbyMapDiscoveryModel.Phase, issue: RoamScreenIssue?, events: Bool) -> some View {
         switch phase {
         case .loading:
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                CYSkeletonBlock(height: 12).frame(maxWidth: 160)
-                if events { Text("nearby.map.eventsLoading", tableName: "NearbyMapDiscovery") }
-                else { Text("nearby.map.poisLoading", tableName: "NearbyMapDiscovery") }
-            }
-            .cyText(.meta).foregroundStyle(CYColor.textTertiary)
-            .accessibilityElement(children: .combine)
+            // mp-states r3: one labelled system ProgressView (no grey placeholder bar); words shown and spoken once.
+            ProgressView { loadingLabel(events: events) }
+                .frame(maxWidth: .infinity)
         case .failed:
-            Group {
-                if events { Text("nearby.map.eventsFailed", tableName: "NearbyMapDiscovery") }
-                else { Text("nearby.map.poisFailed", tableName: "NearbyMapDiscovery") }
+            // mp-states r3 (MP subpackageRoam/nearby/index.wxml:62 cy-error 附近信息获取失败 · 重试): one titled state with
+            // 重试 inside when the read can be retried; the per-layer sentence only when there is no issue to show.
+            if let issue {
+                RoamStatusView(issue: issue, retry: retry, failureTitle: "nearby.w208.issue.failed")
+            } else {
+                failedLine(events: events)
+                    .cyText(.label).foregroundStyle(CYColor.warningText)
             }
-            .cyText(.label).foregroundStyle(CYColor.warningText)
-            if let issue { RoamStatusView(issue: issue, retry: retry) }
         case .unavailable:
             if events {
                 CYEmptyState(systemImage: "wifi.slash", LocalizedStringKey("nearby.map.eventsUnavailable"), tableName: "NearbyMapDiscovery", kind: .offline)

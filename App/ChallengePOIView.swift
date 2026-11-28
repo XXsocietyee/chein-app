@@ -78,7 +78,7 @@ import QuestifyCore
             }
         }
         .cyAnimation(value: coordinator.state)
-        .cyHaptic(.success, trigger: coordinator.state) { _, new in new == .done }
+        .cyHaptic(.success, trigger: coordinator.state == .done, where: CYHapticTransition.turnedOn)
     }
 
     private func placeCard(_ node: ChallengePOINode) -> some View {

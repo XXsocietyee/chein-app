@@ -24,10 +24,7 @@ import SwiftUI
         .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
         .cyAnimation(value: model.phase)
-        .cyHaptic(.success, trigger: model.phase) { _, new in
-            if case .shown = new { return true }
-            return false
-        }
+        .cyHaptic(.success, trigger: model.phase, where: Self.transferShown)
         .confirmationDialog(Text(LocalizedStringKey("transfer.confirm.title"), tableName: table),
                             isPresented: $confirming, titleVisibility: .visible) {
             Button(role: .destructive) {
@@ -252,5 +249,13 @@ private enum Cloud05Copy {
             return "—"
         }
         return trimmed
+    }
+}
+
+/// Typed haptic condition (design consistency `untyped haptic`): fires when the state lands on `.shown`.
+private extension BundleTransferSendView {
+    static func transferShown(_ old: BundleTransferSendPhase, _ new: BundleTransferSendPhase) -> Bool {
+        if case .shown = new { return true }
+        return false
     }
 }
