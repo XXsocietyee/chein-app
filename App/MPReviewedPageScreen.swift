@@ -170,7 +170,7 @@ import SwiftUI
             // Flow gap PC-A-7-2: topic-preview is the MP card deck; 查看详情 pushes topic-detail.
             if let id = reviewedID(query) {
                 DiscoveryTopicTemplateDeckHost(coordinator: session.publicTopicTemplateCoordinator(id: id),
-                                               readonly: query["readonly"] == "1", scope: query["scope"],
+                                               readonly: query["readonly"] == "1", scope: releasedPublishScope(query["scope"]),
                                                makeDetail: { session.publicTopicTemplateCoordinator(id: id) })
                     .environment(\.topicEditorDestination, topicDraftEditorDestination)
                     .cyPushedChrome()
@@ -179,7 +179,7 @@ import SwiftUI
             // PC-A-7-1 / PC-A-8-1: a shared topic-template link lands on that template, not the shelf root.
             if let id = reviewedID(query) {
                 DiscoveryTopicTemplatePreview(coordinator: session.publicTopicTemplateCoordinator(id: id))
-                    .scopedForAdoption(query["scope"])
+                    .scopedForAdoption(releasedPublishScope(query["scope"]))
                     .environment(\.topicEditorDestination, topicDraftEditorDestination)
                     .cyPushedChrome()
             } else { unavailable }
@@ -398,10 +398,10 @@ import SwiftUI
         case "pages/topic/pricing/index":
             // PC-B-4-3: MP pricing reads `topicId || id`; the partner page is reached from the pricing lineup.
             if let topicID = reviewedID(query, key: "topicId") ?? reviewedID(query), let context = session.publisherLifecycleContext {
-                PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator, scope: query["scope"])
-                    .environment(\.pricingChapterProjectDestination, { topicID in
+                PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator, scope: releasedPublishScope(query["scope"]))
+                    .environment(\.pricingChapterProjectDestination, PlayerLaunch.merchantCenterEnabled ? { topicID in
                     AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID))
-                })
+                } : nil)
             } else { unavailable }
         case "pages/publish/fabu/index", "pages/publish/topicadd/topicadd":
             topicEditor
@@ -420,14 +420,14 @@ import SwiftUI
         switch page {
         case "pages/publish/template-intro/index":
             // C-I1: the intro → name → editor flow the 发布 tab opens.
-            sessionTemplateAuthoringEntry(session, scope: query["scope"])
+            sessionTemplateAuthoringEntry(session, scope: releasedPublishScope(query["scope"]))
         case "pages/publish/temp/index":
             // C-T1: `?id=` opens that template's own editor; the bare path opens the editor, not the intro.
             if let id = positiveID(query["id"]).flatMap(MemberPlayTemplateID.init(rawValue:)) {
                 SessionOwnedTemplateConfigurationView(id: id).environmentObject(session)
             } else {
                 // r9 C-T6b: MP temp/index.js:1392-1416 honours `from` and `scope=MERCHANT`.
-                TemplateAuthoringView(coordinator: session.templateAuthoringEditor(from: query["from"], scope: query["scope"]),
+                TemplateAuthoringView(coordinator: session.templateAuthoringEditor(from: query["from"], scope: releasedPublishScope(query["scope"])),
                                      sessionRevision: session.sessionRevision, metadataReader: session,
                                      makeCoverService: { session.makeActivityCoverService() }, coverSession: { session.publishingSession },
                                      startsInEditor: true, from: query["from"])
@@ -903,7 +903,7 @@ import SwiftUI
                                     boundPhoneLoader: { await session.participantBoundPhone() })
         case "subpackageMember/order/order":
             // Round 4: MP order.js:20-21 redirects to myproject?scope=MERCHANT.
-            if session.account?.effectiveRole == "merchant" { SubscribeMessageProjectsEntry(session: session, entryScope: "MERCHANT") }
+            if PlayerLaunch.merchantCenterEnabled, session.account?.effectiveRole == "merchant" { SubscribeMessageProjectsEntry(session: session, entryScope: "MERCHANT") }
             else { SessionOwnedOrdersView(session: session) }
         case "subpackageMember/signup/index", "subpackageMember/signupInfo/signupInfo", "subpackageMember/signupInfo2/signupInfo2":
             // One shared wallet host: 开始游戏, pending orders, sign-in; `focusId` lands on that registration.
@@ -1089,6 +1089,12 @@ import SwiftUI
         } else { unavailable }
     }
 
+    /// Merchant publish scope is a merchant-center entry. Release drops `MERCHANT` and keeps any other scope.
+    private func releasedPublishScope(_ scope: String?) -> String? {
+        if scope == "MERCHANT", !PlayerLaunch.merchantCenterEnabled { return nil }
+        return scope
+    }
+
     /// MP `fabu?id=&mode=&scope=&clubId=` (C-F11): `id` loads that topic's edit-detail; otherwise a new topic in the
     /// chosen mode. `scope=MERCHANT` only applies to a merchant account; the server still checks every write.
     /// Round 4 flow (MP topic-use-flow.js `openDraft`): a copied template draft opens `pages/publish/fabu/index?id=&scope=`.
@@ -1100,7 +1106,7 @@ import SwiftUI
         }
     }
     @ViewBuilder private var topicEditor: some View {
-        let owner: ProjectEditOwner = query["scope"] == "MERCHANT" && session.account?.effectiveRole == "merchant" ? .merchant : .personal
+        let owner: ProjectEditOwner = releasedPublishScope(query["scope"]) == "MERCHANT" && session.account?.effectiveRole == "merchant" ? .merchant : .personal
         if let topicID = positiveID(query["id"]) {
             if let target = ProjectEditRemoteTarget(topicID: topicID, owner: owner, readerScope: session.creatorContentReader.scope),
                let coordinator = session.projectEditor(target: target) {

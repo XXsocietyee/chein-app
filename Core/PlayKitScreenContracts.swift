@@ -48,7 +48,8 @@ public struct PlayKitScreenProjection: Equatable {
         case .diyName: return !(segment["name"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         case .slowTask: return segment["claimed"].bool == true
         case .musicCorner, .silentOrder, .timeWindow: return false
-        case .profile, .note, .compass: return segment["done"].bool == true
+        case .profile, .note: return segment["done"].bool == true
+        case .compass: return segment["done"].bool == true || segment["skipped"].bool == true // MP: a skipped station is finished.
         case .photoCheck: return segment["passed"].bool == true || segment["flagged"].bool == true
         case .typeIn:
             let cap = segment["tries"].integer ?? 0
@@ -65,7 +66,8 @@ public struct PlayKitScreenProjection: Equatable {
         case .walk, .steps: return segment["reached"].bool == true
         case .bingo: return PlayKitBingoBoard(segment).filled.count == 9
         case .match, .classify: return segment["passed"].bool == true
-        case .reaction, .ballShake, .quietHold, .countdown, .stopwatch, .shout: return segment["submitted"].bool == true
+        case .reaction, .countdown, .stopwatch: return segment["submitted"].bool == true
+        case .ballShake, .quietHold, .shout: return segment["submitted"].bool == true || segment["skipped"].bool == true
         }
     }
     /// An attempt cap is configuration, not proof an attempt occurred. In
@@ -310,6 +312,12 @@ public enum PlayKitInputContract {
         }
         if action == "START_CHALLENGE" {
             try require(kind.isChallenge && keys == ["game"] && payload["game"]?.text == kind.rawValue); return
+        }
+        if action == PlayKitSensorStation.reportAction || action == PlayKitSensorStation.skipAction {
+            try require(PlayKitSensorStation.kinds.contains(kind.rawValue) && payload["game"]?.text == kind.rawValue)
+            try require(segment["skipped"].bool != true)
+            if action == PlayKitSensorStation.skipAction { try require(keys == ["game"] && PlayKitSensorStation.offersSkip(segment)); return }
+            try require(keys == ["game"] || (keys == ["game", "denied"] && payload["denied"]?.bool == true)); return
         }
         let projection = PlayKitScreenProjection(kind: kind, segment: segment)
         switch kind {

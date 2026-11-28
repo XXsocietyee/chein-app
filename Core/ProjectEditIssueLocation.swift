@@ -37,7 +37,8 @@ public enum ProjectEditIssueLocation: Equatable {
     private static func resolve(_ id: String, in draft: ProjectEditDraft) -> ProjectEditIssueLocation? {
         let roots = ["name": "name", "description": "description", "cover": "cover", "categories": "categories",
                      "start": "start", "end": "end", "dateOrder": "end", "deadline": "deadline",
-                     "chapters": "chapters", "completionRules": "completionRules", "topicRewards": "topicRewards", "clubLead": "clubLead"]
+                     "chapters": "chapters", "completionRules": "completionRules", "topicRewards": "topicRewards", "clubLead": "clubLead",
+                     "runtimeEndings": "runtimeEndings"]
         if let field = roots[id] { return .root(anchor: "project-issue-anchor-" + field) }
         var candidates: [ProjectEditIssueLocation] = []
         for (index, chapter) in draft.chapters.enumerated() {

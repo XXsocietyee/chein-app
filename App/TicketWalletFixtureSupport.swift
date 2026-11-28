@@ -11,15 +11,22 @@ import SwiftUI
     private var detailReads = 0
     init(scenario: Scenario = .content) { self.scenario = scenario; isAuthenticated = scenario != .guest }
     func signOut() { isAuthenticated = false; scope = UUID() }
-    /// 20:25 sweep: fixture ticket names follow the launch language (Core keeps the English synthetic names for its tests).
-    private static let zhTicketNames: [(String, String)] = [
-        ("Sample exploration ticket", "示例探索票"), ("Sample activity ticket", "示例活动票"),
-        ("Sample expired ticket", "示例已过期票"), ("Sample unknown ticket", "示例未知状态票"), ("Sample unpaid ticket", "示例待支付票")
+    /// 20:25 sweep: fixture ticket names follow the launch language. 13:03 sweep: the English names were still
+    /// "Sample … ticket" placeholders, so both languages now read as real tickets (Core keeps its synthetic names for its tests).
+    private static let ticketNames: [(String, String, String)] = [
+        ("Sample exploration ticket", "West Lake Night Walk", "西湖夜游探索票"),
+        ("Sample activity ticket", "Riverside Night Ride", "滨江夜骑活动票"),
+        ("Sample expired ticket", "Old Town Tea Trail", "老城茶街线"),
+        ("Sample unknown ticket", "Canal Lantern Walk", "运河灯影漫步"),
+        ("Sample unpaid ticket", "Lingyin Temple Morning Hike", "灵隐晨徒步")
     ]
     private static func localized(_ json: String) -> String {
-        guard Locale.preferredLanguages.first?.hasPrefix("zh") == true else { return json }
+        let zh = Locale.preferredLanguages.first?.hasPrefix("zh") == true
         var out = json
-        for (en, zh) in zhTicketNames { out = out.replacingOccurrences(of: "\"name\":\"\(en)\"", with: "\"name\":\"\(zh)\"") }
+        for (source, en, zhName) in ticketNames {
+            let name: String = zh ? zhName : en
+            out = out.replacingOccurrences(of: "\"name\":\"\(source)\"", with: "\"name\":\"\(name)\"")
+        }
         return out
     }
     /// mp-mine r3: the session ticket carries a start time and place, so the sweep shows the MP P-27 card line
@@ -53,7 +60,7 @@ import SwiftUI
         if scenario == .unavailable { throw TicketWalletReadFailure.unavailable }
         detailReads += 1
         if scenario == .refreshed, detailReads > 1 {
-            return try JSONDecoder().decode(TicketWalletTicket.self, from: Data("{\"id\":\(id),\"registrationStatus\":3,\"verificationStatus\":0,\"cmsTopic\":{\"name\":\"Sample cancelled after refresh\"}}".utf8))
+            return try JSONDecoder().decode(TicketWalletTicket.self, from: Data("{\"id\":\(id),\"registrationStatus\":3,\"verificationStatus\":0,\"cmsTopic\":{\"name\":\"Sample canceled after refresh\"}}".utf8))
         }
         let json = Self.localized(TicketWalletSyntheticFixtures.detailJSON).replacingOccurrences(of: "\"id\":901", with: "\"id\":\(id)")
         return try JSONDecoder().decode(TicketWalletTicket.self, from: Data(json.utf8))

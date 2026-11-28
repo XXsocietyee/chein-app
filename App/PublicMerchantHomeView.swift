@@ -140,7 +140,7 @@ import SwiftUI
             }
         }
         .cySheet(isPresented: $showsCoopInviteSheet) {
-            if let home,
+            if PlayerLaunch.merchantCenterEnabled, let home,
                let loadTopics = popupActions.loadCoopInviteTopics,
                let loadChapters = popupActions.loadCoopInviteChapters {
                 MemberCoopInviteSheet(
@@ -255,7 +255,8 @@ import SwiftUI
                 labeled(value.availableTime, label: "merchant.publicHome.availableTime")
                 labeled(value.suitActivityTypes, label: "merchant.publicHome.activityTypes")
                 labeled(value.demand, label: "merchant.publicHome.demand")
-                if popupActions.loadCoopInviteTopics != nil {
+                // K12: 发送邀约 is a coop entry on the public store page. Hidden in Release.
+                if PlayerLaunch.merchantCenterEnabled, popupActions.loadCoopInviteTopics != nil {
                     CYPillButton(
                         verbatim: MemberPopupCopy.text("发送邀约", "Send Invitation", locale: locale),
                         style: .secondary

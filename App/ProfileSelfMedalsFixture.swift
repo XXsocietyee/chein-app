@@ -10,7 +10,7 @@ import Observation
     var isOfflineExample = true
     var isSignedIn: Bool { identity.accountID != nil }
     func publicProfile(memberID:Int) async throws -> SocialPublicProfile {
-        try JSONDecoder().decode(SocialPublicProfile.self,from:Data("{\"id\":\(memberID),\"nickname\":\"\(iaFixtureText("Synthetic medal owner", "示例勋章主人"))\"}".utf8))
+        try JSONDecoder().decode(SocialPublicProfile.self,from:Data("{\"id\":\(memberID),\"nickname\":\"\(iaFixtureText("Lin Yu", "林雨"))\"}".utf8))
     }
     func informationList() async throws -> [SocialInformation] { [] }
     func information(id:Int) async throws -> SocialInformation { throw APIError.notConfigured }
@@ -26,7 +26,10 @@ import Observation
     var scenario: String
     init(_ scenario:String="content") { self.scenario=scenario }
     static func rows() throws -> [ProfileMedal] {
-        try JSONDecoder().decode([ProfileMedal].self,from:Data(#"[{"templateId":101,"medalName":"Synthetic city medal","getTime":"2026-01-01","kind":"city"},{"badgeCode":"walker","medalName":"Synthetic achievement medal","kind":"achievement"}]"#.utf8))
+        let city: String = iaFixtureText("Hangzhou city medal", "杭州城市勋章")
+        let walker: String = iaFixtureText("City walker", "城市漫步者")
+        let json: String = "[{\"templateId\":101,\"medalName\":\"\(city)\",\"getTime\":\"2026-01-01\",\"kind\":\"city\"},{\"badgeCode\":\"walker\",\"medalName\":\"\(walker)\",\"kind\":\"achievement\"}]"
+        return try JSONDecoder().decode([ProfileMedal].self,from:Data(json.utf8))
     }
     func profileBadges() async throws -> ProfileBadgeWall {
         reads += 1;let count=reads

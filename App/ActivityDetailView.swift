@@ -425,7 +425,10 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             // activity-meta (分类 / 集合点 / 已报名 / 主题路线) comes right after the hero and the cancelled notice. The
             // native info card, the directions / review rows and the static map were extras the MP page lacks: 集合点
             // opens Maps (MP `openLocation`), 写评价 lives with the reviews.
-            ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail), onOpenLocation: directionsAction(detail))
+            // mp-home r3 continue 36 (OWNER RULE 3 level B, P28): the 集合点 fact carries a static map snippet when the
+            // activity has coordinates; it is part of the MP fact row (same Maps target), not a new section.
+            ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail), onOpenLocation: directionsAction(detail),
+                                      mapPoint: Self.meetingPointMapPoint(detail.summary))
                 .id(E1ActivityAnchor.overview.rawValue)
             // MP 主题路线 is the last fact row (index.wxml:37), so it follows the facts directly.
             if let topicID = detail.summary.linkedTopicID, let topicDestination {
@@ -664,6 +667,10 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         return start <= Date()
     }
     /// Directions only when the activity has a valid coordinate; otherwise the tile is hidden.
+    static func meetingPointMapPoint(_ summary: ActivitySummary) -> HomeTodayMeetingPoint? {
+        guard summary.hasValidCoordinates, let latitude = summary.latitude, let longitude = summary.longitude else { return nil }
+        return HomeTodayMeetingPoint(latitude: latitude, longitude: longitude)
+    }
     private func directionsAction(_ detail: ActivityDetail) -> (() -> Void)? {
         guard detail.summary.hasValidCoordinates, let latitude = detail.summary.latitude, let longitude = detail.summary.longitude else { return nil }
         let name = detail.summary.name
@@ -829,6 +836,12 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     let facts: ActivityDetailHeaderFacts
     /// MP `openLocation`: the 集合点 row opens Maps when the activity has coordinates.
     var onOpenLocation: (() -> Void)? = nil
+    /// Level B map snippet under 集合点 (static, one marker; a tap opens Maps like the row).
+    var mapPoint: HomeTodayMeetingPoint? = nil
+    private var mapPlace: String? {
+        if case .named(let place) = facts.meetingPoint { return place }
+        return nil
+    }
     var body: some View {
         Section {
             LabeledContent {
@@ -843,6 +856,10 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             } else {
                 meetingPointRow
                     .accessibilityIdentifier("activity.detail.meetingPoint")
+            }
+            if let mapPoint {
+                HomeTodayMeetingPointMap(point: mapPoint, place: mapPlace)
+                    .accessibilityIdentifier("activity.detail.meetingPointMap")
             }
             LabeledContent {
                 if let count = facts.registrationCount { Text("activityParity.header.registeredCount \(count)") }

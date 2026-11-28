@@ -48,15 +48,18 @@ public enum PlayKitActionCatalog {
     public static let actions: [String: Set<String>] = [
         "sort": ["SUBMIT_SORT"], "match": ["SUBMIT_MATCH"], "classify": ["SUBMIT_CLASSIFY"],
         "compare": ["SUBMIT_COMPARE"], // Current backend-only family, absent from historical client hosts.
-        "compass": ["SUBMIT_COMPASS"], "shout": ["START_CHALLENGE", "SUBMIT_SHOUT"],
+        "compass": ["SUBMIT_COMPASS", PlayKitSensorStation.reportAction, PlayKitSensorStation.skipAction],
+        "shout": ["START_CHALLENGE", "SUBMIT_SHOUT", PlayKitSensorStation.reportAction, PlayKitSensorStation.skipAction],
         "qa": ["SUBMIT_QA"], "branch": ["CHOOSE"], "estimate": ["SUBMIT_ESTIMATE"],
         "pricePair": ["SUBMIT_PRICE_PAIR"], "hiddenObject": ["SUBMIT_HIDDEN_OBJECT"],
         "countdown": ["START_CHALLENGE", "SUBMIT_COUNTDOWN"], "stopwatch": ["START_CHALLENGE", "SUBMIT_STOPWATCH"],
         "blindTaste": ["SUBMIT_BLIND_TASTE"], "diyName": ["SUBMIT_DIY_NAME"], "steps": ["SUBMIT_STEPS"],
         "dailySign": ["CLAIM_DAILY_SIGN"], "slowTask": ["START_SLOW_TASK", "CLAIM_SLOW_TASK"], "silentOrder": [],
         "coinFlip": ["FLIP_COIN"], "diceRoll": ["ROLL_DICE"], "predict": ["SUBMIT_PREDICT", "SKIP_CLOSED_PREDICT"],
-        "reaction": ["START_CHALLENGE", "SUBMIT_REACTION"], "ballShake": ["START_CHALLENGE", "SUBMIT_BALL_SHAKE"],
-        "quietHold": ["START_CHALLENGE", "SUBMIT_QUIET_HOLD"], "random": ["DRAW"], "scan": ["SUBMIT_SCAN"],
+        "reaction": ["START_CHALLENGE", "SUBMIT_REACTION"],
+        "ballShake": ["START_CHALLENGE", "SUBMIT_BALL_SHAKE", PlayKitSensorStation.reportAction, PlayKitSensorStation.skipAction],
+        "quietHold": ["START_CHALLENGE", "SUBMIT_QUIET_HOLD", PlayKitSensorStation.reportAction, PlayKitSensorStation.skipAction],
+        "random": ["DRAW"], "scan": ["SUBMIT_SCAN"],
         "profile": ["SUBMIT_PROFILE"], "photoCheck": ["SUBMIT_PHOTO_CHECK", PlayKitInputContract.recordAction], "note": ["SUBMIT_NOTE"],
         "typeIn": ["START_CHALLENGE", "SUBMIT_TYPE_IN"], "timeWindow": [], "musicCorner": [], "walk": [], "gameTimer": [], "stickerBook": [], "bingo": [],
         // UG-01 and the album completion are play actions. Album carries image URLs, not a price or payment.
@@ -69,6 +72,8 @@ public enum PlayKitActionCatalog {
         switch action {
         case "FLIP_COIN", "ROLL_DICE": return [:] // Never invent a random outcome client-side.
         case "SKIP_CLOSED_PREDICT": return [:] // MP `predict:skip`: the server re-checks that the round is closed.
+        case PlayKitSensorStation.reportAction, PlayKitSensorStation.skipAction:
+            return PlayKitSensorStation.payload(kind: kind, action: action, denied: detail["denied"]?.bool == true)
         case "START_CHALLENGE":
             if ["reaction", "ballShake", "quietHold", "typeIn", "countdown", "stopwatch", "shout"].contains(kind) { return ["game": .string(kind)] }
             return detail
@@ -83,6 +88,26 @@ public enum PlayKitActionCatalog {
             return ["hits": .int(hits)]
         default: return detail
         }
+    }
+}
+
+/// MP P-23 / round 11 i1 (`playkit-view.js` `compass|ballshake|quiethold|shout:readfail|micdenied|skip`):
+/// a sensor station never traps the player. The client only reports a failed read (or a denied
+/// permission, which the server counts to the threshold at once) and only asks to skip; the server
+/// counts the failures, applies the author switch / leader release and sends `canSkip`. A skipped
+/// station is finished with 0 points.
+public enum PlayKitSensorStation {
+    public static let reportAction = "REPORT_SENSOR_FAILURE"
+    public static let skipAction = "SKIP_SENSOR_STATION"
+    public static let kinds: Set<String> = ["compass", "ballShake", "quietHold", "shout"]
+    public static func payload(kind: String, action: String, denied: Bool) -> [String: PlayWireValue] {
+        if action == reportAction, denied { return ["game": .string(kind), "denied": .bool(true)] }
+        return ["game": .string(kind)]
+    }
+    /// The skip control follows the server only: `canSkip`, not yet skipped, not already done.
+    public static func offersSkip(_ segment: PlayWireValue) -> Bool {
+        segment["canSkip"].bool == true && segment["skipped"].bool != true && segment["done"].bool != true
+            && segment["submitted"].bool != true
     }
 }
 

@@ -132,6 +132,15 @@ final class PublicContentShareLinkTests: XCTestCase {
         XCTAssertNil(PublicContentShareLink.clubTicket(TopicClubShareLink(topicID: 8, sourceClubId: 0, clubCode: nil)))
     }
 
+    /// T-02 (MP team/detail js:546): 分享邀请码 shares `/pages/team/join/index?code=`, which opens the invitation preview.
+    func testTeamInviteShareIsTheMiniProgramJoinLinkThatParsesBack() throws {
+        let url = try XCTUnwrap(PublicContentShareLink.teamInvite(code: "AB12CD"))
+        XCTAssertEqual(url.absoluteString, "https://www.chengyinhub.com/pages/team/join/index?code=AB12CD")
+        XCTAssertEqual(UniversalLinkParser(verifiedHTTPSOrigins: [PublicContentShareLink.httpsOrigin]).parse(url),
+                       .teamInvitation(try TeamInvitationRoute(code: "AB12CD")))
+        XCTAssertNil(PublicContentShareLink.teamInvite(code: ""))
+    }
+
     /// MP infomationdetail.js:161 share path: the guide article shares its https link once the parser reads it back.
     func testInformationSharesTheParsedUniversalLink() throws {
         let url = try XCTUnwrap(PublicContentShareLink.information(id: 21))
@@ -140,5 +149,21 @@ final class PublicContentShareLinkTests: XCTestCase {
                        .miniProgramPage(try XCTUnwrap(MiniProgramPageLink(path: "subpackageA/pages/infomationdetail/infomationdetail", query: ["id": "21"]))))
         XCTAssertNil(PublicContentShareLink.informationCopyText(id: 21))
         XCTAssertNil(PublicContentShareLink.information(id: 0))
+    }
+    /// mp-nav r3: the place share uses the MP long-term `poi-detail?poiId=` spelling and both spellings open the place.
+    func testPlaceShareUsesTheMiniProgramPoiIdAndBothSpellingsParse() throws {
+        let parser = UniversalLinkParser(verifiedHTTPSOrigins: ["https://www.chengyinhub.com"])
+        let url = try XCTUnwrap(PublicContentShareLink.poi(id: 5))
+        XCTAssertEqual(url.absoluteString, "https://www.chengyinhub.com/subpackageRoam/poi-detail/index?poiId=5")
+        let place = try XCTUnwrap(NativeContentTarget(kind: .poi, id: 5))
+        XCTAssertEqual(parser.parse(url), .content(place))
+        XCTAssertEqual(parser.parse(try XCTUnwrap(URL(string: "https://www.chengyinhub.com/subpackageRoam/poi-detail/index?id=5"))), .content(place))
+        XCTAssertNil(parser.parse(try XCTUnwrap(URL(string: "https://www.chengyinhub.com/subpackageRoam/poi-detail/index?poiId=05"))))
+        XCTAssertNil(parser.parse(try XCTUnwrap(URL(string: "https://www.chengyinhub.com/subpackageRoam/poi-detail/index?poiId=5&id=5"))))
+        XCTAssertNil(PublicContentShareLink.poiCopyText(id: 5))
+        XCTAssertNil(PublicContentShareLink.poi(id: 0))
+        XCTAssertEqual(MiniProgramPageLink(path: "subpackageRoam/poi-detail/index", query: ["poiId": "5"])?.query, ["poiId": "5"])
+        XCTAssertNil(MiniProgramPageLink(path: "subpackageRoam/poi-detail/index", query: [:]))
+        XCTAssertNil(MiniProgramPageLink(path: "subpackageRoam/poi-detail/index", query: ["poiId": "5", "id": "5"]))
     }
 }
