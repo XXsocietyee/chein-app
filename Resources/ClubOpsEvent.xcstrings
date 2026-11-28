@@ -1264,6 +1264,57 @@
           }
         }
       }
+    },
+    "clubOpsEvent.series.allDates": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date list (including past and cancelled occurrences)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期清单（含已过去与已取消的场次）"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.series.editFuture": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit future occurrences"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑未来场次"
+          }
+        }
+      }
+    },
+    "clubOpsEvent.series.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load the series list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系列列表加载失败"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
