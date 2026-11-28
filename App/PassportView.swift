@@ -75,6 +75,7 @@ struct PassportBadge: Identifiable, Equatable {
     @State private var stampPhase: StampPhase = .loading
     @State private var badges: [PassportBadge]?
     @State private var badgeTotal: Int?
+    @State private var badgeCollected: Int?
     private enum StampPhase { case loading, ready, failed, offline }
     private struct LoadKey: Equatable { var stamps: ObjectIdentifier; var album: ObjectIdentifier?; var growth: ObjectIdentifier?; var refresh: Int }
 
@@ -101,7 +102,7 @@ struct PassportBadge: Identifiable, Equatable {
             case .ready:
                 EmptyView()
             }
-            PassportOverviewContent(stampCount: stampCount, thumbnails: thumbnails, badges: badges, badgeTotal: badgeTotal, onOpenTickets: onOpenTickets, showsTicketsAction: showsTicketsAction, showsActions: showsActions, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
+            PassportOverviewContent(stampCount: stampCount, thumbnails: thumbnails, badges: badges, badgeTotal: badgeTotal, badgeCollected: badgeCollected, onOpenTickets: onOpenTickets, showsTicketsAction: showsTicketsAction, showsActions: showsActions, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
                 .motionR2LoadIn(loading: stampPhase == .loading && stampCount == nil) // motion r2 R17: skeleton → fade in
         }
         .task(id: LoadKey(stamps: ObjectIdentifier(reader), album: album.map { ObjectIdentifier($0) },
@@ -120,8 +121,10 @@ struct PassportBadge: Identifiable, Equatable {
         if let badgeWall, badgeWall.isConfigured, let wall = try? await badgeWall.profileBadges(), !Task.isCancelled {
             let summary = ObjectBadgeWallSummary(wall: wall)
             badgeTotal = summary.total > 0 ? summary.total : nil
+            badgeCollected = summary.total > 0 ? summary.unlocked : nil
         } else {
             badgeTotal = nil
+            badgeCollected = nil
         }
     }
 
@@ -199,6 +202,9 @@ private struct PassportRollingCount: View {
     var badges: [PassportBadge]? = nil
     /// design-r2-play P14: all badges on the wall, so the rail reads "n of N" like the stamps; nil = count only.
     var badgeTotal: Int? = nil
+    /// 11-28 05:35 sweep: the collected count from the same badge-wall list as `badgeTotal`, so the card and the
+    /// badge wall ring agree; nil = the earned rail count.
+    var badgeCollected: Int? = nil
     var onOpenTickets: () -> Void = {}
     var showsTicketsAction = true
     var showsActions = true
@@ -385,7 +391,7 @@ private struct PassportRollingCount: View {
                 if let badges {
                     // P14: "3 of 12", the same shape as the stamp count.
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        CYLiveCounter(badges.count, style: .dataXL)
+                        CYLiveCounter(badgeCollected ?? badges.count, style: .dataXL)
                         if let badgeTotal {
                             Text("passport.stamps.ofTotal \(badgeTotal)")
                                 .font(.headline).monospacedDigit().foregroundStyle(.secondary)
@@ -416,8 +422,9 @@ private struct PassportRollingCount: View {
 
     private var badgeCountValue: Text {
         guard let badges else { return Text(verbatim: "—") }
-        guard let badgeTotal else { return Text(badges.count, format: .number) }
-        return Text("passport.stamps.count \(badges.count) \(badgeTotal)")
+        let collected = badgeCollected ?? badges.count
+        guard let badgeTotal else { return Text(collected, format: .number) }
+        return Text("passport.stamps.count \(collected) \(badgeTotal)")
     }
 
     @ViewBuilder private func badgeObject(_ badge: PassportBadge) -> some View {
