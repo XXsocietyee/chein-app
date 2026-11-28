@@ -6,6 +6,8 @@ import SwiftUI
     let targets: [PlayRewardBadgeTarget]
     var destination: ((PlayRewardBadgeTarget) -> AnyView)? = nil
     @State private var continued = false
+    /// P39: one success haptic when the unlock appears. Confetti stays inside `CYConfettiBurst` (none under Reduce Motion).
+    @State private var celebrated = false
     var body: some View {
         if !targets.isEmpty && !continued {
             VStack(alignment: .leading, spacing: 12) {
@@ -31,6 +33,8 @@ import SwiftUI
                 CYPillButton("playBadge.continue") { continued = true }
                     .accessibilityIdentifier("playBadge.continue")
             }.accessibilityIdentifier("playBadge.receipt")
+            .cyHaptic(.success, trigger: celebrated, where: CYHapticTransition.turnedOn)
+            .onAppear { celebrated = true }
         }
     }
 }

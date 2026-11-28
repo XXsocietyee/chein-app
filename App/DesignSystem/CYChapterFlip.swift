@@ -110,6 +110,12 @@ struct CYChapterEndCard: View {
                 Image(systemName: "seal.fill").font(.system(size: 72)).foregroundStyle(CYNight.lantern)
                 Image(systemName: "checkmark").font(.system(size: 30, weight: .bold)).foregroundStyle(CYNight.ink0)
             }
+            // P39: one burst over the seal. Overlay keeps the seal's size. CYBurst draws nothing under Reduce Motion or Low Power.
+            .overlay {
+                if shown && !reduceMotion {
+                    CYBurst(origin: .center, count: 36, duration: 1.2, style: .confetti, reach: 140)
+                }
+            }
             .scaleEffect(shown || reduceMotion ? 1 : 0.6)
             .accessibilityHidden(true)
             VStack(spacing: CYSpacing.xs) {
