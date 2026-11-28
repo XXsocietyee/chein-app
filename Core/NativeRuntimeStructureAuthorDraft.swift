@@ -130,6 +130,10 @@ public struct NativeRuntimeStructureAuthorDraft: Equatable {
         guard let node = savedNodes.first(where: { $0.localMetadata["id"]?.integer == nodeID }), !enabled || inputs.guideAllowed(node, theme: theme) else { throw ProjectEditError.invalidDraft }
         try updateQuest(nodeID) { row in row["guideKey"] = enabled ? (row["guideKey"] ?? .string("guide_\(nodeID)")) : nil }
     }
+    /// Turning the guide off needs no support read (MP `onStructureGuide` deletes `guideKey`).
+    public mutating func clearGuide(nodeID: Int) throws {
+        try updateQuest(nodeID) { row in row["guideKey"] = nil }
+    }
     public mutating func fallback(nodeID: Int, other: Int, selected: Bool) throws {
         guard other != nodeID, savedNodes.contains(where: { $0.localMetadata["id"]?.integer == other }) else { throw ProjectEditError.invalidDraft }
         var ids = (quest(nodeID: nodeID)?["approvedFallbackNodeIds"]?.array ?? []).compactMap(\.integer)

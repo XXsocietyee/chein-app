@@ -133,6 +133,9 @@ extension EnvironmentValues {
                 }
             }
         }
+        // Sweep 13:15 (P2): the sub line and the first team start right under the title (no empty band).
+        .listSectionSpacing(.compact)
+        .contentMargins(.top, CYSpacing.sm, for: .scrollContent)
         // The enrollment UI test addresses navigationBars["Enrollment roster"].
         // That bar title is the one screen title; a second hero would duplicate it.
         .navigationTitle("club.enroll.title").navigationBarTitleDisplayMode(.inline)

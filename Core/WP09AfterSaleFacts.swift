@@ -171,7 +171,7 @@ public enum PaymentReturnPhase: Equatable {
         case .querying: return WP09Copy.text("查询中", "Checking", chinese: chinese)
         case .received: return WP09Copy.text("已到账", "Received", chinese: chinese)
         case .pendingConfirmation: return WP09Copy.text("待确认", "Waiting for confirmation", chinese: chinese)
-        case .cancelled: return WP09Copy.text("已取消", "Cancelled", chinese: chinese)
+        case .cancelled: return WP09Copy.text("已取消", "Canceled", chinese: chinese)
         case .failed: return WP09Copy.text("确定失败", "Failed", chinese: chinese)
         case .unknown: return WP09Copy.unknown
         }

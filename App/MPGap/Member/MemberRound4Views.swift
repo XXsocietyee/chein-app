@@ -135,7 +135,8 @@ public struct CouponForbiddenPlayerActionView: View {
         ContentUnavailableView {
             Label("couponManagement.forbidden.title", systemImage: "lock")
         } actions: {
-            if isMerchant {
+            // K12: 申请入驻 is a merchant-onboarding entry. Release shows 返回, the same as a merchant member.
+            if isMerchant || !PlayerLaunch.merchantCenterEnabled {
                 Button("common.back", action: onBack)
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)

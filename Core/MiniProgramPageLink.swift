@@ -109,6 +109,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["subpackageRoam/official-route/index"] = optionalID
         pages["subpackageRoam/session/index"] = Rule(allowed: ["id", "shareToken", "sessionId", "ts"], required: [], ids: ["id"])
         pages["subpackageRoam/my-teams/index"] = Rule(allowed: ["tab", "ownerType", "ownerId", "scope"], required: [], ids: ["ownerType", "ownerId"])
+        // mp-nav r3: MP poi-detail onLoad reads `poiId` (index.js:27; share path utils/place-share.js); native links use
+        // `id`. Exactly one of the two, checked in init (`chein://mp/…` and notification `page` paths reach this rule).
+        pages["subpackageRoam/poi-detail/index"] = Rule(allowed: ["id", "poiId"], required: [], ids: ["id", "poiId"])
         pages["subpackageRoam/citynode-code/index"] = Rule(allowed: ["poiId", "name"], required: [], ids: ["poiId"])
         // Parity r1 (player-content): pages whose MP `onLoad` reads a query now carry it to the native screen.
         for (page, rule) in queryPages { pages[page] = rule }
@@ -252,7 +255,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/topic/index/index",
         "pages/square/detail/index",
         "subpackageMember/orderinfo/orderinfo",
-        "subpackageRoam/poi-detail/index",
     ]
 
     /// Same `id` key, not required: a bare path still opens, and a non-canonical id still rejects the link.
@@ -303,6 +305,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         if page == "subpackageJourney/pages/landing/index", !["r", "g", "s"].contains(present["k"] ?? "") { return nil }
         // MP group-code accepts activityId or topicId. A name alone is not enough.
         if page == "pages/club/group-code/index", present["activityId"] == nil, present["topicId"] == nil { return nil }
+        if page == "subpackageRoam/poi-detail/index", present.count != 1 { return nil }
         if page == "pages/coop/list/index", let tab = present["tab"], tab != "sent", tab != "received" { return nil }
         if page == "pages/merchant/ledger/index", MerchantFinanceRoute.normalize(present) == nil { return nil }
         if page == "pages/merchant/profile/index", MerchantPublicHomeLink.target(present) == nil { return nil }

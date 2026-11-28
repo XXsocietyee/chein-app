@@ -755,6 +755,51 @@ final class ProjectEditRuntimeActsTests: XCTestCase {
     }
 }
 
+/// MP runtime-structure-editor.wxml kind quests (到达与引导) via theme-runtime-structure.js saveStructure.
+final class ProjectEditNodeArrivalTests: XCTestCase {
+    func testArrivalEditsOnlyThisNodeQuestAndValidates() throws {
+        let draft = try twoNodeDraft()
+        XCTAssertEqual(ProjectEditNodeArrival.summary(nodeID: 22, in: draft), .key(ProjectEditNodeArrival.Copy.unset))
+        let state = ProjectEditNodeArrival.state(nodeID: 22, in: draft)
+        XCTAssertNil(state.refusalKey)
+        XCTAssertEqual(state.placeKey, "node_22")
+        XCTAssertEqual(state.places.map(\.id), ["node_22", "node_23"])
+        XCTAssertEqual(state.stops.map(\.id), [23])
+        XCTAssertFalse(state.guide)
+        let moved = try ProjectEditNodeArrival.save(nodeID: 22, placeKey: "node_23", guide: false, fallbackIDs: [23], in: draft, inputs: nil)
+        let next = ProjectEditNodeArrival.state(nodeID: 22, in: moved)
+        XCTAssertEqual(next.placeKey, "node_23")
+        XCTAssertEqual(next.fallbackIDs, [23])
+        XCTAssertEqual(ProjectEditNodeArrival.summary(nodeID: 22, in: moved), .place(.init(id: "node_23", name: "Harbor gate", nodeNumber: 23)))
+        XCTAssertEqual(ProjectEditNodeArrival.state(nodeID: 23, in: moved).placeKey, "node_23")
+        XCTAssertNoThrow(try NativeRuntimeStructureAuthorDraft.validateOriginalSubmission(moved))
+        let cleared = try ProjectEditNodeArrival.save(nodeID: 22, placeKey: "node_23", guide: false, fallbackIDs: [], in: moved, inputs: nil)
+        XCTAssertEqual(ProjectEditNodeArrival.state(nodeID: 22, in: cleared).fallbackIDs, [])
+    }
+    func testGuideNeedsTheSupportReadAndUnsavedNodesAreRefused() throws {
+        let draft = try twoNodeDraft()
+        XCTAssertThrowsError(try ProjectEditNodeArrival.save(nodeID: 22, placeKey: "node_22", guide: true, fallbackIDs: [], in: draft, inputs: nil)) { error in
+            XCTAssertEqual(error as? ProjectEditRuntimeActsError, .refused(ProjectEditNodeArrival.Copy.guideNotAllowed))
+        }
+        XCTAssertFalse(ProjectEditNodeArrival.guideAllowed(nodeID: 22, in: draft, inputs: nil))
+        XCTAssertEqual(ProjectEditNodeArrival.state(nodeID: 0, in: draft).refusalKey, ProjectEditNodeArrival.Copy.saveNode)
+        var unsaved = ProjectEditSyntheticFixtures.draft()
+        unsaved.chapters[0].nodes[0].localMetadata["id"] = nil
+        XCTAssertEqual(ProjectEditNodeArrival.state(nodeID: 22, in: unsaved).refusalKey, ProjectEditRuntimeActs.Copy.refuseMode)
+    }
+    private func twoNodeDraft() throws -> ProjectEditDraft {
+        var draft = ProjectEditSyntheticFixtures.draft()
+        draft.chapters[0].nodes[0].localMetadata["id"] = .number(22)
+        var second = ProjectEditNode(); second.name = "Harbor gate"; second.localMetadata["id"] = .number(23)
+        draft.chapters[0].nodes.append(second)
+        let game: [String: ProjectEditJSON] = ["runtimeScope": .string("TEAM"), "worldMode": .string("TEAM_INDEPENDENT")]
+        let theme: [String: ProjectEditJSON] = ["schemaVersion": .number(1), "capacity": .number(0), "gameplayRuntime": .object(game)]
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]
+        draft.preserved["themeRuntimeConfig"] = .string(String(decoding: try encoder.encode(theme), as: UTF8.self))
+        return draft
+    }
+}
+
 /// MP theme-runtime-survival.js toggleThemeReplay / toggleThemeTeamTrail.
 final class ProjectEditThemeRulesTests: XCTestCase {
     func testReplayDefaultsOffAndIsRefusedForTeamRuntime() throws {

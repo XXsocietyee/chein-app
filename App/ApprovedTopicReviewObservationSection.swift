@@ -47,7 +47,7 @@ import SwiftUI
         case .approved: return String(localized: LocalizedStringResource("topicReview.currentApproved", defaultValue: "Review task approved", locale: locale))
         case .rejected: return String(localized: LocalizedStringResource("topicReview.currentRejected", defaultValue: "Review task rejected", locale: locale))
         case .escalated: return String(localized: LocalizedStringResource("topicReview.escalated", defaultValue: "Escalated review", locale: locale))
-        case .cancelled: return String(localized: LocalizedStringResource("topicReview.currentCancelled", defaultValue: "Review task cancelled", locale: locale))
+        case .cancelled: return String(localized: LocalizedStringResource("topicReview.currentCancelled", defaultValue: "Review task canceled", locale: locale))
         }
     }
 }
