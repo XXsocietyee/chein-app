@@ -388,7 +388,8 @@ extension View {
 let cyRoamSheetSnap = Animation.spring(response: 0.42, dampingFraction: 0.82)
 
 /// Fill of the map panel; content inside the panel stays clear so header and list share one surface.
-let cyMapPanelColor = Color.black
+/// System sheet material (coordinator 00:50): follows light / dark like the map, never a black slab over a light map.
+let cyMapPanelColor = AnyShapeStyle(.regularMaterial)
 
 /// Panel height as a fraction of the available height. The grabber drags between them.
 /// With a `peek` line the compact detent is only the grabber + that one line.
@@ -483,7 +484,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                 .background(alignment: .top) {
                     UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28, style: .continuous)
                         .fill(cyMapPanelColor)
-                        .shadow(color: .black.opacity(0.4), radius: 18, y: -4)
+                        .shadow(color: .black.opacity(0.18), radius: 18, y: -4)
                         .ignoresSafeArea(edges: .bottom)
                 }
             }
@@ -496,7 +497,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
     }
 
     private func grabber(total: CGFloat) -> some View {
-        Capsule().fill(Color.white.opacity(0.5)).frame(width: 40, height: 5)
+        Capsule().fill(.tertiary).frame(width: 40, height: 5)
             .frame(maxWidth: .infinity, minHeight: grabberHeight)
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 4)
