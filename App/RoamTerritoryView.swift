@@ -139,8 +139,7 @@ import SwiftUI
                             .accessibilityIdentifier("roamTerritory.error")
                     }
                     if loading {
-                        CYSkeleton()
-                            .accessibilityLabel(Text(verbatim: copy("正在加载领地信息", "Loading territory data")))
+                        CYSkeleton(label: LocalizedStringKey(copy("正在加载领地信息", "Loading territory data")))
                             .accessibilityIdentifier("roamTerritory.loading")
                     }
                     if let monopolyService {
