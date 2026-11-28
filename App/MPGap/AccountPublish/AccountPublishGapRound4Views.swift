@@ -64,6 +64,8 @@ public struct ProjectEditGapCastEditorSheet: View {
     public let onPreviewVoice: ((TopicCastMemberDraft) -> Void)?
     /// MP `pickCastAvatar`; nil hides 上传头像 in 编辑角色.
     public let avatarUpload: ProjectEditCastAvatarUpload?
+    /// MP `toggleCastRecord`; nil hides 用自己的声音录 in 编辑角色.
+    public let voiceUpload: ProjectEditCastVoiceUpload?
     @Environment(\.dismiss) private var dismiss
     @State private var editing: ProjectEditCastEditTarget?
 
@@ -72,13 +74,15 @@ public struct ProjectEditGapCastEditorSheet: View {
         player: Binding<ProjectEditCastPlayer>,
         chapters: [ProjectEditChapter] = [],
         onPreviewVoice: ((TopicCastMemberDraft) -> Void)?,
-        avatarUpload: ProjectEditCastAvatarUpload? = nil
+        avatarUpload: ProjectEditCastAvatarUpload? = nil,
+        voiceUpload: ProjectEditCastVoiceUpload? = nil
     ) {
         self._members = members
         self._player = player
         self.chapters = chapters
         self.onPreviewVoice = onPreviewVoice
         self.avatarUpload = avatarUpload
+        self.voiceUpload = voiceUpload
     }
 
     public var body: some View {
@@ -144,13 +148,14 @@ public struct ProjectEditGapCastEditorSheet: View {
                     onDelete: {
                         members.removeAll { $0.id == target.member.id }
                     },
-                    avatarUpload: avatarUpload)
+                    avatarUpload: avatarUpload,
+                    voiceUpload: voiceUpload)
                 .cySheet(detents: [.large])
             }
         }
     }
 
-    /// MP `cast-row`: face, name, then `identity · voice` when either is set.
+    /// MP `cast-row`: face, name, then `identity · voice` when either is set (`voiceLabel`: preset name or 自己录的).
     private func castRow(_ member: TopicCastMemberDraft) -> some View {
         HStack(spacing: CYSpacing.md) {
             ProjectEditCastFace(name: member.name, colorHex: member.colorHex, size: .medium, imageURL: member.avatarURL)
@@ -175,7 +180,8 @@ public struct ProjectEditGapCastEditorSheet: View {
 
     @ViewBuilder private func castMeta(_ member: TopicCastMemberDraft) -> some View {
         let identity = member.roleTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        let voiceKey = ProjectEditCastConfig.voicePresets.first { $0.value == member.voiceID }?.labelKey
+        let presetKey = ProjectEditCastConfig.voicePresets.first { $0.value == member.voiceID }?.labelKey
+        let voiceKey = presetKey ?? (member.voiceRecordingURL == nil ? nil : "castMember.voice.own")
         if !identity.isEmpty, let voiceKey {
             Text("\(Text(verbatim: identity)) · \(Text(LocalizedStringKey(voiceKey)))")
         } else if !identity.isEmpty {
