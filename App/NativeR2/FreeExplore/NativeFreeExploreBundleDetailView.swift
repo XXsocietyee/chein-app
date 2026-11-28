@@ -153,7 +153,7 @@ enum NativeFreeExploreBundleState: Equatable {
         ToolbarItemGroup(placement: .bottomBar) {
             Group {
                 if let priceText {
-                    Text(verbatim: priceText).font(.headline).monospacedDigit()
+                    Text(verbatim: LocaleDisplay.yuanAmounts(in: priceText, locale: locale)).font(.headline).monospacedDigit()
                 } else if catalog.saleEnabled {
                     Text("nativeR2.freeExplore.bundle.sale.on").foregroundStyle(.secondary)
                 } else {

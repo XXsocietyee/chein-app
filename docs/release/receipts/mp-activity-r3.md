@@ -202,6 +202,13 @@ Merged `ui/combined-r7` (xcstrings conflict: HEAD side added no keys, kept their
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration suites OK (`check_contextual_flows.py` fails identically without this change).
 
+## Round 3 continue (2026-11-28, twenty-first session — coordinator 01:50 build a32387e9b)
+Gates: scaffold, a11y, design consistency PASS; ratchet 52/52 new 0. Coordinator 01:50 row for this lane: 票种价格 still "—".
+
+| MP page | Native view | Change | Optimization |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` 费用明细 ticket row (wxml:149-153 `money.amount(selectedTicket.price)`) and ticket popup (wxml:133) | `App/RegistrationSheetView.swift` `ticketSection`, ticket sheet rows, new `ticketPriceText` | screenshot `zh-Hans-t5-baoming` (coordinator 01:50): 票种价格 rendered a bare 「—」 for the ¥12.5 fixture ticket because the money switch was closed (the ticket popup subtitle did the same). The price is now always shown as the MP does: ¥ amount via `RegistrationUIMoney.display(…, currencyCode: CNY)`, 免费 / Free when 0, 价格待定 / Price to be confirmed when the server sends no price. Checkout / pay amounts stay gated by the money switch | no lone dash; monospaced digits; both languages |
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

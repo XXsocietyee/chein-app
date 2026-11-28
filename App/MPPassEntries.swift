@@ -34,6 +34,7 @@ struct PassCheckoutPass: Identifiable, Equatable {
 /// Explore feed store card (r2-store): one card in the feed, never a paywall. Tap → 通行证 list.
 @MainActor struct MPPassExploreCard: View {
     @Environment(\.mpParity) private var bindings
+    @Environment(\.locale) private var locale
     @State private var card: PassStoreCard?
     @State private var read = false
 
@@ -71,7 +72,7 @@ struct PassCheckoutPass: Identifiable, Equatable {
             }
             Spacer(minLength: CYSpacing.sm)
             VStack(alignment: .trailing, spacing: CYSpacing.xs) {
-                Text(verbatim: card.priceText).cyText(.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: LocaleDisplay.yuanAmounts(in: card.priceText, locale: locale)).cyText(.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                 Text("mp.pass.store.go").cyText(.label).foregroundStyle(CYColor.textInverse)
                     .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                     .background(CYColor.textPrimary, in: Capsule())
@@ -96,6 +97,7 @@ struct PassCheckoutPass: Identifiable, Equatable {
     let topicID: Int
     @ViewBuilder let single: Single
     @Environment(\.mpParity) private var bindings
+    @Environment(\.locale) private var locale
     @State private var cover: PassCheckoutCover?
 
     var body: some View {
@@ -116,7 +118,7 @@ struct PassCheckoutPass: Identifiable, Equatable {
                                 if let meta = pass.meta { Text(verbatim: meta).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                             }
                             Spacer()
-                            if let price = pass.priceText { Text(verbatim: price).cyText(.bodyMedium).monospacedDigit() }
+                            if let price = pass.priceText { Text(verbatim: LocaleDisplay.yuanAmounts(in: price, locale: locale)).cyText(.bodyMedium).monospacedDigit() }
                         }
                     }
                     .accessibilityIdentifier("contextSelfPlay.cityPass.\(pass.id)")

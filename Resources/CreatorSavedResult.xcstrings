@@ -1,6 +1,50 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "templateSavedResult.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can pick it up again from your template library anytime."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可以随时回到模板库继续编辑。"
+          }
+        }
+      }
+    },
+    "templateSavedResult.meta %lld": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "About %lld minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "About %lld minutes"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预计 %lld 分钟"
+          }
+        }
+      }
+    },
     "templateSavedResult.title": {
       "localizations": {
         "en": {
@@ -13,70 +57,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "模板草稿已保存"
-          }
-        }
-      }
-    },
-    "templateSavedResult.detail": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "It's in your template library."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已保存到你的模板库。"
-          }
-        }
-      }
-    },
-    "templateSavedResult.identity": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Template number"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "模板编号"
-          }
-        }
-      }
-    },
-    "templateSavedResult.destination": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opening your template library in a moment."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "即将进入你的模板库。"
-          }
-        }
-      }
-    },
-    "templateSavedResult.openLibrary": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open template library"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查看模板库"
           }
         }
       }

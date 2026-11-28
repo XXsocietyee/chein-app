@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 23, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 24, after merging combined-r7 a32387e9b), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -69,7 +69,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/event-ops | `ClubOpsEventView.swift` | With no topics and no series, the MP hides 重复方式 (wxml:178). | **Fixed** |
 | club/event-ops | same | 当前身份不能运营活动 needs 返回 (wxml:15-16). | **Fixed (pass 3).** `.bordered` 返回 (`action.back`) on the denied `ContentUnavailableView` |
 | club/event-ops | same | 本场名册 · N 人 as the roster title. | Already present (CLB-event-ops-02) |
-| club/event-ops | same | Inline 日期清单 and 重复方式 forms instead of push rows. | **Not done.** large |
+| club/event-ops | same | Inline 日期清单 and 重复方式 forms instead of push rows. | **日期清单 fixed (pass 25)**; 重复方式 inline form still **Not done** (large: the create form lives in `ClubGovernanceCommandForm` with its own review/return flow) |
 | club/notify | `ClubGovernanceCommandForm` (sendNotification) | 当前身份不能发通知 | Already present (`ClubOpsNotifyDeniedText`, a `ContentUnavailableView`) |
 | club/notify | `ClubGovernanceCommandForm.swift` | A failed 预览受众 is inline 受众预览失败 + reason + 重试 (wxml:59-62); native showed the generic form error. | **Fixed (pass 3).** Dedicated section before any review, 重试 re-runs the preview (`club.notify.previewFailed`) |
 | club/notify | same | 投递状态 is its own section with 刷新 / 刷新中… in the section head, then the five counts and 只重试失败项 (wxml:72-111); native mixed the counts and a 刷新 row into the generic 已提交 receipt section (a parallel pass-4 run had only retitled that section). | **Fixed (pass 5).** New `Section` headed 投递状态 (`club.notify.deliveryStatus` from the parallel pass-4 run, header trait) with a `.borderless` 刷新 button (`notifyRefreshButton`, same id `club.notify.refreshCampaign`) in the header; counts, 只重试失败项 and the refresh notice moved into it |
@@ -158,6 +158,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 21. Pass 11: 报名名册 escrow line removed, hideEmpty tickets, team row colours.
 22. Pass 12: merge combined-r7 (xcstrings: combined is a superset, plural variants); club fixtures follow the UI language; 创建俱乐部 intro without the checklist and 封面/Logo under the step-3 header; join-requests and apply done re-checked.
 23. Pass 17: merge combined-r7; 改为转让主理人 moved into the 解散 confirm as the MP alternative (with its hint).
+29. Pass 24: merge combined-r7; club join / apply / leave haptics for success, refusal and prepare failure.
 28. Pass 23: merge combined-r7; club detail join action as a full-width bottom bar (01:20 sweep).
 27. Pass 22: topic-detail director load states (empty / network / business error, a refused read no longer renders nothing).
 26. Pass 21: merge combined-r7; apply note moved into an MP-style 申请加入 sheet, capsule always enabled (d4-detail).
@@ -266,6 +267,20 @@ Merged `origin/ui/combined-r7`.
 | MP page | Native view | MP sections | Optimizations / fix |
 |---|---|---|---|
 | `pages/club/detail` join capsule on 概览 (wxml:1028-1036) | `App/ClubActionPanel.swift` `floatingBar` (mounted by `ClubDetailView.floatingJoin` in the List's `.safeAreaInset(edge: .bottom)`) | Shot: "Apply again" / 重新申请 is a centred capsule floating over the 概览 list and covers the "Club contribution this week" header. MP content unchanged: one 加入 / 申请加入 / 重新申请 action on 概览, greyed 等待主理人审核 when pending, guests sign in first. | **Fixed.** The action is now a bottom bar: full-width `.borderedProminent` capsule (`.large`) on `.bar` material with a top divider, extending under the home indicator; the list scrolls above it so nothing is covered. Status / progress / error lines sit above the button inside the same bar (the separate see-through material card is gone). The bar draws only when it holds something (`floatingHasContent`), so members and the owner get no empty strip. Same ids (`club.action.join/apply/gated/signIn`), apply sheet and confirmation dialog. Re-check on the next sweep |
+
+## Pass 24: brief 01:40 "Next round" item 2 (motion and feedback); no open coordinator finding for mp-club (sweep a32387e9b predates pass 23, so the bottom bar is re-checked on the next sweep)
+Merged `origin/ui/combined-r7` (a32387e9b). Every MP club page already has a row above, so this pass starts the 01:40 list.
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/detail` 加入 / 申请加入 / 退出 (js `onJoin` / `onQuit`: success toast, failure toast) | `App/ClubActionPanel.swift` `submit` / `prepare` | MP content unchanged (same actions, same confirmations, same copy). Before: only a successful join / apply played a haptic; a successful leave, a server refusal and a failed prepare were silent. | **Fixed.** Leave acknowledged → `CYHaptics.success`; `.rejected` (join / apply / leave) → `CYHaptics.warning`; prepare failure (资格已变化 / 准备失败) → `CYHaptics.warning`. State changes keep the existing `.animation(reduceMotion ? nil : .default)`. Already present elsewhere: `.selection` on the detail tab bar and the create/edit type pickers, `.impact(.light)` on post likes, `.success` on the reward chip |
+| `pages/club/detail` 帖文 + `components/cy/post-compose` (发帖, 评论, 点赞以外的 置顶 / 删除 / 举报: success toast, failure toast) | `App/ClubCommunityViews.swift` `ClubCommunityViewModel.confirm` | MP content unchanged. Before: confirming a post / comment / pin / delete / report in the review sheet was silent. | **Fixed.** The write landing (or queued for moderation) plays `CYHaptics.success`; a refused or unknown write plays `CYHaptics.warning` next to the existing notice. In the model, not the view, because `confirm` returns true for a failure too (the sheet closes and the notice shows) |
+| `pages/club/join-requests` 通过 / 拒绝 (js:131-157, failure toast) | `App/ClubManagementView.swift` `confirm` | MP content unchanged. Success already played `CYHaptics.success`; a refused 通过 / 拒绝 (row marked failed) was silent. | **Fixed.** `.rejected` → `CYHaptics.warning` with the failed-row mark |
+
+## Pass 25: Not done row club/event-ops 日期清单 (sweep 02:10 UTC, build 41374363f, `docs/sweeps/latest/mp-club/en-d4-detail.jpg`: pass 23 bottom bar renders full width under the list, nothing covered ✓)
+Merged `origin/ui/combined-r7` (41374363f). No new coordinator finding for mp-club.
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/event-ops` 日期清单 card (wxml:117-170) | `App/ClubOpsEventView.swift` `.series` section, new `ClubOpsEventSeriesInlineRows` | MP card: loading skeleton → 系列列表加载失败 + 重试 → 还没有系列场次 → per series 「主题 · 重复方式」 + 候补开启/关闭 with trailing 编辑未来场次 (tap = edit that series) → 日期清单（含已过去与已取消的场次） → 添加日期. Native: one 日期清单 push row; the series only showed after a push. | **Fixed.** The hub now reads the series list with the topics and draws it inline in the 日期清单 section (header 日期清单, footer rule 仅可修改无报名的未来场次): error line + `.bordered` 重试 (`clubOpsEvent.series.retry`), empty 还没有系列场次, else one `NavigationLink` per series (`ClubOpsEventSeriesRowView` + tinted 编辑未来场次, `ViewThatFits` stacks it under the title in long English / large type) opening the series detail where the edit lives (`clubOpsEvent.series.edit.<id>`), then 日期清单（含已过去与已取消的场次） opening the full list with the per-series date browser (same id `clubOpsEvent.open.series`). 添加日期 stays the 重复方式 row below (it opens the create form). The 发布主题 empty rule (`publishEmpty`) is unchanged. New keys `clubOpsEvent.series.allDates`, `.editFuture`, `.loadFailed` (en + zh-Hans). Needs a look on a sweep (no event-ops fixture yet) |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.

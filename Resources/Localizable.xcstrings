@@ -135951,7 +135951,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your pass covers this theme · this order is ¥0"
+            "value": "Your pass covers this topic · ¥0 for this order"
           }
         },
         "zh-Hans": {
@@ -175557,13 +175557,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This session’s leaderboard is enabled. No entries are available yet."
+            "value": "No collaborations yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本局榜单已开启，暂时没有记录。"
+            "value": "暂无协作记录"
           }
         }
       }
@@ -317307,6 +317307,23 @@
         }
       }
     },
+    "nativeR2.mapHome.walkMinutes %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min walk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "步行 %lld 分钟"
+          }
+        }
+      }
+    },
     "club.quick.settings": {
       "extractionState": "manual",
       "localizations": {
@@ -321687,13 +321704,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Accept"
+            "value": "Keep this sign"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "收下"
+            "value": "收下这张签"
           }
         }
       }
@@ -321744,7 +321761,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "存到相册"
+            "value": "保存到相册"
           }
         }
       }
@@ -354595,6 +354612,363 @@
           "stringUnit": {
             "state": "translated",
             "value": "巡夜人更容易注意到你"
+          }
+        }
+      }
+    },
+    "playCard.saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved to your collection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收进藏品册"
+          }
+        }
+      }
+    },
+    "playCard.savedGenerating": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved to your collection · 3D is being made; turn it around in your collection later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收进藏品册 · 3D 生成中，稍后在藏品册里转着看"
+          }
+        }
+      }
+    },
+    "playkit.album.page %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo %1$lld of %2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$lld 张，共 %2$lld 张"
+          }
+        }
+      }
+    },
+    "playCard.itemInfo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "物品信息"
+          }
+        }
+      }
+    },
+    "playkit.daily.signerDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stop's host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一站的发起人"
+          }
+        }
+      }
+    },
+    "playkit.daily.leftAtDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When this stop opened"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一站开场"
+          }
+        }
+      }
+    },
+    "playkit.daily.photoBy %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taken by %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 拍的"
+          }
+        }
+      }
+    },
+    "playkit.daily.photoByThem": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Their photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TA 拍的"
+          }
+        }
+      }
+    },
+    "playkit.daily.photoLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo taken by the previous visitor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一个人拍的照片"
+          }
+        }
+      }
+    },
+    "playkit.daily.scratchHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scratch to reveal today's line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刮开今日签文"
+          }
+        }
+      }
+    },
+    "playkit.daily.saving": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成中…"
+          }
+        }
+      }
+    },
+    "mpPublish.bingo.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bingo grid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "宾果九宫格"
+          }
+        }
+      }
+    },
+    "mpPublish.bingo.configure": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置"
+          }
+        }
+      }
+    },
+    "mpPublish.bingo.configured %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld of 9 set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已配置 %lld/9 格"
+          }
+        }
+      }
+    },
+    "mpPublish.bingo.cellA11y %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit cell %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑第 %lld 格"
+          }
+        }
+      }
+    },
+    "mpPublish.bingo.rewarded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Has a reward"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已配奖励"
+          }
+        }
+      }
+    },
+    "mpPublish.bingo.editCell": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit cell"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑格子"
+          }
+        }
+      }
+    },
+    "mpPublish.bingo.condition": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lights up when"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点亮条件"
+          }
+        }
+      }
+    },
+    "mpPublish.bingo.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标题"
+          }
+        }
+      }
+    },
+    "mpPublish.bingo.labelPrompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a title"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写标题"
+          }
+        }
+      }
+    },
+    "mpPublish.bingo.feedback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completion feedback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成反馈"
           }
         }
       }

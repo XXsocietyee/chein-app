@@ -887,6 +887,7 @@ public struct CYRegistrationSummaryCard: View {
     private let onSubmit: () -> Void
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
 
     public init(
         slots: [CYRegistrationSlot],
@@ -968,7 +969,7 @@ public struct CYRegistrationSummaryCard: View {
                             .cyText(.meta)
                             .foregroundStyle(palette.textTertiary)
                         Spacer()
-                        Text(verbatim: originalAmountText)
+                        Text(verbatim: LocaleDisplay.yuanAmounts(in: originalAmountText, locale: locale))
                             .cyText(.meta, monospacedDigit: true)
                             .strikethrough()
                             .foregroundStyle(palette.textTertiary)
@@ -980,7 +981,7 @@ public struct CYRegistrationSummaryCard: View {
                             .cyText(.meta)
                             .foregroundStyle(palette.success)
                         Spacer()
-                        Text(verbatim: discountText)
+                        Text(verbatim: LocaleDisplay.yuanAmounts(in: discountText, locale: locale))
                             .cyText(.meta, monospacedDigit: true)
                             .foregroundStyle(palette.success)
                     }
@@ -990,7 +991,7 @@ public struct CYRegistrationSummaryCard: View {
                         .cyText(.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                     Spacer()
-                    Text(verbatim: totalAmountText)
+                    Text(verbatim: LocaleDisplay.yuanAmounts(in: totalAmountText, locale: locale))
                         .cyText(.dataXL)
                         .foregroundStyle(palette.textPrimary)
                 }

@@ -80,6 +80,7 @@ struct D2Fixture: View {
                     } label: { Text("social.profileSection") }
                         .cyAdaptiveSegmented()
                         .accessibilityIdentifier("account.mine.tabs")
+                        .sensoryFeedback(.selection, trigger: tab)
                 }
                 switch tab {
                 case .posts:
