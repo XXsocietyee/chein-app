@@ -138,6 +138,8 @@ public struct PlayCompletionReview: Equatable {
     public private(set) var phase: Phase = .idle
     public private(set) var issue: PlayExperienceError?
     public private(set) var reward: PlayWireValue?
+    /// mp-journey r3: MP `_applyAiScore` — the AI 参考分 a photo receipt carried, kept per node for the stop card.
+    public private(set) var aiScores: [Int: PlayAIScoreCard] = [:]
     public private(set) var hint: PlayHintReceipt?
     public private(set) var ending: PlayEndingDocument?
     public private(set) var leaderboard: PlayCompanionLeaderboard?
@@ -262,7 +264,7 @@ public struct PlayCompletionReview: Equatable {
     private func retireChildRead(generation request: UInt64) {
         guard generation == request else { return }
         generation &+= 1; loadedSession = nil; snapshot = nil; castPayload = .null; extras = [:]
-        reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []
+        reward = nil; aiScores = [:]; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []
         // Keep durable completion/pause records and pending thought keys intact.
         // Nothing about a changed mode proves an earlier mutation's outcome.
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false
@@ -299,7 +301,7 @@ public struct PlayCompletionReview: Equatable {
         storyArchive = nil; storyArchiveSource = nil
         guard let session = currentSession(), scope.isValid else { phase = .failed; issue = .staleSession; return }
         if authorityOwner != session {
-            reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; leadNotice = nil
+            reward = nil; aiScores = [:]; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; leadNotice = nil
             advancedReadyNodeIDs = []; submitRecovery = nil; arrivalFailure = nil
             hintUnknownNodes = Set((unknownHintRequests[PlayRunStorageKey.make(session: session, scope: scope)] ?? [:]).keys)
             leaderOutcomeUnknown = unknownLeaderKeys.contains(PlayRunStorageKey.make(session: session, scope: scope))
@@ -329,7 +331,7 @@ public struct PlayCompletionReview: Equatable {
                 case .confirmed(let value)? where Self.receipt(value, names: nodeID):
                     try await recovery.clear(captured, key: key)
                     try check(session, request); pending = nil
-                    reward = value; submitRecovery = .confirmed(nodeID: nodeID)
+                    reward = value; noteAIScore(value); submitRecovery = .confirmed(nodeID: nodeID)
                 case .failed(let refusal)?:
                     try await recovery.clear(captured, key: key)
                     try check(session, request); pending = nil
@@ -365,7 +367,7 @@ public struct PlayCompletionReview: Equatable {
             unresolved = pending != nil || !hintUnknownNodes.isEmpty || leaderOutcomeUnknown
             let mode = PlayGameplayMode(serverValue: snapshot.result.mode)
             if authorityMode != mode {
-                reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false
+                reward = nil; aiScores = [:]; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false
                 advancedReadyNodeIDs = []
             }
             authorityMode = mode
@@ -562,6 +564,10 @@ public struct PlayCompletionReview: Equatable {
         }
         await dispatch(bound)
     }
+    private func noteAIScore(_ receipt: PlayWireValue) {
+        guard let card = PlayAIScoreCard(receipt: receipt) else { return }
+        aiScores[card.nodeID] = card
+    }
     static func receipt(_ value: PlayWireValue, names nodeID: Int) -> Bool {
         value["nodeId"].tolerantInteger == nodeID || value["data"]["nodeId"].tolerantInteger == nodeID
     }
@@ -616,7 +622,7 @@ public struct PlayCompletionReview: Equatable {
             guard receipt["nodeId"].tolerantInteger == review.nodeID else { throw PlayExperienceError.malformed }
             let acknowledged = try await recovery.transition(dispatched, to: .acknowledged, key: key)
             ticket = acknowledged; try check(session, request); cachedCompletion = acknowledged
-            reward = receipt; submitRecovery = nil; arrivalFailure = nil; phase = .needsReadback; await load()
+            reward = receipt; noteAIScore(receipt); submitRecovery = nil; arrivalFailure = nil; phase = .needsReadback; await load()
         } catch {
             guard generation == request else { return }
             guard currentSession() == session else { invalidate(); return }
@@ -653,6 +659,7 @@ public struct PlayCompletionReview: Equatable {
                             try check(session, request)
                             cachedCompletion = acknowledged
                             reward = value
+                            noteAIScore(value)
                             submitRecovery = service.enabled.contains(.actionContextBinding) ? .confirmed(nodeID: review.nodeID) : nil
                             phase = .needsReadback
                             await load()
@@ -1083,7 +1090,7 @@ public struct PlayCompletionReview: Equatable {
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
         compatibility = nil; contentVersion = nil
-        generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; castPayload = .null; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
+        generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; castPayload = .null; extras = [:]; reward = nil; aiScores = [:]; hint = nil; cachedCompletion = nil
         ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
         submitRecovery = nil; arrivalFailure = nil
     }
