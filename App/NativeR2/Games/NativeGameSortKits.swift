@@ -56,7 +56,9 @@ extension PlayKitScreen {
         case .match: nativeMatchSection
         default: nativeClassifySections
         }
-        if let cap = raw["maxAttempts"].integer, cap > 0 {
+        if kind == .classify {
+            EmptyView()
+        } else if let cap = raw["maxAttempts"].integer, cap > 0 {
             Section {
                 if let attempts = raw["attempts"].integer, attempts > 0 {
                     LabeledContent { Text(verbatim: String(attempts)).monospacedDigit() } label: { Text("playkit.attempts") }
@@ -135,20 +137,42 @@ extension PlayKitScreen {
         }
     }
 
-    /// 未分类 on top; each bin is its own section. Swipe to take an item back.
+    /// MP `playkit-classify`: prompt (shell) → the top card (n / total · label) with the bins as buttons (label · count)
+    /// → each bin's placed items (tap to take back; all green after a pass) → 还有 N 条没分 → 全分对了 / 还有分错的… → 分好了.
     @ViewBuilder var nativeClassifySections: some View {
         let placement = nativeCleanPlacement
         let items = nativeItems
         let unsorted = items.filter { placement[$0.id] == nil }
-        Section {
-            ForEach(unsorted) { item in nativeClassifyRow(item) }
-        } header: {
-            Text("nativeGames.classify.unsorted")
-        } footer: {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("playkit.classify.instructions")
-                Text("playkit.classify.remainingLine \(unsorted.count)")
-                    .accessibilityIdentifier("playkit.classify.remaining")
+        let passed = raw["passed"].bool == true
+        if let top = unsorted.first, !passed {
+            Section {
+                Text(verbatim: top.label)
+                    .font(.title3.weight(.semibold))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .accessibilityIdentifier("playkit.classify.card")
+                ForEach(nativeBins) { bin in
+                    let count = items.filter { placement[$0.id] == bin.id }.count
+                    Button {
+                        guard enabled else { return }
+                        var next = nativeCleanPlacement
+                        next[top.id] = bin.id
+                        nativePlacement = next
+                        nativeReasoningEdited()
+                    } label: {
+                        LabeledContent {
+                            Text(verbatim: String(count)).monospacedDigit()
+                        } label: {
+                            Label(bin.label, systemImage: "tray.and.arrow.down")
+                        }
+                    }
+                    .disabled(!enabled)
+                    .accessibilityLabel(Text("playkit.classify.dropInto \(bin.label) \(count)"))
+                    .accessibilityIdentifier("playkit.classify.bin." + bin.id)
+                }
+            } header: {
+                Text(verbatim: "\(items.count - unsorted.count + 1) / \(items.count)").monospacedDigit()
             }
         }
         ForEach(nativeBins) { bin in
@@ -156,19 +180,48 @@ extension PlayKitScreen {
             if !placed.isEmpty {
                 Section {
                     ForEach(placed) { item in
-                        nativeClassifyRow(item)
-                            .swipeActions(edge: .trailing) {
-                                Button("nativeGames.classify.takeBack") {
-                                    var next = nativeCleanPlacement
-                                    next.removeValue(forKey: item.id)
-                                    nativePlacement = next
-                                    nativeReasoningEdited()
-                                }
-                                .disabled(!enabled)
+                        Button {
+                            guard enabled, !passed else { return }
+                            var next = nativeCleanPlacement
+                            next.removeValue(forKey: item.id)
+                            nativePlacement = next
+                            nativeReasoningEdited()
+                        } label: {
+                            Label {
+                                Text(verbatim: item.label).foregroundStyle(.primary)
+                            } icon: {
+                                Image(systemName: passed ? "checkmark.circle.fill" : "arrow.uturn.backward.circle")
+                                    .foregroundStyle(passed ? Color.green : Color.secondary)
                             }
+                        }
+                        .disabled(!enabled || passed)
+                        .accessibilityLabel(passed ? Text("playkit.classify.placed \(item.label)") : Text("playkit.classify.takeBackItem \(item.label)"))
+                        .accessibilityIdentifier("playkit.classify.row." + item.id)
                     }
                 } header: {
-                    Text(verbatim: bin.label)
+                    HStack {
+                        Text(verbatim: bin.label)
+                        Spacer()
+                        Text(verbatim: String(placed.count)).monospacedDigit()
+                    }
+                }
+            }
+        }
+        let judged = reasoningFeedback.showsResult(for: projection) && ((raw["attempts"].integer ?? 0) > 0 || passed)
+        if !unsorted.isEmpty || judged {
+            Section {
+                if !unsorted.isEmpty {
+                    Text("playkit.classify.leftLine \(unsorted.count)")
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("playkit.classify.remaining")
+                }
+                if judged {
+                    let ok = passed || raw["lastCorrect"].bool == true
+                    Label(ok ? LocalizedStringKey("playkit.classify.allRight") : LocalizedStringKey("playkit.classify.someWrong"),
+                          systemImage: ok ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(ok ? Color.green : Color.red)
+                        .accessibilityIdentifier("playkit.classify.verdict")
                 }
             }
         }

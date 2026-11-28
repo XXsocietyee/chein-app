@@ -3639,5 +3639,107 @@
         }
       }
     }
+  },
+  "playkit.classify.dropInto %@ %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Put this card in “%1$@”, %2$lld already there"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "把这一张放进「%1$@」，里面已有 %2$lld 条"
+        }
+      }
+    }
+  },
+  "playkit.classify.takeBackItem %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Take “%@” back"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "把「%@」拿回来"
+        }
+      }
+    }
+  },
+  "playkit.classify.placed %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%@, sorted correctly"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%@，分对了"
+        }
+      }
+    }
+  },
+  "playkit.classify.leftLine %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld left to sort"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还有 %lld 条没分"
+        }
+      }
+    }
+  },
+  "playkit.classify.allRight": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All sorted correctly"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全分对了"
+        }
+      }
+    }
+  },
+  "playkit.classify.someWrong": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Some are in the wrong place. Tap a label to take it back and try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还有分错的，点小标签拿回来重放"
+        }
+      }
+    }
   }
 }
