@@ -513,6 +513,7 @@
         "ReformWorkPackagesW02ToW20SectionViewTests",
         "ReformWorldHostWorkbenchViewTests",
         "RegionalEndpointAllowlistSectionViewTests",
+        "RegistrationPayLeaseTests",
         "RegistrationUncertainEvidenceCacheTests",
         "RegistrationWaitlistOrderVisitTests",
         "ReleaseArchiveChecklistSectionViewTests",

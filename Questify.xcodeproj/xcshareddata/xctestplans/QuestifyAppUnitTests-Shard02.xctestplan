@@ -509,6 +509,7 @@
         "ReferenceMapCardAppTests",
         "ReformWorkPackagesW02ToW20SectionViewTests",
         "RegionalEndpointAllowlistSectionViewTests",
+        "RegistrationPayLeaseTests",
         "RegistrationUncertainEvidenceCacheTests",
         "ReleaseArchiveChecklistSectionViewTests",
         "ReleasePreflightDiagnosticsViewTests",
