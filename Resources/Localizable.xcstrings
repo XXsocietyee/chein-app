@@ -356753,6 +356753,91 @@
           }
         }
       }
+    },
+    "compliance.apple.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify it's you"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证本人身份"
+          }
+        }
+      }
+    },
+    "compliance.apple.lead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account was created with Sign in with Apple and has no phone number. Sign in with Apple again to confirm the deletion request is yours."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此账号通过「通过 Apple 登录」创建，未绑定手机号。请再次通过 Apple 登录，确认是你本人申请注销。"
+          }
+        }
+      }
+    },
+    "compliance.apple.failedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple verification didn't finish"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 身份验证未完成"
+          }
+        }
+      }
+    },
+    "compliance.apple.reauthFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with Apple didn't return a credential. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能通过 Apple 完成身份验证，请重试。"
+          }
+        }
+      }
+    },
+    "compliance.apple.reauthRejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Apple ID couldn't be confirmed for this account. Sign in with Apple again using the Apple ID you signed up with."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 身份与当前账号不一致或已过期，请使用注册时的 Apple ID 重新验证。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
