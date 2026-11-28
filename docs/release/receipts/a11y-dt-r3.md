@@ -621,9 +621,18 @@ Not done item: `Picker` / `Stepper` rows with a sibling caption (same scan, 6 hi
 | square report legacy hint, club topic customers count scope, follow list "not friends" note, team config defaults | `SocialActionViews.swift:82`, `ClubGovernanceViews.swift:761`, `ProfileFollowListView.swift:39`, `ProjectTeamConfigurationEditor.swift:105` | ✓ | Audit: each caption explains the whole section or list, not the picker above it, so it stays its own stop. No change | Done |
 
 
+Not done item: `TextField` rows with a sibling caption. The scan found mostly character counters, and 11 of them read
+"12 slash 100" / "12 斜杠 100" to VoiceOver (the run-13 slash scan covered values, not `Text(verbatim:)` counters). Format hints
+(`RoamAreaPicker` lat/long, `ProjectNodeDuration`, `PublishingManagement` notices) explain the form section and stay their own stop.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Character counters on player composers: coop invite note + flow reason, club post composer, square appeal reason, picture-choice name, pass refund reason, host cancel reason, square cloud composer, group poll question, comment length row, legacy DIY name | `CooperationContextualViews:677`, `CooperationFlowEditors:266`, `ClubCommunityViews:1056`, `SquareGovernanceViews:67`, `TemplatePictureChoiceEditor:89`, `PassMarketViews:1231`, `ActivityHostCancelView:329`, `SquareCloudComposerView:110`, `GroupPollViews:142`, `SocialActionViews:53`, `PlayKitLegacyViews:82` | ✓ (owning lanes keep order) | `.accessibilityLabel` with the shared `a11y.value.characters` key: "12 of 100 characters" / "已输入 12 字，最多 100 字". Visible text unchanged; identifiers kept. Level B/C | Done |
+
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-36).
-- `TextField` / `SecureField` rows with a sibling caption under the field (format hints): hint on the field, caption hidden.
+- Other `Text(verbatim:)` "a/b" counts that are not characters (selected members, options, steps) outside the run-13 value scan.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

@@ -139,7 +139,7 @@ import SwiftUI
             } header: {
                 Text("poll.question")
             } footer: {
-                Text(verbatim: "\(question.utf16.count) / 200").monospacedDigit()
+                Text(verbatim: "\(question.utf16.count) / 200").monospacedDigit().accessibilityLabel(Text("a11y.value.characters \(Int(question.utf16.count)) \(Int(200))"))
             }
             Section {
                 ForEach(options.indices, id: \.self) { index in

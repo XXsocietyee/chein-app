@@ -674,7 +674,7 @@ import SwiftUI
             Section("mpr3.coop.invite.messageTitle") {
                 TextField("cooperation.invite.messagePlaceholder", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
                     .onChange(of: message) { _, value in if value.count > 100 { message = String(value.prefix(100)) } }
-                Text(verbatim: "\(message.count) / 100").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: "\(message.count) / 100").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary).accessibilityLabel(Text("a11y.value.characters \(Int(message.count)) \(Int(100))"))
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if let drafts {
