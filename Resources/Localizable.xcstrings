@@ -355648,6 +355648,23 @@
           }
         }
       }
+    },
+    "profile.selfGrowth.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your growth record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成长记录加载失败"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
