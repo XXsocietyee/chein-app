@@ -105,6 +105,63 @@ import FoundationNetworking
         XCTAssertTrue(order.matches(player))
     }
 
+    // MARK: Gap #17 — official participation actions
+
+    func testGap17ReleaseSuppliesTheOfficialParticipationApproval() async throws {
+        let recorder = Fix1128bRecorder()
+        let composition = shipped(recorder)
+        let player = try playerContext(composition)
+        let approval = try XCTUnwrap(composition.sessionDependencies(player).officialActionApproval,
+                                     "Release must supply officialActionApproval")
+        XCTAssertTrue(approval.playerTargets)
+        XCTAssertTrue(OfficialActionProductionApproval.playerTargetPaths.isSubset(of: approval.endpoints.paths))
+        XCTAssertTrue(approval.endpoints.paths.contains("api/official/events/{}/arrivals"))
+        XCTAssertTrue(approval.endpoints.paths.contains("api/official/events/{}/complete"))
+        XCTAssertTrue(approval.endpoints.paths.contains("api/official/v2/parties/{}/ACCEPT"))
+        XCTAssertTrue(approval.endpoints.paths.contains("api/official/v2/organizer-invites/{}/decline"))
+        XCTAssertFalse(approval.endpoints.paths.contains("api/official/publish"), "publish stays exact-command only")
+        XCTAssertNil(composition.sessionDependencies(try playerContext(composition, role: "merchant")).officialActionApproval,
+                     "merchant routes stay off")
+
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        var arrival = URLRequest(url: player.baseURL.appendingPathComponent("api/official/events/8/arrivals"))
+        arrival.httpMethod = "POST"
+        arrival.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        arrival.setValue("application/json", forHTTPHeaderField: "Accept")
+        arrival.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        arrival.httpBody = Data(#"{"accuracyM":12,"latitude":31.2,"longitude":121.4,"missionCode":"ARRIVE","requestId":"arrival-8","sessionId":3}"#.utf8)
+        _ = try await transport.send(arrival)
+        XCTAssertEqual(recorder.paths.last, "api/official/events/8/arrivals")
+        var complete = URLRequest(url: player.baseURL.appendingPathComponent("api/official/events/8/complete"))
+        complete.httpMethod = "POST"
+        complete.setValue(player.session.token, forHTTPHeaderField: "Authorization")
+        complete.setValue("application/json", forHTTPHeaderField: "Accept")
+        _ = try await transport.send(complete)
+        XCTAssertEqual(recorder.paths.last, "api/official/events/8/complete")
+    }
+
+    func testGap17ParticipationBodiesAreExact() throws {
+        let base = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
+        func decide(_ path: String, _ body: String?) -> Bool? {
+            let url = base.appendingPathComponent(path)
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            if let body { request.httpBody = Data(body.utf8); request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
+            return ReviewedProductionFormMutationRoute.officialParticipationDecision(request, relative: path, method: "POST", url: url)
+        }
+        XCTAssertEqual(decide("api/official/events/8/signup", nil), true)
+        XCTAssertEqual(decide("api/official/events/8/signup", #"{"x":1}"#), false)
+        XCTAssertEqual(decide("api/official/events/8/arrivals", nil), false)
+        XCTAssertEqual(decide("api/official/events/8/arrivals", #"{"accuracyM":1,"latitude":1,"longitude":1,"missionCode":"A","requestId":"r","sessionId":3,"extra":1}"#), false)
+        XCTAssertEqual(decide("api/official/v2/parties/4/ACCEPT", "{}"), true)
+        XCTAssertEqual(decide("api/official/v2/parties/4/DECLINE", #"{"reason":"busy"}"#), true)
+        XCTAssertEqual(decide("api/official/v2/organizer-invites/4/accept", nil), true)
+        XCTAssertNil(decide("api/official/publish", "{}"), "not a participation route")
+    }
+
     // MARK: helpers
 
     func shipped(_ recorder: Fix1128bRecorder) -> AppCompositionRoot {

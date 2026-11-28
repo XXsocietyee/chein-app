@@ -3458,7 +3458,7 @@ final class AppSession: ObservableObject {
         let directory = root.appendingPathComponent("OfficialActionSafety", isDirectory: true)
         do { try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true) } catch { return nil }
         let access = OfficialActionProductionFactory(api: regionalConfiguration?.apiConfiguration,
-            approval: runtimeDependencies.officialActionApproval, transport: runtimeHTTPTransport,
+            approvalSource: { [weak self] in self?.runtimeDependencies.officialActionApproval }, transport: runtimeHTTPTransport,
             current: { [weak self] in self?.currentRuntimeDependencyContext }, identity: { [weak self] in
                 guard let self, let account = self.account, self.currentOfficialContext.isAuthenticated, let storageScope = self.storageScope else { return nil }
                 return OfficialActionIdentity(accountID: account.id, epoch: self.officialEventReader.scope, namespace: storageScope.service)

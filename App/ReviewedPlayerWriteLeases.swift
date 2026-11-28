@@ -67,6 +67,9 @@ extension ReviewedProductionFormMutationRoute {
             return true
         }
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
+        if let official = officialParticipationDecision(request, relative: relative, method: method, url: url) {
+            return official
+        }
         if AppCompositionRoot.registrationWaitlistPaths.contains(relative) {
             // Gap #8: the player waitlist rides on the registration grant; JSON exactly `{activityId, ticketId}`.
             return method == "POST" && grant.registration.paths.contains("api/registration/create") && waitlistScopeBody(request)
@@ -455,6 +458,25 @@ extension ReviewedProductionFormMutationRoute {
             if let value = object[key] as? String, !value.isEmpty { return true }
         }
         return false
+    }
+
+    /// Gap #17: the bodies `OfficialActionService.request` sends for the player participation routes. Nil when `relative`
+    /// is not one of them. Signup / complete / organizer replies carry no body (or `{reason}`), a party reply `{}` or
+    /// `{reason}`, an arrival exactly the `OfficialArrivalEvidence` keys.
+    static func officialParticipationDecision(_ request: URLRequest, relative: String, method: String, url: URL) -> Bool? {
+        let template = OfficialActionProductionApproval.template(relative)
+        guard OfficialActionProductionApproval.playerTargetPaths.contains(template),
+              ["signup", "complete", "arrivals", "ACCEPT", "DECLINE", "WITHDRAW", "accept", "decline"].contains(where: { template.hasSuffix("/" + $0) }) else { return nil }
+        guard method == "POST", url.query == nil, request.httpBodyStream == nil else { return false }
+        let body = request.httpBody ?? Data()
+        if body.isEmpty { return !template.hasSuffix("/arrivals") }
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json", body.count <= 1024,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return false }
+        if template.hasSuffix("/arrivals") {
+            return Set(object.keys) == ["missionCode", "latitude", "longitude", "accuracyM", "sessionId", "requestId"]
+        }
+        if template.hasSuffix("/signup") || template.hasSuffix("/complete") { return false }
+        return object.isEmpty || (Set(object.keys) == ["reason"] && object["reason"] is String)
     }
 
     /// `RegistrationWaitlistService` body: exactly two positive JSON integers `activityId` and `ticketId`.
@@ -989,6 +1011,14 @@ enum ReviewedPlayerReadRoute {
     }
 
     // MARK: Channels + friends social writes (owner approval: non-money player/club social writes)
+
+    /// Gap #17: the official participation lease (player / club only; merchant routes stay off).
+    func officialPlayerActions(_ context: RuntimeDependencyContext) -> OfficialActionProductionApproval? {
+        guard socialRole(context),
+              let endpoints = makeEndpoint(context, paths: OfficialActionProductionApproval.playerTargetPaths) else { return nil }
+        return try? OfficialActionProductionApproval(playerMarket: .china, endpoints: endpoints,
+                                                     reviewedPolicyVersion: "mp-official-participation-1128")
+    }
 
     private func socialRole(_ context: RuntimeDependencyContext) -> Bool {
         playerWritesEnabled && context.market == .china && (context.role == "player" || context.role == "club")
@@ -1526,6 +1556,8 @@ enum ReviewedPlayerReadRoute {
         )
         let rewardPledge = context.market == .china
         return NativeRuntimeDependencies(
+            // Gap #17 (1128 plan, G-10b): official v1 报名 / 完成, v2 到达 and inbox 接受 / 拒绝 for the signed-in player.
+            officialActionApproval: officialPlayerActions(context),
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             weChatPaymentConfiguration: WeChatPaymentBuildSettings.current,
