@@ -11,6 +11,8 @@ public struct PlayerJourneyFailure: Error, Equatable {
 public struct PlayerJourneyService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    /// Participations, detail and completed plays share one in-flight body. A finished read is not kept.
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public let readsEnabled: Bool
     public init(configuration: APIConfiguration, transport: any HTTPTransport, readsEnabled: Bool = false) {
         self.configuration = configuration; self.transport = transport; self.readsEnabled = readsEnabled
@@ -61,8 +63,12 @@ public struct PlayerJourneyService {
     }
     private func finish<Value: Decodable>(_ request: URLRequest) async throws -> Value {
         try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
+        let response = try await reads.join(InFlightReadKey.request(request)) {
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
         try Task.checkCancellation()
+        let (data, status) = (response.data, response.status)
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         let raw: PlayWireValue

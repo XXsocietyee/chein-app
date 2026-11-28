@@ -87,7 +87,8 @@ struct ActivityDetailView: View {
             registrationTicketID: registrationTicketID,
             registrationTicketName: registrationTicketName,
             guestSignIn: guestSignIn,
-            viewerAccountID: session.account?.id)
+            viewerAccountID: session.account?.id,
+            associatedPlayDestination: { AnyView(DiscoveryTemplateDetailView(id: $0, reader: session)) })
             .environment(\.inGameChannelHost, session.inGameChannelHost)
             .id(session.contentDetailRevision)
     }
@@ -116,6 +117,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     var guestSignIn: (() -> Void)? = nil
     /// R9-PC-C1-2: signed-in viewer, so the host still sees 取消活动并退款 (disabled) while refunds are money-off.
     var viewerAccountID: Int? = nil
+    /// Public template detail for a `memberTemplateList` id. Nil keeps every row a label.
+    var associatedPlayDestination: ((Int) -> AnyView)? = nil
     @State private var openedRegistrationOnLoad = false
     @Environment(\.locale) private var locale
     @QuestifyReduceMotion private var reduceMotion
@@ -452,7 +455,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             // mp-home r3 (MP index.wxml:61-78): 关联玩法模板 is on the page between the people and 票种, not behind More info.
             // Only this successful, current allowed response supplies these rows.
             if gateScope != nil, detail.summary.id == id {
-                ActivityAssociatedPlaysSection(plays: detail.associatedPlays)
+                ActivityAssociatedPlaysSection(plays: detail.associatedPlays, templateDestination: associatedPlayDestination)
             }
             Section {
                 if detail.tickets.isEmpty {
@@ -581,7 +584,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail),
                               organizerShopName: detail.organizerShopName, organizerShopLogo: detail.organizerShopLogo)
         if gateScope != nil, detail.summary.id == id {
-            ActivityAssociatedPlaysSection(plays: detail.associatedPlays)
+            ActivityAssociatedPlaysSection(plays: detail.associatedPlays, templateDestination: associatedPlayDestination)
         }
     }
     /// `registrationAction` rules, in the same order: host cancel, blocked sign-up, sign-up (guest sign-in first),

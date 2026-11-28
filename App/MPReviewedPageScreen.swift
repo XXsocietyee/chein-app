@@ -136,6 +136,21 @@ import SwiftUI
             "subpackageTools/exploration-goals/index", "subpackageTools/exploration-export/index",
             "subpackageTools/anniversary/index", "subpackageTools/monthly-recap/index":
             screenBand6
+        case "pages/crop/index":
+            // A cold crop link has no image. The page's own empty copy is the fallback.
+            CYEmptyState(systemImage: "crop", "pages.crop.empty", messageIdentifier: "pages.crop.empty")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case "subpackageP3/pages/badge-3d/index":
+            // A cold link has no badge payload, and no 3D mesh route is marked live.
+            CYEmptyState(systemImage: "cube", "profile.badges.empty", messageIdentifier: "objects.badge3d.empty")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case "pages/play/merchant/index":
+            // Store day needs a play scope the link does not carry.
+            CYEmptyState(systemImage: "link", "mp.common.linkExpired", messageIdentifier: "playStoreDay.linkExpired")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case "pages/topic/settlement/index":
+            // Same settlement detail as `pages/coop/settlement-detail`. Release hides it with the merchant center.
+            CoopSettlementDetailRoute(reader: session.cooperationFlowReader, query: query)
         default:
             screenBand6
         }
@@ -1144,7 +1159,7 @@ import SwiftUI
                         // r7 residual P2: the reviewed roam host hands 登录 to its team pages too (RNEAR-5).
                         nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(onSignIn: openSignIn).environmentObject(session)) },
                         stampDestination: { AnyView(SessionRoamStampCameraView().environmentObject(session)) },
-                        liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions).environment(\.roamPresenceVisibility, { [weak presenceOwner = session] in await presenceOwner?.setRoamPresenceVisibility(sessionID: $0, visible: $1) }).environment(\.roamClearLocal, { [weak clearOwner = session] in clearOwner?.clearRoamLocalHistory() ?? false }).environment(\.roamDiscoverDestinations, session.roamDiscoverDestinations)) },
+                        liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions).environment(\.roamPresenceVisibility, { [weak presenceOwner = session] in await presenceOwner?.setRoamPresenceVisibility(sessionID: $0, visible: $1) }).environment(\.roamClearLocal, { [weak clearOwner = session] in clearOwner?.clearRoamLocalHistory() ?? false }).environment(\.roamDiscoverDestinations, session.roamDiscoverDestinations).environment(\.roamFinishedRecordsArchive, RoamFinishedRecordsUpload.install(on: session))) },
                         posterDestination: { AnyView(SessionRoamPosterView(node: $0).environmentObject(session)) },
                         eventDestination: { target in
                             switch target {

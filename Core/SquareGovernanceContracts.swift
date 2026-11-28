@@ -2,6 +2,8 @@ import Foundation
 
 public enum SquareGovernanceFailure: Error, Equatable {
     case disabled, signedOut, forbidden, malformed, invalid, staleReview, busy, outcomeLocked, unknown, rejected(Int)
+    /// A definite appeal refusal (MP `settle('rejected')`); carries the server `msg` when it is safe to show (MP `requestError`).
+    case appealRefused(message: String?)
 }
 public enum SquareGovernanceJSON: Codable, Equatable {
     case object([String: SquareGovernanceJSON]), array([SquareGovernanceJSON]), string(String), integer(Int), decimal(Double), bool(Bool), null

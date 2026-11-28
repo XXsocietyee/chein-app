@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This code is not available right now"
+            "value": "Code isn't available right"
           }
         },
         "zh-Hans": {
@@ -245,7 +245,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can join a team"
+            "value": "You can join team"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seats are still open"
+            "value": "Seats still open"
           }
         },
         "zh-Hans": {
@@ -330,7 +330,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settlement"
+            "value": "Payout"
           }
         },
         "zh-Hans": {

@@ -9,7 +9,7 @@ entries = {
     'image.crop.cover': ('Crop cover · 5:3', '裁剪封面 · 5:3'),
     'image.crop.localOnly': ('Adjust the crop, then review before uploading. Nothing has been sent.', '调整裁剪后，再预览并确认上传。尚未发送任何内容。'),
     'image.crop.preview': ('Cropped photo preview', '裁剪照片预览'),
-    'image.crop.horizontal': ('Horizontal position', '水平位置'),
+    'image.crop.horizontal': ('Horizontal', '水平位置'),
     'image.crop.vertical': ('Vertical position', '垂直位置'),
     'image.crop.zoom': ('Zoom', '缩放'),
     'image.crop.confirm': ('Use crop and review upload', '使用裁剪并预览上传'),

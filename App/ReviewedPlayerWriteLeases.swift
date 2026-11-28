@@ -812,7 +812,12 @@ enum ReviewedPlayerReadRoute {
     ]
     /// G1 play runtime GET reads. Host control/export and circle instance configure are not here.
     static let playRuntimeReadPaths: Set<String> = [
-        "api/play/encounter", "api/play/check/receipt", "api/play/advanced/receipt", "api/play/history",
+        "api/play/encounter", "api/play/check/receipt", "api/play/advanced/receipt",
+        // K40 (plan audit J-08f / J-09h, J-07 leaderboard modifier): kit refresh and recovery read
+        // `advanced/state`; the per-node board reads `advanced/leaderboard`. GET, query, no body.
+        // `advanced/start` and `/action` were already on the play grant. Not money.
+        "api/play/advanced/state", "api/play/advanced/leaderboard",
+        "api/play/history",
         "api/play/setup", "api/play/contact",
         // g-partials: TEAM backpack projection, `perspective=PLAYER` only (see `playerPerspective`).
         "api/game/session/view",
@@ -870,6 +875,7 @@ enum ReviewedPlayerReadRoute {
         "api/club/governance/cases/appeal", "api/orient/scoring/appeal", "api/orient/scoring/dispute",
         "api/external-game/reports", "api/merchant/reviews/report", "api/team/report",
         "api/community-trust/reports/taxonomy", "api/community-trust/reports/mine",
+        "api/community-trust/reports/submit", // K40 M-04b: MEMBER/ACTIVITY reports (v1 /reports 404s those targets)
         "api/native/blacklist/list",
         "api/ai/safety/precheck"
     ]

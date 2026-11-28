@@ -551,6 +551,9 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
             // Offline: the server may have saved. Neither success nor failure; the reread review line speaks.
             errorTitle = "parityB.circle.unconfirmed"; errorText = appLocalized("parityB.circle.reloaded", locale: locale)
             await reload()
+        case .retryable(let message):
+            errorTitle = "parityB.circle.unconfirmed"; errorText = message
+            await reload()
         case .refused, .unauthorized:
             errorTitle = "parityB.circle.notSaved"
             errorText = reply.message ?? appLocalized("parityB.circle.saveFailed", locale: locale)

@@ -205,7 +205,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explicitly state whether the entrance is temporarily closed. No default is supplied."
+            "value": "Explicitly state whether the entrance is temporarily closed. No default supplied."
           }
         }
       }

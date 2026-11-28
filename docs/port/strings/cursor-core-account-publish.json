@@ -4,57 +4,137 @@
     "settings.home.denied": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "This identity can't view account information" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "当前身份不能查看账号信息" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This identity can't view account information"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看账号信息"
+          }
+        }
       }
     },
     "settings.home.deniedRetry": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Tap to refresh and confirm this account's permission" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "点击刷新并确认当前账号权限" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to refresh and confirm this account's permission"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击刷新并确认当前账号权限"
+          }
+        }
       }
     },
     "deregister.sms.sent": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "A verification code was sent to the number ending in %@" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "验证码已发送至尾号 %@ 的手机号" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A verification code was sent to the number ending in %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证码已发送至尾号 %@ 的手机号"
+          }
+        }
       }
     },
     "deregister.sms.bindPhone": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Bind a phone number before requesting a verification code" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请先绑定手机号后再获取验证码" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bind a phone number before requesting a verification code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先绑定手机号后再获取验证码"
+          }
+        }
       }
     },
     "team.recovery.query": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Look up the original request" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "查询原请求" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Look up original"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询原请求"
+          }
+        }
       }
     },
     "team.recovery.retry": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Retry with the original input" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "按原输入重试" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry with original input"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按原输入重试"
+          }
+        }
       }
     },
     "team.recovery.abort": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Stop the request that hasn't run" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "终止尚未执行的请求" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop the request that hasn't run"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终止尚未执行的请求"
+          }
+        }
       }
     },
     "team.recovery.abortNote": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Stopping applies only to the original request that hasn't run. Work already submitted is not undone." } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "终止只针对未执行的原请求；已经提交的业务不会撤销。" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping applies only to the original request that hasn't run. Work already submitted is not undone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终止只针对未执行的原请求；已经提交的业务不会撤销。"
+          }
+        }
       }
     }
   },

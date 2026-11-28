@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Switch to another status to see participation records."
+            "value": "Switch to another status see participation records."
           }
         },
         "zh-Hans": {
@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The service is temporarily unavailable. Try again later."
+            "value": "Service temporarily unavailable. Try again later."
           }
         },
         "zh-Hans": {
@@ -182,7 +182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participation details are temporarily unavailable."
+            "value": "Participation details temporarily."
           }
         },
         "zh-Hans": {
@@ -228,9 +228,21 @@
     "playerJourney.parity.countdown %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Route starts in %lld days"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Route starts in %lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Route starts in %lld days"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {

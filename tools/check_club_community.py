@@ -11,7 +11,7 @@ for suffix in ['list','feed','like','create','update','pin','history','delete','
     assert '/api/club/post/'+suffix in api, suffix
 for needle in ['images.join(\';\')', "'requestId': requestId", "'version': version", "'postId': postId", "'id': commentId"]:
     assert needle in api, needle
-for needle in ['images.joined(separator: ";")', '"requestId": key', '"version": evidence.post!.version', 'case .delete, .report: return ["id": postID]', 'case .toggleLike: return ["postId": postID]']:
+for needle in ['images.joined(separator: ";")', '"requestId": key', '"version": evidence.post!.version', 'case .delete, .report: return ["id": postID]', 'return ["postId": postID, "liked": !(evidence.post?.liked ?? false)]']:
     assert needle in contracts, needle
 for needle in ['allowsInjectedWrites = false', 'guard allowsInjectedWrites', 'locks.insert(candidate.lockKey)', 'consumed.contains(candidate.id)', 'fresh.post == candidate.evidence.post', 'fresh.identity == candidate.evidence.identity', 'case .report, .reportComment: outcome = .moderationQueued']:
     assert needle in service, needle

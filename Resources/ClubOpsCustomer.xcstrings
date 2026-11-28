@@ -288,7 +288,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting check-in"
+            "value": "Awaiting"
           }
         },
         "zh-Hans": {
@@ -304,7 +304,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participation history"
+            "value": "Participation"
           }
         },
         "zh-Hans": {
@@ -448,7 +448,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting check-in"
+            "value": "Awaiting"
           }
         },
         "zh-Hans": {
@@ -848,7 +848,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amount pending verification"
+            "value": "Amount pending check"
           }
         },
         "zh-Hans": {
@@ -928,7 +928,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending verification"
+            "value": "Pending check"
           }
         },
         "zh-Hans": {
@@ -992,7 +992,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the club owner can request a withdrawal"
+            "value": "Only club owner can request cash-out"
           }
         },
         "zh-Hans": {
@@ -1008,7 +1008,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdrawable balance not yet confirmed"
+            "value": "Withdrawable balance not yet"
           }
         },
         "zh-Hans": {
@@ -1024,7 +1024,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nothing to withdraw yet: withdrawals open after the revenue share is credited and the complaint period ends"
+            "value": "Nothing to withdraw yet: withdrawals open after revenue share credited complaint period ends"
           }
         },
         "zh-Hans": {

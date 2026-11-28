@@ -11,21 +11,49 @@ public enum PlayerGapReply: Equatable, Sendable {
     case refused(code: Int, message: String?)
     case unauthorized
     case unknown
+    /// The server sent a sentence, and this is not a proven 4xx refusal. Show it and let the player try again.
+    case retryable(message: String)
+
+    /// A non-empty trimmed server sentence. Blank and missing sentences stay nil.
+    public static func sentence(_ text: String?) -> String? {
+        let trimmed = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? nil : trimmed
+    }
 
     /// Only a 4xx business code proves the server did not apply the request.
+    /// Any other outcome that still carries `msg` stays retryable instead of dropping the sentence.
     public static func classify(data: Data, status: Int) -> PlayerGapReply {
         let envelope = try? JSONDecoder().decode(PlayWireValue.self, from: data)
         let code = envelope?["code"].tolerantInteger
+        let raw = envelope?["msg"].text
         if status == 401 || code == 401 { return .unauthorized }
-        guard (200..<300).contains(status), let envelope, let code else { return .unknown }
-        if code == 200 { return .ok(envelope["data"], message: envelope["msg"].text) }
-        guard (400..<500).contains(code) else { return .unknown }
-        return .refused(code: code, message: envelope["msg"].text)
+        guard (200..<300).contains(status), let envelope, let code else {
+            if let sentence = sentence(raw) { return .retryable(message: sentence) }
+            return .unknown
+        }
+        if code == 200 { return .ok(envelope["data"], message: raw) }
+        guard (400..<500).contains(code) else {
+            if let sentence = sentence(raw) { return .retryable(message: sentence) }
+            return .unknown
+        }
+        return .refused(code: code, message: raw)
     }
 
     public var data: PlayWireValue? { if case .ok(let value, _) = self { return value }; return nil }
     public var message: String? {
-        switch self { case .ok(_, let m), .refused(_, let m): return m; default: return nil }
+        switch self {
+        case .ok(_, let m), .refused(_, let m): return m
+        case .retryable(let m): return m
+        default: return nil
+        }
+    }
+
+    /// A player write that did not succeed can be tried again. Sign-in and a completed write are not retries.
+    public var offersRetry: Bool {
+        switch self {
+        case .ok, .unauthorized: return false
+        case .refused, .unknown, .retryable: return true
+        }
     }
 }
 
@@ -133,6 +161,12 @@ public enum PlayerGapReply: Equatable, Sendable {
 
     /// `utils/team-event-command.js` domain SIGNUP: submit sends the frozen command, query sends `{requestId}`.
     public func signupCommand(_ mode: OfficialSignupCommandMode, command: OfficialSignupCommand) async -> OfficialSignupReceipt? {
+        guard case .ok(let data, _) = await signupExchange(mode, command: command) else { return nil }
+        return OfficialSignupReceipt(data, requestID: command.requestID)
+    }
+
+    /// The signup write itself, including a refusal or a retryable server sentence. `signupCommand` keeps the ok-only receipt.
+    public func signupExchange(_ mode: OfficialSignupCommandMode, command: OfficialSignupCommand) async -> PlayerGapReply {
         let path: String
         let body: [String: PlayWireValue]
         switch mode {
@@ -140,8 +174,7 @@ public enum PlayerGapReply: Equatable, Sendable {
         case .cancel: path = "api/official/signup-command/cancel"; body = command.body
         case .query: path = "api/official/signup-command/query"; body = ["requestId": .string(command.requestID)]
         }
-        guard case .ok(let data, _) = await post(path, json: body) else { return nil }
-        return OfficialSignupReceipt(data, requestID: command.requestID)
+        return await post(path, json: body)
     }
 
     // MARK: team
@@ -225,8 +258,14 @@ public enum PlayerGapReply: Equatable, Sendable {
 
     /// BL-69 toggle: only a 200 with a boolean `favorited` counts; anything else leaves local state unchanged.
     public func toggleCityNodeFavorite(poiID: Int) async -> Bool? {
-        guard poiID > 0, case .ok(let data, _) = await post("api/city/nodes/\(poiID)/favorite", json: [:]) else { return nil }
+        guard case .ok(let data, _) = await postCityNodeFavorite(poiID: poiID) else { return nil }
         return data["favorited"].bool
+    }
+
+    /// The favorite write, so a refusal or a retryable sentence is not dropped on the way to `Bool?`.
+    public func postCityNodeFavorite(poiID: Int) async -> PlayerGapReply {
+        guard poiID > 0 else { return .unknown }
+        return await post("api/city/nodes/\(poiID)/favorite", json: [:])
     }
 
     /// `topic-adoption.js` creditText: only the attribution line, at most 40 characters.
@@ -333,6 +372,8 @@ public final class OfficialSignupCommandDefaultsStore: OfficialSignupCommandStor
 @MainActor @Observable public final class OfficialSignupCommandFlow {
     public enum Phase: Equatable { case idle, busy, unknown, settled(OfficialSignupReceipt.State, message: String?), storageError }
     public private(set) var phase: Phase = .idle
+    /// The server sentence from the last write that did not settle. Nil when the body had none.
+    public private(set) var failureMessage: String?
     public private(set) var safetyBlocked = false
     private let service: PlayerGapService
     private let store: any OfficialSignupCommandStoring
@@ -365,7 +406,13 @@ public final class OfficialSignupCommandDefaultsStore: OfficialSignupCommandStor
 
     private func send(_ mode: OfficialSignupCommandMode, _ command: OfficialSignupCommand) async -> OfficialSignupReceipt.State? {
         phase = .busy
-        guard let receipt = await service.signupCommand(mode, command: command) else { phase = .unknown; return nil }
+        failureMessage = nil
+        let reply = await service.signupExchange(mode, command: command)
+        guard case .ok(let data, _) = reply, let receipt = OfficialSignupReceipt(data, requestID: command.requestID) else {
+            failureMessage = PlayerGapReply.sentence(reply.message)
+            phase = .unknown
+            return nil
+        }
         // A terminal receipt is a definite result: archive the slot and keep a plain outcome.
         guard store.clear(key: key) else { phase = .storageError; return nil }
         safetyBlocked = receipt.safetyBlocked
@@ -523,6 +570,7 @@ public enum ActivityPublishPrecheck: Equatable {
         case .ok: return .allowed
         case .unauthorized: return .signInRequired
         case .refused(let code, let message): return code == 403 ? .denied(message) : .failed(message)
+        case .retryable(let message): return .failed(message)
         case .unknown: return .failed(nil)
         }
     }

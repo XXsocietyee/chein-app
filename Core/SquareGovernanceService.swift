@@ -35,7 +35,7 @@ public struct SquareGovernanceService {
     }
     /// Dormant concrete adapter for any HTTPTransport. A separately reviewed grant
     /// activates only listed operations; neither reads nor mutations default on.
-    /// Shipped composition roots do not supply this grant.
+    /// `SquareNotificationLease` is the shipped grant (list, mark-read, appeal).
     public init(dormantBaseURL: URL, transport: any HTTPTransport, readsEnabled: Bool = false, grant: SquareGovernanceMutationGrant = .disabled) {
         baseURL = dormantBaseURL; self.transport = transport; self.readsEnabled = readsEnabled
         mutationCapabilities = grant.capabilities
@@ -117,7 +117,7 @@ public struct SquareGovernanceService {
             return try request(path: "api/comment/delete", method: "POST", fields: ["id": .string(String(id))], token: token, form: true)
         }
     }
-    func dispatch(_ review: SquareGovernanceReview, token: String, check: () throws -> Void) async throws -> SquareGovernanceReceipt {
+    func dispatch(_ review: SquareGovernanceReview, token: String, release: () -> Void = {}, check: () throws -> Void) async throws -> SquareGovernanceReceipt {
         guard allows(review.action) else { throw SquareGovernanceFailure.disabled }
         let request = try command(review, token: token)
         try Task.checkCancellation(); try check()
@@ -125,9 +125,57 @@ public struct SquareGovernanceService {
         do { (data, status) = try await transport.send(request) } catch { throw SquareGovernanceFailure.unknown }
         // Once dispatched, cancellation cannot prove non-execution or release the original lock.
         do { try Task.checkCancellation(); try check() } catch { throw SquareGovernanceFailure.unknown }
+        if case .appeal = review.action {
+            // MP post-governance settles an appeal as `rejected` (new appeal allowed) on a definite refusal,
+            // and reads back on 409 (an appeal for this enforcement already exists) like any unknown result.
+            switch Self.appealOutcome(data, status: status) {
+            case .rejected:
+                release()
+                let body = try? JSONDecoder().decode(SquareGovernanceJSON.self, from: data)
+                let code = body?["code"].int ?? body?["code"].string.flatMap(Int.init)
+                if status == 401 || code == 401 { throw SquareGovernanceFailure.signedOut }
+                if status == 403 || code == 403 { throw SquareGovernanceFailure.forbidden }
+                throw SquareGovernanceFailure.appealRefused(message: Self.refusalMessage(body))
+            case .alreadyExists: throw SquareGovernanceFailure.unknown
+            case .other: break
+            }
+        }
         _ = try Self.decode(data, status: status, mutation: true)
         // Ajax success is acknowledgement only: no invented appeal result, deletion or approval.
         return .acknowledgedNeedsRefresh
+    }
+    enum AppealOutcome: Equatable { case rejected, alreadyExists, other }
+    /// MP `requestError(res, '申诉未提交')` → `safeUserMessage`: the server `msg` / `message` when it is a short
+    /// business sentence; nil (the caller's fallback copy) for empty, long, diagnostic or developer-only text.
+    static func refusalMessage(_ body: SquareGovernanceJSON?) -> String? {
+        let raw = (body?["msg"].string ?? body?["message"].string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !raw.isEmpty, raw.count <= 60, raw.rangeOfCharacter(from: .newlines) == nil, !raw.contains("\t") else { return nil }
+        let unsafePatterns = [
+            #"认证失败|无法访问系统资源|timeout|超时"#,
+            #"lifecycle|sellingStartedAt|saleEndAt|拒绝售卖|不可再售"#,
+            #"Exception|java\.|SQL|database|JSON|HttpMessage|CHENGYIN_|配置缺失|cannot be cast"#,
+            #"^[^，,。;；]*(参数错误|参数异常|数据异常|系统错误|系统异常|UNKNOWN|undefined)[^，,。;；]*$"#,
+            #"errMsg|:fail\b|<\s*/?\s*(html|body|head|script|style|title)\b|https?://|/api/|/(Users|home|var|etc|opt)/"#,
+            #"\b(select|insert|update|delete)\b.+\b(from|into|set|where)\b"#,
+            #"\b(bearer|authorization|token|password|secret|openid|unionid|cookie|session(id)?|sid)\b\s*[:=]"#,
+            #"\b(trace|request|span|correlation)[_-]?id\b"#,
+            #"\b1[3-9]\d{9}\b|[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}"#,
+        ]
+        for pattern in unsafePatterns where raw.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil { return nil }
+        return raw
+    }
+    /// MP `post-governance/index.js` submit: HTTP 2xx with a body code other than 200 is a refusal
+    /// (409 reads back); HTTP 4xx other than 408 / 409 is a refusal; everything else stays unknown.
+    static func appealOutcome(_ data: Data, status: Int) -> AppealOutcome {
+        let body = try? JSONDecoder().decode(SquareGovernanceJSON.self, from: data)
+        let code = body?["code"].int ?? body?["code"].string.flatMap(Int.init)
+        if (200..<300).contains(status) {
+            guard let code, code != 200 else { return .other }
+            return code == 409 ? .alreadyExists : .rejected
+        }
+        if status == 409 { return .alreadyExists }
+        if (400..<500).contains(status), status != 408 { return .rejected }
+        return .other
     }
     static func decode(_ data: Data, status: Int, mutation: Bool) throws -> SquareGovernanceJSON {
         let body = try? JSONDecoder().decode(SquareGovernanceJSON.self, from: data)
@@ -137,5 +185,27 @@ public struct SquareGovernanceService {
         if let code, code != 200 { throw SquareGovernanceFailure.rejected(code) }
         guard (200..<300).contains(status), code == 200, let body else { throw mutation ? SquareGovernanceFailure.unknown : .malformed }
         return body["data"]
+    }
+}
+
+/// Plan M-11a: the notification list, mark-read and appeal the China routes already serve.
+/// Preference writes, comment approve and comment delete stay off. Reads stay off when any of
+/// the three routes is not admitted, including when a money switch blocks the path.
+public enum SquareNotificationLease {
+    public static let listPath = "/api/v1/community/notifications"
+    public static let readPath = "/api/v1/community/notifications/{}/read"
+    public static let appealPath = "/api/v1/community/appeals"
+    public static let capabilities: Set<SquareGovernanceCapability> = [.markRead, .appeal]
+
+    public static var routesLive: Bool {
+        ChinaReviewedRouteCapability.admitsChinaProductionCall(listPath)
+            && ChinaReviewedRouteCapability.admitsChinaProductionCall(readPath)
+            && ChinaReviewedRouteCapability.admitsChinaProductionCall(appealPath)
+    }
+
+    public static func service(baseURL: URL, transport: any HTTPTransport) -> SquareGovernanceService {
+        let live = routesLive
+        return SquareGovernanceService(dormantBaseURL: baseURL, transport: transport, readsEnabled: live,
+                                       grant: live ? .reviewedInjection(capabilities) : .disabled)
     }
 }

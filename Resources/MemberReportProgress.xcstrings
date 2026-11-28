@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Status unrecognized"
+            "value": "?"
           }
         }
       }
@@ -818,7 +818,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to see your reports"
+            "value": "Sign in to see reports"
           }
         }
       }
@@ -1021,6 +1021,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "This status isn't recognized yet. Refresh later."
+          }
+        }
+      }
+    },
+    "report.error.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报记录加载失败"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load your reports"
+          }
+        }
+      }
+    },
+    "report.unavailable.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时不能查看举报记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reports aren’t available right now"
+          }
+        }
+      }
+    },
+    "report.detail.error.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报进度加载失败"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load the report’s progress"
+          }
+        }
+      }
+    },
+    "report.detail.denied.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时不能查看这条举报"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can’t view this report"
+          }
+        }
+      }
+    },
+    "report.detail.denied.reason": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅举报人可查看"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the person who filed it can view it."
           }
         }
       }

@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Go to the cooperation center"
+            "value": "Open coop center"
           }
         },
         "zh-Hans": {
@@ -86,7 +86,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account does not have permission to view this"
+            "value": "No permission to view this"
           }
         },
         "zh-Hans": {
@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Information incomplete"
+            "value": "Info missing"
           }
         },
         "zh-Hans": {
@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A key partner is missing and a replacement is pending"
+            "value": "A key partner is missing. Replacement pending."
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Traffic partnership"
+            "value": "Traffic deal"
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cooperation center"
+            "value": "Coop center"
           }
         },
         "zh-Hans": {

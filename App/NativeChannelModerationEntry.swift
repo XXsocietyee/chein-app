@@ -109,7 +109,7 @@ import SwiftUI
                         if flow.state == .ready && flow.actions.isEmpty && !flow.readingCurrent && !flow.currentReadFailed {
                             ContentUnavailableView("d7.channelModeration.historyEmpty", systemImage: "clock.arrow.circlepath")
                         }
-                        if flow.canReadMore { Button("d7.channelModeration.loadMore") { Task { await flow.loadMore() } } }
+                        if flow.canReadMore { CYLoadMoreRow("d7.channelModeration.loadMore") { Task { await flow.loadMore() } } }
                     }
                 }
                 .refreshable { await flow.refresh() }

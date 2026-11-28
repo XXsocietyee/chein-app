@@ -1,359 +1,359 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "feReference.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Free-explore settlement (reference)"
+  "sourceLanguage": "en",
+  "strings": {
+    "feReference.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free-explore settlement (reference)"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自由探索结算（参考）"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自由探索结算（参考）"
           }
         }
       }
     },
-    "feReference.failed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reference settlement not loaded yet"
+    "feReference.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference settlement not loaded yet"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "参考结算暂未取回"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参考结算暂未取回"
           }
         }
       }
     },
-    "feReference.retry" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retry"
+    "feReference.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重试"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }
     },
-    "feReference.exportFailed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Export failed. Try again."
+    "feReference.exportFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export failed. Try again."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导出失败，请重试"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出失败，请重试"
           }
         }
       }
     },
-    "clubR8b.roles.pickMember" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose a member first"
+    "clubR8b.roles.pickMember": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a member first"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "先选择一位成员"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先选择一位成员"
           }
         }
       }
     },
-    "clubR8b.roles.pickRole" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose a role first"
+    "clubR8b.roles.pickRole": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a role first"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "先选择一个角色"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先选择一个角色"
           }
         }
       }
     },
-    "clubR8b.roles.notReady" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This role doesn't apply here"
+    "clubR8b.roles.notReady": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This role doesn't apply here"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "该角色不适用于当前范围"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该角色不适用于当前范围"
           }
         }
       }
     },
-    "clubR8b.groupCode.failed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The group code couldn't be generated. Try again later."
+    "clubR8b.groupCode.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The group code couldn't be generated. Try again later."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "团码暂时没能生成，请稍后重试"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "团码暂时没能生成，请稍后重试"
           }
         }
       }
     },
-    "clubR8b.groupCode.generating" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Generating…"
+    "clubR8b.groupCode.generating": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generating…"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "生成中…"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成中…"
           }
         }
       }
     },
-    "clubR8b.retry" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retry"
+    "clubR8b.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重试"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }
     },
-    "clubR8b.apply.submitFailed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Submission didn't finish"
+    "clubR8b.apply.submitFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submission didn't finish"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提交没有完成"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交没有完成"
           }
         }
       }
     },
-    "clubR8b.create.failed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Club creation didn't finish"
+    "clubR8b.create.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create didn't finish"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "创建没有完成"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建没有完成"
           }
         }
       }
     },
-    "clubR8b.create.failedHint" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Club creation didn't finish. Try again later."
+    "clubR8b.create.failedHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club creation didn't finish. Try again later."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "创建没有完成，请稍后重试"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建没有完成，请稍后重试"
           }
         }
       }
     },
-    "clubR8b.edit.saveFailed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save failed"
+    "clubR8b.edit.saveFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save failed"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保存失败"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存失败"
           }
         }
       }
     },
-    "clubR8b.edit.saveAgain" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save again"
+    "clubR8b.edit.saveAgain": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save again"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重新保存"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新保存"
           }
         }
       }
     },
-    "clubR8b.join.rowFailed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This action didn't finish"
+    "clubR8b.join.rowFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This action didn't finish"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这次处理没有完成"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次处理没有完成"
           }
         }
       }
     },
-    "clubR8b.notify.networkFailed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Network connection failed"
+    "clubR8b.notify.networkFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network connection failed"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "网络连接失败"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络连接失败"
           }
         }
       }
     },
-    "clubR8b.notify.unavailable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The notification tool is unavailable right now"
+    "clubR8b.notify.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The alert tool is unavailable right now"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "通知工具暂时不可用"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知工具暂时不可用"
           }
         }
       }
     },
-    "clubR8b.badges.createFailed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The badge wasn't created"
+    "clubR8b.badges.createFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The badge wasn't created"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "勋章没有创建成功"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勋章没有创建成功"
           }
         }
       }
     },
-    "club.ops.createdStatus.resubmitted" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resubmitted, awaiting review"
+    "club.ops.createdStatus.resubmitted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resubmitted, awaiting review"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已重新提交，等待审核"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已重新提交，等待审核"
           }
         }
       }
     },
-    "club.roles.refreshFailedToast" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The list didn't refresh. Pull down to retry."
+    "club.roles.refreshFailedToast": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The list didn't refresh. Pull down to retry."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "列表没刷新成功，下拉重试"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表没刷新成功，下拉重试"
           }
         }
       }

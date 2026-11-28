@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conversation actions"
+            "value": "Chat actions"
           }
         },
         "zh-Hans": {
@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conversation"
+            "value": "Chat"
           }
         },
         "zh-Hans": {

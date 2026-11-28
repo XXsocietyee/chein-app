@@ -149,6 +149,9 @@ final class PlayStoreDayPresentationTests: XCTestCase {
         transport.replies["/fixture/api/play/photo"] = [.failure]
         let network = await api.photo(scope: .topic(71), nodeID: 701, pictureURL: "https://fixture.example/p.jpg")
         XCTAssertEqual(network, .unknown)
+        transport.replies["/fixture/api/play/photo"] = [.json(#"{"msg":"照片没写上"}"#, 503)]
+        let noted = await api.photo(scope: .topic(71), nodeID: 701, pictureURL: "https://fixture.example/p.jpg")
+        XCTAssertEqual(noted, .notedUnknown("照片没写上"))
         transport.replies["/fixture/api/play/answer"] = [.json(#"{"code":500,"msg":"答案不正确","data":{"answerWrong":true}}"#, 200)]
         let wrong = await api.answer(scope: .topic(71), nodeID: 701, answer: "A")
         XCTAssertEqual(wrong, .rejected("答案不正确"))

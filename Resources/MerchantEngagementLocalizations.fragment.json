@@ -212,7 +212,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Clear this response from the screen"
+          "value": "Clear this response screen"
         }
       },
       "zh-Hans": {
@@ -772,7 +772,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Matching customers"
+          "value": "Matching buyers"
         }
       },
       "zh-Hans": {
@@ -932,7 +932,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Aftercare evidence"
+          "value": "Aftercare"
         }
       },
       "zh-Hans": {
@@ -980,7 +980,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Selected aftercare evidence"
+          "value": "Selected aftercare"
         }
       },
       "zh-Hans": {
@@ -1060,7 +1060,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Exports a spreadsheet of these customers with personal details masked."
+          "value": "Exports a spreadsheet these buyers personal details masked."
         }
       },
       "zh-Hans": {
@@ -1316,7 +1316,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Photos and camera aren't available right now."
+          "value": "Photos and camera aren't available right."
         }
       },
       "zh-Hans": {
@@ -1348,7 +1348,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No campaign history was returned."
+          "value": "No campaign history returned."
         }
       },
       "zh-Hans": {
@@ -1764,7 +1764,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Calculated audience"
+          "value": "Calculated"
         }
       },
       "zh-Hans": {
@@ -1860,7 +1860,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Partially completed"
+          "value": "Partially"
         }
       },
       "zh-Hans": {
@@ -2004,7 +2004,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reference number"
+          "value": "Number"
         }
       },
       "zh-Hans": {
@@ -2132,7 +2132,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This action isn't available for this account and store right now."
+          "value": "This action isn't available for this account store right."
         }
       },
       "zh-Hans": {

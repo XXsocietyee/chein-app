@@ -169,7 +169,7 @@ import UniformTypeIdentifiers
                             Button("squareWorkspace.withdrawLocation", role: .destructive) { locationReview = post }
                         }
                     }
-                    if coordinator.hasMore { Button("squareWorkspace.more") { run { try await coordinator.loadServer(more: true) } } }
+                    if coordinator.hasMore { CYLoadMoreRow("squareWorkspace.more", isLoading: coordinator.busy) { run { try await coordinator.loadServer(more: true) } } }
                     if coordinator.revisionsLoading { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
                     if let postID = coordinator.revisionPostID, let data = coordinator.revisionData,
                        let text = String(data: data, encoding: .utf8) {

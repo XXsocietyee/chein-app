@@ -83,6 +83,18 @@ public enum HomeIndexParityPresentation {
             default: return title
             }
         }
+
+        /// The one action label inside the hero card (sweep 11-28 15:50, P34). The MP title is the action
+        /// (`home-action-banner.js` "横幅标题就是动作"); this short verb makes the card read as tappable.
+        public func actionTitle(locale: Locale) -> String {
+            let english = HomeIndexParityPresentation.isEnglish(locale)
+            switch id {
+            case "activity_list": return english ? "Browse" : "去报名"
+            case "club_apply", "merchant_apply": return english ? "Apply" : "去申请"
+            case "mini_games": return english ? "Play" : "去玩"
+            default: return english ? "Open" : "查看"
+            }
+        }
     }
 
     public static let defaultCityFallback = "选择城市"

@@ -25,7 +25,7 @@ KEYS = {
     'roam.capsule.tile': ('A note for your future self', '写给以后的自己'),
     'roam.capsule.pending': ('Your last capsule is still being sealed. Check it before trying again.', '上一枚胶囊还在封存中，请先核对再重试。'),
     'roam.capsule.verify': ('Check last seal', '核对上次封存'),
-    'roam.capsule.retryOriginal': ('Try again', '重试'),
+    'roam.capsule.retryOriginal': ('Try', '重试'),
     'roam.capsule.openedMeta %@ %@': ('Opens %1$@ · sealed %2$@', '%1$@ 开启 · %2$@ 封存'),
     'roam.capsule.photo': ('Attached photo', '附带的照片'),
     'roam.capsule.keep': ('Put it away', '收好了'),
@@ -35,7 +35,7 @@ KEYS = {
     'roam.capsule.bodyLabel': ('Capsule text', '胶囊正文'),
     'roam.capsule.placeholder': ('To myself on that day…', '写给那一天的自己…'),
     'roam.capsule.count %lld': ('%lld / 4000', '%lld / 4000'),
-    'roam.capsule.photoUnavailable': ('Attaching a photo is not available in the app yet', 'App 内暂不支持附照片'),
+    'roam.capsule.photoUnavailable': ('Attaching a photo isn\'t available in app yet', 'App 内暂不支持附照片'),
     'roam.capsule.unlockLabel': ('Opening date', '开启日期'),
     'roam.capsule.unlock.month': ('In 1 month', '1 个月后'),
     'roam.capsule.unlock.halfYear': ('In 6 months', '半年后'),
@@ -52,7 +52,7 @@ KEYS = {
     'roam.capsule.openReady %@': ('Ready to open · sealed %@', '已到开启日 · %@ 封存'),
     'roam.capsule.openIt': ('Open it', '打开看看'),
     'roam.capsule.writtenOn %@': ('Written %@', '%@ 写下'),
-    'roam.capsule.daysLeft %lld': ('%lld days', '%lld 天'),
+    'roam.capsule.daysLeft %lld': ('%lld days', '%lld 天', '%lld day'),
     'roam.capsule.unlocksOn %@': ('Opens %@', '%@ 开启'),
     'roam.capsule.empty': ('No capsules yet', '还没有胶囊'),
     'roam.capsule.mine': ('My capsules', '我的胶囊'),
@@ -62,7 +62,7 @@ KEYS = {
     'roam.goals.tile': ('Set yourself a small goal', '给自己定个小目标'),
     'roam.goals.pending': ('Your last goal is still being saved. Check it before trying again.', '上一个目标还在保存中，请先核对再重试。'),
     'roam.goals.verify': ('Check original request', '核对原请求'),
-    'roam.goals.retryOriginal': ('Try again', '重试'),
+    'roam.goals.retryOriginal': ('Try', '重试'),
     'roam.goals.metric.routes': ('Distinct routes', '不同路线数'),
     'roam.goals.metric.days': ('Exploration days', '探索自然日数'),
     'roam.goals.metric': ('Goal measure', '目标口径'),
@@ -71,8 +71,8 @@ KEYS = {
     'roam.goals.state.achieved': ('Achieved', '已达成'),
     'roam.goals.state.ended': ('Ended', '已结束'),
     'roam.goals.state.cancelled': ('Canceled', '已取消'),
-    'roam.goals.unit.routes %lld': ('%lld distinct routes', '%lld 条不同路线'),
-    'roam.goals.unit.days %lld': ('%lld exploration days', '%lld 个探索日'),
+    'roam.goals.unit.routes %lld': ('%lld distinct routes', '%lld 条不同路线', '%lld distinct route'),
+    'roam.goals.unit.days %lld': ('%lld exploration days', '%lld 个探索日', '%lld exploration day'),
     'roam.goals.range %@ %@': ('%1$@ to %2$@ (exclusive)', '%1$@ 至 %2$@（不含）'),
     'roam.goals.collapse': ('Collapse', '收起'),
     'roam.goals.cancelThis': ('Cancel this goal', '取消此目标'),
@@ -81,8 +81,8 @@ KEYS = {
     'roam.goals.cancelGoal': ('Cancel goal', '取消目标'),
     'roam.goals.keep': ('Keep', '保留'),
     'roam.goals.period': ('Period', '时间段'),
-    'roam.goals.period.week': ('This week', '本周'),
-    'roam.goals.period.month': ('This month', '本月'),
+    'roam.goals.period.week': ('Week', '本周'),
+    'roam.goals.period.month': ('Month', '本月'),
     'roam.goals.period.thirty': ('30 days', '30 天'),
     'roam.goals.start': ('Start', '开始'),
     'roam.goals.end': ('End (exclusive)', '结束（不含）'),
@@ -98,7 +98,7 @@ KEYS = {
     'roam.export.explain': ('Prepare a range, read every part, then save or share one complete file. Records are your own completed roams.', '准备范围、逐块读取，全部读完才可保存或分享。记录来自你本人的完成记录。'),
     'roam.export.range': ('Export range', '导出范围'),
     'roam.export.range.30': ('Last 30 days', '近 30 天'),
-    'roam.export.range.year': ('This year', '今年'),
+    'roam.export.range.year': ('Year', '今年'),
     'roam.export.range.365': ('Last year', '近一年'),
     'roam.export.start': ('Start', '开始'),
     'roam.export.end': ('End (exclusive)', '结束（不含）'),
@@ -106,7 +106,7 @@ KEYS = {
     'roam.export.prepare': ('Prepare export', '准备导出'),
     'roam.export.readCount %lld %lld': ('Read %1$lld / %2$lld', '已读取 %1$lld / %2$lld 条'),
     'roam.export.noRecords': ('No records in this range', '这个范围内没有记录'),
-    'roam.export.rows %lld': ('%lld records', '%lld 条'),
+    'roam.export.rows %lld': ('%lld records', '%lld 条', '%lld record'),
     'roam.export.share': ('Share', '分享'),
     'roam.export.save': ('Save to Files', '保存到手机'),
     'roam.export.reading': ('Reading the next part…', '正在读取下一块…'),
@@ -123,21 +123,27 @@ KEYS = {
 parser = argparse.ArgumentParser()
 parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
 parser.add_argument('--check', action='store_true', help='Fail if any key is missing or differs; write nothing')
+parser.add_argument('--update-plurals', action='store_true', help='Rewrite existing keys that carry an English one form')
 args = parser.parse_args()
 path = args.root / 'Resources/Localizable.xcstrings'
 catalog = json.loads(path.read_text())
 strings = catalog['strings']
 added = 0
-for key, (en, zh) in KEYS.items():
+for key, (en, zh, *en_one) in KEYS.items():
     entry = {'extractionState': 'manual', 'localizations': {
         'en': {'stringUnit': {'state': 'translated', 'value': en}},
         'zh-Hans': {'stringUnit': {'state': 'translated', 'value': zh}}}}
+    if en_one:  # en-layout r3: English count strings vary by plural; `en` is the `other` form.
+        unit = lambda text: {'stringUnit': {'state': 'translated', 'value': text}}
+        entry['localizations']['en'] = {'variations': {'plural': {'one': unit(en_one[0]), 'other': unit(en)}}}
+    if key in strings and args.update_plurals and en_one:
+        strings[key] = entry
     if key in strings:
         assert strings[key] == entry, 'Existing key differs: ' + key
         continue
     assert not args.check, 'Missing key: ' + key
     strings[key] = entry
     added += 1
-if added:
+if added or args.update_plurals:
     path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + '\n')
 print(f'PASS: {len(KEYS)} roam private tool keys ({added} added)')

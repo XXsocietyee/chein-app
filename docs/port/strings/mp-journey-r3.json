@@ -73,7 +73,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "You'll be told when you reach a stop"
+          "value": "You'll be told when you reach stop"
         }
       },
       "zh-Hans": {
@@ -413,7 +413,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Not arrived"
+          "value": "Not"
         }
       },
       "zh-Hans": {
@@ -863,7 +863,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The way you walk is drawn onto the finish card"
+          "value": "The way you walk is drawn onto finish card"
         }
       },
       "zh-Hans": {
@@ -948,7 +948,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The route is still being set up"
+          "value": "Route still being set"
         }
       },
       "zh-Hans": {
@@ -1157,7 +1157,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Your leader is guiding the team"
+          "value": "Leader guiding team"
         }
       },
       "zh-Hans": {
@@ -1208,7 +1208,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Fellow traveler"
+          "value": "Fellow"
         }
       },
       "zh-Hans": {
@@ -1225,7 +1225,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Fellow traveler"
+          "value": "Fellow"
         }
       },
       "zh-Hans": {
@@ -1390,7 +1390,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Added to your coupon wallet"
+          "value": "Added to coupon wallet"
         }
       },
       "zh-Hans": {
@@ -1861,7 +1861,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Disadvantage · keep lower"
+          "value": "Disadvantage · keep"
         }
       },
       "zh-Hans": {
@@ -1946,7 +1946,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Not turned over yet"
+          "value": "Not turned over"
         }
       },
       "zh-Hans": {
@@ -2150,7 +2150,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The shop gives the answer the day after tomorrow at %@."
+          "value": "The shop gives the answer day after tomorrow %@ ."
         }
       },
       "zh-Hans": {
@@ -2235,7 +2235,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Steps can't be read yet. Allow step access to count them."
+          "value": "Steps can't read yet. Allow step access count them."
         }
       },
       "zh-Hans": {
@@ -2303,7 +2303,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "steps"
+          "value": "Step"
         }
       },
       "zh-Hans": {
@@ -2388,7 +2388,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "CO₂ saved"
+          "value": "CO₂"
         }
       },
       "zh-Hans": {
@@ -2575,7 +2575,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Come back tomorrow"
+          "value": "Come back"
         }
       },
       "zh-Hans": {
@@ -2779,7 +2779,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Turn until the red arrow meets the line at the top"
+          "value": "Turn until the red arrow meets the line at top"
         }
       },
       "zh-Hans": {
@@ -2813,7 +2813,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Find a spot where you can stand still before you start"
+          "value": "Find a spot where can stand still before start"
         }
       },
       "zh-Hans": {
@@ -2830,7 +2830,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Compass dial"
+          "value": "Compass"
         }
       },
       "zh-Hans": {
@@ -3085,7 +3085,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Generating the witness code"
+          "value": "Generating witness code"
         }
       },
       "zh-Hans": {
@@ -3323,7 +3323,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Lights up when you get there"
+          "value": "Lights up when"
         }
       },
       "zh-Hans": {
@@ -3578,7 +3578,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Birth registration"
+          "value": "Birth sign-up"
         }
       },
       "zh-Hans": {
@@ -3731,7 +3731,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "All sorted correctly"
+          "value": "All sorted"
         }
       },
       "zh-Hans": {
@@ -3748,7 +3748,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Some are in the wrong place. Tap a label to take it back and try again."
+          "value": "Some are in the wrong place. Tap a label to take back try again."
         }
       },
       "zh-Hans": {
@@ -3782,7 +3782,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "All in the right order"
+          "value": "All right order"
         }
       },
       "zh-Hans": {
@@ -3850,7 +3850,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "All linked correctly"
+          "value": "All linked"
         }
       },
       "zh-Hans": {
@@ -3884,7 +3884,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Tap anywhere to continue"
+          "value": "Tap anywhere"
         }
       },
       "zh-Hans": {
@@ -3935,7 +3935,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The picture you get after scanning"
+          "value": "The picture get after scanning"
         }
       },
       "zh-Hans": {
@@ -4105,7 +4105,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Scratch to reveal today's line"
+          "value": "Scratch reveal today's"
         }
       },
       "zh-Hans": {
@@ -4190,7 +4190,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Final result is subject to the merchant's review"
+          "value": "Final result subject merchant's review"
         }
       },
       "zh-Hans": {
@@ -4253,7 +4253,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "First, a quick listen to how loud it is here"
+          "value": "First, a quick listen to how loud it's"
         }
       },
       "zh-Hans": {
@@ -4304,7 +4304,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Contact the organizer"
+          "value": "Contact organizer"
         }
       },
       "zh-Hans": {
@@ -4321,7 +4321,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Contact the merchant"
+          "value": "Contact merchant"
         }
       },
       "zh-Hans": {
@@ -4372,7 +4372,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "the organizer"
+          "value": "Host"
         }
       },
       "zh-Hans": {
@@ -4389,7 +4389,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "the merchant"
+          "value": "merchant"
         }
       },
       "zh-Hans": {
@@ -4481,6 +4481,279 @@
         "stringUnit": {
           "state": "translated",
           "value": "发送"
+        }
+      }
+    }
+  },
+  "strings": {},
+  "playTools.sessionElapsed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Run time"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本局用时"
+        }
+      }
+    }
+  },
+  "playTools.currentScore": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Current score"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前得分"
+        }
+      }
+    }
+  },
+  "playTools.sessionStatsFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Couldn't load these yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂时没有读到"
+        }
+      }
+    }
+  },
+  "playTools.sessionStatsRetry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试"
+        }
+      }
+    }
+  },
+  "playTools.boardRank %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No. %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "第 %lld 名"
+        }
+      }
+    }
+  },
+  "playx.finish.rankProvisional %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Provisional No. %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂列第 %lld 名"
+        }
+      }
+    }
+  },
+  "playx.finish.sessionRank.provisional %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Provisionally No. %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂列第 %lld 名"
+        }
+      }
+    }
+  },
+  "playx.board.orient.points %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%@ pts"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%@ 分"
+        }
+      }
+    }
+  },
+  "playx.board.orient.reached": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reached the ending"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已到达结局"
+        }
+      }
+    }
+  },
+  "playx.board.orient.notReached": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not at the ending yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "尚未到达结局"
+        }
+      }
+    }
+  },
+  "playx.board.orient.elapsedPending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Time to be confirmed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "用时待确认"
+        }
+      }
+    }
+  },
+  "playkit.stopwatch.paused": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Paused"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已暂停"
+        }
+      }
+    }
+  },
+  "playkit.stopwatch.pause": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pause"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂停"
+        }
+      }
+    }
+  },
+  "playkit.stopwatch.resume": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Resume"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "继续"
+        }
+      }
+    }
+  },
+  "playkit.stopwatch.again": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Play again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "再来一局"
+        }
+      }
+    }
+  },
+  "playx.finish.puzzleBest %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Personal best %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "个人最佳 %lld"
         }
       }
     }

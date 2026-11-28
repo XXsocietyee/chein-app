@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The local draft was saved through the original save flow. Nothing has been saved to the server or published."
+            "value": "The local draft was saved through the original save flow. Nothing has been saved to the server published."
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inspiration"
+            "value": "Ideas"
           }
         },
         "zh-Hans": {
@@ -518,7 +518,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Health contains fields outside the original resource contract. They will not be deleted."
+            "value": "Health contains fields outside the original resource contract. They won't deleted."
           }
         },
         "zh-Hans": {
@@ -550,7 +550,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Health initial value must be a nonnegative integer."
+            "value": "Health initial value must nonnegative integer."
           }
         },
         "zh-Hans": {
@@ -598,7 +598,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Health maximum must be an integer from 1 to 20."
+            "value": "Health maximum must be an integer from 1 20."
           }
         },
         "zh-Hans": {
@@ -614,7 +614,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original recovery.stationEndIfHurt exceeds the new health maximum. The original value is preserved and preview is blocked; recovery amounts are not changed automatically."
+            "value": "Original recovery.stationEndIfHurt exceeds the new health maximum. The original value is preserved and preview is blocked; recovery amounts aren't changed automatically."
           }
         },
         "zh-Hans": {
@@ -630,7 +630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original recovery.stageRestHpFloor exceeds the new health maximum. The original value is preserved and preview is blocked; recovery amounts are not changed automatically."
+            "value": "Original recovery.stageRestHpFloor exceeds the new health maximum. The original value is preserved and preview is blocked; recovery amounts aren't changed automatically."
           }
         },
         "zh-Hans": {
@@ -646,7 +646,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original recovery.exhaustRestHp exceeds the new health maximum. The original value is preserved and preview is blocked; recovery amounts are not changed automatically."
+            "value": "Original recovery.exhaustRestHp exceeds the new health maximum. The original value is preserved and preview is blocked; recovery amounts aren't changed on own."
           }
         },
         "zh-Hans": {

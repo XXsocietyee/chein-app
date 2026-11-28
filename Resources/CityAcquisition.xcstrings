@@ -13,7 +13,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "City point ownership and original receipts"
+            "value": "City spot ownership and receipts"
           }
         }
       }
@@ -115,7 +115,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read the original request receipt only"
+            "value": "Read original request receipt only"
           }
         }
       }
@@ -149,7 +149,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "First city point ownership"
+            "value": "First claim on a city spot"
           }
         }
       }
@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review the quote and give explicit consent"
+            "value": "Review the quote give explicit consent"
           }
         }
       }
@@ -200,7 +200,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original quote and personal confirmation terms"
+            "value": "Original quote and personal check terms"
           }
         }
       }
@@ -234,7 +234,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original beneficiary team"
+            "value": "Original beneficiary"
           }
         }
       }
@@ -540,7 +540,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request is complete; its result can be read"
+            "value": "The original request is complete; result can read"
           }
         }
       }
@@ -608,7 +608,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An original-policy quote is available; ownership is not yet acquired"
+            "value": "An original-policy quote available; ownership isn't yet acquired"
           }
         }
       }
@@ -625,7 +625,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current conditions are unavailable. The completed original task is retained."
+            "value": "Current rules are unavailable. The completed original task is retained."
           }
         }
       }
@@ -659,7 +659,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Points debited by the original request"
+            "value": "Points debited original"
           }
         }
       }
@@ -1152,7 +1152,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The following is the receipt snapshot at the original commit. Current availability is shown in the latest titles below."
+            "value": "The follows is the receipt snapshot at the original commit. Current availability is shown in the latest titles below."
           }
         }
       }

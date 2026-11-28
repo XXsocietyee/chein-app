@@ -118,6 +118,9 @@ struct RoamCreatedStampReadOwner: Hashable {
         .onAppear { presentation.appear() }
         .onDisappear { presentation.disappear() }
         .accessibilityIdentifier("roam.createdStamp.result")
+        // P39: the created-stamp read-back is the same collected moment as the slip. Burst is already on the card;
+        // this is the success haptic the burst comment leaves to the caller. Reduce Motion still plays it.
+        .cyHaptic(.success, trigger: lookup.phase == .found, where: CYHapticTransition.turnedOn)
     }
     @ViewBuilder private var result: some View {
         let refresh = presentation.readAction(refresh: true), next = presentation.readAction()

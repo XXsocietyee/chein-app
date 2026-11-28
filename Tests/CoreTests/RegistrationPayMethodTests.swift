@@ -40,5 +40,68 @@ final class RegistrationPayMethodTests: XCTestCase {
         XCTAssertEqual(RegistrationPayMethod.effective(.alipay, market: .china, applePayAvailable: true), .wechatPay)
         XCTAssertEqual(RegistrationPayMethod.effective(.card, market: .unitedStates, applePayAvailable: true), .card)
     }
+
+    /// ADA t5-baoming: a missing consent does not become the button title. A paid quote stays a pay label.
+    func testBlockedCheckoutKeepsThePayLabelAndPutsConsentInTheFootnote() {
+        let amount = Decimal(string: "12.50")
+        XCTAssertEqual(RegistrationCheckoutPayUX.submit(hasTicket: true, ticketPrice: amount, quoteEnabled: true,
+                                                        quoteReceived: true, quotePayAmount: amount, paymentsOpen: true), .pay)
+        XCTAssertEqual(RegistrationCheckoutPayUX.footnote(.missingConsent), .sharingConsent)
+        XCTAssertEqual(RegistrationCheckoutPayUX.footnote(.invalidForm), .chooseParticipant)
+        XCTAssertEqual(RegistrationCheckoutPayUX.footnote(.signupClosed), .signupClosed)
+        XCTAssertEqual(RegistrationCheckoutPayUX.footnote(.paymentRequired), .blockReason)
+        XCTAssertNil(RegistrationCheckoutPayUX.footnote(nil))
+        XCTAssertTrue(RegistrationCheckoutPayUX.showsPayWithRow(ticketPrice: amount, quoteEnabled: true,
+                                                                quoteReceived: true, quotePayAmount: amount))
+    }
+
+    /// A quote that brings the amount due to zero is a free confirmation. The Pay-with row hides.
+    func testFreeQuoteHidesPayWithAndConfirmsSignup() {
+        let listed = Decimal(string: "12.50")
+        XCTAssertEqual(RegistrationCheckoutPayUX.submit(hasTicket: true, ticketPrice: listed, quoteEnabled: true,
+                                                        quoteReceived: true, quotePayAmount: .zero, paymentsOpen: true), .confirmSignup)
+        XCTAssertFalse(RegistrationCheckoutPayUX.showsPayWithRow(ticketPrice: listed, quoteEnabled: true,
+                                                                 quoteReceived: true, quotePayAmount: .zero))
+        XCTAssertEqual(RegistrationCheckoutPayUX.payWithRowPrice(ticketPrice: listed, quoteEnabled: true,
+                                                                 quoteReceived: true, quotePayAmount: .zero), .zero)
+    }
+
+    func testPricedTicketBeforeAQuoteAsksToConfirmThePrice() {
+        let listed = Decimal(string: "12.50")
+        XCTAssertEqual(RegistrationCheckoutPayUX.submit(hasTicket: true, ticketPrice: listed, quoteEnabled: true,
+                                                        quoteReceived: false, quotePayAmount: nil, paymentsOpen: true), .confirmPriceAndPay)
+        XCTAssertEqual(RegistrationCheckoutPayUX.payWithRowPrice(ticketPrice: listed, quoteEnabled: true,
+                                                                 quoteReceived: false, quotePayAmount: nil), listed)
+    }
+
+    func testFreeTicketAndMissingTicket() {
+        XCTAssertEqual(RegistrationCheckoutPayUX.submit(hasTicket: true, ticketPrice: .zero, quoteEnabled: false,
+                                                        quoteReceived: false, quotePayAmount: nil, paymentsOpen: true), .confirmSignup)
+        XCTAssertNil(RegistrationCheckoutPayUX.submit(hasTicket: false, ticketPrice: nil, quoteEnabled: true,
+                                                      quoteReceived: false, quotePayAmount: nil, paymentsOpen: true))
+    }
+
+    /// The payment switch stays off. The button does not pretend the player can pay.
+    func testClosedPaymentSwitchDoesNotLabelTheButtonAsPay() {
+        let amount = Decimal(string: "12.50")
+        XCTAssertEqual(RegistrationCheckoutPayUX.submit(hasTicket: true, ticketPrice: amount, quoteEnabled: true,
+                                                        quoteReceived: true, quotePayAmount: amount, paymentsOpen: false), .reviewKey)
+    }
+
+    /// Gap #9: a USD re-pay follows the offered Stripe method. A CNY order does not leave the China pay section.
+    func testOrderRepayChoiceFollowsTheOrderCurrency() {
+        XCTAssertEqual(OrderRepayChoice.method(currency: "USD", paymentChannels: ["APPLE_PAY", "APP_STRIPE"],
+                                               selection: .card, applePayAvailable: true), .card)
+        XCTAssertEqual(OrderRepayChoice.method(currency: "USD", paymentChannels: ["APPLE_PAY", "APP_STRIPE"],
+                                               selection: .applePay, applePayAvailable: true), .applePay)
+        XCTAssertNil(OrderRepayChoice.method(currency: "USD", paymentChannels: ["APPLE_PAY"],
+                                             selection: .card, applePayAvailable: true))
+        XCTAssertNil(OrderRepayChoice.method(currency: "USD", paymentChannels: ["APPLE_PAY"],
+                                             selection: .applePay, applePayAvailable: false))
+        XCTAssertNil(OrderRepayChoice.method(currency: "USD", paymentChannels: ["APPLE_PAY", "APP_STRIPE"],
+                                             selection: nil, applePayAvailable: true))
+        XCTAssertNil(OrderRepayChoice.method(currency: "CNY", paymentChannels: ["APP", "APP_ALIPAY"],
+                                             selection: .alipay, applePayAvailable: false))
+    }
 }
 #endif

@@ -104,8 +104,8 @@ final class IMExpandedTests: XCTestCase {
         let receipt = try await api.perform(.readCursor(conversationID: 9, lastMessageID: 44, requestID: requestID), token: "test")
         XCTAssertEqual(receipt, .read)
         let sent = String(data: transport.requests[0].httpBody!, encoding: .utf8)!
-        XCTAssertTrue(sent.contains("conversation_id=9"))
-        XCTAssertTrue(sent.contains("read_to=44"))
+        XCTAssertTrue(sent.contains("name=\"conversation_id\"\r\n\r\n9\r\n"))
+        XCTAssertTrue(sent.contains("name=\"read_to\"\r\n\r\n44\r\n"))
         XCTAssertFalse(sent.contains("last_message_id"))
         XCTAssertTrue(sent.contains(requestID))
         XCTAssertEqual(transport.requests.count, 1)

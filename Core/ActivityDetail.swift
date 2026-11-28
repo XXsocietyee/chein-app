@@ -76,13 +76,15 @@ public struct ActivityTicket: Decodable, Equatable, Identifiable {
     public var isConfirmedFree: Bool { price == Decimal.zero }
 }
 
-/// Three display fields already included in the allowed activity response.
-/// No template ID, private rules, answer, media URL or myinfo authority is retained.
+/// Display fields already included in the allowed activity response, plus a positive public
+/// template id when `memberTemplateList[].id` is one. imgUrl, answer and myinfo stay dropped.
 public struct ActivityAssociatedPlay: Decodable, Equatable {
     public let title: String?
     public let players: String?
     public let durationMinutes: Double?
-    private enum Keys: String, CodingKey { case title, players, duration }
+    /// Public `api/template/info` id. Nil when the row has no positive id (the row stays a label).
+    public let publicTemplateID: Int?
+    private enum Keys: String, CodingKey { case title, players, duration, id }
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: Keys.self)
         func text(_ key: Keys) -> String? {
@@ -97,6 +99,15 @@ public struct ActivityAssociatedPlay: Decodable, Equatable {
         if let duration = try? values.decode(Double.self, forKey: .duration), duration.isFinite, duration >= 0 {
             durationMinutes = duration
         } else { durationMinutes = nil }
+        publicTemplateID = Self.positiveID(values)
+    }
+    private static func positiveID(_ values: KeyedDecodingContainer<Keys>) -> Int? {
+        if let id = try? values.decode(Int.self, forKey: .id), id > 0 { return id }
+        if let text = try? values.decode(String.self, forKey: .id) {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let id = Int(trimmed), id > 0, String(id) == trimmed { return id }
+        }
+        return nil
     }
 }
 

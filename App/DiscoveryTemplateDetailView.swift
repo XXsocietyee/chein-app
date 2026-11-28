@@ -492,7 +492,7 @@ struct DiscoveryTopicTemplatePreview: View {
         if mosaic.count > 1 {
             Section {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: CYSpacing.sm) {
+                    LazyHStack(spacing: CYSpacing.sm) {
                         ForEach(Array(mosaic.enumerated()), id: \.offset) { index, source in
                             Button { nodeGallery = NodeGallerySelection(snapshot: .init(sources: mosaic, selectedIndex: index)) } label: {
                                 DiscoveryArtwork(source: source, height: 120)
@@ -568,7 +568,7 @@ struct DiscoveryTopicTemplatePreview: View {
         if !nodes.isEmpty {
             Section {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                    LazyHStack(alignment: .top, spacing: CYSpacing.md) {
                         let gallery = nodes.compactMap { nonempty($0.imgUrl) }.filter { QuestifyCardArtwork.safeURL($0) != nil }
                         ForEach(Array(nodes.enumerated()), id: \.offset) { index, node in
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {

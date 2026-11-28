@@ -45,6 +45,23 @@ final class WP08HostTipSurfaceTests: XCTestCase {
         XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 680)
     }
 
+    /// P2-1: a payable prepare used to say "payment closed" on both branches of the switch.
+    /// The switch is not flipped here. Open payments stay pending (not paid). Closed payments say closed.
+    func testPayablePrepareIsPendingOnlyWhilePaymentsAreOpen() throws {
+        let body = Data(#"{"code":200,"data":{"id":9,"payable":true,"status":"AWAITING_PAYMENT","amount":12}}"#.utf8)
+        let fact = try XCTUnwrap(HostTipSource.prepareFact(HostTipSource.envelope(data: body, status: 200)))
+        XCTAssertTrue(fact.payable)
+        XCTAssertFalse(fact.paymentSucceeded)
+        XCTAssertEqual(HostTipPreparePresentation.banner(fact: fact, paymentsOpen: true), .pending)
+        XCTAssertEqual(HostTipPreparePresentation.banner(fact: fact, paymentsOpen: false), .paymentClosed)
+        let off = Data(#"{"code":501,"reasonCode":"CHANNEL_NOT_ENABLED","data":{"id":9,"payable":true,"status":"CHANNEL_UNSUPPORTED","amount":12}}"#.utf8)
+        let closed = try XCTUnwrap(HostTipSource.prepareFact(HostTipSource.envelope(data: off, status: 501)))
+        XCTAssertEqual(HostTipPreparePresentation.banner(fact: closed, paymentsOpen: true), .unavailable)
+        let flagged = HostTipPrepareFact(unavailable: false, payable: true, paymentSucceeded: true,
+                                         intentID: "9", status: "PAID", amountText: "12.00", reasonCode: nil)
+        XCTAssertEqual(HostTipPreparePresentation.banner(fact: flagged, paymentsOpen: true), .paymentClosed)
+    }
+
     func testPrepare501IsUnavailableAndNotAPayment() throws {
         let body = Data(#"{"code":501,"reasonCode":"CHANNEL_NOT_ENABLED","data":{"id":9,"payable":false,"status":"CHANNEL_UNSUPPORTED","amount":12}}"#.utf8)
         let envelope = HostTipSource.envelope(data: body, status: 501)

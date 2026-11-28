@@ -223,19 +223,10 @@
     "App/CooperationContextualViews.swift": {
       "manual paging": 2
     },
-    "App/CreatorMaintenanceViews.swift": {
-      "manual paging": 2
-    },
     "App/MapPublicLayerSectionView.swift": {
       "manual paging": 1
     },
     "App/MessagingHistoryView.swift": {
-      "manual paging": 1
-    },
-    "App/MessagingHomeView.swift": {
-      "manual paging": 1
-    },
-    "App/NativeChannelAuditEntry.swift": {
       "manual paging": 1
     },
     "App/NativeChannelChainView.swift": {
@@ -245,9 +236,6 @@
       "manual paging": 1
     },
     "App/NativeChannelMessageContextView.swift": {
-      "manual paging": 1
-    },
-    "App/NativeChannelModerationEntry.swift": {
       "manual paging": 1
     },
     "App/NativeChannelRoleEntry.swift": {
@@ -289,17 +277,11 @@
     "App/RoamStampViews.swift": {
       "manual paging": 1
     },
-    "App/SearchMapExplorerView.swift": {
-      "manual paging": 1
-    },
     "App/SettingsPostGovernanceView.swift": {
       "manual paging": 1
     },
     "App/SquareGovernanceViews.swift": {
       "manual paging": 2
-    },
-    "App/SquareWorkspaceView.swift": {
-      "manual paging": 1
     },
     "App/TemplateAuthoringMineView.swift": {
       "manual paging": 1

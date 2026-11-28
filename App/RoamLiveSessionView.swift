@@ -79,6 +79,8 @@ import QuestifyCore
     @State private var runners: [RoamNearbyRunner] = []
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.offlineWriteSession) private var offlineWriteSession
+    @Environment(\.roamFinishedRecordsArchive) private var roamFinishedRecordsArchive
+    @State private var uploadedFinishedRecords: Set<Int> = []
     /// Location-purpose consent is asked once, on the first GO, by the inline card; the stored answer seeds this state and
     /// still feeds `owner.start(purposeAccepted:)`, which stays the source of truth.
     @AppStorage("roamLivePurposeAcceptedV1") private var storedPurposeAccepted = false
@@ -187,7 +189,8 @@ import QuestifyCore
         }
         .sheet(isPresented: $guideShown) { AIGuideSheet(context: guideContext, journal: guideJournal) }
         .sheet(isPresented: $addressSearchShown) {
-            RoamLiveAddressSearchSheet(places: owner.places, onPick: pickAddress)
+            RoamLiveAddressSearchSheet(places: owner.places, shops: owner.registeredShops, center: addressSearchCenter,
+                                       makeExternalMaps: discoverDestinations?.makeExternalMaps, onPick: pickAddress)
         }
         .sheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled, ownExplorePercent: owner.explorationPercent,
@@ -289,16 +292,24 @@ import QuestifyCore
         }
     }
     /// MP `onSearchPick`: move the map to the picked place and select its pin (the 地点卡 facts open in 附近).
-    private func pickAddress(_ place: RoamPlace) {
-        guard let point = place.coordinate else { return }
-        let center = CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)
+    /// MP `cy-map-address-search` `lat` / `lng` = the map centre; the live map follows the player, so the GCJ-02 fix
+    /// (same point as the weather read), else the first located place.
+    private var addressSearchCenter: CLLocationCoordinate2D? {
+        if let point = weatherPoint { return CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude) }
+        guard let first = owner.places.first(where: { $0.coordinate != nil }), let point = first.coordinate else { return nil }
+        return CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)
+    }
+    /// MP `onSearchPick`: the map moves there; a session place is also selected (its 地点卡 opens), a remote row only moves.
+    private func pickAddress(_ row: RoamLiveAddressRow) {
+        let center = CLLocationCoordinate2D(latitude: row.latitude, longitude: row.longitude)
         let region = MKCoordinateRegion(center: center, latitudinalMeters: 600, longitudinalMeters: 600)
         if reduceMotion {
             mapCamera = .region(region)
         } else {
             withAnimation(.easeInOut(duration: 0.35)) { mapCamera = .region(region) }
         }
-        mapPick = .place(place.id)
+        if let placeID = row.localPlaceID { mapPick = .place(placeID) }
+        else if let shopID = row.shopID { mapPick = .shop(shopID) }
     }
     /// Gap #24: this walk's revealed cells (Core `RoamLiveFogProjection`); nil while none, or when 迷雾 is switched off.
     private var liveFog: FogPresentation? {
@@ -621,6 +632,11 @@ import QuestifyCore
             } else {
                 finishReport = nil
             }
+        }
+        // The finish already settled. This posts the in-memory tile times and does not change that outcome.
+        if let id, let bundle = owner.settledSessionArchive, let upload = roamFinishedRecordsArchive,
+           uploadedFinishedRecords.insert(id).inserted {
+            Task { await upload(bundle) }
         }
         // Presentation only: the summary follows the existing settled-and-archived state; the queue dedupes a re-delivery.
         if id != nil {

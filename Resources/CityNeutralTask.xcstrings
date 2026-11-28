@@ -132,7 +132,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original round"
+            "value": "Original"
           }
         }
       }
@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original session"
+            "value": "Original"
           }
         }
       }
@@ -183,7 +183,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frozen eligibility and configuration"
+            "value": "Frozen eligibility and setup"
           }
         }
       }
@@ -302,7 +302,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answer for this attempt"
+            "value": "Answer attempt"
           }
         }
       }

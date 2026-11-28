@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Try"
           }
         },
         "zh-Hans": {
@@ -294,7 +294,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Main code"
+            "value": "Main"
           }
         },
         "zh-Hans": {
@@ -342,7 +342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Try"
           }
         },
         "zh-Hans": {
@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sub codes"
+            "value": "Sub"
           }
         },
         "zh-Hans": {
@@ -422,7 +422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agreement"
+            "value": "Terms"
           }
         },
         "zh-Hans": {
@@ -470,7 +470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participating merchants"
+            "value": "Participating"
           }
         },
         "zh-Hans": {
@@ -1590,7 +1590,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting claim"
+            "value": "Awaiting"
           }
         },
         "zh-Hans": {
@@ -1654,7 +1654,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transfer is unavailable right now"
+            "value": "Transfer unavailable right"
           }
         },
         "zh-Hans": {
@@ -1686,7 +1686,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Available"
+            "value": "Ready"
           }
         },
         "zh-Hans": {

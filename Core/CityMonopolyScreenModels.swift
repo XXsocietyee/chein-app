@@ -257,8 +257,19 @@ public struct CityPendingTerritoryQuote: Equatable, Sendable {
     }
 
     public func reload() async {
+        await reload(commandBalance: nil)
+    }
+
+    /// `commandBalance` is the balance a claim, upgrade, challenge, scout or shield just returned.
+    /// GET /territory/points wins when it answers. On 404 the command balance is kept, and the
+    /// wallet source is not allowed to paint the pre-charge number back over it.
+    private func reload(commandBalance: Int64?) async {
         issueCode = nil
-        if let pointsSource {
+        if let summary = try? await service.pointsSummary(), let balance = summary.balance {
+            pointsBalance = balance
+        } else if let commandBalance {
+            pointsBalance = commandBalance
+        } else if let pointsSource {
             let balance = await pointsSource()
             if let balance { pointsBalance = balance }
         }
@@ -339,8 +350,7 @@ public struct CityPendingTerritoryQuote: Equatable, Sendable {
             lastResult = result
             pendingQuote = nil
             if let event = Self.hapticEvent(for: pending.kind, result: result) { emit(event) }
-            if let balance = result.balance { pointsBalance = balance }
-            await reload()
+            await reload(commandBalance: result.balance)
             return result
         } catch {
             record(error)
@@ -355,6 +365,8 @@ public struct CityPendingTerritoryQuote: Equatable, Sendable {
         do {
             let result = try await service.scout(CityPropertyActionRequest(propertyId: propertyId, expectedVersion: card?.version))
             scoutedDC[propertyId] = result.dc
+            if let balance = result.balance { pointsBalance = balance }
+            if let summary = try? await service.pointsSummary(), let balance = summary.balance { pointsBalance = balance }
         } catch { record(error) }
     }
 
@@ -362,9 +374,9 @@ public struct CityPendingTerritoryQuote: Equatable, Sendable {
         guard !busy else { return }
         busy = true; defer { busy = false }
         do {
-            _ = try await service.shield(CityPropertyActionRequest(propertyId: propertyId, expectedVersion: card?.version))
+            let result = try await service.shield(CityPropertyActionRequest(propertyId: propertyId, expectedVersion: card?.version))
             emit(.defenseHeld)
-            await reload()
+            await reload(commandBalance: result.balance)
         } catch { record(error) }
     }
 

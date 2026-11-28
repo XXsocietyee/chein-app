@@ -67,6 +67,23 @@ public enum InFlightReadKey {
         }.sorted()
         return (["GET", path, "query", token] + lines).joined(separator: "\n")
     }
+
+    /// One key for a built request. Multipart boundaries are random, so they are not part of the key.
+    public static func request(_ request: URLRequest) -> String {
+        let method = request.httpMethod ?? ""
+        let url = request.url
+        let token = request.value(forHTTPHeaderField: "Authorization") ?? ""
+        return [method, url?.path ?? "", url?.query ?? "", token, normalizedBody(request)].joined(separator: "\n")
+    }
+
+    private static func normalizedBody(_ request: URLRequest) -> String {
+        guard let data = request.httpBody, let text = String(data: data, encoding: .utf8) else { return "" }
+        guard let header = request.value(forHTTPHeaderField: "Content-Type"),
+              let marker = header.range(of: "boundary=") else { return text }
+        let boundary = header[marker.upperBound...].trimmingCharacters(in: .whitespaces)
+        guard !boundary.isEmpty else { return text }
+        return text.replacingOccurrences(of: boundary, with: "boundary")
+    }
 }
 
 /// Runs one body for a key while that read is still in flight. The value is dropped when it finishes.

@@ -115,9 +115,7 @@ private struct MessagingConversationListView: View {
                     }
                     if displayLimit < rows.count {
                         Section {
-                            Button("messaging.moreConversations") { displayLimit += 30 }
-                                .buttonStyle(.borderless)
-                                .frame(maxWidth: .infinity)
+                            CYLoadMoreRow("messaging.moreConversations") { displayLimit += 30 }
                                 .accessibilityIdentifier("messaging.list.more")
                         }
                     }
