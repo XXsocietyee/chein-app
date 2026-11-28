@@ -159433,6 +159433,23 @@
         }
       }
     },
+    "onboarding.fog.clear": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear fog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拨开迷雾"
+          }
+        }
+      }
+    },
     "onboarding.progress %@ %@": {
       "extractionState": "manual",
       "localizations": {

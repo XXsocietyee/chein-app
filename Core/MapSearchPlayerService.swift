@@ -69,7 +69,7 @@ public struct MapSearchPlayerService {
     // MARK: Weather
 
     public struct Weather: Equatable {
-        /// rain | snow | fog
+        /// `MapWeatherVO` is `kind` + `intensity` only (rain | snow | fog; clear and anything else draw nothing).
         public let kind: String
         /// Clamped to 0.15…1, default 0.5.
         public let intensity: Double
