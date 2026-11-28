@@ -21,6 +21,17 @@ public struct ProjectInitialState {
         public let isClue: Bool
         public var id: String { key }
     }
+    /// MP `customInitialValues`: one card per `counter.*` attribute row (title, `min 至 max`, 开局 stepper).
+    public struct CounterRow: Identifiable, Equatable {
+        public let key: String
+        public let label: String
+        public let initial: Int?
+        public let minimum: Int
+        public let maximum: Int
+        public var id: String { key }
+        /// MP `invalidInitial`: empty, not an integer, or outside min…max.
+        public var invalid: Bool { initial.map { $0 < minimum || $0 > maximum } ?? true }
+    }
     public private(set) var readOnly = false
     private var attributeRows: [ProjectEditJSON]?
     private var carryEdited = false
@@ -79,6 +90,31 @@ public struct ProjectInitialState {
         guard next.count != rows.count else { return }
         attributeRows = next; carryEdited = true
     }
+    public var counters: [CounterRow] {
+        (attributeRows ?? []).compactMap { row -> CounterRow? in
+            guard let object = row.object, let key = object["key"]?.text,
+                  key.range(of: Self.counterPattern, options: .regularExpression) != nil else { return nil }
+            let minimum = Self.carryInitial(object["min"]) ?? 0
+            let maximum = Self.carryInitial(object["max"]) ?? minimum
+            return .init(key: key, label: object["label"]?.text ?? key, initial: Self.carryInitial(object["initial"]),
+                         minimum: minimum, maximum: maximum)
+        }
+    }
+    /// MP `onInitialStateField` `attribute.initial`: a bound registry owns the values (初值由注册定义管理).
+    public mutating func setCounterInitial(_ key: String, value: Int) {
+        guard !carryLocked, let rows = attributeRows else { return }
+        var changed = false
+        let next = rows.map { row -> ProjectEditJSON in
+            guard var object = row.object, object["key"]?.text == key,
+                  key.range(of: Self.counterPattern, options: .regularExpression) != nil,
+                  Self.carryInitial(object["initial"]) != value else { return row }
+            object["initial"] = .number(Decimal(value)); changed = true
+            return .object(object)
+        }
+        guard changed else { return }
+        attributeRows = next; carryEdited = true
+    }
+    static let counterPattern = "^counter\\.[a-z][a-z0-9_]{0,47}$"
     /// MP `confirmCarryPicker` limit: `journeyRules.attributes` holds at most 32 rows.
     public static let maxAttributeRows = 32
     /// MP `confirmCarryPicker`: picked keys already in `attributes` get initial 1; new ones are appended as
@@ -170,6 +206,8 @@ public struct ProjectInitialState {
         guard !readOnly, sourceBytes == currentBytes else { throw ProjectEditError.invalidDraft }
         if isUnchanged && thoughtReplacement == nil { return raw } // Opening, cancel and numeric no-op never normalize the imported string.
         let values = try values()
+        // MP `serialize` runs `values.attribute` on every counter row: 开局值 must sit inside its range.
+        guard !counters.contains(where: { $0.invalid }) else { throw ProjectEditError.invalidDraft }
         var next = root, hpObject = try Self.object(root["hp"]), luckObject = try Self.object(root["luck"])
         hpObject["enabled"] = .bool(hp.enabled); hpObject["init"] = .number(Decimal(values.hpInitial)); hpObject["max"] = .number(Decimal(values.hpMax))
         luckObject["enabled"] = .bool(luck.enabled); luckObject["init"] = .number(Decimal(values.luckInitial)); luckObject["max"] = .number(Decimal(values.luckMax))

@@ -100,6 +100,11 @@ import SwiftUI
                         ProjectInitialStateResourceSection(kind: kind, resource: resource(kind),
                             remove: { buffer.setEnabled(false, kind: kind); invalid = false }, edited: { invalid = false })
                     }
+                    ForEach(buffer.counters) { row in
+                        ProjectInitialStateCounterSection(row: row, locked: buffer.carryLocked) { value in
+                            buffer.setCounterInitial(row.key, value: value); invalid = false
+                        }
+                    }
                     Section {
                         ForEach(ProjectInitialState.Kind.allCases, id: \.self) { kind in
                             ProjectInitialStateOptionRow(kind: kind, added: resource(kind).wrappedValue.enabled) {
@@ -200,6 +205,43 @@ private struct ProjectInitialStateResourceSection: View {
             }
         } footer: {
             Text("projectInitialState.range \(lower) \(upper)", tableName: "ProjectInitialState")
+        }
+    }
+}
+
+/// MP `fabu/index.wxml:1941-1945`: one card per `counter.*` value — name, `min 至 max`, 开局 stepper, and the
+/// red 开局值超出当前范围 line. A bound registry owns the value, so the stepper is read-only there.
+private struct ProjectInitialStateCounterSection: View {
+    let row: ProjectInitialState.CounterRow
+    let locked: Bool
+    let change: (Int) -> Void
+    private var start: Binding<Int> {
+        Binding<Int>(get: { max(row.minimum, min(row.initial ?? row.minimum, row.maximum)) },
+                     set: { (value: Int) in change(value) })
+    }
+    var body: some View {
+        Section {
+            LabeledContent {
+                Text("projectInitialState.counterRange \(row.minimum) \(row.maximum)", tableName: "ProjectInitialState")
+                    .monospacedDigit()
+            } label: {
+                Text(verbatim: row.label).font(.headline)
+            }
+            Stepper(value: start, in: row.minimum...max(row.minimum, row.maximum)) {
+                LabeledContent {
+                    Text(start.wrappedValue, format: .number).monospacedDigit()
+                } label: {
+                    Text("projectInitialState.counterStart \(row.label)", tableName: "ProjectInitialState")
+                }
+            }
+            .disabled(locked)
+            .accessibilityIdentifier("projectInitialState.counter." + row.key)
+        } footer: {
+            if row.invalid {
+                Text("projectInitialState.counterInvalid", tableName: "ProjectInitialState").foregroundStyle(CYColor.dangerText)
+            } else if locked {
+                Text("projectInitialState.counterBound", tableName: "ProjectInitialState")
+            }
         }
     }
 }

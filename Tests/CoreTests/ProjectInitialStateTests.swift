@@ -91,4 +91,22 @@ final class ProjectInitialStateTests: XCTestCase {
         var locked = ProjectInitialState(raw: bound)
         XCTAssertFalse(locked.addCarry([(key: "clue.map", label: "地图")])); XCTAssertTrue(locked.isUnchanged)
     }
+    func testCounterValuesFollowMPInitialStateCards() throws {
+        let raw: ProjectEditJSON = .string(#"{"schemaVersion":1,"stateEnabled":true,"hp":{"enabled":true,"init":10,"max":10},"luck":{"enabled":false,"init":3,"max":3},"attributes":[{"key":"clue.map","label":"地图","initial":1,"min":0,"max":1},{"key":"counter.gold","label":"金币","initial":2,"min":0,"max":9},{"key":"counter.mood","label":"心情","initial":12,"min":0,"max":10}]}"#)
+        var state = ProjectInitialState(raw: raw)
+        XCTAssertEqual(state.counters.map(\.key), ["counter.gold", "counter.mood"])
+        XCTAssertEqual(state.counters.map(\.invalid), [false, true])
+        state.setCounterInitial("counter.gold", value: 5)
+        XCTAssertThrowsError(try state.serialized(matching: raw))
+        state.setCounterInitial("counter.mood", value: 7)
+        let next = try object(state.serialized(matching: raw))
+        let rows = next["attributes"]?.array?.compactMap { $0.object } ?? []
+        XCTAssertEqual(rows.map { $0["initial"] }, [.number(1), .number(5), .number(7)])
+        state.setCounterInitial("clue.map", value: 0)
+        XCTAssertEqual(state.carry.map(\.key), ["clue.map"])
+        let bound: ProjectEditJSON = .string(#"{"schemaVersion":1,"attributeBinding":{"version":2},"attributes":[{"key":"counter.gold","label":"金币","initial":2,"min":0,"max":9}]}"#)
+        var locked = ProjectInitialState(raw: bound)
+        locked.setCounterInitial("counter.gold", value: 4)
+        XCTAssertTrue(locked.isUnchanged); XCTAssertEqual(locked.counters.first?.initial, 2)
+    }
 }
