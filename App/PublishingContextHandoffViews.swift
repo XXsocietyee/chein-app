@@ -168,7 +168,7 @@ struct PublishingFormSurface: ViewModifier {
                 Section {
                     Label("contextPublish.result.acknowledged", systemImage: "checkmark.circle.fill")
                         .font(.headline)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(CYColor.successText)
                         .accessibilityAddTraits(.isHeader)
                     Text(verbatim: receipt.title)
                 }
@@ -203,7 +203,7 @@ struct PublishingFormSurface: ViewModifier {
             Section {
                 Label("contextPublish.result.acknowledged", systemImage: "checkmark.circle.fill")
                     .font(.headline)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(CYColor.successText)
                     .accessibilityAddTraits(.isHeader)
                 Text(verbatim: receipt.title)
                 LabeledContent("contextPublish.result.chapters") {

@@ -114,7 +114,7 @@ private struct CreatorContentIssueView: View {
                 shelf.make(AnyView(typeTabs.listRowInsets(EdgeInsets()).listRowBackground(Color.clear)))
             } else {
                 List {
-                    if reader.isOfflineExample { Label("creatorContent.offlineExample", systemImage: "testtube.2").foregroundStyle(.orange) }
+                    if reader.isOfflineExample { Label("creatorContent.offlineExample", systemImage: "testtube.2").foregroundStyle(CYColor.warningText) }
                     if !reader.isAuthenticated { issue(.login) }
                     else if !reader.isConfigured { issue(.notConfigured) }
                     else {
@@ -264,7 +264,7 @@ private struct CreatorContentIssueView: View {
     private var key: CreatorContentLoadKey { .init(reader) }
     var body: some View {
         List {
-            if reader.isOfflineExample { Label("creatorContent.offlineExample", systemImage: "testtube.2").foregroundStyle(.orange) }
+            if reader.isOfflineExample { Label("creatorContent.offlineExample", systemImage: "testtube.2").foregroundStyle(CYColor.warningText) }
             if !reader.isAuthenticated { issue(.login) }
             else if !reader.isConfigured { issue(.notConfigured) }
             else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("myProject.loading").frame(maxWidth: .infinity) } // MP 项目加载中

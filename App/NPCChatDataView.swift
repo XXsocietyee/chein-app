@@ -324,8 +324,6 @@ struct NPCChatDataPresentation: Identifiable {
             }
         } header: {
             Text("npcLogDelete.title", tableName: "NPCChatLogDeletion")
-                .cyText(.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
                 .textCase(nil)
         }
     }

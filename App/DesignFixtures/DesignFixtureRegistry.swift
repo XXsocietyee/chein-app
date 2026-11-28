@@ -155,6 +155,10 @@ enum DesignFixtureRegistry {
         case "r3-roam-nearby": return RoamR3NearbyFixture.make(.content)
         case "r3-roam-nearby-empty": return RoamR3NearbyFixture.make(.empty)
         case "r3-roam-nearby-error": return RoamR3NearbyFixture.make(.failure)
+        case "r3-roam-my-teams": return RoamR3NearbyFixture.make(.mine)
+        case "r3-roam-my-teams-empty": return RoamR3NearbyFixture.make(.mineEmpty)
+        case "r3-roam-my-teams-error": return RoamR3NearbyFixture.make(.mineFailure)
+        case "r3-roam-my-teams-signedout": return RoamR3NearbyFixture.make(.mineSignedOut)
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
@@ -489,6 +493,8 @@ enum T5PageFixtures {
         switch name {
         case "t5-baoming": return wrapPlayer(RegistrationFixtureHostView(scenario: .standard, hidesFixtureNotice: true))
         case "t5-baoming-error": return wrapPlayer(RegistrationFixtureHostView(scenario: .quoteError, hidesFixtureNotice: true))
+        case "t5-baoming-paying": return wrapPlayer(RegistrationAppPayFixtureHost(paid: false))
+        case "t5-baoming-paid": return wrapPlayer(RegistrationAppPayFixtureHost(paid: true))
         case "t5-pricing": return wrapMerchant(T5PublisherPricingFixtureHost(failed: false))
         case "t5-pricing-error": return wrapMerchant(T5PublisherPricingFixtureHost(failed: true))
         case "t5-partner": return wrapMerchant(T5PublisherPartnerFixtureHost(failed: false))

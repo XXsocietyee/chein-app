@@ -429,13 +429,13 @@ struct ClubOpsEventOccurrenceBadgeText: View {
     var body: some View {
         switch badge {
         case .cancelled:
-            ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: .red)
+            ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: CYColor.dangerText)
         case .editable:
             Label { Text("clubOpsEvent.occurrences.editable", tableName: "ClubOpsEvent") } icon: { Image(systemName: "pencil.circle") }
                 .font(.subheadline)
-                .foregroundStyle(.green)
+                .foregroundStyle(CYColor.successText)
         case .lockReason(let reason):
-            ClubOpsEventStatusLine(verbatim: reason, symbol: "lock", tone: .orange)
+            ClubOpsEventStatusLine(verbatim: reason, symbol: "lock", tone: CYColor.warningText)
         case .locked:
             Label { Text("clubOpsEvent.occurrences.locked", tableName: "ClubOpsEvent") } icon: { Image(systemName: "lock") }
                 .font(.subheadline)
@@ -474,7 +474,7 @@ struct ClubOpsEventOccurrenceMetaText: View {
         switch ClubOpsEventCancellation.state(value, activityID: activityID) {
         case .cancelled(let reason)?:
             VStack(alignment: .leading, spacing: 4) {
-                ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: .red)
+                ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: CYColor.dangerText)
                 if let reason {
                     Text("clubOpsEvent.cancel.reason \(reason)", tableName: "ClubOpsEvent")
                         .font(.subheadline)
@@ -562,7 +562,7 @@ struct ClubOpsEventSeriesConflictNotice: View {
             } icon: {
                 Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
             }
-            .foregroundStyle(.orange)
+            .foregroundStyle(CYColor.warningText)
             .accessibilityIdentifier("clubOpsEvent.series.conflict")
         }
     }

@@ -208,7 +208,7 @@ struct OfficialEventCard: View {
                                 fallbackTitle: "official.untitled", fallbackSymbol: "sparkles") {
             // R7-PC-C3-2 (MP list/index.wxml:57 `cy-badge type="status"`): tone follows the status, `play` when live.
             OfficialEventStatusLabel(status: event.status, key: event.statusKey)
-            if event.paused { Label("official.status.paused", systemImage: "pause.circle").foregroundStyle(.orange) }
+            if event.paused { Label("official.status.paused", systemImage: "pause.circle").foregroundStyle(CYColor.warningText) }
             if event.recruitmentBlocked == true {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("official.informationIncomplete", systemImage: "exclamationmark.triangle")

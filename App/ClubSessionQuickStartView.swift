@@ -127,7 +127,7 @@ import SwiftUI
             if !scope.canRead || model.phase == .denied {
                 Section {
                     Label("club.sessionStart.ownerRequired", systemImage: "lock")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("club.sessionStart.denied")
                 }
             } else {
@@ -188,7 +188,7 @@ import SwiftUI
             }
             if model.phase == .topicUnavailable {
                 Label("club.sessionStart.topicUnavailable", systemImage: "calendar.badge.exclamationmark")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
             }
             sessionReload(scope)
         }

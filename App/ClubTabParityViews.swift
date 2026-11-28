@@ -47,7 +47,7 @@ struct ClubLeaderQuotaLine: View {
             VStack(alignment: .leading, spacing: 4) {
                 Label(clubR1("quota.overTag", locale), systemImage: "exclamationmark.triangle.fill")
                     .font(.subheadline)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
                 line(String(format: clubR1("quota.over", locale), owned, limit))
             }
         case .full(let owned):

@@ -14,6 +14,8 @@ public enum ProjectEditRuntimeStats {
         var defaultInitial: Int { self == .hp ? 10 : 3 }
         var defaultMaximum: Int { self == .hp ? 10 : 3 }
         var nameField: String { self == .hp ? "hpName" : "luckName" }
+        /// MP `values.references` key: `sys.hp` / `sys.luck`.
+        public var referenceKey: String { self == .hp ? ProjectEditRuntimeValues.hpKey : ProjectEditRuntimeValues.luckKey }
         /// Default label when the theme has no own name (MP `runtimeHpLabel` / `runtimeLuckLabel`).
         public var labelKey: String { self == .hp ? "mpPublish.values.hp" : "mpPublish.values.luck" }
         /// MP `serialize`: 生命值上限须为 1 至 20 的整数 / 幸运值上限须为 0 至 5 的整数.
@@ -58,8 +60,14 @@ public enum ProjectEditRuntimeStats {
 
     /// MP `onRuntimeStatToggle`: writes `enabled`, keeps `stateEnabled` in step with hp / luck / attributes,
     /// and turns `checkEnabled` on when either is on. Missing blocks get the MP `parse` defaults.
+    /// Switching off throws `ProjectEditRuntimeValues.Refusal.referenced` while the value is in use.
     public static func setEnabled(_ enabled: Bool, _ stat: Stat, in draft: ProjectEditDraft) throws -> ProjectEditDraft {
         guard available(in: draft) else { throw ProjectEditRuntimeActsError.refused(Copy.schemaTwo) }
+        if !enabled {
+            // MP: switching off is refused while a chapter cost, item effect or link still uses the value.
+            let found = ProjectEditRuntimeValues.references(stat.referenceKey, in: draft)
+            if !found.isEmpty { throw ProjectEditRuntimeValues.Refusal.referenced(found) }
+        }
         let original = try ProjectEditD20Rules.readable(draft)
         var rules = original
         let fresh = rules.isEmpty
