@@ -190,6 +190,7 @@ struct LoginView: View {
         .onChange(of: showsOtherSignIn) { _, value in recordIntegratedLoginPhase(value ? "presentation_true" : "presentation_false") }
 #endif
         .sensoryFeedback(.success, trigger: session.account?.id) { old, new in old == nil && new != nil }
+        .sensoryFeedback(.warning, trigger: session.errorKey) { _, new in new != nil }
         .interactiveDismissDisabled(session.isWorking)
         .onChange(of:session.account?.id) { _,newID in if newID != nil { password=""; model.clear(); dismiss() } }
         .onDisappear { password=""; model.clear(); session.weChatAuth.cancel() }

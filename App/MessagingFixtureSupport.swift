@@ -30,12 +30,16 @@ final class MessagingFixtureReader: MessagingReading {
     private func prepare() async throws {
         try Task.checkCancellation()
         if scenario == .loading { try await Task.sleep(nanoseconds: 15_000_000_000) }
-        if scenario == .error { throw MessagingReadFailure(code: 503, message: "Synthetic service failure") }
+        if scenario == .error { throw MessagingReadFailure(code: 503, message: Self.fixtureFailureText) }
         if scenario == .unauthorized { throw APIError.unauthorized }
         if scenario == .unconfigured { throw APIError.notConfigured }
     }
     private func decode<Value: Decodable>(_ type: Value.Type, _ object: Any) throws -> Value {
         try JSONDecoder().decode(type, from: JSONSerialization.data(withJSONObject: object))
+    }
+    /// The synthetic server message shown under 加载失败 follows the UI language too (mp-nav r3 inbox error fixture).
+    private static var fixtureFailureText: String {
+        Locale.preferredLanguages.first?.hasPrefix("zh") == true ? "服务暂时不可用，请稍后再试" : "The service is busy. Try again shortly."
     }
     /// Fixture names follow the UI language (round 3 sweep 19:50: fixture data must not stay English in zh-Hans).
     private static func fixtureName(_ index: Int) -> String {

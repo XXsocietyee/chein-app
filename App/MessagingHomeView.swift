@@ -30,6 +30,7 @@ struct MessagingHomeView: View {
             .padding(.horizontal)
             .padding(.bottom, 8)
             .accessibilityIdentifier("messaging.list.scope")
+            .sensoryFeedback(.selection, trigger: box)
             if let predictionEntry { predictionEntry().padding(.horizontal) }
             switch box {
             case .inbox:
