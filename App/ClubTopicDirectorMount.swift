@@ -322,7 +322,7 @@ struct ClubTopicMoreRoute: Hashable {
                             if let unknownWriteLabel { Text(verbatim: unknownWriteLabel).font(.subheadline).foregroundStyle(.secondary) }
                         }
                     } icon: {
-                        Image(systemName: "questionmark.circle").foregroundStyle(.orange)
+                        Image(systemName: "questionmark.circle").foregroundStyle(CYColor.warningText)
                     }
                     Button("club.director.confirmResult", action: onConfirmUnknownWrite)
                         .accessibilityIdentifier("club.topic.director.confirmResult")

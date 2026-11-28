@@ -27,7 +27,7 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: 6) {
                         if cancelPending {
                             // Source 撤回结果未确认 · 待确认.
-                            Label { Text(verbatim: invoiceString("pendingTag")) } icon: { Image(systemName: "clock.badge.questionmark").foregroundStyle(.orange) }
+                            Label { Text(verbatim: invoiceString("pendingTag")) } icon: { Image(systemName: "clock.badge.questionmark").foregroundStyle(CYColor.warningText) }
                                 .font(.footnote).foregroundStyle(.secondary)
                             invoiceText("write.cancel.unknown").font(.headline)
                         } else {

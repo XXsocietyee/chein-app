@@ -46,7 +46,7 @@ struct ClubOpsJoinRequestLoadIssue: View {
                             .fixedSize(horizontal: false, vertical: true)
                     } icon: {
                         Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                             .accessibilityHidden(true)
                     }
                     retryButton

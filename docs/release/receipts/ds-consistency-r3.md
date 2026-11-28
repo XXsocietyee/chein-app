@@ -1655,12 +1655,39 @@ Re-pin (colour only): `Tests/ContractChecks/test_workshop_paid_reentry_closure.p
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
 PASS (error text hue 0, manual paging 18, 121 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
 
+### Batch 2 — one warning hue (ADA audit §3 **Accent colours**)
+
+Pending / locked / offline / at-risk glyphs and notes drew in raw system `.orange` on 28 pages and in
+`CYColor.warningText` everywhere else. 33 sites in 28 files → `CYColor.warningText`; the 广场 "已通关 / Cleared"
+trophy (2 sites, `SquareCloudFeedViews.swift:119,166`) → `CYColor.medalGold`, the achievement hue used by medals.
+
+Pages (level): orient score appeal pending (B), square report locked (C), search map offline banner (B), club topic
+director unverified (C), discovery template access retry / staff read-only (B), club payout receiver notices (C),
+friend metadata + removal glyphs (C), club gap window warning (C), invoice pending (C, 2 files), club roster window
+closed + inline roster (C), club settlement unverified (C), workshop mod removed (C), channel management pending (C),
+bundle wallet expired (B), official private paused (B), club channel messaging guards (B), ticket wallet refunding
+tag (B), settings post governance notice + pending (C), order lifecycle notice + bind refusal (C), compliance pending
+(C), club join-notify warning (C), account deregistration impact (C), organizer console risks (C), topic publication
+sync (C), club public activity removed (B).
+
+Not changed: effect surfaces (games, story, maps, pay, celebration files keep their HUD colours); merchant and
+diagnostics screens (outside the player scan).
+
+New checker kind **warning hue**: any raw `.orange` foreground outside App/DesignSystem and the effect surfaces (a line
+already counted as `status hue` is not counted twice). Baseline 0, allowed 0. Self-test: with the App changes stashed
+`--list` reports the sites above.
+
+Re-pin (colour only, same test as batch 1): `test_workshop_paid_reentry_closure.py` whole-file hash, reason updated.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
+PASS (warning hue 0, error text hue 0, manual paging 18, 121 allowed), `contract_ratchet --check` 46 failing,
+baseline 46, **new 0**.
+
 ### Not done (next run)
 - manual paging debt (18): tests-first sites only (run 43 list); leave for a lane that can run Swift.
-- **Accent colours, next:** ~35 raw `.foregroundStyle(.orange)` pending / locked / offline glyphs and footnotes
-  (club payout receiver, settings post governance, ticket refunding tag, invoice pending, bundle wallet, channel
-  pending …) → `CYColor.warningText`; raw `.tint(.green)` on Toggles (roam share / live consent / poster consent /
-  director leaderboard, 7 sites) vs the default tint elsewhere.
+- **Accent colours, next:** raw `.tint(.green)` on Toggles (roam share / live consent / poster consent / director
+  leaderboard / club management, ~9 sites) vs the default tint elsewhere — check each MP switch colour first
+  (`switch color=`) before choosing one rule; raw `.green` success foregrounds without a checkmark glyph.
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,

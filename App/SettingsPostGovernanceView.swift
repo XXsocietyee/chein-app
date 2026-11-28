@@ -118,7 +118,7 @@ struct PostGovernanceRow: Identifiable, Equatable {
                 if let notice {
                     Section {
                         Label { Text(notice) } icon: { Image(systemName: "exclamationmark.triangle") }
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("settings.postGov.notice")
                     }
                 }
@@ -197,7 +197,7 @@ struct PostGovernanceRow: Identifiable, Equatable {
                 // The native journal never re-sends an unknown dispatch, so the row asks for a
                 // pull-to-refresh check instead of offering a second submit.
                 Label { Text("mpd.postGov.pendingRow") } icon: { Image(systemName: "clock.badge.questionmark") }
-                    .font(.footnote).foregroundStyle(.orange)
+                    .font(.footnote).foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("settings.postGov.pending.\(row.id)")
             } else if row.canAppeal {
                 appealArea(row)

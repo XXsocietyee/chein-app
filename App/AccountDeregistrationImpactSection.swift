@@ -43,7 +43,7 @@ struct AccountDeregistrationImpactSection: View {
                         Text(item.effect).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                 } icon: {
-                    Image(systemName: Self.symbol(item.key)).foregroundStyle(.orange)
+                    Image(systemName: Self.symbol(item.key)).foregroundStyle(CYColor.warningText)
                         .accessibilityHidden(true)
                 }
                 .accessibilityElement(children: .combine)

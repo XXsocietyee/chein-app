@@ -340,7 +340,7 @@ enum PublishClarityText {
     private func notice(_ key: String) -> some View {
         Label { Text(LocalizedStringKey(key), tableName: PublishClarityText.table).fixedSize(horizontal: false, vertical: true) }
             icon: { Image(systemName: "arrow.triangle.2.circlepath") }
-            .font(.subheadline).foregroundStyle(.orange)
+            .font(.subheadline).foregroundStyle(CYColor.warningText)
             .accessibilityIdentifier("publishClarity.check.agreement")
     }
     @ViewBuilder private func issueRow(_ issue: TopicPublishCheckIssue) -> some View {

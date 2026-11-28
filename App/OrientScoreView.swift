@@ -358,7 +358,7 @@ import QuestifyCore
                         Label {
                             Text("orientScore.appealPending").foregroundStyle(.secondary)
                         } icon: {
-                            Image(systemName: "hourglass").foregroundStyle(.orange)
+                            Image(systemName: "hourglass").foregroundStyle(CYColor.warningText)
                         }
                         .font(.footnote)
                     }

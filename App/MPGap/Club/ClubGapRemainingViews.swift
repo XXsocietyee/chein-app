@@ -198,7 +198,7 @@ public struct ClubGapEventOpsExtrasSection: View {
                 Section {
                     Label(windowWarning, systemImage: "exclamationmark.triangle")
                         .font(.subheadline)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                 }
             }
             Section {

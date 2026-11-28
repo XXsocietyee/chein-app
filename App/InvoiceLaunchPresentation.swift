@@ -315,7 +315,7 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
                     : (model.recheckMissed ? "notFound" : "unknown")
                 let subKey = savingTitle ? "titleSave.unknown.sub" : key + ".sub"
                 VStack(alignment: .leading, spacing: 4) {
-                    Label { invoiceText(key) } icon: { Image(systemName: "clock.badge.questionmark").foregroundStyle(.orange) }
+                    Label { invoiceText(key) } icon: { Image(systemName: "clock.badge.questionmark").foregroundStyle(CYColor.warningText) }
                         .font(.body)
                     invoiceText(subKey)
                         .font(.subheadline).foregroundStyle(.secondary)

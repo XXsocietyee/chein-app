@@ -706,7 +706,7 @@ private func ncmLoading() -> some View {
     var body: some View {
         if model.isCurrent, model.pending != nil {
             Section {
-                Label { ncmText("originalPending") } icon: { Image(systemName: "clock.arrow.circlepath").foregroundStyle(.orange) }
+                Label { ncmText("originalPending") } icon: { Image(systemName: "clock.arrow.circlepath").foregroundStyle(CYColor.warningText) }
                 Button { Task { await model.recoverOriginal() } } label: { ncmText("queryOriginal") }
                     .disabled(model.busy)
                     .accessibilityLabel(ncmText("queryOriginal"))

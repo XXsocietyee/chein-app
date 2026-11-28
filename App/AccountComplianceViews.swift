@@ -694,7 +694,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     /// Server status codes (PENDING / ELIGIBLE / BLOCKED) read as plain words, as the mini-program titles them.
     @ViewBuilder private func statusMark(_ raw: String) -> some View {
         switch raw.uppercased() {
-        case "PENDING": Label { Text("compliance.status.pending") } icon: { Image(systemName: "clock").foregroundStyle(.orange) }
+        case "PENDING": Label { Text("compliance.status.pending") } icon: { Image(systemName: "clock").foregroundStyle(CYColor.warningText) }
         case "ELIGIBLE": Label { Text("compliance.status.eligible") } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText) }
         case "BLOCKED": Label { Text("compliance.status.blocked") } icon: { Image(systemName: "xmark.octagon.fill").foregroundStyle(CYColor.dangerText) }
         default:

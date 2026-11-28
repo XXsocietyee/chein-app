@@ -28,7 +28,7 @@ import SwiftUI
                     } else { Text("clubOpsEvent.roster.windowGeneric", tableName: "ClubOpsEvent") }
                 }
                 .font(.subheadline)
-                .foregroundStyle(.orange)
+                .foregroundStyle(CYColor.warningText)
                 .accessibilityIdentifier("clubOpsEvent.roster.inlineWindowClosed")
             }
             let members = roster.members(in: selected)

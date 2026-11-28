@@ -133,7 +133,7 @@ import SwiftUI
                 }
             }
             if selectedUnavailable {
-                Label { Text(verbatim: topicsCopy("publicTopics.removed")) } icon: { Image(systemName: "eye.slash").foregroundStyle(.orange) }
+                Label { Text(verbatim: topicsCopy("publicTopics.removed")) } icon: { Image(systemName: "eye.slash").foregroundStyle(CYColor.warningText) }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.publicTopics.selectionRevoked")
             }
