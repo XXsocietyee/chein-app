@@ -4849,7 +4849,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check collaborators. Select valid members without duplicates."
+            "value": "Check your collaborators. Choose each member only once."
           }
         },
         "zh-Hans": {
@@ -172735,7 +172735,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session Info"
+            "value": "This run"
           }
         },
         "zh-Hans": {
@@ -172752,7 +172752,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entry Code"
+            "value": "Entry code"
           }
         },
         "zh-Hans": {
@@ -172769,7 +172769,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Evidence Cards"
+            "value": "Evidence cards"
           }
         },
         "zh-Hans": {
@@ -172786,7 +172786,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Release Station"
+            "value": "Release this stop"
           }
         },
         "zh-Hans": {
@@ -172803,7 +172803,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan Member Ticket"
+            "value": "Scan a member’s ticket"
           }
         },
         "zh-Hans": {
@@ -172820,7 +172820,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leader Tools"
+            "value": "Leader tools"
           }
         },
         "zh-Hans": {
@@ -172837,7 +172837,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settle Team"
+            "value": "Settle for the team"
           }
         },
         "zh-Hans": {
@@ -172854,7 +172854,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show Group Code"
+            "value": "Show group code"
           }
         },
         "zh-Hans": {
@@ -172871,7 +172871,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlock Next Chapter"
+            "value": "Unlock next chapter"
           }
         },
         "zh-Hans": {
@@ -172888,7 +172888,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Background Music"
+            "value": "Background music"
           }
         },
         "zh-Hans": {
@@ -172905,7 +172905,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Narration Autoplay"
+            "value": "Autoplay narration"
           }
         },
         "zh-Hans": {
@@ -172956,7 +172956,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Station Rewards"
+            "value": "Rewards by stop"
           }
         },
         "zh-Hans": {
@@ -173007,7 +173007,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remaining Games"
+            "value": "Games left"
           }
         },
         "zh-Hans": {
@@ -173024,7 +173024,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Run Stats"
+            "value": "Run stats"
           }
         },
         "zh-Hans": {
@@ -173058,7 +173058,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Play Tools"
+            "value": "Play tools"
           }
         },
         "zh-Hans": {
@@ -215195,7 +215195,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nothing was sent. Access, configuration or the reviewed data changed."
+            "value": "Nothing was sent. Your access or the content changed — refresh and check it again."
           }
         },
         "zh-Hans": {
@@ -253133,7 +253133,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rename"
+            "value": "Change"
           }
         },
         "zh-Hans": {
@@ -301098,7 +301098,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Relax on Low HP"
+            "value": "Go easier at low health"
           }
         },
         "zh-Hans": {
@@ -301115,7 +301115,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Triggerable Outcomes"
+            "value": "Possible outcomes"
           }
         },
         "zh-Hans": {
@@ -301132,7 +301132,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Post-Scan Reply"
+            "value": "Reply after scanning"
           }
         },
         "zh-Hans": {
@@ -357770,6 +357770,35 @@
           "stringUnit": {
             "state": "translated",
             "value": "该订单暂时无法使用银行卡或 Apple Pay 支付，请稍后再试。"
+          }
+        }
+      }
+    },
+    "publishModes.signupCount %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld sign-up"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld sign-ups"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 人报名"
           }
         }
       }
