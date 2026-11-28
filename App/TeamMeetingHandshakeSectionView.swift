@@ -75,7 +75,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                 Spacer()
                 Text(verbatim: banner.showsDualZone ? "双时区显示（以北京时间为准）" : "北京时间")
                     .cyText(.caption, weight: .medium)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(CYColor.infoText)
                     .accessibilityIdentifier("w16.deadline.zoneBadge")
             }
 

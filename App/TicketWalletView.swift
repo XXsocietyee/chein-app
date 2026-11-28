@@ -471,15 +471,15 @@ private struct TicketWalletCardTag: View {
                         Text("passme.ticket.startsIn")
                         CYCountdown(until: soon, style: nil, tint: nil)
                     }
-                } icon: { Image(systemName: "timer").foregroundStyle(.blue) }
+                } icon: { Image(systemName: "timer").foregroundStyle(CYColor.infoText) }
                     .font(.footnote).foregroundStyle(.secondary)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("ticketWallet.startsIn.\(ticket.id)")
             } else if let start = ticket.upcomingStartMonthDay {
-                Label { Text("ticketWallet.tag.startsOn \(start.month) \(start.day)") } icon: { Image(systemName: "calendar").foregroundStyle(.blue) }
+                Label { Text("ticketWallet.tag.startsOn \(start.month) \(start.day)") } icon: { Image(systemName: "calendar").foregroundStyle(CYColor.infoText) }
                     .font(.footnote).foregroundStyle(.secondary)
             } else {
-                Label { Text("ticketWallet.tag.upcoming") } icon: { Image(systemName: "calendar").foregroundStyle(.blue) }
+                Label { Text("ticketWallet.tag.upcoming") } icon: { Image(systemName: "calendar").foregroundStyle(CYColor.infoText) }
                     .font(.footnote).foregroundStyle(.secondary)
             }
         } else if ticket.isRefunding {

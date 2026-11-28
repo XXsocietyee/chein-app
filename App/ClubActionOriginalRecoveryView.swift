@@ -47,7 +47,7 @@ import SwiftUI
                     } icon: {
                         Image(systemName: "checkmark.seal.fill").accessibilityHidden(true)
                     }
-                    .foregroundStyle(.green)
+                    .foregroundStyle(CYColor.successText)
                     .accessibilityIdentifier("club.admission.original.applied")
                 }
                 if working { ProgressView() }
