@@ -9,9 +9,11 @@ import AVFoundation
     private var waiting = false
     private var cancelled = false
 
-    init(inner: ShopNPCAVCapture = ShopNPCAVCapture()) {
+    init(inner: ShopNPCAVCapture) {
         self.inner = inner
     }
+
+    convenience init() { self.init(inner: ShopNPCAVCapture()) }
 
     func startAfterExplicitMicrophoneIntent(grants: ShopNPCGrants, onEnded: @escaping () -> Void) throws {
         guard grants.voiceAllowed, grants.microphone, !waiting else { throw ShopNPCFailure.disabled }
