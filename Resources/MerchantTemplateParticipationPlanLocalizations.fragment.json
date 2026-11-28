@@ -192,7 +192,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Enter participation time positive whole number minutes."
+          "value": "Enter participation time as a positive whole number of minutes."
         }
       },
       "zh-Hans": {

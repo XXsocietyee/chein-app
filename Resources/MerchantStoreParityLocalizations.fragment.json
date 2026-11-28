@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld after-sales requests await response"
+            "value": "%lld after-sales requests await your response"
           }
         },
         "zh-Hans": {
@@ -103,7 +103,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting reply"
           }
         },
         "zh-Hans": {
@@ -119,7 +119,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Replies can edited later"
+            "value": "Replies can be edited later"
           }
         },
         "zh-Hans": {

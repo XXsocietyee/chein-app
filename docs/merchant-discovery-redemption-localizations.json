@@ -66,7 +66,7 @@
   },
   {
     "key": "merchant.cityRedeem.title",
-    "en": "Redeem city-node",
+    "en": "Redeem city-node code",
     "zh-Hans": "据点核销"
   },
   {
@@ -116,7 +116,7 @@
   },
   {
     "key": "merchant.cityRedeem.confirm",
-    "en": "Redeem",
+    "en": "Redeem code",
     "zh-Hans": "核销"
   },
   {

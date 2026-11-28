@@ -1,7 +1,7 @@
 [
   {
     "key": "merchant.access.awaitingActivation",
-    "en": "Awaiting",
+    "en": "Awaiting activation",
     "zh-Hans": "待启用"
   },
   {
@@ -66,7 +66,7 @@
   },
   {
     "key": "merchant.events.empty",
-    "en": "No recent",
+    "en": "No recent activity",
     "zh-Hans": "暂无动态"
   },
   {
@@ -111,7 +111,7 @@
   },
   {
     "key": "merchant.order.aftersale",
-    "en": "After-sales",
+    "en": "After-sales status",
     "zh-Hans": "售后状态"
   },
   {
@@ -126,7 +126,7 @@
   },
   {
     "key": "merchant.order.aftersale.3",
-    "en": "Refund",
+    "en": "Refund processing",
     "zh-Hans": "退款中"
   },
   {
@@ -156,12 +156,12 @@
   },
   {
     "key": "merchant.order.status.0",
-    "en": "Awaiting",
+    "en": "Awaiting payment",
     "zh-Hans": "待付款"
   },
   {
     "key": "merchant.order.status.1",
-    "en": "Awaiting",
+    "en": "Awaiting shipment",
     "zh-Hans": "待发货"
   },
   {
@@ -171,7 +171,7 @@
   },
   {
     "key": "merchant.order.status.3",
-    "en": "Awaiting",
+    "en": "Awaiting review",
     "zh-Hans": "待评价"
   },
   {
@@ -306,12 +306,12 @@
   },
   {
     "key": "merchant.revenue7d",
-    "en": "Revenue in last 7 days",
+    "en": "Revenue in the last 7 days",
     "zh-Hans": "近 7 日收入"
   },
   {
     "key": "merchant.role.checkIn",
-    "en": "Check-in",
+    "en": "Check-in staff",
     "zh-Hans": "核销员"
   },
   {
@@ -321,7 +321,7 @@
   },
   {
     "key": "merchant.role.manager",
-    "en": "Store",
+    "en": "Store manager",
     "zh-Hans": "店长"
   },
   {
@@ -396,12 +396,12 @@
   },
   {
     "key": "merchant.todo.verified",
-    "en": "Completed",
+    "en": "Completed verifications",
     "zh-Hans": "已核销"
   },
   {
     "key": "merchant.todo.verify",
-    "en": "Awaiting",
+    "en": "Awaiting verification",
     "zh-Hans": "待核销"
   }
 ]

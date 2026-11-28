@@ -39,7 +39,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Required"
+          "value": "Required materials"
         }
       },
       "zh-Hans": {
@@ -124,7 +124,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Scenic"
+          "value": "Scenic area"
         }
       },
       "zh-Hans": {
@@ -141,7 +141,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Park green space"
+          "value": "Park or green space"
         }
       },
       "zh-Hans": {
@@ -175,7 +175,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Historic town"
+          "value": "Historic town or street"
         }
       },
       "zh-Hans": {

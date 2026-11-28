@@ -107,7 +107,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "AI generation isn't available right now. You can keep editing template yourself."
+          "value": "AI generation isn't available right now. You can keep editing the template yourself."
         }
       },
       "zh-Hans": {
@@ -158,7 +158,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Try"
+          "value": "Try again"
         }
       },
       "zh-Hans": {
@@ -311,7 +311,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Describe the activity want before generating."
+          "value": "Describe the activity you want before generating."
         }
       },
       "zh-Hans": {
@@ -617,7 +617,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Completion"
+          "value": "Completion feedback"
         }
       },
       "zh-Hans": {

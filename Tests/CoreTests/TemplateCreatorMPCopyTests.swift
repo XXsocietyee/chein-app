@@ -30,4 +30,26 @@ final class TemplateCreatorMPCopyTests: XCTestCase {
         // The qa reveal toggle keeps its shared label.
         XCTAssertEqual(field(.qa, "reveal")?.labelKey, "creator.field.reveal")
     }
+
+    func testPricePairHiddenObjectAndQAUseMPCopy() throws {
+        XCTAssertEqual(field(.pricePair, "title")?.labelKey, "creator.mp.pricePair.title")
+        XCTAssertEqual(field(.pricePair, "title")?.promptKey, "creator.mp.pricePair.title.prompt")
+        XCTAssertEqual(field(.hiddenObject, "imageUrl")?.labelKey, "creator.mp.hiddenObject.imageUrl")
+        XCTAssertEqual(field(.hiddenObject, "hint")?.labelKey, "creator.field.hint")
+        let hotspots = try XCTUnwrap(field(.hiddenObject, "hotspots"))
+        guard case .rows(let target, _, _, _) = hotspots.kind else { return XCTFail("hotspots are rows") }
+        XCTAssertEqual(target.first { $0.id == "label" }?.promptKey, "creator.mp.hiddenObject.label.prompt")
+        XCTAssertEqual(TemplateCreatorSchema.fields(.qa).map(\.id), ["mode", "title", "lead", "imageUrl", "audioUrl", "answerText", "reveal", "shotNote", "maxTries", "xp", "multi", "options"])
+    }
+
+    func testQAPromptFollowsAnswerMode() throws {
+        let title = try XCTUnwrap(field(.qa, "title"))
+        XCTAssertEqual(TemplateCreatorSchema.prompt(title, family: .qa, mode: nil), "creator.mp.qa.title.prompt.TYPE")
+        XCTAssertEqual(TemplateCreatorSchema.prompt(title, family: .qa, mode: "PICK"), "creator.mp.qa.title.prompt.PICK")
+        XCTAssertEqual(TemplateCreatorSchema.prompt(title, family: .qa, mode: "SHOT"), "creator.mp.qa.title.prompt.SHOT")
+        XCTAssertEqual(TemplateCreatorSchema.prompt(title, family: .qa, mode: "OTHER"), "creator.mp.qa.title.prompt.TYPE")
+        let shotNote = try XCTUnwrap(field(.qa, "shotNote"))
+        XCTAssertEqual(TemplateCreatorSchema.prompt(shotNote, family: .qa, mode: "SHOT"), "creator.mp.qa.shotNote.prompt")
+        XCTAssertNil(TemplateCreatorSchema.prompt(try XCTUnwrap(field(.qa, "maxTries")), family: .qa, mode: "SHOT"))
+    }
 }

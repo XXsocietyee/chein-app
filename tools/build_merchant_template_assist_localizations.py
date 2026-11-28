@@ -13,7 +13,7 @@ ROWS = {
     'disabled': ('AI generation isn\'t available right now. You can keep editing the template yourself.', 'AI 生成暂不可用，你仍可手动编辑模板。'),
     'working': ('Preparing suggestions…', '正在准备建议…'),
     'generate': ('Generate suggestions', '生成建议'),
-    'retry': ('Try', '重试'),
+    'retry': ('Try again', '重试'),
     'review': ('Review suggested fields', '检查建议内容'),
     'unsupported': ('Returned fields this editor cannot apply', '当前编辑器无法填入的返回字段'),
     'unsupportedHint': ('These fields are shown in full for review but are not saved by this form. A story may supply only the first 30 characters as a description when no description was returned.', '这些字段完整展示供检查，但不会由此表单保存。未返回描述时，仅将故事的前 30 个字符用作描述。'),

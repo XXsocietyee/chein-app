@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdrawals handled platform support"
+            "value": "Withdrawals are handled by platform support"
           }
         },
         "zh-Hans": {
@@ -374,7 +374,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact platform support withdraw"
+            "value": "Contact platform support to withdraw"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suspend for while"
+            "value": "Suspend for a while"
           }
         },
         "zh-Hans": {
