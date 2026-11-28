@@ -509,12 +509,15 @@ outside `Label` icons, buttons and combined / hidden parents: 10 hits, 7 already
 | `pages/club` channel sidebar (muted channel) | `ClubChannelMessagingView.swift:498` | ✓ (mp-club owns order) | The muted bell was the only cue that a channel is muted; VoiceOver now hears "Muted" / "免打扰" (existing `messaging.muted`) | Done |
 | Offline banner (all player lists) | `DesignSystem/CYStatusOfflineBanner.swift:53` | ✓ | `wifi.slash` beside the offline message hidden (the banner already speaks its label + message) | Done |
 | `pages/publishkit` wizard issue list | `DesignSystem/CYBusinessComponents.swift:1291` | ✓ (mp-publish owns order) | Issue rows (jump to step) were 32 pt tall → 44 pt target; the warning and arrow glyphs are hidden so VoiceOver reads only "Step n: message" | Done |
+| `pages/city` roam root: City Monopoly stat link, Fog / Territory chips | `CityKit/CityRoamRootView.swift:257,297` | ✓ (mp-roam owns order) | 44 pt targets scan: the board link was 32 pt tall → 44; the layer chips keep their 36 pt capsule look inside a 44 pt hit area | Done |
+| In-game channel entry (play HUD chat button) | `InGameChannelEntryViews.swift:155` | ✓ (mp-journey owns order) | 32 × 32 icon button → 44 × 44 hit area (`CYSpacing.minTouchTarget`), glyph size unchanged | Done |
 | Stamp created, journey settle seal, ticket verified, pass verified, collectible / cover lock, in-place result, city claim step | `RoamStampCameraView`, `JourneyReportViews`, `E1TicketCard`, `CYPassVerified`, `CYCollectible`, `CYCoverArt`, `CYInPlaceResult`, `CityClaimFlow` | ✓ | Audit: each glyph is inside an `.ignore` / hidden parent whose text or label says the state. No change | Done |
 
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-32).
-- Next pages without a row: 44 pt targets — custom `Button` labels with `.frame(minHeight:` / `.frame(height:` below 44
-  (run 32 found one at 32 pt in the publish issue list). (Run 32: meaningful-image scan done.)
+- Next pages without a row: 44 pt targets, second half — buttons whose label is sized by padding only (no frame) with
+  `.caption` / `.footnote` text, e.g. inline chips and "more" links. (Run 32: `.frame(min)Height` < 44 on buttons fixed:
+  publish issue rows, city board link + layer chips, in-game channel button; the rest are decorative or already wrapped in 44.)
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
