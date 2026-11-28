@@ -37,6 +37,8 @@ struct ProfileOrdersView: View {
     @State private var historyGeneration = 0
     /// R7-MEM-16-1: the order whose card 取消订单 / 取消报名 opened the cancel sheet.
     @State private var cardExit: ProfileOrderCardExit?
+    /// Gap #28: bumped when the order card sheet closes, so cancel / cancel-refund / re-pay show at once.
+    @State private var ordersReloadToken = 0
     /// R7-MEM-16-1: MP index.wxml:84-90 shows 取消订单 on unpaid cards and 取消报名 on free registered cards.
     /// fix-r10: money is on in Release, so the card also shows 立即支付 (unpaid) and 取消并退款 (paid, refundable)
     /// like the MP, each while its own money switch is on. Both open the same lifecycle sheet, which owns the pay
@@ -209,7 +211,8 @@ struct ProfileOrdersView: View {
             }
         }
         .environment(\.profileReadShowsRefreshButton, false)
-        .cySheet(item: $cardExit) { exit in
+        .environment(\.profileReadReloadToken, ordersReloadToken)
+        .cySheet(item: $cardExit, onDismiss: { ordersReloadToken += 1 }) { exit in
             if let lifecycleCoordinator {
                 NavigationStack {
                     OrderLifecycleView(id: exit.id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope)
