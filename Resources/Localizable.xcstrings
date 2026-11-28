@@ -288897,7 +288897,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No points in the current area"
+            "value": "No spots in this area"
           }
         },
         "zh-Hans": {
@@ -290699,7 +290699,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Points"
+            "value": "Spots"
           }
         },
         "zh-Hans": {
@@ -290716,7 +290716,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Point details"
+            "value": "Spot details"
           }
         },
         "zh-Hans": {
@@ -320222,7 +320222,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Points"
+            "value": "Stops"
           }
         },
         "zh-Hans": {
@@ -320409,7 +320409,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This point is no longer on the route"
+            "value": "This stop is no longer on the route"
           }
         },
         "zh-Hans": {

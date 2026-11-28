@@ -379,6 +379,14 @@ Merged `origin/ui/combined-r7` (clean). Sweep build 0446d1c4f: checked `mp-mine/
 | 126 | `pages/member/*` 票夹 (`wType` 场次) → `App/TicketWalletView.swift:565` `ticketWallet.type.session` (`en-e4-tickets`) | Activity ticket sub-line reads a bare "Session" | en → "Event" (beside "City orienteering" / "Free explore"); zh 场次 unchanged | Done |
 | 127 | `pages/club/*` 主理人进度 (MP order unchanged) → `App/ClubLeadProgressView.swift:246-247` | "1 topics published", "1 invitations sent" (new keys from the merge had no plural variants; locale-format gate FAIL) | en one / other variants: "1 topic published" / "%lld topics published", "1 invitation sent" / "%lld invitations sent"; zh unchanged; locale format gate PASS again | Done |
 
+### Run 34 (11-28)
+Merged `origin/ui/combined-r7` (clean). Sweep index still build 0446d1c4f: no open coordinator finding for en-layout; Not done rows unchanged (owner / coordinator decisions). Scanned the English of every key new in this merge (play contact, invite, run endings, team actions, arrival guide): reads correctly; inline-pair scan of new Swift clean. Then looked at the en sweep shots not yet named here: `en-e4-settings`, `en-r3-roam-routes`, `en-wave-today-club`, `en-d4-stamps` read correctly (the "Become a merchant" row is mp-mine's P1; the "Synthetic medal owner" name in `en-e4-self-medals` is mp-mine fixture data); `en-rep3-task-play` → row 128.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 128 | `pages/play/*` city orienteering run (MP order unchanged) → `App/NativeR2/CityOrientation/CityOrientationRunView.swift:478`, `CityOrientationPunchSheet.swift:155` (`en-rep3-task-play`) | HUD counter "1/3 Points" under a "Stop 2" header — "Points" reads as the points currency (积分) | en `nativeR2.city.metric.points` → "Stops"; `nativeR2.city.punch.missing` → "This stop is no longer on the route" (catalog + `docs/port/strings/native-r2-city-orientation.json`); zh 点位 unchanged | Done |
+| 129 | City game map / snapshot (`App/CityOrderedMapView.swift:77-79`, `App/CityCurrentSnapshotView.swift:42-54`) | 点位 shown as "Points" / "Point details" / "No points in the current area" on screens that also show 积分 "Points" | en → "Spots", "Spot details", "No spots in this area"; zh unchanged | Done |
+
 ## Not done
 
 | Item | Why |
