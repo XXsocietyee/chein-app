@@ -36,6 +36,13 @@ final class ClubCommunityTests: XCTestCase {
             let fields = try ClubCommunityReview(operation: operation, evidence: e).fields()
             XCTAssertNil(fields["requestId"]); XCTAssertNil(fields["version"])
         }
+        let likeOn = try ClubCommunityReview(operation: .toggleLike, evidence: e).fields()
+        XCTAssertEqual(likeOn["postId"] as? Int, item.id)
+        XCTAssertEqual(likeOn["liked"] as? Bool, true)
+        let liked = try post(["isLiked": true])
+        let likeOff = try ClubCommunityReview(operation: .toggleLike, evidence: evidence(post: liked)).fields()
+        XCTAssertEqual(likeOff["liked"] as? Bool, false)
+        XCTAssertEqual(Set(likeOff.keys), ["postId", "liked"])
         XCTAssertThrowsError(try ClubCommunityReview(operation: .create(content: "", images: ["a;b"]), evidence: evidence()))
     }
     func testModelsAndAuthority() throws {
