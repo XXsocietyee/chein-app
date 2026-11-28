@@ -109,6 +109,8 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
+            // Same as 报名名册 / 找俱乐部 (sweep 13:15): the first card starts right under the title.
+            .contentMargins(.top, CYSpacing.sm, for: .scrollContent)
         }
         // CLB-detail-33 (parity r2): a sheet title in the bar; ✕ stays in the toolbar.
         .navigationTitle(Text("club.members"))
@@ -254,42 +256,61 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         else { guard let profileContext, matches(profileContext, target.identity) else { return } }
         var selected = target; selected.customer = customer; destination = selected
     }
+    @ViewBuilder private func memberName(_ member: ClubMember) -> some View {
+        if let nickname = member.trimmedNickname {
+            Text(verbatim: nickname)
+                .fixedSize(horizontal: false, vertical: true)
+        } else {
+            Text("club.memberNumber \(member.memberId)")
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+    @ViewBuilder private func memberRole(_ member: ClubMember) -> some View {
+        if member.isOwner {
+            Text("club.role.creator")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        } else if member.isAdmin {
+            Text("club.role.administrator")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+    @ViewBuilder private func memberMeta(_ member: ClubMember, separated: Bool) -> some View {
+        if let level = member.displayedLevel {
+            Text("club.memberLevel \(level)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .fixedSize(horizontal: separated, vertical: true)
+                .accessibilityIdentifier("club.member.level.\(member.memberId)")
+            if separated, member.displayedJoinTime != nil {
+                Text(verbatim: "·").font(.subheadline).foregroundStyle(.secondary).accessibilityHidden(true)
+            }
+        }
+        // verify-r1 1.5 / MC-02: 11月16日, not the server's raw wall-clock text.
+        if let joined = member.displayedJoinTime.map({ ClubJoinDateDisplay.text($0, locale: locale) }) {
+            Text("club.memberJoined \(joined)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: separated, vertical: true)
+                .accessibilityIdentifier("club.member.joined.\(member.memberId)")
+        }
+    }
     private func memberRow(_ member: ClubMember) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             ClubMPAvatar(url: QuestifyCardArtwork.safeURL(member.avatar), name: member.trimmedNickname ?? "\(member.memberId)", size: .md)
                 .accessibilityHidden(true)
+            // MP detail wxml:297-298: name with the role tag inline, then one meta line (Lv.N · 加入 date).
+            // Sweep 0446d1c4f en-d4-members: four stacked lines and a List-squeezed role icon; now the MP two-line shape.
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                if let nickname = member.trimmedNickname {
-                    Text(verbatim: nickname)
-                        .fixedSize(horizontal: false, vertical: true)
-                } else {
-                    Text("club.memberNumber \(member.memberId)")
-                        .fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                    memberName(member)
+                    memberRole(member)
                 }
-                if member.isOwner {
-                    Label("club.role.creator", systemImage: "star")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                } else if member.isAdmin {
-                    Label("club.role.administrator", systemImage: "shield")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                if let level = member.displayedLevel {
-                    Text("club.memberLevel \(level)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("club.member.level.\(member.memberId)")
-                }
-                // verify-r1 1.5 / MC-02: 11月16日, not the server's raw wall-clock text.
-                if let joined = member.displayedJoinTime.map({ ClubJoinDateDisplay.text($0, locale: locale) }) {
-                    Text("club.memberJoined \(joined)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("club.member.joined.\(member.memberId)")
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: CYSpacing.xs) { memberMeta(member, separated: true) }
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) { memberMeta(member, separated: false) }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
