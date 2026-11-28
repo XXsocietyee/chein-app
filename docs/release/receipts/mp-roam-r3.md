@@ -552,6 +552,17 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
+## Round 3 continue (41) — OWNER RULE 3 celebration: stamp collected (owner mp-roam)
+
+Base re-merged with `origin/ui/combined-r7` (clean). No open coordinator finding for mp-roam (07:45 sweep: none). Map panel settled (02:05) — not touched; fog / lit trail are on `fix/1128b-maps` (#24), not here.
+
+| MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|
+| `subpackageRoam/citystamp` ③ 换票 (wxml:68–135: tear the slip, scratch 六成 → 解锁「收下，出发」) → `App/RoamSubpageParityViews.swift` `RoamStampSlipView.paper` | The reveal (the moment the exchanged stamp is collected) had only the success haptic; OWNER RULE 3 lists "stamp collected" as a Level A celebration. MP sections / order unchanged. | New `App/RoamStampRevealCelebration.swift` (`roamStampCollectedBurst(_:)`, name matches the gate's `*Celebration*` surface): one `CYBurst` dust burst over the slip when `revealed` turns true (it never turns back), on top of the existing `.success` haptic and `CYMotion.standard` transition. Reduce Motion / Low Power / thermal → nothing drawn (`CYLightBudget.particlesAllowed`); no hit testing; hidden from VoiceOver. | A · celebration / citystamp slip (live route only; not in a fixture) |
+| P3 存入集邮册 → 已入册 (`scene-roam-stamp-album` landing) → `App/RoamCreatedStampView.swift` `.found` match card | The created stamp slammed in (`cyStampSlam`) with a heavy tap but no light. | Same burst once on the match card, after the slam (same gating). | A · celebration / created stamp |
+
+No new strings. Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS (effect on clean page: 0) · contract_ratchet **new 0**. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
