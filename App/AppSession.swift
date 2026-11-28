@@ -5207,10 +5207,10 @@ final class AppSession: ObservableObject {
     }
     private var retainedSquareGovernance: SquareGovernanceCoordinator?
     func squareGovernance() -> SquareGovernanceCoordinator? {
-        if let model = retainedSquareGovernance { return model }
         guard let configuration = regionalConfiguration?.apiConfiguration else { return nil }
-        let model = SquareGovernanceCoordinator(service: .init(baseURL: configuration.baseURL, transport: runtimeHTTPTransport))
-        retainedSquareGovernance = model; return model // reads and every operation grant off.
+        let service = squareGovernanceLiveService(configuration)
+        retainedSquareGovernance = SquareGovernanceSessionBox.current(self, retainedSquareGovernance, service)
+        return retainedSquareGovernance // K40 M-11a: reads, appeal, mark-read and preferences follow the community writer.
     }
     func squareGovernanceAccess(postID: Int? = nil) -> SquareGovernanceSessionAccess {
         let captured = currentSquareGovernanceIdentity

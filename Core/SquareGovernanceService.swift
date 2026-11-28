@@ -35,7 +35,7 @@ public struct SquareGovernanceService {
     }
     /// Dormant concrete adapter for any HTTPTransport. A separately reviewed grant
     /// activates only listed operations; neither reads nor mutations default on.
-    /// Shipped composition roots do not supply this grant.
+    /// K40 M-11a supplies appeal, mark-read and preferences when the community writer is issued.
     public init(dormantBaseURL: URL, transport: any HTTPTransport, readsEnabled: Bool = false, grant: SquareGovernanceMutationGrant = .disabled) {
         baseURL = dormantBaseURL; self.transport = transport; self.readsEnabled = readsEnabled
         mutationCapabilities = grant.capabilities

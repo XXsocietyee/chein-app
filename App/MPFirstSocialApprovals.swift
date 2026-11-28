@@ -63,6 +63,23 @@ import QuestifyCore
         grants.live = true; grants.media = true; grants.legal = true
         return grants
     }
+
+    /// K40 M-01d: own v1 post and comment delete. The coordinator checks these templates, not the concrete id.
+    static let deletionPaths: Set<String> = [SquareDeletionTarget.postRoute, SquareDeletionTarget.commentRoute]
+
+    /// K40 M-11a: the player governance writes the loaded screen can send. Not comment-approve or own-comment delete.
+    static let playerGovernance: Set<SquareGovernanceCapability> = [.appeal, .markRead, .preferences]
+
+    static func deletionApproval(_ root: AppCompositionRoot, _ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
+        guard community(root, context) != nil else { return nil }
+        return try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, paths: deletionPaths)
+    }
+
+    static func governanceService(baseURL: URL, transport: any HTTPTransport, writerIssued: Bool) -> SquareGovernanceService {
+        SquareGovernanceService(dormantBaseURL: baseURL, transport: transport, readsEnabled: writerIssued,
+            grant: writerIssued ? .reviewedInjection(playerGovernance) : .disabled)
+    }
 }
 
 extension AppSession {
@@ -91,5 +108,32 @@ extension AppSession {
     var currentSquareCommunityWriteApproval: SquareCommunityWriteApproval? {
         guard let context = currentRuntimeDependencyContext else { return nil }
         return squareCommunityWriteApproval(context)
+    }
+
+    /// K40 M-11a: community / report notifications, 帖文处置与申诉, and mark-read. On only with the community writer
+    /// (China player or club). Comment approve and own-comment delete stay off; square detail delete is M-01d.
+    func squareGovernanceLiveService(_ configuration: APIConfiguration) -> SquareGovernanceService {
+        let on = currentSquareCommunityWriteApproval != nil
+        return SquareGovernanceService(dormantBaseURL: configuration.baseURL, transport: runtimeHTTPTransport,
+            readsEnabled: on, grant: on ? .reviewedInjection(MPFirstSocialApprovals.playerGovernance) : .disabled)
+    }
+}
+
+/// K40 M-11a: rebuild the governance coordinator when the viewer or the grant changes, without growing AppSession.
+@MainActor enum SquareGovernanceSessionBox {
+    private static var keys: [ObjectIdentifier: String] = [:]
+
+    static func current(_ session: AppSession, _ retained: SquareGovernanceCoordinator?, _ service: SquareGovernanceService) -> SquareGovernanceCoordinator {
+        let id = ObjectIdentifier(session)
+        let key = identity(session) + (service.readsEnabled ? "|read" : "|off") + (service.allowsInjectedWrites ? "|write" : "|quiet")
+        if keys.count > 64 { keys = keys.filter { $0.key == id } }
+        if let retained, keys[id] == key { return retained }
+        keys[id] = key
+        return SquareGovernanceCoordinator(service: service)
+    }
+
+    private static func identity(_ session: AppSession) -> String {
+        guard let context = session.currentRuntimeDependencyContext else { return "signed-out" }
+        return "\(context.session.accountID)|\(context.session.epoch)|\(context.role)"
     }
 }
