@@ -285,6 +285,8 @@ enum E4Fixtures {
         case "e4-wallet-analysis": return wrap(WalletCommerceFixtureHost(designPage: "analysis"))
         case "e4-wallet-bank": return wrap(WalletCommerceFixtureHost(designPage: "bank"))
         case "e4-wallet-withdrawals": return wrap(WalletCommerceFixtureHost(designPage: "withdrawals"))
+        case "e4-wallet-withdrawals-empty": return wrap(WalletCommerceFixtureHost(designPage: "withdrawals", stateArguments: ["--wallet-withdrawals-empty"]))
+        case "e4-wallet-withdrawals-error": return wrap(WalletCommerceFixtureHost(designPage: "withdrawals", stateArguments: ["--wallet-withdrawals-recover"]))
         case "e4-wallet-tasks": return wrap(WalletCommerceFixtureHost(designPage: "tasks"))
         default: return T12T13DesignFixtures.make(name)
         }
