@@ -1302,7 +1302,10 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 PASS (0 debt, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
 ### Not done (next run)
-- none
+- ADA §3 Dates: 漫游 history run card date `RoamRunCardPresentation.dateShort` (`Core/RoamSubpagePresentation.swift:24`,
+  shown by `App/RoamHistoryViews+Port.swift:8`) prints the MP `M/D/YY` (`10/19/25`) in both languages; zh elsewhere
+  is `yyyy-MM-dd` / `M月d日`. Route through `LocaleDisplay.day` / `monthDay` and re-pin
+  `Tests/CoreTests/RoamSubpageParityTests.swift:17` with a one-line reason (display only).
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
