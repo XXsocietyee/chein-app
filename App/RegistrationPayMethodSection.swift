@@ -10,9 +10,11 @@ struct RegistrationPayMethodSection: View {
     let market: RegionalMarket?
     let applePayAvailable: Bool
     let enabled: Bool
+    /// fix-1128-alipay: the quote lists `APP_ALIPAY` and the app can open Alipay.
+    var alipayOffered: Bool = RegistrationPayMethod.alipayReady
 
     private var options: [RegistrationPayMethod] {
-        RegistrationPayMethod.options(market: market, applePayAvailable: applePayAvailable)
+        RegistrationPayMethod.options(market: market, applePayAvailable: applePayAvailable, alipayReady: alipayOffered)
     }
 
     private var current: RegistrationPayMethod {
@@ -42,7 +44,7 @@ struct RegistrationPayMethodSection: View {
                 .disabled(!enabled)
                 .accessibilityIdentifier("registration.form.payChannel")
                 #if DEBUG
-                if RegistrationPayMethod.showsAlipayComingSoon(market: market) {
+                if RegistrationPayMethod.showsAlipayComingSoon(market: market, alipayReady: alipayOffered) {
                     LabeledContent {
                         Text(verbatim: CoreLoopCopy(locale: locale).t("即将上线", "Coming soon"))
                     } label: {
