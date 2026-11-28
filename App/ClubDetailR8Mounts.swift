@@ -554,6 +554,7 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
             SocialPublicProfileView(memberID: target.memberID, reader: profile.reader, squareReader: profile.squareReader,
                                     actions: profile.actions, isCurrent: { current(target) })
                 .id(target.id)
+                .cyPushedChrome()
         } else {
             Color.clear.onAppear { if destination?.id == target.id { destination = nil } }
         }
@@ -672,6 +673,7 @@ private enum ClubCloud14HTTPS {
             SocialPublicProfileView(memberID: target.memberID, reader: profile.reader, squareReader: profile.squareReader,
                                     actions: profile.actions, isCurrent: { current(target) })
                 .id(target.id)
+                .cyPushedChrome()
         } else {
             Color.clear.onAppear { if destination?.id == target.id { destination = nil } }
         }
