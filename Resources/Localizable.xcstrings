@@ -82486,6 +82486,23 @@
         }
       }
     },
+    "im.full.currentOriginal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View the current original"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看当前原单"
+          }
+        }
+      }
+    },
     "im.full.details": {
       "extractionState": "manual",
       "localizations": {
