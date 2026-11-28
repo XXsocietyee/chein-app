@@ -150,7 +150,7 @@ import SwiftUI
                 onStartRoam: onStartRoam,
                 // R7-PC-A1-1 (r1 PC-A-1-3): MP `onManualCityChange` — the 首页 city menu is live.
                 onSelectCity: { city, nationwide in selectHomeCity(city, nationwide: nationwide) },
-                cityLocationConsent: cityConsent.asks ? (agree: { cityConsent.agree(session) }, decline: { cityConsent.decline() }) : nil,
+                cityLocationConsent: cityConsent.asks ? (agree: { agreeAndLocateHomeCity() }, decline: { cityConsent.decline() }) : nil,
                 // R7-PC-A5-1 (r1 PC-A-5-1): the hero map button opens the city map, the field opens the list search.
                 onOpenUnifiedSearch: { mode in if mode == .map { showsSearchMap = true } else { search.isPresented = true } },
                 cityRail: AnyView(CitySessionHomeRail(onOpenMap: { onStartRoam?() }))
@@ -322,6 +322,18 @@ import SwiftUI
         guard let city = homeCityLabel, let centre = HomeCityCentre.coordinate(for: city) else { return nil }
         return RoamSearchArea(coordinate: centre, label: city)
     }
+    /// Function audit P2-3b, MP `getHomeCityLocation` after 同意: record consent, then one foreground fix (the tap is the
+    /// permission ask) matched on the device to the nearest supported 首页 city. The coordinate is not sent anywhere;
+    /// no fix or no city within range keeps the current label.
+    private func agreeAndLocateHomeCity() {
+        cityConsent.agree(session)
+        let capture = session.cityCaptureFix()
+        Task {
+            guard let fix = try? await capture() else { return }
+            guard let city = HomeCityCentre.nearest(to: fix.coordinate) else { return }
+            homeCityStored = city
+        }
+    }
     /// MP `onManualCityChange` (pages/index/index.js:1430-1435): 仅本地展示 — store the city name for the 首页 label only.
     /// It does not move `session.roamArea` (search map / roam centre). 全国 keeps the current label.
     private func selectHomeCity(_ city: String?, nationwide: Bool) {
@@ -400,5 +412,25 @@ enum HomeCityCentre {
         let key = city.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "市", with: "")
         guard let pair = table[key] else { return nil }
         return RoamCoordinate(latitude: pair.0, longitude: pair.1)
+    }
+    /// The supported city whose centre is nearest, if within `maxKilometres` (great-circle). Nil otherwise.
+    static func nearest(to point: RoamCoordinate, maxKilometres: Double = 100) -> String? {
+        var best: String?
+        var bestKm = maxKilometres
+        for (city, pair) in table {
+            let km = distanceKilometres(point.latitude, point.longitude, pair.0, pair.1)
+            if km <= bestKm {
+                bestKm = km
+                best = city
+            }
+        }
+        return best
+    }
+    static func distanceKilometres(_ lat1: Double, _ lon1: Double, _ lat2: Double, _ lon2: Double) -> Double {
+        let radians = Double.pi / 180
+        let dLat = (lat2 - lat1) * radians
+        let dLon = (lon2 - lon1) * radians
+        let a = sin(dLat / 2) * sin(dLat / 2) + cos(lat1 * radians) * cos(lat2 * radians) * sin(dLon / 2) * sin(dLon / 2)
+        return 6_371 * 2 * atan2(sqrt(a), sqrt(1 - a))
     }
 }

@@ -9,7 +9,12 @@ class HomeCityLocationConsentWiring(unittest.TestCase):
     def test_row_17_wires_the_existing_card_without_a_second_search_or_a_new_order(self):
         host = (ROOT / 'App/SessionHomeFeedView.swift').read_text()
         feed = (ROOT / 'App/HomeFeedView.swift').read_text()
-        self.assertIn('cityLocationConsent: cityConsent.asks ? (agree: { cityConsent.agree(session) }, decline: { cityConsent.decline() }) : nil', host)
+        # mp-home r3 continue 31 (function audit P2-3b): 同意 records consent, then locates the city on the device.
+        self.assertIn('cityLocationConsent: cityConsent.asks ? (agree: { agreeAndLocateHomeCity() }, decline: { cityConsent.decline() }) : nil', host)
+        locate = host[host.index('private func agreeAndLocateHomeCity()'):host.index('private func selectHomeCity(')]
+        self.assertIn('cityConsent.agree(session)', locate)
+        self.assertIn('HomeCityCentre.nearest(to: fix.coordinate)', locate)
+        self.assertNotIn('reverse-geocode', locate)
         self.assertNotIn('TextField', host)
         self.assertNotIn('.searchable', host)
         # P-021: one search, the system field drawn by `globalSearchField` (no second field, no capsule).

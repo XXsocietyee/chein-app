@@ -164,6 +164,7 @@
         "GrowthLeaderboardExploreViewTests",
         "GrowthNormalContractSelectionTests",
         "GrowthNormalReadTransportTests",
+        "HomeCityCentreNearestTests",
         "HomeFeedReturnModelTests",
         "IMAndSocialSafetyParitySectionViewTests",
         "IMChannelSourceCardSubmissionTests",
