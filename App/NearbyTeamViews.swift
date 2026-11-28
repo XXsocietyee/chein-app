@@ -92,6 +92,8 @@ import SwiftUI
                 } controls: { EmptyView() } floating: { EmptyView() } panel: {
                     ScrollView { listContent }
                 }
+                // mp-roam B: panel rows use only CYColor text tokens, so the panel is the system material like the roam map home.
+                .environment(\.cyMapPanelFollowsAppearance, true)
             } else {
                 ScrollView { listContent }
             }
