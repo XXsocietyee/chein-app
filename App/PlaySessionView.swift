@@ -9,6 +9,8 @@ struct PlaySessionView: View {
     @State private var selectedNodeID: Int?
     @State private var freePackOpen = false
     @State private var presentedMode: Int?
+    /// fix/1128c-ai-weather: live weather on the play map + the topic's weather events.
+    @StateObject private var sceneWeather = SceneWeatherModel()
     @Environment(\.locale) private var locale
     init(reader: any PlayReading) {
         self.reader = reader; _model = State(initialValue: PlayViewModel(reader: reader))
@@ -71,7 +73,26 @@ struct PlaySessionView: View {
     }
     /// Map-first chrome: static map ground behind a three-detent panel that holds the unchanged content.
     private func mapPanel<C: View>(@ViewBuilder _ content: () -> C) -> some View {
-        CYMapScaffold(detent: .medium, map: { CYMapPlaceholder() }, controls: { EmptyView() }, floating: { EmptyView() }, panel: content)
+        CYMapScaffold(detent: .medium, map: { weatherMap }, controls: { weatherChip }, floating: { EmptyView() }, panel: content)
+    }
+    private var weatherTopicID: Int? {
+        if let id = model.visibleSnapshot?.result.topicID, id > 0 { return id }
+        if case .topic(let id) = reader.scope { return id }
+        return nil
+    }
+    private var weatherPoint: (latitude: Double, longitude: Double)? {
+        PlaySceneWeather.point(model.visibleSnapshot?.result.nodes ?? [])
+    }
+    /// The chip sits in the control row (the scaffold's top corner), so the map layer draws no second chip.
+    private var weatherMap: some View {
+        CYMapPlaceholder()
+            .modifier(MapSceneWeather(latitude: weatherPoint?.latitude, longitude: weatherPoint?.longitude, topicID: weatherTopicID,
+                                      showsChip: false, model: sceneWeather))
+    }
+    @ViewBuilder private var weatherChip: some View {
+        if let context = sceneWeather.context, context.reportsCondition {
+            CYWeatherChip(context: context, attribution: sceneWeather.attribution)
+        }
     }
     private func overview(_ snapshot: PlaySnapshot) -> some View {
         List {
@@ -106,6 +127,9 @@ struct PlaySessionView: View {
                 Section { Text(LocalizedStringKey(snapshot.availability.detailKey)).foregroundStyle(.secondary) }
             }
             if let receipt = model.visibleReceipt { Section { PlayReceiptView(receipt: receipt) } }
+            if let environment = sceneWeather.environment, !environment.events.isEmpty {
+                PlayWeatherEventsSection(snapshot: environment)
+            }
             if snapshot.availability != .registrationRequired {
                 Section("play.nodes") {
                     if snapshot.visibleNodes.isEmpty {
