@@ -287,5 +287,39 @@
         }
       }
     }
+  },
+  "homeCityConsent.body": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Uses your current location once to set your home city. You can locate again from the city menu. It is not used to rank nearby results."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "用一次当前位置确定首页城市，之后可在城市菜单里重新定位，不用于附近排序。"
+        }
+      }
+    }
+  },
+  "homeCityConsent.privacy": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your location is matched to a city on this iPhone and is never uploaded."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "位置只在本机匹配城市，不会上传。"
+        }
+      }
+    }
   }
 }
