@@ -513,11 +513,23 @@ outside `Label` icons, buttons and combined / hidden parents: 10 hits, 7 already
 | In-game channel entry (play HUD chat button) | `InGameChannelEntryViews.swift:155` | ✓ (mp-journey owns order) | 32 × 32 icon button → 44 × 44 hit area (`CYSpacing.minTouchTarget`), glyph size unchanged | Done |
 | Stamp created, journey settle seal, ticket verified, pass verified, collectible / cover lock, in-place result, city claim step | `RoamStampCameraView`, `JourneyReportViews`, `E1TicketCard`, `CYPassVerified`, `CYCollectible`, `CYCoverArt`, `CYInPlaceResult`, `CityClaimFlow` | ✓ | Audit: each glyph is inside an `.ignore` / hidden parent whose text or label says the state. No change | Done |
 
+### Run 33 (2026-11-28)
+Merged `origin/ui/combined-r7` (70917c058). Sweep index still build 3348aa51f, so the a11y sheets re-read waits. No new
+coordinator finding for this lane. Not done item: 44 pt targets, second half — buttons sized by padding only with
+`.caption` / `.footnote` labels (scripted scan of player views: 10 hits; story rule editor skipped, story flow on hold; root tab
+bar, roam history tools, editor save chip and puzzle tiles already reach 44).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/club` channel moderation banner (关闭) | `ClubChannelMessagingView.swift:287` | ✓ (mp-club owns order) | Footnote "Dismiss" text button was ~18 pt tall → 44 × 44 hit area, look unchanged. Level C | Done |
+| `pages/template` detail capability rows (展开 / 收起) | `TemplateDetailXbChrome.swift:157` | ✓ (mp-publish owns order) | Expand / collapse footnote button → 44 × 44 hit area; label stays a `LocalizedStringKey`. Level B | Done |
+| `pages/play` lead bar retry (网络状态暂未刷新 · 点击重试) | `MPGap/PlayRoam/PlayLeadBar.swift:11` | ✓ (mp-journey owns order) | The 8 pt bar padding sat outside the button, so only the text line was tappable → full-width 44 pt label, bar padding 2 pt (same bar height). Level A | Done |
+| `pages/search` map explorer location-denied bar (打开设置) | `MPGap/PlayerContent/SearchMapExplorerGapView.swift:105` | ✓ (mp-home owns order) | Footnote "Open Settings" button → 44 pt tall hit area; bar padding 8 → 2 so the bar keeps its height. Level B | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-32).
-- Next pages without a row: 44 pt targets, second half — buttons whose label is sized by padding only (no frame) with
-  `.caption` / `.footnote` text, e.g. inline chips and "more" links. (Run 32: `.frame(min)Height` < 44 on buttons fixed:
-  publish issue rows, city board link + layer chips, in-game channel button; the rest are decorative or already wrapped in 44.)
+- Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-33).
+- Next pages without a row: 44 pt targets, third part — `.controlSize(.mini)` / `.controlSize(.small)` bordered buttons and
+  `Menu` labels with caption text on player screens (run 33 closed the padding-only footnote buttons).
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
