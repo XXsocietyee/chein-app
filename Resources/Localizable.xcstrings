@@ -16434,6 +16434,91 @@
         }
       }
     },
+    "club.community.draftKeep": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep editing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续编辑"
+          }
+        }
+      }
+    },
+    "club.community.draftDelete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不保存"
+          }
+        }
+      }
+    },
+    "club.community.draftSave": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存草稿"
+          }
+        }
+      }
+    },
+    "club.community.draftMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your draft stays on this device and opens next time you write in this club."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿只保存在本机，下次在这个俱乐部发帖时会自动带出。"
+          }
+        }
+      }
+    },
+    "club.community.draftTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this post as a draft?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要保存为草稿吗？"
+          }
+        }
+      }
+    },
     "club.community.cancelImageUpload": {
       "extractionState": "manual",
       "localizations": {
