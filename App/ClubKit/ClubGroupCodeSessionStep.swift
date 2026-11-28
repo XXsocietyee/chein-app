@@ -46,9 +46,11 @@ struct ClubGroupCodeSessionStep: View {
             ProgressView { Text("clubR3b.groupCode.sessionsLoading") }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .failed(let title):
-            // MP cy-error: the sentence plus 重试 (`onRetry` re-reads the sessions).
+            // MP scene-qr-group-code wxml:9 cy-error 团核销码无法打开 · sub errorText · 重试 (re-reads the sessions).
             ContentUnavailableView {
-                Label(LocalizedStringKey(title), systemImage: "exclamationmark.triangle")
+                Label("clubR3b.groupCode.openFailed", systemImage: "exclamationmark.triangle")
+            } description: {
+                Text(LocalizedStringKey(title))
             } actions: {
                 Button("clubR3b.groupCode.retry") { attempt += 1 }
                     .buttonStyle(.bordered)

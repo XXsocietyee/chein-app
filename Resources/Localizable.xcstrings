@@ -306256,13 +306256,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Network error. Please try again."
+            "value": "Network error. Try again later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "网络异常，请重试"
+            "value": "网络异常，请稍后重试"
           }
         }
       }
@@ -306273,13 +306273,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No session can show a group code yet"
+            "value": "Session details are incomplete. Try again later."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可出示团码的场次"
+            "value": "场次信息不完整，请稍后重试"
           }
         }
       }
@@ -306307,13 +306307,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load the sessions"
+            "value": "Couldn’t load the sessions. Please try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "场次加载失败"
+            "value": "场次加载失败，请重试"
           }
         }
       }
@@ -356801,6 +356801,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新读取活动列表"
+          }
+        }
+      }
+    },
+    "clubR3b.groupCode.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open the group code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "团核销码无法打开"
           }
         }
       }
