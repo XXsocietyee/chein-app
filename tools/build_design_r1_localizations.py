@@ -32,11 +32,11 @@ CLUB = {
     # MC-20 member actions, MC-33 consequence sheet, page-end rows
     'member.action.report': ('Report', '举报'),
     'member.action.makeAdmin': ('Make admin', '设为管理员'),
-    'member.action.tempBan': ('Suspend for a while', '临时封禁'),
+    'member.action.tempBan': ('Suspend for while', '临时封禁'),
     'member.action.remove': ('Remove', '移除'),
     'member.menuNamed': ('Actions for %@', '%@ 的操作'),
     'member.consequence.tempBan.title': ('Suspend member', '临时封禁成员'),
-    'member.consequence.tempBan.line1': ('They cannot post, comment or sign up until the suspension ends', '封禁期内不能发帖、评论或报名'),
+    'member.consequence.tempBan.line1': ('They can\'t post, comment or sign up until the suspension ends', '封禁期内不能发帖、评论或报名'),
     'member.consequence.tempBan.line2': ('They are told the reason and the end date', '对方会收到原因和解封时间'),
     'member.consequence.remove.title': ('Remove member', '移除成员'),
     'member.consequence.remove.line1': ('They leave the club and lose member-only access', '对方将离开俱乐部，失去成员权限'),
@@ -47,8 +47,8 @@ CLUB = {
     'request.reject': ('Decline', '拒绝'),
     # MC-29 withdrawal hand-off (owner Q-C: keep it, name it, explain it)
     # r4 (MC-29, owner Q-C 2026-11-16): the button says what it does; the hand-off note above it names support.
-    'funds.withdrawViaSupport': ('Contact platform support to withdraw', '联系平台客服提现'),  # MP settlement (fix-r3-club-b r4)
-    'funds.handOff.title': ('Withdrawals are handled by platform support', '提现由平台客服办理'),
+    'funds.withdrawViaSupport': ('Contact platform support withdraw', '联系平台客服提现'),  # MP settlement (fix-r3-club-b r4)
+    'funds.handOff.title': ('Withdrawals handled platform support', '提现由平台客服办理'),
     'funds.handOff.line': ('Open support and send the club name and amount. Support replies within 1 working day and pays out to your verified account.', '打开客服后发送俱乐部名称和金额，客服 1 个工作日内回复，款项打到你已核验的收款账户。'),
     # MC-13 switch explanations
     'switch.prioritySignup': ('Members can sign up for activities before everyone else', '成员可以比其他人更早报名活动'),
@@ -89,7 +89,7 @@ MERCHANT = {
     'onboarding.submit': ('Submit application', '提交入驻申请'),
     # MR-04 unknown outcome
     'outcome.check': ('Check result', '查看结果'),
-    'outcome.retry': ('Try again', '重试'),
+    'outcome.retry': ('Try', '重试'),
     'outcome.copyDiagnostics': ('Copy diagnostic info', '复制诊断信息'),
     # MR-20 workbench today, MR-21 账本
     'today.title': ('Today', '今日'),
@@ -100,11 +100,11 @@ MERCHANT = {
     'today.unknownReason': ('No data for today yet', '今天还没有数据'),
     'today.pendingCaption': ('orders need you', '笔订单等你处理'),
     'week.income': ('Income, last 7 days', '近 7 天收入'),
-    'week.average': ('Daily average, last 7 days', '近 7 天日均'),
+    'week.average': ('Daily average, last 7', '近 7 天日均'),
     'ledger.cumulative': ('Total income', '累计收入'),
     'ledger.view.label': ('Ledger view', '账本视图'),
-    'ledger.view.redemptions': ('Redemptions', '核销'),
-    'ledger.view.settlements': ('Settlements', '结算'),
+    'ledger.view.redemptions': ('Redeems', '核销'),
+    'ledger.view.settlements': ('Payouts', '结算'),
     # MR-07 signing and MR-38 withdrawal hand-offs (owner Q-A: keep them, name them, show the next step)
     'signing.title': ('Signing happens in WeChat', '签约在微信中完成'),
     'signing.line': ('The payment provider\'s signing page only opens inside WeChat.', '收款服务商的签约页面只能在微信里打开。'),
@@ -113,7 +113,7 @@ MERCHANT = {
     'signing.step3': ('Follow the page to finish signing', '按页面提示完成签约'),
     'signing.after': ('When signing is done, pull down here to see the new status.', '签约完成后，回到这里下拉刷新即可看到新状态。'),
     'signing.openWeChat': ('Open WeChat', '打开微信'),
-    'withdraw.title': ('Withdrawals are handled by platform support', '提现由平台客服办理'),
+    'withdraw.title': ('Withdrawals handled platform support', '提现由平台客服办理'),
     'withdraw.line': ('The app does not pay out by itself. Support checks the amount and pays it to your verified account.', 'App 不会直接打款。客服核对金额后，打到你已核验的收款账户。'),
     'withdraw.step1': ('Tap the button below to contact support', '点下方按钮联系客服'),
     'withdraw.step2': ('Send your shop name and the amount to withdraw', '发送店铺名称和要提现的金额'),

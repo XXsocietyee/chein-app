@@ -1,7 +1,7 @@
 [
   {
     "key": "ticketWallet.title",
-    "en": "Ticket wallet",
+    "en": "Ticket",
     "zh-Hans": "票夹"
   },
   {
@@ -56,12 +56,12 @@
   },
   {
     "key": "ticketWallet.participateDate",
-    "en": "Participation date",
+    "en": "Participation",
     "zh-Hans": "参与日期"
   },
   {
     "key": "ticketWallet.number",
-    "en": "Ticket number",
+    "en": "Ticket",
     "zh-Hans": "票号"
   },
   {
@@ -86,7 +86,7 @@
   },
   {
     "key": "ticketWallet.pendingChapters",
-    "en": "Chapters awaiting redemption",
+    "en": "Chapters awaiting",
     "zh-Hans": "待核销章节"
   },
   {
@@ -96,7 +96,7 @@
   },
   {
     "key": "ticketWallet.redemption",
-    "en": "Redemption",
+    "en": "Redeem",
     "zh-Hans": "核销"
   },
   {
@@ -121,12 +121,12 @@
   },
   {
     "key": "ticketWallet.partial.route",
-    "en": "Route tickets could not be loaded",
+    "en": "Route tickets couldn't loaded",
     "zh-Hans": "路线票加载失败"
   },
   {
     "key": "ticketWallet.partial.activity",
-    "en": "Activity tickets could not be loaded",
+    "en": "Activity tickets couldn't",
     "zh-Hans": "活动票加载失败"
   },
   {
@@ -136,7 +136,7 @@
   },
   {
     "key": "ticketWallet.issue.notConfigured",
-    "en": "Tickets aren't available right now.",
+    "en": "Tickets aren't available.",
     "zh-Hans": "票券暂不可用"
   },
   {
@@ -156,7 +156,7 @@
   },
   {
     "key": "ticketWallet.issue.failure",
-    "en": "Tickets could not be loaded",
+    "en": "Tickets couldn't be loaded",
     "zh-Hans": "票券加载失败"
   },
   {
@@ -166,7 +166,7 @@
   },
   {
     "key": "ticketWallet.status.pending",
-    "en": "Awaiting payment",
+    "en": "Awaiting",
     "zh-Hans": "待支付"
   },
   {
@@ -201,17 +201,17 @@
   },
   {
     "key": "ticketWallet.action.cancelled",
-    "en": "This ticket has been cancelled",
+    "en": "Ticket has",
     "zh-Hans": "该票已取消"
   },
   {
     "key": "ticketWallet.action.expired",
-    "en": "This ticket has expired",
+    "en": "Ticket has expired",
     "zh-Hans": "该票已过期"
   },
   {
     "key": "ticketWallet.action.unknown",
-    "en": "The ticket status must be confirmed before opening it",
+    "en": "Ticket status must confirmed before",
     "zh-Hans": "请先确认票券状态"
   },
   {
@@ -226,12 +226,12 @@
   },
   {
     "key": "ticketWallet.redemption.cancelled",
-    "en": "This ticket has been cancelled",
+    "en": "Ticket has",
     "zh-Hans": "该票已取消"
   },
   {
     "key": "ticketWallet.redemption.expired",
-    "en": "This ticket has expired",
+    "en": "Ticket has expired",
     "zh-Hans": "该票已过期"
   },
   {
@@ -241,12 +241,12 @@
   },
   {
     "key": "ticketWallet.redemption.unknown",
-    "en": "Redemption availability could not be confirmed",
+    "en": "Redeem availability couldn't be confirmed",
     "zh-Hans": "无法确认核销可用状态"
   },
   {
     "key": "ticketWallet.entitlementStatus.pending",
-    "en": "Awaiting redemption",
+    "en": "Awaiting",
     "zh-Hans": "待核销"
   },
   {

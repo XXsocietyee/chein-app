@@ -1342,6 +1342,13 @@ private final class LiveTransport: HTTPTransport {
         await owner.finish()
         XCTAssertEqual(owner.phase, .finished); XCTAssertNil(owner.record); XCTAssertTrue(owner.track.isEmpty)
         XCTAssertEqual(owner.finishedRouteTrack, points)
+        let archive = try XCTUnwrap(owner.settledSessionArchive)
+        XCTAssertEqual(archive.sessionID, owner.completedHistory?.serverSessionID)
+        XCTAssertFalse(archive.records.isEmpty)
+        XCTAssertTrue(archive.records.allSatisfy { $0.collectedAt > 0 && RoamExperienceMath.isValidTile($0.tile) && $0.tile.count == 7 })
+        XCTAssertTrue(RoamPlayerExtrasService.validRecords(archive.records.map {
+            RoamPlayerExtrasService.TileRecord(tile: $0.tile, collectedAt: $0.collectedAt)
+        }))
         XCTAssertNil(try RoamLiveJournal(storage: storage).read(scope: scope))
         XCTAssertEqual(try owner.makeFinishedHistoryReader().history().first?.track, [])
         let bytes = storage.bytes, fixes = location.calls, reads = service.base.reads, reveals = service.base.reveals
@@ -1351,6 +1358,7 @@ private final class LiveTransport: HTTPTransport {
         for data in bytes.values {
             let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
             XCTAssertNil(fields["finishedRoute"]); XCTAssertNil((fields["record"] as? [String: Any])?["track"])
+            XCTAssertFalse(String(decoding: data, as: UTF8.self).contains("collectedAt"))
         }
     }
     func testBothArchiveFailuresKeepRouteUnavailableAndRecoveryDoesNotRedispatchFinish() async throws {
@@ -1381,6 +1389,7 @@ private final class LiveTransport: HTTPTransport {
         let fixes = location.calls, writes = service.base.finishes
         await restored.recover()
         XCTAssertEqual(restored.phase, .finished); XCTAssertEqual(restored.finishedRouteTrack, [])
+        XCTAssertNil(restored.settledSessionArchive)
         XCTAssertEqual(location.calls, fixes); XCTAssertEqual(service.base.finishes, writes)
     }
     func testOwnerEpochAccountAndApprovalChangesRetireRatherThanReviveOldRoute() async throws {

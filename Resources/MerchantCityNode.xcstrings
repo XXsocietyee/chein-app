@@ -230,7 +230,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Claim application not submitted"
+            "value": "Claim request not submitted"
           }
         },
         "zh-Hans": {
@@ -550,7 +550,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store information could not be loaded, please try again"
+            "value": "Store info couldn't loaded, try"
           }
         },
         "zh-Hans": {
@@ -838,7 +838,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Please confirm the store address"
+            "value": "Confirm store address"
           }
         },
         "zh-Hans": {
@@ -854,7 +854,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check that the store address is accurate first"
+            "value": "Check that the store address accurate first"
           }
         },
         "zh-Hans": {
@@ -886,7 +886,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your store profile has no coordinates yet. Mark your shop door on the map."
+            "value": "Store profile has no coords yet."
           }
         },
         "zh-Hans": {
@@ -934,7 +934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Application submitted, but its review status is not synced yet"
+            "value": "Request submitted, but its review status isn't synced yet"
           }
         },
         "zh-Hans": {
@@ -1062,7 +1062,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submit placement application"
+            "value": "Submit placement request"
           }
         },
         "zh-Hans": {
@@ -1078,7 +1078,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Placement application not submitted"
+            "value": "Placement request not"
           }
         },
         "zh-Hans": {
@@ -1110,7 +1110,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Placement application submitted"
+            "value": "Placement request submitted"
           }
         },
         "zh-Hans": {
@@ -1510,7 +1510,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not take the node offline"
+            "value": "Could not take node"
           }
         },
         "zh-Hans": {
@@ -1526,7 +1526,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Taking offline failed"
+            "value": "Taking offline"
           }
         },
         "zh-Hans": {
@@ -1558,7 +1558,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not put the node online"
+            "value": "Could not put node online"
           }
         },
         "zh-Hans": {
@@ -1574,7 +1574,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Putting online failed"
+            "value": "Putting online"
           }
         },
         "zh-Hans": {
@@ -1590,7 +1590,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Put online"
+            "value": "Put"
           }
         },
         "zh-Hans": {
@@ -1606,7 +1606,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Take offline"
+            "value": "Take"
           }
         },
         "zh-Hans": {
@@ -1702,7 +1702,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your role has no redemption permission"
+            "value": "Your role has no redeem permission"
           }
         },
         "zh-Hans": {
@@ -1830,7 +1830,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save it and post it in store. It stays valid."
+            "value": "Save it and post it in store. Stays valid."
           }
         },
         "zh-Hans": {
@@ -2278,7 +2278,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw application"
+            "value": "Withdraw request"
           }
         },
         "zh-Hans": {
@@ -2310,7 +2310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not withdraw the application"
+            "value": "Could not withdraw request"
           }
         },
         "zh-Hans": {
@@ -2422,7 +2422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The result is not confirmed yet. Actions are paused until it is checked."
+            "value": "The result isn't confirmed yet. Actions are paused until it's checked."
           }
         },
         "zh-Hans": {

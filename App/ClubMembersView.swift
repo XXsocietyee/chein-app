@@ -304,9 +304,16 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             // MP detail wxml:297-298: name with the role tag inline, then one meta line (Lv.N · 加入 date).
             // Sweep 0446d1c4f en-d4-members: four stacked lines and a List-squeezed role icon; now the MP two-line shape.
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                    memberName(member)
-                    memberRole(member)
+                // a11y-dt r3: the role tag moves under the name when both do not fit (AX sizes, long English names).
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                        memberName(member)
+                        memberRole(member)
+                    }
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        memberName(member)
+                        memberRole(member)
+                    }
                 }
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: CYSpacing.xs) { memberMeta(member, separated: true) }
@@ -316,6 +323,8 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        // a11y-dt r3: one VoiceOver element per member (name, role, level, joined), also when the row is not a button.
+        .accessibilityElement(children: .combine)
     }
 }
 

@@ -92,7 +92,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checks the version saved on the server against the publishing rules. It does not publish anything."
+            "value": "Checks the version saved on the server against the publishing rules. Doesn't publish anything."
           }
         },
         "zh-Hans": {
@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Players can start it"
+            "value": "Players can"
           }
         },
         "zh-Hans": {
@@ -432,7 +432,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visible to players"
+            "value": "Visible players"
           }
         },
         "zh-Hans": {
@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visible to players"
+            "value": "Visible players"
           }
         },
         "zh-Hans": {
@@ -891,7 +891,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for review"
+            "value": "Waiting"
           }
         },
         "zh-Hans": {
@@ -1010,7 +1010,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publication status"
+            "value": "Publication"
           }
         },
         "zh-Hans": {
@@ -1112,7 +1112,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rehearsal play"
+            "value": "Trial"
           }
         },
         "zh-Hans": {

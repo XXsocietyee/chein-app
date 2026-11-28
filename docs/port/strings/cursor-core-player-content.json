@@ -2,15 +2,35 @@
   "activity.cta.unavailable": {
     "extractionState": "manual",
     "localizations": {
-      "en": { "stringUnit": { "state": "translated", "value": "—" } },
-      "zh-Hans": { "stringUnit": { "state": "translated", "value": "—" } }
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "—"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "—"
+        }
+      }
     }
   },
   "im.chat.more.reportPeer": {
     "extractionState": "manual",
     "localizations": {
-      "en": { "stringUnit": { "state": "translated", "value": "Report this person" } },
-      "zh-Hans": { "stringUnit": { "state": "translated", "value": "举报对方" } }
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Report person"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "举报对方"
+        }
+      }
     }
   }
 }

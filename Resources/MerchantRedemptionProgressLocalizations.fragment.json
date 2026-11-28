@@ -4,7 +4,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Settlement progress"
+          "value": "Payout progress"
         }
       },
       "zh-Hans": {
@@ -20,7 +20,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Redemption completed"
+          "value": "Redeem completed"
         }
       },
       "zh-Hans": {
@@ -36,7 +36,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Settlement statement created"
+          "value": "Payout note created"
         }
       },
       "zh-Hans": {
@@ -52,7 +52,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reconciliation confirmed"
+          "value": "Reconciliation"
         }
       },
       "zh-Hans": {

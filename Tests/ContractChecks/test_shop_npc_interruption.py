@@ -36,6 +36,9 @@ class ShopNPCInterruptionContracts(unittest.TestCase):
         fallback = source.split('public extension ShopNPCHTTPTransport {', 1)[1].split('@MainActor public struct', 1)[0]
         self.assertIn('throws { throw ShopNPCFailure.disabled }', fallback)
         self.assertIn('try transport.validateResume(scope: scope, grants: grants)', source)
+        # J-04c / H-16: the unserved POST /api/ai/npc/dialogue is not a client method.
+        self.assertNotIn('/api/ai/npc/dialogue', source)
+        self.assertNotIn('func dialogue(', source)
 
     def test_shipping_resume_validation_is_synchronous_local_and_double_checks_identity(self):
         body = function(read('Core/ShopNPCAuthenticatedTransport.swift'), 'validateResume')

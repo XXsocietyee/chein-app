@@ -6,7 +6,7 @@
   },
   {
     "key": "square.detail",
-    "en": "Post details",
+    "en": "Post",
     "zh-Hans": "动态详情"
   },
   {
@@ -21,7 +21,7 @@
   },
   {
     "key": "square.mode.following",
-    "en": "Following",
+    "en": "Follows",
     "zh-Hans": "关注"
   },
   {
@@ -36,7 +36,7 @@
   },
   {
     "key": "square.mode.community",
-    "en": "Community",
+    "en": "Circle",
     "zh-Hans": "社群"
   },
   {
@@ -71,7 +71,7 @@
   },
   {
     "key": "square.notConfigured",
-    "en": "Square isn't available right now",
+    "en": "Square isn't available",
     "zh-Hans": "广场暂不可用"
   },
   {
@@ -226,7 +226,7 @@
   },
   {
     "key": "square.replyTo",
-    "en": "Replying to",
+    "en": "Replying",
     "zh-Hans": "回复"
   },
   {
@@ -246,7 +246,7 @@
   },
   {
     "key": "square.safety.dangerous",
-    "en": "Dangerous activity",
+    "en": "Dangerous",
     "zh-Hans": "危险活动"
   },
   {
@@ -271,7 +271,7 @@
   },
   {
     "key": "square.safety.accessibility",
-    "en": "Accessibility limitation",
+    "en": "Accessibility",
     "zh-Hans": "无障碍限制"
   },
   {
@@ -331,7 +331,7 @@
   },
   {
     "key": "square.xcx.lifecycle.LIMITED",
-    "en": "Limited visibility",
+    "en": "Limited",
     "zh-Hans": "展示受限"
   },
   {
@@ -536,7 +536,7 @@
   },
   {
     "key": "square.xcx.delete.unavailable",
-    "en": "Deleting is not available in this version yet.",
+    "en": "Deleting isn't available in version yet.",
     "zh-Hans": "当前版本暂未开放删除"
   },
   {
@@ -591,7 +591,7 @@
   },
   {
     "key": "square.video.reject.byteLimit",
-    "en": "The video file is too large",
+    "en": "The video file too large",
     "zh-Hans": "视频文件过大"
   },
   {

@@ -44,14 +44,14 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
         if scenario == .quoteError, quotes == 1 { throw URLError(.notConnectedToInternet) }
         if scenario == .unknownAmounts { return try decode(#"{"pointsUsable":true,"quoteSign":"offline-only"}"#) }
         if scenario == .pointsRefused, selection.usePoints {
-            return try decode(#"{"payAmount":12.5,"pointsUsed":0,"pointsDeductYuan":0,"pointsUsable":true,"memberDiscountYuan":0,"couponDeductYuan":0,"quoteSign":"offline-only-points-refused"}"#)
+            return try decode(#"{"payAmount":12.5,"pointsUsed":0,"pointsDeductYuan":0,"pointsUsable":true,"memberDiscountYuan":0,"couponDeductYuan":0,"currency":"CNY","quoteSign":"offline-only-points-refused"}"#)
         }
         let amount = selection.ticketID == 9403 ? 0 : (selection.usePoints ? 10 : 12.5)
         return try decode("""
         {"payAmount":\(amount),"pointsUsed":\(selection.usePoints ? 250 : 0),
          "pointsDeductYuan":\(selection.usePoints ? 2.5 : 0),"pointsUsable":true,
          "memberDiscountYuan":0,"couponDeductYuan":0,"clubMember":\(scenario == .alreadyRegistered),
-         "prioritySignupEnabled":\(scenario == .alreadyRegistered),
+         "prioritySignupEnabled":\(scenario == .alreadyRegistered),"currency":"CNY",
          "quoteSign":"offline-only-\(selection.ticketID ?? 0)-\(selection.usePoints)"}
         """)
     }
@@ -154,18 +154,22 @@ private final class RegistrationFixtureModel: ObservableObject {
 @MainActor
 struct RegistrationFixtureHostView: View {
     @StateObject private var model: RegistrationFixtureModel
-    @State private var presented = true
+    @State private var presented: Bool
     /// Design fixtures: hide the 离线演示 note (writes stay offline).
     private let hidesFixtureNotice: Bool
     init(scenario: RegistrationFixtureScenario = .standard, hidesFixtureNotice: Bool = false) {
         _model = StateObject(wrappedValue: RegistrationFixtureModel(scenario: scenario))
         self.hidesFixtureNotice = hidesFixtureNotice
+        // Sweep 15:31 zh t5-baoming: a sheet requested before the window is on screen can be dropped,
+        // leaving the demo host page. Design fixtures present after the first frame instead.
+        _presented = State(initialValue: !hidesFixtureNotice)
     }
     var body: some View {
-        VStack(spacing: 20) {
-            Text("registration.form.fixtureNotice")
-            Button("registration.form.open") { presented = true }
-                .accessibilityIdentifier("registration.fixture.open")
+        hostPage
+        .task {
+            guard hidesFixtureNotice, !presented else { return }
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            presented = true
         }
         .cySheet(isPresented: $presented) { Group {
             if let flow = model.expiryFlow {
@@ -196,6 +200,21 @@ struct RegistrationFixtureHostView: View {
         .environment(\.e1ActivityHeroFixtureCover, MPAsset.BannerCover.feNight)
         // Same detent as the real presentation (`ActivityDetailView` → `SessionRegistrationSheet`, `.large`).
         .cySheet(detents: [.large]) }
+    }
+}
+
+extension RegistrationFixtureHostView {
+    /// The page under the sheet. Design fixtures show a plain grouped background (no demo wording on screen).
+    @ViewBuilder fileprivate var hostPage: some View {
+        if hidesFixtureNotice {
+            Color.clear.frame(maxWidth: .infinity, maxHeight: .infinity).cyGroupedBackground().ignoresSafeArea()
+        } else {
+            VStack(spacing: 20) {
+                Text("registration.form.fixtureNotice")
+                Button("registration.form.open") { presented = true }
+                    .accessibilityIdentifier("registration.fixture.open")
+            }
+        }
     }
 }
 

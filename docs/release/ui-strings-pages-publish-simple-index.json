@@ -2,33 +2,168 @@
   "page": "pages/publish/simple/index",
   "native": "App/PublishingModesViews.swift",
   "strings": [
-    {"key": "publishModes.quick", "en": "Quick route setup", "zh-Hans": "快速配置", "accessibilityIdentifier": "publishModes.quick.ready"},
-    {"key": "publishModes.quick.heroTitle", "en": "Hi, what kind of route do you want to make?", "zh-Hans": "嗨，想做一条什么样的路线？", "accessibilityIdentifier": "publishModes.quick.heroTitle"},
-    {"key": "publishModes.quick.kicker.city", "en": "City orientation · gathered route", "zh-Hans": "城市定向 · 集合式路线", "accessibilityIdentifier": "publishModes.quick.kicker.city"},
-    {"key": "publishModes.quick.kicker.free", "en": "Free explore · chapter-linked route", "zh-Hans": "自由探索 · 章节承接路线", "accessibilityIdentifier": "publishModes.quick.kicker.free"},
-    {"key": "publishModes.quick.aiNote", "en": "AI only drafts. You confirm the places and everything you publish.", "zh-Hans": "AI 只协助起草，地点与发布内容终由你确认", "accessibilityIdentifier": "publishModes.quick.aiNote"},
-    {"key": "contextPublish.ai.title", "en": "AI quick create", "zh-Hans": "AI 快速创建", "accessibilityIdentifier": "contextPublish.ai.open"},
-    {"key": "contextPublish.ai.remaining", "en": "Generations remaining", "zh-Hans": "剩余生成次数", "accessibilityIdentifier": "publishModes.quick.quota"},
-    {"key": "contextPublish.ai.exhausted", "en": "AI quota is used up. You can still create a route manually.", "zh-Hans": "AI 次数已用完，仍可手动创建路线。", "accessibilityIdentifier": "publishModes.quick.quota"},
-    {"key": "contextPublish.ai.unavailable", "en": "AI generation isn't available right now. You can still create manually.", "zh-Hans": "AI 生成暂不可用，仍可手动创建。", "accessibilityIdentifier": "contextPublish.ai.open"},
-    {"key": "publishModes.product", "en": "Route type", "zh-Hans": "路线类型", "accessibilityIdentifier": "publishModes.quick.name"},
-    {"key": "publishModes.name", "en": "Name", "zh-Hans": "名称", "accessibilityIdentifier": "publishModes.quick.name"},
-    {"key": "publishModes.description", "en": "Description", "zh-Hans": "说明", "accessibilityIdentifier": "publishModes.quick.name"},
-    {"key": "publishModes.details", "en": "Details", "zh-Hans": "基本信息", "accessibilityIdentifier": "publishModes.quick.name"},
-    {"key": "publishModes.choosePlace", "en": "Choose a place", "zh-Hans": "选择地点", "accessibilityIdentifier": "publishModes.quick.add"},
-    {"key": "publishModes.confirmPlace", "en": "Confirm this place", "zh-Hans": "确认此地点", "accessibilityIdentifier": "publishModes.quick.add"},
-    {"key": "publishModes.addNode", "en": "Add a stop", "zh-Hans": "添加点位", "accessibilityIdentifier": "publishModes.quick.add"},
-    {"key": "publishModes.remove", "en": "Delete", "zh-Hans": "删除", "accessibilityIdentifier": "publishModes.quick.add"},
-    {"key": "publishModes.stopNumber %lld", "en": "Stop %lld", "zh-Hans": "节点 %lld", "accessibilityIdentifier": "publishModes.quick.add"},
-    {"key": "publishModes.continueEditor", "en": "Continue in professional editor", "zh-Hans": "进入专业编辑器", "accessibilityIdentifier": "publishModes.quick.continue"},
-    {"key": "publishModes.confirmEveryPlace", "en": "Add a title and at least one named stop, then confirm every location.", "zh-Hans": "填写标题和至少一个有名称的点位，并逐个确认地点。", "accessibilityIdentifier": "publishModes.quick.continue"},
-    {"key": "publishModes.saveLocal", "en": "Save on this device", "zh-Hans": "保存到本机", "accessibilityIdentifier": "publishModes.quick.name"},
-    {"key": "publishModes.restoreLocal", "en": "Restore saved draft", "zh-Hans": "恢复已保存草稿", "accessibilityIdentifier": "publishModes.quick.name"},
-    {"key": "publishModes.quick.loading", "en": "Loading the draft quota", "zh-Hans": "正在读取草稿额度", "accessibilityIdentifier": "publishModes.quick.loading"},
-    {"key": "publishModes.quick.emptyState", "en": "No stops yet", "zh-Hans": "还没有点位", "accessibilityIdentifier": "publishModes.quick.empty"},
-    {"key": "publishModes.quick.loadFailed", "en": "The draft allowance didn't load. The network isn't connected. Try again.", "zh-Hans": "草稿额度没加载出来。网络没连上，请重试。", "accessibilityIdentifier": "publishModes.quick.error"},
-    {"key": "publishModes.quick.unknownValue", "en": "—", "zh-Hans": "—", "accessibilityIdentifier": "publishModes.quick.unknown"},
-    {"key": "publishModes.quick.hiddenState", "en": "Quick route setup is unavailable", "zh-Hans": "快速配置暂不可用", "accessibilityIdentifier": "publishModes.quick.hidden"}
+    {
+      "key": "publishModes.quick",
+      "en": "Quick route setup",
+      "zh-Hans": "快速配置",
+      "accessibilityIdentifier": "publishModes.quick.ready"
+    },
+    {
+      "key": "publishModes.quick.heroTitle",
+      "en": "Hi, what kind of route do you want to make?",
+      "zh-Hans": "嗨，想做一条什么样的路线？",
+      "accessibilityIdentifier": "publishModes.quick.heroTitle"
+    },
+    {
+      "key": "publishModes.quick.kicker.city",
+      "en": "City orientation · gathered route",
+      "zh-Hans": "城市定向 · 集合式路线",
+      "accessibilityIdentifier": "publishModes.quick.kicker.city"
+    },
+    {
+      "key": "publishModes.quick.kicker.free",
+      "en": "Free explore · chapter-linked route",
+      "zh-Hans": "自由探索 · 章节承接路线",
+      "accessibilityIdentifier": "publishModes.quick.kicker.free"
+    },
+    {
+      "key": "publishModes.quick.aiNote",
+      "en": "AI only drafts. You confirm the places and everything you publish.",
+      "zh-Hans": "AI 只协助起草，地点与发布内容终由你确认",
+      "accessibilityIdentifier": "publishModes.quick.aiNote"
+    },
+    {
+      "key": "contextPublish.ai.title",
+      "en": "AI quick create",
+      "zh-Hans": "AI 快速创建",
+      "accessibilityIdentifier": "contextPublish.ai.open"
+    },
+    {
+      "key": "contextPublish.ai.remaining",
+      "en": "Generations remaining",
+      "zh-Hans": "剩余生成次数",
+      "accessibilityIdentifier": "publishModes.quick.quota"
+    },
+    {
+      "key": "contextPublish.ai.exhausted",
+      "en": "AI quota is used up. You can still create a route manually.",
+      "zh-Hans": "AI 次数已用完，仍可手动创建路线。",
+      "accessibilityIdentifier": "publishModes.quick.quota"
+    },
+    {
+      "key": "contextPublish.ai.unavailable",
+      "en": "AI generation isn't available right now. Can still create manually.",
+      "zh-Hans": "AI 生成暂不可用，仍可手动创建。",
+      "accessibilityIdentifier": "contextPublish.ai.open"
+    },
+    {
+      "key": "publishModes.product",
+      "en": "Route type",
+      "zh-Hans": "路线类型",
+      "accessibilityIdentifier": "publishModes.quick.name"
+    },
+    {
+      "key": "publishModes.name",
+      "en": "Name",
+      "zh-Hans": "名称",
+      "accessibilityIdentifier": "publishModes.quick.name"
+    },
+    {
+      "key": "publishModes.description",
+      "en": "Details",
+      "zh-Hans": "说明",
+      "accessibilityIdentifier": "publishModes.quick.name"
+    },
+    {
+      "key": "publishModes.details",
+      "en": "Details",
+      "zh-Hans": "基本信息",
+      "accessibilityIdentifier": "publishModes.quick.name"
+    },
+    {
+      "key": "publishModes.choosePlace",
+      "en": "Choose a place",
+      "zh-Hans": "选择地点",
+      "accessibilityIdentifier": "publishModes.quick.add"
+    },
+    {
+      "key": "publishModes.confirmPlace",
+      "en": "Confirm this place",
+      "zh-Hans": "确认此地点",
+      "accessibilityIdentifier": "publishModes.quick.add"
+    },
+    {
+      "key": "publishModes.addNode",
+      "en": "Add a stop",
+      "zh-Hans": "添加点位",
+      "accessibilityIdentifier": "publishModes.quick.add"
+    },
+    {
+      "key": "publishModes.remove",
+      "en": "Delete",
+      "zh-Hans": "删除",
+      "accessibilityIdentifier": "publishModes.quick.add"
+    },
+    {
+      "key": "publishModes.stopNumber %lld",
+      "en": "Stop %lld",
+      "zh-Hans": "节点 %lld",
+      "accessibilityIdentifier": "publishModes.quick.add"
+    },
+    {
+      "key": "publishModes.continueEditor",
+      "en": "Continue in pro editor",
+      "zh-Hans": "进入专业编辑器",
+      "accessibilityIdentifier": "publishModes.quick.continue"
+    },
+    {
+      "key": "publishModes.confirmEveryPlace",
+      "en": "Add a title and at least one named stop, then confirm every location.",
+      "zh-Hans": "填写标题和至少一个有名称的点位，并逐个确认地点。",
+      "accessibilityIdentifier": "publishModes.quick.continue"
+    },
+    {
+      "key": "publishModes.saveLocal",
+      "en": "Save on this device",
+      "zh-Hans": "保存到本机",
+      "accessibilityIdentifier": "publishModes.quick.name"
+    },
+    {
+      "key": "publishModes.restoreLocal",
+      "en": "Restore saved draft",
+      "zh-Hans": "恢复已保存草稿",
+      "accessibilityIdentifier": "publishModes.quick.name"
+    },
+    {
+      "key": "publishModes.quick.loading",
+      "en": "Loading the draft quota",
+      "zh-Hans": "正在读取草稿额度",
+      "accessibilityIdentifier": "publishModes.quick.loading"
+    },
+    {
+      "key": "publishModes.quick.emptyState",
+      "en": "No stops yet",
+      "zh-Hans": "还没有点位",
+      "accessibilityIdentifier": "publishModes.quick.empty"
+    },
+    {
+      "key": "publishModes.quick.loadFailed",
+      "en": "The draft allowance didn't load. The network isn't connected. Try again.",
+      "zh-Hans": "草稿额度没加载出来。网络没连上，请重试。",
+      "accessibilityIdentifier": "publishModes.quick.error"
+    },
+    {
+      "key": "publishModes.quick.unknownValue",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "publishModes.quick.unknown"
+    },
+    {
+      "key": "publishModes.quick.hiddenState",
+      "en": "Quick route setup is unavailable",
+      "zh-Hans": "快速配置暂不可用",
+      "accessibilityIdentifier": "publishModes.quick.hidden"
+    }
   ],
   "accessibilityIdentifiers": [
     "contextPublish.ai.open",

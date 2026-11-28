@@ -138,7 +138,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time to be confirmed"
+            "value": "Time to confirmed"
           }
         },
         "zh-Hans": {
@@ -206,7 +206,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Group code"
+            "value": "Group"
           }
         },
         "zh-Hans": {

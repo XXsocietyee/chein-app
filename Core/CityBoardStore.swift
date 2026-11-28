@@ -336,6 +336,9 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
             lastResult = result
             if result.kind != .rejected { pendingQuote = nil }
             if let event = CityMonopolyTerritoryModel.hapticEvent(for: pending.kind, result: result) { emit(event) }
+            // The command's `balance` is the charge. Apply it before the reload so a 404 on
+            // GET /territory/points keeps this HUD (holdings, pending, season) with the new balance.
+            noteChargedBalance(result.balance)
             if let center, result.kind != .rejected { await load(center: center) }
             return result
         } catch {
@@ -352,6 +355,7 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
         do {
             let result = try await service.shield(CityPropertyActionRequest(propertyId: territoryId))
             emit(.defenseHeld)
+            noteChargedBalance(result.balance)
             if let center { await load(center: center) }
             return (result.protectedUntil ?? result.shieldUntil)?.date
         } catch {
@@ -365,7 +369,10 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
         guard let service, let territoryId = place.territoryId, !busy else { return nil }
         busy = true; defer { busy = false }
         do {
-            return try await service.scout(CityPropertyActionRequest(propertyId: territoryId)).dc
+            let result = try await service.scout(CityPropertyActionRequest(propertyId: territoryId))
+            noteChargedBalance(result.balance)
+            if let summary = try? await service.pointsSummary() { points = summary }
+            return result.dc
         } catch {
             issueCode = Self.code(error)
             return nil
@@ -447,6 +454,19 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
                 deedSerial: property.isFogged ? nil : property.deedSerial))
         }
         return out.sorted { ($0.distanceM ?? .infinity, $0.id) < ($1.distanceM ?? .infinity, $1.id) }
+    }
+
+    /// Writes the server's post-charge balance into the HUD and keeps every other field.
+    /// A later successful `pointsSummary` replaces the whole summary; a 404 leaves this one.
+    private func noteChargedBalance(_ balance: Int64?) {
+        guard let balance else { return }
+        if let points {
+            self.points = CityPointsSummary(balance: balance, pending: points.pending, holdings: points.holdings,
+                holdingLimit: points.holdingLimit, seasonId: points.seasonId, earnedSeason: points.earnedSeason,
+                spentSeason: points.spentSeason)
+        } else {
+            self.points = CityPointsSummary(balance: balance)
+        }
     }
 
     private func emit(_ event: CityMonopolyHapticEvent) {

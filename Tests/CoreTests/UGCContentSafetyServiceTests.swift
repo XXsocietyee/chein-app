@@ -149,9 +149,11 @@ final class UGCContentSafetyServiceTests: XCTestCase {
         XCTAssertEqual(UGCSafetyReportTarget.comment(id: 1).routePath, "api/comment/report")
         XCTAssertEqual(UGCSafetyReportTarget.clubPost(clubID: 2, postID: 3).routePath, "api/club/post/report")
         XCTAssertEqual(UGCSafetyReportTarget.clubPostComment(commentID: 4).routePath, "api/club/post/comment/report")
-        XCTAssertEqual(UGCSafetyReportTarget.community(targetType: .club, targetID: 5).routePath, "api/v1/community/reports")
-        XCTAssertEqual(UGCSafetyReportTarget.member(memberID: 6).routePath, "api/v1/community/reports")
-        XCTAssertEqual(UGCSafetyReportTarget.activity(activityID: 7).routePath, "api/v1/community/reports")
+        XCTAssertEqual(UGCSafetyReportTarget.community(targetType: .content, targetID: 5).routePath, "api/v1/community/reports")
+        XCTAssertEqual(UGCSafetyReportTarget.community(targetType: .comment, targetID: 5).routePath, "api/v1/community/reports")
+        XCTAssertEqual(UGCSafetyReportTarget.community(targetType: .club, targetID: 5).routePath, "api/community-trust/reports/submit")
+        XCTAssertEqual(UGCSafetyReportTarget.member(memberID: 6).routePath, "api/community-trust/reports/submit")
+        XCTAssertEqual(UGCSafetyReportTarget.activity(activityID: 7).routePath, "api/community-trust/reports/submit")
         XCTAssertEqual(UGCSafetyReportTarget.team(teamID: 8).routePath, "api/team/report")
         XCTAssertEqual(UGCSafetyReportTarget.mod(modID: 9).routePath, "api/mod-owned-report")
     }
@@ -286,7 +288,8 @@ final class UGCContentSafetyServiceTests: XCTestCase {
             XCTAssertTrue(evidence.isEmpty)
             let requestID = try XCTUnwrap(body["requestId"] as? String)
             XCTAssertEqual(requestID, requestID.lowercased())
-            XCTAssertEqual(transport.requests.last?.url?.path, "/api/v1/community/reports")
+            let postReport = targetType == "CONTENT" || targetType == "COMMENT"
+            XCTAssertEqual(transport.requests.last?.url?.path, postReport ? "/api/v1/community/reports" : "/api/community-trust/reports/submit")
             XCTAssertEqual(intValue(body["targetId"]), Optional(targetID))
         }
 

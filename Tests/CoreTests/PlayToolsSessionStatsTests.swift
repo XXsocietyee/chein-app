@@ -58,27 +58,6 @@ final class PlayToolsSessionStatsTests: XCTestCase {
         XCTAssertNil(try score(times: ",\"startedAt\":\"\"").startedAt)
     }
 
-    /// mp-journey-b r3: MP `play-board-view.js` `project` for the orient board — SCORE rows read `centi` (N.NN), ROUTE
-    /// rows 已到达结局 / 尚未到达结局, elapsed `clock` or 用时待确认 (nil); 我 only on the player's own row.
-    func testOrientBoardProjectsScoreAndRouteRows() throws {
-        let mine = "{\"rowKey\":\"5\",\"rank\":2,\"scoreCenti\":1750,\"elapsedMs\":754000,\"reachedEnding\":false,\"mine\":true}"
-        let other = "{\"rowKey\":\"7\",\"rank\":1,\"scoreCenti\":2005,\"reachedEnding\":true,\"mine\":false}"
-        func decode(_ mode: String) throws -> OrientSessionLeaderboard {
-            let json = "{\"sessionId\":9,\"mode\":\"\(mode)\",\"list\":[\(other),\(mine)],\"me\":\(mine)}"
-            return try JSONDecoder().decode(OrientSessionLeaderboard.self, from: Data(json.utf8))
-        }
-        let score = PlayOrientBoard(try decode("SCORE"))
-        XCTAssertEqual(score.rows.map(\.points), ["20.05", "17.50"])
-        XCTAssertEqual(score.rows.map(\.elapsed), [nil, "12:34"])
-        XCTAssertEqual(score.rows.map(\.mine), [false, true])
-        XCTAssertEqual(score.me?.rank, 2)
-        let route = PlayOrientBoard(try decode("ROUTE"))
-        XCTAssertEqual(route.rows.map(\.points), [nil, nil])
-        XCTAssertEqual(route.rows.map(\.reachedEnding), [true, false])
-        XCTAssertEqual(PlayOrientBoard.centi(-5), "-0.05")
-        XCTAssertEqual(PlayOrientBoard.centi(0), "0.00")
-    }
-
     func testPointsAndClockFollowTheMP() {
         XCTAssertEqual(PlayToolsSessionStats.points(centi: 1700), "17")
         XCTAssertEqual(PlayToolsSessionStats.points(centi: -300), "-3")

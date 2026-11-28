@@ -4,7 +4,7 @@
     "zh-Hans": "私人家园"
   },
   "privateHome.disabled": {
-    "en": "Private home isn't available right now",
+    "en": "Private home isn't available right",
     "zh-Hans": "私人家园暂不可用"
   },
   "privateHome.gate": {
@@ -44,7 +44,7 @@
     "zh-Hans": "纬度"
   },
   "privateHome.longitude": {
-    "en": "Longitude",
+    "en": "Lng",
     "zh-Hans": "经度"
   },
   "privateHome.datum": {
@@ -120,7 +120,7 @@
     "zh-Hans": "结果未知"
   },
   "privateHome.phase.blocked": {
-    "en": "Recovery or configuration required",
+    "en": "Recovery or setup required",
     "zh-Hans": "需要恢复或配置"
   },
   "privateHome.phase.invalidated": {

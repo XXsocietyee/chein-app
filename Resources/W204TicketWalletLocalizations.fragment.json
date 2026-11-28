@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your ticket wallet couldn't open"
+            "value": "Ticket wallet couldn't"
           }
         },
         "zh-Hans": {
@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route details are still syncing"
+            "value": "Route details still syncing"
           }
         },
         "zh-Hans": {
@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity details are still syncing"
+            "value": "Activity details still syncing"
           }
         },
         "zh-Hans": {

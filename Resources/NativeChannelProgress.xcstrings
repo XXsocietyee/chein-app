@@ -508,7 +508,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Individual ranking does not apply to this board."
+            "value": "Solo ranking doesn't apply to this board."
           }
         }
       }
@@ -588,7 +588,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aggregate progress"
+            "value": "Aggregate"
           }
         }
       }
@@ -1132,7 +1132,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This week"
+            "value": "Week"
           }
         }
       }
@@ -1148,7 +1148,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This month"
+            "value": "Month"
           }
         }
       }
@@ -1244,7 +1244,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request recovery"
+            "value": "Original request"
           }
         }
       }
@@ -1292,7 +1292,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original privacy request"
+            "value": "Original privacy"
           }
         }
       }
@@ -1420,7 +1420,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original channel revision"
+            "value": "Original channel"
           }
         }
       }
@@ -1516,7 +1516,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No independent write authorization is currently available."
+            "value": "No independent write approval is available."
           }
         }
       }
@@ -1548,7 +1548,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm this change"
+            "value": "Confirm change"
           }
         }
       }
@@ -1612,7 +1612,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This isn't available right now, or your permission has expired or been withdrawn."
+            "value": "This isn't available right now, permission has expired been withdrawn."
           }
         }
       }
@@ -1676,7 +1676,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original channel overview privacy source is unavailable."
+            "value": "Original channel overview privacy source."
           }
         }
       }
@@ -1820,7 +1820,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original request did not change the settings because of a version conflict. Review the current values and confirm again."
+            "value": "The original request didn't change the settings because of version conflict. Review current values confirm again."
           }
         }
       }
@@ -2006,7 +2006,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This board isn't available right now."
+            "value": "This board isn't available right."
           }
         },
         "zh-Hans": {
@@ -2038,7 +2038,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Past results aren't available right now."
+            "value": "Past results aren't available right."
           }
         },
         "zh-Hans": {
@@ -2182,7 +2182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nothing completed yet"
+            "value": "Nothing completed"
           }
         },
         "zh-Hans": {
@@ -2422,7 +2422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Try"
           }
         },
         "zh-Hans": {

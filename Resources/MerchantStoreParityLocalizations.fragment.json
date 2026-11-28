@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld after-sales requests await your response"
+            "value": "%lld after-sales requests await response"
           }
         },
         "zh-Hans": {
@@ -103,7 +103,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting reply"
+            "value": "Awaiting"
           }
         },
         "zh-Hans": {
@@ -119,7 +119,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Replies can be edited later"
+            "value": "Replies can edited later"
           }
         },
         "zh-Hans": {
@@ -151,7 +151,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "From this month’s redemption reviews"
+            "value": "From this month’s redeem reviews"
           }
         },
         "zh-Hans": {

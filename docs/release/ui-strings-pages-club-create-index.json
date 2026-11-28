@@ -2,52 +2,287 @@
   "page": "pages/club/create/index",
   "screen": "App/ClubOperationsViews.swift",
   "strings": [
-    {"key": "club.ops.create", "en": "Create club", "zh-Hans": "创建俱乐部", "accessibilityIdentifier": "club.ops.openCreate"},
-    {"key": "club.ops.create.needType", "en": "Choose a club type to continue.", "zh-Hans": "请先选择俱乐部类型", "accessibilityIdentifier": "club.ops.clubType"},
-    {"key": "club.ops.create.needName", "en": "Enter a club name to continue.", "zh-Hans": "请先填写俱乐部名称", "accessibilityIdentifier": "club.ops.field.name"},
-    {"key": "club.ops.create.needCity", "en": "Enter the club's city to continue.", "zh-Hans": "请先填写所在城市", "accessibilityIdentifier": "club.ops.field.city"},
-    {"key": "club.ops.create.empty", "en": "You do not own a club yet.", "zh-Hans": "你还没有创建俱乐部。", "accessibilityIdentifier": "club.ops.create.state.empty"},
-    {"key": "club.ops.create.unknownCount", "en": "—", "zh-Hans": "—", "accessibilityIdentifier": "club.ops.create.state.unknown"},
-    {"key": "club.ops.create.currentRecords", "en": "Club records in this read", "zh-Hans": "当前读取的俱乐部记录数", "accessibilityIdentifier": "club.ops.create.currentRecordCount"},
-    {"key": "club.ops.checking", "en": "Working…", "zh-Hans": "正在处理…", "accessibilityIdentifier": "club.ops.create.state.loading"},
-    {"key": "club.ops.readFailed", "en": "Couldn't load the club. Try again.", "zh-Hans": "俱乐部资料没加载成功，请重试。", "accessibilityIdentifier": "club.ops.create.state.error"},
-    {"key": "club.ops.clubType", "en": "Club type", "zh-Hans": "俱乐部类型", "accessibilityIdentifier": "club.ops.clubType"},
-    {"key": "club.ops.chooseType", "en": "Choose a type", "zh-Hans": "选择类型", "accessibilityIdentifier": "club.ops.clubType"},
-    {"key": "club.ops.directions", "en": "Activity direction", "zh-Hans": "活动方向", "accessibilityIdentifier": "club.ops.directions"},
-    {"key": "club.ops.directionsHint", "en": "Choose up to three. Existing legacy preferences are preserved until changed.", "zh-Hans": "最多选择三项，未修改的旧版方向将保留。", "accessibilityIdentifier": "club.ops.directions"},
-    {"key": "club.ops.directionsCount %lld", "en": "%lld of 3 selected", "zh-Hans": "已选 %lld / 3", "accessibilityIdentifier": "club.ops.directions"},
-    {"key": "club.ops.profile", "en": "Club profile", "zh-Hans": "俱乐部资料", "accessibilityIdentifier": "club.ops.field.name"},
-    {"key": "club.ops.name", "en": "Club name", "zh-Hans": "俱乐部名称", "accessibilityIdentifier": "club.ops.field.name"},
-    {"key": "club.ops.description", "en": "Introduction (optional)", "zh-Hans": "俱乐部介绍（选填）", "accessibilityIdentifier": "club.ops.field.description"},
-    {"key": "club.ops.city", "en": "City", "zh-Hans": "城市", "accessibilityIdentifier": "club.ops.field.city"},
-    {"key": "club.ops.keywords", "en": "Keywords (optional)", "zh-Hans": "核心关键词（选填）", "accessibilityIdentifier": "club.ops.field.keywords"},
-    {"key": "club.ops.style", "en": "Style (optional)", "zh-Hans": "风格/调性（选填）", "accessibilityIdentifier": "club.ops.field.style"},
-    {"key": "club.ops.counter %lld %lld", "en": "%1$lld / %2$lld", "zh-Hans": "%1$lld / %2$lld", "accessibilityIdentifier": "club.ops.counter.description"},
-    {"key": "club.ops.leaderRequired.title", "en": "Become a club host first", "zh-Hans": "请先成为俱乐部主理人", "accessibilityIdentifier": "club.ops.applyHost"},
-    {"key": "club.ops.leaderRequired.apply", "en": "Once you're a host you can create and manage clubs.", "zh-Hans": "申请通过后即可创建与管理俱乐部", "accessibilityIdentifier": "club.ops.applyHost"},
-    {"key": "club.ops.clubLimit.title", "en": "Club limit reached", "zh-Hans": "已达创建上限", "accessibilityIdentifier": "club.ops.reviewProfile"},
-    {"key": "club.ops.clubLimit", "en": "You already own two clubs. Manage an existing club instead.", "zh-Hans": "你已创建两个俱乐部，请管理现有俱乐部。", "accessibilityIdentifier": "club.ops.reviewProfile"},
-    {"key": "club.ops.applyHost", "en": "Go to application", "zh-Hans": "前往申请", "accessibilityIdentifier": "club.ops.applyHost"},
-    {"key": "club.ops.writeGated", "en": "Changes can't be saved right now.", "zh-Hans": "暂时无法保存修改。", "accessibilityIdentifier": "club.ops.writeGated"},
-    {"key": "club.ops.outcomeUnknown", "en": "We couldn't confirm whether this went through. Don't submit again; reload the club first.", "zh-Hans": "暂时无法确认是否成功。请勿重复提交，先重新读取俱乐部。", "accessibilityIdentifier": "club.ops.outcomeUnknown"},
-    {"key": "club.ops.notSent", "en": "Nothing was saved. Reload the club and try again.", "zh-Hans": "没有保存任何修改，请重新读取俱乐部后再试。", "accessibilityIdentifier": "club.ops.notSent"},
-    {"key": "club.ops.acknowledged", "en": "Saved", "zh-Hans": "已保存", "accessibilityIdentifier": "club.ops.acknowledged"},
-    {"key": "club.ops.signedOut", "en": "Sign in to manage clubs.", "zh-Hans": "登录后管理俱乐部。", "accessibilityIdentifier": "club.ops.error"},
-    {"key": "club.ops.unavailable", "en": "Clubs can't be managed right now.", "zh-Hans": "暂时无法管理俱乐部", "accessibilityIdentifier": "club.ops.error"},
-    {"key": "club.ops.close", "en": "Close", "zh-Hans": "关闭", "accessibilityIdentifier": "club.ops.close"},
-    {"key": "club.ops.mediaUnavailable", "en": "Image upload isn't available right now. Your current logo and cover are kept.", "zh-Hans": "图片上传暂不可用，将保留现有标志和封面。", "accessibilityIdentifier": "club.ops.mediaUnavailable"},
-    {"key": "club.ops.retryRead", "en": "Try again", "zh-Hans": "重试", "accessibilityIdentifier": "club.ops.retryRead"},
-    {"key": "club.ops.readBack", "en": "Reload club", "zh-Hans": "重新读取", "accessibilityIdentifier": "club.ops.readBack"},
-    {"key": "club.ops.cancel", "en": "Cancel", "zh-Hans": "取消", "accessibilityIdentifier": "club.ops.cancelReview"},
-    {"key": "club.ops.reviewProfile", "en": "Save changes", "zh-Hans": "保存修改", "accessibilityIdentifier": "club.ops.reviewProfile"},
-    {"key": "club.ops.newClub", "en": "A new club", "zh-Hans": "新俱乐部", "accessibilityIdentifier": "club.ops.reviewSheet"},
-    {"key": "club.ops.error.requiredFields", "en": "Name and city are required.", "zh-Hans": "请填写名称与城市。", "accessibilityIdentifier": "club.ops.error"},
-    {"key": "club.ops.error.createUnavailable", "en": "The current account cannot create another club.", "zh-Hans": "当前账号无法再创建俱乐部。", "accessibilityIdentifier": "club.ops.error"},
-    {"key": "club.ops.enterManagement", "en": "Go to club management", "zh-Hans": "进入俱乐部管理", "accessibilityIdentifier": "clubCreateManage.enterManagement"},
-    {"key": "club.ops.createdStatus.ready", "en": "Club created", "zh-Hans": "俱乐部已创建", "accessibilityIdentifier": "clubCreateManage.status"},
-    {"key": "club.ops.createdStatus.closed", "en": "Club creation is closed right now.", "zh-Hans": "暂时无法创建俱乐部。", "accessibilityIdentifier": "clubCreateManage.status"},
-    {"key": "club.ops.createdStatus.unread", "en": "Club created, but its details couldn't be loaded yet.", "zh-Hans": "俱乐部已创建，但暂时读不到资料。", "accessibilityIdentifier": "clubCreateManage.status"},
-    {"key": "club.ops.createdStatus.accountChanged", "en": "You switched accounts. Reopen to manage this club.", "zh-Hans": "账号已切换，请重新打开后管理俱乐部。", "accessibilityIdentifier": "clubCreateManage.status"},
-    {"key": "club.ops.fixtureOnly", "en": "Example only. No real club changes.", "zh-Hans": "示例内容，不会修改真实俱乐部。", "accessibilityIdentifier": "club.ops.fixtureNotice"}
+    {
+      "key": "club.ops.create",
+      "en": "Create club",
+      "zh-Hans": "创建俱乐部",
+      "accessibilityIdentifier": "club.ops.openCreate"
+    },
+    {
+      "key": "club.ops.create.needType",
+      "en": "Choose a club type to continue.",
+      "zh-Hans": "请先选择俱乐部类型",
+      "accessibilityIdentifier": "club.ops.clubType"
+    },
+    {
+      "key": "club.ops.create.needName",
+      "en": "Enter a club name to continue.",
+      "zh-Hans": "请先填写俱乐部名称",
+      "accessibilityIdentifier": "club.ops.field.name"
+    },
+    {
+      "key": "club.ops.create.needCity",
+      "en": "Enter the club's city to continue.",
+      "zh-Hans": "请先填写所在城市",
+      "accessibilityIdentifier": "club.ops.field.city"
+    },
+    {
+      "key": "club.ops.create.empty",
+      "en": "You do not own a club yet.",
+      "zh-Hans": "你还没有创建俱乐部。",
+      "accessibilityIdentifier": "club.ops.create.state.empty"
+    },
+    {
+      "key": "club.ops.create.unknownCount",
+      "en": "—",
+      "zh-Hans": "—",
+      "accessibilityIdentifier": "club.ops.create.state.unknown"
+    },
+    {
+      "key": "club.ops.create.currentRecords",
+      "en": "Club records in this read",
+      "zh-Hans": "当前读取的俱乐部记录数",
+      "accessibilityIdentifier": "club.ops.create.currentRecordCount"
+    },
+    {
+      "key": "club.ops.checking",
+      "en": "Working…",
+      "zh-Hans": "正在处理…",
+      "accessibilityIdentifier": "club.ops.create.state.loading"
+    },
+    {
+      "key": "club.ops.readFailed",
+      "en": "Couldn't load the club. Try again.",
+      "zh-Hans": "俱乐部资料没加载成功，请重试。",
+      "accessibilityIdentifier": "club.ops.create.state.error"
+    },
+    {
+      "key": "club.ops.clubType",
+      "en": "Club type",
+      "zh-Hans": "俱乐部类型",
+      "accessibilityIdentifier": "club.ops.clubType"
+    },
+    {
+      "key": "club.ops.chooseType",
+      "en": "Choose a type",
+      "zh-Hans": "选择类型",
+      "accessibilityIdentifier": "club.ops.clubType"
+    },
+    {
+      "key": "club.ops.directions",
+      "en": "Activity",
+      "zh-Hans": "活动方向",
+      "accessibilityIdentifier": "club.ops.directions"
+    },
+    {
+      "key": "club.ops.directionsHint",
+      "en": "Choose up to three. Existing legacy preferences are preserved until changed.",
+      "zh-Hans": "最多选择三项，未修改的旧版方向将保留。",
+      "accessibilityIdentifier": "club.ops.directions"
+    },
+    {
+      "key": "club.ops.directionsCount %lld",
+      "en": "%lld of 3 selected",
+      "zh-Hans": "已选 %lld / 3",
+      "accessibilityIdentifier": "club.ops.directions"
+    },
+    {
+      "key": "club.ops.profile",
+      "en": "Club profile",
+      "zh-Hans": "俱乐部资料",
+      "accessibilityIdentifier": "club.ops.field.name"
+    },
+    {
+      "key": "club.ops.name",
+      "en": "Club name",
+      "zh-Hans": "俱乐部名称",
+      "accessibilityIdentifier": "club.ops.field.name"
+    },
+    {
+      "key": "club.ops.description",
+      "en": "Introduction (optional)",
+      "zh-Hans": "俱乐部介绍（选填）",
+      "accessibilityIdentifier": "club.ops.field.description"
+    },
+    {
+      "key": "club.ops.city",
+      "en": "City",
+      "zh-Hans": "城市",
+      "accessibilityIdentifier": "club.ops.field.city"
+    },
+    {
+      "key": "club.ops.keywords",
+      "en": "Keywords (optional)",
+      "zh-Hans": "核心关键词（选填）",
+      "accessibilityIdentifier": "club.ops.field.keywords"
+    },
+    {
+      "key": "club.ops.style",
+      "en": "Style (optional)",
+      "zh-Hans": "风格/调性（选填）",
+      "accessibilityIdentifier": "club.ops.field.style"
+    },
+    {
+      "key": "club.ops.counter %lld %lld",
+      "en": "%1$lld / %2$lld",
+      "zh-Hans": "%1$lld / %2$lld",
+      "accessibilityIdentifier": "club.ops.counter.description"
+    },
+    {
+      "key": "club.ops.leaderRequired.title",
+      "en": "Become a club host first",
+      "zh-Hans": "请先成为俱乐部主理人",
+      "accessibilityIdentifier": "club.ops.applyHost"
+    },
+    {
+      "key": "club.ops.leaderRequired.apply",
+      "en": "Once you're a host you can create and manage clubs.",
+      "zh-Hans": "申请通过后即可创建与管理俱乐部",
+      "accessibilityIdentifier": "club.ops.applyHost"
+    },
+    {
+      "key": "club.ops.clubLimit.title",
+      "en": "Club limit reached",
+      "zh-Hans": "已达创建上限",
+      "accessibilityIdentifier": "club.ops.reviewProfile"
+    },
+    {
+      "key": "club.ops.clubLimit",
+      "en": "You already own two clubs. Manage an existing club instead.",
+      "zh-Hans": "你已创建两个俱乐部，请管理现有俱乐部。",
+      "accessibilityIdentifier": "club.ops.reviewProfile"
+    },
+    {
+      "key": "club.ops.applyHost",
+      "en": "Go to application",
+      "zh-Hans": "前往申请",
+      "accessibilityIdentifier": "club.ops.applyHost"
+    },
+    {
+      "key": "club.ops.writeGated",
+      "en": "Changes can't be saved right now.",
+      "zh-Hans": "暂时无法保存修改。",
+      "accessibilityIdentifier": "club.ops.writeGated"
+    },
+    {
+      "key": "club.ops.outcomeUnknown",
+      "en": "We couldn't confirm whether this went through. Don't submit again; reload the club first.",
+      "zh-Hans": "暂时无法确认是否成功。请勿重复提交，先重新读取俱乐部。",
+      "accessibilityIdentifier": "club.ops.outcomeUnknown"
+    },
+    {
+      "key": "club.ops.notSent",
+      "en": "Nothing was saved. Reload the club and try again.",
+      "zh-Hans": "没有保存任何修改，请重新读取俱乐部后再试。",
+      "accessibilityIdentifier": "club.ops.notSent"
+    },
+    {
+      "key": "club.ops.acknowledged",
+      "en": "Saved",
+      "zh-Hans": "已保存",
+      "accessibilityIdentifier": "club.ops.acknowledged"
+    },
+    {
+      "key": "club.ops.signedOut",
+      "en": "Sign in to manage clubs.",
+      "zh-Hans": "登录后管理俱乐部。",
+      "accessibilityIdentifier": "club.ops.error"
+    },
+    {
+      "key": "club.ops.unavailable",
+      "en": "Clubs can't be managed right now.",
+      "zh-Hans": "暂时无法管理俱乐部",
+      "accessibilityIdentifier": "club.ops.error"
+    },
+    {
+      "key": "club.ops.close",
+      "en": "Close",
+      "zh-Hans": "关闭",
+      "accessibilityIdentifier": "club.ops.close"
+    },
+    {
+      "key": "club.ops.mediaUnavailable",
+      "en": "Image upload isn't available right now. Your current logo and cover are kept.",
+      "zh-Hans": "图片上传暂不可用，将保留现有标志和封面。",
+      "accessibilityIdentifier": "club.ops.mediaUnavailable"
+    },
+    {
+      "key": "club.ops.retryRead",
+      "en": "Try",
+      "zh-Hans": "重试",
+      "accessibilityIdentifier": "club.ops.retryRead"
+    },
+    {
+      "key": "club.ops.readBack",
+      "en": "Reload club",
+      "zh-Hans": "重新读取",
+      "accessibilityIdentifier": "club.ops.readBack"
+    },
+    {
+      "key": "club.ops.cancel",
+      "en": "Cancel",
+      "zh-Hans": "取消",
+      "accessibilityIdentifier": "club.ops.cancelReview"
+    },
+    {
+      "key": "club.ops.reviewProfile",
+      "en": "Save changes",
+      "zh-Hans": "保存修改",
+      "accessibilityIdentifier": "club.ops.reviewProfile"
+    },
+    {
+      "key": "club.ops.newClub",
+      "en": "A new club",
+      "zh-Hans": "新俱乐部",
+      "accessibilityIdentifier": "club.ops.reviewSheet"
+    },
+    {
+      "key": "club.ops.error.requiredFields",
+      "en": "Name and city are required.",
+      "zh-Hans": "请填写名称与城市。",
+      "accessibilityIdentifier": "club.ops.error"
+    },
+    {
+      "key": "club.ops.error.createUnavailable",
+      "en": "The current account cannot create another club.",
+      "zh-Hans": "当前账号无法再创建俱乐部。",
+      "accessibilityIdentifier": "club.ops.error"
+    },
+    {
+      "key": "club.ops.enterManagement",
+      "en": "Go to club management",
+      "zh-Hans": "进入俱乐部管理",
+      "accessibilityIdentifier": "clubCreateManage.enterManagement"
+    },
+    {
+      "key": "club.ops.createdStatus.ready",
+      "en": "Club created",
+      "zh-Hans": "俱乐部已创建",
+      "accessibilityIdentifier": "clubCreateManage.status"
+    },
+    {
+      "key": "club.ops.createdStatus.closed",
+      "en": "Club creation is closed right now.",
+      "zh-Hans": "暂时无法创建俱乐部。",
+      "accessibilityIdentifier": "clubCreateManage.status"
+    },
+    {
+      "key": "club.ops.createdStatus.unread",
+      "en": "Club created, but its details couldn't be loaded yet.",
+      "zh-Hans": "俱乐部已创建，但暂时读不到资料。",
+      "accessibilityIdentifier": "clubCreateManage.status"
+    },
+    {
+      "key": "club.ops.createdStatus.accountChanged",
+      "en": "You switched accounts. Reopen to manage this club.",
+      "zh-Hans": "账号已切换，请重新打开后管理俱乐部。",
+      "accessibilityIdentifier": "clubCreateManage.status"
+    },
+    {
+      "key": "club.ops.fixtureOnly",
+      "en": "Example only. No real club changes.",
+      "zh-Hans": "示例内容，不会修改真实俱乐部。",
+      "accessibilityIdentifier": "club.ops.fixtureNotice"
+    }
   ]
 }

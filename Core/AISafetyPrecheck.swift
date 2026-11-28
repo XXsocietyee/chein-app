@@ -78,7 +78,10 @@ public struct AISafetyPrecheckVerdict: Equatable {
 
     public static let blindTypes: Set<String> = ["missing_cover"]
     public static let advisoryTypes: Set<String> = ["timeline_conflict", "parse_error"]
-    static let quotaHint = "今日AI次数已用完"
+    /// The only server message that skips the precheck as quota. A longer sentence that merely contains it does not.
+    public static let quotaHint = "今日AI次数已用完"
+    /// Backend role gate (`gateRole` / template-fill 403). It must not contain `quotaHint`, or a quota skip would hide it.
+    public static let roleGate = "当前身份暂不支持AI创作"
 
     public init(blocking: [PublishingSafetyIssue], advisory: [PublishingSafetyIssue], skip: Skip?) {
         self.blocking = blocking
@@ -94,7 +97,7 @@ public struct AISafetyPrecheckVerdict: Equatable {
     }
 
     public static func skipped(message: String?) -> Self {
-        let quota = (message ?? "").contains(quotaHint)
+        let quota = message == quotaHint
         return Self(blocking: [], advisory: [], skip: quota ? .quota : .unavailable)
     }
 

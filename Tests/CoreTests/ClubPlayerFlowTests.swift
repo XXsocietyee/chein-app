@@ -76,15 +76,21 @@ final class ClubPlayerFlowTests: XCTestCase {
         XCTAssertEqual(ClubPlayerCopy.confirmResult(en), "Confirm the result")
     }
 
-    func testChinaNameCheckIsNotAdmittedAndDoesNotSend() async throws {
+    func testChinaNameCheckIsOfferedAndSendsTheTrimmedName() async throws {
         let china = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
-        XCTAssertFalse(ChinaReviewedRouteCapability.offersFeature("/" + ClubNameCheck.path, baseURL: china))
+        XCTAssertTrue(ChinaReviewedRouteCapability.offersFeature("/" + ClubNameCheck.path, baseURL: china))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + ClubNameCheck.path))
         XCTAssertNil(ChinaReviewedRouteCapability.mark(for: "/" + ClubNameCheck.path))
-        let transport = NameCheckHTTP(status: 200, body: #"{"code":200,"data":{"available":false}}"#)
+        XCTAssertEqual(ChinaReviewedRouteCapability.callSiteCount, 996)
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 680)
+        let transport = NameCheckHTTP(status: 200, body: #"{"code":200,"data":{"available":false,"reason":""}}"#)
         let service = try ClubOperationsService(configuration: .init(baseURL: china), transport: transport)
-        let result = await service.checkName("夜行", token: "synthetic-token")
-        XCTAssertEqual(result, .unchecked)
-        XCTAssertTrue(transport.requests.isEmpty)
+        let result = await service.checkName("  夜行  ", token: "synthetic-token")
+        XCTAssertEqual(result, .taken(ClubNameCheck.takenFallback))
+        XCTAssertEqual(transport.requests.count, 1)
+        let body = try XCTUnwrap(transport.requests.first?.httpBody)
+        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: String])
+        XCTAssertEqual(json, ["name": "夜行"])
     }
 
     func testOfferedHostPostsTheTrimmedNameAndStopsWhenTaken() async throws {

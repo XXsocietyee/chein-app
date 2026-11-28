@@ -21,7 +21,7 @@
   },
   {
     "key": "play.answer.arrivalRequired",
-    "en": "This task requires an arrival check-in or a scan first, which isn't available in the app right now.",
+    "en": "This task requires an arrival check-in or a scan first, which isn't available in app right.",
     "zh-Hans": "此任务需先到达打卡或扫码，App 内暂不支持。"
   },
   {
@@ -46,7 +46,7 @@
   },
   {
     "key": "play.answer.mediaUnavailable",
-    "en": "This question includes media that this native module cannot present yet. Submission is unavailable until the complete question can be shown.",
+    "en": "This question includes media that this native module can't present yet. Entry is unavailable until the complete question can be shown.",
     "zh-Hans": "此题含有原生模块暂不支持展示的媒体，完整题目可展示后才能提交。"
   },
   {
@@ -61,7 +61,7 @@
   },
   {
     "key": "play.answer.readOnly",
-    "en": "Submitting answers isn't available right now.",
+    "en": "Submitting answers isn't available.",
     "zh-Hans": "答案提交暂不可用。"
   },
   {
@@ -91,7 +91,7 @@
   },
   {
     "key": "play.answer.unsupported",
-    "en": "This task's check-in method isn't available in the app right now.",
+    "en": "This task's check-in method isn't available in app right.",
     "zh-Hans": "此任务的验证方式暂不可用。"
   },
   {
@@ -121,7 +121,7 @@
   },
   {
     "key": "play.difficulty",
-    "en": "Difficulty",
+    "en": "Level",
     "zh-Hans": "难度"
   },
   {
@@ -186,7 +186,7 @@
   },
   {
     "key": "play.missing",
-    "en": "Journey information is missing",
+    "en": "Journey info is missing",
     "zh-Hans": "游玩信息缺失"
   },
   {
@@ -286,7 +286,7 @@
   },
   {
     "key": "play.registrationRequired",
-    "en": "Registration required",
+    "en": "Sign-up required",
     "zh-Hans": "尚未报名"
   },
   {
@@ -301,7 +301,7 @@
   },
   {
     "key": "play.retry",
-    "en": "Try again",
+    "en": "Try",
     "zh-Hans": "重试"
   },
   {
@@ -336,7 +336,7 @@
   },
   {
     "key": "play.unconfigured",
-    "en": "Not available right now",
+    "en": "Not available",
     "zh-Hans": "暂不可用"
   },
   {
@@ -356,7 +356,7 @@
   },
   {
     "key": "play.xp",
-    "en": "Exploration XP",
+    "en": "Exploration",
     "zh-Hans": "探索值"
   },
   {

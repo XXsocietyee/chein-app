@@ -116,7 +116,7 @@
   },
   {
     "key": "merchant.onboarding.required.license",
-    "en": "Upload a business license before continuing",
+    "en": "Upload business license before",
     "zh-Hans": "请先上传营业执照"
   },
   {
@@ -126,7 +126,7 @@
   },
   {
     "key": "merchant.onboarding.licenseUploaded",
-    "en": "Business license received by the service",
+    "en": "Business license received by service",
     "zh-Hans": "服务已接收营业执照"
   },
   {
@@ -216,7 +216,7 @@
   },
   {
     "key": "merchant.onboarding.identity.registered",
-    "en": "Identity registration is on file",
+    "en": "Identity sign-up is on file",
     "zh-Hans": "实名信息已登记"
   },
   {
@@ -326,7 +326,7 @@
   },
   {
     "key": "merchant.onboarding.status.activation",
-    "en": "Awaiting activation",
+    "en": "Awaiting",
     "zh-Hans": "待启用"
   },
   {
@@ -396,7 +396,7 @@
   },
   {
     "key": "merchant.onboarding.day.2",
-    "en": "Wednesday",
+    "en": "Wed",
     "zh-Hans": "周三"
   },
   {
@@ -431,12 +431,12 @@
   },
   {
     "key": "merchant.onboarding.everyDay",
-    "en": "Every day",
+    "en": "Every",
     "zh-Hans": "每天"
   },
   {
     "key": "merchant.onboarding.fixture.notice",
-    "en": "Offline synthetic merchant application",
+    "en": "Offline synthetic merchant request",
     "zh-Hans": "离线虚构商家申请"
   }
 ]

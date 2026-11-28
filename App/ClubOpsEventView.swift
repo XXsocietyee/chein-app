@@ -33,6 +33,8 @@ import SwiftUI
     /// CLB-r9-event-ops-01 (MP event-ops topic dropdown): the hub's eventTopics read feeds an inline topic menu;
     /// 添加日期 opens the picked topic first (ClubOpsEventAccess.focusFirst on the pushed list).
     @State private var topicFacts: [ClubOpsEventTopicFact] = []
+    /// MP `topicsLoaded`: the eventTopics read answered (an empty answer shows 暂无可开场的主题, a failed one keeps the row).
+    @State private var topicsLoaded = false
     /// mp-club r3 (MP event-ops wxml:121-170): the 日期清单 card lists each series inline (nil = not read yet).
     @State private var seriesRows: [ClubOpsEventSeriesRow]?
     @State private var seriesFailed = false
@@ -192,18 +194,13 @@ import SwiftUI
             EmptyView()
         case .recurrence:
             Section {
-                if topicFacts.count > 1 { topicPicker }
-                push(.eventTopics, .init(clubID: scope.clubID, topicID: pickedTopicID ?? scope.topicID)) {
-                    Label {
-                        VStack(alignment: .leading) {
-                            Text("clubOpsEvent.recurrence.add", tableName: "ClubOpsEvent")
-                            Text("clubOpsEvent.recurrence.addHint", tableName: "ClubOpsEvent")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Image(systemName: "plus.circle")
-                    }
+                if topicsLoaded && topicFacts.isEmpty {
+                    // MP event-ops wxml:186 `cy-empty title="暂无可开场的主题"`: nothing to open a date for.
+                    Text("clubOpsEvent.recurrence.noTopic", tableName: "ClubOpsEvent")
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("clubOpsEvent.recurrence.noTopic")
+                } else {
+                    recurrenceRows
                 }
             } header: { Text("clubOpsEvent.section.recurrence", tableName: "ClubOpsEvent") } footer: { Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent") }
         case .capacity:
@@ -212,16 +209,39 @@ import SwiftUI
             EmptyView()
         }
     }
+    @ViewBuilder private var recurrenceRows: some View {
+        if !topicFacts.isEmpty { topicPicker }
+        push(.eventTopics, .init(clubID: scope.clubID, topicID: pickedTopicID ?? scope.topicID)) {
+            Label {
+                VStack(alignment: .leading) {
+                    Text("clubOpsEvent.recurrence.add", tableName: "ClubOpsEvent")
+                    Text("clubOpsEvent.recurrence.addHint", tableName: "ClubOpsEvent")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            } icon: {
+                Image(systemName: "plus.circle")
+            }
+        }
+    }
     private var topicPicker: some View {
         Picker(selection: $pickedTopicID) {
             ForEach(topicFacts) { fact in
-                Text(verbatim: fact.name ?? "#\(fact.id)").tag(Optional(fact.id))
+                topicLabel(fact).tag(Optional(fact.id))
             }
         } label: {
             Text("clubOpsEvent.recurrence.topic", tableName: "ClubOpsEvent")
         }
         .pickerStyle(.menu)
         .accessibilityIdentifier("clubOpsEvent.recurrence.topicPicker")
+    }
+    /// CU-C-34 (MP event-ops js:62-74 topicDropdownLabel): 「名称 · 起止日期 · 自有/合作」, 日期未定 without dates.
+    private func topicLabel(_ fact: ClubOpsEventTopicFact) -> Text {
+        let name = fact.name.map { Text(verbatim: $0) } ?? Text("clubOpsEvent.topic.unnamed", tableName: "ClubOpsEvent")
+        let range = fact.rangeText(locale: locale).map { Text(verbatim: $0) } ?? Text("clubOpsEvent.topic.dateUnknown", tableName: "ClubOpsEvent")
+        let source = fact.ownClub ? Text("clubOpsEvent.topic.own", tableName: "ClubOpsEvent") : Text("clubOpsEvent.topic.partner", tableName: "ClubOpsEvent")
+        let dot = Text(verbatim: " · ")
+        return name + dot + range + dot + source
     }
     /// CLB-event-ops-02: the hub's roster read as the shared presentation; nil when it is missing or malformed.
     private var inlineRoster: ClubRosterPresentation? {
@@ -253,13 +273,14 @@ import SwiftUI
                 throw ClubGovernanceFailure.malformed
             }
             model = ClubOpsEventAccess(permissions: permissions, scope: eventScope); loadedKey = expected
-            occurrenceStatus = nil; rosterTotal = nil; rosterSnapshot = nil; publishEmpty = false; topicFacts = []
+            occurrenceStatus = nil; rosterTotal = nil; rosterSnapshot = nil; publishEmpty = false; topicFacts = []; topicsLoaded = false
             seriesRows = nil; seriesFailed = false
             if let model, model.sections.contains(.series) || model.sections.contains(.recurrence) {
                 let clubScope = ClubGovernanceScope(clubID: scope.clubID)
                 let topics = try? await access.read(.eventTopics, scope: clubScope, options: [:], check: check)
                 guard revision == generation, expected == key else { return }
                 topicFacts = ClubOpsEventTopicNames.facts(topics, clubID: scope.clubID)
+                topicsLoaded = topics != nil
                 if !topicFacts.contains(where: { $0.id == pickedTopicID }) {
                     pickedTopicID = topicFacts.first(where: { $0.id == scope.topicID })?.id ?? topicFacts.first?.id
                 }

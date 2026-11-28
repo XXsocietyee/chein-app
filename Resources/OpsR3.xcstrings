@@ -268,7 +268,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Changes save to this device automatically"
+            "value": "Changes save to this device on own"
           }
         }
       }
@@ -956,7 +956,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Marketing"
+            "value": "Promo"
           }
         }
       }
@@ -972,7 +972,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Templates"
+            "value": "Forms"
           }
         }
       }

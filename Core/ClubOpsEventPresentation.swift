@@ -226,7 +226,12 @@ public enum ClubOpsEventTopicNames {
             let price = row.object?["sessionPrice"] == nil ? nil : row["sessionPrice"].number
             let blocked = row["onlinePaymentAvailable"] == .bool(false)
             let notice = blocked && (price ?? 0) > 0 ? onlinePaymentNotice : ""
-            result.append(.init(id: id, name: name?.isEmpty == false ? name : nil, sessionTicketCount: count, paymentNotice: notice))
+            // CU-C-34 (MP event-ops js:62-74 topicDropdownLabel): 起止日期 and 自有/合作 tell same-named topics apart.
+            let owner = row["clubId"].int ?? row["clubId"].string.flatMap { Int($0) }
+            result.append(.init(id: id, name: name?.isEmpty == false ? name : nil, sessionTicketCount: count, paymentNotice: notice,
+                                startDate: ClubOccurrenceClock.instant(row["startDate"]),
+                                endDate: ClubOccurrenceClock.instant(row["endDate"]),
+                                ownClub: owner == clubID))
         }
         return result
     }
@@ -251,7 +256,20 @@ public struct ClubOpsEventTopicFact: Equatable, Identifiable {
     public let name: String?
     public let sessionTicketCount: Int
     public let paymentNotice: String
+    public internal(set) var startDate: Date? = nil
+    public internal(set) var endDate: Date? = nil
+    /// MP `String(row.clubId) === String(clubId)`: 自有 when the topic belongs to this club, else 合作.
+    public internal(set) var ownClub: Bool = true
     public var showsCapacity: Bool { ClubEventOpsFormRules.showsCapacity(sessionTicketCount: sessionTicketCount) }
+    /// MP topicDropdownLabel range: 「M月d日–M月d日」, one side when only one parses, nil for 日期未定.
+    public func rangeText(locale: Locale) -> String? {
+        let day: (Date?) -> String? = { date in
+            date.map { ClubOpsEventClock.localized($0, template: "MMMd", locale: locale) }
+        }
+        let start = day(startDate), end = day(endDate)
+        if let start, let end { return start + "–" + end }
+        return start ?? end
+    }
 }
 
 /// Mini handleSeriesConflict (系列已被更新，正在刷新): only a definite 409 on updateSeries re-reads the series.
