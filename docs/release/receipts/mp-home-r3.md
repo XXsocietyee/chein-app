@@ -310,6 +310,14 @@ Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home; ev
 |---|---|---|
 | `subpackageMember/components/cy/scene-play-activity-detail/index.wxml:29-38` activity-meta (分类 / 集合点 / 已报名, MP order kept) → `App/ActivityDetailView.swift` `ActivityDetailMetaSection` | P28 facts as icon rows: `zh-Hans-rep3-activity-detail.jpg` showed plain label/value rows. Each `LabeledContent` label is now a system `Label` with a leading SF Symbol (`tag` / `mappin.and.ellipse` / `person.2`, `.secondary`, hidden from VoiceOver); values, ids, the Maps button and "—" for unknown unchanged. | **Fixed** (`rep3-activity-detail`). P28's date row + Add to Calendar is **not done**: the MP shows the time in the hero, not in activity-meta, and EventKit UI needs a usage string + device check. |
 
+## Round 3 continue (21) — 02:10 sweep (build 41374363f), mp-home sheets zh-Hans + en
+
+Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home; sweep build unchanged since continue 20.
+
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `pages/search2/result/index.wxml:67-76` `result-card` (`__type` text → `__title` → `__detail` text) → `App/SearchMapComponents.swift` `SearchMapCard.textColumn` | `zh-Hans-d2-search-results.jpg`: the activity row alone draws a `mappin.and.ellipse` glyph before its area line, and every kind line is a `Label` whose icon pushes 主题 / 活动 … right of the title's edge — four rows, two leading edges. MP has plain type and detail text. | **Fixed** — kind and detail are plain `Text` lines (caption / subheadline, `.secondary`) for every kind, so title, kind and area share one leading edge; cover cards and the no-cover kind icon in `coverImage` unchanged. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -336,3 +344,4 @@ Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home; ev
 - Needs a simulator pass (continue 18): `d2-search-results` without the 搜索 button above the results.
 - Needs a simulator pass (continue 19): `rep3-activity-detail` 已结束 / Ended readable on the hero in en + zh-Hans, light and dark.
 - Needs a simulator pass (continue 20): `rep3-activity-detail` fact rows with leading icons in en + zh-Hans, AX5 (LabeledContent stacks).
+- Needs a simulator pass (continue 21): `d2-search-results` rows with plain kind / area lines (one leading edge) in en + zh-Hans, AX5.
