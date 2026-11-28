@@ -157,6 +157,10 @@ import XCTest
         XCTAssertTrue(grant.clubCommunity.paths.contains("api/club/post/repost"))
         // P1-10: 置顶/取消置顶 (MP pages/club/detail js:2099 `{id, pinned, version, requestId}`) rides the club community grant.
         XCTAssertTrue(grant.clubCommunity.paths.contains("api/club/post/pin"))
+        // J-15: the director recap export (GET `activityId`) rides the play grant as a runtime read, never as a POST.
+        XCTAssertTrue(grant.play.paths.contains("api/game/session/recap/export"))
+        XCTAssertTrue(ReviewedProductionGateLeases.playRuntimeReadPaths.contains("api/game/session/recap/export"))
+        XCTAssertTrue(ReviewedProductionGateLeases.isPlayGrantPath("api/game/session/recap/export"))
         // P1-13: the club post image upload (uploadOSS bizType=club_post_image) is issued per club, stable, picker on.
         let image = try XCTUnwrap(admitted.clubPostImageUploadApproval(player, 3))
         XCTAssertTrue(image.nativePicker)
