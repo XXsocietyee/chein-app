@@ -24,6 +24,7 @@
         "AccountDeregistrationConsentPresentationTests",
         "AccountDeregistrationHostLifetimeTests",
         "ActivityAssociatedPlaysViewTests",
+        "ActivityCalendarDraftTests",
         "ActivityCoverAuthoringOwnerTests",
         "ActivityEditingForegroundRecoveryTests",
         "ActivityEditingOwnerTests",
