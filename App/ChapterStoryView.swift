@@ -126,242 +126,343 @@ import UIKit
         chapterVideo = item
     }
     var body: some View {
-        ScrollViewReader { reader in
-        ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                if visible, let chapter {
-                    if NativeR2Flags.storyFlow {
-                        let position = chapterPosition
-                        NR2ChapterOpener(number: position?.number, total: position?.total,
-                                         title: chapter.title ?? position?.name, opening: chapter.openingLine ?? chapter.description)
-                        if segments.isEmpty {
-                            ContentUnavailableView("chapterStory.empty", systemImage: "book.closed")
-                        }
-                    } else {
-                        if let title = chapter.title { CYHeroHeader(verbatim: title) }
-                        if segments.isEmpty { CYEmptyState(systemImage: "book.closed", "chapterStory.empty") }
-                    }
-                    ForEach(Array(segments.enumerated()), id: \.element.id) { index, segment in
-                        segmentBody(segment)
-                            .cyThemeEdge(mood: NativeR2Flags.storyFlow ? nil : segment.mood, odd: NativeR2Flags.storyFlow ? 0 : segment.odd)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .modifier(ChapterReadingReveal(index: index, settled: NativeR2Flags.storyFlow || revealSettled || reduceMotion))
-                            .accessibilityIdentifier("chapterStory.segment." + segment.id)
-                            .id(segment.id)
-                            .background(GeometryReader { proxy in
-                                Color.clear.preference(key: ChapterSegmentOffsetKey.self,
-                                                       value: [segment.id: proxy.frame(in: .named(Self.scrollSpace)).minY])
-                            })
-                    }
-                    if let snapshot = model.snapshot, let stop = ChapterStoryProjection.lockedStop(chapter: chapter, snapshot: snapshot) {
-                        // Lock reason is the server's text; without one the reader still learns the flow is waiting, not over.
-                        Label {
-                            if let reason = snapshot.lockReason(stop) { Text(verbatim: reason) }
-                            else { Text("chapterStory.lockedStop", tableName: "PlayFullStory") }
-                        } icon: { Image(systemName: "lock") }
-                        .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("chapterStory.lockedStop")
-                    }
-                    if let position = chapterPosition {
-                        Text("chapterStory.footer.station \(position.number) \(position.total)")
-                            .font(.footnote.monospacedDigit())
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .accessibilityIdentifier("chapterStory.footer")
-                    }
-                    if model.thoughtSyncPhase == .syncing { ProgressView("chapterStory.thought.syncing") }
-                    if model.thoughtSyncPhase == .disabled { Text("chapterStory.thought.disabled").cyText(.bodyCompact).foregroundStyle(.secondary) }
-                    if model.thoughtSyncPhase == .needsReadback {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("chapterStory.thought.readback")
-                            Button("playx.refresh") { Task { await model.load() } }
-                        }.accessibilityIdentifier("chapterStory.thought.readback")
-                    }
-                    if NativeR2Flags.storyFlow {
-                        if visible { NarrationAutoplayToggle() }
-                    } else {
-                        audioSelection
-                    }
-                    if makeAudio == nil, !currentAudioURLs.isEmpty {
-                        Label("platform.audio.gated", systemImage: "speaker.slash")
-                            .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
-                    }
-                    if !NativeR2Flags.storyFlow, let audioURL, audioMounted, scenePhase == .active, currentAudioURLs.contains(audioURL) {
-                        PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio)
-                    }
-                    if NativeR2Flags.storyFlow, let progress = chapterProgress, progress.done == progress.total {
-                        let position = chapterPosition
-                        NR2ChapterFooter(closing: chapter.closingLine, done: progress.done, total: progress.total,
-                                         nextTitle: position?.next, onContinue: { leave() })
-                    } else if NativeR2Flags.storyFlow {
-                        Text("chapterStory.end").font(.footnote).foregroundStyle(.secondary)
-                        Button { leave() } label: { Text("chapterStory.return").frame(maxWidth: .infinity) }
-                            .buttonStyle(.bordered)
-                            .controlSize(.large)
-                    } else if let progress = chapterProgress, progress.done == progress.total {
-                        if let closing = chapter.closingLine {
-                            Text(verbatim: closing).cyText(.body).italic().foregroundStyle(CYColor.textSecondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .accessibilityIdentifier("chapterStory.closingLine")
-                        }
-                        // Mini-program chapter-flip end card: the chapter is complete, the next stop is named.
-                        let position = chapterPosition
-                        CYChapterEndCard(number: position?.number ?? 1, title: position?.name ?? chapter.title,
-                            stats: [
-                                CYStoryStat(key: "chapterFlip.stat.stops", value: "\(progress.done)/\(progress.total)"),
-                                CYStoryStat(key: "chapterFlip.stat.chapter", value: position.map { "\($0.number)/\($0.total)" }),
-                            ],
-                            nextTitle: position?.next, onContinue: { leave() })
-                    } else {
-                        Text("chapterStory.end").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                        CYPillButton("chapterStory.return") { leave() }
-                    }
-                } else if NativeR2Flags.storyFlow && model.phase == .loading && model.snapshot == nil {
-                    ProgressView { Text("homeFeed.loading") }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 40)
-                        .accessibilityIdentifier("chapterStory.loading")
-                } else if NativeR2Flags.storyFlow && model.phase == .failed {
-                    ContentUnavailableView {
-                        Label("chapterStory.unavailable", systemImage: "book.closed")
-                    } description: {
-                        Text("chapterStory.unavailable.detail")
-                    } actions: {
-                        Button("homeFeed.retry") { Task { await model.load() } }
-                            .buttonStyle(.bordered)
-                    }
-                    .accessibilityIdentifier("chapterStory.error")
-                } else if model.phase == .loading && model.snapshot == nil {
-                    // Loading is not "locked": the lock state only shows once the read has settled.
-                    CYLoadingStateView(rows: 3)
-                        .accessibilityLabel(Text("homeFeed.loading"))
-                        .accessibilityIdentifier("chapterStory.loading")
-                } else if model.phase == .failed {
-                    CYErrorStateView(title: "chapterStory.unavailable", message: "chapterStory.unavailable.detail",
-                                     retryTitle: "homeFeed.retry") { Task { await model.load() } }
-                        .accessibilityIdentifier("chapterStory.error")
-                } else {
-                    ChapterGate()
-                }
-            }
-            .padding(CYSpacing.pageHorizontal).frame(maxWidth: 720).frame(maxWidth: .infinity)
-            .simultaneousGesture(TapGesture().onEnded { revealSettled = true })
-        }
-        .coordinateSpace(.named(Self.scrollSpace))
-        .onPreferenceChange(ChapterSegmentOffsetKey.self) { offsets in
-            // The last segment whose top has reached the upper band is where the reader is.
-            let order = segments.map(\.id)
-            let reached = order.last { (offsets[$0] ?? .infinity) <= 120 } ?? order.first
-            guard visible, let reached, reached != readingSegmentID, resumeTried else { return }
-            readingSegmentID = reached
-            readingStore.save(reached, key: readingKey)
-        }
-        .task(id: "\(readingKey ?? ""):\(segments.count)") {
-            guard !Task.isCancelled, !resumeTried, visible, !segments.isEmpty, let capturedKey = readingKey else { return }
-            resumeTried = true
-            await Task.yield()
-            guard !Task.isCancelled, visible, capturedKey == readingKey else { return }
-            if let target = ChapterReadingPositionStore.resumeTarget(saved: readingStore.read(capturedKey), rendered: segments.map(\.id)) {
-                reader.scrollTo(target, anchor: .top)
-            }
-        }
-        }
-        .cyFullScreenCover(item: $zoomedImage) { item in
-            if visible, scenePhase == .active, imageReader?.enabled == true {
-                ChapterStoryImageViewer(image: item.image, alt: item.alt)
-            }
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            // P-083: native r2 keeps the mini player mounted when the app leaves the foreground so narration goes on.
-            if NativeR2Flags.storyFlow, visible, audioMounted, makeAudio != nil, !orderedAudioURLs.isEmpty {
-                NR2MiniAudioPlayer(title: chapter?.title ?? chapterPosition?.name, urls: orderedAudioURLs,
-                                   selected: audioURL.flatMap { currentAudioURLs.contains($0) ? $0 : nil },
-                                   scope: mediaScope, makeAudio: makeAudio, select: scopedAudioSelection())
-                    .id(audioPresentationID)
-            }
-        }
-        .background {
-            if NativeR2Flags.storyFlow {
-                Color(uiColor: .systemBackground).ignoresSafeArea()
-            } else if visible, let atmosphere = chapter?.atmosphere {
-                ChapterAtmosphereFill(atmosphere).ignoresSafeArea()
-            } else {
-                CYColor.bgPage.ignoresSafeArea()
-            }
-        }
-        .modifier(ChapterAtmosphereScheme(atmosphere: !NativeR2Flags.storyFlow && visible ? chapter?.atmosphere : nil))
-        .environment(\.questifyCast, castModel?.context)
-        .environment(\.playGameStage, gameStage)
-        .cySheet(item: $castCard) { target in
-            if let member = castModel?.config?.member(target.memberID) {
-                CastCharacterCard(member: member, trust: castModel?.trust[member.id] ?? 0,
-                                  reachedChapters: reachedChapters, line: target.line, chapterID: chapterID,
-                                  cast: castModel, mediaScope: mediaScope, makeAudio: makeAudio, imageReader: imageReader)
-            }
-        }
-        .scrollDismissesKeyboard(.interactively)
-        .cyPageTitle("chapterStory.title")
-        // Unsaved answers: the one exit guard (system-look back + confirm), swipe back blocked while dirty.
-        .cyGuardedBack(when: !dirtyNodes.isEmpty, onBack: leave)
-        .overlay {
-            if showGate {
-                let position = chapterPosition
-                CYChapterGate(number: position?.number ?? 1, total: position?.total ?? 1,
-                              title: chapter?.title ?? position?.name, subtitle: chapter?.openingLine ?? chapter?.description) {
-                    withAnimation(CYMotion.reduced) { showGate = false }
-                }
-                .transition(.opacity)
-            }
-        }
-        .toolbar(showGate ? .hidden : .automatic, for: .navigationBar)
-        .onAppear {
-            audioMounted = true; if !gateSeen && visible && chapter != nil { gateSeen = true; showGate = !NativeR2Flags.storyFlow }
-            if !showGate { presentChapterVideoIfNeeded() }
-        }
-        .onChange(of: showGate) { _, shown in if !shown { presentChapterVideoIfNeeded() } }
-        .fullScreenCover(item: $chapterVideo) { item in
-            ChapterVideoCover(item: item, onClose: { chapterVideo = nil })
-        }
-        .task(id: segments.map(\.id).joined(separator: "\u{1e}")) {
-            guard !reduceMotion, !segments.isEmpty else { revealSettled = true; return }
-            revealSettled = false
-            let steps = min(segments.count, 6)
-            let seconds = CYMotion.Duration.quick + Double(steps) * (CYMotion.Stagger.rewrite.dropFirst().first ?? 0.04)
-            try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-            if !Task.isCancelled { revealSettled = true }
-        }
-        .onChange(of: visible) { _, now in
-            if !now { zoomedImage = nil }
-            if now && !gateSeen && chapter != nil { gateSeen = true; showGate = !NativeR2Flags.storyFlow }
-        }
-        .privacySensitive().accessibilityIdentifier("chapterStory.body")
-        .interactiveDismissDisabled(!dirtyNodes.isEmpty)
-        .confirmationDialog("chapterStory.discardQuestion", isPresented: $confirmLeave, titleVisibility: .visible) {
-            Button("chapterStory.discard", role: .destructive) { dirtyNodes = []; dismiss() }
-            Button("chapterStory.keepEditing", role: .cancel) {}
-        } message: { Text("chapterStory.discardBody") }
-        .task(id: thoughtReadTaskKey) {
-            guard !Task.isCancelled, scenePhase == .active, visible else { return }
-            await model.claimVisibleThoughts(chapterID: chapterID)
-        }
-        .onChange(of: model.snapshot) { _, _ in thoughtReadRevision = UUID() }
-        .onChange(of: model.storyVariables) { _, next in advancedVariables.merge(next) { _, new in new } }
-        .onChange(of: currentAudioURLs) { _, available in
-            if let selected = audioURL, !available.contains(selected) { audioURL = nil }
-        }
-        .onChange(of: mediaScope) { _, _ in audioPresentationID = UUID(); audioURL = nil; zoomedImage = nil }
-        .onChange(of: chapterID) { _, _ in audioPresentationID = UUID(); audioURL = nil; resumeTried = false; readingSegmentID = nil; zoomedImage = nil }
-        .onChange(of: nodeID) { _, _ in audioPresentationID = UUID(); audioURL = nil; zoomedImage = nil }
-        .onChange(of: model.identity) { _, _ in audioPresentationID = UUID(); advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil; resumeTried = false; readingSegmentID = nil; zoomedImage = nil }
-        .onChange(of: scenePhase) { _, phase in
-            // P-083: native r2 narration continues in the background (the mini player owns that rule); r1 stops it.
-            if NativeR2Flags.storyFlow { if phase != .active { zoomedImage = nil }; return }
-            audioPresentationID = UUID(); if phase != .active { audioURL = nil; zoomedImage = nil }
-        }
-        .onDisappear { audioMounted = false; audioURL = nil; audioPresentationID = UUID(); advancedVariables = [:]; dirtyNodes = []; zoomedImage = nil }
-        // P-082: native r2 reads in the route's domain (no dark route → light reader jump); r1 keeps the player domain.
-        .cyDomainScreen(NativeR2Flags.storyFlow ? hostDomain : .player)
+        // Split so the type checker does not infer one chapter column plus its modifier chain.
+        chapterStoryWatched
     }
+
+    private var chapterStoryWatched: some View {
+        chapterStoryLifecycle
+            .onChange(of: model.snapshot) { _, _ in thoughtReadRevision = UUID() }
+            .onChange(of: model.storyVariables) { _, next in advancedVariables.merge(next) { _, new in new } }
+            .onChange(of: currentAudioURLs) { _, available in
+                if let selected = audioURL, !available.contains(selected) { audioURL = nil }
+            }
+            .onChange(of: mediaScope) { _, _ in audioPresentationID = UUID(); audioURL = nil; zoomedImage = nil }
+            .onChange(of: chapterID) { _, _ in audioPresentationID = UUID(); audioURL = nil; resumeTried = false; readingSegmentID = nil; zoomedImage = nil }
+            .onChange(of: nodeID) { _, _ in audioPresentationID = UUID(); audioURL = nil; zoomedImage = nil }
+            .onChange(of: model.identity) { _, _ in audioPresentationID = UUID(); advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil; resumeTried = false; readingSegmentID = nil; zoomedImage = nil }
+            .onChange(of: scenePhase) { _, phase in
+                // P-083: native r2 narration continues in the background (the mini player owns that rule); r1 stops it.
+                if NativeR2Flags.storyFlow { if phase != .active { zoomedImage = nil }; return }
+                audioPresentationID = UUID(); if phase != .active { audioURL = nil; zoomedImage = nil }
+            }
+            .onDisappear { audioMounted = false; audioURL = nil; audioPresentationID = UUID(); advancedVariables = [:]; dirtyNodes = []; zoomedImage = nil }
+            // P-082: native r2 reads in the route's domain (no dark route → light reader jump); r1 keeps the player domain.
+            .cyDomainScreen(NativeR2Flags.storyFlow ? hostDomain : .player)
+    }
+
+    private var chapterStoryLifecycle: some View {
+        chapterStoryChrome
+            .onAppear {
+                audioMounted = true; if !gateSeen && visible && chapter != nil { gateSeen = true; showGate = !NativeR2Flags.storyFlow }
+                if !showGate { presentChapterVideoIfNeeded() }
+            }
+            .onChange(of: showGate) { _, shown in if !shown { presentChapterVideoIfNeeded() } }
+            .fullScreenCover(item: $chapterVideo) { item in
+                ChapterVideoCover(item: item, onClose: { chapterVideo = nil })
+            }
+            .task(id: segments.map(\.id).joined(separator: "\u{1e}")) {
+                guard !reduceMotion, !segments.isEmpty else { revealSettled = true; return }
+                revealSettled = false
+                let steps = min(segments.count, 6)
+                let seconds = CYMotion.Duration.quick + Double(steps) * (CYMotion.Stagger.rewrite.dropFirst().first ?? 0.04)
+                try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                if !Task.isCancelled { revealSettled = true }
+            }
+            .onChange(of: visible) { _, now in
+                if !now { zoomedImage = nil }
+                if now && !gateSeen && chapter != nil { gateSeen = true; showGate = !NativeR2Flags.storyFlow }
+            }
+            .privacySensitive().accessibilityIdentifier("chapterStory.body")
+            .interactiveDismissDisabled(!dirtyNodes.isEmpty)
+            .confirmationDialog("chapterStory.discardQuestion", isPresented: $confirmLeave, titleVisibility: .visible) {
+                Button("chapterStory.discard", role: .destructive) { dirtyNodes = []; dismiss() }
+                Button("chapterStory.keepEditing", role: .cancel) {}
+            } message: { Text("chapterStory.discardBody") }
+            .task(id: thoughtReadTaskKey) {
+                guard !Task.isCancelled, scenePhase == .active, visible else { return }
+                await model.claimVisibleThoughts(chapterID: chapterID)
+            }
+    }
+
+    private var chapterStoryChrome: some View {
+        chapterStoryCovers
+            .scrollDismissesKeyboard(.interactively)
+            .cyPageTitle("chapterStory.title")
+            // Unsaved answers: the one exit guard (system-look back + confirm), swipe back blocked while dirty.
+            .cyGuardedBack(when: !dirtyNodes.isEmpty, onBack: leave)
+            .overlay { chapterGateOverlay }
+            .toolbar(showGate ? .hidden : .automatic, for: .navigationBar)
+    }
+
+    @ViewBuilder private var chapterGateOverlay: some View {
+        if showGate {
+            let position = chapterPosition
+            CYChapterGate(number: position?.number ?? 1, total: position?.total ?? 1,
+                          title: chapter?.title ?? position?.name, subtitle: chapter?.openingLine ?? chapter?.description) {
+                withAnimation(CYMotion.reduced) { showGate = false }
+            }
+            .transition(.opacity)
+        }
+    }
+
+    private var chapterStoryCovers: some View {
+        chapterScroll
+            .cyFullScreenCover(item: $zoomedImage) { item in
+                if visible, scenePhase == .active, imageReader?.enabled == true {
+                    ChapterStoryImageViewer(image: item.image, alt: item.alt)
+                }
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) { chapterMiniPlayer }
+            .background { chapterStoryBackground }
+            .modifier(ChapterAtmosphereScheme(atmosphere: !NativeR2Flags.storyFlow && visible ? chapter?.atmosphere : nil))
+            .environment(\.questifyCast, castModel?.context)
+            .environment(\.playGameStage, gameStage)
+            .cySheet(item: $castCard) { target in
+                if let member = castModel?.config?.member(target.memberID) {
+                    CastCharacterCard(member: member, trust: castModel?.trust[member.id] ?? 0,
+                                      reachedChapters: reachedChapters, line: target.line, chapterID: chapterID,
+                                      cast: castModel, mediaScope: mediaScope, makeAudio: makeAudio, imageReader: imageReader)
+                }
+            }
+    }
+
+    @ViewBuilder private var chapterMiniPlayer: some View {
+        // P-083: native r2 keeps the mini player mounted when the app leaves the foreground so narration goes on.
+        if NativeR2Flags.storyFlow, visible, audioMounted, makeAudio != nil, !orderedAudioURLs.isEmpty {
+            NR2MiniAudioPlayer(title: chapter?.title ?? chapterPosition?.name, urls: orderedAudioURLs,
+                               selected: audioURL.flatMap { currentAudioURLs.contains($0) ? $0 : nil },
+                               scope: mediaScope, makeAudio: makeAudio, select: scopedAudioSelection())
+                .id(audioPresentationID)
+        }
+    }
+
+    @ViewBuilder private var chapterStoryBackground: some View {
+        if NativeR2Flags.storyFlow {
+            Color(uiColor: .systemBackground).ignoresSafeArea()
+        } else if visible, let atmosphere = chapter?.atmosphere {
+            ChapterAtmosphereFill(atmosphere).ignoresSafeArea()
+        } else {
+            CYColor.bgPage.ignoresSafeArea()
+        }
+    }
+
+    private var chapterScroll: some View {
+        ScrollViewReader { reader in
+            ScrollView {
+                chapterColumn
+                    .padding(CYSpacing.pageHorizontal).frame(maxWidth: 720).frame(maxWidth: .infinity)
+                    .simultaneousGesture(TapGesture().onEnded { revealSettled = true })
+            }
+            .coordinateSpace(.named(Self.scrollSpace))
+            .onPreferenceChange(ChapterSegmentOffsetKey.self) { offsets in
+                // The last segment whose top has reached the upper band is where the reader is.
+                let order = segments.map(\.id)
+                let reached = order.last { (offsets[$0] ?? .infinity) <= 120 } ?? order.first
+                guard visible, let reached, reached != readingSegmentID, resumeTried else { return }
+                readingSegmentID = reached
+                readingStore.save(reached, key: readingKey)
+            }
+            .task(id: "\(readingKey ?? ""):\(segments.count)") {
+                guard !Task.isCancelled, !resumeTried, visible, !segments.isEmpty, let capturedKey = readingKey else { return }
+                resumeTried = true
+                await Task.yield()
+                guard !Task.isCancelled, visible, capturedKey == readingKey else { return }
+                if let target = ChapterReadingPositionStore.resumeTarget(saved: readingStore.read(capturedKey), rendered: segments.map(\.id)) {
+                    reader.scrollTo(target, anchor: .top)
+                }
+            }
+        }
+    }
+
+    /// Same column (leading, 28 pt). Each child is its own expression; empty pieces add no row.
+    private var chapterColumn: some View {
+        VStack(alignment: .leading, spacing: 28) {
+            if visible, let chapter {
+                chapterFlowOpener(chapter)
+                chapterFlowEmpty
+                chapterSegments
+                chapterLockedStop(chapter)
+                chapterStationFooter
+                chapterThoughtSyncing
+                chapterThoughtDisabled
+                chapterThoughtReadback
+                chapterNarrationOrSelection
+                chapterAudioGated
+                chapterInlineAudio
+                chapterEnding(chapter)
+            } else {
+                chapterMissing
+            }
+        }
+    }
+
+    @ViewBuilder private func chapterFlowOpener(_ chapter: ChapterStoryDocument) -> some View {
+        if NativeR2Flags.storyFlow {
+            let position = chapterPosition
+            NR2ChapterOpener(number: position?.number, total: position?.total,
+                             title: chapter.title ?? position?.name, opening: chapter.openingLine ?? chapter.description)
+        } else if let title = chapter.title {
+            CYHeroHeader(verbatim: title)
+        }
+    }
+
+    @ViewBuilder private var chapterFlowEmpty: some View {
+        if segments.isEmpty {
+            if NativeR2Flags.storyFlow {
+                ContentUnavailableView("chapterStory.empty", systemImage: "book.closed")
+            } else {
+                CYEmptyState(systemImage: "book.closed", "chapterStory.empty")
+            }
+        }
+    }
+
+    private var chapterSegments: some View {
+        ForEach(Array(segments.enumerated()), id: \.element.id) { index, segment in
+            chapterSegmentRow(index: index, segment: segment)
+        }
+    }
+
+    private func chapterSegmentRow(index: Int, segment: ChapterStorySegment) -> some View {
+        segmentBody(segment)
+            .cyThemeEdge(mood: NativeR2Flags.storyFlow ? nil : segment.mood, odd: NativeR2Flags.storyFlow ? 0 : segment.odd)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .modifier(ChapterReadingReveal(index: index, settled: NativeR2Flags.storyFlow || revealSettled || reduceMotion))
+            .accessibilityIdentifier("chapterStory.segment." + segment.id)
+            .id(segment.id)
+            .background(GeometryReader { proxy in
+                Color.clear.preference(key: ChapterSegmentOffsetKey.self,
+                                       value: [segment.id: proxy.frame(in: .named(Self.scrollSpace)).minY])
+            })
+    }
+
+    @ViewBuilder private func chapterLockedStop(_ chapter: ChapterStoryDocument) -> some View {
+        if let snapshot = model.snapshot, let stop = ChapterStoryProjection.lockedStop(chapter: chapter, snapshot: snapshot) {
+            // Lock reason is the server's text; without one the reader still learns the flow is waiting, not over.
+            Label {
+                if let reason = snapshot.lockReason(stop) { Text(verbatim: reason) }
+                else { Text("chapterStory.lockedStop", tableName: "PlayFullStory") }
+            } icon: { Image(systemName: "lock") }
+            .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            .accessibilityIdentifier("chapterStory.lockedStop")
+        }
+    }
+
+    @ViewBuilder private var chapterStationFooter: some View {
+        if let position = chapterPosition {
+            Text("chapterStory.footer.station \(position.number) \(position.total)")
+                .font(.footnote.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .accessibilityIdentifier("chapterStory.footer")
+        }
+    }
+
+    @ViewBuilder private var chapterThoughtSyncing: some View {
+        if model.thoughtSyncPhase == .syncing { ProgressView("chapterStory.thought.syncing") }
+    }
+
+    @ViewBuilder private var chapterThoughtDisabled: some View {
+        if model.thoughtSyncPhase == .disabled { Text("chapterStory.thought.disabled").cyText(.bodyCompact).foregroundStyle(.secondary) }
+    }
+
+    @ViewBuilder private var chapterThoughtReadback: some View {
+        if model.thoughtSyncPhase == .needsReadback {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("chapterStory.thought.readback")
+                Button("playx.refresh") { Task { await model.load() } }
+            }.accessibilityIdentifier("chapterStory.thought.readback")
+        }
+    }
+
+    @ViewBuilder private var chapterNarrationOrSelection: some View {
+        if NativeR2Flags.storyFlow {
+            if visible { NarrationAutoplayToggle() }
+        } else {
+            audioSelection
+        }
+    }
+
+    @ViewBuilder private var chapterAudioGated: some View {
+        if makeAudio == nil, !currentAudioURLs.isEmpty {
+            Label("platform.audio.gated", systemImage: "speaker.slash")
+                .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+        }
+    }
+
+    @ViewBuilder private var chapterInlineAudio: some View {
+        if !NativeR2Flags.storyFlow, let audioURL, audioMounted, scenePhase == .active, currentAudioURLs.contains(audioURL) {
+            PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio)
+        }
+    }
+
+    /// Multi-line endings keep the column's 28 pt gap via the same stack metrics.
+    @ViewBuilder private func chapterEnding(_ chapter: ChapterStoryDocument) -> some View {
+        if NativeR2Flags.storyFlow, let progress = chapterProgress, progress.done == progress.total {
+            let position = chapterPosition
+            NR2ChapterFooter(closing: chapter.closingLine, done: progress.done, total: progress.total,
+                             nextTitle: position?.next, onContinue: { leave() })
+        } else if NativeR2Flags.storyFlow {
+            VStack(alignment: .leading, spacing: 28) {
+                Text("chapterStory.end").font(.footnote).foregroundStyle(.secondary)
+                Button { leave() } label: { Text("chapterStory.return").frame(maxWidth: .infinity) }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+            }
+        } else if let progress = chapterProgress, progress.done == progress.total {
+            VStack(alignment: .leading, spacing: 28) {
+                if let closing = chapter.closingLine {
+                    Text(verbatim: closing).cyText(.body).italic().foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityIdentifier("chapterStory.closingLine")
+                }
+                // Mini-program chapter-flip end card: the chapter is complete, the next stop is named.
+                let position = chapterPosition
+                CYChapterEndCard(number: position?.number ?? 1, title: position?.name ?? chapter.title,
+                    stats: [
+                        CYStoryStat(key: "chapterFlip.stat.stops", value: "\(progress.done)/\(progress.total)"),
+                        CYStoryStat(key: "chapterFlip.stat.chapter", value: position.map { "\($0.number)/\($0.total)" }),
+                    ],
+                    nextTitle: position?.next, onContinue: { leave() })
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 28) {
+                Text("chapterStory.end").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                CYPillButton("chapterStory.return") { leave() }
+            }
+        }
+    }
+
+    @ViewBuilder private var chapterMissing: some View {
+        if NativeR2Flags.storyFlow && model.phase == .loading && model.snapshot == nil {
+            ProgressView { Text("homeFeed.loading") }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+                .accessibilityIdentifier("chapterStory.loading")
+        } else if NativeR2Flags.storyFlow && model.phase == .failed {
+            ContentUnavailableView {
+                Label("chapterStory.unavailable", systemImage: "book.closed")
+            } description: {
+                Text("chapterStory.unavailable.detail")
+            } actions: {
+                Button("homeFeed.retry") { Task { await model.load() } }
+                    .buttonStyle(.bordered)
+            }
+            .accessibilityIdentifier("chapterStory.error")
+        } else if model.phase == .loading && model.snapshot == nil {
+            // Loading is not "locked": the lock state only shows once the read has settled.
+            CYLoadingStateView(rows: 3)
+                .accessibilityLabel(Text("homeFeed.loading"))
+                .accessibilityIdentifier("chapterStory.loading")
+        } else if model.phase == .failed {
+            CYErrorStateView(title: "chapterStory.unavailable", message: "chapterStory.unavailable.detail",
+                             retryTitle: "homeFeed.retry") { Task { await model.load() } }
+                .accessibilityIdentifier("chapterStory.error")
+        } else {
+            ChapterGate()
+        }
+    }
+
     @ViewBuilder private func segmentBody(_ segment: ChapterStorySegment) -> some View {
         switch segment.content {
         case .text(let text) where NativeR2Flags.storyFlow: NR2NarrationText(text: text)
