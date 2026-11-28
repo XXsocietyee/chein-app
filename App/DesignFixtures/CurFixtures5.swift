@@ -338,7 +338,7 @@ private struct Cur5Down: HTTPTransport {
 
     var body: some View {
         List {
-            CoopInviteReceiptSections(reader: reader, kind: .club, topicID: nil, merchantMemberIDs: [])
+            CoopInviteReceiptSections(reader: reader)
         }
     }
 }

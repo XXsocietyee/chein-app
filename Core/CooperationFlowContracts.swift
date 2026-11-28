@@ -119,7 +119,19 @@ public struct CoopFlowInvitationContext: Identifiable, Equatable {
     public let originApplyID: Int?
     public let kind: CoopFlowTargetKind
     public let scope: String?
+    /// MP coop/invite `核销据点` (index.js:1015-1017): the station chosen for this merchant, sent as `supplyStationId`.
+    public private(set) var supplyStationID: Int? = nil
+    public private(set) var supplyStationName: String? = nil
     public var id: String { "\(session.accountID):\(session.epoch):\(kind.rawValue):\(originApplyID ?? 0):\(topicID):\(recipient.id)" }
+
+    /// A copy carrying the chosen station. Club recipients and invalid ids keep no station.
+    public func withSupplyStation(_ option: CoopInviteStationOption?) -> CoopFlowInvitationContext {
+        var copy = self
+        if kind == .merchant, let option, option.id > 0 {
+            copy.supplyStationID = option.id; copy.supplyStationName = option.name
+        } else { copy.supplyStationID = nil; copy.supplyStationName = nil }
+        return copy
+    }
 
     public init?(candidate: CoopFlowTargetCandidate, topic: CoopFlowOwnedTopic, scope: String?, session: CoopFlowSession?, originApplyID: Int? = nil) {
         guard let session, topic.inviteWindowOpen == true, scope == nil || scope == "MERCHANT" else { return nil }
@@ -146,7 +158,8 @@ public struct CoopFlowInvitationContext: Identifiable, Equatable {
                            currentSession: CoopFlowSession?) throws -> CoopFlowInvitation {
         guard currentSession == session else { throw CoopFlowFailure.stale }
         return try CoopFlowInvitation(kind: kind, recipient: recipient, topicID: topicID, message: message,
-                                      compensation: compensation, originApplyID: originApplyID, scope: scope)
+                                      compensation: compensation, originApplyID: originApplyID, scope: scope,
+                                      supplyStationID: kind == .merchant ? supplyStationID : nil)
     }
 }
 
