@@ -211,7 +211,7 @@ import SwiftUI
     }
     @ViewBuilder private var recurrenceRows: some View {
         if !topicFacts.isEmpty { topicPicker }
-        push(.eventTopics, .init(clubID: scope.clubID, topicID: pickedTopicID ?? scope.topicID)) {
+        recurrenceAddLink {
             Label {
                 VStack(alignment: .leading) {
                     Text("clubOpsEvent.recurrence.add", tableName: "ClubOpsEvent")
@@ -222,6 +222,21 @@ import SwiftUI
             } icon: {
                 Image(systemName: "plus.circle")
             }
+        }
+    }
+    /// mp-club r3 (MP event-ops wxml:178-238): with a topic picked in 主题 above, 添加日期 opens the 重复方式 form
+    /// for that topic straight away (the topics read still proves it, then presents the form once). Without a
+    /// topic list it keeps the plain topics push.
+    @ViewBuilder private func recurrenceAddLink<RowLabel: View>(@ViewBuilder label: () -> RowLabel) -> some View {
+        if let topicID = pickedTopicID, topicFacts.contains(where: { $0.id == topicID }) {
+            NavigationLink {
+                ClubGovernanceReadView(operation: .eventTopics, scope: .init(clubID: scope.clubID, topicID: topicID),
+                                       identity: identity, access: access, coordinator: coordinator,
+                                       opensSeriesCreationOnLoad: true)
+            } label: { label() }
+                .accessibilityIdentifier("clubOpsEvent.open.eventTopics")
+        } else {
+            push(.eventTopics, .init(clubID: scope.clubID, topicID: scope.topicID), label: label)
         }
     }
     private var topicPicker: some View {
