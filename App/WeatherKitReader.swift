@@ -12,7 +12,8 @@ import WeatherKit
 /// in a weather request and one cell is asked at most every ten minutes.
 @MainActor final class WeatherKitReader {
     static let shared = WeatherKitReader()
-    static let infoKey = "CYWeatherKitEnabled"
+    /// A constant plist key. `isEnabled` is nonisolated, so this static cannot stay on the main actor.
+    nonisolated static let infoKey = "CYWeatherKitEnabled"
     static let ttl: TimeInterval = 600
 
     struct Attribution: Equatable {

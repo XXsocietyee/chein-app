@@ -116,7 +116,12 @@ struct ProfileOrdersView: View {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, onSignIn: onSignIn, load: {
+        ordersOuter
+    }
+    private var ordersScreen: some View {
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, onSignIn: onSignIn, load: loadFirstOrders, content: ordersContent)
+    }
+    private func loadFirstOrders() async throws -> [ProfileOrder] {
             if let paged = reader as? ProfileOrderPageReading {
                 let page = try await paged.profileOrderHistory(pageNum: 1)
                 await MainActor.run {
@@ -135,7 +140,8 @@ struct ProfileOrdersView: View {
                 historyGeneration += 1
             }
             return try await reader.profileOrders()
-        }) { loaded in
+            }
+    @ViewBuilder private func ordersContent(_ loaded: [ProfileOrder]) -> some View {
             let orders = displayedOrders(loaded)
             if orders.isEmpty {
                 // G-052: an empty List keeps ProfileReadScreen's pull-to-refresh on the empty state too.
@@ -209,7 +215,11 @@ struct ProfileOrdersView: View {
                     .accessibilityIdentifier("profile.orders.list")
                 }
             }
-        }
+            }
+
+    private var ordersChrome: some View {
+        ordersScreen
+
         .environment(\.profileReadShowsRefreshButton, false)
         .environment(\.profileReadReloadToken, ordersReloadToken)
         .cySheet(item: $cardExit, onDismiss: { ordersReloadToken += 1 }) { exit in
@@ -227,6 +237,9 @@ struct ProfileOrdersView: View {
             }
         }
         .appNavigationTitle("profile.orders.title").navigationBarTitleDisplayMode(.inline)
+    }
+    private var ordersOuter: some View {
+        ordersChrome
         .cyPushedChrome(domain: .player)
         .onAppear { appearOrderSupport() }
         .onChange(of: filterOwner) { _, _ in
@@ -523,7 +536,54 @@ struct ProfileOrderDetailView: View {
     @State private var copyToast: LocalizedStringKey?
     @State private var copyTone: CYToastTone = .success
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, load: { try await reader.profileOrder(id: id) }) { order in
+        orderDetailOuter
+    }
+    private var orderDetailScreen: some View {
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, load: { try await reader.profileOrder(id: id) }, content: orderDetailContent)
+    }
+    private var orderDetailChrome: some View {
+        orderDetailScreen
+
+        .environment(\.profileReadShowsRefreshButton, false)
+        .appNavigationTitle("profile.orders.detail")
+        .navigationBarTitleDisplayMode(.inline)
+        .cyPushedChrome(domain: .player)
+        .background {
+            if orderLocator != nil {
+                Color.clear.frame(width: 0, height: 0)
+                    .accessibilityIdentifier(openedOrderID == Int64(id) ? "profile.order.readback.opened.\(id)" : "profile.order.readback.closed")
+            }
+        }
+        .task(id: id) {
+            readBackHeldOrder()
+            if orderLocator == nil { onOpenedOrder?(id) }
+        }
+    }
+    private var orderDetailWatch: some View {
+        orderDetailChrome
+        .navigationDestination(item: $ticketTarget) { target in
+            if let ticketReader, target.registrationID == id, target.matches(origin: reader, tickets: ticketReader) {
+                ProfileOrderTicketDestination(target: target, origin: reader, tickets: ticketReader)
+                    .id(target.id)
+            } else { ProfileOrderTicketUnavailableView() }
+        }
+        .onAppear { ticketEntryVisible = true; ticketPresentationID = UUID() }
+        // A push must not remove its destination. Retire only activation callbacks here.
+        .onDisappear { ticketEntryVisible = false; ticketPresentationID = UUID() }
+        .onChange(of: reader.identity) { _, _ in retireTicketEntry() }
+        .onChange(of: reader.isConfigured) { _, _ in retireTicketEntry() }
+        .onChange(of: ObjectIdentifier(reader)) { _, _ in retireTicketEntry() }
+    }
+    private var orderDetailOuter: some View {
+        orderDetailWatch
+        .onChange(of: ticketReader.map { ObjectIdentifier($0) }) { _, _ in retireTicketEntry() }
+        .onChange(of: ticketReader?.scope) { _, _ in retireTicketEntry() }
+        .onChange(of: ticketReader?.isAuthenticated) { _, _ in retireTicketEntry() }
+        .onChange(of: ticketReader?.isConfigured) { _, _ in retireTicketEntry() }
+        .onChange(of: id) { _, _ in retireTicketEntry() }
+        .cyToast(message: $copyToast, tone: copyTone)
+    }
+    @ViewBuilder private func orderDetailContent(_ order: ProfileOrder) -> some View {
             ProfileOrderMeetingPointHost(order: order, requestedID: id, reader: reader) { meetingPointEntry in
             List {
                 ProfileOrderHeroSection(order: order)
@@ -647,40 +707,8 @@ struct ProfileOrderDetailView: View {
                 }
             }
             }
-        }
-        .environment(\.profileReadShowsRefreshButton, false)
-        .appNavigationTitle("profile.orders.detail")
-        .navigationBarTitleDisplayMode(.inline)
-        .cyPushedChrome(domain: .player)
-        .background {
-            if orderLocator != nil {
-                Color.clear.frame(width: 0, height: 0)
-                    .accessibilityIdentifier(openedOrderID == Int64(id) ? "profile.order.readback.opened.\(id)" : "profile.order.readback.closed")
             }
-        }
-        .task(id: id) {
-            readBackHeldOrder()
-            if orderLocator == nil { onOpenedOrder?(id) }
-        }
-        .navigationDestination(item: $ticketTarget) { target in
-            if let ticketReader, target.registrationID == id, target.matches(origin: reader, tickets: ticketReader) {
-                ProfileOrderTicketDestination(target: target, origin: reader, tickets: ticketReader)
-                    .id(target.id)
-            } else { ProfileOrderTicketUnavailableView() }
-        }
-        .onAppear { ticketEntryVisible = true; ticketPresentationID = UUID() }
-        // A push must not remove its destination. Retire only activation callbacks here.
-        .onDisappear { ticketEntryVisible = false; ticketPresentationID = UUID() }
-        .onChange(of: reader.identity) { _, _ in retireTicketEntry() }
-        .onChange(of: reader.isConfigured) { _, _ in retireTicketEntry() }
-        .onChange(of: ObjectIdentifier(reader)) { _, _ in retireTicketEntry() }
-        .onChange(of: ticketReader.map { ObjectIdentifier($0) }) { _, _ in retireTicketEntry() }
-        .onChange(of: ticketReader?.scope) { _, _ in retireTicketEntry() }
-        .onChange(of: ticketReader?.isAuthenticated) { _, _ in retireTicketEntry() }
-        .onChange(of: ticketReader?.isConfigured) { _, _ in retireTicketEntry() }
-        .onChange(of: id) { _, _ in retireTicketEntry() }
-        .cyToast(message: $copyToast, tone: copyTone)
-    }
+
     /// One locateByOrderId for the id this page already holds. The returned first
     /// ORDER id must equal that id. A different id is not opened.
     private func readBackHeldOrder() {

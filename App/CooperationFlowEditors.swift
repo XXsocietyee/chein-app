@@ -617,7 +617,7 @@ struct CoopFlowReviewEditor: View {
 
 @MainActor final class CoopPerkPickerReadModel: ObservableObject {
     struct Preview: Identifiable, Hashable {
-        let id = UUID()
+        nonisolated let id = UUID()
         let inviteID: Int
         let templateIDs: [Int]
         fileprivate let readID: UUID

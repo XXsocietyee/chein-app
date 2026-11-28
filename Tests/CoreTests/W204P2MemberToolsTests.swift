@@ -39,4 +39,12 @@ final class W204P2MemberToolsTests: XCTestCase {
         XCTAssertEqual(ProfileComplaintReadIssue.signIn.sourceDetailKey, "profile.complaintP2.loadFailed.signIn")
         XCTAssertEqual(ProfileComplaintReadIssue.unavailable.sourceDetailKey, ProfileComplaintReadIssue.unavailable.titleKey)
     }
+
+    func testComplaintForbiddenReadIsTheMPDeniedState() {
+        XCTAssertEqual(ProfileComplaintReadIssue(APIError.httpStatus(403)), .denied)
+        XCTAssertEqual(ProfileComplaintReadIssue(APIError.businessCode(403)), .denied)
+        XCTAssertEqual(ProfileComplaintReadIssue(APIError.unauthorized), .signIn)
+        XCTAssertEqual(ProfileComplaintReadIssue(APIError.httpStatus(500)), .failed)
+        XCTAssertEqual(ProfileComplaintReadIssue.denied.sourceSubtitle(), "当前身份不能发起投诉")
+    }
 }

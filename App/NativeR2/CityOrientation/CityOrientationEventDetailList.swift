@@ -157,6 +157,12 @@ struct CityOrientationEventCTA {
         [detail.summary.name, timeText].compactMap { $0 }.joined(separator: " · ")
     }
 
+    /// Name · time, then the `pages/activity/detail/index?id=` universal link when it parses back (else text only).
+    private var shareItem: String {
+        guard let url = PublicContentShareLink.activity(id: detail.summary.id) else { return shareText }
+        return shareText + "\n" + url.absoluteString
+    }
+
     /// P15 capsule row. Scrolls sideways when English labels run long (P12); Directions keeps its identifier.
     private var actionPills: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -167,7 +173,8 @@ struct CityOrientationEventCTA {
                     }
                     .accessibilityIdentifier("nativeR2.city.event.directions")
                 }
-                ShareLink(item: shareText) {
+                // MP pages/activity/detail onShareAppMessage path `?id=`: share the activity link, not bare text.
+                ShareLink(item: shareItem) {
                     Label("nativeR2.city.finish.share", systemImage: "square.and.arrow.up")
                 }
                 .accessibilityIdentifier("activity.detail.share")
