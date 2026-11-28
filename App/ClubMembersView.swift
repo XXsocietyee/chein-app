@@ -175,6 +175,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     SocialPublicProfileView(memberID: target.memberID, reader: profileContext.reader,
                                             squareReader: profileContext.squareReader, actions: profileContext.actions)
                         .id(target)
+                        .cyPushedChrome()
                 }
             }
         }

@@ -286,6 +286,14 @@ Merged `origin/ui/combined-r7` into `mp/r3-home`. No new coordinator item for mp
 |---|---|---|
 | `pages/search2/result/index.wxml:15-16` `cy-tabs variant="chip"` (全部 / 主题 / 活动 / 俱乐部 / 商家, always on the page) → `App/GlobalSearchView.swift` results branch | `zh-Hans-d2-search-results.jpg` / `en-…`: no result tabs. Native puts them in the system scope bar (`.searchScopes(activation: .onSearchPresentation)`), which iOS only draws while the field is focused, so after a search the type filter was invisible. | **Fixed** — when the field is not presented, the same scopes sit above the results as `CYFilterChip` capsules (全部 + each kind with its settled count), bound to the one `searchModel.scope`; the scope bar stays while typing. Id `searchMap.resultScopes`. |
 
+## Round 3 continue (18) — 01:10 sweep (build 907570051), mp-home sheets zh-Hans + en
+
+Merged `origin/ui/combined-r7` into `mp/r3-home`. No new coordinator item for mp-home after 00:20. Build includes continue 16 (no 示例内容 row ✓); continue 17 (result-scope chips) is not in it yet.
+
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `pages/search2/result/index.wxml` (no search button; the keyword is confirmed from the field) → `App/GlobalSearchView.swift` `searchMap.submit` | `zh-Hans-d2-search-results.jpg` / `en-…`: a full-width prominent 搜索 / "Search" button sits between 筛选 and the results after the search already ran — a second, dead-looking primary action. | **Fixed** — the button shows only while the current keyword/category has no results on screen and no request running (the suggestions page and an edited query keep it; Maestro flows tap it before results, unchanged). |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -309,3 +317,4 @@ Merged `origin/ui/combined-r7` into `mp/r3-home`. No new coordinator item for mp
 - Needs a simulator pass (continue 15): `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` with one write entry.
 - Needs a simulator pass (continue 16): `d2-search` / `d2-search-results` without the 示例内容 row.
 - Needs a simulator pass (continue 17): `d2-search-results` result-scope chips row (全部 / 主题 n / 活动 n …) in en + zh-Hans, and that it hides while the field is active.
+- Needs a simulator pass (continue 18): `d2-search-results` without the 搜索 button above the results.

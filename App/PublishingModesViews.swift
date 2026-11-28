@@ -177,6 +177,8 @@ extension QuickPublishingView {
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    /// a11y-dt r3: the MP 选择时间段 date icon (12 pt) grows with the row text instead of staying 12 pt at AX5.
+    @ScaledMetric(relativeTo: .body) private var dateIconSide: CGFloat = 12
     // r11 N-32: the unused `CYDomainPalette(.topicEditor)` accessor is gone; the page uses system tint / semantic colours.
     @StateObject private var localClear = ActivityPublishingLocalClearOwner()
     @StateObject private var timeRange = ActivityPublishingTimeRangeOwner()
@@ -369,7 +371,7 @@ extension QuickPublishingView {
                                 Text("publishModes.chooseTimeRange")
                             } icon: {
                                 // MP: pages/publish/activity/index.wxml:62 (icon_date3.png, .picker_group image 24rpx)
-                                MPAsset.FeatureIcon.iconDate3.resizable().scaledToFit().frame(width: 12, height: 12)
+                                MPAsset.FeatureIcon.iconDate3.resizable().scaledToFit().frame(width: dateIconSide, height: dateIconSide)
                                     .accessibilityHidden(true)
                             }
                         }

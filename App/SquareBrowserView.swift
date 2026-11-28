@@ -120,7 +120,7 @@ import SwiftUI
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: $openedPost) { id in postDetail(id) }
             .navigationDestination(item: $profileMember) { member in
-                if let accountReader { SocialPublicProfileView(memberID: member.id, reader: accountReader, squareReader: reader, actions: actions) }
+                if let accountReader { SocialPublicProfileView(memberID: member.id, reader: accountReader, squareReader: reader, actions: actions).cyPushedChrome(domain: .player) }
             }
             .toolbar { if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } } }
             .toolbar {
