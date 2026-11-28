@@ -108,7 +108,7 @@ import SwiftUI
                     .accessibilityIdentifier("square.cloud.author")
             } footer: {
                 Text(verbatim: "\(contents.count)/\(SquareComposeRules.maxLength)")
-                    .monospacedDigit()
+                    .monospacedDigit().accessibilityLabel(Text("a11y.value.characters \(Int(contents.count)) \(Int(SquareComposeRules.maxLength))"))
                     .accessibilityIdentifier("square.cloud.count")
             }
             if let text = notice {
