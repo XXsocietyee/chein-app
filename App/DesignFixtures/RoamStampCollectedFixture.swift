@@ -9,6 +9,7 @@ import SwiftUI
     private static func tt(_ en: String, _ zh: String) -> String {
         Locale.preferredLanguages.first?.hasPrefix("zh") == true ? zh : en
     }
+    @Environment(\.locale) private var locale
     private let openedAt = Date()
     private var place: String { Self.tt("Old street", "老街") }
     private var receipt: RoamStampExchangeReceipt? {
@@ -20,7 +21,7 @@ import SwiftUI
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    HStack(spacing: 4) { Text(verbatim: RoamStampSlip.dateLabel(openedAt) + " ·"); Text(verbatim: place) }
+                    HStack(spacing: 4) { Text(verbatim: RoamStampSlip.dateLabel(openedAt, locale: locale) + " ·"); Text(verbatim: place) }
                         .cyText(.meta).foregroundStyle(.secondary)
                         .accessibilityElement(children: .combine)
                     if let receipt {

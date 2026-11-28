@@ -158,7 +158,7 @@ class C02WorldPartyCharacterContracts(unittest.TestCase):
         self.assertIn('cardIfCurrent()', view)
         strings = (ROOT / 'Resources/Localizable.xcstrings').read_text()
         self.assertIn('"play.character.card"', strings)
-        self.assertIn('"Character card"', strings)
+        self.assertIn('"Character"', strings)
         self.assertIn('"角色卡"', strings)
         self.assertIn('testRevokeClearsCardWithoutReloadOrLeavingAndBody401RetiresOwner', TESTS['card'].read_text())
         self.assertIn('PlayExperienceError.unauthorized', CORE['card'].read_text())

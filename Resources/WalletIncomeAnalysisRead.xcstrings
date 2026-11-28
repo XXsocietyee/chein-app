@@ -98,7 +98,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original response supplied no verifiable total. Further pages were not requested; an empty slice does not prove the account has no records."
+            "value": "The original response supplied no verifiable total. Further pages weren't requested; an empty slice doesn't prove account has no records."
           }
         }
       }

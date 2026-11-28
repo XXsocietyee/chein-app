@@ -15,7 +15,7 @@
   "already_in_base": "packages2-9; do not overlay again",
   "localizations": {
     "roam.tasks.title": {
-      "en": "Official roaming activities",
+      "en": "Official roaming events",
       "zh-Hans": "漫游官方活动"
     },
     "roam.tasks.changed": {

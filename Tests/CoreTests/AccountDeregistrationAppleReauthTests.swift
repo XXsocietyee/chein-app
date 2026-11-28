@@ -35,12 +35,13 @@ private final class AppleDeregisterHTTPFake: HTTPTransport {
     private var invalidated = 0
     private let token = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhcHBsZSJ9.c2ln"
 
-    private func coordinator(_ fake: AppleDeregisterHTTPFake, auth: AppleDeregisterAuthFake = AppleDeregisterAuthFake()) throws -> AccountComplianceCoordinator {
+    private func coordinator(_ fake: AppleDeregisterHTTPFake, auth: AppleDeregisterAuthFake? = nil) throws -> AccountComplianceCoordinator {
+        let resolvedAuth = auth ?? AppleDeregisterAuthFake()
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("journal.json")
         let service = AccountComplianceService(configuration: try APIConfiguration(baseURL: URL(string: "https://fixture.example")!), transport: fake,
                                                journal: ComplianceFileJournal(url: url), current: { [unowned self] in self.session }, token: { "synthetic-test-token" },
                                                readsEnabled: true, writesEnabled: true, legalApproved: { _, _ in true }, authoritativeMerchantID: { nil })
-        return AccountComplianceCoordinator(service: service, auth: auth, effects: AppleDeregisterEffectsFake(),
+        return AccountComplianceCoordinator(service: service, auth: resolvedAuth, effects: AppleDeregisterEffectsFake(),
                                             current: { [unowned self] in self.session }, invalidateSession: { [unowned self] _ in self.invalidated += 1 })
     }
 

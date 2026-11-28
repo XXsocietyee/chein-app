@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Find merchants"
+            "value": "Find shops"
           }
         },
         "zh-Hans": {
@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No merchants are currently listed for cooperation."
+            "value": "No shops are listed for cooperation."
           }
         },
         "zh-Hans": {

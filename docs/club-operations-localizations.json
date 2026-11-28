@@ -92,7 +92,7 @@
     "zh-Hans": "每项设置单独确认，请刷新查看当前设置。"
   },
   "club.ops.memberRoles": {
-    "en": "Member administration",
+    "en": "Member",
     "zh-Hans": "成员管理"
   },
   "club.ops.membersUnavailable": {
@@ -136,7 +136,7 @@
     "zh-Hans": "俱乐部编号"
   },
   "club.ops.rejected": {
-    "en": "This request couldn't be completed.",
+    "en": "Request couldn't completed.",
     "zh-Hans": "请求未能完成。"
   },
   "club.ops.outcomeUnknown": {
@@ -364,7 +364,7 @@
     "zh-Hans": "旅行组织"
   },
   "club.ops.value.兴趣社群": {
-    "en": "Interest community",
+    "en": "Interest",
     "zh-Hans": "兴趣社群"
   },
   "club.ops.value.商业活动组织方": {
@@ -436,7 +436,7 @@
     "zh-Hans": "前往申请"
   },
   "club.ops.adminNote": {
-    "en": "You are an administrator · you can only edit display information",
+    "en": "You're an administrator · you can only edit display info",
     "zh-Hans": "你是管理员 · 只能改展示信息"
   },
   "club.ops.locked.title": {
@@ -516,7 +516,7 @@
     "zh-Hans": "请先成为俱乐部主理人"
   },
   "club.ops.positioning": {
-    "en": "Positioning",
+    "en": "Place",
     "zh-Hans": "定位"
   }
 }

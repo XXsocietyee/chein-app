@@ -58,7 +58,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to see your analysis"
+            "value": "Sign in see analysis"
           }
         },
         "zh-Hans": {
@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdrawal request debits"
+            "value": "Cash out"
           }
         },
         "zh-Hans": {
@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The currency of these records isn't known"
+            "value": "The currency these records isn't known"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Returned withdrawal request"
+            "value": "Returned cash-out request"
           }
         }
       }

@@ -30,7 +30,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original requests have not been deleted or replaced. No new report has been sent."
+            "value": "The original requests haven't been deleted replaced. No new report has been sent."
           }
         }
       }
@@ -302,7 +302,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original report results"
+            "value": "Original report"
           }
         }
       }

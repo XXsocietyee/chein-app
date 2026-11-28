@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No collective reward is configured"
+            "value": "No collective reward"
           }
         },
         "zh-Hans": {
@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settlement-exclusive coupon"
+            "value": "Payout-exclusive"
           }
         },
         "zh-Hans": {
@@ -500,7 +500,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visible for registration once it passes the publish check."
+            "value": "Visible for sign-up once it passes the publish check."
           }
         },
         "zh-Hans": {

@@ -80,7 +80,22 @@ public struct WeChatAppAuthService: WeChatAppExchanging {
         self.transport = transport
         auth = AuthService(configuration: configuration, transport: transport)
     }
-    private struct Envelope: Decodable { let code: Int; let token: String?; let data: Account? }
+    /// `linkedMiniProgram` is a Bool the server adds when this WeChat account is the mini-program account.
+    /// A missing or non-Bool value stays false and still signs in. The raw `msg` is never read.
+    private struct Envelope: Decodable {
+        let code: Int
+        let token: String?
+        let data: Account?
+        let linkedMiniProgram: Bool
+        private enum CodingKeys: String, CodingKey { case code, token, data, linkedMiniProgram }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            code = try c.decode(Int.self, forKey: .code)
+            token = try c.decodeIfPresent(String.self, forKey: .token)
+            data = try c.decodeIfPresent(Account.self, forKey: .data)
+            linkedMiniProgram = (try? c.decode(Bool.self, forKey: .linkedMiniProgram)) ?? false
+        }
+    }
     public func exchange(code: String) async throws -> LoginResult {
         guard !code.isEmpty, code.utf8.count <= 4096,
               code.utf8.allSatisfy({ $0 > 0x20 && $0 < 0x7f }) else { throw WeChatAppAuthError.invalidCode }
@@ -98,7 +113,7 @@ public struct WeChatAppAuthService: WeChatAppExchanging {
         guard body.code == 200 else { throw WeChatAppAuthError.rejected }
         guard let token = body.token, AuthRequestBuilder.isValidToken(token),
               let account = body.data, account.id > 0 else { throw WeChatAppAuthError.invalidResponse }
-        return LoginResult(token: token, account: account)
+        return LoginResult(token: token, account: account, linkedMiniProgram: body.linkedMiniProgram)
     }
     public func currentAccount(token: String) async throws -> Account {
         try Task.checkCancellation()
@@ -187,7 +202,7 @@ public final class WeChatAppAuthCoordinator {
             guard current(attemptID) else { stop(issue: .staleSession); return }
             guard account.id == result.account.id else { throw WeChatAppAuthError.invalidResponse }
             let committed: Bool
-            do { committed = try commit(LoginResult(token: result.token, account: account), captured) }
+            do { committed = try commit(LoginResult(token: result.token, account: account, linkedMiniProgram: result.linkedMiniProgram), captured) }
             catch { throw WeChatAppAuthError.storage }
             stop(issue: committed ? nil : .staleSession)
             if committed { phase = .signedIn; onChange?() }

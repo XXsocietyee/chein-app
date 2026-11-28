@@ -164,8 +164,13 @@ import Foundation
         XCTAssertEqual(verdict.blocking.map(\.message), ["夜间水边"])
         XCTAssertEqual(verdict.advisory.map(\.message), ["营业时间", "提示少"], "missing_cover is dropped; timeline is advisory")
         XCTAssertFalse(verdict.allowsPublish)
-        XCTAssertEqual(AISafetyPrecheckRunner.verdict(.unavailable("今日AI次数已用完")).skip, .quota)
-        XCTAssertEqual(AISafetyPrecheckRunner.verdict(.rejected("当前身份暂不支持AI创作")).skip, .unavailable)
+        XCTAssertEqual(AISafetyPrecheckVerdict.quotaHint, "今日AI次数已用完")
+        XCTAssertEqual(AISafetyPrecheckVerdict.roleGate, "当前身份暂不支持AI创作")
+        XCTAssertFalse(AISafetyPrecheckVerdict.roleGate.contains(AISafetyPrecheckVerdict.quotaHint))
+        XCTAssertEqual(AISafetyPrecheckRunner.verdict(.unavailable(AISafetyPrecheckVerdict.quotaHint)).skip, .quota)
+        XCTAssertEqual(AISafetyPrecheckRunner.verdict(.unavailable(AISafetyPrecheckVerdict.quotaHint + "，请明天再来")).skip, .unavailable,
+                       "only the exact quota phrase is a quota skip")
+        XCTAssertEqual(AISafetyPrecheckRunner.verdict(.rejected(AISafetyPrecheckVerdict.roleGate)).skip, .unavailable)
         XCTAssertTrue(AISafetyPrecheckRunner.verdict(.unknown).allowsPublish, "AI never blocks the publish path")
     }
 

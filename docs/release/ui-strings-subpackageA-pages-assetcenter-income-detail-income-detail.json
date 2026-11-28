@@ -4,64 +4,311 @@
   "showsMerchantChoice": false,
   "existingReadPath": "api/user/balance/list",
   "strings": [
-    {"key": "wallet.income", "en": "Income details", "zh-Hans": "收益明细"},
-    {"key": "wallet.all", "en": "All", "zh-Hans": "全部"},
-    {"key": "wallet.creationIncome", "en": "Creation income", "zh-Hans": "创作收益"},
-    {"key": "wallet.brandIncome", "en": "Brand income", "zh-Hans": "品牌收益"},
-    {"key": "wallet.clubFinance", "en": "Host revenue share", "zh-Hans": "主办分润"},
-    {"key": "wallet.earnings.tab.income", "en": "Income", "zh-Hans": "收入"},
-    {"key": "wallet.earnings.tab.organizer", "en": "Organizer share", "zh-Hans": "主办分润"},
-    {"key": "wallet.income.empty", "en": "No earnings records yet", "zh-Hans": "还没有收益记录"},
-    {"key": "wallet.loading", "en": "Loading…", "zh-Hans": "加载中…"},
-    {"key": "wallet.failed", "en": "Couldn't load. Nothing was changed.", "zh-Hans": "没加载出来，记录未被更改"},
-    {"key": "wallet.login", "en": "Sign in to view this information", "zh-Hans": "登录后可查看"},
-    {"key": "wallet.retry", "en": "Try again", "zh-Hans": "重试"},
-    {"key": "wallet.ledger.referenceID", "en": "Reference ID", "zh-Hans": "流水编号"},
-    {"key": "wallet.ledger.timestamp", "en": "Timestamp", "zh-Hans": "记录时间"},
-    {"key": "wallet.entry", "en": "Entry", "zh-Hans": "变动记录"},
-    {"key": "wallet.event.topicShare", "en": "Topic revenue share", "zh-Hans": "主题分润"},
-    {"key": "wallet.event.activityShare", "en": "Activity revenue share", "zh-Hans": "活动分润"},
-    {"key": "wallet.event.withdrawalRequest", "en": "Withdrawal request", "zh-Hans": "提现申请"},
-    {"key": "wallet.event.withdrawalRejected", "en": "Rejected withdrawal return", "zh-Hans": "提现驳回返还"},
-    {"key": "wallet.event.merchantReferral", "en": "Merchant referral share", "zh-Hans": "商家邀请分润"},
-    {"key": "wallet.event.other", "en": "Other event", "zh-Hans": "其他事由"},
-    {"key": "wallet.direction", "en": "Direction", "zh-Hans": "收支方向"},
-    {"key": "wallet.inflow", "en": "Income", "zh-Hans": "收入"},
-    {"key": "wallet.outflow", "en": "Expense", "zh-Hans": "支出"},
-    {"key": "wallet.direction.income", "en": "Income", "zh-Hans": "收入"},
-    {"key": "wallet.direction.expense", "en": "Expense", "zh-Hans": "支出"},
-    {"key": "wallet.direction.unknown", "en": "Direction unknown", "zh-Hans": "收支方向未知"},
-    {"key": "wallet.loadMore", "en": "Load more", "zh-Hans": "加载更多"},
-    {"key": "wallet.currencyUnknown", "en": "—", "zh-Hans": "—"},
-    {"key": "wallet.unknown", "en": "Unknown", "zh-Hans": "待确认"},
-    {"key": "wallet.income.detail.unknownMoney", "en": "—", "zh-Hans": "—"},
-    {"key": "wallet.income.day.today", "en": "Today", "zh-Hans": "今天"},
-    {"key": "wallet.income.day.yesterday", "en": "Yesterday", "zh-Hans": "昨天"},
-    {"key": "wallet.income.day.unknown", "en": "Transactions", "zh-Hans": "交易明细"},
-    {"key": "action.close", "en": "Close", "zh-Hans": "关闭"},
-    {"key": "wallet.earnings.finance.separate", "en": "Organizer share is settled separately, in CNY", "zh-Hans": "主办分润单独结算，以人民币计"},
-    {"key": "wallet.earnings.finance.unconfigured", "en": "—", "zh-Hans": "—"},
-    {"key": "wallet.earnings.finance.signedOut", "en": "Sign in to see organizer share", "zh-Hans": "登录后查看主办分润"}
+    {
+      "key": "wallet.income",
+      "en": "Income details",
+      "zh-Hans": "收益明细"
+    },
+    {
+      "key": "wallet.all",
+      "en": "All",
+      "zh-Hans": "全部"
+    },
+    {
+      "key": "wallet.creationIncome",
+      "en": "Creation income",
+      "zh-Hans": "创作收益"
+    },
+    {
+      "key": "wallet.brandIncome",
+      "en": "Brand income",
+      "zh-Hans": "品牌收益"
+    },
+    {
+      "key": "wallet.clubFinance",
+      "en": "Host revenue",
+      "zh-Hans": "主办分润"
+    },
+    {
+      "key": "wallet.earnings.tab.income",
+      "en": "Income",
+      "zh-Hans": "收入"
+    },
+    {
+      "key": "wallet.earnings.tab.organizer",
+      "en": "Organizer share",
+      "zh-Hans": "主办分润"
+    },
+    {
+      "key": "wallet.income.empty",
+      "en": "No earnings records yet",
+      "zh-Hans": "还没有收益记录"
+    },
+    {
+      "key": "wallet.loading",
+      "en": "Loading…",
+      "zh-Hans": "加载中…"
+    },
+    {
+      "key": "wallet.failed",
+      "en": "Couldn't load. Nothing was changed.",
+      "zh-Hans": "没加载出来，记录未被更改"
+    },
+    {
+      "key": "wallet.login",
+      "en": "Sign in to view this info",
+      "zh-Hans": "登录后可查看"
+    },
+    {
+      "key": "wallet.retry",
+      "en": "Try",
+      "zh-Hans": "重试"
+    },
+    {
+      "key": "wallet.ledger.referenceID",
+      "en": "Reference ID",
+      "zh-Hans": "流水编号"
+    },
+    {
+      "key": "wallet.ledger.timestamp",
+      "en": "Timestamp",
+      "zh-Hans": "记录时间"
+    },
+    {
+      "key": "wallet.entry",
+      "en": "Entry",
+      "zh-Hans": "变动记录"
+    },
+    {
+      "key": "wallet.event.topicShare",
+      "en": "Topic revenue",
+      "zh-Hans": "主题分润"
+    },
+    {
+      "key": "wallet.event.activityShare",
+      "en": "Activity revenue",
+      "zh-Hans": "活动分润"
+    },
+    {
+      "key": "wallet.event.withdrawalRequest",
+      "en": "Cash-out request",
+      "zh-Hans": "提现申请"
+    },
+    {
+      "key": "wallet.event.withdrawalRejected",
+      "en": "Rejected withdrawal return",
+      "zh-Hans": "提现驳回返还"
+    },
+    {
+      "key": "wallet.event.merchantReferral",
+      "en": "Merchant referral share",
+      "zh-Hans": "商家邀请分润"
+    },
+    {
+      "key": "wallet.event.other",
+      "en": "Other event",
+      "zh-Hans": "其他事由"
+    },
+    {
+      "key": "wallet.direction",
+      "en": "Direction",
+      "zh-Hans": "收支方向"
+    },
+    {
+      "key": "wallet.inflow",
+      "en": "Income",
+      "zh-Hans": "收入"
+    },
+    {
+      "key": "wallet.outflow",
+      "en": "Expense",
+      "zh-Hans": "支出"
+    },
+    {
+      "key": "wallet.direction.income",
+      "en": "Income",
+      "zh-Hans": "收入"
+    },
+    {
+      "key": "wallet.direction.expense",
+      "en": "Expense",
+      "zh-Hans": "支出"
+    },
+    {
+      "key": "wallet.direction.unknown",
+      "en": "Direction unknown",
+      "zh-Hans": "收支方向未知"
+    },
+    {
+      "key": "wallet.loadMore",
+      "en": "Load more",
+      "zh-Hans": "加载更多"
+    },
+    {
+      "key": "wallet.currencyUnknown",
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    {
+      "key": "wallet.unknown",
+      "en": "Unknown",
+      "zh-Hans": "待确认"
+    },
+    {
+      "key": "wallet.income.detail.unknownMoney",
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    {
+      "key": "wallet.income.day.today",
+      "en": "Today",
+      "zh-Hans": "今天"
+    },
+    {
+      "key": "wallet.income.day.yesterday",
+      "en": "Last day",
+      "zh-Hans": "昨天"
+    },
+    {
+      "key": "wallet.income.day.unknown",
+      "en": "Transactions",
+      "zh-Hans": "交易明细"
+    },
+    {
+      "key": "action.close",
+      "en": "Close",
+      "zh-Hans": "关闭"
+    },
+    {
+      "key": "wallet.earnings.finance.separate",
+      "en": "Organizer share is settled separately, in CNY",
+      "zh-Hans": "主办分润单独结算，以人民币计"
+    },
+    {
+      "key": "wallet.earnings.finance.unconfigured",
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    {
+      "key": "wallet.earnings.finance.signedOut",
+      "en": "Sign in to see organizer share",
+      "zh-Hans": "登录后查看主办分润"
+    }
   ],
   "accessibilityIdentifiers": [
-    {"id": "wallet.income.detail", "en": "Income details", "zh-Hans": "收益明细", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.income.detail.close", "en": "Close", "zh-Hans": "关闭", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.income.detail.retired", "en": "Couldn't load. Nothing was changed.", "zh-Hans": "没加载出来，记录未被更改", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.income.detail.open.", "en": "Open this income record", "zh-Hans": "打开这条收益记录", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.income.badge.", "en": "Income source", "zh-Hans": "收益来源", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.ledger.", "en": "Income record", "zh-Hans": "收益记录", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.ledger.empty", "en": "No earnings records yet", "zh-Hans": "还没有收益记录", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.ledger.dateGroup.", "en": "Date group", "zh-Hans": "日期分组", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.ledger.loadMore", "en": "Load more", "zh-Hans": "加载更多", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.issue", "en": "Couldn't load. Nothing was changed.", "zh-Hans": "没加载出来，记录未被更改", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.income.detail.loading", "en": "Loading", "zh-Hans": "加载中", "source": "Core/WalletIncomeDay.swift"},
-    {"id": "wallet.income.detail.error", "en": "Couldn't load. Nothing was changed.", "zh-Hans": "没加载出来，记录未被更改", "source": "Core/WalletIncomeDay.swift"},
-    {"id": "wallet.income.detail.unknownMoney", "en": "—", "zh-Hans": "—", "source": "Core/WalletIncomeDay.swift"},
-    {"id": "wallet.income.filter", "en": "Income and organizer share", "zh-Hans": "收入与主办分润", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.earnings.tab.organizer", "en": "Organizer share", "zh-Hans": "主办分润", "source": "App/WalletCommerceViews.swift"},
-    {"id": "wallet.earnings.finance.separate", "en": "Organizer share is settled separately, in CNY", "zh-Hans": "主办分润单独结算，以人民币计", "source": "App/WalletEarningsOverview.swift"},
-    {"id": "wallet.earnings.finance.unconfigured", "en": "—", "zh-Hans": "—", "source": "App/WalletEarningsOverview.swift"},
-    {"id": "wallet.earnings.finance.signedOut", "en": "Sign in to see organizer share", "zh-Hans": "登录后查看主办分润", "source": "App/WalletEarningsOverview.swift"},
-    {"id": "wallet.fixture.income", "en": "Income", "zh-Hans": "收益明细", "source": "App/WalletCommerceFixtureHost.swift"}
+    {
+      "id": "wallet.income.detail",
+      "en": "Income details",
+      "zh-Hans": "收益明细",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.income.detail.close",
+      "en": "Close",
+      "zh-Hans": "关闭",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.income.detail.retired",
+      "en": "Couldn't load. Nothing was changed.",
+      "zh-Hans": "没加载出来，记录未被更改",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.income.detail.open.",
+      "en": "Open this income record",
+      "zh-Hans": "打开这条收益记录",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.income.badge.",
+      "en": "Income source",
+      "zh-Hans": "收益来源",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.ledger.",
+      "en": "Income record",
+      "zh-Hans": "收益记录",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.ledger.empty",
+      "en": "No earnings records yet",
+      "zh-Hans": "还没有收益记录",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.ledger.dateGroup.",
+      "en": "Date group",
+      "zh-Hans": "日期分组",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.ledger.loadMore",
+      "en": "Load more",
+      "zh-Hans": "加载更多",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.issue",
+      "en": "Couldn't load. Nothing was changed.",
+      "zh-Hans": "没加载出来，记录未被更改",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.income.detail.loading",
+      "en": "Loading",
+      "zh-Hans": "加载中",
+      "source": "Core/WalletIncomeDay.swift"
+    },
+    {
+      "id": "wallet.income.detail.error",
+      "en": "Couldn't load. Nothing was changed.",
+      "zh-Hans": "没加载出来，记录未被更改",
+      "source": "Core/WalletIncomeDay.swift"
+    },
+    {
+      "id": "wallet.income.detail.unknownMoney",
+      "en": "—",
+      "zh-Hans": "—",
+      "source": "Core/WalletIncomeDay.swift"
+    },
+    {
+      "id": "wallet.income.filter",
+      "en": "Income and organizer share",
+      "zh-Hans": "收入与主办分润",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.earnings.tab.organizer",
+      "en": "Organizer share",
+      "zh-Hans": "主办分润",
+      "source": "App/WalletCommerceViews.swift"
+    },
+    {
+      "id": "wallet.earnings.finance.separate",
+      "en": "Organizer share is settled separately, in CNY",
+      "zh-Hans": "主办分润单独结算，以人民币计",
+      "source": "App/WalletEarningsOverview.swift"
+    },
+    {
+      "id": "wallet.earnings.finance.unconfigured",
+      "en": "—",
+      "zh-Hans": "—",
+      "source": "App/WalletEarningsOverview.swift"
+    },
+    {
+      "id": "wallet.earnings.finance.signedOut",
+      "en": "Sign in to see organizer share",
+      "zh-Hans": "登录后查看主办分润",
+      "source": "App/WalletEarningsOverview.swift"
+    },
+    {
+      "id": "wallet.fixture.income",
+      "en": "Income",
+      "zh-Hans": "收益明细",
+      "source": "App/WalletCommerceFixtureHost.swift"
+    }
   ]
 }

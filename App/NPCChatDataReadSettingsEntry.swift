@@ -30,8 +30,15 @@ struct NPCChatDataReadPresentation: Identifiable {
                 pendingIdentity = renderedIdentity
                 showsOptions = true
             } label: {
-                // MP shezhi AI 对话记录 = icon_lc_message-square-text.
-                Label { Text("mpd.aiChat.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcMessageSquareText) }
+                // MP shezhi AI 对话记录 = icon_lc_message-square-text. The row opens the option sheet, so it stays a
+                // button; the chevron matches the other Settings rows (ADA e4-settings).
+                HStack {
+                    Label { Text("mpd.aiChat.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcMessageSquareText) }
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
+                }
+                .contentShape(Rectangle())
             }
             .foregroundStyle(CYColor.textPrimary)
             .accessibilityIdentifier("npcData.open")

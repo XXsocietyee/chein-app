@@ -219,6 +219,68 @@ import XCTest
         XCTAssertEqual(store.haptic?.event, .propertyLost)
     }
 
+    func testPointsChargeSurvivesPointsRead404() async throws {
+        let stub = Stub()
+        let lease = try XCTUnwrap(CityGameProductionLease(host: "city.example.test", regionID: "r1"))
+        let pointsKey = "GET /prod-api/api/city-game/territory/points"
+        let mapPath = "GET /prod-api/api/city-game/territory/map"
+        stub.answers[mapPath] = ["items": [["propertyId": "t-3", "title": "骑楼口", "tier": 1, "lvl": 0, "districtId": "d1",
+                                            "holder": ["maskedName": "我", "isMe": true], "lat": 31.231, "lng": 121.471]], "currency": "POINTS"]
+        stub.answers[pointsKey] = ["currency": "POINTS", "balance": 500, "pending": 12, "holdings": 2, "holdingLimit": 9,
+                                   "earnedSeason": 80, "spentSeason": 20]
+        stub.answers["GET /prod-api/api/city-game/season/current"] = ["seasonId": "s2026w46", "phase": "REGULAR", "day": 8]
+        stub.answers["GET /prod-api/api/city-game/territory/revenue"] = ["events": [], "todayPending": 0, "todayAvailable": 0]
+        stub.answers["POST /prod-api/api/city-game/territory/claim/quote"] = ["quoteId": "q1", "quoteHash": "h", "cost": 60, "protectionHours": 24]
+        stub.answers["POST /prod-api/api/city-game/territory/claim/command"] = ["outcome": "APPLIED", "balance": 440]
+        stub.answers["POST /prod-api/api/city-game/territory/scout"] = ["propertyId": "t-3", "dc": 11, "cost": 10, "balance": 430]
+        stub.answers["POST /prod-api/api/city-game/territory/shield"] = ["propertyId": "t-3", "cost": 60, "balance": 370,
+                                                                        "protectedUntil": 1_795_900_800_000]
+        let service = try CityMonopolyService(configuration: APIConfiguration(baseURL: base), token: "tok-1", lease: lease,
+                                              transport: stub, isCurrent: { true })
+        let nearby: CityNearbyRead = { _ in
+            try JSONDecoder().decode(RoamTerritoryNearbyResponse.self, from: JSONSerialization.data(withJSONObject: ["revenueMode": "POINTS", "territories": [
+                ["poiId": 1, "title": "人民广场", "latitude": 31.23, "longitude": 121.47, "radiusM": 80, "claimed": false, "status": "AVAILABLE",
+                 "isProtected": false, "checkinTollPoints": 5, "ownerRevenuePoints": 5, "checkinCount": 0, "revenueTotalPoints": 0]]]))
+        }
+        let store = CityBoardStore(service: service, nearby: nearby, memberID: 9009)
+        let centre = try XCTUnwrap(RoamCoordinate(latitude: 31.23, longitude: 121.47))
+        await store.load(center: centre)
+        XCTAssertEqual(store.points?.balance, 500)
+        XCTAssertEqual(store.points?.holdings, 2)
+
+        stub.answers.removeValue(forKey: pointsKey)
+        let open = try XCTUnwrap(store.places.first { $0.ownership == .open })
+        await store.quote(.claim, place: open, fix: nil)
+        let fixes = try (0..<4).map { step in
+            try RoamDeviceFix(coordinate: centre, accuracyMeters: 8, measuredAt: Date().addingTimeInterval(Double(step - 3) * 20), datum: .gcj02)
+        }
+        let claimed = await store.confirm(fixes: fixes, photoAssetId: "https://example.invalid/p.jpg")
+        XCTAssertEqual(claimed?.kind, .applied)
+        XCTAssertEqual(store.points?.balance, 440, "a 404 on the points read keeps the command balance")
+        XCTAssertEqual(store.points?.pending, 12)
+        XCTAssertEqual(store.points?.holdings, 2)
+        XCTAssertEqual(store.points?.holdingLimit, 9)
+        XCTAssertEqual(store.points?.earnedSeason, 80)
+        XCTAssertEqual(store.points?.spentSeason, 20)
+
+        stub.answers[pointsKey] = ["currency": "POINTS", "balance": 440, "pending": 0, "holdings": 3, "holdingLimit": 9]
+        await store.load(center: centre)
+        XCTAssertEqual(store.points?.balance, 440)
+        XCTAssertEqual(store.points?.holdings, 3, "a successful points read replaces the whole summary")
+        XCTAssertEqual(store.points?.pending, 0)
+
+        stub.answers.removeValue(forKey: pointsKey)
+        let mine = try XCTUnwrap(store.places.first { $0.territoryId == "t-3" })
+        let dc = await store.scout(mine)
+        XCTAssertEqual(dc, 11)
+        XCTAssertEqual(store.points?.balance, 430)
+        XCTAssertEqual(store.points?.holdings, 3)
+        let protectedUntil = await store.shield(mine)
+        XCTAssertNotNil(protectedUntil)
+        XCTAssertEqual(store.points?.balance, 370)
+        XCTAssertEqual(store.points?.holdings, 3)
+    }
+
     func testUnavailableWithoutServices() {
         let store = CityBoardStore(service: nil, nearby: nil)
         XCTAssertEqual(store.phase, .unavailable)

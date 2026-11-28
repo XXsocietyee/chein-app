@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting lookup"
+            "value": "Awaiting"
           }
         },
         "zh-Hans": {
@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose from photo library"
+            "value": "Choose photo library"
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Take photo"
+            "value": "Take"
           }
         },
         "zh-Hans": {
@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upload authentication or permission is no longer valid. The original upload protection lock has not been cleared. Confirm your identity again before checking the known original asset. Uploads will not retry automatically."
+            "value": "Upload sign-in or permission is no longer valid. The original upload protection lock hasn't been cleared. Confirm your identity again before checking the known original asset. Uploads won't retry on own."
           }
         },
         "zh-Hans": {

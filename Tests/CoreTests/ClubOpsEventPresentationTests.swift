@@ -178,4 +178,21 @@ final class ClubOpsEventPresentationTests: XCTestCase {
         XCTAssertFalse(ClubOpsEventSeriesConflict.qualifies(operation: .createSeries, failure: .conflict(message: nil), state: .conflict))
     }
 
+    func testTopicFactsCarryDateRangeAndOwnClubLikeMiniDropdownLabel() throws {
+        let scope = ClubGovernanceScope(clubID: 81)
+        let value = ClubGovernanceValue.array([
+            .object(["id": .integer(7), "name": .string("夜跑"), "clubId": .integer(81),
+                     "startDate": .string("2026-12-01"), "endDate": .string("2026-12-07")]),
+            .object(["id": .integer(8), "name": .string("夜跑"), "clubId": .string("90"), "startDate": .string("2026-12-03")]),
+            .object(["id": .integer(9), "name": .string("  ")])
+        ])
+        let facts = ClubOpsEventTopicNames.facts(.init(operation: .eventTopics, scope: scope, permissions: nil, value: value), clubID: 81)
+        XCTAssertEqual(facts.map(\.id), [7, 8, 9])
+        XCTAssertEqual(facts.map(\.ownClub), [true, false, false])
+        XCTAssertEqual(facts[0].rangeText(locale: zh), "12月1日–12月7日")
+        XCTAssertEqual(facts[1].rangeText(locale: zh), "12月3日")
+        XCTAssertNil(facts[2].rangeText(locale: zh))
+        XCTAssertNil(facts[2].name)
+    }
+
 }

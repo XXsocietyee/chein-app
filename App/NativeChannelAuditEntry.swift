@@ -60,7 +60,7 @@ import SwiftUI
                             Button("d7.channelAudit.tryAgain") { Task { await flow.refresh() } }
                         }
                     }
-                    if flow.canLoadMore { Button("d7.channelAudit.loadMore") { Task { await flow.more() } } }
+                    if flow.canLoadMore, flow.state != .unavailable { CYLoadMoreRow("d7.channelAudit.loadMore") { Task { await flow.more() } } }
                 }
                 .refreshable { await flow.refresh() }
             } else if unavailable {

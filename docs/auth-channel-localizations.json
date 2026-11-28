@@ -16,7 +16,7 @@
   },
   {
     "key": "auth.channels.code",
-    "en": "Verification code",
+    "en": "Check code",
     "zh-Hans": "验证码"
   },
   {
@@ -81,7 +81,7 @@
   },
   {
     "key": "auth.channels.appleNotConfigured",
-    "en": "Sign in with Apple isn't available right now.",
+    "en": "Sign in Apple isn't available right.",
     "zh-Hans": "Apple 登录暂不可用"
   },
   {
@@ -121,7 +121,7 @@
   },
   {
     "key": "auth.channels.legalPending",
-    "en": "Legal documents aren't available right now.",
+    "en": "Legal documents aren't available.",
     "zh-Hans": "法律文档暂不可用"
   }
 ]

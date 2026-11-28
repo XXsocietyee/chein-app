@@ -51,7 +51,7 @@
   },
   {
     "key": "social.incompleteLink",
-    "en": "This link is no longer valid",
+    "en": "Link no longer valid",
     "zh-Hans": "链接已失效"
   },
   {
@@ -101,7 +101,7 @@
   },
   {
     "key": "social.achievements",
-    "en": "Achievements",
+    "en": "Honors",
     "zh-Hans": "成就"
   },
   {
@@ -116,12 +116,12 @@
   },
   {
     "key": "social.likes",
-    "en": "Likes received",
+    "en": "Likes",
     "zh-Hans": "获赞"
   },
   {
     "key": "social.followers",
-    "en": "Followers",
+    "en": "Fans",
     "zh-Hans": "粉丝"
   },
   {
@@ -151,7 +151,7 @@
   },
   {
     "key": "social.portfolio",
-    "en": "Exploration portfolio",
+    "en": "Exploration",
     "zh-Hans": "探索作品"
   },
   {
@@ -231,7 +231,7 @@
   },
   {
     "key": "social.invites.title",
-    "en": "Invitation history",
+    "en": "Invite history",
     "zh-Hans": "邀请记录"
   },
   {
@@ -441,7 +441,7 @@
   },
   {
     "key": "social.editor.comment",
-    "en": "Write a comment",
+    "en": "Write comment",
     "zh-Hans": "写评论"
   },
   {
@@ -466,7 +466,7 @@
   },
   {
     "key": "social.editor.toggleFollow",
-    "en": "Follow relationship",
+    "en": "Follow",
     "zh-Hans": "关注关系"
   },
   {

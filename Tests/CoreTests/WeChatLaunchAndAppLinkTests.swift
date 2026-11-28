@@ -66,6 +66,7 @@ final class WeChatAppLaunchTests: XCTestCase {
         let result = try await service.exchange(code: "061AbcCode")
         XCTAssertEqual(result.token, "t-1")
         XCTAssertEqual(result.account.id, 41)
+        XCTAssertTrue(result.linkedMiniProgram)
         let request = try XCTUnwrap(http.requests.first)
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.url?.absoluteString, "https://www.chengyinhub.com/prod-api/api/login/wechat/app")
@@ -83,6 +84,32 @@ final class WeChatAppLaunchTests: XCTestCase {
                                                transport: http)
             do { _ = try await service.exchange(code: "061AbcCode"); XCTFail("refusal signed in") }
             catch { XCTAssertEqual(error as? WeChatAppAuthError, .rejected) }
+        }
+    }
+
+    /// The mini-program note is a Bool on the exchange result. Missing, false, and non-Bool values stay false
+    /// and still sign in. A refusal stays a refusal even when the flag is present. The server `msg` is not kept.
+    @MainActor func testLinkedMiniProgramFlagIsPresentationOnly() async throws {
+        let base = URL(string: "https://www.chengyinhub.com/prod-api/")!
+        let account = #"{"id":41,"nickname":"城瘾用户","role":"player"}"#
+        let cases: [(String, Bool)] = [
+            (#"{"code":200,"token":"t-1","data":\#(account),"linkedMiniProgram":false}"#, false),
+            (#"{"code":200,"token":"t-1","data":\#(account)}"#, false),
+            (#"{"code":200,"token":"t-1","data":\#(account),"linkedMiniProgram":"true","msg":"private server text"}"#, false),
+        ]
+        for (reply, expected) in cases {
+            let http = LaunchHTTPFixture([(reply, 200)])
+            let result = try await WeChatAppAuthService(configuration: try APIConfiguration(baseURL: base), transport: http).exchange(code: "061AbcCode")
+            XCTAssertEqual(result.linkedMiniProgram, expected)
+            XCTAssertEqual(result.token, "t-1")
+            XCTAssertEqual(result.account.id, 41)
+        }
+        let refused = LaunchHTTPFixture([(#"{"code":500,"msg":"账号已被冻结","linkedMiniProgram":true}"#, 200)])
+        do {
+            _ = try await WeChatAppAuthService(configuration: try APIConfiguration(baseURL: base), transport: refused).exchange(code: "061AbcCode")
+            XCTFail("a refusal must not sign in")
+        } catch {
+            XCTAssertEqual(error as? WeChatAppAuthError, .rejected)
         }
     }
 }

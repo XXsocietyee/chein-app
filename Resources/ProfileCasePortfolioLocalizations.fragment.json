@@ -28,7 +28,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Portfolio description"
+          "value": "Portfolio details"
         }
       }
     }
@@ -113,7 +113,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Existing images can be previewed. Adding, removing and uploading images are not available yet."
+          "value": "Existing images can previewed. Adding, removing uploading images aren't available yet."
         }
       }
     }
