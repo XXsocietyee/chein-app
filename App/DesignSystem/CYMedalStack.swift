@@ -248,6 +248,8 @@ struct CYMedalScreen: View {
     var record: Record? = nil
     /// Text to hand to the share sheet. Nil hides the share pill (capability absent).
     var shareText: String? = nil
+    /// mp-nav r3: the MP settle share path (`/pages/topic/index/index?id=`) sent with `shareText`; nil shares the text alone.
+    var shareURL: URL? = nil
     var secondaryTitle: LocalizedStringKey = "medalScreen.done"
     var onSecondary: (() -> Void)? = nil
     let onClose: () -> Void
@@ -412,16 +414,24 @@ struct CYMedalScreen: View {
         .accessibilityElement(children: .combine)
     }
 
+    private var shareLabel: some View {
+        Label("medalScreen.share", systemImage: "square.and.arrow.up")
+            .cyText(.bodyMedium).frame(maxWidth: .infinity, minHeight: 56)
+            .foregroundStyle(CYNight.ink0)
+            .background(Color.white, in: Capsule())
+    }
+
     private var buttons: some View {
         HStack(spacing: CYSpacing.sm) {
             CYPillButton(secondaryTitle, style: .secondary) { (onSecondary ?? onClose)() }
                 .accessibilityIdentifier("medalScreen.secondary")
             if let shareText {
-                ShareLink(item: shareText) {
-                    Label("medalScreen.share", systemImage: "square.and.arrow.up")
-                        .cyText(.bodyMedium).frame(maxWidth: .infinity, minHeight: 56)
-                        .foregroundStyle(CYNight.ink0)
-                        .background(Color.white, in: Capsule())
+                Group {
+                    if let shareURL {
+                        ShareLink(item: shareURL, message: Text(verbatim: shareText)) { shareLabel }
+                    } else {
+                        ShareLink(item: shareText) { shareLabel }
+                    }
                 }
                 .accessibilityIdentifier("medalScreen.share")
             }

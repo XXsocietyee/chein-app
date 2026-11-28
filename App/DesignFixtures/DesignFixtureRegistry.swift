@@ -37,6 +37,7 @@ enum DesignFixtureRegistry {
         case "d2-search-offline": return AnyView(D2Fixture(screen: .searchOffline))
         case "d2-square": return AnyView(D2Fixture(screen: .square))
         case "d2-square-empty": return AnyView(D2Fixture(screen: .squareEmpty))
+        case "d2-square-failed": return AnyView(D2Fixture(screen: .squareFailed))
         case "d2-play": return AnyView(D2Fixture(screen: .play))
         case "d2-city": return AnyView(D2Fixture(screen: .city))
         case "d2-npc": return AnyView(D2Fixture(screen: .npc))
@@ -47,13 +48,15 @@ enum DesignFixtureRegistry {
         case "d2-inbox-loading": return AnyView(D2Fixture(screen: .inboxLoading))
         case "nearby-empty": return AnyView(NearbyTeamFixtureRoot(emptyMine: true).themeDomain(.player))
         case "d2-me": return AnyView(D2Fixture(screen: .me))
-        case "d2-roam": return AnyView(D2Fixture(screen: .roam))
+        // mp-roam r3 (ADA 1128 d2-roam P0): the shipping 漫游 tab root (map home), not the legacy roam browser.
+        case "d2-roam": return AnyView(RoamMapHomeFixture())
         // Wave 3 B2: Today card tap with a self-playing synthetic finger (loops every 2.6 s).
         case "wave-today-roam": return AnyView(WaveTodayFixture(kind: .roam))
         case "wave-today-ticket": return AnyView(WaveTodayFixture(kind: .ticket))
         case "wave-today-club": return AnyView(WaveTodayFixture(kind: .club))
         case "e5b-unlock": return AnyView(E5bMomentFixture(kind: .unlock))
-        case "e5b-stamp": return AnyView(E5bMomentFixture(kind: .stamp))
+        // mp-roam r3 (ADA 11-28 e5b-stamp): the real citystamp slip, collected (MP 换票), not the generic moment.
+        case "e5b-stamp": return AnyView(RoamStampCollectedFixture())
         case "e5b-checkin": return AnyView(E5bMomentFixture(kind: .checkIn))
         case "e5b-badge-wall": return AnyView(E5bBadgeWallFixture())
         case "a11y-roam-ax5": return AnyView(A11yRoamAX5Fixture())
@@ -129,7 +132,8 @@ enum DesignFixtureRegistry {
         case "merchant-coupons": return merchantCouponFixture()
         case "d6-play": return AnyView(D6MapFixture(kind: .play))
         case "d6-play-loading": return AnyView(D6MapFixture(kind: .playLoading))
-        case "d6-roam": return AnyView(D6MapFixture(kind: .roam))
+        // mp-roam r3: the same map home with nothing nearby (MP P-26 empty 附近活动 peek).
+        case "d6-roam": return AnyView(RoamMapHomeFixture(nearbyEmpty: true))
         // mp-roam r3: 漫游记录 (subpackageRoam/history) content / empty / error states for the sweep.
         case "r3-roam-history": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .content), toolsReader: RoamPassportToolsFixtureReader(scenario: .content)) })
         case "r3-roam-history-empty": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .empty)) })

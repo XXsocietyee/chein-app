@@ -75,9 +75,9 @@ public enum FreeExploreCancelState: Equatable {
         case .quote(let quote):
             state = quote.canCancel
                 ? .awaitingConfirmation(reservationID: reservationID, useWaiver: useWaiver, quote: quote)
-                : .failed(W8Text.t("当前不可取消，请刷新预约状态", "This reservation can't be cancelled right now. Refresh its status."))
+                : .failed(W8Text.t("当前不可取消，请刷新预约状态", "This reservation can't be canceled right now. Refresh its status."))
         case .failed(let message):
-            state = .failed(message.isEmpty ? W8Text.t("取消试算失败，未发送取消", "Could not get a cancellation quote. Nothing was cancelled.") : message)
+            state = .failed(message.isEmpty ? W8Text.t("取消试算失败，未发送取消", "Could not get a cancellation quote. Nothing was canceled.") : message)
         case .unavailable:
             state = .unavailable
         }

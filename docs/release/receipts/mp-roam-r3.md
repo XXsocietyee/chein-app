@@ -573,6 +573,44 @@ No new strings. Gates: generate_project OK · check_scaffold PASS · a11y lint 0
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
+## Round 3 continue (43) — ADA audit `d6-roam` (P1): the 附近活动 peek never disappears
+
+Base re-merged with `origin/ui/combined-r7` (62 commits, no conflict). Screens read: `docs/sweeps/latest/mp-roam/en-d6-roam.jpg`, `en-d2-roam.jpg`.
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| ADA `d6-roam` (P1, "blank map with three buttons and no status words"; cross-screen "d6 duplicates d2") | `pages/roam/index.wxml` entry-peek (owner P-26 2026-10-27: 附近活动 always shows; empty → `entry-peek__state` 附近暂无活动 · 打开地图寻找附近活动 → `openNearbyMap`) → `App/DesignFixtures/D6Fixtures.swift` `roamEmptyPeek` (shipping twin: `RoamMapHomeSheet.nearbyRows` empty branch) | The fixture drew the map + 规则 / 走起 / 附近 with no sheet at all, which the MP never shows; it also read as a copy of d2-roam. | d6-roam now keeps the collapsed map sheet (`cyMapSheet`, detents 236 pt / medium) holding the 附近活动 section with the MP empty state: `ContentUnavailableView` 附近暂无活动 + `.bordered` 打开地图寻找附近活动 (same keys, glyph and id as the shipping map home). The fixture now shows a distinct state (nothing nearby) instead of duplicating d2-roam. No new strings. | A · `d6-roam` |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
+## Round 3 continue (44) — 据点核销码 error state follows the MP `qr-voucher` error card (page with only a shallow row)
+
+| MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|
+| `subpackageRoam/citynode-code` → `components/cy/scene-qr-citynode` → `components/cy/qr-voucher` `qr__error` (icon + `errorText` 暂时无法生成核销码，请稍后重试 / 网络异常 / 核销码二维码没能生成 + 重试; desc and countdown hidden) → `App/RoamSubpageParityViews.swift` `RoamCityVoucherCodeView` → `App/VerificationCodeView.swift` `content` (city voucher, `autoIssue`) | Sections re-checked in MP order: missing-param shell + 返回 ✓, guest gate (登录) ✓, loading (P10 words) ✓, code + 「Ns 后自动刷新」 + 出示给商家扫码领券 ✓, auto re-issue at 0 and on return to foreground ✓. Only the error differed: a bare centred line plus a `.borderedProminent` 重试, while the entry-code error on the same view already uses the shared `ContentUnavailableView` pattern. | Failed / invalid city-voucher codes now render `ContentUnavailableView` (qrcode glyph, the MP error line as the title, `.bordered` 重试). Same ids (`verificationCode.phase`, `verificationCode.show`) and same copy keys (network vs issue line unchanged), so UI tests and Core pins are untouched. Other code kinds unchanged. No new strings. | C · utility (no fixture; live route) |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
+## Round 3 continue (45) — ADA audit `e5b-stamp` (P1): the sweep shows the real stamp-collected moment
+
+Base re-merged with `origin/ui/combined-r7` (clean). No new coordinator finding for mp-roam since 07:45; the latest sweep is still build 3348aa51f.
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| ADA `e5b-stamp` (P1: "generic pin glyph, not the stamp"; "Lantern Gate is not in the album"; coral/purple colours used nowhere else; no visible celebration) | `subpackageRoam/citystamp` ③ 换票 (wxml:68–135: 出发 · place · time / 签号 → 留签人 / 留于 → the stamp photo → 留给你的一句 (scratch) → 保存到相册 · 收下，出发) → `App/RoamSubpageParityViews.swift` `RoamStampSlipView`; fixture `App/DesignFixtures/RoamStampCollectedFixture.swift`, `DesignFixtureRegistry.swift` | `e5b-stamp` mounted `CYCelebrationMoment(kind: .stamp)`, a DesignSystem demo that no player screen uses (no production caller), so the sweep judged a screen players never see. The real moment (MP 换票 slip, with the continue-41 burst and success haptic) had no fixture. | `e5b-stamp` now mounts the real slip, collected: new optional `revealedAtStart` (opens torn + revealed on appear, so the burst and `.success` haptic play once, Reduce Motion → no burst) and `sampleArt` (bundled MP art instead of the remote photo) on `RoamStampSlipView` / `RoamStampSlipPhotoView`, both default off so the two live call sites are unchanged. The fixture uses stamp 902 with the same caption (老街霓虹 / Old street neon) and art (`MPAsset.BannerCover.cityCamera`) as the `e2-stamp-album` tile, on the grouped ground, inline title 城市贴纸 like the flow. MP actions kept as the MP has them (保存到相册 + 收下，出发); the ADA "See my stamps" / Share additions are not in the MP 换票 step, so not added (OWNER RULE). No new strings. | A · celebration / `e5b-stamp` |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet **new 0**. No Swift build here.
+
+## Round 3 continue (46) — ADA audit `d2-roam` (P0 "roam is not shown"): the sweep mounts the shipping map home
+
+Base re-merged with `origin/ui/combined-r7` (clean). Sweep build 0446d1c4f read: `mp-roam/sheet-zh-Hans.jpg` (d2-roam / d6-roam = legacy browser: drawn grid, inline 漫游, i · 走起 · map), `a11y-dt/zh-Hans-a11y-roam-ax5.jpg`. No new coordinator finding for mp-roam since 07:45.
+
+| Source | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| ADA `d2-roam` (P0: drawn grid, no tiles / position, inline title vs AX5 large) + `d6-roam` (P1); Not done since continue (11) | `pages/roam/index` → shipping tab root `App/NativeR2/MapHome/RoamMapHomeView.swift` (`QuestifyApp.roamTab`, `NativeR2Flags.mapHome` default on); fixtures `App/DesignFixtures/RoamMapHomeFixture.swift` (new), `DesignFixtureRegistry.swift` | Both roam shots mounted the legacy `RoamBrowserView` (players only see it as the 漫游护照与工具 sheet) or a D6 mock of it, so the sweep, the ADA review and the App Store harness (`roam` → `d2-roam`) judged a screen that is not the tab root: no MapKit tiles, no Apple-Maps panel, a title style the real root does not have. | `d2-roam` → `RoamMapHomeFixture()` and `d6-roam` → `RoamMapHomeFixture(nearbyEmpty: true)`: the real `RoamMapHomeView` with synthetic readers only (no session, location, network, write). Places (灯笼门 / 老街霓虹 / 转角咖啡) and the entry 附近活动 rows (外滩夜色寻线 / 老街自由探索) sit around People's Square (GCJ-02) and follow the UI language; the empty variant shows the MP P-26 empty peek. Offline-example footer off (the shot shows what players see). Legacy `RoamHomeFixtureHostView` (`--uitesting-roam-home` UI tests) unchanged; `D6MapFixture(.roam)` mock is now unused. No new strings. | A · map home / `d2-roam`, `d6-roam` |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet **new 0**. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
@@ -587,7 +625,8 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen from merchant pins + shop photo pins: done in continue (23).
 - For other lanes (ds-consistency, mp-journey, mp-activity): the default panel is now ds-consistency's elevated surface (follows the appearance); roam additionally opts into `.environment(\.cyMapPanelFollowsAppearance, true)` (continue 24). The other `CYMapScaffold` users (`PlayExperienceView`, `PlaySessionView`, `NearbyTeamViews`) and `CYRoamNearbySheet` (fixture only) still use the black `cyMapPanelColor`; opt in once their panel content is checked for semantic colours.
+- For a11y-dt: `a11y-roam-ax5` is a hand-built mock of the legacy browser (large title, filled ⋯ circle); now that `d2-roam` mounts the real map home (continue 46), mount `RoamMapHomeFixture()` with `.environment(\.dynamicTypeSize, .accessibility5)` instead.
 - Entry peek `.login`: 401 part done in continue (16); the no-deployment `.login` fixture state stays (not reachable by players).
 - Live map bottom strip P-32: done in continue (21) for the map home (shipping tab root); the legacy `RoamBrowserView` live cover (flag off) gets no feed.
 - No Swift build ran here; integrator compiles.
-- For ds-consistency: `e5b-stamp` (`CYCelebrationMoment` .stamp) draws a generic `mappin.and.ellipse` glyph; P24/P30 want the stamp's own art. Not mounted by roam screens.
+- For ds-consistency: `CYCelebrationMoment` `.stamp` (generic `mappin.and.ellipse`, hard-coded coral ink) has no production caller; `e5b-stamp` now shows the roam slip instead (continue 45). Remove the `.stamp` kind or give it the stamp art if a screen starts using it.

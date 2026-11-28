@@ -49,7 +49,7 @@ public struct ClubTopicEndSummary: Equatable, Sendable {
         switch outcome {
         case .done: return nil
         case .stillProcessing: return chinese ? "原结束请求仍在处理中，请按原请求查回" : "The original end request is still processing. Check it again."
-        case .partialFailure(let count, let reason): return chinese ? "\(count) 场没能取消：\(reason)" : "\(count) session(s) could not be cancelled: \(reason)"
+        case .partialFailure(let count, let reason): return chinese ? "\(count) 场没能取消：\(reason)" : "\(count) session(s) could not be canceled: \(reason)"
         case .unconfirmed: return chinese ? "结束结果尚未确认，请保留原请求重试" : "The result is not confirmed yet. Keep the original request and retry."
         }
     }

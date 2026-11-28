@@ -89,7 +89,7 @@ extension EnvironmentValues {
     }
 
     @ViewBuilder private var cancelledRows: some View {
-        RegistrationPayCancelledLine(message: Text(c.t("支付已取消", "Payment cancelled")))
+        RegistrationPayCancelledLine(message: Text(c.t("支付已取消", "Payment canceled")))
             .accessibilityIdentifier("registration.pay.cancelled")
         Button(c.t("重新支付", "Pay again")) {
             Task { await launch() }
@@ -180,5 +180,30 @@ extension EnvironmentValues {
                 await session.readRegistrationPaymentStatus(registrationID: registrationID)
             }
         )
+    }
+}
+
+/// Planning audit G-01a: a free registration lands in the wallet at once (MP baoming.js:1922-1925
+/// 报名成功 · 票已放入票夹), so the result offers the same 查看门票 link as a paid one, opening the wallet
+/// focused on this registration.
+@MainActor struct RegistrationFreeTicketLink: View {
+    @Environment(\.locale) private var locale
+    let registrationID: Int
+    @State private var showsWallet = false
+
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+
+    var body: some View {
+        Button {
+            showsWallet = true
+        } label: {
+            Label(c.t("查看门票", "View ticket"), systemImage: "ticket")
+        }
+        .accessibilityIdentifier("registration.result.openTicket")
+        .cySheet(isPresented: $showsWallet) { walletSheet }
+    }
+
+    private var walletSheet: some View {
+        SessionTicketWalletHost(onClose: { showsWallet = false }, focusRegistrationID: registrationID)
     }
 }

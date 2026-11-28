@@ -385,18 +385,18 @@
         }
       }
     },
-    "editorKit.gameplay.all": {
+    "editorKit.gameplay.pickOne": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All"
+            "value": "Pick a game type"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "全部"
+            "value": "选一个玩法"
           }
         }
       }
@@ -413,22 +413,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "试看"
-          }
-        }
-      }
-    },
-    "editorKit.gameplay.unavailable %lld": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not available in this topic · %lld"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "这个主题里用不了 · %lld 种"
           }
         }
       }

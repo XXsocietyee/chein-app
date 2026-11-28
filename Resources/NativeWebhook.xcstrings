@@ -863,7 +863,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         }
       }
@@ -1441,7 +1441,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The operation was cancelled."
+            "value": "The operation was canceled."
           }
         }
       }
@@ -3866,7 +3866,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled"
+            "value": "Canceled"
           }
         },
         "zh-Hans": {
@@ -4529,7 +4529,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancelled."
+            "value": "Canceled."
           }
         },
         "zh-Hans": {

@@ -811,8 +811,11 @@ struct ClubCommunityPostTile: View {
                         Button("club.community.report") { Task { await model.prepare(.report, clubID: clubID, post: post) } }
                             .accessibilityLabel(Text("club.community.report"))
                     }
-                } label: { Label("club.community.actions", systemImage: "ellipsis").labelStyle(.iconOnly) }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
+                } label: {
+                    Label("club.community.actions", systemImage: "ellipsis").labelStyle(.iconOnly)
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                }
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
             }
             tileActions {

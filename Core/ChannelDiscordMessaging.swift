@@ -567,8 +567,9 @@ public enum ChannelMessageBurstGrouper {
         case let .yesterday(clock):
             return ChannelCopy.text("昨天 \(clock)", "Yesterday \(localeClock(clock, locale: locale))", locale: locale)
         case let .date(month, day, clock):
-            // MP `MM-dd HH:mm` in Chinese; English reads "Nov 7, 9:00 AM" (a bare "11-07" reads as a range).
-            if ChannelCopy.isChinese(locale) { return String(format: "%02d-%02d %@", month, day, clock) }
+            // Same fields as the MP `MM-dd HH:mm`, written the way each language reads a date (ADA 1128 d4-channel-chat):
+            // zh "11月7日 09:00"; en "Nov 7, 9:00 AM" (a bare "11-07" reads as a range).
+            if ChannelCopy.isChinese(locale) { return "\(month)月\(day)日 \(clock)" }
             let formatter = DateFormatter()
             formatter.locale = locale
             let months: [String] = formatter.shortMonthSymbols ?? []

@@ -88,6 +88,11 @@ import SwiftUI
                 if !controller.isCurrent(original) { Text("projectStarter.stale") }
                 else if buffer.readOnly { Text("projectInitialState.unsupported", tableName: "ProjectInitialState") }
                 else {
+                    if !buffer.carry.isEmpty {
+                        ProjectInitialStateCarrySection(rows: buffer.carry, locked: buffer.carryLocked) { key in
+                            buffer.removeCarry(key); invalid = false
+                        }
+                    }
                     ForEach(ProjectInitialState.Kind.allCases.filter { resource($0).wrappedValue.enabled }, id: \.self) { kind in
                         ProjectInitialStateResourceSection(kind: kind, resource: resource(kind),
                             remove: { buffer.setEnabled(false, kind: kind); invalid = false }, edited: { invalid = false })
@@ -193,5 +198,36 @@ private struct ProjectInitialStateOptionRow: View {
         }
         .disabled(added)
         .accessibilityIdentifier("projectInitialState.add." + kind.rawValue)
+    }
+}
+
+/// MP `fabu/index.wxml:1914-1923` 开局带着: clue / tag rows the player starts with, removable unless the registry is bound.
+private struct ProjectInitialStateCarrySection: View {
+    let rows: [ProjectInitialState.CarryRow]
+    let locked: Bool
+    let remove: (String) -> Void
+    var body: some View {
+        Section {
+            ForEach(rows) { row in
+                HStack {
+                    LabeledContent {
+                        Text(row.isClue ? "projectInitialState.kind.clue" : "projectInitialState.kind.tag", tableName: "ProjectInitialState")
+                    } label: {
+                        Text(verbatim: row.label)
+                    }
+                    if !locked {
+                        Button { remove(row.key) } label: {
+                            Image(systemName: "xmark.circle.fill").imageScale(.large).foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .accessibilityLabel(Text("projectInitialState.removeCarry \(row.label)", tableName: "ProjectInitialState"))
+                        .accessibilityIdentifier("projectInitialState.carry.remove." + row.key)
+                    }
+                }
+            }
+        } header: {
+            Text("projectInitialState.carryHeader", tableName: "ProjectInitialState")
+        }
     }
 }

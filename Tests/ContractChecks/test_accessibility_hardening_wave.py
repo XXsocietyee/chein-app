@@ -71,7 +71,8 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
         top = s[s.index('private var channelTopBar'):s.index('"club.channel.muteButton"')]
         self.assertIn('Text(channel.name)', top)
         self.assertNotIn('.lineLimit(1)\n                            .truncationMode(.tail)', top)
-        self.assertIn('.cyWrapText()', top)
+        # mp-club r3 pass 39: the name is the centred `.principal` title now, so it wraps centred.
+        self.assertIn('.cyWrapText(alignment: .center)', top)
 
 
 class FPA4ActivityDetail(unittest.TestCase):
@@ -80,6 +81,11 @@ class FPA4ActivityDetail(unittest.TestCase):
         # mp-home r3 continue: the MP detail has no embedded map (集合点 opens Maps), so no map can trap focus;
         # the meeting-point row says what it does.
         self.assertNotIn('Map(initialPosition', s)
+        # continue 36: the 集合点 snippet is the shared static map (no gestures, no hit testing), labelled + hinted.
+        snippet = src('App/HomeTodayMeetingPointMap.swift')
+        self.assertIn('interactionModes: []', snippet)
+        self.assertIn('.allowsHitTesting(false)', snippet)
+        self.assertIn('.accessibilityHint(', snippet)
         self.assertIn('accessibilityHint(Text("activity.meetingPoint.openMaps"))', s)
         self.assertIn('enum ActivityLocationAccessibility', s)
 

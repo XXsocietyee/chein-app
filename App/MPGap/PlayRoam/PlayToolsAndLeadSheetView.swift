@@ -46,6 +46,15 @@ public struct PlayToolsAndLeadSheetView: View {
     /// mp-journey r3: MP 游玩工具 本局用时 · 当前得分 (`sessStats`, mode 1 with an orient `routeState.sessionId`; both open
     /// 本局成绩), pushed right before 同行者榜. Nil hides the row.
     public var scoreDestination: (() -> AnyView)? = nil
+    /// mp-journey r3: MP 游玩工具 入场码 (`wx:if="{{regId && !isPreview && !isMock}}"`, `openTicketFromTools` →
+    /// `scene-qr-ticket`). The run's ticket registration id; nil or 0 hides the row.
+    public var entryCodeRegistrationID: Int? = nil
+    /// mp-journey-b r3: MP 游玩工具 联系主办 / 联系商家 (`wx:if="{{playContact}}"`, after the lead rows): dial only,
+    /// the number stays off screen; tap asks 拨打「name」的电话？ first (`callPlayContact`). Nil hides the row.
+    public var contact: PlayContact? = nil
+    @State private var confirmCall = false
+    @Environment(\.openURL) private var openURL
+    @Environment(\.locale) private var locale
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -77,8 +86,12 @@ public struct PlayToolsAndLeadSheetView: View {
         scoreDestination: (() -> AnyView)? = nil,
         rights: PlayToolsRights? = nil,
         onRights: @escaping () -> Void = {},
-        freeTrackPerkOnly: Bool? = nil
+        freeTrackPerkOnly: Bool? = nil,
+        entryCodeRegistrationID: Int? = nil,
+        contact: PlayContact? = nil
     ) {
+        self.contact = contact
+        self.entryCodeRegistrationID = entryCodeRegistrationID
         self.freeTrackPerkOnly = freeTrackPerkOnly
         self.rights = rights
         self.onRights = onRights
@@ -111,10 +124,16 @@ public struct PlayToolsAndLeadSheetView: View {
         self.evidenceCards = evidenceCards
     }
 
+    private var entryRegistration: Int? {
+        guard let id = entryCodeRegistrationID, id > 0 else { return nil }
+        return id
+    }
+
     public var body: some View {
         NavigationStack {
             Form {
                 leadSection
+                contactSection
                 contentSection
                 evidenceSection
                 if !thoughts.isEmpty {
@@ -168,7 +187,7 @@ public struct PlayToolsAndLeadSheetView: View {
                 }
                 // mp-journey r3: MP 游玩工具 lists 入场码 then 旅程手记 after 本局读数 / 扫码到达 / 切换章节 / 队伍位置,
                 // just above the preferences.
-                if showsContentRows || journalRows != nil || rights != nil {
+                if showsContentRows || journalRows != nil || rights != nil || entryRegistration != nil {
                     Section {
                         if let rights {
                             Button(action: onRights) {
@@ -180,7 +199,14 @@ public struct PlayToolsAndLeadSheetView: View {
                             }
                             .accessibilityIdentifier("playTools.rights")
                         }
-                        if showsContentRows {
+                        if let entryRegistration {
+                            NavigationLink {
+                                PlayEntryCodeDestination(registrationID: entryRegistration)
+                            } label: {
+                                Label("playTools.entryCode", systemImage: "ticket")
+                            }
+                            .accessibilityIdentifier("playTools.entryCode")
+                        } else if showsContentRows {
                             Button("playTools.entryCode", action: onOpenEntryCode)
                                 .accessibilityIdentifier("playTools.entryCode")
                         }
@@ -267,6 +293,33 @@ public struct PlayToolsAndLeadSheetView: View {
                 .accessibilityIdentifier("playTools.team")
             }
         }
+    }
+
+    /// MP `callPlayContact`: confirm with the name (else 商家 / 主办), then dial; no number on screen.
+    @ViewBuilder private var contactSection: some View {
+        if let contact {
+            Section {
+                Button { confirmCall = true } label: {
+                    Label(LocalizedStringKey(contact.merchant ? "playTools.contact.merchant" : "playTools.contact.host"), systemImage: "phone")
+                }
+                .accessibilityIdentifier("playTools.contact")
+            }
+            .alert(Text("playTools.contact.prompt \(contactCallee(contact))"), isPresented: $confirmCall) {
+                Button("playTools.contact.call") { dial(contact) }
+                Button("playx.cancel", role: .cancel) {}
+            }
+        }
+    }
+
+    private func contactCallee(_ contact: PlayContact) -> String {
+        if !contact.name.isEmpty { return contact.name }
+        return appLocalized(contact.merchant ? "playTools.contact.merchantName" : "playTools.contact.hostName", locale: locale)
+    }
+
+    private func dial(_ contact: PlayContact) {
+        let digits = contact.phone.filter { $0.isNumber || $0 == "+" }
+        guard !digits.isEmpty, let url = URL(string: "tel:" + digits) else { return }
+        openURL(url)
     }
 
     @ViewBuilder private var leadSection: some View {

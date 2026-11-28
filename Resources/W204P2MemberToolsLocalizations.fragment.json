@@ -3,7 +3,7 @@
   "strings": {
     "ticketWallet.p2.notice.cancelled": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "This ticket was cancelled" } },
+        "en": { "stringUnit": { "state": "translated", "value": "This ticket was canceled" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "票已取消" } }
       }
     },
