@@ -202,6 +202,15 @@ Merged `origin/ui/combined-r7` (clean). No new en-layout coordinator finding (la
 | 72 | `pages/topic/components/cy/self-play-checkout` 通行证覆盖本主题 → `MPPassEntries.swift` (`mp.pass.checkout.covered`) | "Your pass covers this theme · this order is ¥0": 主题 is "topic" on every other player screen (204 vs 56 strings) and the clause reads as a translation | en → "Your pass covers this topic · ¥0 for this order"; zh unchanged. Other checkout strings (Breakdown / Single purchase / Total, `contextSelfPlay.*`) checked, fine | Done |
 | 73 | `pages/topic/components/cy/date-range-sheet` (开始/结束 · 清除/确定) → `SearchMapFilterSheet.swift` (`mapDatePicker.*`) | Checked: "Choose start date" / "Choose end date", "The start date must be on or before the end date.", Confirm; Day / Month / Year labels | English reads well; no change. The MP 共 N 天 / N 晚 summary badge is not in the native sheet → For other lanes (mp-home owns search/map filters) | Checked |
 
+### Run 19 (2026-11-28, half-hourly)
+
+Merged `origin/ui/combined-r7` (clean). No new en-layout coordinator finding (latest sweep 02:20Z: journey zh / nav en, no findings). Worked from code on `pages/topic/components/cy/theme-records`.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 74 | `pages/topic/components/cy/theme-records` 我的游玩记录 (rows: result title · scene · summary · ended date / 游玩中; empty / loading / error / 查看更多; result card sections; MP order unchanged) → `TopicThemeRecordsView.swift` | Row date showed the raw server `endedAt` text; 游玩中 read "In play" | Row date via `LocaleDisplay.civil(_, locale:)` ("Dec 1, 2026 at 10:00 AM"; zh keeps the MP text, unparsable text unchanged); `topicXcx.records.playing` en → "In progress" (catalog + `w2-07-localizations.json`). Other record/card strings checked (Run completed / Run ended / Endings found / Next scene / Play again / View run report), fine | Done |
+| 75 | Wallet money symbol (gate) → `WalletCommerceViews.swift:1290` | After merging `ui/combined-r7`, `check_locale_format.py` FAILED (yuan 2 > 1): ds-consistency's `symbol(_:locale:)` compared `base == "¥"` | Same meaning without the literal: `base == symbol("CNY")`. Gate PASS | Done |
+
 ## Not done
 
 | Item | Why |
@@ -210,7 +219,7 @@ Merged `origin/ui/combined-r7` (clean). No new en-layout coordinator finding (la
 
 
 ## Next pages (no row yet)
-Re-check rows 23, 37–41, 46, 56–57 in the next sweep. `pages/templatedetail/*` and `pages/publishkit/index` done from code (rows 59–60); `pages/publishkit/components/*` done (rows 61–62; reward-selector is coupon creation = merchant, out of scope); `pages/topic/catalog` is a redirect only (no content); pass-reveal done (row 65); topic detail includes/hero done (row 70); session-picker + self-play-checkout done (rows 71–72); next: remaining `pages/topic/components/cy/*` (theme-records; date-range-sheet checked row 73). Catalog-wide: other British spellings remain ("licence", "centre" in creator/merchant tools; "cancelled" is accepted US usage) — fix when a player screen is touched. Catalog-wide: ~50 `publish*`/`projectEdit*` en values use straight apostrophes (not a layout problem; leave unless a screen is touched).
+Re-check rows 23, 37–41, 46, 56–57 in the next sweep. `pages/templatedetail/*` and `pages/publishkit/index` done from code (rows 59–60); `pages/publishkit/components/*` done (rows 61–62; reward-selector is coupon creation = merchant, out of scope); `pages/topic/catalog` is a redirect only (no content); pass-reveal done (row 65); topic detail includes/hero done (row 70); session-picker + self-play-checkout done (rows 71–72); theme-records done (row 74); next: remaining `pages/topic/components/cy/*` without a row. Catalog-wide: other British spellings remain ("licence", "centre" in creator/merchant tools; "cancelled" is accepted US usage) — fix when a player screen is touched. Catalog-wide: ~50 `publish*`/`projectEdit*` en values use straight apostrophes (not a layout problem; leave unless a screen is touched).
 
 ## For other lanes
 - mp-home: map filter date sheet (`SearchMapFilterSheet.swift`) has no MP date-range-sheet summary badge (共 N 天 / N 晚 once both ends are picked).
