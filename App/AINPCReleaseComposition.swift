@@ -37,7 +37,7 @@ extension ReviewedProductionGateLeases {
     }
 }
 
-extension AppCompositionRoot {
+@MainActor extension AppCompositionRoot {
     /// True when the shipped China composition has the reviewed player grant on (the same switch every other
     /// player write in Release rides on).
     func releaseAINPCEnabled(_ context: RuntimeDependencyContext) -> Bool {
