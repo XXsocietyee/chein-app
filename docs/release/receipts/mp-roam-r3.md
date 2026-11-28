@@ -583,6 +583,14 @@ Base re-merged with `origin/ui/combined-r7` (62 commits, no conflict). Screens r
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
+## Round 3 continue (44) — 据点核销码 error state follows the MP `qr-voucher` error card (page with only a shallow row)
+
+| MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|
+| `subpackageRoam/citynode-code` → `components/cy/scene-qr-citynode` → `components/cy/qr-voucher` `qr__error` (icon + `errorText` 暂时无法生成核销码，请稍后重试 / 网络异常 / 核销码二维码没能生成 + 重试; desc and countdown hidden) → `App/RoamSubpageParityViews.swift` `RoamCityVoucherCodeView` → `App/VerificationCodeView.swift` `content` (city voucher, `autoIssue`) | Sections re-checked in MP order: missing-param shell + 返回 ✓, guest gate (登录) ✓, loading (P10 words) ✓, code + 「Ns 后自动刷新」 + 出示给商家扫码领券 ✓, auto re-issue at 0 and on return to foreground ✓. Only the error differed: a bare centred line plus a `.borderedProminent` 重试, while the entry-code error on the same view already uses the shared `ContentUnavailableView` pattern. | Failed / invalid city-voucher codes now render `ContentUnavailableView` (qrcode glyph, the MP error line as the title, `.bordered` 重试). Same ids (`verificationCode.phase`, `verificationCode.show`) and same copy keys (network vs issue line unchanged), so UI tests and Core pins are untouched. Other code kinds unchanged. No new strings. | C · utility (no fixture; live route) |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
