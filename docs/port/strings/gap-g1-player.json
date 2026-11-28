@@ -21,19 +21,19 @@
   },
   "topicRoute.progress.title": {
     "zh-Hans": "站点进度",
-    "en": "Stop Progress"
+    "en": "Stop progress"
   },
   "topicRoute.teams.title": {
     "zh-Hans": "附近队伍",
-    "en": "Nearby Teams"
+    "en": "Nearby teams"
   },
   "topicRoute.teams.viewAll": {
     "zh-Hans": "查看本场全部队伍",
-    "en": "View All Teams"
+    "en": "View all teams"
   },
   "topicRoute.merchants.title": {
     "zh-Hans": "参与商家",
-    "en": "Participating Merchants"
+    "en": "Participating shops"
   },
   "registration.merchantClosed.banner": {
     "zh-Hans": "商家暂停营业，暂不可预约",
@@ -541,7 +541,7 @@
   },
   "bundle.catalog.merchants": {
     "zh-Hans": "参与商家",
-    "en": "Participating Merchants"
+    "en": "Participating shops"
   },
   "bundle.catalog.openTopic": {
     "zh-Hans": "查看主题详情",

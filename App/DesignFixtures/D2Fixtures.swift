@@ -5,7 +5,7 @@ import SwiftUI
 /// through the existing module fixture hosts and apply the player (dark) role theme the way the real tabs do.
 /// `--design-fixture d2-home | d2-search | d2-square | d2-roam`.
 struct D2Fixture: View {
-    enum Screen { case home, homeOffline, search, searchResults, searchOffline, square, squareEmpty, roam, play, city, npc, inbox, inboxEmpty, me }
+    enum Screen { case home, homeOffline, search, searchResults, searchOffline, square, squareEmpty, roam, play, city, npc, inbox, inboxEmpty, inboxError, inboxSignedOut, inboxLoading, me }
     let screen: Screen
 
     var body: some View {
@@ -42,8 +42,22 @@ struct D2Fixture: View {
             NavigationStack {
                 MessagingHomeView(reader: MessagingFixtureReader(.empty), expanded: nil, squareDestination: { _ in AnyView(EmptyView()) })
             }
+        case .inboxError: D2InboxStateFixture(scenario: .error)
+        case .inboxSignedOut: D2InboxStateFixture(scenario: .unauthorized)
+        case .inboxLoading: D2InboxStateFixture(scenario: .loading)
         case .me: D2MeFixture()
         case .roam: RoamHomeFixtureHostView()
+        }
+    }
+}
+
+/// mp-nav r3 "Next round" item 3: the 消息 inbox (MP subpackageB/pages/im/list) in its other MP states, so the sweep
+/// shows them: cy-error 加载失败 + 重试, cy-empty no-permission 登录后查看消息 + 登录, and the first-load spinner.
+struct D2InboxStateFixture: View {
+    let scenario: MessagingFixtureScenario
+    var body: some View {
+        NavigationStack {
+            MessagingHomeView(reader: MessagingFixtureReader(scenario), expanded: nil, squareDestination: { _ in AnyView(EmptyView()) })
         }
     }
 }

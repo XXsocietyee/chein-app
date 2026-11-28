@@ -49,7 +49,7 @@ import MapKit
         }
         let seconds = model.clock.elapsedSeconds
         if seconds > 0 { items.append(.init(id: "medalScreen.stat.time", value: PlayRunElapsedText.format(seconds))) }
-        if walkedMeters > 0 { items.append(.init(id: "nativeR2.city.metric.distance", value: CityOrientationFormat.distance(walkedMeters))) }
+        if walkedMeters > 0 { items.append(.init(id: "nativeR2.city.metric.distance", value: CityOrientationFormat.distance(walkedMeters, locale: locale))) }
         if let snapshot = model.snapshot {
             let puzzle = PlayPuzzleSummary(snapshot: snapshot)
             if puzzle.count > 0 { items.append(.init(id: "playx.finish.puzzleScore", value: String(puzzle.score))) }
@@ -182,6 +182,9 @@ import MapKit
         }
         .accessibilityIdentifier("medalScreen")
         .motionR2EdgeGlowOnAppear()
+        // P30: the finish moment fires one success haptic when the record is revealed (also under Reduce Motion,
+        // where the reveal is instant).
+        .cyHaptic(.success, trigger: revealed) { old, new in !old && new }
         .task { await reveal() }
     }
 

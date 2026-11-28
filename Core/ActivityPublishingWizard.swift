@@ -106,7 +106,7 @@ public enum ActivityPublishingWizard {
     public static var collaboratorSettlementNotice: String { W8Text.t("合作者可编辑内容，不参与结算", "Collaborators can edit content but don’t take part in settlement") }
     public static var merchantFreeTicketOnlyNotice: String { W8Text.t("商家活动暂时只支持免费票", "Merchant activities only support free tickets for now") }
     public static var merchantPaidTicketBlockedMessage: String { W8Text.t("商家主办活动还没开通收款，票价只能是 0", "Payments aren’t enabled for merchant-hosted activities yet, so the ticket price must be 0") }
-    public static var createReviewHeading: String { W8Text.t("发布前摘要", "Summary before publishing") }
+    public static var createReviewHeading: String { W8Text.t("发布前摘要", "Review before publishing") }
     public static var editReviewHeading: String { W8Text.t("修改摘要", "Summary of changes") }
     public static var createVisibilityNotice: String { W8Text.t("默认公开：发布后会在活动列表展示，继续即按当前公开范围发布。", "Public by default: once published it appears in the activity list, and continuing publishes it with the current visibility.") }
     public static var editVisibilityNotice: String { W8Text.t("本次保存只更新上面这些内容，不会改变活动的公开范围。", "This save only updates the items above and doesn’t change who can see the activity.") }
