@@ -3622,5 +3622,22 @@
         }
       }
     }
+  },
+  "playkit.compare.outOfTries": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Out of tries. No life lost this time."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "次数用完了，这次不扣生命"
+        }
+      }
+    }
   }
 }

@@ -177163,13 +177163,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your whole selection is correct."
+            "value": "All marked correctly"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "整组标记正确。"
+            "value": "全标对了"
           }
         }
       }
@@ -177180,13 +177180,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not all correct. Try again."
+            "value": "Not quite. Compare them again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有全对，再试试。"
+            "value": "还没标对，再对照一遍"
           }
         }
       }
@@ -351948,6 +351948,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "已找到 %1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "playkit.compare.outOfTries": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out of tries. No life lost this time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次数用完了，这次不扣生命"
           }
         }
       }
