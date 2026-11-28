@@ -38927,6 +38927,23 @@
         }
       }
     },
+    "context.review.failedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your review wasn't posted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评价没有发布"
+          }
+        }
+      }
+    },
     "context.review.notSent": {
       "extractionState": "manual",
       "localizations": {
