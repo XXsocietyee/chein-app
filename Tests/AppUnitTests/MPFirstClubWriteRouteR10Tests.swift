@@ -69,7 +69,7 @@ import XCTest
     /// settlement writes and extra keys stay refused.
     func testAdmitsOwnerReadsOnTheirExactBody() throws {
         let scope = ClubGovernanceScope(clubID: 3)
-        for read in [ClubGovernanceRead.stats, .settlement, .series, .customers, .audienceCounts] {
+        for read in [ClubGovernanceRead.stats, .settlement, .series, .customers, .customerCount, .audienceCounts] {
             let fields = try read.fields(scope: scope)
             let body = String(decoding: try JSONEncoder().encode(fields), as: UTF8.self)
             XCTAssertTrue(MPFirstClubWriteRoute.accepts(json(read.path, body: body), baseURL: base, token: token), "\(read.path) \(body)")
@@ -77,7 +77,8 @@ import XCTest
         for (path, body) in [("api/stats/club", #"{"clubId":3,"amount":1}"#), ("api/club/settlement/summary", #"{"clubId":0}"#),
                              ("api/club/settlement/summary", #"{"clubId":3,"personal":true}"#), ("api/club/settlement/withdraw", #"{"clubId":3}"#),
                              ("api/club/settlement/mine", #"{"clubId":3}"#), ("api/club/crm/customers/list", #"{"clubId":3}"#),
-                             ("api/club/event-ops/series/list", #"{"clubId":3,"page":1}"#)] {
+                             ("api/club/event-ops/series/list", #"{"clubId":3,"page":1}"#),
+                             ("api/club/crm/customers/count", #"{"clubId":0}"#), ("api/club/crm/customers/count", #"{"clubId":3,"filter":"all"}"#)] {
             XCTAssertFalse(MPFirstClubWriteRoute.accepts(json(path, body: body), baseURL: base, token: token), "\(path) \(body)")
         }
     }

@@ -355,6 +355,14 @@ Merged `origin/ui/combined-r7` (clean). Level C (club admin) for the event-ops f
 | **C-07b** cancel occurrence confirm was a sheet with two fixed consequence rows | `pages/club/event-ops/index.wxml:278-281` `cy-modal compact` 确认取消本场？ / 会下架本场、处理退款并终止候补。已核销的部分不退。 / 再想想 · 取消本场 (danger), no top bar, mask not dismissible | `App/ClubGovernanceCommandForm.swift`: the `cySheet` (List + toolbar) is now a system `.alert`: title `cancel.confirmTitle`, message `cancel.confirmBody` (the MP content line), `.cancel` 再想想 and `.destructive` 取消本场. The stale-review guard (`pending.id == review?.id`) and the `cancelConfirmReview` trigger are unchanged. Existing keys only; the consequence1/2 keys stay for the popups fixture | `test_club_ops_event.py` pins (trigger + guard) still hold |
 | **J-15** director recap export refused | `PlayDirectorRecap` GET `api/game/session/recap/export?activityId` (BE `ApiGameSessionController.java:83`) | `App/ReviewedPlayerWriteLeases.swift`: added to `playRuntimeReadPaths` (GET, no body, play grant), so it also joins `playPaths` | `ReviewedChinaLaunchCompositionTests`: grant names the path, it is a runtime read, `isPlayGrantPath` true |
 
+## Pass 36: planning audit C-13 (no new coordinator finding for mp-club; latest sweep 3348aa51f covers nav/activity only)
+Merged `origin/ui/combined-r7` (8952067e9, second-wave fixes).
+| Plan ID | MP source | Native fix (file) | Test |
+|---|---|---|---|
+| **C-13** 查看客户 gear count blank | `pages/club/detail/index.js:3565-3580` POST `/api/club/crm/customers/count` `{clubId}` (owner/admin only, `N 人`; silent on fail) | `App/MPFirstClubApprovals.swift`: `api/club/crm/customers/count` admitted in `governancePaths` with exact `readShapes` `ids: ["clubId"]` (the `ClubGovernanceRead.customerCount` body that `ClubDetailR8Mounts.swift:52` sends; `club.settings.customerCount` shows only when total > 0, as the MP) | `MPFirstClubWriteRouteR10Tests.testAdmitsOwnerReadsOnTheirExactBody`: built body passes; `clubId 0` and extra `filter` refused |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 52/52 new 0, design consistency PASS.
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.
