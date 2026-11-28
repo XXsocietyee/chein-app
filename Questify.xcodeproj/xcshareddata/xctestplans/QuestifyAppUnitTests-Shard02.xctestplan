@@ -167,6 +167,7 @@
         "EnvironmentBranchAndRewardLedgerViewTests",
         "FinalReleaseSignoffAndZeroGapCertificateViewTests",
         "Fix1128bPlayReleaseCompositionTests",
+        "Fix1128bTeamRegCompositionTests",
         "FogOverlayLayerPixelTests",
         "FreeExploreBundleLaunchModelTests",
         "FreeExploreBundleReadHostTests",

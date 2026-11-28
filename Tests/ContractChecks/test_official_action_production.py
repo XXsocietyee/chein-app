@@ -12,7 +12,8 @@ class OfficialActionProductionChecks(unittest.TestCase):
         region = self.read('App/RegionalLaunchConfiguration.swift')
         dependency = self.read('App/NativeRuntimeDependencies.swift')
         self.assertIn('OfficialActionProductionFactory(api: regionalConfiguration?.apiConfiguration', app)
-        self.assertIn('approval: runtimeDependencies.officialActionApproval, transport: runtimeHTTPTransport', app)
+        # Gap #17 (1128 plan, fix/1128b-team-reg): approval source read on every use.
+        self.assertIn('approvalSource: { [weak self] in self?.runtimeDependencies.officialActionApproval }, transport: runtimeHTTPTransport', app)
         self.assertIn('current: { [weak self] in self?.currentRuntimeDependencyContext }', app)
         self.assertIn('officialActionApproval: OfficialActionProductionApproval? = nil', dependency)
         self.assertIn('static var dormant: Self { .init() }', dependency)
@@ -61,8 +62,12 @@ class OfficialActionProductionChecks(unittest.TestCase):
 
     def test_missing_source_context_cannot_be_granted(self):
         source = self.read('Core/OfficialActionProduction.swift')
+        # Exact-command grants still cannot carry an arrival or merchant invite.
         self.assertIn('case .arrival, .inviteMerchants: return nil', source)
-        self.assertIn('case .arrival, .inviteMerchants: throw OfficialActionFailure.disabled', source)
+        # Gap #17 (1128 plan, fix/1128b-team-reg): the Release player grant reads the event back for an arrival
+        # (MP roam verifyEventArrival); merchant invites stay disabled.
+        self.assertIn('case .inviteMerchants: throw OfficialActionFailure.disabled', source)
+        self.assertIn('guard playerTargets, case .arrival(let evidence) = command else { return nil }', source)
         app = self.read('App/OfficialEventDetailView.swift')
         self.assertIn('OfficialParticipationActions(coordinator: actions, event: event, onReturn: {', app)
         self.assertNotIn('arrival:', app)

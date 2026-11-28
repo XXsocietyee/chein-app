@@ -99,9 +99,24 @@ public enum NearbyWriteResult: Equatable { case simulated(expiry: NearbyServerTi
                 let raw = try JSONSerialization.data(withJSONObject: value, options: .fragmentsAllowed)
                 expiry = try? JSONDecoder().decode(NearbyServerTime.self, from: raw)
             }
+            // Gap #7 (T-06): `handle` goes through `api/team/command`, which answers code 200 with `data.state`
+            // APPLIED / REJECTED / CANCELLED / UNKNOWN (TeamEventCommandService.execute). Only APPLIED acknowledges;
+            // REJECTED carries the server message (the row stays); anything else stays unknown.
+            if let state = commandState(response.data, action: action, synthetic: synthetic) { return state }
             return synthetic ? .simulated(expiry: expiry) : .acknowledged(expiry: expiry)
         } catch NearbyTeamFailure.rejected(let code, let message) { return .rejected(errorCode: code, message: message) }
         catch { return .unknown }
+    }
+    /// Nil when the answer is acknowledged (APPLIED, or a direct-route envelope without a receipt).
+    static func commandState(_ data: Data, action: NearbyTeamAction, synthetic: Bool) -> NearbyWriteResult? {
+        let receipt = AccountPublishMPContract.teamHandleReceipt(from: data)
+        guard case .handle = action else { return nil }
+        guard let receipt else { return synthetic ? nil : .unknown }
+        switch receipt.state {
+        case "APPLIED": return nil
+        case "REJECTED": return .rejected(errorCode: receipt.errorCode, message: receipt.message)
+        default: return .unknown
+        }
     }
     private static func validate(_ response: NearbyTeamResponse) throws {
         let header = try? JSONDecoder().decode(NearbyHeader.self, from: response.data)

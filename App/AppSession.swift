@@ -1175,7 +1175,7 @@ final class AppSession: ObservableObject {
             journal: registrationJournal, current: { [weak self] in self?.currentRegistrationProductionSession })
     }()
     func registrationWaitlistService(activityID: Int) -> (any RegistrationWaitlistServing)? {
-        guard case .approved = registrationCreationPolicy(activityID: activityID) else { return nil }
+        guard case .approved = registrationCreationPolicy(activityID: activityID) else { return registrationWaitlistLease(activityID: activityID) }
         return productionRegistrationService
     }
     func registrationCreationPolicy(activityID: Int) -> RegistrationUICreationPolicy {
@@ -3458,7 +3458,7 @@ final class AppSession: ObservableObject {
         let directory = root.appendingPathComponent("OfficialActionSafety", isDirectory: true)
         do { try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true) } catch { return nil }
         let access = OfficialActionProductionFactory(api: regionalConfiguration?.apiConfiguration,
-            approval: runtimeDependencies.officialActionApproval, transport: runtimeHTTPTransport,
+            approvalSource: { [weak self] in self?.runtimeDependencies.officialActionApproval }, transport: runtimeHTTPTransport,
             current: { [weak self] in self?.currentRuntimeDependencyContext }, identity: { [weak self] in
                 guard let self, let account = self.account, self.currentOfficialContext.isAuthenticated, let storageScope = self.storageScope else { return nil }
                 return OfficialActionIdentity(accountID: account.id, epoch: self.officialEventReader.scope, namespace: storageScope.service)
@@ -5340,7 +5340,7 @@ final class AppSession: ObservableObject {
                     return self.currentTeamSession
                 }
             reader = TeamMembershipWriteComposition.service(configuration: configuration, transport: runtimeHTTPTransport, readEndpoints: approval.endpoints,
-                write: currentRuntimeDependencyContext.flatMap { composition.teamMembershipWriteApproval($0) }, journal: teamJournal, currentSession: coordinatorSession)
+                write: composition.teamWrites(currentRuntimeDependencyContext, transport: runtimeHTTPTransport), journal: teamJournal, currentSession: coordinatorSession)
         } else if let readApproval, let configuration = regionalConfiguration?.apiConfiguration {
             reader = TeamReadOnlyService(configuration: configuration, transport: runtimeHTTPTransport,
                 readApproval: readApproval, currentSession: { [weak self] in self?.currentTeamSession },

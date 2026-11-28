@@ -164,6 +164,7 @@
         "Fix1128bClubReadRouteTests",
         "Fix1128bMineCompositionTests",
         "Fix1128bPlayReleaseCompositionTests",
+        "Fix1128bTeamRegCompositionTests",
         "FreeExploreBundleLaunchModelTests",
         "FreeExploreBundleReadHostTests",
         "FreeExploreBundleReservationTransportTests",

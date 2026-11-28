@@ -154,6 +154,7 @@
         "Finding4LocalizationTests",
         "Fix1128bClubReadRouteTests",
         "Fix1128bMineCompositionTests",
+        "Fix1128bTeamRegCompositionTests",
         "FogOverlayLayerPixelTests",
         "G1ProductionGatesEndToEndTests",
         "G6CapabilityGrantTests",

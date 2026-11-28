@@ -171,18 +171,10 @@ import SwiftUI
             summary(detail)
             payment(detail)
             if detail.summary().state == .pendingPayment, detail.id > 0 {
-                RegistrationPaySection(
-                    registrationID: detail.id,
-                    payableAmount: detail.payableAmount,
-                    consented: coordinator.issue != .reconsentRequired,
-                    requiresFreshQuote: false,
-                    channel: RegistrationAppPayResolver.inAppChannel,
-                    orderCurrency: detail.currency,
-                    orderPaymentChannels: detail.paymentChannels,
-                    // fix/1128-cn-pay P1-2: a server-confirmed paid read reloads this order detail.
-                    onSettled: { Task { await model.load(id: id) } },
-                    onPaid: { reloadAfterPayment(detail.id) }
-                )
+                // Gap #9: the same "Pay with" choice as the sheet (OrderRepaySection). fix/1128-cn-pay P1-2: a
+                // server-confirmed paid read reloads this order detail.
+                OrderRepaySection(detail: detail, consented: coordinator.issue != .reconsentRequired,
+                                  onSettled: { reloadAfterPayment(detail.id) }, onPaid: { reloadAfterPayment(detail.id) })
             }
             timeline(detail)
             refund(detail)

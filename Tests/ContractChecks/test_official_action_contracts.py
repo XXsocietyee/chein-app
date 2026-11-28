@@ -9,7 +9,8 @@ class OfficialActionSourceChecks(unittest.TestCase):
         self.assertNotIn('URLSession',service)
         session=(ROOT/'App/AppSession.swift').read_text()
         self.assertIn('let access = OfficialActionProductionFactory(',session)
-        self.assertIn('approval: runtimeDependencies.officialActionApproval',session)
+        # Gap #17 (1128 plan, fix/1128b-team-reg): the factory reads the approval on every use (sign-in after construction).
+        self.assertIn('approvalSource: { [weak self] in self?.runtimeDependencies.officialActionApproval }',session)
         production=(ROOT/'Core/OfficialActionProduction.swift').read_text()
         self.assertIn('case .arrival, .inviteMerchants: return nil',production)
     def test_durable_lock_and_stale_snapshot(self):

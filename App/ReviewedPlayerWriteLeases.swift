@@ -70,6 +70,13 @@ extension ReviewedProductionFormMutationRoute {
         // fix-1128b-social #4/#27: 发布 tab, club 发布活动 and 我的项目 activity 编辑 (POST, MP pages/publish/*).
         if let publishing = MPFirstSocialApprovals.publishingDecision(relative: relative, method: method, request: request) { return publishing }
         if let reportRead = MPFirstSocialApprovals.reportReadDecision(relative: relative, method: method, request: request) { return reportRead }
+        if let official = officialParticipationDecision(request, relative: relative, method: method, url: url) {
+            return official
+        }
+        if AppCompositionRoot.registrationWaitlistPaths.contains(relative) {
+            // Gap #8: the player waitlist rides on the registration grant; JSON exactly `{activityId, ticketId}`.
+            return method == "POST" && grant.registration.paths.contains("api/registration/create") && waitlistScopeBody(request)
+        }
         if relative == "api/registration/create" {
             return method == "POST" && grant.registration.paths.contains(relative)
                 && registrationCreateBody(request, paymentsOpen: ReleaseMoneyWriteSwitch.paymentEnabled)
@@ -459,6 +466,36 @@ extension ReviewedProductionFormMutationRoute {
             if let value = object[key] as? String, !value.isEmpty { return true }
         }
         return false
+    }
+
+    /// Gap #17: the bodies `OfficialActionService.request` sends for the player participation routes. Nil when `relative`
+    /// is not one of them. Signup / complete / organizer replies carry no body (or `{reason}`), a party reply `{}` or
+    /// `{reason}`, an arrival exactly the `OfficialArrivalEvidence` keys.
+    static func officialParticipationDecision(_ request: URLRequest, relative: String, method: String, url: URL) -> Bool? {
+        let template = OfficialActionProductionApproval.template(relative)
+        guard OfficialActionProductionApproval.playerTargetPaths.contains(template),
+              ["signup", "complete", "arrivals", "ACCEPT", "DECLINE", "WITHDRAW", "accept", "decline"].contains(where: { template.hasSuffix("/" + $0) }) else { return nil }
+        guard method == "POST", url.query == nil, request.httpBodyStream == nil else { return false }
+        let body = request.httpBody ?? Data()
+        if body.isEmpty { return !template.hasSuffix("/arrivals") }
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json", body.count <= 1024,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return false }
+        if template.hasSuffix("/arrivals") {
+            return Set(object.keys) == ["missionCode", "latitude", "longitude", "accuracyM", "sessionId", "requestId"]
+        }
+        if template.hasSuffix("/signup") || template.hasSuffix("/complete") { return false }
+        return object.isEmpty || (Set(object.keys) == ["reason"] && object["reason"] is String)
+    }
+
+    /// `RegistrationWaitlistService` body: exactly two positive JSON integers `activityId` and `ticketId`.
+    static func waitlistScopeBody(_ request: URLRequest) -> Bool {
+        guard request.value(forHTTPHeaderField: "Content-Type") == "application/json", let body = request.httpBody, body.count <= 128,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any], Set(object.keys) == ["activityId", "ticketId"],
+              let activity = object["activityId"] as? NSNumber, let ticket = object["ticketId"] as? NSNumber,
+              CFGetTypeID(activity as CFTypeRef) != CFBooleanGetTypeID(), CFGetTypeID(ticket as CFTypeRef) != CFBooleanGetTypeID(),
+              activity.intValue > 0, ticket.intValue > 0,
+              activity.doubleValue == Double(activity.intValue), ticket.doubleValue == Double(ticket.intValue) else { return false }
+        return true
     }
 
     static func teamRequestID(_ request: URLRequest) -> Bool {
@@ -1017,6 +1054,14 @@ enum ReviewedPlayerReadRoute {
     }
 
     // MARK: Channels + friends social writes (owner approval: non-money player/club social writes)
+
+    /// Gap #17: the official participation lease (player / club only; merchant routes stay off).
+    func officialPlayerActions(_ context: RuntimeDependencyContext) -> OfficialActionProductionApproval? {
+        guard socialRole(context),
+              let endpoints = makeEndpoint(context, paths: OfficialActionProductionApproval.playerTargetPaths) else { return nil }
+        return try? OfficialActionProductionApproval(playerMarket: .china, endpoints: endpoints,
+                                                     reviewedPolicyVersion: "mp-official-participation-1128")
+    }
 
     private func socialRole(_ context: RuntimeDependencyContext) -> Bool {
         playerWritesEnabled && context.market == .china && (context.role == "player" || context.role == "club")
@@ -1600,10 +1645,12 @@ enum ReviewedPlayerReadRoute {
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, role: context.role,
             sourceRevision: OrderLifecycleSourceContract.revision, approvals: [],
-            // fix/1128-cn-pay P0-2: the device (WeChat SDK) payment follows the payment switch. Order-detail Pay runs
-            // through RegistrationPaySection (`pay/app` → WeChat SDK → one `registration/info` read); the review-sheet
-            // payment stays closed (externalCheckoutApproved false, no payment approval) and is not shown (P1-4).
-            externalCheckoutApproved: false, devicePaymentApproved: ReleaseMoneyWriteSwitch.paymentEnabled,
+            // fix/1128-cn-pay P0-2: order-detail Pay runs through RegistrationPaySection (`pay/app` → WeChat SDK → one
+            // `registration/info` read); the review-sheet payment stays closed (externalCheckoutApproved false, no payment
+            // approval) and is not shown (P1-4). Gap #9 (1128 plan): device payment is approved in Release; the WeChat
+            // SDK path is gated by its own build flag (`WeChatPaymentBuildSettings`) and the pay route by
+            // `ReleaseMoneyWriteSwitch` in the composition firewall. Cancel / cancel-refund are the reviewed order actions.
+            externalCheckoutApproved: false, devicePaymentApproved: true,
             allowsReviewedCancellationAndRefund: true
         )
         var imRoutes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [
@@ -1634,6 +1681,8 @@ enum ReviewedPlayerReadRoute {
         )
         let rewardPledge = context.market == .china
         return NativeRuntimeDependencies(
+            // Gap #17 (1128 plan, G-10b): official v1 报名 / 完成, v2 到达 and inbox 接受 / 拒绝 for the signed-in player.
+            officialActionApproval: officialPlayerActions(context),
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             weChatPaymentConfiguration: WeChatPaymentBuildSettings.current,

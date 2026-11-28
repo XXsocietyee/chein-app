@@ -21,7 +21,9 @@ import SwiftUI
                               },
                               // `Account.xp` decodes `userInfo.point`, the balance `baoming.js:1240` reads.
                               availablePoints:{ session.account?.xp },
-                              preselectedTicketID:preselectedTicketID)
+                              preselectedTicketID:preselectedTicketID,
+                              // Gap #8: a server-confirmed ticket read-back refreshes the wallet.
+                              onReadback:{ _ in session.refreshTicketWallet() })
             // R11-PC-C-3: the post-create 接收商家站内活动消息 opt-in (MP baoming.js:1300-1368).
             .environment(\.marketingConsentService, { session.makePlayerContentRound4Service() })
     }

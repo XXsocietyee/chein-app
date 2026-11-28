@@ -26,6 +26,8 @@ public enum TeamWriteOutcome: Equatable {
     case rejected, notSent, unknown
     /// A business rejection carrying the source `errorCode` (B6). The UI branches on the code, never on the message.
     case rejectedCode(String)
+    /// Gap #7: a `/api/team/command` receipt REJECTED with the server's player-facing `message` (MP shows it as is).
+    case rejectedMessage(errorCode: String, message: String)
 }
 @MainActor public protocol TeamServing: AnyObject {
     var authority: TeamServiceAuthority { get }
