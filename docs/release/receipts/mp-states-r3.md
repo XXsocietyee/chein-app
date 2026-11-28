@@ -200,9 +200,19 @@ delay or locale-dependent path, so this reads as a capture-timing flake in the s
 
 ## Not done
 
-| Screen | MP state | Why not done |
-|---|---|---|
-| P1-9 remote push (function audit 11-28: `Core/DevicePushRegistrationLifecycle.swift:3-5`, `Config/Questify.entitlements`) | MP has no push (WeChat subscribe messages); app-side `registerForRemoteNotifications` + device-token upload | blocked on the backend: no device-token route / APNs sender on `us/r3-functional` yet (audit row owner = backend + mp-states). Registering without a route would upload nowhere; wire it when the route lands, with a unit test of the request shape |
+None. P1-9 (remote push) is closed for this lane: Cursor **K50-R1** (`cursor/1128-k50-r01`, merged into `ui/combined-r7`) wired the
+client path (`Core/DevicePushTokenUpload.swift` `POST api/device/push-token`, `App/RemotePushRegistrationClient.swift`
+gated on composition admission). The brief says lanes do not duplicate K-wave work; the remaining step (admit the route once
+the backend serves it) is backend + K50-R1.
+
+## Run 11-28 ~18:40 (A lane, sweep b954de71c)
+
+Open rows at start: P1-9 only (now K50-R1, see above). No `cursor-k50-p*` `lane-layout` rows exist on any branch. New rows from
+my own look at `docs/sweeps/latest/mp-states/sheet-en.jpg` / `sheet-zh-Hans.jpg`, split per the 15:45 collision rule: A takes the first.
+
+| Screen (screenshot) | MP state | Before | After (level) |
+|---|---|---|---|
+| 票夹 load failure (`TicketWalletView` → `TicketWalletIssueView`, `mp-states/en-e4-tickets-error.jpg`; level C) | MP 票夹 cy-error 票夹没能打开 · reason · 重试 | en title read **"Ticket wallet couldn't"** (the en catalog value itself was cut off, not a layout truncation); the nav title and Passport action read "Ticket" while the Me button says "Ticket wallet" | `ticketWallet.parity.error.title` en = "Couldn’t open your ticket wallet" (catalog + its source `Resources/W204TicketWalletLocalizations.fragment.json`, kept equal per `test_w2_04_ticket_wallet`); `ticketWallet.title` en = "Ticket wallet" (MP 票夹, matches the Me card). zh unchanged |
 
 ## Contract cleanup (brief 20:40 UTC, rows owned by mp-states)
 
