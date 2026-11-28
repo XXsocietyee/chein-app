@@ -177,11 +177,14 @@ struct RoamLiveMapWeather: ViewModifier {
     let latitude: Double?
     let longitude: Double?
     @Environment(\.socialRoamCapabilities) private var capabilities
+    /// fix/1128c: the roam guide reads the same cell weather (no second request).
+    @Environment(\.aiGuideJournal) private var guideJournal
     @StateObject private var model = MapWeatherModel()
 
     func body(content: Content) -> some View {
         content
             .overlay { MapWeatherOverlay(weather: capabilities == nil || cellKey.isEmpty ? nil : model.weather) }
+            .onChange(of: model.weather, initial: true) { _, weather in guideJournal?.updateWeather(weather) }
             .task(id: WeatherKey(cell: cellKey, account: capabilities?.accountID)) {
                 guard let capabilities, let latitude, let longitude, !cellKey.isEmpty else { return }
                 await model.refresh(latitude: latitude, longitude: longitude, client: capabilities.client)
