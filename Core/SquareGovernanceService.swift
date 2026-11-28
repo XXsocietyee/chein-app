@@ -189,12 +189,14 @@ public struct SquareGovernanceService {
 }
 
 /// Plan M-11a: the notification list, mark-read and appeal the China routes already serve.
-/// Preference writes, comment approve and comment delete stay off. Reads stay off when any of
-/// the three routes is not admitted, including when a money switch blocks the path.
+/// Preference writes sit on that lease only when the caller has the community writer and the
+/// preference route is admitted. Comment approve and comment delete stay off. Reads stay off
+/// when any of the three routes is not admitted, including when a money switch blocks the path.
 public enum SquareNotificationLease {
     public static let listPath = "/api/v1/community/notifications"
     public static let readPath = "/api/v1/community/notifications/{}/read"
     public static let appealPath = "/api/v1/community/appeals"
+    public static let preferencePath = "/api/v1/community/notification-preferences"
     public static let capabilities: Set<SquareGovernanceCapability> = [.markRead, .appeal]
 
     public static var routesLive: Bool {
@@ -203,9 +205,13 @@ public enum SquareNotificationLease {
             && ChinaReviewedRouteCapability.admitsChinaProductionCall(appealPath)
     }
 
-    public static func service(baseURL: URL, transport: any HTTPTransport) -> SquareGovernanceService {
+    public static func service(baseURL: URL, transport: any HTTPTransport, preferenceWrites: Bool = false) -> SquareGovernanceService {
         let live = routesLive
+        var granted = live ? capabilities : []
+        if live, preferenceWrites, ChinaReviewedRouteCapability.admitsChinaProductionCall(preferencePath) {
+            granted.insert(.preferences)
+        }
         return SquareGovernanceService(dormantBaseURL: baseURL, transport: transport, readsEnabled: live,
-                                       grant: live ? .reviewedInjection(capabilities) : .disabled)
+                                       grant: granted.isEmpty ? .disabled : .reviewedInjection(granted))
     }
 }
