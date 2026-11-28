@@ -86,7 +86,7 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertEqual(HomeIndexParityPresentation.citySelectorLabel(selectedCity: "上海", isNationwide: true, locale: enLocale), "Nationwide")
         XCTAssertEqual(
             HomeIndexParityPresentation.fixedActionBanners.map { $0.title(locale: enLocale) },
-            ["Become a Club", "Become a Merchant", "Join Activities with Friends"]
+            ["Become a club host", "Become a merchant", "Join activities with friends"]
         )
         XCTAssertEqual(HomeIndexParityPresentation.noMoreFooterCopy(locale: enLocale), "· No more items ·")
         XCTAssertEqual(HomeIndexParityPresentation.continuationSectionTitle(locale: enLocale), "Continue")

@@ -76,9 +76,9 @@ public enum HomeIndexParityPresentation {
         public func title(locale: Locale) -> String {
             guard HomeIndexParityPresentation.isEnglish(locale) else { return title }
             switch id {
-            case "club_apply": return "Become a Club"
-            case "merchant_apply": return "Become a Merchant"
-            case "activity_list": return "Join Activities with Friends"
+            case "club_apply": return "Become a club host"
+            case "merchant_apply": return "Become a merchant"
+            case "activity_list": return "Join activities with friends"
             case "mini_games": return "Mini games"
             default: return title
             }
