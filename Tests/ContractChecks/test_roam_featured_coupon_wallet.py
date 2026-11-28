@@ -47,13 +47,15 @@ class RoamFeaturedCouponWalletSourceTests(unittest.TestCase):
         self.assertIn('merchantReadSnapshot = UUID(); featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil', self.detail)
         self.assertGreaterEqual(self.detail.count('featuredCouponWalletNavigation = nil'), 5)
 
-    def test_reuses_owned_wallet_with_session_scope_and_no_code_factory(self):
+    def test_reuses_owned_wallet_with_session_scope_and_the_session_code_factory(self):
+        # Re-pinned 11-28 (function audit P1-20): the wallet opened from roam shows the coupon code like the Me wallet.
         for check in ['@ObservedObject var session: AppSession', 'self.sessionRevision == revision',
                       'self.contentDetailRevision == contentRevision', 'ObjectIdentifier(self.roamReader) == readerID',
                       'reader.identity == identity', 'reader.searchArea == area',
                       'self.accountCollectionReader.scope == walletScope',
                       'AccountCollectionCouponsView(reader: session.accountCollectionReader)',
-                      '.environment(\\.couponCodeFactory, nil)', '.privacySensitive()']:
+                      '.environment(\\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })',
+                      '.privacySensitive()']:
             self.assertIn(check, self.session)
         for forbidden in ['URLSession', 'couponTemplateId', 'featuredId', 'claim(', 'redeem(', 'CouponCodeView(']:
             self.assertNotIn(forbidden, self.session)

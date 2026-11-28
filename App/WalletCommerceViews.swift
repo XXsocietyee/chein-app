@@ -669,7 +669,7 @@ extension EnvironmentValues {
             let unit = points ? format.pointsUnit(for: value) : (first?.currency ?? "")
             let glyph: String? = points ? nil : WalletCurrencySymbol.symbol(first?.currency, locale: locale).flatMap { WalletCurrencySymbol.isGlyph($0) ? $0 : nil }
             VStack(alignment: .leading, spacing: 4) {
-                Text(points ? "wallet.pointsBalance" : "wallet.balanceLedger")
+                Text(points ? "wallet.pointsBalance" : "wallet.balanceHero") // MP 我的资产 label 账户余额; the nav title already says 余额流水
                     .font(.subheadline).foregroundStyle(.secondary)
                 HStack(alignment: .firstTextBaseline, spacing: glyph == nil ? 8 : 2) {
                     if value != nil, let glyph { Text(verbatim: glyph).font(.title.bold()) }
@@ -759,6 +759,8 @@ extension EnvironmentValues {
                 // mp-mine r3: MP points-history puts the after-balance under the delta (right column), not under the reason.
                 if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).font(.footnote).foregroundStyle(.secondary).monospacedDigit() }
             }
+            // ADA e4-wallet-balance: the amount column keeps its own width, so the reason wraps in the rest of the row.
+            .fixedSize(horizontal: !stacked, vertical: false)
         }
         .accessibilityElement(children: .combine)
         .accessibilityValue(Text(LocalizedStringKey("wallet.direction." + direction.rawValue)))

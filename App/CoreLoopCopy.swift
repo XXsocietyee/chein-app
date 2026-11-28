@@ -83,7 +83,7 @@ struct CoreLoopCopy {
         "微信已受理原路退款，到账以微信退款通知为准": "Refund accepted by payment provider; arrival depends on provider notification",
         "退款已批准，正在提交原路退款": "Refund approved; submitting to original payment method",
         "已售出，时间和地点不可改": "Tickets have been sold; time and location cannot be changed",
-        "合作者可编辑内容，不参与结算": "Collaborators can edit content and do not participate in settlement",
+        "合作者可编辑内容，不参与结算": "Collaborators can edit the content but don’t share in earnings",
         "商家活动暂时只支持免费票": "Merchant events currently support free tickets only",
         "商家主办活动还没开通收款，票价只能是 0": "Merchant-hosted events do not have payments enabled yet; ticket price must be 0",
         "取消活动并退款": "Cancel event & refund",

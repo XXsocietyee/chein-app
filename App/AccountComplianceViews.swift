@@ -108,12 +108,19 @@ import SwiftUI
         }
         guard coordinator.beginContractWrite(intent: intent) else { return }
         defer { coordinator.endContractWrite() }
+        // P0-6: an APPLE account sends its fresh Sign in with Apple proof (identityToken / authorizationCode), never an SMS code.
+        let appleProof = coordinator.reviewedAppleProof
+        let smsCode: String? = appleProof == nil ? contractSMSCode : nil
         let consented = await coordinator.prepareContractApplyConsent(recordNoticeConsent: recordNoticeConsent, expectedConsentVersion: expectedConsentVersion, intent: intent)
         guard consented, let baseURL = AccountPublishContractLane.baseURL else { return }
         do {
-            let request = try AccountPublishMPContract.deregisterApplyRequest(baseURL: baseURL, requestID: contractApplyRequestID, smsCode: contractSMSCode, token: AccountPublishContractLane.token)
+            let request = try AccountPublishMPContract.deregisterApplyRequest(baseURL: baseURL, requestID: contractApplyRequestID, smsCode: smsCode,
+                appleProof: appleProof, token: AccountPublishContractLane.token)
             let (data, _) = try await AccountPublishContractLane.send(request)
-            await coordinator.adoptContractApply(AccountPublishMPContract.deregisterApply(from: data), intent: intent)
+            let outcome = AccountPublishMPContract.deregisterApply(from: data)
+            let refusal = AccountPublishMPContract.deregisterApplyRefusal(from: data)
+            if outcome == nil, refusal != nil { contractApplyRequestID = UUID().uuidString.lowercased() }
+            await coordinator.adoptContractApply(outcome, refusal: refusal, intent: intent)
         } catch {
             await coordinator.adoptContractApply(nil, intent: intent)
         }
@@ -391,7 +398,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     private var cancellationIssueTitle: LocalizedStringKey {
         if model.state.status == nil { return "fixr3.deregister.readFailed" }
         switch model.state.step {
-        case .verify: return "fixr3.deregister.smsFailed"
+        case .verify: return model.state.status?.verifiesWithApple == true ? "compliance.apple.failedTitle" : "fixr3.deregister.smsFailed"
         case .review: return "fixr3.deregister.applyFailed"
         case .pending: return "fixr3.deregister.cancelFailed"
         default: return "fixr3.deregister.readFailed"
@@ -401,6 +408,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         if model.state.status == nil { return { requestCancellationRead() } }
         switch model.state.step {
         case .verify:
+            // The Apple button below is the retry for an APPLE account.
+            if model.state.status?.verifiesWithApple == true { return nil }
             return {
                 guard let intent = model.cancellationIntent() else { return }
                 Task { await model.sendBoundSMSOnContract(intent: intent) }
@@ -415,6 +424,11 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         default:
             return { requestCancellationRead() }
         }
+    }
+    /// P0-6: hands the fresh Apple credential to the coordinator, which moves to the review step.
+    private func appleCredentialReceived(token: String, authorizationCode: String?) {
+        guard let intent = model.cancellationIntent() else { return }
+        model.coordinator.prepareAppleReview(identityToken: token, authorizationCode: authorizationCode, intent: intent)
     }
     @ViewBuilder private func cancellationIssue(_ error: String) -> some View {
         ContentUnavailableView {
@@ -560,6 +574,10 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     .accessibilityIdentifier("compliance.precheck")
             }
             .task { await model.entryPrecheckOnContract() }
+        case .verify where model.state.status?.verifiesWithApple == true:
+            DeregistrationAppleReauthSection(busy: model.state.busy, enabled: model.state.localCancellationConsent.allowsNewConsent,
+                onCredential: { token, authorizationCode in appleCredentialReceived(token: token, authorizationCode: authorizationCode) },
+                onFailure: { cancelled in model.coordinator.noteAppleReauthFailed(cancelled: cancelled) })
         case .verify:
             Section {
                 // B-DR-03 (MP deregister-flow sendSms): the code goes to the account's bound phone, read from

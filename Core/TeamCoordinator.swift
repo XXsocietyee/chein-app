@@ -319,6 +319,7 @@ public enum TeamReadFailureKind: Equatable, Sendable {
             guard let persisted, persisted.operationID == record.operationID else { throw TeamFailure.persistence }
             pending = persisted
             apply(result, record: persisted, expectedTeamID: value.action.teamID)
+            if writeState == .acknowledged, let key = value.action.confirmedKey { messageKey = key }
             if case .join(let teamID, _) = value.action,
                pending == nil, completedTeamID == teamID,
                writeState == .acknowledged || writeState == .simulated {
@@ -379,6 +380,24 @@ public enum TeamReadFailureKind: Equatable, Sendable {
             }
             catch { writeState = .unknown; messageKey = "team.unknown" }
         }
+    }
+    /// P0-8 (MP team/detail: every confirmed command reloads `/api/team/info`): after the server acknowledged a kick or a
+    /// join-mode change on this team page, read the detail again so the roster and mode on screen are the server's.
+    /// Only a successful read releases the post-write lock; a failed read keeps it with the refresh message.
+    /// Leave/disband retire the team instead, and an invitation join keeps its 查看队伍 continuation.
+    /// Returns true when the fresh read was applied.
+    @discardableResult public func readBackConfirmedWrite() async -> Bool {
+        synchronizeSession()
+        guard !readOnlyDetail, !busy, pending == nil, writeState == .acknowledged || writeState == .simulated,
+              case .id(let teamID)? = activeLookup, completedTeamID == teamID, retiredMembershipTeamID == nil,
+              let session = capturedSession, !membershipRetired(teamID: teamID, session: session) else { return false }
+        let confirmedKey = messageKey
+        await loadDetail(.id(teamID))
+        guard currentSession() == session, capturedSession == session, readFailure == nil, pending == nil,
+              detail?.team.id == teamID else { return false }
+        writeState = .idle; confirmedJoinMode = nil; completedTeamID = nil
+        messageKey = confirmedKey
+        return true
     }
     /// Synthetic correlated receipts only. A list refresh is not proof of an earlier outcome.
     public func checkOutcome() async {

@@ -39,7 +39,7 @@ private struct ClubOpsStatusText: View {
     var tone: Tone = .neutral
     var body: some View {
         label.font(.subheadline)
-            .foregroundStyle(tone == .danger ? Color.red : (tone == .warning ? Color.orange : Color.secondary))
+            .foregroundStyle(tone == .danger ? CYColor.dangerText : (tone == .warning ? CYColor.warningText : Color.secondary))
     }
 }
 
@@ -48,7 +48,7 @@ private struct ClubOpsTag: View {
     var isDanger: Bool = false
     var body: some View {
         label.font(.subheadline)
-            .foregroundStyle(isDanger ? Color.red : Color.secondary)
+            .foregroundStyle(isDanger ? CYColor.dangerText : Color.secondary)
     }
 }
 

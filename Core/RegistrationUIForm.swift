@@ -34,7 +34,7 @@ public enum RegistrationUIValidation: Equatable { case nameRequired, phoneRequir
 /// service independently checks the scoped grant and maintains a durable replay lock.
 public enum RegistrationUICreationPolicy: Equatable {
     case disabled
-    /// A signed-in player may confirm only a known zero quote. Payment stays closed.
+    /// A signed-in player confirms a known quote. A paid quote needs the payment switch on (fix/1128-cn-pay P0-1).
     case free
     case approved(RegistrationProductionApproval)
     #if DEBUG

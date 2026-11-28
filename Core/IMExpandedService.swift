@@ -258,7 +258,9 @@ public struct IMExpandedService {
         try selection.validateImage()
         let boundary = "im-" + UUID().uuidString
         var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/common/uploadOSS"), fields: [:], token: token)
-        var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"image.\(selection.fileExtension)\"\r\nContent-Type: \(selection.mimeType)\r\n\r\n".utf8)
+        // MP app.chooseImage uploads with bizType image_free (app.js:665).
+        var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"bizType\"\r\n\r\nimage_free\r\n".utf8)
+        body.append(Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"image.\(selection.fileExtension)\"\r\nContent-Type: \(selection.mimeType)\r\n\r\n".utf8))
         body.append(selection.bytes); body.append(Data("\r\n--\(boundary)--\r\n".utf8))
         request.httpBody = body; request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         let data = try await response(request)
