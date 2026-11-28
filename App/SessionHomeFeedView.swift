@@ -230,7 +230,7 @@ import SwiftUI
                 }
                 // mp-nav r3: MP pages/searchmap/index is a page (map search, not play): push it with an inline title.
                 .navigationDestination(isPresented:$showsSearchMap) {
-                    SessionLinkedSearchView(initialQuery: mapQuery, startsOnMap: true, onSignIn: { showsSearchMap = false; onSignIn?() })
+                    SessionLinkedSearchView(initialQuery: mapQuery, startsOnMap: true, initialArea: homeMapArea, onSignIn: { showsSearchMap = false; onSignIn?() })
                         .environmentObject(session)
                         .cyPushedChrome()
                 }
@@ -314,6 +314,13 @@ import SwiftUI
     private var mapQuery: GlobalSearchQuery? {
         let keyword = search.keyword.trimmingCharacters(in: .whitespacesAndNewlines)
         return keyword.isEmpty ? nil : GlobalSearchQuery(keyword: keyword)
+    }
+    /// Function audit P2-3: the area the 首页 map opens on — the area already chosen for roam/search, else the centre of
+    /// the 首页 city label (`HomeCityCentre`). Nil (unknown city) keeps the 选择区域 prompt. Reads no location.
+    private var homeMapArea: RoamSearchArea? {
+        if let area = session.roamArea { return area }
+        guard let city = homeCityLabel, let centre = HomeCityCentre.coordinate(for: city) else { return nil }
+        return RoamSearchArea(coordinate: centre, label: city)
     }
     /// MP `onManualCityChange` (pages/index/index.js:1430-1435): 仅本地展示 — store the city name for the 首页 label only.
     /// It does not move `session.roamArea` (search map / roam centre). 全国 keeps the current label.
