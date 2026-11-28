@@ -2037,7 +2037,9 @@ struct PlayExperienceIssueView: View {
                 if let chapter = lead.chapterName { Text(verbatim: chapter) }
                 // mp-journey r3 (MP pages/play/index.wxml P1 集合屏, `lead.status == 1`): 队伍集合中, the arrived count as
                 // the one number (P1), 已到集合点, then 已签到 for me and 等队长开始行程… for members.
-                let gathering = lead.exists && lead.status == 1
+                // mp-journey-b r3: hidden for a free-entry team (MP `!lead.freeEntry`, P-13); the count is over the
+                // whole team (`lead.total`, members are capped at eight); member avatars under 已到集合点.
+                let gathering = lead.exists && lead.status == 1 && !lead.freeEntry
                 if gathering {
                     VStack(spacing: CYSpacing.xs) {
                         // MP P-13 `lg-wait`: three dots breathing in turn while the team gathers; still under Reduce Motion.
@@ -2048,10 +2050,11 @@ struct PlayExperienceIssueView: View {
                             .accessibilityHidden(true)
                         Text("playx.lead.gathering").font(.subheadline).foregroundStyle(.secondary)
                         (Text(verbatim: "\(lead.arrived ?? 0)").cyText(.dataXL)
-                            + Text(verbatim: "/\(lead.members.count)").font(.title3).foregroundStyle(.secondary))
+                            + Text(verbatim: "/\(lead.total ?? lead.members.count)").font(.title3).foregroundStyle(.secondary))
                             .monospacedDigit()
                             .contentTransition(.numericText())
                         Text("playerGap.lead.arrived").font(.footnote).foregroundStyle(.secondary)
+                        PlayLeadGatherAvatars(members: lead.members)
                         if lead.meArrived {
                             Label("playx.lead.checkedIn", systemImage: "checkmark").font(.subheadline.weight(.semibold))
                                 .foregroundStyle(CYColor.successText)
@@ -2463,4 +2466,26 @@ private struct PlayClockHaptics: ViewModifier {
     }
     private static func rose(_ old: Bool, _ new: Bool) -> Bool { !old && new }
     private func pausedFromRun(_ old: Bool, _ new: Bool) -> Bool { !old && new && wasRunning }
+}
+
+/// mp-journey-b r3: MP 集合屏 `lg-members`: one avatar per member that has one, dimmed until that member arrives.
+/// Decorative (the arrived count above carries the meaning), so hidden from VoiceOver.
+struct PlayLeadGatherAvatars: View {
+    let members: [PlayLeadProgress.Member]
+    @ScaledMetric(relativeTo: .body) private var size: CGFloat = 32
+
+    var body: some View {
+        let shown = members.filter { $0.avatar != nil }
+        if !shown.isEmpty {
+            HStack(spacing: CYSpacing.xs) {
+                ForEach(shown) { member in
+                    SquareAuthorAvatar(source: member.avatar, size: size)
+                        .opacity(member.arrived ? 1 : 0.4)
+                }
+            }
+            .padding(.top, CYSpacing.xs)
+            .accessibilityHidden(true)
+            .accessibilityIdentifier("playx.lead.gather.avatars")
+        }
+    }
 }
