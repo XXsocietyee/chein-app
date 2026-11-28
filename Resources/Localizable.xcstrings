@@ -55763,7 +55763,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Additional configuration families"
+            "value": "More modules"
           }
         },
         "zh-Hans": {
@@ -74452,7 +74452,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is a play template; it can’t start a group directly"
+            "value": "This is a play template — you can’t host a session from it directly"
           }
         },
         "zh-Hans": {
@@ -74741,7 +74741,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Categories and settings"
+            "value": "Categories and use cases"
           }
         },
         "zh-Hans": {
@@ -182921,7 +182921,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preview this game"
+            "value": "Preview this play"
           }
         },
         "zh-Hans": {
@@ -257539,7 +257539,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Advanced game settings"
+            "value": "Advanced play settings"
           }
         },
         "zh-Hans": {
@@ -257880,7 +257880,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit gameplay template"
+            "value": "Edit play template"
           }
         },
         "zh-Hans": {
@@ -259688,7 +259688,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try this game when you play the route."
+            "value": "You can try this play on the route."
           }
         },
         "zh-Hans": {
@@ -278117,7 +278117,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Adoption conditions"
+            "value": "Requirements to use"
           }
         },
         "zh-Hans": {
@@ -278882,7 +278882,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share topic template"
+            "value": "Share route template"
           }
         },
         "zh-Hans": {
@@ -296941,7 +296941,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load topic templates"
+            "value": "Couldn’t load route templates"
           }
         },
         "zh-Hans": {
@@ -307239,7 +307239,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This play could not be opened"
+            "value": "Couldn’t open this play"
           }
         },
         "zh-Hans": {
@@ -307256,7 +307256,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This topic template could not be opened"
+            "value": "Couldn’t open this route template"
           }
         },
         "zh-Hans": {
@@ -307273,7 +307273,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading topic template"
+            "value": "Loading route template…"
           }
         },
         "zh-Hans": {
@@ -322772,7 +322772,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save gameplay"
+            "value": "Save play"
           }
         },
         "zh-Hans": {
