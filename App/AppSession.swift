@@ -6828,7 +6828,7 @@ final class AppSession: ObservableObject {
 
     /// Own stored text does not depend on a consent journal, SMS or a chat/model grant.
     func makeNPCChatDataReadCoordinator() -> NPCChatDataCoordinator {
-        if let reader = makeNPCChatDataReader() { return reader.makeCoordinator() }
+        ensureReleaseNPCChatDataApproval(); if let reader = makeNPCChatDataReader() { return reader.makeCoordinator(deletion: releaseNPCChatLogDeletion(for: reader)) }
         let identity = npcChatDataReadIdentity
         return NPCChatDataCoordinator(current: { [weak self] in
             guard let self, self.npcChatDataReadIdentity == identity else { return nil }; return self.complianceSession

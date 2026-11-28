@@ -115,6 +115,8 @@ struct SquarePostContent: View {
                     }
                     if !post.createTime.isEmpty { SquareXcxRelativeTime(createTime: post.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
                 }
+                // a11y-dt r3: name, verified mark and time are one VoiceOver stop ("Mia, Verified, 5 min ago").
+                .accessibilityElement(children: .combine)
                 Spacer(minLength: 0)
                 if let onFollow {
                     Button("fixr3.square.follow", action: onFollow)
@@ -129,6 +131,7 @@ struct SquarePostContent: View {
                     if let badge = post.noticeBadge { Text(verbatim: badge).bold() }
                 }
                 .font(.caption).foregroundStyle(.secondary)
+                .accessibilityElement(children: .combine)
             }
             if let contents = post.contents, !contents.isEmpty { Text(verbatim: contents).lineLimit(compact ? 3 : nil).textSelection(.enabled) }
             SquareCloudStravaSection(post: post)

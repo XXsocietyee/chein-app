@@ -220,6 +220,7 @@ struct SettingsView: View {
                 // Mini-program pages/shezhi order: 个人资料, 成为俱乐部主理人/成为商家, 城瘾玩法, 我的收藏.
                 accountHeader
                 SettingsIdentityApplicationEntries(session: session, profile: readyAccountProfile).environment(\.settingsTileTint, SettingsTint.orange)
+                // mp-mine r3 (ADA e4-settings): 城瘾玩法, 我的收藏, 邀请与收益 read as one iOS Settings group.
                 Section {
                     NavigationLink {
                         ProfileGuideHost(reader: session.makeProfileGuideReader(),
@@ -228,36 +229,41 @@ struct SettingsView: View {
                             .id(session.socialAccountReader.identity)
                     } label: { Label { Text("social.guide.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcCompass) } }
                         .accessibilityIdentifier("settings.playGuide")
+                        .environment(\.settingsTileTint, SettingsTint.teal)
+                    ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner).environment(\.settingsTileTint, SettingsTint.pink)
+                    // B-SZ-15-r7: MP shezhi 邀请与收益 (players only) right after 我的收藏; same promo binding as 我的.
+                    SettingsInvitePromoEntry().environment(\.settingsTileTint, SettingsTint.orange)
                 }
-                .environment(\.settingsTileTint, SettingsTint.teal)
-                ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner).environment(\.settingsTileTint, SettingsTint.pink)
-                // B-SZ-15-r7: MP shezhi 邀请与收益 (players only) right after 我的收藏; same promo binding as 我的.
-                SettingsInvitePromoEntry().environment(\.settingsTileTint, SettingsTint.orange)
+                .environment(\.settingsGroupedRows, true)
                 // r11 B-SZ-10: MP pages/shezhi/shezhi.wxml:20-35 — 隐私与定位, AI 对话记录, 营销消息与优惠券, 帖文处置与申诉,
                 // 投诉建议, 我的申诉, 发票, 用户服务协议, 账号注销, 关于 (legal → 注销 → 关于 inside SettingsSupportSections).
                 // App-only rows (notifications, usage consent, region, language, safety, merchant tools) follow 关于; 退出 last (:42-47).
-                SettingsPrivacyLocationEntry(session: session).environment(\.settingsTileTint, SettingsTint.green)
-                // mp-mine r3: personal location sharing sits with 隐私与定位 (moved here from 我的).
+                // mp-mine r3 (ADA e4-settings): one iOS Settings group for privacy and data, the MP sz-menu rows in MP order.
                 Section {
+                    SettingsPrivacyLocationEntry(session: session).environment(\.settingsTileTint, SettingsTint.green)
+                    // mp-mine r3: personal location sharing sits with 隐私与定位 (moved here from 我的).
                     PersonalLocationShareOfferedLink(recipientId: nil, titleKey: "personalLocationShare.title.management", identifier: "settings.personalLocationShare")
+                        .environment(\.settingsTileTint, SettingsTint.green)
+                    NPCChatDataReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                    AccountComplianceMarketingSettingsEntry(coordinator: session.accountComplianceCoordinator, market: session.operationalMarket)
+                    SettingsPostGovernanceEntry(session: session).environment(\.settingsTileTint, SettingsTint.red)
                 }
-                .environment(\.settingsTileTint, SettingsTint.green)
-                NPCChatDataReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
-                AccountComplianceMarketingSettingsEntry(coordinator: session.accountComplianceCoordinator, market: session.operationalMarket)
-                SettingsPostGovernanceEntry(session: session).environment(\.settingsTileTint, SettingsTint.red)
-                // MP V1-P53 (B-SZ-01): 投诉建议 sits in Settings, after 帖文处置与申诉.
-                Section { ProfileComplaintPreparationLink(session: session) }
-                    .environment(\.settingsTileTint, SettingsTint.teal)
-                MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
-                // mp-mine r3: 我的举报 (MP report-mine, the page 我的申诉 copies) follows 我的申诉; moved here from 我的.
+                .environment(\.settingsGroupedRows, true)
+                // mp-mine r3 (ADA e4-settings): one group for feedback, appeals, reports and invoices.
                 Section {
+                    // MP V1-P53 (B-SZ-01): 投诉建议 sits in Settings, after 帖文处置与申诉.
+                    ProfileComplaintPreparationLink(session: session)
+                        .environment(\.settingsTileTint, SettingsTint.teal)
+                    MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                    // mp-mine r3: 我的举报 (MP report-mine, the page 我的申诉 copies) follows 我的申诉; moved here from 我的.
                     NavigationLink { SquareReportProgressView(session: session) } label: {
                         Label { Text("report.history.title", tableName: "MemberReportProgress") } icon: { Image(systemName: "flag") }
                     }
                     .accessibilityIdentifier("settings.reportMine")
+                    .environment(\.settingsTileTint, SettingsTint.red)
+                    SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 }
-                .environment(\.settingsTileTint, SettingsTint.red)
-                SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                .environment(\.settingsGroupedRows, true)
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
                     .hidingNPCChatDataEntry() // B-SZ-03: 「AI 对话记录」 above is the one NPC chat data row.
                     .hidingMarketingEntry() // r11 B-SZ-10: 营销消息与优惠券 sits after AI 对话记录 above.
@@ -398,6 +404,31 @@ extension EnvironmentValues {
     var settingsTileTint: Color {
         get { self[SettingsTileTintKey.self] }
         set { self[SettingsTileTintKey.self] = newValue }
+    }
+}
+private struct SettingsGroupedRowsKey: EnvironmentKey { static let defaultValue: Bool = false }
+extension EnvironmentValues {
+    /// True inside a shared Settings group: an entry draws only its rows and the group owns the Section.
+    var settingsGroupedRows: Bool {
+        get { self[SettingsGroupedRowsKey.self] }
+        set { self[SettingsGroupedRowsKey.self] = newValue }
+    }
+}
+
+/// An entry's own Section, or only its rows when the Settings page already groups it with its neighbours
+/// (iOS Settings groups related rows; MP shezhi is one continuous `sz-menu`).
+struct SettingsEntrySection<Content: View>: View {
+    @Environment(\.settingsGroupedRows) private var grouped
+    private let content: Content
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+    var body: some View {
+        if grouped {
+            content
+        } else {
+            Section { content }
+        }
     }
 }
 
@@ -551,7 +582,7 @@ private struct SettingsSearchResults: View {
     @Environment(\.mpParity) private var bindings
     var body: some View {
         if bindings.journeyPromo != nil, !bindings.isMerchant {
-            Section {
+            SettingsEntrySection {
                 NavigationLink { MPParityDestination(route: .journeyPromo) } label: {
                     Label { Text("mp.account.promo") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcGift) }
                 }

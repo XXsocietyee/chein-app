@@ -64,11 +64,16 @@ public enum NPCChatDataReadRoute {
         return selected === approval && selected.matches(context)
     }
     public func canRead(_ session: ComplianceSession) -> Bool { session.valid && session == self.session && isCurrent }
-    public func makeCoordinator() -> NPCChatDataCoordinator {
+    /// fix/1128c: the Release host may pass the separately approved log-deletion service (POST
+    /// `api/ai/npc/chat/data/delete`). Without one, deletion stays off exactly as before.
+    public func makeCoordinator(deletion: NPCChatLogDeletionService? = nil) -> NPCChatDataCoordinator {
+        let deleteLogs: ((ComplianceSession) async throws -> NPCChatLogDeletionOutcome)? = deletion.map { service in
+            { session in try await service.delete(session: session) }
+        }
         let owner = NPCChatDataCoordinator(current: { [weak self] in
             guard let self, self.isCurrent else { return nil }; return self.session
-        }, available: { [weak self] in self?.canRead($0) == true }, read: { [self] in try await read($0) })
-        // No optional deletion closure, service or receipt coordinator is passed.
+        }, available: { [weak self] in self?.canRead($0) == true }, read: { [self] in try await read($0) },
+            deletionAvailable: { session in deletion?.canDelete(session: session) == true }, deleteLogs: deleteLogs)
         owners.removeAll { $0.value == nil }; owners.append(.init(owner)); return owner
     }
     public func retire() { retired = true; owners.forEach { $0.value?.invalidate() }; owners.removeAll() }
