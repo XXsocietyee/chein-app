@@ -15247,6 +15247,40 @@
         }
       }
     },
+    "club.application.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A friend sent me; I’d like to try a night walk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "朋友推荐来的，想跟一次夜行"
+          }
+        }
+      }
+    },
+    "club.application.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Say a word to the host, like who you are and what kind of outing you’d like to join (required, up to 60 characters)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给主理人说一句吧，比如你是谁、想跟哪种局（必填，60 字内）。"
+          }
+        }
+      }
+    },
     "club.audience.chooseEvent": {
       "localizations": {
         "en": {
