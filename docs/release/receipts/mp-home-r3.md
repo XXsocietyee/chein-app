@@ -346,4 +346,4 @@ Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home; sw
 - Needs a simulator pass (continue 19): `rep3-activity-detail` 已结束 / Ended readable on the hero in en + zh-Hans, light and dark.
 - Needs a simulator pass (continue 20): `rep3-activity-detail` fact rows with leading icons in en + zh-Hans, AX5 (LabeledContent stacks).
 - Needs a simulator pass (continue 21): `d2-search-results` rows with plain kind / area lines (one leading edge) in en + zh-Hans, AX5.
-- Needs a simulator pass (continue 21): `wave-today-club` meta line time-only in en + zh-Hans.\n
+- Needs a simulator pass (continue 21): `wave-today-club` meta line time-only in en + zh-Hans.
