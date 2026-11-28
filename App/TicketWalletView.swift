@@ -413,7 +413,7 @@ private struct TicketWalletRow: View {
                 if let date = ticket.participateDate, !date.isEmpty {
                     QuestifyMetadataLine(label: "ticketWallet.participateDate", value: Self.participateDateText(date), systemImage: "calendar")
                 }
-                if let place = ticket.addressName, !place.isEmpty {
+                if ticket.walletSessionLine == nil, let place = ticket.addressName, !place.isEmpty {
                     QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
                 }
                 if ticket.needsScheduleSync {
@@ -547,6 +547,8 @@ private struct TicketWalletSubline: View {
         return text ?? Text(verbatim: "")
     }
     private func head(_ typeKey: String) -> Text {
+        // MP P-27 `sessionLine`: a session card reads「M月D日 HH:mm · 地点」; only without a start time 场次 · 剩 N 天.
+        if let session = ticket.walletSessionLine { return Text(verbatim: session) }
         guard let days = ticket.walletDaysLeft else { return Text(LocalizedStringKey(typeKey)) }
         if days == 0 {
             return Text(LocalizedStringKey(typeKey)) + Text(verbatim: " · ") + Text("ticketWallet.subline.today")
@@ -563,6 +565,22 @@ extension TicketWalletTicket {
         case .activity?: return "ticketWallet.type.session"
         case nil: return nil
         }
+    }
+    /// MP signup `sessionLine`: start (`yyyy-MM-dd HH:mm`, Beijing) in the user's locale, then the place.
+    /// Nil for route tickets, upcoming tickets and sessions without a start time.
+    var walletSessionLine: String? {
+        guard lane == .activity, !isUpcoming, let raw = startDate else { return nil }
+        let digits = raw.split(whereSeparator: { !$0.isNumber }).compactMap { Int($0) }
+        guard digits.count >= 5 else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
+        let parts = DateComponents(year: digits[0], month: digits[1], day: digits[2], hour: digits[3], minute: digits[4])
+        guard let start = calendar.date(from: parts) else { return nil }
+        var style = Date.FormatStyle().month(.abbreviated).day().hour().minute()
+        style.timeZone = calendar.timeZone
+        let when = start.formatted(style)
+        guard let place = addressName?.trimmingCharacters(in: .whitespacesAndNewlines), !place.isEmpty else { return when }
+        return when + " · " + place
     }
     /// Whole days from today to `usableUntil` (Beijing calendar). Nil when upcoming, a session ticket, or no date.
     var walletDaysLeft: Int? {
