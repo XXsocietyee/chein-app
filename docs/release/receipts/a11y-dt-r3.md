@@ -467,11 +467,28 @@ medal stack night cells, ring numerals and live HUD numbers left: fixed-size art
 | Error / unknown-result states (OWN-OPT-072 request reference, every player page that shows it) | `RequestReferenceRow.swift` | ✓ | Reference shrank to 70 % and cut to one line → wraps up to 3 lines at full size; the Copy button moves under the reference at accessibility sizes (P: stack, never shrink) | Done |
 | `pages/club` post card author meta, post-ref chip | `ClubComponents.swift:437`, `MPGap/Club/ClubGapRemainingViews.swift:24` | ✓ (mp-club owns order) | "Club · time" and the picked post title were one line (truncated at AX sizes) → up to 2 lines | Done |
 | `pages/topic` publisher row | `TopicXcxSections.swift:97` | ✓ (mp-publish owns order) | Publisher name one line beside fixed "posted" → up to 2 lines (outer row already stacks at AX) | Done |
+| Shared status badge (reference tasks, play / journey state chips) | `QuestifyMotionComponents.swift:61` (`QuestifyStatusBadge`) | ✓ | Status words shrank to 75 % on one line → wrap to 2 lines at full size (badge already `fixedSize(vertical:)`). `.minimumScaleFactor` scan: the other 73 player hits are big numerals / ring counts / ticket codes (one number, allowed) | Done |
+
+### Run 30 (2026-11-28)
+(Twin run 29 already took the status badge; this run takes the other body / caption hits.)
+Merged `origin/ui/combined-r7` (ffeef67c7). Sweep **ffeef67c7** (06:48Z) a11y sheets read, en: `a11y-badges-ax5` ring 3/6 +
+Collected / Locked rows stack ✓; `a11y-passport-ax5` Ticket wallet / Earnings / Messages full-width, Stamps 3 of 12 ✓;
+`a11y-roam-ax5` Nearby activities 2 wraps on the light panel, i · Go · map ✓ (runs 28-29 not yet in this build). No open
+coordinator finding. Not done item: `.minimumScaleFactor` on body / caption text (74 player hits read; big numerals, avatar
+monograms, share / ticket art, HUD and ring numbers left as they are).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/publishkit` project schedule start / end | `ProjectEditFlowParity.swift:48` | ✓ (mp-publish owns order) | Date shrank to 70 % in a half-width column → 2 lines, no shrink | Done |
+| Story cast lines (margin speaker name) | `CastViews.swift:83` | ✓ | Caption name shrank to 80 % in the fixed margin → up to 3 lines, full size | Done |
+| `pages/roam` city orientation ETA (预计 12分钟 · 14:32 到达), teams on route | `CityOrientationNavComponents.swift:57`, `CityOrientationRunView.swift:635` | ✓ (mp-roam owns order) | ETA one line shrunk to 80 % → 2 lines; teams-on-route footnote 2 lines + shrink → 3 lines, no shrink. Map panel files untouched (coordinator 02:05) | Done |
+| `pages/roam` city orientation paused tag + stop cleared, platform reminder 已开放 | `CityOrientationNavComponents.swift:69,124`, `NativeMotionReminderViews.swift:254` | ✓ (mp-roam owns order) | Label text in `Color.orange` / `Color.green` (~2.2:1 to 3:1 on white) → `CYColor.warningText` / `successText`. Remaining `Color.green` / `Color.yellow` hits are glyph-only (medal, checkmark; 3:1 graphics rule) | Done |
 
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 7a7d2708a, to see runs 27-29).
-- Next pages without a row: `.minimumScaleFactor` on body / caption text (not big numerals) in player views → wrap instead of shrink;
-  then `.frame(width:)` on text containers at AX5.
+- Re-read the a11y sheets after the next sweep (newer than ffeef67c7, to see runs 28-30).
+- Next pages without a row: Reduce Motion — player files that call `withAnimation(.spring / .bouncy / .snappy)` without reading
+  `accessibilityReduceMotion`. (Run 30: `.frame(width:)` on text scanned, only `minWidth` rank numerals and 18-24 pt icon columns, no
+  clipping; `.fixedSize()` was covered in run 11.)
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
