@@ -215198,6 +215198,23 @@
         }
       }
     },
+    "publishModes.identityLoading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking your registration…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取登记状态…"
+          }
+        }
+      }
+    },
     "publishModes.identityPrivacy": {
       "localizations": {
         "en": {
@@ -215210,6 +215227,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "仅查询登记状态，不读取或保存姓名和身份证号。"
+          }
+        }
+      }
+    },
+    "publishModes.identityReadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t check your registration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登记状态没能读取"
           }
         }
       }
