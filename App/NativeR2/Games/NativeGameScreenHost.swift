@@ -168,6 +168,16 @@ extension PlayKitScreen {
                 Text(verbatim: projection.title).font(.title2.bold())
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
+            } else if kind == .scan, raw["kind"].text?.uppercased() != "OVERLAY" {
+                // MP scan TITLE default 扫描这一站的二维码 (the server title wins when it sends one).
+                Text("playkit.scan.title").font(.title2.bold())
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            if kind == .scan {
+                // MP `matchNote` right under the title: a code match, not an on-site check.
+                Text("playkit.scan.matchNote").font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("playkit.scan.matchNote")
             }
             ForEach(nativeHeaderTextKeys, id: \.self) { key in
                 if let value = raw[key].text, !value.isEmpty {
