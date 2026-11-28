@@ -244,6 +244,7 @@ import SwiftUI
     let recordID: String
     /// True only when the screen query is `personal=1`.
     let personal: Bool
+    @Environment(\.locale) private var locale
     /// `MerchantSettlementDetailLink.recordKey`: `id` when the link named a club row id, else `topicId` (MP onLoad).
     var recordKey: String = "topicId"
     private enum Phase: Equatable { case loading, ready(CoopClubSettlementDetail), missing, failed(String?) }
