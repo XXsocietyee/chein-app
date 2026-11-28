@@ -288,7 +288,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 .themeDomain(.player)
                 .cySheet()
         }
-        .cySheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
+        // Gap #28 (G-01a): a closed registration sheet re-reads the detail, so the footer and counts follow the new ticket.
+        .cySheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false; loads.start { await load() } }) {
             Group {
             if let access,case .allowed(let detail)=access {
                 SessionRegistrationSheet(activity:detail)

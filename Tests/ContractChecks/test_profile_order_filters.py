@@ -11,22 +11,30 @@ class ProfileOrderFilterChecks(unittest.TestCase):
     def test_all_preserves_every_row(self):self.assertIn('self == .all ? rows : rows.filter',self.core)
     def test_source_order_no_sort_or_drop(self):
         self.assertNotIn('.sorted',self.core);self.assertNotIn('.prefix(',self.core);self.assertNotIn('.compactMap',self.core)
-    def test_manual_refund_first(self):self.assertLess(self.core.index('if manualRefundCaseStatus'),self.core.index('if historyFacts.hasRefundApplication'))
+    # Gap #28 (1128 plan, fix/1128b-team-reg): MP order-status.js puts a paid-out refund (payout 1/4) above 人工售后,
+    # and 人工售后 above every other refund state.
+    def test_manual_refund_first(self):
+        self.assertLess(self.core.index('if refund == .refunded { return .refunded }'),self.core.index('if manualRefundCaseStatus'))
+        self.assertLess(self.core.index('if manualRefundCaseStatus'),self.core.index('if let refund { return refund }'))
     def test_only_payout_one_four_refunded(self):self.assertIn('if refundPayoutStatus == 1 || refundPayoutStatus == 4 { return .refunded }',self.core)
     def test_manual_payout_stays_processing(self):self.assertIn('if refundPayoutStatus == 2 || refundPayoutStatus == 3 { return .refunding }',self.core)
-    def test_zero_and_rejected_refund_fall_back(self):self.assertIn('(refundAmount.map { $0 > .zero } ?? true), refundApplicationStatus != 2',self.core)
+    def test_zero_and_rejected_refund_fall_back(self):
+        self.assertIn('if let amount = refundAmount, !(amount > .zero) { return nil }',self.core);self.assertIn('if refundApplicationStatus == 2 { return nil }',self.core)
     def test_absent_refund_not_empty_object(self):self.assertIn('c.contains(.refundApplication) && (try? c.decodeNil(forKey: .refundApplication)) == false',self.core)
     def test_cancellation_has_no_payout_inference(self):self.assertIn('case 3: return .cancelled',self.core);self.assertIn('case 4: return .expired',self.core)
-    def test_paid_scan_required(self):self.assertIn('if paymentStatus == 2, OrderLifecycleTime.date(historyFacts.firstSuccessfulScanAt) != nil { return .completed }',self.core)
+    # Gap #28: a first scan completes a ticket, never a self-play pass (k7 N6).
+    def test_paid_scan_required(self):self.assertIn('if paymentStatus == 2, scanned, !pass { return .completed }',self.core)
     def test_free_requires_all_source_facts(self):
-        for t in ['historyFacts.totalAmountIsZero && payableAmount == .zero','pointPaymentAmount == nil || pointPaymentAmount == .zero','wechatPaymentAmount == nil || wechatPaymentAmount == .zero','if !free && refundable == false']:self.assertIn(t,self.core)
+        for t in ['historyFacts.totalAmountIsZero && payableAmount == .zero','pointPaymentAmount == nil || pointPaymentAmount == .zero','wechatPaymentAmount == nil || wechatPaymentAmount == .zero','if !pass && !free && refundable == false']:self.assertIn(t,self.core)
     def test_total_literal_not_numeric_prefix(self):
         self.assertIn('options: .regularExpression',self.core);self.assertIn('^',self.core);self.assertIn('$',self.core);self.assertNotIn('Decimal(string:',self.core.split('let trimmed')[1].split('hasRefundApplication')[0])
     def test_source_date_fallbacks(self):
         self.assertIn('start = present(owner?.startDate) ?? present(owner?.startTime)',self.core)
         self.assertIn('end = present(owner?.endDate) ?? present(owner?.endTime) ?? start',self.core)
+    # Gap #28: the read's serverNow wins over the device clock (U-033).
     def test_exact_start_end_boundaries(self):
-        self.assertIn('now > end { return .completed }',self.core);self.assertIn('now < start { return .notStarted }',self.core)
+        self.assertIn('current > end { return .completed }',self.core);self.assertIn('current < start { return .notStarted }',self.core)
+        self.assertIn('let current = historyFacts.serverNow ?? now',self.core)
     def test_core_is_read_only(self):
         for t in ['URLSession','transport.send','Task {','UserDefaults','func confirm','func refund','func pay']:self.assertNotIn(t,self.core)
     def test_current_owner_gates_selection(self):
