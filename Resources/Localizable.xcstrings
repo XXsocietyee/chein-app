@@ -231531,6 +231531,23 @@
         }
       }
     },
+    "roam.poi.favorite.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't update your favorite"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收藏状态没有更新"
+          }
+        }
+      }
+    },
     "roam.poi.location.denied.message": {
       "extractionState": "manual",
       "localizations": {
