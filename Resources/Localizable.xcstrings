@@ -41287,7 +41287,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket wallet"
+            "value": "Tickets"
           }
         },
         "zh-Hans": {
@@ -273879,7 +273879,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket number"
+            "value": "Ticket #"
           }
         },
         "zh-Hans": {
@@ -274697,7 +274697,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket wallet"
+            "value": "Tickets"
           }
         },
         "zh-Hans": {
