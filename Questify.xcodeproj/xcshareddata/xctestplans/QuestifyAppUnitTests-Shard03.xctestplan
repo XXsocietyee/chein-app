@@ -369,6 +369,7 @@
         "PlayAnswerReviewTests",
         "PlayBranchHistoryAppTests",
         "PlayDirectorIncidentSheetTests",
+        "PlayDirectorRoleSheetTests",
         "PlayExperiencePresentationMountTests",
         "PlayGapOwnerGrantTests",
         "PlayOperatingSummaryPresentationTests",

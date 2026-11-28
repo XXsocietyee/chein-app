@@ -383,6 +383,7 @@
         "PlayAnswerReviewTests",
         "PlayBranchHistoryFixtureHandshakeTests",
         "PlayDirectorIncidentSheetTests",
+        "PlayDirectorRoleSheetTests",
         "PlayGapOwnerGrantTests",
         "PlayKitGLBDecoderTests",
         "PlayKitSensorStageLifecycleTests",
