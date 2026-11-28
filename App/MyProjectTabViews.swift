@@ -194,7 +194,9 @@ extension EnvironmentValues {
     @Environment(\.myProjectMutation) private var mutation
     @Environment(\.myProjectTopicCancel) private var topicCancel
     @Environment(\.myProjectReceivedApplies) private var receivedApplies
+    @Environment(\.myProjectActivityEdit) private var activityEdit
     private var hasItems: Bool {
+        if activityEdit != nil, MyProjectActivityEditRule.applies(project, merchantScopeAccess: merchantScopeAccess) { return true }
         if receivedApplies != nil, MyProjectReceivedAppliesRule.applies(project) { return true }
         let card = MyProjectListPresentation.card(project, merchantScopeAccess: merchantScopeAccess)
         if topicCancel != nil, MyProjectBiz(rawValue: project.bizType) == .topic, card.operations.contains(.cancel) { return true }
@@ -225,6 +227,8 @@ extension EnvironmentValues {
     @Environment(\.myProjectTopicCancel) private var topicCancel
     @Environment(\.myProjectReceivedApplies) private var receivedApplies
     var body: some View {
+        // fix-1128b-social #27: MP ops sheet 编辑 first (activity rows with live edit grants).
+        MyProjectActivityEditButton(project: project)
         // R7-PC-D1-5: 收到的申请 sits after 编辑 in the MP ops sheet.
         if let receivedApplies, MyProjectReceivedAppliesRule.applies(project) {
             Button { receivedApplies() } label: { Label("myProject.op.viewApplies", systemImage: "list.bullet") }
