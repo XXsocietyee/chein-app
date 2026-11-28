@@ -203,6 +203,7 @@
         "MapVisualAndMerchantGameViewTests",
         "MarketingOriginalSettingsHostTests",
         "MasterSevenDayLaunchCommandCenterViewTests",
+        "MemberAssetsBalanceFoldTests",
         "MemberIdentityAvatarHostTests",
         "MemberReportProgressReadHostTests",
         "MemberScoreAppealReadHostTests",

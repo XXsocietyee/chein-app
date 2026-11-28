@@ -19,7 +19,7 @@ import UIKit
 /// | `.impactMedium` | primary commit (register, check-in) |
 /// | `.impactHeavy` | GO press |
 /// | `.impactRigid` | CITY defense held (City Monopoly spec §5) |
-enum CYHaptics: Equatable {
+enum CYHaptics: Equatable, Sendable {
     case selection, success, warning, error, impactLight, impactMedium, impactHeavy, impactRigid
 
     var event: HapticEvent {

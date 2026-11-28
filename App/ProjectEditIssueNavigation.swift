@@ -23,7 +23,7 @@ import SwiftUI
         let capture: Capture?
     }
     struct Destination: Identifiable, Hashable {
-        let id = UUID()
+        nonisolated let id = UUID()
         let capture: Capture
         nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
         nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }

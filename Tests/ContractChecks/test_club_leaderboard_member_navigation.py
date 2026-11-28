@@ -101,7 +101,7 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
             # error-phase guard (CLB-checkin-detail-03); the customer rows inside it are unchanged. Round 4: the customer
             # 编辑 button keeps 编辑标签与备注 as its VoiceOver label.
             ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', 'd8bac386687d6c109f8b27c26265038e911ee388293c68523d068756b0376a47'),  # mp-club r3 pass 2 (MP customer-detail wxml:82-99): the inline editor now owns the 标签与备注 section (editSection, rows passed in) so its heading reads 编辑标签与备注 + 取消; was 0ceaf7a1. native-r2 club round 2: only the paid-amount font token dropped; fix-r11 club-a CLB-customer-detail-04 (MP customer-detail/index.wxml:83-118): the 编辑 button became the inline editor (customerInlineEditor)
-            ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', 'f9fa4c8b1a6654e0e65a6a3b11f2676cfc949f38d22e029c29676c98f35ea6b4'),  # native-r2 club round 2: adds only the ClubCustomerKeywordSearch modifier (bar search, explicit submit)
+            ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', 'e8cb484913da5279582b5fca7ddca383463cdba56ba575eea22b8ecdf9238bd6'),  # swift6: only `nonisolated` on delayNanoseconds (constant read from the nonisolated init). Was f9fa4c8b. native-r2 club round 2: adds only the ClubCustomerKeywordSearch modifier (bar search, explicit submit)
         ]
         for start, end, expected in spans:
             text = source[source.index(start):source.index(end, source.index(start))]

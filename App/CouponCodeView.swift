@@ -51,7 +51,13 @@ extension EnvironmentValues {
                         // MP coupon-qr missing-param (index.wxml:31-39): 链接已失效 · 返回.
                         MemberMissingLinkState(identifier: "couponCode.missing")
                     } else { content(presentation: presentation, appearance: appearance) }
-                    if model.pollDelayed { Text("couponCode.pollDelayed").font(.footnote).foregroundStyle(.secondary) }
+                    // mp-states r3: MP scene-qr-coupon/index.wxml:7 cy-inline-error kind network 核销状态暂未同步 (no action;
+                    // polling keeps running), shown only while the code is on screen.
+                    if model.pollDelayed {
+                        Label("couponCode.pollDelayed", systemImage: "wifi.exclamationmark")
+                            .font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("couponCode.pollDelayed")
+                    }
                 }
         }
             .listStyle(.insetGrouped)

@@ -277,7 +277,17 @@ extension EnvironmentValues {
     /// MP enroll wxml:26 cy-error 报名名册加载失败 · 重新加载 on a first read that failed; a failure over a
     /// loaded roster keeps the wxml:19 inline 报名名册暂未更新 · 重试更新 form below.
     @ViewBuilder private func failureSection(_ issue: ClubGovernanceFailure) -> some View {
-        if !reader.hasLoaded, Self.isLoadFailure(issue) {
+        if !reader.hasLoaded, ClubEnrollmentReader.failureTitle(for: issue) != nil {
+            // mp-states r3: MP enroll wxml:12-13 cy-error denied (fill, size lg, retry="" → back only): one full state,
+            // no retry row; the system back button leaves the page.
+            ContentUnavailableView {
+                Label("club.enroll.denied", systemImage: "lock")
+                    .accessibilityIdentifier("club.enroll.deniedTitle")
+            } description: {
+                Text(LocalizedStringKey(issue.localizationKey))
+            }
+            .accessibilityIdentifier("club.enroll.denied")
+        } else if !reader.hasLoaded, Self.isLoadFailure(issue) {
             ContentUnavailableView {
                 Label("club.enroll.loadFailed", systemImage: "exclamationmark.triangle")
             } description: {
