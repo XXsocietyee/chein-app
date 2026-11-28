@@ -318604,13 +318604,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Roam"
+            "value": "Start roaming"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "漫游"
+            "value": "开始漫游"
           }
         }
       }
