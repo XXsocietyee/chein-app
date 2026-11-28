@@ -55,7 +55,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No occurrences returned for series."
+            "value": "No occurrences returned for this series."
           }
         },
         "zh-Hans": {
@@ -199,7 +199,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registered people"
+            "value": "Registered participants"
           }
         },
         "zh-Hans": {
@@ -215,7 +215,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign-up count unavailable"
+            "value": "Registration count unavailable"
           }
         },
         "zh-Hans": {

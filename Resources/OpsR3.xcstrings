@@ -268,7 +268,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Changes save to this device on own"
+            "value": "Changes save to this device automatically"
           }
         }
       }

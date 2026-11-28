@@ -476,6 +476,16 @@ Merged `origin/ui/combined-r7` (45264c9bf). Sheets: zh `d4-detail` renders clean
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS.
 
+## Pass 50: P42 loading skeleton on club reads; no new coordinator finding for mp-club (latest sweep is still 2fc0feb24 / 17:30 notes for mp-states and mp-nav); no K50 `lane-layout` rows for club
+Merged `origin/ui/combined-r7`. Every `pages/club/*` / `pages/talent/*` page has a row, so this pass took the newest principle not yet applied in the area (P42, sweep 17:30).
+| MP page | Native view | MP sections | Fix |
+|---|---|---|---|
+| `pages/talent/list` wxml:67 `cy-skeleton type="card" count=3`; `pages/club/detail` wxml:27 `cy-skeleton type="detail" loading-label="正在加载俱乐部详情"`; members `type="list"` (`components/cy/skeleton`; level B) | new `App/ClubReadSkeleton.swift`; `App/ClubReadScreen.swift` first-load branch (club tab, 查找俱乐部, 我的俱乐部, members, club detail) | MP first load draws the page's own skeleton; native showed a centred spinner + 正在加载俱乐部… on every club read | **Fixed (P42).** First load now draws the page shape with `.redacted(reason: .placeholder)`: club lists = 3 inset-grouped rows (48 pt thumbnail fill + name + member line, same geometry as `ClubRowThumbnail` rows); club detail = 160 pt hero + name + meta + three intro lines (MP `detail` skeleton). No shimmer (Reduce Motion safe), no hit testing; VoiceOver reads the MP loading words once (`club.loading` / `club.detail.loading`), and the `<prefix>.loading` identifiers stay, so `AcceptClubDetailFlowTests` / `AcceptClubDirectoryFlowTests` markers keep working. Reload with content keeps the small top progress capsule. No new keys |
+| club/event-ops 重复方式 step 3 (form inline on the hub) | — | — | Still **Not done** (moves `ClubGovernanceCommandForm` review/return ownership onto the hub; step 2 already opens the form for the picked topic in one tap) |
+| C-08 owner stage 邀请商家 | — | — | Out of scope (merchant) |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS (silent spinner 0).
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.

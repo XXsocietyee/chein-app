@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This older setup uses a different format. Its original data has been kept."
+            "value": "This older configuration uses a different format. Its original data has been kept."
           }
         },
         "zh-Hans": {
@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Move"
+            "value": "Move down"
           }
         },
         "zh-Hans": {

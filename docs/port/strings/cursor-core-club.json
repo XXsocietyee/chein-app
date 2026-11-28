@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This activity can't opened"
+            "value": "This activity can't be opened"
           }
         },
         "zh-Hans": {
@@ -24,7 +24,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Link no longer valid"
+            "value": "This link is no longer valid"
           }
         },
         "zh-Hans": {
@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Event operations temporarily"
+            "value": "Event operations are temporarily unavailable"
           }
         },
         "zh-Hans": {
@@ -160,7 +160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout data temporarily unavailable"
+            "value": "Settlement data is temporarily unavailable"
           }
         },
         "zh-Hans": {

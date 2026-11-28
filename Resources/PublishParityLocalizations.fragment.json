@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Events"
+            "value": "Activities"
           }
         },
         "zh-Hans": {
@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forms"
+            "value": "Templates"
           }
         },
         "zh-Hans": {
@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publish single-session"
+            "value": "Publish a single-session activity"
           }
         },
         "zh-Hans": {
@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "These actions aren't available app"
+            "value": "These actions aren't available in the app right now"
           }
         },
         "zh-Hans": {
@@ -454,7 +454,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity details"
+            "value": "Activity description"
           }
         },
         "zh-Hans": {

@@ -772,7 +772,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Install history"
+            "value": "Installation history"
           }
         },
         "zh-Hans": {
@@ -908,7 +908,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Load the original license and available resources begin."
+            "value": "Load the original license and available resources to begin."
           }
         },
         "zh-Hans": {
@@ -1061,7 +1061,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prepare install receipt"
+            "value": "Prepare installation receipt"
           }
         },
         "zh-Hans": {
@@ -1265,7 +1265,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Install failed"
+            "value": "Installation failed"
           }
         },
         "zh-Hans": {
@@ -1350,7 +1350,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Installation is unavailable for this session. A separate reviewed install grant is required."
+            "value": "Installation is unavailable for this session. A separate reviewed installation grant is required."
           }
         },
         "zh-Hans": {
@@ -1467,7 +1467,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Details"
+            "value": "Description"
           }
         },
         "zh-Hans": {
@@ -1518,7 +1518,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Required"
+            "value": "Required materials"
           }
         },
         "zh-Hans": {
@@ -1535,7 +1535,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Level"
+            "value": "Difficulty"
           }
         },
         "zh-Hans": {
@@ -1773,7 +1773,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answer"
+            "value": "Answer explanation"
           }
         },
         "zh-Hans": {
@@ -1790,7 +1790,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photo rules"
+            "value": "Photo requirements"
           }
         },
         "zh-Hans": {
@@ -1807,7 +1807,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity groups"
+            "value": "Activity categories"
           }
         },
         "zh-Hans": {
@@ -2122,7 +2122,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save to original private question"
+            "value": "Save to the original private question"
           }
         }
       }
@@ -2567,7 +2567,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original install read approval or current session is unavailable. No request has been resubmitted."
+            "value": "The original installation read approval or current session is unavailable. No request has been resubmitted."
           }
         },
         "zh-Hans": {
@@ -2720,7 +2720,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This read didn't confirm the original request’s result (UNKNOWN). A 404, failure or timeout doesn't authorize a new install request."
+            "value": "This read didn't confirm the original request’s result (UNKNOWN). A 404, failure or timeout doesn't authorize a new installation request."
           }
         },
         "zh-Hans": {

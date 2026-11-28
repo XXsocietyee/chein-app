@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choosing or uploading a cover photo isn't available right now. You can keep editing draft."
+            "value": "Choosing or uploading a cover photo isn't available right now. You can keep editing the draft."
           }
         },
         "zh-Hans": {
@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the displayed activity content will be updated. No ticket, payment, collaborator publication-status change included."
+            "value": "Only the displayed activity content will be updated. No ticket, payment, collaborator or publication-status change is included."
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Details"
+            "value": "Description"
           }
         },
         "zh-Hans": {
@@ -518,7 +518,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lng"
+            "value": "Longitude"
           }
         },
         "zh-Hans": {

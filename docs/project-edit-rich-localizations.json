@@ -36,7 +36,7 @@
     "zh-Hans": "相册名称"
   },
   "projectEdit.rich.beat": {
-    "en": "Narrative",
+    "en": "Narrative segment",
     "zh-Hans": "叙事段"
   },
   "projectEdit.rich.chapterRole": {
@@ -72,7 +72,7 @@
     "zh-Hans": "文字效果档位"
   },
   "projectEdit.rich.ending": {
-    "en": "Ending",
+    "en": "Ending chapter",
     "zh-Hans": "结局章"
   },
   "projectEdit.rich.fallback": {
@@ -92,7 +92,7 @@
     "zh-Hans": "节点地点"
   },
   "projectEdit.rich.locationRequired": {
-    "en": "Arrival at place required",
+    "en": "Arrival at a place required",
     "zh-Hans": "需要到达地点"
   },
   "projectEdit.rich.media": {
@@ -100,7 +100,7 @@
     "zh-Hans": "媒体链接"
   },
   "projectEdit.rich.mood": {
-    "en": "Mood",
+    "en": "Atmosphere",
     "zh-Hans": "氛围"
   },
   "projectEdit.rich.narrative": {
@@ -120,7 +120,7 @@
     "zh-Hans": "说话角色（选填）"
   },
   "projectEdit.rich.opening": {
-    "en": "Opening",
+    "en": "Opening chapter",
     "zh-Hans": "开局章"
   },
   "projectEdit.rich.operator": {
@@ -216,7 +216,7 @@
     "zh-Hans": "梦境相册"
   },
   "projectEdit.rich.kind.mood": {
-    "en": "Mood",
+    "en": "Atmosphere",
     "zh-Hans": "氛围"
   },
   "projectEdit.rich.kind.thought": {
@@ -292,11 +292,11 @@
     "zh-Hans": "旁白"
   },
   "projectEdit.rich.field.q": {
-    "en": "Question",
+    "en": "Question line",
     "zh-Hans": "提问"
   },
   "projectEdit.rich.field.a": {
-    "en": "Answer",
+    "en": "Answer line",
     "zh-Hans": "回答"
   },
   "projectEdit.rich.field.title": {
@@ -332,7 +332,7 @@
     "zh-Hans": "变化"
   },
   "projectEdit.rich.mood.DEFAULT": {
-    "en": "Dark",
+    "en": "Black",
     "zh-Hans": "黑"
   },
   "projectEdit.rich.mood.BLUE": {
@@ -344,11 +344,11 @@
     "zh-Hans": "红"
   },
   "projectEdit.rich.mood.YELLOW": {
-    "en": "Gold",
+    "en": "Yellow",
     "zh-Hans": "黄"
   },
   "projectEdit.rich.mood.WHITE": {
-    "en": "Lite",
+    "en": "White",
     "zh-Hans": "白"
   },
   "projectEdit.rich.op.HAS_TAG": {
@@ -364,11 +364,11 @@
     "zh-Hans": "等于"
   },
   "projectEdit.rich.op.NE": {
-    "en": "Does not",
+    "en": "Does not equal",
     "zh-Hans": "不等于"
   },
   "projectEdit.rich.op.GT": {
-    "en": "Greater",
+    "en": "Greater than",
     "zh-Hans": "大于"
   },
   "projectEdit.rich.op.GTE": {
@@ -376,7 +376,7 @@
     "zh-Hans": "大于等于"
   },
   "projectEdit.rich.op.LT": {
-    "en": "Less",
+    "en": "Less than",
     "zh-Hans": "小于"
   },
   "projectEdit.rich.op.LTE": {
@@ -392,11 +392,11 @@
     "zh-Hans": "窗外"
   },
   "projectEdit.rich.voice.2": {
-    "en": "Love",
+    "en": "Heart",
     "zh-Hans": "心"
   },
   "projectEdit.rich.voice.3": {
-    "en": "Detail",
+    "en": "Precision",
     "zh-Hans": "精密"
   },
   "projectEdit.rich.voice.4": {

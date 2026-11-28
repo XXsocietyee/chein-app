@@ -92,7 +92,7 @@ struct TeamReformSheetHost: View {
                     }
                 case .loading: ProgressView { Text("teamReform.loading") }.frame(maxWidth: .infinity)
                 case .failed:
-                    Label { Text("teamReform.invite.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
+                    Label { Text("teamReform.invite.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText) }
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("teamReform.invite.loadFailed")
                     Button("action.retry") { Task { await box.run { await $0.open() } } }
@@ -120,7 +120,7 @@ struct TeamReformSheetHost: View {
             } header: { Text("teamReform.invite.choose") } footer: {
                 Text(verbatim: "\(batch.selected.count) / \(batch.maximum)").accessibilityLabel(Text("a11y.value.ofTotalText \(String(describing: batch.selected.count)) \(String(describing: batch.maximum))")).accessibilityIdentifier("teamReform.invite.count")
             }
-            if flow.issue == .overLimit { Label { Text("teamReform.invite.overLimit") } icon: { Image(systemName: "exclamationmark.circle").foregroundStyle(.orange) } }
+            if flow.issue == .overLimit { Label { Text("teamReform.invite.overLimit") } icon: { Image(systemName: "exclamationmark.circle").foregroundStyle(CYColor.warningText) } }
             if let reviewed = flow.reviewed {
                 Section("teamReform.invite.review") {
                     Text(verbatim: "\(reviewed.count)").cyText(.numericBody).monospacedDigit().accessibilityIdentifier("teamReform.invite.reviewCount")
@@ -208,7 +208,7 @@ struct TeamReformSheetHost: View {
                         Label { Text("teamReform.meeting.notEligible").accessibilityIdentifier("teamReform.meeting.notEligible") } icon: { Image(systemName: "person.crop.circle.badge.xmark") }
                     }
                 case .failed:
-                    Label { Text("teamReform.meeting.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
+                    Label { Text("teamReform.meeting.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.dangerText) }
                     Button("action.retry") { Task { await box.run { await $0.open() } } }
                 case .active: if let meeting = flow.meeting { active(meeting) }
                 }

@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copy"
+            "value": "Duplicate"
           }
         },
         "zh-Hans": {
@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Move"
+            "value": "Move down"
           }
         },
         "zh-Hans": {
@@ -278,7 +278,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlimited"
+            "value": "Unlimited attempts"
           }
         },
         "zh-Hans": {
@@ -1270,7 +1270,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "rows"
+            "value": "items"
           }
         },
         "zh-Hans": {
@@ -1334,7 +1334,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Step"
+            "value": "steps"
           }
         },
         "zh-Hans": {
@@ -1350,7 +1350,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "x"
+            "value": "times"
           }
         },
         "zh-Hans": {

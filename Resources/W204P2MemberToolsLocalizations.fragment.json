@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket canceled"
+            "value": "This ticket was canceled"
           }
         },
         "zh-Hans": {
@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket has"
+            "value": "This ticket has expired"
           }
         },
         "zh-Hans": {
@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket status needs check"
+            "value": "Ticket status needs confirmation"
           }
         },
         "zh-Hans": {
@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session details still syncing"
+            "value": "Session details are still syncing"
           }
         },
         "zh-Hans": {

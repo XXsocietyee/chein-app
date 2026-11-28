@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reply after"
+            "value": "Reply after scanning"
           }
         },
         "zh-Hans": {
@@ -160,7 +160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete stop"
+            "value": "Complete this stop"
           }
         },
         "zh-Hans": {
@@ -398,7 +398,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Logic"
+            "value": "Reasoning"
           }
         },
         "zh-Hans": {
@@ -432,7 +432,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair the two columns one one"
+            "value": "Pair the two columns one to one"
           }
         },
         "zh-Hans": {
@@ -704,7 +704,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue chapter"
+            "value": "Continue this chapter"
           }
         },
         "zh-Hans": {
@@ -909,7 +909,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose how this theme played first"
+            "value": "Choose how this theme is played first"
           }
         },
         "zh-Hans": {

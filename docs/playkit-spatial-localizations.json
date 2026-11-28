@@ -16,7 +16,7 @@
     "zh-Hans": "识别真实平面或配置的图像，将返回的图片固定在相机空间中。不会保存或上传相机画面，识别也不作为到店凭证或奖励判定。"
   },
   "playkitSpatial.findMarker": {
-    "en": "Point the camera at configured reference image",
+    "en": "Point the camera at the configured reference image",
     "zh-Hans": "将相机对准配置的识别图"
   },
   "playkitSpatial.findPlane": {
@@ -40,7 +40,7 @@
     "zh-Hans": "查看普通图片"
   },
   "playkitSpatial.error.disabled": {
-    "en": "Spatial rendering hasn't been enabled for session",
+    "en": "Spatial rendering hasn't been enabled for this session",
     "zh-Hans": "当前会话尚未启用空间渲染"
   },
   "playkitSpatial.error.unvalidatedScan": {

@@ -177,7 +177,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This place no longer available"
+            "value": "This place is no longer available"
           }
         },
         "zh-Hans": {
@@ -228,7 +228,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route"
+            "value": "Directions"
           }
         },
         "zh-Hans": {
@@ -840,7 +840,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aerial"
+            "value": "Satellite"
           }
         },
         "zh-Hans": {

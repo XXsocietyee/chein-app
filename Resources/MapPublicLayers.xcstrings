@@ -245,7 +245,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Public map layers aren't available right."
+            "value" : "Public map layers aren't available right now."
           }
         },
         "zh-Hans" : {

@@ -101,7 +101,7 @@
   },
   "topicPricing.settlementPending": {
     "zh-Hans": "待结算",
-    "en": "Pending"
+    "en": "Pending Settlement"
   },
   "topicPricing.feeRate": {
     "zh-Hans": "平台服务费率",
@@ -145,7 +145,7 @@
   },
   "playTools.lead.settle": {
     "zh-Hans": "整团结算",
-    "en": "Settle for team"
+    "en": "Settle for the team"
   },
   "playTools.content.section": {
     "zh-Hans": "本局信息",
@@ -157,7 +157,7 @@
   },
   "playTools.evidence": {
     "zh-Hans": "证据卡",
-    "en": "Evidence"
+    "en": "Evidence cards"
   },
   "playTools.rewards": {
     "zh-Hans": "各站奖励",
@@ -169,7 +169,7 @@
   },
   "playTools.thoughts.section": {
     "zh-Hans": "伏笔",
-    "en": "Hint"
+    "en": "Foreshadowing"
   },
   "playTools.stats.section": {
     "zh-Hans": "本局读数",
@@ -357,7 +357,7 @@
   },
   "bundle.exitCases.title": {
     "zh-Hans": "售后记录",
-    "en": "After-Sales"
+    "en": "After-Sales Records"
   },
   "orientScore.board.title": {
     "zh-Hans": "本场榜单",

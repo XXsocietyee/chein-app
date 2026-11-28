@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlocks only when you're back"
+            "value": "Unlocks only when you're back online"
           }
         },
         "zh-Hans": {
@@ -86,7 +86,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Expired. Place can no longer unlocked"
+            "value": "Expired. This place can no longer be unlocked"
           }
         },
         "zh-Hans": {
@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How visits"
+            "value": "How visits are checked"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan"
+            "value": "Scan code"
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This place unlocks by scanning code."
+            "value": "This place unlocks by scanning its code."
           }
         },
         "zh-Hans": {
@@ -828,7 +828,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlocks after visit"
+            "value": "Unlocks after you visit"
           }
         },
         "zh-Hans": {
@@ -908,7 +908,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan the code at this place to unlock chapter."
+            "value": "Scan the code at this place to unlock this chapter."
           }
         },
         "zh-Hans": {
@@ -1072,7 +1072,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Completed at desk"
+            "value": "Completed at the desk"
           }
         },
         "zh-Hans": {
@@ -1105,7 +1105,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Evidence from run"
+            "value": "Evidence from this run"
           }
         },
         "zh-Hans": {
@@ -1121,7 +1121,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photos from run"
+            "value": "Photos from this run"
           }
         },
         "zh-Hans": {
@@ -1169,7 +1169,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Booking required"
+            "value": "Reservation required"
           }
         },
         "zh-Hans": {
@@ -1185,7 +1185,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How run started"
+            "value": "How this run started"
           }
         },
         "zh-Hans": {

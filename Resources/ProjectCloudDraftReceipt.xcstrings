@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm entry"
+            "value": "Confirm submission"
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting"
+            "value": "Waiting for processing"
           }
         },
         "zh-Hans": {
@@ -614,7 +614,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for subsequent audit record"
+            "value": "Waiting for a subsequent audit record"
           }
         },
         "zh-Hans": {
@@ -646,7 +646,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for media review callback"
+            "value": "Waiting for the media review callback"
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original callback queue awaiting"
+            "value": "Original callback queue awaiting recovery"
           }
         },
         "zh-Hans": {
@@ -742,7 +742,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original processing receipt"
+            "value": "Original processing receipt registered"
           }
         },
         "zh-Hans": {
@@ -758,7 +758,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bundle review submitted with request"
+            "value": "Bundle review submitted with this request"
           }
         },
         "zh-Hans": {
@@ -838,7 +838,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original decision"
+            "value": "Original decision withdrawn"
           }
         },
         "zh-Hans": {
@@ -870,7 +870,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escalated review"
+            "value": "Escalated for review"
           }
         },
         "zh-Hans": {

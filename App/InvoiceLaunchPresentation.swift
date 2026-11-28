@@ -348,7 +348,7 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
         } else if model.issue == "loadFailed", model.overview != nil {
             // The last list stays; the failed refresh is stated in place with a retry (X5).
             Section {
-                Label { Text(verbatim: invoiceString(loadFailedKey)) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }
+                Label { Text(verbatim: invoiceString(loadFailedKey)) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText) }
                 Button("cy.state.offline.retry") { Task { if let retry { await retry() } else { await model.refresh() } } }
             }
         } else if let issue = model.issue {

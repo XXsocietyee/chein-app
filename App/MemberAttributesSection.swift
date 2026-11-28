@@ -36,7 +36,7 @@ import SwiftUI
                 ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             }
             if let issue = model.issueCode {
-                Label { Text(verbatim: copy("六维暂不可用：", "Attributes unavailable: ") + issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }
+                Label { Text(verbatim: copy("六维暂不可用：", "Attributes unavailable: ") + issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText) }
             }
             Button {
                 Task { await model.load() }

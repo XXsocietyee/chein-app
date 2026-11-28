@@ -193,7 +193,7 @@ import SwiftUI
                     readyContent(paidCount: paidCount)
                 case .cancelled(let serverMsg):
                     Section {
-                        Label { Text(verbatim: c.t("活动已取消", "Event canceled")) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
+                        Label { Text(verbatim: c.t("活动已取消", "Event canceled")) } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText) }
                             .font(.headline)
                         Text(verbatim: ActivityHostCancelRules.completionNotice(serverMessage: serverMsg).map { c.tr($0) }
                                 ?? c.t("已提交全额退款，到账时间以微信通知为准",

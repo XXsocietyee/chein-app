@@ -176,7 +176,7 @@ struct IMConversationRowButtonToken: Equatable {
                 Label {
                     Text("d7.rowActions.done")
                 } icon: {
-                    Image(systemName: "checkmark.circle").foregroundStyle(.green)
+                    Image(systemName: "checkmark.circle").foregroundStyle(CYColor.successText)
                 }
                 .accessibilityIdentifier("im.row.acknowledged")
             } else {
@@ -187,7 +187,7 @@ struct IMConversationRowButtonToken: Equatable {
             Label {
                 Text("d7.rowActions.rejected")
             } icon: {
-                Image(systemName: "xmark.octagon").foregroundStyle(.red)
+                Image(systemName: "xmark.octagon").foregroundStyle(CYColor.dangerText)
             }
         case .closed:
             Text("im.full.closed")

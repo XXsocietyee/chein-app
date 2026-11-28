@@ -86,7 +86,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This topic already published."
+            "value": "This topic is already published."
           }
         },
         "zh-Hans": {
@@ -434,7 +434,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bring flashlight"
+            "value": "Bring a flashlight"
           }
         },
         "zh-Hans": {
@@ -482,7 +482,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bring"
+            "value": "Bring water"
           }
         },
         "zh-Hans": {
@@ -514,7 +514,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ideas"
+            "value": "Suggestions"
           }
         },
         "zh-Hans": {
@@ -594,7 +594,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Registered stats"
+            "value": "Registered attributes"
           }
         },
         "zh-Hans": {
@@ -754,7 +754,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A tier can't change once a merchant has taken station sales have opened."
+            "value": "A tier can't change once a merchant has taken the station or sales have opened."
           }
         },
         "zh-Hans": {
@@ -1074,7 +1074,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Order details aren't available."
+            "value": "Order details aren't available right now."
           }
         },
         "zh-Hans": {
@@ -1106,7 +1106,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Order link isn't valid."
+            "value": "This order link isn't valid."
           }
         },
         "zh-Hans": {

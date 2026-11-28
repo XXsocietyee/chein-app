@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue WeChat"
+            "value": "Continue with WeChat"
           }
         },
         "zh-Hans": {
@@ -24,7 +24,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat sign-in isn't available."
+            "value": "WeChat sign-in isn't available right now."
           }
         },
         "zh-Hans": {
@@ -58,7 +58,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat sign-in isn't available."
+            "value": "WeChat sign-in isn't available right now."
           }
         },
         "zh-Hans": {
@@ -160,7 +160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WeChat didn't return a valid approval code"
+            "value": "WeChat didn't return a valid authorization code"
           }
         },
         "zh-Hans": {
@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign-in response couldn't verified"
+            "value": "The sign-in response couldn't be verified"
           }
         },
         "zh-Hans": {

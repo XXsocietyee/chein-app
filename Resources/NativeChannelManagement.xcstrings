@@ -115,7 +115,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Archived. No new changes can made."
+            "value": "Archived. No new changes can be made."
           }
         }
       }
@@ -755,7 +755,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A channel in this category already has name."
+            "value": "A channel in this category already has that name."
           }
         },
         "zh-Hans": {
@@ -829,7 +829,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allowed access"
+            "value": "Allowed permissions"
           }
         }
       }
@@ -863,7 +863,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Denied access"
+            "value": "Denied permissions"
           }
         }
       }
@@ -965,7 +965,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Details"
+            "value": "Description"
           }
         }
       }
@@ -1248,7 +1248,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Change access"
+            "value": "Change permissions"
           }
         },
         "zh-Hans": {
@@ -1299,7 +1299,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last change hasn't been confirmed yet."
+            "value": "Your last change hasn't been confirmed yet."
           }
         },
         "zh-Hans": {
@@ -1339,7 +1339,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending deletion"
           }
         }
       }
@@ -1390,7 +1390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Access version"
+            "value": "Permission version"
           }
         }
       }
@@ -1401,7 +1401,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Access"
+            "value": "Permissions"
           }
         },
         "zh-Hans": {
@@ -1639,7 +1639,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {

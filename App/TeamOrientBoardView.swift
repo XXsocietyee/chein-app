@@ -157,7 +157,7 @@ extension EnvironmentValues {
     }
 
     private func failureLabel(_ text: String) -> some View {
-        Label { Text(verbatim: text) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red) }
+        Label { Text(verbatim: text) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.dangerText) }
             .font(.subheadline)
             .fixedSize(horizontal: false, vertical: true)
     }

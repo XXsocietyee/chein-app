@@ -427,7 +427,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Official event"
+            "value": "Official event details"
           }
         },
         "zh-Hans": {
@@ -827,7 +827,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Don't have cash-out"
+            "value": "You don't have withdrawal permission"
           }
         },
         "zh-Hans": {
@@ -843,7 +843,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't check cash-out"
+            "value": "Couldn't check withdrawal permission"
           }
         },
         "zh-Hans": {

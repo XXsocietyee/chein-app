@@ -39,7 +39,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Have read understand consequences closing my"
+          "value": "I have read and understand the consequences of closing my account"
         }
       },
       "zh-Hans": {
@@ -90,7 +90,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Account can't closed yet"
+          "value": "Account can't be closed yet"
         }
       },
       "zh-Hans": {
@@ -158,7 +158,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Couldn't check account closure"
+          "value": "Couldn't check account closure conditions"
         }
       },
       "zh-Hans": {

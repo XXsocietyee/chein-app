@@ -22,7 +22,7 @@ import MapKit
                         Label {
                             Text("im.card.signupFlag")
                         } icon: {
-                            Image(systemName: "checkmark.seal").foregroundStyle(.green)
+                            Image(systemName: "checkmark.seal").foregroundStyle(CYColor.successText)
                         }
                         .font(.footnote)
                         .foregroundStyle(.secondary)

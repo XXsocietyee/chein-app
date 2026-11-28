@@ -136,7 +136,7 @@ import UIKit
                 .accessibilityLabel(Text("club.aiFeedback.copy"))
                 if current() != nil {
                     if model.state.phase == .copied {
-                        Label { Text("club.aiFeedback.copied") } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
+                        Label { Text("club.aiFeedback.copied") } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText) }
                             .accessibilityElement(children: .ignore)
                             .accessibilityIdentifier("club.aiFeedback.copied")
                             .accessibilityLabel(Text("club.aiFeedback.copied"))
@@ -146,7 +146,7 @@ import UIKit
                             Text("club.aiFeedback.failed")
                                 .fixedSize(horizontal: false, vertical: true)
                         } icon: {
-                            Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange).accessibilityHidden(true)
+                            Image(systemName: "exclamationmark.triangle").foregroundStyle(CYColor.warningText).accessibilityHidden(true)
                         }
                         .accessibilityIdentifier("club.aiFeedback.failed")
                     }

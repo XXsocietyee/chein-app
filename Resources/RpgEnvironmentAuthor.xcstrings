@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Set values explicitly according original contract."
+            "value": "Set the values explicitly according to the original contract. Nothing has been written back."
           }
         },
         "zh-Hans": {
@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Setup is unchanged. Original bytes are preserved; no extra save or publication occurred."
+            "value": "Configuration is unchanged. Original bytes are preserved; no additional save or publication occurred."
           }
         },
         "zh-Hans": {
@@ -86,7 +86,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original project or setup changed. Nothing overwritten."
+            "value": "The original project or configuration changed. Nothing was overwritten."
           }
         },
         "zh-Hans": {
@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original RPG environment locations"
+            "value": "Original RPG environment and locations"
           }
         },
         "zh-Hans": {
@@ -230,7 +230,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This page declares only the original three switches. Form weather and indoor setup editing aren't connected. It provides neither live observations nor location approval. The original project still needs to saved published."
+            "value": "This page declares only the original three switches. Template weather and indoor configuration editing aren't connected. It provides neither live observations nor location authorization. The original project still needs to be saved and published."
           }
         },
         "zh-Hans": {
@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review environment setup"
+            "value": "Review environment configuration"
           }
         },
         "zh-Hans": {

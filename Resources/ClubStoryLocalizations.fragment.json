@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collapse"
+            "value": "Collapse story"
           }
         },
         "zh-Hans": {
@@ -482,7 +482,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Question has no answer configured"
+            "value": "This question has no answer configured"
           }
         },
         "zh-Hans": {
@@ -562,7 +562,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't get answer"
+            "value": "Couldn't get the answer"
           }
         },
         "zh-Hans": {

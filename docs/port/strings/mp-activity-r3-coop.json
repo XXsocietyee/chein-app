@@ -75,7 +75,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Topic isn't open partners right"
+            "value": "This topic isn't open to partners right now"
           }
         },
         "zh-Hans": {
@@ -245,7 +245,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collab invite"
+            "value": "Cooperation invitation"
           }
         },
         "zh-Hans": {
@@ -279,7 +279,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Whole-topic cooperation invite"
+            "value": "Whole-topic cooperation invitation"
           }
         },
         "zh-Hans": {
@@ -313,7 +313,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite note"
+            "value": "Invitation note"
           }
         },
         "zh-Hans": {
@@ -330,7 +330,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your current identity can't view collab invitations"
+            "value": "Your current identity can't view cooperation invitations"
           }
         },
         "zh-Hans": {
@@ -347,7 +347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collab invitations couldn't loaded"
+            "value": "Cooperation invitations couldn't be loaded"
           }
         },
         "zh-Hans": {
@@ -364,7 +364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collab details couldn't be loaded"
+            "value": "Cooperation details couldn't be loaded"
           }
         },
         "zh-Hans": {
