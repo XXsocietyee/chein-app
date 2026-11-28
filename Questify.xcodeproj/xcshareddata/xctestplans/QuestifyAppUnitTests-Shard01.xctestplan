@@ -206,6 +206,7 @@
         "MapVisualAndMerchantGameViewTests",
         "MapVisualMV01ToMV41ComplianceSectionViewTests",
         "MasterReleaseSignoffDashboardViewTests",
+        "MemberAssetsBalanceFoldTests",
         "MemberBenefitsReadOwnerTests",
         "MerchantAcceptedProjectEntryTests",
         "MerchantAftercareDecisionChangeTests",
