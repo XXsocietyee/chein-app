@@ -183,7 +183,15 @@ public struct RoamStampExchangeReceipt: Decodable, Equatable {
         if exchanged, let stamp, !stamp.isVisible { throw APIError.malformedResponse }
     }
 }
-public enum RoamCheckinDisposition: Equatable { case tooFar, needsScan(poiID: Int), lit(firstVisit: Bool, awardedXP: Int) }
+/// MP pages/roam/index.js `onPoiTap` result branches: tooFar → 离得有点远，走近点; participating + poiId → open the
+/// `roam-poi-detail` scene; participating == false → 点亮 (+xp 探索值 on the first visit, else 已点亮过); any other
+/// code-200 body → 这个地点暂时没有可记录的信息 (`nothingToRecord`), never a silent "already lit".
+public enum RoamCheckinDisposition: Equatable {
+    case tooFar
+    case needsScan(poiID: Int)
+    case lit(firstVisit: Bool, awardedXP: Int)
+    case nothingToRecord
+}
 public struct RoamCheckinReceipt: Decodable, Equatable {
     public let disposition: RoamCheckinDisposition
     enum CodingKeys: String, CodingKey { case tooFar, participating, poiId, firstVisit, xp }
@@ -195,6 +203,7 @@ public struct RoamCheckinReceipt: Decodable, Equatable {
             guard poi > 0 else { throw APIError.malformedResponse }
             disposition = .needsScan(poiID: poi); return
         }
+        guard try c.decodeIfPresent(Bool.self, forKey: .participating) == false else { disposition = .nothingToRecord; return }
         let first = try c.decodeIfPresent(Bool.self, forKey: .firstVisit) ?? false
         let xp = try c.decodeIfPresent(Int.self, forKey: .xp) ?? 0
         guard xp >= 0 else { throw APIError.malformedResponse }
