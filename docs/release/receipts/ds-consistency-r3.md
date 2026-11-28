@@ -919,6 +919,8 @@ Self-test: the pre-fix `NPCChatDataView` fails at line 327. Gates: `generate_pro
 baseline 52, **new 0**.
 
 ### For other lanes
+- mp-mine / debt-r3 (run 30): `test_object_badge_wall_layout` byte pin blocks matching the badge detail name weight
+  (`.title2.weight(.semibold)`) to the other hero names (`.title2.bold()`).
 - debt-r3: the 18 unmounted `*SectionView` release-checklist pages above (plus their unit tests) are dead code in the
   player target; deleting them would shrink the app and the allowed list.
 
@@ -955,9 +957,24 @@ look) had **0 call sites** → deleted. `E3SectionTitle` is used only by `Design
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS,
 `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
+### Batch 3 — one hero-name weight
+Object/person hero names: 54 use `.title2.bold()` (activity, club, team, public profile, co-op invite …), 9 use
+`.title2.weight(.semibold)`. Of the 9, five are numbers/codes/glyphs (ticket number, invite code, progress, stats, quiz
+character: left), two are person names:
+
+| MP page → native | Change |
+|---|---|
+| `subpackageMember/components/cy/profile` (Me card name) → `MemberHomeHeader:60` | `.title2.weight(.semibold)` → `.title2.bold()`, same as the public profile name (`SocialPublicProfileView:137`) |
+| `pages/member/gerenziliao` `.rv-name` → `ProfileCurrentAvatarView:86` | same |
+
+Kept: badge detail names (`ObjectBadgeViews:258`, `ProfileBadgesView:107`) stay semibold together —
+`test_object_badge_wall_layout…byte_identical` pins the detail; changing one alone would split the two badge views.
+Gates: `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS, `contract_ratchet --check`
+52 failing, baseline 52, **new 0**.
+
 ### Not done (next run)
-- Page-hero headers (`ActivityDetailHeader`, `ClubDetailHeader`, `TeamPageHeader`: `.title2.bold()`) vs
-  `cyPageTitle`: check they share one hero title style.
+- Badge detail name weight (needs the byte pin re-pinned by mp-mine / debt-r3, then `.title2.bold()` in both views).
+- Next scan: `.font(.title.bold())` (9) vs `.cyText(.pageTitle)` (38, same spec) — fold raw spellings into the token.
 
 ## Continue run 31 (2026-11-28, rebased onto run 30) — OWNER RULE 3 shared effect kit (ds-consistency goes first)
 
