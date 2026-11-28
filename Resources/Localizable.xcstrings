@@ -174671,13 +174671,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account can't publish activities"
+            "value": "You can't publish events right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号不能发布活动"
+            "value": "暂时不能发布活动"
           }
         }
       }
@@ -174688,13 +174688,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Identity check failed. Try again."
+            "value": "We couldn't confirm your identity"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "身份校验失败，请重试"
+            "value": "暂时无法确认身份"
           }
         }
       }
