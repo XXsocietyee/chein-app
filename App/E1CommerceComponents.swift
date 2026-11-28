@@ -155,11 +155,9 @@ enum E1ActivityState {
 struct E1IconHeader: View {
     let systemImage: String
     let title: String
-    @Environment(\.cyPalette) private var palette
     var body: some View {
-        Label { Text(verbatim: title) } icon: { Image(systemName: systemImage).foregroundStyle(palette.textSecondary) }
-            .cyText(.sectionTitle, weight: .semibold)
-            .foregroundStyle(palette.textPrimary)
+        // ds-consistency r3: system section-header look, same as the sibling Text headers in the same List.
+        Label { Text(verbatim: title) } icon: { Image(systemName: systemImage) }
             .textCase(nil)
             .accessibilityAddTraits(.isHeader)
     }

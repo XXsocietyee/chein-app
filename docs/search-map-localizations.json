@@ -435,6 +435,10 @@
     "en": "City search options",
     "zh-Hans": "城市搜索选项"
   },
+  "searchMap.merchantDiscovery": {
+    "en": "Find shops",
+    "zh-Hans": "商家发现"
+  },
   "searchMap.w208.allCategories": {
     "en": "All categories",
     "zh-Hans": "全部品类"

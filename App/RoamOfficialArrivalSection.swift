@@ -140,7 +140,7 @@ extension EnvironmentValues {
             Spacer()
             if mission.complete == true {
                 Label("roam.official.verified", systemImage: "checkmark.circle.fill")
-                    .labelStyle(.titleAndIcon).foregroundStyle(.green)
+                    .labelStyle(.titleAndIcon).foregroundStyle(CYColor.successText)
             } else if mission.canVerifyArrival == true {
                 Button(sessionID == nil ? LocalizedStringKey("roam.official.needSession") : LocalizedStringKey("roam.official.verify")) {
                     verify(mission)

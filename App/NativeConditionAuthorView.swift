@@ -48,7 +48,7 @@ import SwiftUI
                         ForEach(model.issues) { issue in
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 Label(LocalizedStringKey("nativeCondition.issue." + issue.code), systemImage: "exclamationmark.triangle")
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(CYColor.warningText)
                                 Text(verbatim: issue.path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : issue.path)
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
@@ -72,7 +72,7 @@ import SwiftUI
                         .accessibilityIdentifier("nativeCondition.saveOriginalDraft")
                     if model.session?.state == .localSaved {
                         Label("nativeCondition.localSaved", systemImage: "checkmark.circle")
-                            .foregroundStyle(.green)
+                            .foregroundStyle(CYColor.successText)
                     }
                 } footer: { Text("nativeCondition.originalFlow") }
             } else {

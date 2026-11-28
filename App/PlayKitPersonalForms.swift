@@ -272,12 +272,12 @@ extension PlayKitScreen {
                     .disabled(!enabled || !model.canUpload || bytes.isEmpty || bytes.count > 10 * 1024 * 1024)
                 if !model.canUpload && model.uploadedPhoto == nil && !model.busy { Text("playkit.photo.uploadGate").cyText(.bodyCompact) }
                 if model.uploadedPhoto == nil, model.issue != nil {
-                    Label("playkit.photo.uploadFailedRetake", systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+                    Label("playkit.photo.uploadFailedRetake", systemImage: "exclamationmark.triangle").foregroundStyle(CYColor.warningText)
                 }
                 if let evidence = model.reviewedPhoto(), case .photo(let uploadedURL) = evidence {
                     Label("playkit.photo.uploaded", systemImage: "checkmark.circle")
                     if submitFailed {
-                        Label("playkit.photo.submitFailedKept", systemImage: "arrow.clockwise.circle").foregroundStyle(.orange)
+                        Label("playkit.photo.submitFailedKept", systemImage: "arrow.clockwise.circle").foregroundStyle(CYColor.warningText)
                     }
                     Button {
                         if mounted && capturedIdentity == identity && enabled { onURL(uploadedURL) }

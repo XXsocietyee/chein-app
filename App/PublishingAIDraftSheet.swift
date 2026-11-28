@@ -85,7 +85,7 @@ import SwiftUI
                     Section {
                         if model.flow.candidateIsPrevious {
                             Label("publishingAICandidate.previousNotice", systemImage: "clock.arrow.circlepath")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(CYColor.warningText)
                         }
                         if let sourceIdea = model.flow.candidateSourceIdea {
                             VStack(alignment: .leading, spacing: 2) {
@@ -109,7 +109,7 @@ import SwiftUI
                         }
                         .id(candidateGeneration)
                         Label("contextPublish.ai.placesUnconfirmed", systemImage: "mappin.and.ellipse")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                         ForEach(Array(result.draft.nodes.enumerated()), id: \.element.id) { index, node in
                             Label {
                                 VStack(alignment: .leading, spacing: 2) {

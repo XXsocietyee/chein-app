@@ -68,7 +68,8 @@ import SwiftUI
                 // The limit hint and the count sit in the section footer, like Settings text fields.
                 VStack(alignment: .leading, spacing: 4) {
                     Text(locale.pick("新成员首次加入后会看到这段话。仅主理人可以修改；可清空，最多 200 个 Unicode 码点。", "New members see this message after joining. Only the owner can edit it; it can be cleared. Up to 200 characters."))
-                    Text("\(flow.count) / 200").monospacedDigit().foregroundStyle(flow.count > 200 ? .red : .secondary)
+                    Text(verbatim: "\(flow.count) / 200").monospacedDigit().foregroundStyle(flow.count > 200 ? CYColor.dangerText : Color.secondary)
+                        .accessibilityLabel(Text("a11y.value.characters \(Int(flow.count)) \(Int(200))"))
                 }
             }
             Button(locale.pick("清空文本", "Clear text"), role: .destructive) { flow.draft = "" }

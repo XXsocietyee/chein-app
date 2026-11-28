@@ -321,37 +321,24 @@ struct MessagingHistoryView: View {
                         ChatHistoryLoading(labelKey: "messaging.loadingEarlier", identifier: "messaging.history.loadingEarlier", fills: false)
                     } else {
                         if let earlierIssue {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("messaging.earlierFailed").font(.headline)
-                                if let message = earlierIssue.message { Text(verbatim: message).font(.subheadline) }
-                                else { Text(LocalizedStringKey(earlierIssue.detailKey)).font(.subheadline) }
-                            }
-                            .foregroundStyle(.secondary)
-                            .accessibilityIdentifier("messaging.history.earlierError")
-                        }
-                        Button { Task { await loadEarlier() } } label: {
-                            HStack(alignment: .firstTextBaseline) {
-                                Label {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(LocalizedStringKey(earlierIssue == nil ? "messaging.earlier" : "messaging.retry"))
-                                        if let earlierIssue {
-                                            Text(LocalizedStringKey(earlierIssue.detailKey))
-                                                .font(.subheadline).foregroundStyle(.secondary)
-                                        }
+                            // mp-states r3: MP im/chat cy-inline-error 更早消息没有加载 · sub · 重试 — one titled state
+                            // with the reason once and the retry inside it.
+                            ChatEarlierFailure(issue: earlierIssue) { Task { await loadEarlier() } }
+                        } else {
+                            Button { Task { await loadEarlier() } } label: {
+                                HStack(alignment: .firstTextBaseline) {
+                                    Label("messaging.earlier", systemImage: "clock.arrow.circlepath")
+                                    Spacer(minLength: 8)
+                                    if let earlierValue {
+                                        Text(verbatim: earlierValue).font(.subheadline).foregroundStyle(.secondary)
                                     }
-                                } icon: {
-                                    Image(systemName: "clock.arrow.circlepath")
                                 }
-                                Spacer(minLength: 8)
-                                if let earlierValue {
-                                    Text(verbatim: earlierValue).font(.subheadline).foregroundStyle(.secondary)
-                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .contentShape(Rectangle())
+                            .buttonStyle(.borderless)
+                            .accessibilityIdentifier("messaging.history.earlier")
                         }
-                        .buttonStyle(.borderless)
-                        .accessibilityIdentifier("messaging.history.earlier")
                     }
                 }
                 if history.messages.isEmpty {
@@ -1127,5 +1114,42 @@ private struct ChatHistoryStatus: View {
     private func run(_ body: @escaping @MainActor () async -> Void) {
         guard task == nil else { return }
         task = Task { @MainActor in await body(); task = nil }
+    }
+}
+
+/// mp-states r3: MP `subpackageB/pages/im/chat/index.wxml:31` cy-inline-error load-failure
+/// 更早消息没有加载 · sub loadMoreError · 重试.
+private struct ChatEarlierFailure: View {
+    let issue: MessagingLoadIssue
+    let retry: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Label("messaging.earlierFailed", systemImage: "wifi.exclamationmark")
+                .font(.headline)
+                .foregroundStyle(.primary)
+            detail
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button(action: retry) {
+                Text("messaging.retry")
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("messaging.history.earlier")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(CYSpacing.md)
+        .background(.background.secondary, in: .rect(cornerRadius: CYRadius.inner))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("messaging.history.earlierError")
+    }
+
+    @ViewBuilder private var detail: some View {
+        if let message = issue.message {
+            Text(verbatim: message)
+        } else {
+            Text(LocalizedStringKey(issue.detailKey))
+        }
     }
 }

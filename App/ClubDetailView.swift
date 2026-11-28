@@ -812,7 +812,7 @@ private struct ClubDetailHeader: View {
                     HStack(spacing: CYSpacing.md) {
                         if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
                         else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
-                        else if club.joinPending { Label("club.membership.pending", systemImage: "clock").foregroundStyle(.orange) }
+                        else if club.joinPending { Label("club.membership.pending", systemImage: "clock").foregroundStyle(CYColor.warningText) }
                         if club.viewerIsAdmin { Label("club.viewerAdministrator", systemImage: "person.badge.shield.checkmark") }
                     }
                     .font(.subheadline)
@@ -879,11 +879,15 @@ private struct ClubOverviewFacts: View {
 
     private func cell(_ fact: Fact) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            // One line at its full width, so ViewThatFits stacks the labelled rows instead of wrapping a cell (sweep en-d4-detail).
             Text(verbatim: fact.value)
                 .font(.headline)
-                .lineLimit(2)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
             Text(LocalizedStringKey(fact.labelKey))
                 .font(.caption)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)

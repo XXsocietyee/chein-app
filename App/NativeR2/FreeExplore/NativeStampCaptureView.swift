@@ -129,7 +129,7 @@ import UIKit
                     }
                     if case .created = coordinator.phase {
                         Label("scan.stamp.created", systemImage: "checkmark.seal.fill")
-                            .foregroundStyle(.green)
+                            .foregroundStyle(CYColor.successText)
                             .nativeR2BounceOnAppear()
                         if NativeR2Flags.motion2 {
                             // Motion r2 R1: the stamp presses onto the album page, the outline draws under it.

@@ -104,7 +104,7 @@ struct TopicXcxHero: View {
                     if let review = topic.ownerReviewLabel {
                         Label(LocalizedStringKey(TopicXcxHero.reviewKey(review)), systemImage: "hourglass")
                             .font(.subheadline)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("topic.ownerReviewState")
                     }
                 }
@@ -333,7 +333,7 @@ struct TopicXcxActionBar: View {
 
     private var barContent: some View {
             VStack(spacing: 6) {
-                if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.subheadline).foregroundStyle(.orange) }
+                if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.subheadline).foregroundStyle(CYColor.warningText) }
                 (typeSize.isAccessibilitySize
                     ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
                     : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))) {

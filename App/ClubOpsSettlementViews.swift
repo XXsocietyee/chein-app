@@ -23,7 +23,7 @@ struct ClubOpsSettlementSummaryCard: View {
                 Label(String(localized: LocalizedStringResource("clubOps.settlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "ClubOpsCustomer", locale: locale)),
                       systemImage: "questionmark.circle")
                     .font(.subheadline)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
             }
         }
     }

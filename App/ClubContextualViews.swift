@@ -84,16 +84,16 @@ struct ClubOperatingRulesView: View {
                         Label("context.ops.disabled", systemImage: "nosign").foregroundStyle(.secondary)
                     }
                     if state == .unknown {
-                        Label("context.ops.unknown", systemImage: "clock").foregroundStyle(.orange)
+                        Label("context.ops.unknown", systemImage: "clock").foregroundStyle(CYColor.warningText)
                     }
                     if state == .acknowledged {
-                        Label("context.ops.acknowledged", systemImage: "checkmark.circle").foregroundStyle(.green)
+                        Label("context.ops.acknowledged", systemImage: "checkmark.circle").foregroundStyle(CYColor.successText)
                     }
                     if state == .rejected {
                         Label("context.ops.rejected", systemImage: "exclamationmark.circle").foregroundStyle(.red)
                     }
                     if readFailed {
-                        Label("context.ops.readFailed", systemImage: "arrow.clockwise").foregroundStyle(.orange)
+                        Label("context.ops.readFailed", systemImage: "arrow.clockwise").foregroundStyle(CYColor.warningText)
                     }
                 }
             }

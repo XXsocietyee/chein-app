@@ -284,7 +284,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 Text(verbatim: review.reason).accessibilityIdentifier("profile.complaint.reviewText")
                 if sending.state == .succeeded {
                     Label("profile.complaint.submit.done", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(CYColor.successText)
                         .accessibilityIdentifier("profile.complaint.submit.done")
                 } else if !sending.isConfigured {
                     Text("profile.complaint.notSubmitted").font(.subheadline).foregroundStyle(.secondary)

@@ -125,7 +125,7 @@ struct TeamStaleBanner: View {
     let detail: String
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label(LocalizedStringKey(title), systemImage: "arrow.clockwise.circle").font(.subheadline.weight(.semibold)).foregroundStyle(.orange)
+            Label(LocalizedStringKey(title), systemImage: "arrow.clockwise.circle").font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.warningText)
             Text(LocalizedStringKey(detail)).font(.subheadline).foregroundStyle(.secondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.stale")

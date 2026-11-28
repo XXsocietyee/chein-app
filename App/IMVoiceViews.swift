@@ -99,7 +99,7 @@ import SwiftUI
             if owner.canRecover { pill("d7.imCompose.refresh", image: "arrow.clockwise", primary: false) { Task { await owner.recover() } } }
             destructive("d7.imCompose.discard") { owner.discardRejected() }
         case .ready(let reference):
-            Label("d7.imCompose.approved", systemImage: "checkmark.seal").foregroundStyle(.green)
+            Label("d7.imCompose.approved", systemImage: "checkmark.seal").foregroundStyle(CYColor.successText)
             LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: reference.durationMS) }
             if owner.expanded.writer.canSendVoice && owner.canRecoverOriginalSend {
                 pill("d7.imCompose.continue", image: "arrow.right.circle", primary: commit == .continueSend) {
@@ -125,7 +125,7 @@ import SwiftUI
         case .notFound: status("d7.imCompose.notFound", symbol: "questionmark.circle", color: .secondary)
         case .unknown: status("d7.imCompose.stillUnknown", symbol: "clock.arrow.circlepath", color: .secondary)
         case .found:
-            Label("d7.imVoice.sent", systemImage: "checkmark.circle").foregroundStyle(.green)
+            Label("d7.imVoice.sent", systemImage: "checkmark.circle").foregroundStyle(CYColor.successText)
             pill("d7.imCompose.done", image: "checkmark", primary: false) { owner.finishAcknowledged() }
         case .unchecked: EmptyView()
         }
@@ -153,7 +153,7 @@ import SwiftUI
             }
         case .acknowledged(.sent(let message)):
             if IMVoiceReference.read(message) != nil, !hasRecoveredSend {
-                Label("d7.imVoice.sent", systemImage: "checkmark.circle").foregroundStyle(.green)
+                Label("d7.imVoice.sent", systemImage: "checkmark.circle").foregroundStyle(CYColor.successText)
                 if owner.canRecoverOriginalSend {
                     pill("d7.imCompose.done", image: "checkmark", primary: false) {
                         Task { if available { await owner.recoverAndFinishAcknowledged() } }
