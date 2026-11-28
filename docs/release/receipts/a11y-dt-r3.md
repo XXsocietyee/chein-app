@@ -612,9 +612,53 @@ switch, cast sheet). Six captions sat as a sibling `Text` right under the switch
 | `pages/publishkit` initial attributes 启用 | `ProjectInitialAttributesEditor.swift:128` | ✓ (mp-publish owns order) | Same. The per-row "flag / integer" caption explains the whole row's fields, not the 可见 switch, so it stays a stop. Level C | Done |
 
 
+Not done item: `Picker` / `Stepper` rows with a sibling caption (same scan, 6 hits):
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/publishkit` profile question 题型 | `TemplateProfileQuestionFields.swift:85` | ✓ (mp-publish owns order) | Caption explains the kind picker → its `accessibilityHint`, caption hidden as its own stop. Level C | Done |
+| `pages/coop` topic filter (仅筛选已加载…) | `CooperationBrowserView.swift:179` | ✓ (mp-activity owns order) | Same: hint on the menu picker, caption hidden. Level C | Done |
+| square report legacy hint, club topic customers count scope, follow list "not friends" note, team config defaults | `SocialActionViews.swift:82`, `ClubGovernanceViews.swift:761`, `ProfileFollowListView.swift:39`, `ProjectTeamConfigurationEditor.swift:105` | ✓ | Audit: each caption explains the whole section or list, not the picker above it, so it stays its own stop. No change | Done |
+
+
+Not done item: `TextField` rows with a sibling caption. The scan found mostly character counters, and 11 of them read
+"12 slash 100" / "12 斜杠 100" to VoiceOver (the run-13 slash scan covered values, not `Text(verbatim:)` counters). Format hints
+(`RoamAreaPicker` lat/long, `ProjectNodeDuration`, `PublishingManagement` notices) explain the form section and stay their own stop.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Character counters on player composers: coop invite note + flow reason, club post composer, square appeal reason, picture-choice name, pass refund reason, host cancel reason, square cloud composer, group poll question, comment length row, legacy DIY name | `CooperationContextualViews:677`, `CooperationFlowEditors:266`, `ClubCommunityViews:1056`, `SquareGovernanceViews:67`, `TemplatePictureChoiceEditor:89`, `PassMarketViews:1231`, `ActivityHostCancelView:329`, `SquareCloudComposerView:110`, `GroupPollViews:142`, `SocialActionViews:53`, `PlayKitLegacyViews:82` | ✓ (owning lanes keep order) | `.accessibilityLabel` with the shared `a11y.value.characters` key: "12 of 100 characters" / "已输入 12 字，最多 100 字". Visible text unchanged; identifiers kept. Level B/C | Done |
+
+
+## Run 38 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7`. Sweep index still build 0446d1c4f, so the sheets re-read waits. Not done item 2: other
+`Text(verbatim:)` "a/b" counts (not characters). Already handled and skipped: `CYStepChecklist` ring (hidden, value on the
+row), `ClubBadgeArtKit` (row label), `CYAlbum` dots (page label), `PlayKitPersonalForms` step, `NativeGameKitsB`, `CameraKits`
+album, `NearbyAndHistoryGapViews`. `ObjectBadgeWallParityViews` counts are strings (em dash when unknown) and stay. Internal
+matrix/compliance section views are diagnostics, out of scope.
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Nearby team row, free-explore redeemed + story counts (map and archive), city lobby members, city trail team progress, team orient board, group poll option votes, team re-form invite count, play session progress | `NearbyTeamMapViews:148`, `NativeFreeExploreMapView:399/405/635`, `CityOrientationTeamLobbyView:214`, `CityOrientationNavComponents:86`, `TeamOrientBoardView:210`, `GroupPollOriginalResultView:162`, `TeamReformFlowViews:121`, `PlaySessionView:108` | ✓ (owning lanes keep order) | `.accessibilityLabel` with the shared `a11y.value.ofTotalText` key ("3 of 5" / "3，共 5") instead of "3 slash 5" / "3 斜杠 5". Visible text and identifiers unchanged. Level C | Done |
+
+Localized `Text("\(a) / \(b)")` scan: gallery positions already use `carousel.position`. Two object-card frame counters read "slash":
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Object card rotation frames (collection detail + play reveal) | `ObjectCardViews:188`, `PlayObjectCardRevealView:58` | ✓ | Frame counter gets `a11y.value.ofTotal` ("2 of 8" / "2，共 8"). Level C | Done |
+
+Variable-built "a/b" strings shown through `Text(verbatim:)`. New shared helper `App/DesignSystem/CYFractionSpeech.swift`:
+`CYFractionSpeech.label(_:)` reads an "a/b" or "a / b" string as `a11y.value.ofTotalText` and anything else as shown (em dash stays).
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| Orient lobby team rows (classic + city), city run control-points cell, city game actions tile, business progress counter, journey rank board score | `OrientLobbyTeamsView:73`, `CityOrientationTeamLobbyView:117`, `CityOrientationRunView:475`, `CityGamePanel:221`, `CYBusinessComponents:848`, `JourneyReportViews:342` | ✓ (owning lanes keep order) | `.accessibilityLabel(CYFractionSpeech.label(…))`: "3 of 6" / "3，共 6". Visible text unchanged. Level C | Done |
+
+| `pages/member/index` cy-profile tabs 项目/帖文/成就/关于 | `AccountView.swift:66` | ✓ (mp-mine owns order) | Audit: system `Picker` + `.cyAdaptiveSegmented()` (stacks at large type), labelled container, identifier, `.sensoryFeedback(.selection)`. No change | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-36).
-- `Picker` / `Stepper` rows with a sibling caption (same pattern as the run-37 Toggle fix).
+- Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-38).
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`): club detail header and join button at AX5, ticket wallet rows VoiceOver order.
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

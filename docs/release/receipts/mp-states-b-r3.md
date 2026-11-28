@@ -16,6 +16,17 @@ no row in your receipt yet").
 | (new, no A row) 俱乐部 · 编辑资料 · 资料概况 facts section (`ClubEditFactsSection`, `App/ClubTabParityViews.swift`, inside 俱乐部详情 管理 · 编辑资料) — code read, no sweep fixture | `pages/club/components/cy/scene-club-edit/index.wxml:3` cy-skeleton 正在读取俱乐部资料; `:6` cy-error load-failure 编辑资料没能打开 · 重新加载 (members / 保留名额 come from the same club read in the MP) | bare `ProgressView()` with no words; a failed read = a bare 加载失败 line with no way to retry except leaving the page | labelled `ProgressView { 正在读取俱乐部资料 }` (Loading club details…); failure = warning `Label` 编辑资料没能打开 (Couldn’t open the club details) + `.bordered` 重新加载 (Reload) that re-runs the facts read — the same keys as the page-level state (A row "俱乐部 · 编辑资料 load states"). Identifiers `club.ops.facts.loading` / `.error` kept, new `club.ops.facts.reload`. Level C |
 | (new, no A row) 发布 · 发布人登记 status (`PublishingIdentityStatusView`, `App/PublishingManagementViews.swift`, pushed from 发布 · 发布方式) — code read, no sweep fixture | MP has no standalone page: the status read (`/api/publisher/identity/status`) runs inside `pages/publish/fabu`; the MP global pattern for a failed read is cy-error load-failure + 重试 | bare `ProgressView()` with no words; a failed read = the bare sentence 列表没加载出来 (“Couldn’t load the list”) — wrong object, no retry | labelled `ProgressView { 正在读取登记状态… }` (Checking your registration…); failure = one `ContentUnavailableView` 登记状态没能读取 (Couldn’t check your registration) · 检查网络后再试一次 · `.bordered` 重试 that re-runs the read (`reloadToken` in the `.task` id). New keys `publishModes.identityLoading` / `.identityReadFailed` (en + zh-Hans). The five states pinned by `test_identity_unknown_is_not_authoritative_false` are unchanged. Level C |
 
+## Run 11-28 (second B run)
+
+A receipt open rows at start (`origin/mp/r3-states` 4f5b51cfd): still only **"Not done · P1-9 remote push"**, still blocked on the
+backend (no device-token route reachable from this repo). Not taken. Re-scan: MP `cy-empty` / `cy-error` / `cy-inline-error` titles
+(430) matched against `App` / `Core` / `Resources`; 81 have no native string, most outside player screens (merchant, project-host,
+publish authoring, club-owner tools). Player screen taken:
+
+| A-receipt row / screen | MP state | Before | After (level) |
+|---|---|---|---|
+| (new, no A row; A row "设置 · AI 对话记录 loader" covered only the loader) 设置 · 隐私 · AI 对话记录 failure (`NPCChatDataView`, `App/NPCChatDataView.swift`) — code read, no sweep fixture | `subpackageMember/components/cy/npc-chat/index.wxml:25` cy-inline-error 导出没有完成 · sub exportError · 重试 (onExportData) | retry-able failure = `CYErrorState` whose title was the long reason sentence (e.g. 暂时无法读取记录。读取权限仍有效时可以重试。) and a 重新读取记录 button; a non-retry failure = a red warning `Label` with the same sentence, no title | both = one `CYEmptyState` (system `ContentUnavailableView`, failure kind) titled 导出没有完成 (Couldn’t export your AI chats; new key `npcData.failure.title`), the reason as its description; retry-able → `.bordered` 重试 (`action.retry`) inside that re-reads (id `npcData.reload` kept); otherwise no button (id `npcData.failure` kept). Level C |
+
 ## Not done
 
 | Row | Why |

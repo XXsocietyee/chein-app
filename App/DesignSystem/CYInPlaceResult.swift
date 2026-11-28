@@ -132,41 +132,20 @@ struct CYResultToast: View {
     @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
 
     var body: some View {
-        HStack(spacing: CYSpacing.sm) {
-            ZStack {
-                switch state.phase {
-                case .progress:
-                    ProgressView().controlSize(.small).tint(palette.textSecondary).transition(.opacity)
-                case .done:
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(palette.success)
-                        .transition(reduceMotion ? AnyTransition.opacity : AnyTransition(.blurReplace).combined(with: .scale(scale: 0.25)))
-                case .failed:
-                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(palette.warning)
-                        .transition(reduceMotion ? AnyTransition.opacity : AnyTransition(.blurReplace).combined(with: .scale(scale: 0.25)))
-                }
+        // Side by side when the message and action fit. At AX-XXXL the action drops under a wrapping message.
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: CYSpacing.sm) {
+                toastIcon
+                toastMessage(lines: 2)
+                toastAction
             }
-            .cyText(.cardTitle)
-            .frame(width: iconSize, height: iconSize)
-            .accessibilityHidden(true)
-
-            Text(verbatim: state.message)
-                .cyText(.bodyCompact)
-                .foregroundStyle(palette.textPrimary)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-                .contentTransition(.opacity)
-
-            if showsAction, let title = state.actionTitle, let onAction {
-                Button(action: onAction) {
-                    Text(verbatim: title)
-                        .cyText(.label, weight: .bold)
-                        .foregroundStyle(palette.textPrimary)
-                        .padding(.horizontal, CYSpacing.sm)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .contentShape(Rectangle())
+            .fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                HStack(spacing: CYSpacing.sm) {
+                    toastIcon
+                    toastMessage(lines: 4)
                 }
-                .buttonStyle(.plain)
-                .transition(reduceMotion ? AnyTransition.opacity : AnyTransition(.blurReplace))
+                toastAction
             }
         }
         .padding(.leading, CYSpacing.lg)
@@ -192,6 +171,48 @@ struct CYResultToast: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("cy.result.toast")
+    }
+
+    private var toastIcon: some View {
+        ZStack {
+            switch state.phase {
+            case .progress:
+                ProgressView().controlSize(.small).tint(palette.textSecondary).transition(.opacity)
+            case .done:
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(palette.success)
+                    .transition(reduceMotion ? AnyTransition.opacity : AnyTransition(.blurReplace).combined(with: .scale(scale: 0.25)))
+            case .failed:
+                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(palette.warning)
+                    .transition(reduceMotion ? AnyTransition.opacity : AnyTransition(.blurReplace).combined(with: .scale(scale: 0.25)))
+            }
+        }
+        .cyText(.cardTitle)
+        .frame(width: iconSize, height: iconSize)
+        .accessibilityHidden(true)
+    }
+
+    private func toastMessage(lines: Int) -> some View {
+        Text(verbatim: state.message)
+            .cyText(.bodyCompact)
+            .foregroundStyle(palette.textPrimary)
+            .lineLimit(lines)
+            .fixedSize(horizontal: false, vertical: true)
+            .contentTransition(.opacity)
+    }
+
+    @ViewBuilder private var toastAction: some View {
+        if showsAction, let title = state.actionTitle, let onAction {
+            Button(action: onAction) {
+                Text(verbatim: title)
+                    .cyText(.label, weight: .bold)
+                    .foregroundStyle(palette.textPrimary)
+                    .padding(.horizontal, CYSpacing.sm)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .transition(reduceMotion ? AnyTransition.opacity : AnyTransition(.blurReplace))
+        }
     }
 }
 

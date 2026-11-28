@@ -185,7 +185,7 @@ extension EnvironmentValues {
                         HStack {
                             Button("objects.previous") { move(-1) }.accessibilityIdentifier("objects.frame.previous")
                             Spacer()
-                            Text("\(frame + 1) / \(card.frames.count)").monospacedDigit()
+                            Text("\(frame + 1) / \(card.frames.count)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotal \(Int(frame + 1)) \(Int(card.frames.count))"))
                             Spacer()
                             Button("objects.next") { move(1) }.accessibilityIdentifier("objects.frame.next")
                         }.buttonStyle(.bordered).frame(minHeight: 44)

@@ -468,7 +468,13 @@ struct SessionRootView: View {
 
     /// P21: the running roam / city run / game as a mini bar above the tab bar on every tab; it expands into the HUD.
     private var activeSessionBar: ActiveSessionMiniBarHost {
-        ActiveSessionMiniBarHost(isTabBarHidden: isTabBarHidden, roamHUD: { roamLiveDestination })
+        ActiveSessionMiniBarHost(isTabBarHidden: isTabBarHidden, roamHUD: { roamLiveDestination }, playScreen: activeSessionPlayScreen)
+    }
+
+    /// Plan audit H-02b: the running game's own screen, the same `SessionPlayRuntimeView` the topic / activity entries push.
+    private func activeSessionPlayScreen(_ key: String) -> AnyView? {
+        guard let scope = QuestLiveActivityCenter.shared.playScope(forKey: key) else { return nil }
+        return AnyView(SessionPlayRuntimeView(session: session, destination: .journey(scope)))
     }
 
     /// Native r2: the system tab bar (`TabView` + `Tab`, SF Symbols, system tint). No custom bar, pill or haptic.
