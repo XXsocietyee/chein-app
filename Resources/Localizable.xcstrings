@@ -362682,6 +362682,23 @@
           }
         }
       }
+    },
+    "merchantCoop.nearby.topic.replacement.sheetTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a replacement action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择补位操作"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

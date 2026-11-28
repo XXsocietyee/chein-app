@@ -37,6 +37,8 @@ extension EnvironmentValues {
     var topicScope: NearbyMerchantTopicScope? = nil
     @State private var invitable: [NearbyMerchantInvitableRow] = []
     @State private var invitableFailed = false
+    /// MP 选择补位操作 → chosen candidate; pushes the focused C9 flow.
+    @State private var replacementFocus: CoopNearbyReplacementOption?
     @State private var purposeAccepted = false
     @State private var operation: Task<Void, Never>?
     @State private var publicHomeSelection: NearbyMerchantCoordinator.PublicHomeSelection?
@@ -132,8 +134,10 @@ extension EnvironmentValues {
                             } label: { card(row) }
                                 .accessibilityIdentifier("nearbyMerchant.open.\(row.id)")
                             if let topicScope, let member = row.memberID,
-                               invitable.first(where: { $0.memberID == member })?.hasReplacement == true {
-                                NearbyMerchantReplacementLink(scope: topicScope, memberID: member)
+                               let match = invitable.first(where: { $0.memberID == member }), match.hasReplacement {
+                                NearbyMerchantReplacementLink(scope: topicScope, memberID: member, options: match.replacements) { option in
+                                    replacementFocus = option
+                                }
                             }
                         } else {
                             VStack(alignment: .leading) {
@@ -158,7 +162,9 @@ extension EnvironmentValues {
                     if let topicScope {
                         let nearbyMembers = Set(model.rows.compactMap(\.memberID))
                         NearbyMerchantInvitableOnlyRows(scope: topicScope, rows: invitable.filter { !nearbyMembers.contains($0.memberID) },
-                                                        publicMerchant: publicMerchant)
+                                                        publicMerchant: publicMerchant) { option in
+                            replacementFocus = option
+                        }
                     }
                 }
             }
@@ -166,6 +172,9 @@ extension EnvironmentValues {
             .accessibilityIdentifier("nearbyMerchant.list")
             .modifier(NearbyMerchantInvitableLoader(scope: topicScope, ready: model.phase == .ready,
                                                     rows: $invitable, failed: $invitableFailed))
+            .navigationDestination(item: $replacementFocus) { option in
+                if let topicScope { NearbyMerchantReplacementDestination(scope: topicScope, option: option) }
+            }
             .cySheet(item: $publicHomeSelection) { selection in
                 NavigationStack {
                     Group {

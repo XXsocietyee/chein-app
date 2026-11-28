@@ -11,6 +11,8 @@ final class ChapterReplacementInvitationViewModel: ObservableObject {
     @Published private(set) var candidates: [ChapterReplacementInvitationCandidate] = []
     @Published private(set) var selectedVacancy: ChapterReplacementInvitationVacancy?
     @Published var message = ""
+    /// MP 补位候选已变化，请刷新后重试: the candidate chosen on 找商家承接 is no longer offered.
+    @Published private(set) var focusChanged = false
 
     private let coordinator: ChapterReplacementInvitationCoordinator
     private let topicID: Int
@@ -41,6 +43,23 @@ final class ChapterReplacementInvitationViewModel: ObservableObject {
         sync()
     }
 
+    /// Opened from a 邀请补位 option on 找商家承接 (MP `confirmChapterReplacement`): select that vacancy, re-read its
+    /// candidates and go straight to the review of the chosen merchant. When the vacancy or the candidate is gone
+    /// the page stays on the normal list and says the options changed (MP stillInvitable check).
+    func load(focus: CoopNearbyReplacementOption?, coordinates: ChapterReplacementInvitationCoordinates?) async {
+        await load()
+        guard let focus, phase == .ready else { return }
+        guard let vacancy = vacancies.first(where: { $0.offerID == focus.replacementOfOfferID && $0.chapterID == focus.chapterID }) else {
+            focusChanged = true; return
+        }
+        await select(vacancy, coordinates: coordinates)
+        guard phase == .ready, let candidate = candidates.first(where: { focus.matches($0) }) else {
+            if phase == .ready { focusChanged = true }
+            return
+        }
+        await prepare(candidate)
+    }
+
     func select(_ vacancy: ChapterReplacementInvitationVacancy, coordinates: ChapterReplacementInvitationCoordinates?) async {
         await coordinator.loadCandidates(for: vacancy, coordinates: coordinates)
         sync()
@@ -63,13 +82,15 @@ final class ChapterReplacementInvitationViewModel: ObservableObject {
     let context: MerchantChapterReplacementHostContext
     let topicID: Int
     let merchantAccess: MerchantAccess?
+    /// Set when opened from a 邀请补位 option on 找商家承接; nil keeps the plain vacancy → candidate flow.
+    var focus: CoopNearbyReplacementOption? = nil
     @State private var model: ChapterReplacementInvitationViewModel?
     @State private var unavailable = false
 
     var body: some View {
         Group {
             if let model {
-                ChapterReplacementInvitationView(model: model, coordinates: context.coordinates)
+                ChapterReplacementInvitationView(model: model, coordinates: context.coordinates, focus: focus)
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: CYSpacing.xl) {
@@ -106,17 +127,25 @@ struct ChapterReplacementInvitationView: View {
     /// Supplied by the host shell; `nil` means location was refused and candidates
     /// must still be queried by topic alone.
     let coordinates: ChapterReplacementInvitationCoordinates?
+    let focus: CoopNearbyReplacementOption?
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
 
-    init(model: ChapterReplacementInvitationViewModel, coordinates: ChapterReplacementInvitationCoordinates? = nil) {
+    init(model: ChapterReplacementInvitationViewModel, coordinates: ChapterReplacementInvitationCoordinates? = nil,
+         focus: CoopNearbyReplacementOption? = nil) {
         _model = StateObject(wrappedValue: model)
         self.coordinates = coordinates
+        self.focus = focus
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.xxl) {
                 CYHeroHeader("chapterReplacement.title", subtitle: "chapterReplacement.intro")
+                if model.focusChanged {
+                    CYInlineError(verbatim: CoopNearbyReplacementOption.changedText(chinese: LocaleDisplay.isChinese(locale)))
+                        .accessibilityIdentifier("chapterReplacement.focusChanged")
+                }
                 vacancySection
                 if model.selectedVacancy != nil {
                     candidateSection
@@ -147,7 +176,7 @@ struct ChapterReplacementInvitationView: View {
         .cyHeroScreen()
         .cyAnimation(value: model.phase)
         .cyHaptic(.impactMedium, trigger: model.phase, where: Self.startedSending)
-        .task { await model.load() }
+        .task { await model.load(focus: focus, coordinates: coordinates) }
     }
 
     @ViewBuilder private var vacancySection: some View {
@@ -247,10 +276,19 @@ struct ChapterReplacementInvitationView: View {
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("chapterReplacement.review.invite \(plan.candidate.merchantMemberID) \(plan.candidate.chapterID) \(plan.candidate.replacementOfOfferID)")
-                    .cyText(.body)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                if let focus, focus.matches(plan.candidate) {
+                    // MP 邀请商家补位 modal: names instead of ids when the merchant was chosen on 找商家承接.
+                    Text(verbatim: focus.confirmText(chinese: LocaleDisplay.isChinese(locale)))
+                        .cyText(.body)
+                        .foregroundStyle(palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("chapterReplacement.review.focus")
+                } else {
+                    Text("chapterReplacement.review.invite \(plan.candidate.merchantMemberID) \(plan.candidate.chapterID) \(plan.candidate.replacementOfOfferID)")
+                        .cyText(.body)
+                        .foregroundStyle(palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 Text("chapterReplacement.review.pendingOnly")
                     .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)

@@ -20,8 +20,10 @@ struct NearbyMerchantInvitableRow: Identifiable, Equatable {
     let address: String?
     /// One entry per chapter + terms this merchant can take (MP `chapterNames`, de-duplicated by label, server order).
     let chapters: [Chapter]
+    /// MP `replacementInvites`: one 邀请补位 option per (chapter, replaced offer), server order.
+    let replacements: [CoopNearbyReplacementOption]
     /// At least one row carries a replacement candidate (MP `replacementInvites` non-empty).
-    let hasReplacement: Bool
+    var hasReplacement: Bool { !replacements.isEmpty }
     var id: Int { memberID }
     func chapterText(chinese: Bool) -> String? {
         chapters.isEmpty ? nil : chapters.map { $0.label(chinese: chinese) }.joined(separator: chinese ? "、" : ", ")
@@ -30,26 +32,27 @@ struct NearbyMerchantInvitableRow: Identifiable, Equatable {
     /// MP `validInvitableRow` + `merge`: rows without memberId, name or chapterName are dropped; one row per member.
     static func merged(_ values: [MerchantContentValue]) -> [NearbyMerchantInvitableRow] {
         var order: [Int] = []
-        var byMember: [Int: (name: String, address: String?, chapters: [Chapter], replacement: Bool)] = [:]
+        var byMember: [Int: (name: String, address: String?, chapters: [Chapter])] = [:]
         for value in values {
             guard let member = value["memberId"].integer, member > 0,
                   let name = value["name"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty,
                   let chapterName = value["chapterName"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !chapterName.isEmpty
             else { continue }
             let chapter = Chapter(name: chapterName, terms: CoopNearbyStationTerms(row: value))
-            let replacement = (value["replacementOfOfferId"].integer ?? 0) > 0 && (value["chapterId"].integer ?? 0) > 0
             if var existing = byMember[member] {
                 if !existing.chapters.contains(chapter) { existing.chapters.append(chapter) }
-                existing.replacement = existing.replacement || replacement
                 if existing.address == nil { existing.address = value["address"].text }
                 byMember[member] = existing
             } else {
                 order.append(member)
-                byMember[member] = (name, value["address"].text, [chapter], replacement)
+                byMember[member] = (name, value["address"].text, [chapter])
             }
         }
         return order.compactMap { member in
-            byMember[member].map { .init(memberID: member, name: $0.name, address: $0.address, chapters: $0.chapters, hasReplacement: $0.replacement) }
+            byMember[member].map {
+                .init(memberID: member, name: $0.name, address: $0.address, chapters: $0.chapters,
+                      replacements: CoopNearbyReplacementOption.options(merchantMemberID: member, rows: values))
+            }
         }
     }
 }
@@ -111,14 +114,28 @@ struct NearbyMerchantChapterLine: View {
     }
 }
 
-/// 邀请补位 → the C9 replacement-invitation flow for the topic.
+/// 邀请补位 → MP 选择补位操作 (js:457-473): one action per candidate, `邀请补位 · 章节（补位 n）`. Choosing one opens
+/// the C9 replacement-invitation flow focused on that vacancy and merchant, which lands on its review (the MP
+/// 邀请商家补位 confirm) — the invite still goes only through C9's reviewed, default-closed write gate. The MP sheet pages
+/// candidates three at a time (上一组 / 下一组补位) because of its sheet height; a native menu lists them all. The MP's
+/// 查看商家主页 action is the card itself here.
 struct NearbyMerchantReplacementLink: View {
     let scope: NearbyMerchantTopicScope
     let memberID: Int
+    let options: [CoopNearbyReplacementOption]
+    let choose: (CoopNearbyReplacementOption) -> Void
+    @Environment(\.locale) private var locale
     var body: some View {
-        if let context = scope.replacementContext {
-            NavigationLink {
-                ChapterReplacementInvitationEntry(context: context, topicID: scope.topic.topicID, merchantAccess: nil)
+        if scope.replacementContext != nil, !options.isEmpty {
+            Menu {
+                Section("merchantCoop.nearby.topic.replacement.sheetTitle") {
+                    ForEach(options) { option in
+                        Button { choose(option) } label: {
+                            Text(verbatim: option.label(chinese: LocaleDisplay.isChinese(locale)))
+                        }
+                        .accessibilityIdentifier("nearbyMerchant.replacement.\(memberID).\(option.replacementOfOfferID)")
+                    }
+                }
             } label: {
                 Label("merchantCoop.nearby.topic.replacement", systemImage: "arrow.triangle.2.circlepath")
                     .frame(minHeight: CYSpacing.minTouchTarget)
@@ -128,11 +145,25 @@ struct NearbyMerchantReplacementLink: View {
     }
 }
 
+/// The C9 screen opened from a chosen 邀请补位 option (pushed by `NearbyMerchantView`).
+struct NearbyMerchantReplacementDestination: View {
+    let scope: NearbyMerchantTopicScope
+    let option: CoopNearbyReplacementOption
+    var body: some View {
+        if let context = scope.replacementContext {
+            ChapterReplacementInvitationEntry(context: context, topicID: scope.topic.topicID, merchantAccess: nil, focus: option)
+        } else {
+            Text("coopflow.nearby.unavailable")
+        }
+    }
+}
+
 /// Invitable merchants outside the nearby radius (MP: merged rows with no distance sort last).
 struct NearbyMerchantInvitableOnlyRows: View {
     let scope: NearbyMerchantTopicScope
     let rows: [NearbyMerchantInvitableRow]
     let publicMerchant: PublicMerchantHomeContext
+    let chooseReplacement: (CoopNearbyReplacementOption) -> Void
     @Environment(\.locale) private var locale
     var body: some View {
         ForEach(rows) { row in
@@ -143,7 +174,9 @@ struct NearbyMerchantInvitableOnlyRows: View {
                     } label: { label(row) }
                     .accessibilityIdentifier("nearbyMerchant.invitable.\(row.memberID)")
                 } else { label(row) }
-                if row.hasReplacement { NearbyMerchantReplacementLink(scope: scope, memberID: row.memberID) }
+                if row.hasReplacement {
+                    NearbyMerchantReplacementLink(scope: scope, memberID: row.memberID, options: row.replacements, choose: chooseReplacement)
+                }
             }
         }
     }
