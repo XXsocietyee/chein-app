@@ -104,14 +104,28 @@ Proof: `Tests/AppUnitTests/ReleasePlayerServiceAuditTests.swift`.
 | Shop NPC reply playback | off | off | off by design | Unchanged. Reply audio stays off. |
 | Literal US-market reviewedDeployment | n/a | off | off by design | Unchanged. Not the release path. Player leases stay nil because the market is not China. |
 
+## Merged tip
+
+`origin/ui/combined-r7` at `e9296b463` is merged in (no rebase). It did not add a composition switch. The player-facing additions ride grants already in the table:
+
+| Addition | Classification | Grant it rides |
+|---|---|---|
+| Play-kit sensor skip (`canSkip`, failed-read report) | on | Play kit sensors |
+| 联系主办 / 联系商家 (`api/play/contact`) | on | Player write grant (`playRuntimeReadPaths`) |
+| Nearby team command recovery panel | on | Nearby team read and write (local journal; no new approval) |
+| AI 对话记录 clear count | on | `npcChatLogDeletionApproval` (`api/ai/npc/chat/data/delete`), issued for a China player or club |
+
+None of these was off by mistake. Merchant center, money, security, and account deletion stay as they were.
+
 ## Left off on purpose
 
 Merchant center (Release flag), merchant operations and merchant coupon management for a player, order payment approvals, external checkout, self-play payment, bank withdrawal, signup payment, workshop paid install, workshop purchased packages, bundle approvals, virtual-goods and other money switches, account deletion, password login and the other security gates, journey reads and journey images, native platform acceptance, walking navigation, personal location share, project topic image, nearby merchant location, private home, owner refund except where its existing money switch is already on, the city board (empty region), own-media status writes, owner-draft save/delete, and shop NPC reply playback.
 
 ## Gates
 
+After merging `origin/ui/combined-r7` (`e9296b463`):
+
 `python3 tools/check_scaffold.py` PASS (AppSession ratchet PASS, AppCompositionRoot stays at 4175).
 `python3 tools/check_a11y_lint.py` PASS (0 new).
-`python3 tools/contract_ratchet.py --check` 52 failing, baseline 52, new 0, fixed 0.
-`python3 tools/generate_project.py` regenerated the project for the new Swift files.
-`swiftc` and `swift test` are not on this machine. The new tests are source-checked by the contract and scaffold gates; the coordinator compiles them on a Mac.
+`python3 tools/contract_ratchet.py --check` 46 failing, baseline 46, new 0, fixed 0. The baseline drop came in with the merged ratchet burn-down; this branch added none.
+`swiftc` and `swift test` are not on this machine. The coordinator compiles the new tests on a Mac.

@@ -266,6 +266,21 @@ import XCTest
         XCTAssertTrue(source.contains("#else\n    public static let merchantCenterEnabled = false\n    #endif"))
     }
 
+    /// The combined-r7 tip after this branch (sensor skip, play contact, team-command recovery, AI chat clear)
+    /// did not add a new composition switch. Each rides a grant the census already marks on.
+    func testCombinedR7PlayerAdditionsRideExistingGrants() throws {
+        let (_, root) = try releaseRoot()
+        let context = try playerContext(root, market: .china)
+        let grant = try XCTUnwrap(root.playerWriteGrant(context))
+        XCTAssertTrue(grant.play.paths.contains("api/play/contact"), "play contact row")
+        XCTAssertEqual(root.sessionDependencies(context).configuration?.sensors, ReviewedProductionGateLeases.playSensors, "sensor skip")
+        XCTAssertNotNil(root.nearbyTeamReadApproval(context), "team command recovery")
+        XCTAssertNotNil(root.nearbyTeamWriteApproval(context), "team command recovery")
+        XCTAssertTrue(root.releaseAINPCEnabled(context), "AI chat clear")
+        let deletion = try XCTUnwrap(ReviewedProductionGateLeases.npcChatLogDeletionApproval(context))
+        XCTAssertTrue(deletion.paths.contains("api/ai/npc/chat/data/delete"))
+    }
+
     private func merchantCenterIsOnInReleaseSource() throws -> Bool {
         let text = try source("Core/PlayerLaunch.swift")
         return !text.contains("#else\n    public static let merchantCenterEnabled = false\n    #endif")
