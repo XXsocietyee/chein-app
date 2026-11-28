@@ -243,6 +243,12 @@ import SwiftUI
 struct PublishingTopicRewardsForm: View {
     @Binding var rewards: PublishingTopicRewards
     var fullEdit: Bool
+    @Environment(\.rewardCouponSource) private var couponSource
+    @State private var couponName = ""
+    private var couponText: Binding<String> {
+        Binding(get: { rewards.couponID > 0 ? String(rewards.couponID) : "" },
+                set: { rewards.couponID = Int($0) ?? 0 })
+    }
     var body: some View {
         Section("publishModes.rewards") {
             Toggle("publishModes.selfPlay", isOn: $rewards.selfPlay)
@@ -253,8 +259,14 @@ struct PublishingTopicRewardsForm: View {
             TextField("publishModes.medalName", text: $rewards.medalName)
             TextField("publishModes.medalImage", text: $rewards.medalImage).textInputAutocapitalization(.never).autocorrectionDisabled()
             Text("publishModes.uploadDisabled").font(.footnote).foregroundStyle(.secondary)
-            TextField("publishModes.coupon", value: $rewards.couponID, format: .number).keyboardType(.numberPad)
-            Text("publishModes.couponNotice").font(.footnote).foregroundStyle(.secondary)
+            if let couponSource {
+                // MP runtime-editor.wxml:28 主题通关奖励: cy-reward-selector, occasion topic, placeholder 选择优惠券.
+                RewardCouponSelectorRow(source: couponSource, couponID: couponText, couponName: $couponName,
+                                        label: "rewardCoupon.label.default", occasion: "rewardCoupon.occasion.topic")
+            } else {
+                TextField("publishModes.coupon", value: $rewards.couponID, format: .number).keyboardType(.numberPad)
+                Text("publishModes.couponNotice").font(.footnote).foregroundStyle(.secondary)
+            }
         }.disabled(!fullEdit)
     }
 }

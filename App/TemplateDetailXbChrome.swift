@@ -155,7 +155,9 @@ struct TemplateCapabilityRows: View {
             Spacer(minLength: 0)
             if row.collapsible {
                 Button { if open { expanded.remove(row.key) } else { expanded.insert(row.key) } } label: {
-                    if open { Text("u10.template.cap.collapse") } else { Text("u10.template.cap.expand") }
+                    Text(open ? LocalizedStringKey("u10.template.cap.collapse") : LocalizedStringKey("u10.template.cap.expand"))
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
                 .font(.footnote)

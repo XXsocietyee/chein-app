@@ -19,18 +19,20 @@ struct SettingsView: View {
     @State private var contractNickname: String?
     /// Level is not on the contract. Kept from the signed-in account only after that read succeeds.
     @State private var contractLevel: Int?
+    /// mp-mine r3 (ADA e4-settings): user-info `avatar`, so the account row shows the same photo as the Me card.
+    @State private var contractAvatar: String?
 #if DEBUG
     /// Design fixtures only: stub signed-in identity and search text injected into the real page.
     struct DesignOverride { var nickname = "Mia Chen"; var level = 7; var query = "" }
     var designOverride: DesignOverride?
 #endif
 
-    private var accountInfo: (nickname: String, level: Int)? {
+    private var accountInfo: (nickname: String, level: Int, avatar: String?)? {
 #if DEBUG
-        if let designOverride { return (designOverride.nickname, designOverride.level) }
+        if let designOverride { return (designOverride.nickname, designOverride.level, nil) }
 #endif
         guard readyAccountProfile != nil, let nickname = contractNickname, !nickname.isEmpty else { return nil }
-        return (nickname, contractLevel ?? 0)
+        return (nickname, contractLevel ?? 0, contractAvatar)
     }
 
     private var readyAccountProfile: SettingsAccountProfile? {
@@ -56,21 +58,21 @@ struct SettingsView: View {
         Section {
             if showsAccountCard, let info = accountInfo {
                 if let route = profileOwner.route(.current(session)) {
-                    // MP shezhi.wxml:14: the merchant row (品牌中心) carries icon_lc_store; players keep the initial avatar.
+                    // MP shezhi.wxml:14: the merchant row (品牌中心) carries icon_lc_store; players show their avatar (Me card photo / MP default).
                     if !isPushed {
-                        NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true,
+                        NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, avatar: info.avatar, tappable: true,
                                                                            brandMark: route.access.target == .brand) }
                             .accessibilityIdentifier("settingsNative.openProfile")
                     } else {
                         NavigationLink {
                             ProfileSettingsProfileSessionDestination(session: session, route: route, owner: profileOwner)
                         } label: {
-                            SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true, brandMark: route.access.target == .brand)
+                            SettingsAccountCard(nickname: info.nickname, level: info.level, avatar: info.avatar, tappable: true, brandMark: route.access.target == .brand)
                         }
                         .accessibilityIdentifier("settingsNative.openProfile")
                     }
                 } else {
-                    SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: false)
+                    SettingsAccountCard(nickname: info.nickname, level: info.level, avatar: info.avatar, tappable: false)
                 }
             } else if showsSignedOut {
                 // B-SZ-04: the MP signed-out row starts sign-in.
@@ -163,6 +165,7 @@ struct SettingsView: View {
             accountAccess = session.account == nil ? .signedOut : .failed
             contractNickname = nil
             contractLevel = nil
+            contractAvatar = nil
             return
         }
         do {
@@ -173,14 +176,17 @@ struct SettingsView: View {
                 accountAccess = .signedOut
                 contractNickname = nil
                 contractLevel = nil
+                contractAvatar = nil
             case .denied:
                 accountAccess = .denied
                 contractNickname = nil
                 contractLevel = nil
+                contractAvatar = nil
             case .failed:
                 accountAccess = .failed
                 contractNickname = nil
                 contractLevel = nil
+                contractAvatar = nil
             case .ready(let read):
                 let form = AccountPublishMPContract.settingsProfileForm(from: data)
                 let home = AccountPublishMPContract.homeAccount(from: data)
@@ -189,11 +195,13 @@ struct SettingsView: View {
                 let nickname = form?.nickname.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 contractNickname = nickname.isEmpty ? nil : nickname
                 contractLevel = session.account?.level
+                contractAvatar = home?.avatar
             }
         } catch {
             accountAccess = .failed
             contractNickname = nil
             contractLevel = nil
+            contractAvatar = nil
         }
     }
 
@@ -393,28 +401,32 @@ extension EnvironmentValues {
     }
 }
 
-/// Account header row, as the Apple Account row at the top of iOS Settings: round initial avatar, name, level.
+/// Account header row, as the Apple Account row at the top of iOS Settings: round avatar, name, level.
 struct SettingsAccountCard: View {
     let nickname: String
     let level: Int
+    /// User-info `avatar` (https only). Nil or a failed load keeps the MP default avatar (`d_profile`), as the Me card.
+    var avatar: String? = nil
     let tappable: Bool
     /// Merchant view: MP `icon_lc_store` in place of the initial.
     var brandMark = false
     @Environment(\.locale) private var locale
     /// a11y-dt r3: the initial is `.title`, so the 60 pt circle grows with it instead of clipping at AX sizes.
-    @ScaledMetric(relativeTo: .title) private var avatar: CGFloat = 60
+    @ScaledMetric(relativeTo: .title) private var avatarSide: CGFloat = 60
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             Group {
                 if brandMark {
                     MPAsset.FeatureIcon.iconLcStore.resizable().scaledToFit().padding(16)
                 } else {
-                    Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
+                    // mp-mine r3 (ADA e4-settings): one avatar object — the Me card's photo / MP default, not a lettermark.
+                    SettingsAccountAvatar(url: MemberIdentityCardSection.remoteAvatarURL(avatar))
                 }
             }
                 .font(.title.weight(.semibold)).foregroundStyle(.secondary)
-                .frame(width: avatar, height: avatar)
+                .frame(width: avatarSide, height: avatarSide)
                 .background(.quaternary, in: Circle())
+                .clipShape(Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale).font(.title3.weight(.semibold)).foregroundStyle(.primary)
@@ -427,6 +439,25 @@ struct SettingsAccountCard: View {
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(tappable ? .isButton : .isStaticText)
+    }
+}
+
+/// Settings account row avatar: MP default `d_profile` underneath, the remote photo over it once it loads.
+private struct SettingsAccountAvatar: View {
+    let url: URL?
+    var body: some View {
+        ZStack {
+            MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+            if let url {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image {
+                        image.resizable().scaledToFill()
+                    } else {
+                        Color.clear
+                    }
+                }
+            }
+        }
     }
 }
 

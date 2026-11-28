@@ -128,6 +128,7 @@ struct RoamCreatedStampReadOwner: Hashable {
             if let stamp = lookup.stamp, album.reader.isConfigured {
                 RoamStampCard(stamp: stamp, offline: album.reader.isOfflineExample)
                     .cyStampSlam(trigger: true)
+                    .roamStampCollectedBurst(true)
                     .accessibilityIdentifier("roam.createdStamp.match")
             }
             CYPillButton("action.retry", style: .tertiary, systemImage: "arrow.clockwise") { refresh() }

@@ -32,7 +32,7 @@ class ClubMemberDisplayTests(unittest.TestCase):
     def test_metadata_is_bilingual_with_exact_interpolation_types(self):
         strings = json.loads((ROOT / "Resources/Localizable.xcstrings").read_text())["strings"]
         expected = {
-            "club.memberLevel %lld": {"en": "Level %lld", "zh-Hans": "等级 %lld"},
+            "club.memberLevel %lld": {"en": "Lv.%lld", "zh-Hans": "Lv.%lld"},
             "club.memberJoined %@": {"en": "Joined %@", "zh-Hans": "加入 %@"},
         }
         for key, languages in expected.items():
@@ -53,9 +53,9 @@ class ClubMemberDisplayTests(unittest.TestCase):
 
     def test_existing_ui_flow_asserts_display_and_suppression(self):
         source = (ROOT / "Tests/AppUITests/ModuleFlowTests.swift").read_text()
-        for token in ['creator.contains("Level 7")', 'creator.contains("2026-01-01")',
-                      'administrator.contains("Level 4")', 'administrator.contains("Joined 2026-02-03 10:15:00")',
-                      'ordinary.contains("Level 0")', 'ordinary.contains("Joined")']:
+        for token in ['creator.contains("Lv.7")', 'creator.contains("2026-01-01")',
+                      'administrator.contains("Lv.4")', 'administrator.contains("Joined 2026-02-03 10:15:00")',
+                      'ordinary.contains("Lv.0")', 'ordinary.contains("Joined")']:
             self.assertIn(token, source)
 
 

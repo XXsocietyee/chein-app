@@ -49,6 +49,19 @@ private final class RoamDormantSpyTransport: HTTPTransport {
         XCTAssertEqual(try RoamExperienceMutation.reveal(sessionID: 0, tiles: ["s000000", "s000001"]).fields(), ["sessionId": "0", "tiles": "s000000,s000001"])
         XCTAssertEqual(try RoamExperienceMutation.finish(sessionID: 1, poiIDs: [3, 4], distanceMeters: 210).fields(), ["sessionId": "1", "poiIds": "3,4", "distanceM": "210"])
     }
+    /// Planning audit R-02f+ (MP pages/roam/index.js sendFinish): `track` = JSON `[[lat,lng],…]`, ≤600 points plus the last.
+    func testFinishCarriesTheThinnedTrackLikeTheMP() throws {
+        let a = try XCTUnwrap(RoamCoordinate(latitude: 31.5, longitude: 121.25))
+        let b = try XCTUnwrap(RoamCoordinate(latitude: 31.75, longitude: 121.5))
+        let fields = try RoamExperienceMutation.finish(sessionID: 1, poiIDs: [], distanceMeters: 40, track: [a, b]).fields()
+        XCTAssertEqual(fields["track"], "[[31.5,121.25],[31.75,121.5]]")
+        XCTAssertNil(try RoamExperienceMutation.finish(sessionID: 1, poiIDs: [], distanceMeters: 0, track: [a]).fields()["track"])
+        let long = (0..<1500).map { _ in a } + [b]
+        let kept = RoamExperienceMutation.finishTrack(long)
+        XCTAssertLessThanOrEqual(kept.count, 601)
+        XCTAssertEqual(kept.last, b)
+        XCTAssertEqual(RoamExperienceMutation.finishTrack([a, b]), [a, b])
+    }
     func testDiscoverShopAndPresenceKeepSourceTypesAndDatumExplicit() throws {
         let coordinates = try fix()
         XCTAssertEqual(try RoamExperienceMutation.discover(sessionID: 1, poiID: 2, fix: coordinates).fields(), ["sessionId": "1", "poiId": "2", "lat": "1.0", "lng": "2.0"])

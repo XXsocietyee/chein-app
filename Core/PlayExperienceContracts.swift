@@ -648,6 +648,29 @@ public enum PlayCouponToast {
     }
 }
 
+/// mp-journey r3: MP `cy-ai-score-card` (AI 参考分). The photo receipt (`/api/play/photo` data) may carry
+/// `aiScore {score, comment, note}`; MP `_applyAiScore` keeps it on that node only when `score > 0` and never invents a
+/// placeholder. Display only: it does not decide completion (最终以商家审核为准).
+public struct PlayAIScoreCard: Equatable, Sendable {
+    public let nodeID: Int
+    public let score: Double
+    public let comment: String
+    /// Server note; nil means the MP default (最终以商家审核为准), localized by the view.
+    public let note: String?
+
+    public init?(receipt: PlayWireValue?) {
+        guard let receipt, let nodeID = receipt["nodeId"].tolerantInteger else { return nil }
+        let ai = receipt["aiScore"]
+        let raw: Double? = ai["score"].double ?? ai["score"].text.flatMap { Double($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+        guard let score = raw, score.isFinite, score > 0 else { return nil }
+        self.nodeID = nodeID
+        self.score = score
+        self.comment = (ai["comment"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let note = (ai["note"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        self.note = note.isEmpty ? nil : note
+    }
+}
+
 /// Reward drop receipt attached to completion responses (`reward["drop"]`).
 public struct PlayRewardDrop: Equatable, Sendable {
     public let dropType: Int

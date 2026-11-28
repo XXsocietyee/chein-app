@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Available Coop Activities"
+            "value": "Available co-op activities"
           }
         },
         "zh-Hans": {
@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No Sessions Available"
+            "value": "No sessions available"
           }
         },
         "zh-Hans": {
@@ -342,7 +342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Missing Route or Session Info"
+            "value": "Route or session info is missing"
           }
         },
         "zh-Hans": {
@@ -582,7 +582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Select Replacement Action"
+            "value": "Choose a replacement action"
           }
         },
         "zh-Hans": {
@@ -886,7 +886,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Buy Ticket for This Session"
+            "value": "Buy a ticket for this session"
           }
         },
         "zh-Hans": {

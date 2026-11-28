@@ -36,7 +36,7 @@ import UIKit
                         preferenceModel: { nodeID in session.playPreference(scope: scope, nodeID: nodeID, lifetime: model.makeInteractionLifetime()) },
                         summaryModel: { session.playOperatingSummary(topicID: $0) },
                         playerModel: session.playPlayer(scope: scope),
-                        circleModel: session.playCircle(topicID: model.snapshot?.result.topicID) ?? session.productionPlayCircle(topicID: model.snapshot?.result.topicID),
+                        circleModel: session.productionPlayCircle(topicID: model.snapshot?.result.topicID) ?? session.playCircle(topicID: model.snapshot?.result.topicID),
                         finishRouteModel: finishRoute,
                         themeRecordsModel: auxiliary.records,
                         backpackModel: auxiliary.backpack,
@@ -95,7 +95,7 @@ import UIKit
     private func consumeInviteCode(scope: PlaySessionScope) async {
         guard !consumedInviteCode, let code = inviteCode?.trimmingCharacters(in: .whitespacesAndNewlines), !code.isEmpty,
               case .topic(let topicID) = scope,
-              let circle = session.playCircle(topicID: topicID) ?? session.productionPlayCircle(topicID: topicID) else { return }
+              let circle = session.productionPlayCircle(topicID: topicID) ?? session.playCircle(topicID: topicID) else { return }
         consumedInviteCode = true
         await circle.loadOffers()
         await circle.open(inviteCode: code)

@@ -51,7 +51,8 @@ struct ProfileReadScreen<Value, Content: View>: View {
         }
         .refreshable { await loadOwner.run { await reload(keepingValue: true) } }
         .toolbar {
-            if showsRefreshButton {
+            // mp-states: a full-page failure already carries 重试 (or 登录); the ↻ shows only over loaded content.
+            if showsRefreshButton && value != nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload(keepingValue: true) } }
                         .disabled(isLoading || !reader.isConfigured || reader.identity == nil)
