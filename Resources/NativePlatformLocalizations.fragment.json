@@ -916,7 +916,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The service window changed. The old reminder was cancelled; review the new time."
+          "value": "The service window changed. The old reminder was canceled; review the new time."
         }
       },
       "zh-Hans": {

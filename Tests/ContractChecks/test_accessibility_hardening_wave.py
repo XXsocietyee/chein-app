@@ -81,6 +81,11 @@ class FPA4ActivityDetail(unittest.TestCase):
         # mp-home r3 continue: the MP detail has no embedded map (集合点 opens Maps), so no map can trap focus;
         # the meeting-point row says what it does.
         self.assertNotIn('Map(initialPosition', s)
+        # continue 36: the 集合点 snippet is the shared static map (no gestures, no hit testing), labelled + hinted.
+        snippet = src('App/HomeTodayMeetingPointMap.swift')
+        self.assertIn('interactionModes: []', snippet)
+        self.assertIn('.allowsHitTesting(false)', snippet)
+        self.assertIn('.accessibilityHint(', snippet)
         self.assertIn('accessibilityHint(Text("activity.meetingPoint.openMaps"))', s)
         self.assertIn('enum ActivityLocationAccessibility', s)
 

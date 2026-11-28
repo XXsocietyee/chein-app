@@ -48,7 +48,8 @@ enum DesignFixtureRegistry {
         case "d2-inbox-loading": return AnyView(D2Fixture(screen: .inboxLoading))
         case "nearby-empty": return AnyView(NearbyTeamFixtureRoot(emptyMine: true).themeDomain(.player))
         case "d2-me": return AnyView(D2Fixture(screen: .me))
-        case "d2-roam": return AnyView(D2Fixture(screen: .roam))
+        // mp-roam r3 (ADA 1128 d2-roam P0): the shipping 漫游 tab root (map home), not the legacy roam browser.
+        case "d2-roam": return AnyView(RoamMapHomeFixture())
         // Wave 3 B2: Today card tap with a self-playing synthetic finger (loops every 2.6 s).
         case "wave-today-roam": return AnyView(WaveTodayFixture(kind: .roam))
         case "wave-today-ticket": return AnyView(WaveTodayFixture(kind: .ticket))
@@ -131,7 +132,8 @@ enum DesignFixtureRegistry {
         case "merchant-coupons": return merchantCouponFixture()
         case "d6-play": return AnyView(D6MapFixture(kind: .play))
         case "d6-play-loading": return AnyView(D6MapFixture(kind: .playLoading))
-        case "d6-roam": return AnyView(D6MapFixture(kind: .roam))
+        // mp-roam r3: the same map home with nothing nearby (MP P-26 empty 附近活动 peek).
+        case "d6-roam": return AnyView(RoamMapHomeFixture(nearbyEmpty: true))
         // mp-roam r3: 漫游记录 (subpackageRoam/history) content / empty / error states for the sweep.
         case "r3-roam-history": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .content), toolsReader: RoamPassportToolsFixtureReader(scenario: .content)) })
         case "r3-roam-history-empty": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .empty)) })

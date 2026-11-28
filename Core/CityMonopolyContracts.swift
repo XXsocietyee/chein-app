@@ -972,9 +972,9 @@ public enum MemberAttributeKey: String, CaseIterable, Decodable, Equatable, Send
         case .explore: return [(10, "迷雾行者", "Fog Walker"), (25, "街巷猎人", "Alley Hunter"), (40, "城市制图师", "City Cartographer"), (50, "雾之尽头", "End of the Fog")]
         case .stamina: return [(10, "健步者", "Brisk Walker"), (25, "城市长跑者", "City Runner"), (40, "铁脚板", "Iron Feet"), (50, "不夜行者", "Night Walker")]
         case .insight: return [(10, "细节控", "Detail Hound"), (25, "侦探", "Detective"), (40, "真相猎手", "Truth Hunter"), (50, "城市解谜王", "City Puzzle King")]
-        case .charm: return [(10, "好搭子", "Good Company"), (25, "局长", "Host"), (40, "人气王", "Crowd Favourite"), (50, "城市名片", "City Ambassador")]
+        case .charm: return [(10, "好搭子", "Good Company"), (25, "局长", "Host"), (40, "人气王", "Crowd Favorite"), (50, "城市名片", "City Ambassador")]
         case .luck: return [(10, "小确幸", "Small Joys"), (20, "锦鲤", "Koi"), (30, "天选", "Chosen")]
-        case .lore: return [(10, "街坊", "Neighbour"), (25, "老城通", "Old-town Guide"), (40, "城市百科", "City Almanac"), (50, "活地图", "Living Map")]
+        case .lore: return [(10, "街坊", "Neighbor"), (25, "老城通", "Old-town Guide"), (40, "城市百科", "City Almanac"), (50, "活地图", "Living Map")]
         }
     }
 }

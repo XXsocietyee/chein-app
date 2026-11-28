@@ -47,6 +47,11 @@ public enum NativeNavigationContract {
             return .routeError(.legacyTeamLink)
         }
         if let kind = NativeContentTarget.Kind.allCases.first(where: { $0.sourcePath == path }) {
+            // mp-nav r3: the MP place link is `poi-detail?poiId=` (poi-detail/index.js:4 "长期契约", mylike.js:435/680,
+            // utils/place-share.js); `?id=` stays the native spelling. A lone canonical poiId is the same place.
+            if kind == .poi, query.keys.sorted() == ["poiId"], let raw = query["poiId"], let id = Int(raw), String(id) == raw {
+                return NativeContentTarget(kind: .poi, id: id).map(NativeEntryIntent.content)
+            }
             // CLB-detail-30 (MP club/detail js:3509-3545): the club share with `postId` and the 带票分享 topic card with
             // `sourceClubId` / `clubCode` are reviewed mini-program pages (MiniProgramPageLink checks every key and id).
             let keys = Set(query.keys)

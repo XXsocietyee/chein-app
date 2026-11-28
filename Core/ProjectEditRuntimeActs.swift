@@ -59,7 +59,7 @@ public enum ProjectEditRuntimeActs {
         return matched
     }
     /// Same gates as `syncChapters` before it rewrites acts. Keys, not the Chinese sentences.
-    private static func refusalBeforeSync(_ author: NativeRuntimeStructureAuthorDraft) -> String? {
+    static func refusalBeforeSync(_ author: NativeRuntimeStructureAuthorDraft) -> String? {
         if author.mode == nil { return Copy.refuseMode }
         let ids = author.nodes.compactMap { $0.localMetadata["id"]?.integer }
         if ids.count != author.nodes.count || ids.contains(where: { $0 < 1 }) || Set(ids).count != ids.count { return Copy.refuseSaveNodes }

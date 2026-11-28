@@ -42,19 +42,20 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
                                 Text("club.home.yours").accessibilityAddTraits(.isHeader)
                             }
                         }
-                        if !discover.isEmpty {
+                        if !discover.isEmpty, yours.isEmpty {
+                            // No header when it is the only section: an empty header still reserves a band.
+                            Section { discoverRows(discover, merchant: merchant) }
+                        } else if !discover.isEmpty {
                             Section {
-                                ForEach(discover, id: \.id) { club in
-                                    ClubDirectoryCard(club: club, style: .discover, viewerIsMerchant: merchant,
-                                                      onOpen: { openedClubID = club.id }, identifier: "club.directory.\(club.id)")
-                                        .cyHeroSource(club.id, in: hero)
-                                }
+                                discoverRows(discover, merchant: merchant)
                             } header: {
-                                if !yours.isEmpty { Text("club.home.discover").accessibilityAddTraits(.isHeader) }
+                                Text("club.home.discover").accessibilityAddTraits(.isHeader)
                             }
                         }
                     }
                 }
+                // Sweep 13:15 (P2): the list starts right under the title, no empty band above the first row.
+                .contentMargins(.top, CYSpacing.sm, for: .scrollContent)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -70,6 +71,14 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
         .onChange(of: reader.clubIdentity) { _, _ in searchText = ""; submittedName = "" }
         .cyDomainScreen(.player)
         .cyPageTitle("club.directory")
+    }
+
+    @ViewBuilder private func discoverRows(_ discover: [ClubRecord], merchant: Bool) -> some View {
+        ForEach(discover, id: \.id) { club in
+            ClubDirectoryCard(club: club, style: .discover, viewerIsMerchant: merchant,
+                              onOpen: { openedClubID = club.id }, identifier: "club.directory.\(club.id)")
+                .cyHeroSource(club.id, in: hero)
+        }
     }
 }
 
@@ -145,18 +154,19 @@ private struct ClubDirectoryCard: View {
         layout {
             Button(action: onOpen) {
                 HStack(spacing: CYSpacing.md) {
-                    Label {
-                        VStack(alignment: .leading, spacing: 2) {
-                            ClubName(value: club.name).font(.headline).multilineTextAlignment(.leading)
-                            if let secondary {
-                                Text(verbatim: secondary)
-                                    .font(.subheadline).foregroundStyle(.secondary)
-                                    .lineLimit(style == .discover ? 2 : 1).monospacedDigit()
-                            }
+                    // Sweep 0446d1c4f en-d4-directory: a List row squeezes a Label icon into its fixed icon column, which
+                    // clipped the 48 pt thumbnail and centred the wrapped meta line. Plain HStack, text leading.
+                    ClubRowThumbnail(url: QuestifyCardArtwork.safeURL(club.cover) ?? QuestifyCardArtwork.safeURL(club.logo))
+                    VStack(alignment: .leading, spacing: 2) {
+                        ClubName(value: club.name).font(.headline)
+                        if let secondary {
+                            Text(verbatim: secondary)
+                                .font(.subheadline).foregroundStyle(.secondary)
+                                .lineLimit(style == .discover ? 2 : 1).monospacedDigit()
                         }
-                    } icon: {
-                        ClubRowThumbnail(url: QuestifyCardArtwork.safeURL(club.cover) ?? QuestifyCardArtwork.safeURL(club.logo))
                     }
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     if style == .yours {
                         Spacer(minLength: 0)
                         Image(systemName: "chevron.right")

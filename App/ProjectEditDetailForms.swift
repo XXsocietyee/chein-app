@@ -406,11 +406,10 @@ import SwiftUI
                 }
             }
             ProjectNodeNarrativeEntry(model: model, chapterID: chapterID, nodeID: nodeID)
-            // fabu 找不到时换个方式: a saved personal topic's saved node only (the author readback is personal scope).
-            if chapterOverride == nil && starterLease == nil && exists && model.draft.owner == .personal,
-               let topicID = model.coordinator.snapshot?.topicID, topicID > 0,
-               let taskID = node.wrappedValue.localMetadata["id"]?.integer, taskID > 0 {
-                OrientAlternativeEditorSection(topicID: topicID, taskID: taskID)
+            // fabu 到达与引导 (index.wxml:1022): 到达地点 · 工作人员引导答题 → 找不到时换个方式 → 备用节点 on one page.
+            if chapterOverride == nil && starterLease == nil && exists {
+                ProjectNodeArrivalEntry(model: model, nodeID: node.wrappedValue.localMetadata["id"]?.integer ?? 0,
+                                        alternative: arrivalAlternative(node.wrappedValue))
             }
             if chapterOverride == nil && starterLease == nil && exists {
                 ProjectNodeNPCEntry(chapterID: chapterID, nodeID: nodeID, nodeName: node.wrappedValue.name, editable: model.fullEdit)
@@ -425,6 +424,12 @@ import SwiftUI
                     model.saveLocal()
                 }.disabled(!model.fullEdit || !exists).accessibilityIdentifier("projectPrepared.saveNodeDraft")
             } }
+    }
+    /// fabu 找不到时换个方式: a saved personal topic's saved node only (the author readback is personal scope).
+    private func arrivalAlternative(_ value: ProjectEditNode) -> ProjectNodeArrivalAlternative? {
+        guard model.draft.owner == .personal, let topicID = model.coordinator.snapshot?.topicID, topicID > 0,
+              let taskID = value.localMetadata["id"]?.integer, taskID > 0 else { return nil }
+        return ProjectNodeArrivalAlternative(topicID: topicID, taskID: taskID)
     }
 }
 
